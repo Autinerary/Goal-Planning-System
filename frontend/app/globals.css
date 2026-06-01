@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Wireframe-style minimalist design */
+:root {
+  --foreground: #000000;
+  --background: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Arial', sans-serif;
+}
+
+/* Checkbox styling to match wireframe */
+input[type="checkbox"] {
+  accent-color: #67e8f9;
+}
+
+/* Custom animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Button hover effects */
+button:hover:not(:disabled) {
+  transition: background-color 0.2s ease;
+}
+
+/* Link hover */
+a:hover {
+  opacity: 0.8;
+}
+
+/* Table styling */
+table {
+  border-spacing: 0;
+}
+
+/* Selection highlight */
+::selection {
+  background-color: #67e8f9;
+  color: black;
+}
