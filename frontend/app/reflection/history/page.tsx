@@ -102,194 +102,220 @@ export default function JournalHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/reflection" className="p-2 border-2 border-black rounded hover:bg-gray-100">
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
-        <h1 className="text-2xl font-bold">Previous Journals</h1>
-        <button 
-          onClick={fetchJournals}
-          className="ml-auto px-3 py-1 text-sm border border-slate-300 rounded hover:bg-slate-100"
-        >
-          Refresh
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
       </div>
-
-      {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="border-2 border-black rounded p-4 text-center">
-          <div className="text-3xl font-bold">{journals.length}</div>
-          <div className="text-sm text-gray-600">Total Entries</div>
-        </div>
-        <div className="border-2 border-black rounded p-4 text-center bg-green-50">
-          <div className="text-3xl font-bold text-green-600">{sentimentCounts.positive}</div>
-          <div className="text-sm text-gray-600">Positive Days</div>
-        </div>
-        <div className="border-2 border-black rounded p-4 text-center bg-yellow-50">
-          <div className="text-3xl font-bold text-yellow-600">{sentimentCounts.neutral}</div>
-          <div className="text-sm text-gray-600">Neutral Days</div>
-        </div>
-        <div className="border-2 border-black rounded p-4 text-center bg-red-50">
-          <div className="text-3xl font-bold text-red-600">{sentimentCounts.negative}</div>
-          <div className="text-sm text-gray-600">Challenging Days</div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        {(['all', 'positive', 'neutral', 'negative'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 border-2 border-black rounded capitalize ${
-              filter === f ? 'bg-gray-200 font-bold' : 'hover:bg-gray-100'
-            }`}
+      
+      <div className="relative z-10 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/reflection" className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg hover:bg-white/20 transition-all">
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="text-4xl">📖</div>
+            <h1 className="text-3xl font-bold text-white">Previous Journals</h1>
+          </div>
+          <button 
+            onClick={fetchJournals}
+            className="ml-auto px-4 py-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white rounded-lg hover:bg-white/20 transition-all text-sm font-medium"
           >
-            {f} ({sentimentCounts[f]})
+            Refresh
           </button>
-        ))}
-      </div>
+        </div>
 
-      {/* Journal List */}
-      <div className="space-y-4">
-        {filteredJournals.map((journal) => {
-          const sentimentData = sentimentIcons[journal.sentiment] || sentimentIcons.neutral
-          const SentimentIcon = sentimentData.icon
-          const isExpanded = expandedId === journal.id
+        {/* Stats Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl p-6 text-center shadow-lg">
+            <div className="text-4xl font-bold text-white mb-2">{journals.length}</div>
+            <div className="text-sm text-slate-300">Total Entries</div>
+          </div>
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-lg border-2 border-green-400/30 rounded-xl p-6 text-center shadow-lg">
+            <div className="text-4xl font-bold text-green-300 mb-2">{sentimentCounts.positive}</div>
+            <div className="text-sm text-green-200">Positive Days</div>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 backdrop-blur-lg border-2 border-yellow-400/30 rounded-xl p-6 text-center shadow-lg">
+            <div className="text-4xl font-bold text-yellow-300 mb-2">{sentimentCounts.neutral}</div>
+            <div className="text-sm text-yellow-200">Neutral Days</div>
+          </div>
+          <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-lg border-2 border-red-400/30 rounded-xl p-6 text-center shadow-lg">
+            <div className="text-4xl font-bold text-red-300 mb-2">{sentimentCounts.negative}</div>
+            <div className="text-sm text-red-200">Challenging Days</div>
+          </div>
+        </div>
 
-          return (
-            <div key={journal.id} className="border-2 border-black rounded-lg overflow-hidden">
-              {/* Header Row */}
-              <div 
-                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50"
-                onClick={() => setExpandedId(isExpanded ? null : journal.id)}
-              >
-                {/* Sentiment Icon */}
-                <div className={`p-2 rounded-full ${sentimentData.bg}`}>
-                  <SentimentIcon className={`w-6 h-6 ${sentimentData.color}`} />
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          {(['all', 'positive', 'neutral', 'negative'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-5 py-2.5 rounded-lg capitalize font-medium transition-all ${
+                filter === f 
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg scale-105' 
+                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+              }`}
+            >
+              {f} ({sentimentCounts[f]})
+            </button>
+          ))}
+        </div>
+
+        {/* Journal List */}
+        <div className="space-y-4">
+          {filteredJournals.map((journal) => {
+            const sentimentData = sentimentIcons[journal.sentiment] || sentimentIcons.neutral
+            const SentimentIcon = sentimentData.icon
+            const isExpanded = expandedId === journal.id
+
+            return (
+              <div key={journal.id} className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
+                {/* Header Row */}
+                <div 
+                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-white/5 transition-all"
+                  onClick={() => setExpandedId(isExpanded ? null : journal.id)}
+                >
+                  {/* Sentiment Icon */}
+                  <div className={`p-3 rounded-full ${sentimentData.bg} shadow-md`}>
+                    <SentimentIcon className={`w-6 h-6 ${sentimentData.color}`} />
+                  </div>
+
+                  {/* Date */}
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Calendar className="w-4 h-4" />
+                    <span className="font-mono text-sm">{journal.date}</span>
+                  </div>
+
+                  {/* Context Badge */}
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${contextTypeColors[journal.contextType] || 'bg-white/20 text-white'}`}>
+                    {journal.contextType}
+                  </span>
+
+                  {/* Context Name */}
+                  <span className="font-medium flex-1 text-white">{journal.contextName}</span>
+
+                  {/* Expand Icon */}
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-white" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-white" />
+                  )}
                 </div>
 
-                {/* Date */}
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span className="font-mono">{journal.date}</span>
+                {/* Summary (always visible) */}
+                <div className="px-5 pb-4 -mt-2">
+                  <p className="text-slate-200 italic">"{journal.summary}"</p>
                 </div>
 
-                {/* Context Badge */}
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${contextTypeColors[journal.contextType] || 'bg-gray-100 text-gray-700'}`}>
-                  {journal.contextType}
-                </span>
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="border-t-2 border-white/20 p-5 bg-white/5">
+                    {/* Questions & Answers */}
+                    {journal.questions && journal.questions.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="font-bold mb-3 text-white">Reflection Responses:</h4>
+                        <div className="space-y-3">
+                          {journal.questions.map((qa, idx) => (
+                            <div key={idx} className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
+                              <div className="font-medium text-cyan-300 text-sm mb-2">{qa.q}</div>
+                              <div className="mt-1 text-slate-200">{qa.a}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Context Name */}
-                <span className="font-medium flex-1">{journal.contextName}</span>
+                    {/* AI Insights */}
+                    {journal.insights && journal.insights.length > 0 && (
+                      <div>
+                        <h4 className="font-bold mb-3 text-white">AI Insights:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {journal.insights.map((insight, idx) => (
+                            <span 
+                              key={idx}
+                              className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-400/30 text-cyan-200 rounded-full text-sm font-medium"
+                            >
+                              💡 {insight}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Expand Icon */}
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5" />
-                ) : (
-                  <ChevronDown className="w-5 h-5" />
+                    {/* View Full Entry Button */}
+                    <div className="mt-6 pt-4 border-t border-white/20">
+                      <Link 
+                        href={`/reflection?contextType=${journal.contextType}&journalId=${journal.id}`}
+                        className="text-cyan-400 hover:text-cyan-300 hover:underline text-sm font-medium flex items-center gap-1"
+                      >
+                        View full entry →
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {/* Summary (always visible) */}
-              <div className="px-4 pb-4 -mt-2">
-                <p className="text-gray-700 italic">"{journal.summary}"</p>
-              </div>
-
-              {/* Expanded Content */}
-              {isExpanded && (
-                <div className="border-t-2 border-black p-4 bg-gray-50">
-                  {/* Questions & Answers */}
-                  {journal.questions && journal.questions.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="font-bold mb-2">Reflection Responses:</h4>
-                      <div className="space-y-3">
-                        {journal.questions.map((qa, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded border">
-                            <div className="font-medium text-gray-600 text-sm">{qa.q}</div>
-                            <div className="mt-1">{qa.a}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* AI Insights */}
-                  {journal.insights && journal.insights.length > 0 && (
-                    <div>
-                      <h4 className="font-bold mb-2">AI Insights:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {journal.insights.map((insight, idx) => (
-                          <span 
-                            key={idx}
-                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
-                          >
-                            💡 {insight}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* View Full Entry Button */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <Link 
-                      href={`/reflection?contextType=${journal.contextType}&journalId=${journal.id}`}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View full entry →
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {filteredJournals.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p>No journal entries found for this filter.</p>
-          <Link href="/reflection" className="text-blue-600 hover:underline mt-2 inline-block">
-            Write your first reflection →
-          </Link>
+            )
+          })}
         </div>
-      )}
 
-      {/* Pattern Summary */}
-      {journals.length > 0 && (
-        <div className="mt-8 border-2 border-black rounded-lg p-6 bg-blue-50">
-          <h3 className="font-bold text-lg mb-4">📊 Detected Patterns</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded border">
-              <div className="font-medium text-green-600">✓ Positive Pattern</div>
-              <div className="text-sm text-gray-600 mt-1">
-                Morning routines correlate with higher productivity ratings
+        {filteredJournals.length === 0 && (
+          <div className="text-center py-16 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl">
+            <div className="text-6xl mb-4">📝</div>
+            <p className="text-slate-300 text-lg mb-4">No journal entries found for this filter.</p>
+            <Link href="/reflection" className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium inline-flex items-center gap-2">
+              Write your first reflection →
+            </Link>
+          </div>
+        )}
+
+        {/* Pattern Summary */}
+        {journals.length > 0 && (
+          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border-2 border-white/20 rounded-xl p-8 shadow-2xl">
+            <h3 className="font-bold text-2xl mb-6 text-white flex items-center gap-2">
+              <span className="text-3xl">📊</span>
+              Detected Patterns
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
+                <div className="font-semibold text-green-300 mb-2 flex items-center gap-2">
+                  <span>✓</span> Positive Pattern
+                </div>
+                <div className="text-sm text-slate-200">
+                  Morning routines correlate with higher productivity ratings
+                </div>
               </div>
-            </div>
-            <div className="bg-white p-4 rounded border">
-              <div className="font-medium text-red-600">⚠ Warning Pattern</div>
-              <div className="text-sm text-gray-600 mt-1">
-                Extended social interactions often lead to next-day fatigue
+              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
+                <div className="font-semibold text-red-300 mb-2 flex items-center gap-2">
+                  <span>⚠</span> Warning Pattern
+                </div>
+                <div className="text-sm text-slate-200">
+                  Extended social interactions often lead to next-day fatigue
+                </div>
               </div>
-            </div>
-            <div className="bg-white p-4 rounded border">
-              <div className="font-medium text-blue-600">💡 Recommendation</div>
-              <div className="text-sm text-gray-600 mt-1">
-                Schedule recovery time after collaborative sessions
+              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
+                <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+                  <span>💡</span> Recommendation
+                </div>
+                <div className="text-sm text-slate-200">
+                  Schedule recovery time after collaborative sessions
+                </div>
               </div>
-            </div>
-            <div className="bg-white p-4 rounded border">
-              <div className="font-medium text-purple-600">🎯 Success Factor</div>
-              <div className="text-sm text-gray-600 mt-1">
-                Connecting with peers who understand your barriers boosts motivation
+              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
+                <div className="font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                  <span>🎯</span> Success Factor
+                </div>
+                <div className="text-sm text-slate-200">
+                  Connecting with peers who understand your barriers boosts motivation
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

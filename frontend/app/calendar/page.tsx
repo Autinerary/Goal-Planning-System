@@ -330,273 +330,336 @@ function CalendarContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
-      {/* Suggestion Modal */}
-      {showSuggestionModal && pendingSuggestion && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-500" />
-                <h3 className="text-xl font-bold">Add to Calendar</h3>
-              </div>
-              <button 
-                onClick={() => {
-                  setShowSuggestionModal(false)
-                  setPendingSuggestion(null)
-                }} 
-                className="p-2 hover:bg-slate-100 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <div className="text-sm font-medium text-purple-900 mb-1">{pendingSuggestion.from}</div>
-                <div className="text-sm text-slate-700">{pendingSuggestion.suggestion}</div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Select Day:</label>
-                <select
-                  id="suggestion-day"
-                  className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500"
-                  defaultValue={currentData.days[0]?.name || 'Monday'}
-                >
-                  {currentData.days.map(day => (
-                    <option key={day.name} value={day.name}>{day.name}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Select Time:</label>
-                <select
-                  id="suggestion-time"
-                  className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500"
-                  defaultValue="14:00"
-                >
-                  {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(time => (
-                    <option key={time} value={time}>{time}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex gap-3 pt-2">
-                <button
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+      </div>
+      <div className="relative z-10">
+        {/* Suggestion Modal */}
+        {showSuggestionModal && pendingSuggestion && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-white/20 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-lg">
+                    <Calendar className="w-6 h-6 text-purple-300" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Add to Calendar</h3>
+                </div>
+                <button 
                   onClick={() => {
                     setShowSuggestionModal(false)
                     setPendingSuggestion(null)
-                  }}
-                  className="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300"
+                  }} 
+                  className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    const daySelect = document.getElementById('suggestion-day') as HTMLSelectElement
-                    const timeSelect = document.getElementById('suggestion-time') as HTMLSelectElement
-                    if (daySelect && timeSelect) {
-                      addSuggestionToCalendar(
-                        pendingSuggestion.suggestion,
-                        pendingSuggestion.from,
-                        daySelect.value,
-                        timeSelect.value
-                      )
-                    }
-                  }}
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center justify-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  Add to Calendar
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </div>
+              
+              <div className="space-y-5">
+                <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl backdrop-blur-sm">
+                  <div className="text-sm font-semibold text-purple-300 mb-2">{pendingSuggestion.from}</div>
+                  <div className="text-sm text-white">{pendingSuggestion.suggestion}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-300">Select Day:</label>
+                  <select
+                    id="suggestion-day"
+                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:outline-none focus:border-purple-500 text-white"
+                    defaultValue={currentData.days[0]?.name || 'Monday'}
+                  >
+                    {currentData.days.map(day => (
+                      <option key={day.name} value={day.name} className="bg-slate-800">{day.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-300">Select Time:</label>
+                  <select
+                    id="suggestion-time"
+                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:outline-none focus:border-purple-500 text-white"
+                    defaultValue="14:00"
+                  >
+                    {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(time => (
+                      <option key={time} value={time} className="bg-slate-800">{time}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowSuggestionModal(false)
+                      setPendingSuggestion(null)
+                    }}
+                    className="flex-1 px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white rounded-lg hover:bg-white/20 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      const daySelect = document.getElementById('suggestion-day') as HTMLSelectElement
+                      const timeSelect = document.getElementById('suggestion-time') as HTMLSelectElement
+                      if (daySelect && timeSelect) {
+                        addSuggestionToCalendar(
+                          pendingSuggestion.suggestion,
+                          pendingSuggestion.from,
+                          daySelect.value,
+                          timeSelect.value
+                        )
+                      }
+                    }}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2 font-semibold"
+                  >
+                    <Check className="w-5 h-5" />
+                    Add to Calendar
+                  </button>
+                </div>
+              </div>
           </div>
         </div>
       )}
-      {/* View Toggle */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
-            className={`px-4 py-2 border-2 border-black rounded ${viewType === 'list' ? 'bg-gray-200' : ''}`}
-          >
-            4. Calendar View 1 - Lists
-          </button>
-          <button
-            onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
-            className={`px-4 py-2 border-2 border-black rounded ${viewType === 'timeblock' ? 'bg-gray-200' : ''}`}
-          >
-            Calendar View 2 - Time Blocks
-          </button>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Calendar</h1>
+          <p className="text-slate-300">Plan your week with personalized schedules</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push(`/calendar?view=${viewType}&comparison=day`)}
-            className={`px-4 py-2 border-2 border-black rounded ${comparisonType === 'day' ? 'bg-blue-200' : ''}`}
-          >
-            Your Day vs. Theirs (Side-by-side)
-          </button>
-          <button
-            onClick={() => router.push(`/calendar?view=${viewType}&comparison=week`)}
-            className={`px-4 py-2 border-2 border-black rounded ${comparisonType === 'week' ? 'bg-blue-200' : ''}`}
-          >
-            Your Week vs. Theirs (Top vs. Bottom)
-          </button>
-        </div>
-      </div>
 
-      <div className="border-2 border-black rounded-lg p-6">
-        {/* Scenario Info Banner */}
-        <div className={`mb-6 p-4 rounded-lg border-2 ${
-          scenario === 'worst' ? 'bg-red-50 border-red-200' :
-          scenario === 'average' ? 'bg-yellow-50 border-yellow-200' :
-          'bg-green-50 border-green-200'
-        }`}>
-          <div className="flex items-center gap-3">
-            <ScenarioIcon className={`w-6 h-6 ${
-              scenario === 'worst' ? 'text-red-500' :
-              scenario === 'average' ? 'text-yellow-600' :
-              'text-green-500'
-            }`} />
-            <div>
-              <h3 className="font-bold capitalize">{scenario} Case Schedule</h3>
-              <p className="text-sm text-gray-600">{currentData.description}</p>
-            </div>
+        {/* View Toggle */}
+        <div className="flex flex-wrap gap-4 mb-8">
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
+              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                viewType === 'list' 
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
+                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+              }`}
+            >
+              📋 List View
+            </button>
+            <button
+              onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
+              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                viewType === 'timeblock' 
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
+                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+              }`}
+            >
+              ⏰ Time Blocks
+            </button>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push(`/calendar?view=${viewType}&comparison=day`)}
+              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                comparisonType === 'day' 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+              }`}
+            >
+              📅 Day Comparison
+            </button>
+            <button
+              onClick={() => router.push(`/calendar?view=${viewType}&comparison=week`)}
+              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                comparisonType === 'week' 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
+                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+              }`}
+            >
+              📊 Week Comparison
+            </button>
           </div>
         </div>
 
-        {comparisonType === 'day' ? (
-          // Side-by-side comparison for a single day
-          <div className="flex gap-6">
-            <div className="flex-1">
-              <h3 className="font-bold mb-3 text-lg">Your Day</h3>
-              {viewType === 'list' ? (
-                <ListView 
-                  days={currentData.days.length > 0 ? [currentData.days[0]] : []} 
-                  completedTasks={completedTasks}
-                  toggleTask={toggleTask}
-                  addedTasks={addedTasks}
-                />
-              ) : (
-                <TimeBlockView 
-                  days={currentData.days.length > 0 ? [currentData.days[0]] : []}
-                  completedTasks={completedTasks}
-                  toggleTask={toggleTask}
-                  addedTasks={addedTasks}
-                />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold mb-3 text-lg">Their Day</h3>
-              <div className="border-2 border-black rounded p-4 bg-gray-50">
-                <p className="text-sm text-gray-600 mb-2">Role Model's / Mentor's schedule:</p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">8:00</span>
-                    <span>Morning routine + exercise</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">9:00</span>
-                    <span>Deep work session</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">12:00</span>
-                    <span>Lunch break</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">14:00</span>
-                    <span>Continue project work</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">16:00</span>
-                    <span>Review & plan tomorrow</span>
-                  </div>
-                </div>
+        {/* Scenario Selector */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <button
+            onClick={() => setScenario('worst')}
+            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              scenario === 'worst' 
+                ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 
+                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+            }`}
+          >
+            <BatteryLow className="w-5 h-5" />
+            Low Energy
+          </button>
+          <button
+            onClick={() => setScenario('average')}
+            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              scenario === 'average' 
+                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
+                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+            }`}
+          >
+            <Battery className="w-5 h-5" />
+            Balanced
+          </button>
+          <button
+            onClick={() => setScenario('best')}
+            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              scenario === 'best' 
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
+                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+            }`}
+          >
+            <Zap className="w-5 h-5" />
+            High Energy
+          </button>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
+          {/* Scenario Info Banner */}
+          <div className={`mb-8 p-5 rounded-xl border-2 backdrop-blur-sm ${
+            scenario === 'worst' ? 'bg-red-500/20 border-red-400/30' :
+            scenario === 'average' ? 'bg-yellow-500/20 border-yellow-400/30' :
+            'bg-green-500/20 border-green-400/30'
+          }`}>
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-lg ${
+                scenario === 'worst' ? 'bg-red-500/30' :
+                scenario === 'average' ? 'bg-yellow-500/30' :
+                'bg-green-500/30'
+              }`}>
+                <ScenarioIcon className={`w-6 h-6 ${
+                  scenario === 'worst' ? 'text-red-300' :
+                  scenario === 'average' ? 'text-yellow-300' :
+                  'text-green-300'
+                }`} />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-white capitalize">{scenario} Case Schedule</h3>
+                <p className="text-sm text-slate-300 mt-1">{currentData.description}</p>
               </div>
             </div>
           </div>
-        ) : (
-          // Top vs. Bottom comparison for week
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-bold mb-3 text-lg">Your Week</h3>
-              {viewType === 'list' ? (
-                <ListView 
-                  days={currentData.days} 
-                  completedTasks={completedTasks}
-                  toggleTask={toggleTask}
-                  addedTasks={addedTasks}
-                />
-              ) : (
-                <TimeBlockView 
-                  days={currentData.days}
-                  completedTasks={completedTasks}
-                  toggleTask={toggleTask}
-                  addedTasks={addedTasks}
-                />
-              )}
-            </div>
-            <div className="border-t-4 border-black pt-6">
-              <h3 className="font-bold mb-3 text-lg">Their Week</h3>
-              <div className="border-2 border-black rounded p-4 bg-gray-50">
-                <p className="text-sm text-gray-600 mb-4">Role Model's / Mentor's weekly schedule:</p>
-                <div className="grid grid-cols-5 gap-4 text-xs">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, idx) => (
-                    <div key={day} className="border border-gray-300 rounded p-2 bg-white">
-                      <div className="font-bold mb-2">{day}</div>
-                      <div className="space-y-1 text-gray-600">
-                        <div>8:00 - Routine</div>
-                        <div>9:00 - Work</div>
-                        <div>12:00 - Break</div>
-                        <div>14:00 - Continue</div>
-                        <div>16:00 - Review</div>
-                      </div>
+
+          {comparisonType === 'day' ? (
+            // Side-by-side comparison for a single day
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
+                  <span className="text-cyan-400">✨</span> Your Day
+                </h3>
+                {viewType === 'list' ? (
+                  <ListView 
+                    days={currentData.days.length > 0 ? [currentData.days[0]] : []} 
+                    completedTasks={completedTasks}
+                    toggleTask={toggleTask}
+                    addedTasks={addedTasks}
+                  />
+                ) : (
+                  <TimeBlockView 
+                    days={currentData.days.length > 0 ? [currentData.days[0]] : []}
+                    completedTasks={completedTasks}
+                    toggleTask={toggleTask}
+                    addedTasks={addedTasks}
+                  />
+                )}
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
+                  <span className="text-purple-400">👥</span> Their Day
+                </h3>
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-400/30">
+                  <p className="text-sm text-purple-200 mb-4 font-medium">Role Model's / Mentor's schedule:</p>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                      <span className="text-purple-300 font-mono font-semibold w-16">8:00</span>
+                      <span className="text-white">Morning routine + exercise</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                      <span className="text-purple-300 font-mono font-semibold w-16">9:00</span>
+                      <span className="text-white">Deep work session</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                      <span className="text-purple-300 font-mono font-semibold w-16">12:00</span>
+                      <span className="text-white">Lunch break</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                      <span className="text-purple-300 font-mono font-semibold w-16">14:00</span>
+                      <span className="text-white">Continue project work</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                      <span className="text-purple-300 font-mono font-semibold w-16">16:00</span>
+                      <span className="text-white">Review & plan tomorrow</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            // Top vs. Bottom comparison for week
+            <div className="space-y-8">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
+                  <span className="text-cyan-400">✨</span> Your Week
+                </h3>
+                {viewType === 'list' ? (
+                  <ListView 
+                    days={currentData.days} 
+                    completedTasks={completedTasks}
+                    toggleTask={toggleTask}
+                    addedTasks={addedTasks}
+                  />
+                ) : (
+                  <TimeBlockView 
+                    days={currentData.days}
+                    completedTasks={completedTasks}
+                    toggleTask={toggleTask}
+                    addedTasks={addedTasks}
+                  />
+                )}
+              </div>
+              <div className="border-t-2 border-white/20 pt-8">
+                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
+                  <span className="text-purple-400">👥</span> Their Week
+                </h3>
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-400/30">
+                  <p className="text-sm text-purple-200 mb-4 font-medium">Role Model's / Mentor's weekly schedule:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
+                      <div key={day} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                        <div className="font-bold mb-2 text-white">{day}</div>
+                        <div className="space-y-1.5 text-slate-200">
+                          <div className="text-purple-300 font-mono">8:00</div>
+                          <div className="text-xs">Routine</div>
+                          <div className="text-purple-300 font-mono">9:00</div>
+                          <div className="text-xs">Work</div>
+                          <div className="text-purple-300 font-mono">12:00</div>
+                          <div className="text-xs">Break</div>
+                          <div className="text-purple-300 font-mono">14:00</div>
+                          <div className="text-xs">Continue</div>
+                          <div className="text-purple-300 font-mono">16:00</div>
+                          <div className="text-xs">Review</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* Scenario Toggle */}
-        <div className="flex justify-center gap-0 mt-6">
-          <div className="border-2 border-black inline-flex rounded overflow-hidden">
-            <button
-              onClick={() => setScenario('worst')}
-              className={`px-4 py-2 border-r-2 border-black flex items-center gap-2 ${scenario === 'worst' ? 'bg-red-100' : 'hover:bg-gray-100'}`}
-            >
-              <BatteryLow className="w-4 h-4" />
-              Worst-Case
-            </button>
-            <button
-              onClick={() => setScenario('average')}
-              className={`px-4 py-2 border-r-2 border-black flex items-center gap-2 ${scenario === 'average' ? 'bg-yellow-100' : 'hover:bg-gray-100'}`}
-            >
-              <Battery className="w-4 h-4" />
-              Average Case
-            </button>
-            <button
-              onClick={() => setScenario('best')}
-              className={`px-4 py-2 flex items-center gap-2 ${scenario === 'best' ? 'bg-green-100' : 'hover:bg-gray-100'}`}
-            >
-              <Zap className="w-4 h-4" />
-              Best Case
-            </button>
-          </div>
-        </div>
 
         {/* Journal Button */}
-        <div className="mt-4 text-center">
-          <Link 
-            href="/reflection?contextType=calendar"
-            className="inline-block border-2 border-black px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-          >
-            Journal / Reflection Window
-          </Link>
+          <div className="mt-8 text-center">
+            <Link 
+              href="/reflection?contextType=calendar"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-amber-200/50 transition-all"
+            >
+              <Calendar className="w-5 h-5" />
+              Journal / Reflection
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -628,41 +691,46 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
 
   return (
     <div>
-      <div className="flex gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {visibleDays.map((day, idx) => (
-          <div key={idx} className="flex-1 border-2 border-black rounded p-4">
-            <div className="mb-3">
-              <h3 className="font-bold text-lg">{day.name}</h3>
-              <div className="text-xs italic text-gray-600">Theme: {day.theme}</div>
-              <div className="text-xs italic text-gray-600">{day.typeOfDay}</div>
-              <div className="text-xs italic text-blue-600 mt-1">"{day.motivation}"</div>
+          <div key={idx} className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+            <div className="mb-4 pb-4 border-b border-white/10">
+              <h3 className="font-bold text-xl text-white mb-2">{day.name}</h3>
+              <div className="text-sm italic text-cyan-300 mb-1">Theme: {day.theme}</div>
+              <div className="text-sm italic text-purple-300 mb-2">{day.typeOfDay}</div>
+              <div className="text-sm italic text-pink-300 mt-2">"{day.motivation}"</div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {getTasksForDay(day.name).map((task) => (
                 <div 
                   key={task.id}
-                  className={`flex items-center gap-2 p-2 rounded border ${priorityColors[task.priority] || 'bg-gray-50'} ${
-                    completedTasks.has(task.id) ? 'opacity-50' : ''
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border backdrop-blur-sm transition-all ${
+                    task.priority === 'high' ? 'bg-red-500/20 border-red-400/30' :
+                    task.priority === 'medium' ? 'bg-yellow-500/20 border-yellow-400/30' :
+                    task.priority === 'essential' ? 'bg-orange-500/20 border-orange-400/30' :
+                    'bg-cyan-500/20 border-cyan-400/30'
+                  } ${completedTasks.has(task.id) ? 'opacity-50' : 'hover:bg-white/5'}`}
                 >
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-5 h-5 cursor-pointer accent-cyan-400"
                     checked={completedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <span className="text-xs text-gray-500 font-mono">{task.time}</span>
+                  <span className="text-sm text-cyan-300 font-mono font-semibold w-16">{task.time}</span>
                   <Link 
                     href={`/tasks/${task.id}`}
-                    className={`flex-1 hover:underline ${completedTasks.has(task.id) ? 'line-through' : ''}`}
+                    className={`flex-1 text-white hover:text-cyan-300 transition-colors ${
+                      completedTasks.has(task.id) ? 'line-through' : ''
+                    }`}
                   >
                     {task.name}
                     {(task as any).from && (
-                      <span className="text-xs text-purple-600 ml-2">(from {(task as any).from})</span>
+                      <span className="text-xs text-purple-300 ml-2">(from {(task as any).from})</span>
                     )}
                   </Link>
-                  <span className="text-xs text-gray-500">({task.duration})</span>
+                  <span className="text-xs text-slate-300 bg-white/10 px-2 py-1 rounded">{task.duration}</span>
                 </div>
               ))}
             </div>
@@ -671,23 +739,23 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-center gap-4 mt-4">
+      <div className="flex justify-center items-center gap-4 mt-6">
         <button 
           onClick={() => setCurrentDayIndex(Math.max(0, currentDayIndex - 1))}
           disabled={currentDayIndex === 0}
-          className="p-2 border border-black rounded disabled:opacity-30"
+          className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="py-2 text-sm">
+        <span className="py-2 text-sm text-slate-300 font-medium">
           Days {currentDayIndex + 1}-{Math.min(currentDayIndex + 2, days.length)} of {days.length}
         </span>
         <button 
           onClick={() => setCurrentDayIndex(Math.min(days.length - 2, currentDayIndex + 1))}
           disabled={currentDayIndex >= days.length - 2}
-          className="p-2 border border-black rounded disabled:opacity-30"
+          className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
     </div>
@@ -721,49 +789,56 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-white/20">
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="border-2 border-black p-2 bg-gray-100 w-20">Time</th>
+            <th className="bg-gradient-to-r from-cyan-500/30 to-purple-500/30 backdrop-blur-sm p-3 text-white font-bold w-24 border-b-2 border-white/20">Time</th>
             {days.map((day, idx) => (
-              <th key={idx} className="border-2 border-black p-2 text-left bg-gray-50">
-                <div className="font-bold">{day.name}</div>
-                <div className="text-xs italic font-normal text-gray-600">{day.theme}</div>
-                <div className="text-xs italic font-normal text-gray-500">{day.typeOfDay}</div>
-                <div className="text-xs italic font-normal text-blue-600">"{day.motivation}"</div>
+              <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-white/20">
+                <div className="font-bold text-white text-lg">{day.name}</div>
+                <div className="text-xs italic font-normal text-cyan-300 mt-1">{day.theme}</div>
+                <div className="text-xs italic font-normal text-purple-300">{day.typeOfDay}</div>
+                <div className="text-xs italic font-normal text-pink-300 mt-1">"{day.motivation}"</div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {allTimes.map((time, timeIdx) => (
-            <tr key={timeIdx}>
-              <td className="border-2 border-black p-2 font-bold text-center bg-gray-50">{time}</td>
+            <tr key={timeIdx} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+              <td className="p-3 font-bold text-center bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm text-cyan-300 border-r border-white/10">{time}</td>
               {days.map((day, dayIdx) => {
                 const tasksForDay = getTasksForDay(day.name)
                 const task = tasksForDay.find(t => t.time === time)
                 return (
-                  <td key={dayIdx} className={`border-2 border-black p-2 ${task ? priorityColors[task.priority] : ''}`}>
+                  <td key={dayIdx} className={`p-3 border-r border-white/10 ${
+                    task 
+                      ? task.priority === 'high' ? 'bg-red-500/10' :
+                        task.priority === 'medium' ? 'bg-yellow-500/10' :
+                        task.priority === 'essential' ? 'bg-orange-500/10' :
+                        'bg-cyan-500/10'
+                      : ''
+                  }`}>
                     {task && (
                       <div className={`flex items-start gap-2 ${completedTasks.has(task.id) ? 'opacity-50' : ''}`}>
                         <input 
                           type="checkbox" 
-                          className="w-4 h-4 mt-1 cursor-pointer"
+                          className="w-5 h-5 mt-0.5 cursor-pointer accent-cyan-400"
                           checked={completedTasks.has(task.id)}
                           onChange={() => toggleTask(task.id)}
                         />
                         <div className="flex-1">
                           <Link 
                             href={`/tasks/${task.id}`}
-                            className={`hover:underline block ${completedTasks.has(task.id) ? 'line-through' : ''}`}
+                            className={`text-white hover:text-cyan-300 transition-colors block ${completedTasks.has(task.id) ? 'line-through' : ''}`}
                           >
                             {task.name}
                             {(task as any).from && (
-                              <span className="text-xs text-purple-600 ml-1">(from {(task as any).from})</span>
+                              <span className="text-xs text-purple-300 ml-1">(from {(task as any).from})</span>
                             )}
                           </Link>
-                          <span className="text-xs text-gray-500">({task.duration})</span>
+                          <span className="text-xs text-slate-300 mt-1 block">{task.duration}</span>
                         </div>
                       </div>
                     )}

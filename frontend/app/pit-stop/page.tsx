@@ -356,22 +356,29 @@ function PitStopContent() {
   }, [activeCallId])
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+      </div>
+      <div className="relative z-10">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Pit Stop</h1>
-          <p className="text-slate-600">Your hub for tools and connections</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Pit Stop</h1>
+          <p className="text-slate-300">Your hub for tools and connections</p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-4 mb-6 border-b-2 border-slate-200">
+        <div className="flex gap-4 mb-6 border-b-2 border-slate-600">
           <button
             onClick={() => setActiveTab('tools')}
             className={`px-6 py-3 font-medium transition-all border-b-2 ${
               activeTab === 'tools'
-                ? 'border-cyan-500 text-cyan-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-cyan-400 text-cyan-400'
+                : 'border-transparent text-slate-400 hover:text-slate-300'
             }`}
           >
             Tools & Resources
@@ -380,8 +387,8 @@ function PitStopContent() {
             onClick={() => setActiveTab('haveworld')}
             className={`px-6 py-3 font-medium transition-all border-b-2 ${
               activeTab === 'haveworld'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-purple-400 text-purple-400'
+                : 'border-transparent text-slate-400 hover:text-slate-300'
             }`}
           >
             3.5. Pit Stop #2: Have World
@@ -467,7 +474,7 @@ function PitStopContent() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Find/Search people or groups..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-slate-900 placeholder-slate-400"
                 />
               </div>
             </div>
@@ -1365,7 +1372,7 @@ function PitStopContent() {
                     value={codeInput}
                     onChange={(e) => setCodeInput(e.target.value)}
                     placeholder="Enter group code"
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider bg-white text-slate-900 placeholder-slate-400"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         if (codeInput === selectedGroupForJoin.code) {
@@ -1766,7 +1773,7 @@ function PitStopContent() {
                         }
                       }}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-green-500"
+                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-green-500 bg-white text-slate-900 placeholder-slate-400"
                     />
                     <button
                       onClick={handleSendMessage}
@@ -2077,7 +2084,7 @@ function PitStopContent() {
                   value={textMemeInput}
                   onChange={(e) => setTextMemeInput(e.target.value)}
                   placeholder="Enter your meme text..."
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-500 resize-none"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-500 resize-none bg-white text-slate-900 placeholder-slate-400"
                   rows={4}
                 />
                 <div className="flex gap-3">
@@ -2127,6 +2134,7 @@ function PitStopContent() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

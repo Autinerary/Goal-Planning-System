@@ -97,6 +97,18 @@ const motivationOptions = [
   },
 ]
 
+// CSS animations for bunny
+const bunnyStyles = `
+  @keyframes bunnyHop {
+    0%, 100% { transform: translateX(-50%) translateY(-50%) translateY(0px); }
+    50% { transform: translateX(-50%) translateY(-50%) translateY(-10px); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+  }
+`
+
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, completeOnboarding, isLoading: authLoading } = useAuth()
@@ -400,70 +412,132 @@ export default function OnboardingPage() {
     )
   }
 
+  const progressPercentage = (currentStep / (steps.length - 1)) * 100
+  
+  // Food items positioned along the path
+  const foodItems = [
+    { emoji: '🥕', position: 12.5 },
+    { emoji: '🍎', position: 25 },
+    { emoji: '🥬', position: 37.5 },
+    { emoji: '🍌', position: 50 },
+    { emoji: '🥕', position: 62.5 },
+    { emoji: '🍓', position: 75 },
+    { emoji: '🥕', position: 87.5 },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-8">
-      {/* Background decorations */}
+    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-100 to-purple-100 text-slate-900 p-4 md:p-8 relative overflow-hidden">
+      {/* Cloudy Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        {/* Clouds */}
+        <div className="absolute top-10 left-10 w-64 h-32 bg-white/40 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute top-32 right-20 w-80 h-40 bg-white/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-72 h-36 bg-white/35 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+        <div className="absolute top-1/3 right-1/3 w-56 h-28 bg-white/40 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4.5s', animationDelay: '0.5s' }} />
+        <div className="absolute bottom-1/4 right-10 w-96 h-44 bg-white/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5.5s', animationDelay: '1.5s' }} />
       </div>
 
-      <div className="relative max-w-2xl mx-auto">
+      <style dangerouslySetInnerHTML={{ __html: bunnyStyles }} />
+      <div className="relative max-w-4xl mx-auto z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-2 text-slate-800">
             Welcome{user?.name ? `, ${user.name}` : ''}! 👋
           </h1>
-          <p className="text-slate-400">Let's build your personalized path to success</p>
+          <p className="text-slate-600 text-lg">Let's build your personalized path to success</p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex justify-between mb-8 relative">
-          {/* Progress Line */}
-          <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-700">
+        {/* Animated Bunny Progress Path */}
+        <div className="mb-12 relative">
+          {/* Path Line */}
+          <div className="relative h-32 md:h-40 bg-gradient-to-r from-green-200 via-green-300 to-green-400 rounded-full shadow-lg border-4 border-green-500/50 overflow-hidden">
+            {/* Grass texture */}
+            <div className="absolute inset-0 bg-gradient-to-b from-green-400/50 to-green-600/30" />
+            
+            {/* Completed path (green) */}
             <div 
-              className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-500"
-              style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+              className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-700 ease-out rounded-l-full"
+              style={{ width: `${progressPercentage}%` }}
             />
+            
+            {/* Finish Line */}
+            <div className="absolute right-0 top-0 h-full w-12 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 border-l-4 border-yellow-700 flex items-center justify-center shadow-lg">
+              <span className="text-2xl font-bold text-yellow-900 drop-shadow-lg">🏁</span>
+            </div>
+            
+            {/* Food Items along the path */}
+            {foodItems.map((food, idx) => (
+              <div
+                key={idx}
+                className="absolute top-1/2 -translate-y-1/2 text-3xl md:text-4xl transition-all duration-500 drop-shadow-lg z-10"
+                style={{ 
+                  left: `${food.position}%`,
+                  transform: `translate(-50%, -50%) ${currentStep >= Math.floor((food.position / 100) * steps.length) ? 'scale(0.8) opacity-60' : 'scale(1) opacity-100'}`,
+                  animation: currentStep >= Math.floor((food.position / 100) * steps.length) ? 'bounce 0.5s' : 'none'
+                }}
+              >
+                {food.emoji}
+              </div>
+            ))}
+            
+            {/* Animated Bunny */}
+            <div
+              className="absolute top-1/2 text-4xl md:text-5xl transition-all duration-700 ease-out drop-shadow-2xl z-20"
+              style={{ 
+                left: `${progressPercentage}%`,
+                transform: 'translateX(-50%)',
+                animation: 'bunnyHop 0.6s ease-in-out infinite'
+              }}
+            >
+              🐰
+            </div>
           </div>
           
-          {steps.map((step, idx) => {
-            const Icon = step.icon
-            const isActive = idx === currentStep
-            const isCompleted = idx < currentStep
-            
-            return (
-              <div key={step.id} className="relative flex flex-col items-center">
+          {/* Step Labels Below Path */}
+          <div className="flex justify-between mt-4 relative">
+            {steps.map((step, idx) => {
+              const Icon = step.icon
+              const isActive = idx === currentStep
+              const isCompleted = idx < currentStep
+              const stepPosition = (idx / (steps.length - 1)) * 100
+              
+              return (
                 <div 
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all z-10 ${
-                    isActive 
-                      ? 'bg-gradient-to-r from-cyan-500 to-purple-500 scale-110' 
-                      : isCompleted 
-                        ? 'bg-green-500' 
-                        : 'bg-slate-700'
-                  }`}
+                  key={step.id} 
+                  className="flex flex-col items-center relative"
+                  style={{ left: `${stepPosition}%`, transform: 'translateX(-50%)' }}
                 >
-                  {isCompleted ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <Icon className="w-5 h-5" />
-                  )}
+                  <div 
+                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-cyan-500 to-purple-500 scale-125 ring-4 ring-cyan-300' 
+                        : isCompleted 
+                          ? 'bg-green-500 scale-110' 
+                          : 'bg-slate-300 scale-100'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                    ) : (
+                      <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isActive ? 'text-white' : 'text-slate-600'}`} />
+                    )}
+                  </div>
+                  <span className={`text-xs mt-1 text-center max-w-[60px] ${isActive ? 'text-slate-800 font-bold' : isCompleted ? 'text-green-600' : 'text-slate-500'}`}>
+                    {step.title}
+                  </span>
                 </div>
-                <span className={`text-xs mt-2 hidden md:block ${isActive ? 'text-white' : 'text-slate-500'}`}>
-                  {step.title}
-                </span>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
         {/* Step Content Card */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white/90 backdrop-blur-lg border-2 border-white/50 rounded-2xl p-6 md:p-8 shadow-2xl">
           {/* Step 0: Role */}
           {currentStep === 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">Tell us about yourself</h2>
-              <p className="text-slate-400 mb-6">Your role helps us personalize your experience.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Tell us about yourself</h2>
+              <p className="text-slate-600 mb-6">Your role helps us personalize your experience.</p>
               
               <div className="grid gap-3">
                 {roles.map((role) => (
@@ -493,38 +567,38 @@ export default function OnboardingPage() {
           {/* Step 1: Location */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">Where are you located?</h2>
-              <p className="text-slate-400 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Where are you located?</h2>
+              <p className="text-slate-600 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">City *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">City *</label>
                   <input
                     type="text"
                     value={formData.location.city}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
                     placeholder="e.g., Toronto"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Province/State *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Province/State *</label>
                   <input
                     type="text"
                     value={formData.location.province}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, province: e.target.value } }))}
                     placeholder="e.g., Ontario"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Country *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Country *</label>
                   <input
                     type="text"
                     value={formData.location.country}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
                     placeholder="e.g., Canada"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
               </div>
@@ -534,13 +608,13 @@ export default function OnboardingPage() {
           {/* Step 2: Barriers */}
           {currentStep === 2 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">What barriers do you face?</h2>
-              <p className="text-slate-400 mb-6">Select all that apply. This helps us find strategies that worked for people like you.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">What barriers do you face?</h2>
+              <p className="text-slate-600 mb-6">Select all that apply. This helps us find strategies that worked for people like you.</p>
               
               <div className="space-y-6">
                 {barrierCategories.map((category) => (
                   <div key={category.name}>
-                    <h3 className="text-sm font-medium text-slate-400 mb-3">{category.name}</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">{category.name}</h3>
                     <div className="flex flex-wrap gap-2">
                       {category.items.map((barrier) => (
                         <button
@@ -549,7 +623,7 @@ export default function OnboardingPage() {
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                             formData.barrierTypes.includes(barrier)
                               ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                              : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
                           }`}
                         >
                           {formData.barrierTypes.includes(barrier) && <Check className="w-4 h-4 inline mr-1" />}
@@ -566,8 +640,8 @@ export default function OnboardingPage() {
           {/* Step 3: Goals */}
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">What are your goals?</h2>
-              <p className="text-slate-400 mb-6">What do you want to achieve? Be specific!</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your goals?</h2>
+              <p className="text-slate-600 mb-6">What do you want to achieve? Be specific!</p>
               
               <div className="space-y-3">
                 {formData.goals.map((goal, idx) => (
@@ -577,7 +651,7 @@ export default function OnboardingPage() {
                       value={goal}
                       onChange={(e) => updateArrayField('goals', idx, e.target.value)}
                       placeholder={`Goal ${idx + 1} (e.g., "Graduate university", "Get a tech job")`}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     />
                     {formData.goals.length > 1 && (
                       <button
@@ -602,8 +676,8 @@ export default function OnboardingPage() {
           {/* Step 4: Dreams */}
           {currentStep === 4 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">What are your dreams?</h2>
-              <p className="text-slate-400 mb-6">Think bigger! Where do you see yourself in 5-10 years?</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your dreams?</h2>
+              <p className="text-slate-600 mb-6">Think bigger! Where do you see yourself in 5-10 years?</p>
               
               <div className="space-y-3">
                 {formData.dreams.map((dream, idx) => (
@@ -613,7 +687,7 @@ export default function OnboardingPage() {
                       value={dream}
                       onChange={(e) => updateArrayField('dreams', idx, e.target.value)}
                       placeholder={`Dream ${idx + 1} (e.g., "Lead a team that values neurodiversity")`}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     />
                     {formData.dreams.length > 1 && (
                       <button
@@ -638,8 +712,8 @@ export default function OnboardingPage() {
           {/* Step 5: Challenges */}
           {currentStep === 5 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">What's currently stopping you?</h2>
-              <p className="text-slate-400 mb-6">Be honest about the obstacles you're facing right now.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">What's currently stopping you?</h2>
+              <p className="text-slate-600 mb-6">Be honest about the obstacles you're facing right now.</p>
               
               <div className="space-y-3">
                 {formData.currentChallenges.map((challenge, idx) => (
@@ -649,7 +723,7 @@ export default function OnboardingPage() {
                       value={challenge}
                       onChange={(e) => updateArrayField('currentChallenges', idx, e.target.value)}
                       placeholder={`Challenge ${idx + 1} (e.g., "Hard to focus in lectures", "Overwhelmed by group projects")`}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                     />
                     {formData.currentChallenges.length > 1 && (
                       <button
@@ -675,8 +749,8 @@ export default function OnboardingPage() {
           {currentStep === 6 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">What motivates you most?</h2>
-                <p className="text-slate-400 mb-6">Understanding your motivation style helps us personalize your plan.</p>
+                <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
+                <p className="text-slate-600 mb-6">Understanding your motivation style helps us personalize your plan.</p>
                 
                 <div className="grid gap-3">
                   {motivationOptions.map((option) => (
@@ -703,8 +777,8 @@ export default function OnboardingPage() {
               </div>
 
               <div className="pt-6 border-t border-white/10">
-                <h2 className="text-2xl font-bold mb-2">What's your current life stage?</h2>
-                <p className="text-slate-400 mb-6">This helps us match you with relevant resources.</p>
+                <h2 className="text-2xl font-bold mb-2 text-slate-800">What's your current life stage?</h2>
+                <p className="text-slate-600 mb-6">This helps us match you with relevant resources.</p>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {lifeStages.map((stage) => (

@@ -21,8 +21,8 @@ const mockMilestones: Record<string, any> = {
       'Submit formal request'
     ],
     tools: [
-      { id: 't1', type: 'service', name: 'University Disability Office', description: 'Free support and accommodations for students with disabilities', rating: 4.5 },
-      { id: 't2', type: 'service', name: 'CADDAC Support Line', description: 'Guidance on accommodation requests for ADHD', url: 'https://caddac.ca', rating: 4.7 },
+      { id: 't1', type: 'service', name: 'University Disability Office', description: 'Free support and accommodations for students with disabilities', rating: 4.5, progress: 65, status: 'in_progress' },
+      { id: 't2', type: 'service', name: 'CADDAC Support Line', description: 'Guidance on accommodation requests for ADHD', url: 'https://caddac.ca', rating: 4.7, progress: 30, status: 'in_progress' },
       { id: 't3', type: 'commentary', name: 'How to Request Accommodations (Video)', description: 'Step-by-step guide from an autistic student who succeeded', url: '#', rating: 4.9 },
       { id: 't4', type: 'commentary', name: 'Accommodation Letter Template', description: 'Sample letter format that has worked for others', rating: 4.6 },
       { id: 't5', type: 'product', name: 'Tiimo App', description: 'Visual planner to track your accommodation request steps', url: 'https://tiimo.dk', rating: 4.8 },
@@ -258,6 +258,8 @@ interface Tool {
   description: string
   url?: string
   rating?: number
+  progress?: number // Progress percentage for this service (0-100)
+  status?: 'not_started' | 'in_progress' | 'completed'
 }
 
 const toolIcons = {
@@ -329,7 +331,14 @@ export default function MilestoneDetailView() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+      </div>
+      <div className="relative z-10">
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link
@@ -490,6 +499,7 @@ export default function MilestoneDetailView() {
           </div>
         </div>
       </div>
+      </div>
     </div>
   )
 }
@@ -499,6 +509,22 @@ function ToolSection({ title, icon: Icon, tools, colorClass }: {
   tools: Tool[]
   colorClass: string 
 }) {
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-500'
+      case 'in_progress': return 'bg-blue-500'
+      default: return 'bg-gray-300'
+    }
+  }
+
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case 'completed': return 'Completed'
+      case 'in_progress': return 'In Progress'
+      default: return 'Not Started'
+    }
+  }
+
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
@@ -506,35 +532,72 @@ function ToolSection({ title, icon: Icon, tools, colorClass }: {
         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       </div>
       <div className="space-y-3">
-        {tools.map((tool) => (
-          <div 
-            key={tool.id} 
-            className={`border rounded-xl p-4 hover:shadow-md transition-all ${colorClass}`}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h4 className="font-semibold text-slate-900 mb-1">{tool.name}</h4>
-                <p className="text-sm text-slate-600 mb-2">{tool.description}</p>
-                {tool.rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span className="text-sm font-medium text-slate-700">{tool.rating}/5</span>
+        {tools.map((tool) => {
+          const progress = tool.progress || 0
+          const status = tool.status || 'not_started'
+          
+          return (
+            <div 
+              key={tool.id} 
+              className={`border-2 rounded-xl p-4 hover:shadow-md transition-all ${colorClass}`}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-slate-900">{tool.name}</h4>
+                    {status !== 'not_started' && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        status === 'completed' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {getStatusText(status)}
+                      </span>
+                    )}
                   </div>
+                  <p className="text-sm text-slate-600 mb-2">{tool.description}</p>
+                  {tool.rating && (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                      <span className="text-sm font-medium text-slate-700">{tool.rating}/5</span>
+                    </div>
+                  )}
+                </div>
+                {tool.url && (
+                  <a
+                    href={tool.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-4 p-2 text-slate-600 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                  </a>
                 )}
               </div>
-              {tool.url && (
-                <a
-                  href={tool.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-4 p-2 text-slate-600 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                </a>
+              
+              {/* Progress Bar for Services */}
+              {tool.type === 'service' && (
+                <div className="mt-3 pt-3 border-t border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-slate-600">Progress</span>
+                    <span className="text-xs font-bold text-slate-700">{progress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${getStatusColor(status)}`}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  {progress > 0 && progress < 100 && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      {progress < 50 ? 'Getting started...' : progress < 90 ? 'Making good progress!' : 'Almost there!'}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

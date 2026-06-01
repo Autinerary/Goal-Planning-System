@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Users, UserCheck, Phone, MessageSquare, Sparkles, Share2, X } from 'lucide-react'
+import { Users, UserCheck, Phone, MessageSquare, Sparkles, Share2, X, BookOpen } from 'lucide-react'
 
 export default function TaskView() {
   const router = useRouter()
@@ -13,6 +13,11 @@ export default function TaskView() {
   const [currentTrickIndex, setCurrentTrickIndex] = useState(0)
   const [showModal, setShowModal] = useState<string | null>(null)
   const [modalData, setModalData] = useState<any>(null)
+  const [isWheelSpinning, setIsWheelSpinning] = useState(false)
+  const [wheelRotation, setWheelRotation] = useState(0)
+  const [todaysMotivation, setTodaysMotivation] = useState<string | null>(null)
+  const [animalAnimation, setAnimalAnimation] = useState<'chicken' | 'horse' | 'bunny'>('chicken')
+  const [currentQuote, setCurrentQuote] = useState<string>('')
 
   const allTricks = [
     ['- Mentality Trick/', '  ADHD Trick/', '  ... Trick or Quote'],
@@ -21,6 +26,57 @@ export default function TaskView() {
     ['- Energy Tip:', '  Take a 5-min walk', '  Movement increases focus'],
     ['- Calm Mind:', '  Box breathing: 4-4-4-4', '  Inhale, hold, exhale, hold'],
   ]
+
+  const motivations = [
+    'Focus on progress, not perfection',
+    'One small step at a time',
+    'Your barriers are your superpowers',
+    'Rest is part of the journey',
+    'Celebrate every win',
+    'You are enough',
+    'Small steps lead to big achievements',
+    'You\'ve got this!',
+  ]
+
+  const helpfulQuotes = [
+    '"The only way to do great work is to love what you do." - Steve Jobs',
+    '"Progress, not perfection." - Unknown',
+    '"You don\'t have to be great to start, but you have to start to be great." - Zig Ziglar',
+    '"The future belongs to those who believe in the beauty of their dreams." - Eleanor Roosevelt',
+    '"It always seems impossible until it\'s done." - Nelson Mandela',
+  ]
+
+  // Set initial quote on client side only (fix hydration error)
+  useEffect(() => {
+    const randomQuote = helpfulQuotes[Math.floor(Math.random() * helpfulQuotes.length)]
+    setCurrentQuote(randomQuote)
+  }, [])
+
+  // Rotate animal animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimalAnimation(prev => {
+        if (prev === 'chicken') return 'horse'
+        if (prev === 'horse') return 'bunny'
+        return 'chicken'
+      })
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const spinWheel = () => {
+    if (isWheelSpinning) return
+    setIsWheelSpinning(true)
+    const spins = 3 + Math.random() * 2 // 3-5 full spins
+    const finalAngle = spins * 360 + Math.random() * 360
+    setWheelRotation(prev => prev + finalAngle)
+    
+    setTimeout(() => {
+      const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)]
+      setTodaysMotivation(randomMotivation)
+      setIsWheelSpinning(false)
+    }, 2000)
+  }
 
   const helperTricks = allTricks[currentTrickIndex]
 
@@ -81,38 +137,112 @@ export default function TaskView() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-8">
-      <h1 className="text-2xl font-bold mb-6">5. Task View</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+      </div>
 
-      <div className="border-2 border-black rounded-lg p-6 max-w-2xl">
-        {/* Task Title */}
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-bold underline">Task:</h2>
-          <div className="h-px bg-black w-32 mx-auto mt-1"></div>
-        </div>
+      {/* Journal Button - Floating on every page */}
+      <Link
+        href={`/reflection?contextType=task&contextId=${params.id}`}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2"
+        title="Journal / Reflection"
+      >
+        <BookOpen className="w-6 h-6" />
+        <span className="hidden sm:inline font-semibold">Journal</span>
+      </Link>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left: Fun Animation */}
-          <div className="flex flex-col items-center">
-            <div className="text-sm italic mb-2">(Fun Animation)</div>
-            {/* Stick figure */}
-            <svg viewBox="0 0 60 100" className="w-24 h-32">
-              <circle cx="30" cy="15" r="12" fill="none" stroke="black" strokeWidth="2"/>
-              <line x1="30" y1="27" x2="30" y2="60" stroke="black" strokeWidth="2"/>
-              <line x1="30" y1="40" x2="10" y2="55" stroke="black" strokeWidth="2"/>
-              <line x1="30" y1="40" x2="50" y2="55" stroke="black" strokeWidth="2"/>
-              <line x1="30" y1="60" x2="15" y2="90" stroke="black" strokeWidth="2"/>
-              <line x1="30" y1="60" x2="45" y2="90" stroke="black" strokeWidth="2"/>
-            </svg>
+      <div className="relative z-10 max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-white">Task View</h1>
+
+        <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
+          {/* Task Title */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Task: Complete Assignment</h2>
+            <div className="h-px bg-white/30 w-32 mx-auto"></div>
           </div>
 
-          {/* Right: Helper Screen / Social Features */}
-          <div className="border-l-2 border-black pl-4">
-            {/* Tabs */}
-            <div className="flex gap-2 mb-3 border-b-2 border-black">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16 mb-8">
+            {/* Left: Animal Dancing Animation */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="text-sm text-slate-300 mb-4 italic">Ultimate Chicken Horse Style</div>
+              <div className="relative w-32 h-32 flex items-center justify-center">
+                {/* Animated Animals */}
+                {animalAnimation === 'chicken' && (
+                  <div className="text-8xl animate-bounce" style={{ animationDuration: '0.8s' }}>
+                    🐔
+                  </div>
+                )}
+                {animalAnimation === 'horse' && (
+                  <div className="text-8xl animate-bounce" style={{ animationDuration: '0.6s' }}>
+                    🐴
+                  </div>
+                )}
+                {animalAnimation === 'bunny' && (
+                  <div className="text-8xl animate-bounce" style={{ animationDuration: '0.7s' }}>
+                    🐰
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Middle: Spinning Motivation Wheel */}
+            <div className="flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 mb-8 md:mb-0">
+              <div className="text-sm text-slate-300 mb-4 font-semibold">Today's Motivation</div>
+              <div className="relative w-40 h-40 flex-shrink-0">
+                {/* Wheel */}
+                <div
+                  className="w-40 h-40 rounded-full border-4 border-white/30 relative overflow-hidden cursor-pointer transition-transform"
+                  style={{
+                    transform: `rotate(${wheelRotation}deg)`,
+                    transition: isWheelSpinning ? 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
+                  }}
+                  onClick={spinWheel}
+                >
+                  {/* Wheel segments */}
+                  <div className="absolute inset-0">
+                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-cyan-500 to-blue-500"></div>
+                    <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-purple-500 to-pink-500"></div>
+                    <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-yellow-500 to-orange-500"></div>
+                    <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-green-500 to-emerald-500"></div>
+                  </div>
+                  {/* Center circle */}
+                  <div className="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center border-2 border-white/20">
+                    <Sparkles className="w-8 h-8 text-yellow-400" />
+                  </div>
+                  {/* Pointer */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-4 border-r-4 border-t-8 border-t-white"></div>
+                </div>
+                {/* Motivation Text */}
+                {todaysMotivation && (
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-cyan-300 font-medium bg-white/10 px-3 py-2 rounded-lg">
+                      {todaysMotivation}
+                    </p>
+                  </div>
+                )}
+                {!todaysMotivation && (
+                  <button
+                    onClick={spinWheel}
+                    disabled={isWheelSpinning}
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {isWheelSpinning ? 'Spinning...' : 'Spin for Motivation'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Helper Screen / Social Features */}
+            <div className="border-l-2 border-white/30 pl-8 md:pl-12 lg:pl-16 mt-8 md:mt-0">
+              {/* Tabs */}
+              <div className="flex gap-2 mb-3 border-b-2 border-white/30">
               <button
                 onClick={() => setActiveTab('helper')}
-                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'helper' ? 'border-black font-bold' : 'border-transparent'}`}
+                className={`px-2 py-1 text-xs border-b-2 transition-colors ${activeTab === 'helper' ? 'border-cyan-400 font-bold text-cyan-300' : 'border-transparent text-slate-400 hover:text-white'}`}
               >
                 Helper
               </button>
@@ -136,23 +266,31 @@ export default function TaskView() {
               </button>
             </div>
 
-            {/* Helper Tab */}
-            {activeTab === 'helper' && (
-              <>
-                <h3 className="font-bold underline mb-2">Helper Screen</h3>
-                <div className="space-y-1 text-sm mb-4">
-                  {helperTricks.map((trick, idx) => (
-                    <div key={idx}>{trick}</div>
-                  ))}
-                </div>
-                <button 
-                  onClick={handleGenerateAnother}
-                  className="border-2 border-black px-3 py-1 rounded text-sm hover:bg-gray-100 cursor-pointer transition-colors"
-                >
-                  Generate Another
-                </button>
-              </>
-            )}
+              {/* Helper Tab */}
+              {activeTab === 'helper' && (
+                <>
+                  <h3 className="font-bold text-white mb-3">Helper Screen</h3>
+                  <div className="space-y-1 text-sm mb-4 text-slate-300">
+                    {helperTricks.map((trick, idx) => (
+                      <div key={idx}>{trick}</div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={handleGenerateAnother}
+                    className="border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    Generate Another
+                  </button>
+                  {/* Helpful Quote Below */}
+                  {currentQuote && (
+                    <div className="mt-6 pt-4 border-t border-white/20">
+                      <p className="text-xs text-slate-400 italic text-center">
+                        {currentQuote}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
 
             {/* Friends Tab */}
             {activeTab === 'friends' && (
@@ -167,7 +305,7 @@ export default function TaskView() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">{friend.name}</span>
                         <span className={`text-xs px-2 py-0.5 rounded ${
-                          friend.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                          friend.status === 'available' ? 'bg-green-500/30 text-green-300' : 'bg-slate-700 text-slate-400'
                         }`}>
                           {friend.status}
                         </span>
@@ -175,14 +313,14 @@ export default function TaskView() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleCompete(friend)}
-                          className="flex-1 border border-black px-2 py-1 rounded text-xs hover:bg-gray-100 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Share2 className="w-3 h-3" />
                           Compete
                         </button>
                         <button 
                           onClick={() => handleCollaborate(friend)}
-                          className="flex-1 border border-black px-2 py-1 rounded text-xs hover:bg-gray-100 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Users className="w-3 h-3" />
                           Collaborate
@@ -190,8 +328,8 @@ export default function TaskView() {
                         <button 
                           onClick={() => handleCall(friend, 'friend')}
                           disabled={friend.status === 'busy'}
-                          className={`flex-1 border border-black px-2 py-1 rounded text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                            friend.status === 'busy' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                          className={`flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                            friend.status === 'busy' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
                           }`}
                         >
                           <Phone className="w-3 h-3" />
@@ -201,32 +339,32 @@ export default function TaskView() {
                     </div>
                   ))}
                 </div>
-                <button 
-                  onClick={handleInviteFriends}
-                  className="w-full border-2 border-black px-3 py-1 rounded text-sm hover:bg-gray-100 cursor-pointer transition-colors"
-                >
-                  Invite More Friends
-                </button>
+                  <button 
+                    onClick={handleInviteFriends}
+                    className="w-full border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    Invite More Friends
+                  </button>
               </>
             )}
 
-            {/* Mentors Tab */}
-            {activeTab === 'mentors' && (
-              <>
-                <h3 className="font-bold underline mb-2 flex items-center gap-2">
-                  <UserCheck className="w-4 h-4" />
-                  Mentors: Shared Tasks with Guidance
-                </h3>
-                <div className="space-y-2 text-sm mb-4">
-                  {mentors.map((mentor) => (
-                    <div key={mentor.id} className="border border-gray-300 rounded p-2">
+              {/* Mentors Tab */}
+              {activeTab === 'mentors' && (
+                <>
+                  <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                    <UserCheck className="w-4 h-4" />
+                    Mentors: Shared Tasks with Guidance
+                  </h3>
+                  <div className="space-y-2 text-sm mb-4">
+                    {mentors.map((mentor) => (
+                      <div key={mentor.id} className="border border-white/20 rounded p-2 bg-white/5">
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <div className="font-medium">{mentor.name}</div>
                           <div className="text-xs text-gray-600">{mentor.role}</div>
                         </div>
                         {mentor.available && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/30 text-green-300">
                             Available
                           </span>
                         )}
@@ -234,14 +372,14 @@ export default function TaskView() {
                       <div className="space-y-2">
                         <button 
                           onClick={() => handleCall(mentor, 'mentor')}
-                          className="w-full border border-black px-2 py-1 rounded text-xs hover:bg-gray-100 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="w-full border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Phone className="w-3 h-3" />
                           Call for Guidance
                         </button>
-                        <div className="border-t border-gray-200 pt-2">
-                          <div className="text-xs font-medium mb-1">Recommended Tricks/Approaches:</div>
-                          <ul className="text-xs text-gray-600 space-y-1">
+                        <div className="border-t border-white/20 pt-2">
+                          <div className="text-xs font-medium mb-1 text-white">Recommended Tricks/Approaches:</div>
+                          <ul className="text-xs text-slate-300 space-y-1">
                             <li>• Break task into smaller steps</li>
                             <li>• Use timer for focus sessions</li>
                             <li>• Take breaks every 25 minutes</li>
@@ -254,67 +392,50 @@ export default function TaskView() {
               </>
             )}
 
-            {/* Role Models Tab */}
-            {activeTab === 'rolemodels' && (
-              <>
-                <h3 className="font-bold underline mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  R.M.'s: Their Tricks/Approaches
-                </h3>
-                <div className="space-y-2 text-sm mb-4">
-                  {roleModels.map((rm) => (
-                    <div key={rm.id} className="border border-gray-300 rounded p-2">
-                      <div className="font-medium mb-1">{rm.name}</div>
-                      <div className="text-xs text-gray-600 italic">
-                        "{rm.trick}"
+              {/* Role Models Tab */}
+              {activeTab === 'rolemodels' && (
+                <>
+                  <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    R.M.'s: Their Tricks/Approaches
+                  </h3>
+                  <div className="space-y-2 text-sm mb-4">
+                    {roleModels.map((rm) => (
+                      <div key={rm.id} className="border border-white/20 rounded p-2 bg-white/5">
+                        <div className="font-medium mb-1 text-white">{rm.name}</div>
+                        <div className="text-xs text-slate-300 italic">
+                          "{rm.trick}"
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                <button 
-                  onClick={handleSeeMoreTricks}
-                  className="w-full border-2 border-black px-3 py-1 rounded text-sm hover:bg-gray-100 cursor-pointer transition-colors"
-                >
-                  See More Tricks
-                </button>
-              </>
-            )}
+                    ))}
+                  </div>
+                  <button 
+                    onClick={handleSeeMoreTricks}
+                    className="w-full border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    See More Tricks
+                  </button>
+                </>
+              )}
           </div>
         </div>
 
-        {/* Today's Motivation */}
-        <div className="mt-6 mb-6">
-          <span className="font-bold">Today's Motivation:</span>
-          <span className="ml-2">_____________</span>
-        </div>
+          </div>
 
-        {/* Done Button */}
-        <div className="text-center mb-4">
-          <button
-            onClick={handleDone}
-            disabled={completed}
-            className={`border-2 border-black px-6 py-2 rounded font-bold ${
-              completed ? 'bg-green-200' : 'hover:bg-gray-100'
-            }`}
-          >
-            {completed ? '✓ Done!' : 'Done?'}
-          </button>
-        </div>
-
-        {/* Journal Button */}
-        <div className="text-center">
-          <Link 
-            href={`/reflection?contextType=task&contextId=${params.id}`}
-            className="inline-block border-2 border-black px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-          >
-            Journal / Reflection Window
-          </Link>
-        </div>
-
-        {/* Note */}
-        <div className="mt-6 text-sm italic text-gray-600 text-center">
-          (THIS, and any "Journal / Reflection Window" button)
-        </div>
+          {/* Big Done Button */}
+          <div className="text-center mt-8 mb-6">
+            <button
+              onClick={handleDone}
+              disabled={completed}
+              className={`px-12 py-6 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
+                completed 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' 
+                  : 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white hover:shadow-cyan-500/50'
+              }`}
+            >
+              {completed ? '✓ Done!' : 'Done'}
+            </button>
+          </div>
       </div>
 
       {/* Modals */}
