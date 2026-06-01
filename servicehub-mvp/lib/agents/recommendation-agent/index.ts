@@ -2,6 +2,7 @@ import { getUserBarriers } from '@/lib/supabase/queries'
 import { findSimilarUsersByBarriers } from './similarity'
 import { getCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
+import { completeJSON, isLLMEnabled } from '@/lib/llm'
 import type {
   RecommendationAgentInput,
   RecommendationAgentOutput,
@@ -46,7 +47,7 @@ export class RecommendationAgent {
       )
 
       // Step 4: Generate explanations (why agent chose these)
-      const explanations = this.generateExplanations(scoredResources, input.barriers)
+      const explanations = await this.generateExplanations(scoredResources, input.barriers)
 
       // Step 5: Calculate confidence score
       const confidence = this.calculateConfidence(scoredResources, similarUsers.length)
@@ -113,16 +114,14 @@ export class RecommendationAgent {
 
   /**
    * Generate explanations for recommendations
-   * Agent explains its decisions
+   * Agent explains its decisions (LLM-backed with rule-based fallback).
    */
-  private generateExplanations(
+  private async generateExplanations(
     resources: ScoredResource[],
     barriers: Barrier[]
-  ): string[] {
-    return resources.map((resource) => {
+  ): Promise<string[]> {
+    const ruleBased = (resource: ScoredResource): string => {
       const parts: string[] = []
-
-      // Similar users explanation
       if (resource.similarUsersCount > 0) {
         const barrierTypes = barriers
           .slice(0, 2)
@@ -132,21 +131,40 @@ export class RecommendationAgent {
           `Recommended by ${resource.similarUsersCount} ${resource.similarUsersCount === 1 ? 'user' : 'users'} with ${barrierTypes}`
         )
       }
-
-      // Match score explanation
-      if (resource.score >= 80) {
-        parts.push(`${resource.score}% match for your barriers`)
-      } else if (resource.score >= 60) {
-        parts.push(`${resource.score}% match`)
-      }
-
-      // Rating explanation
-      if (resource.averageRatingFromSimilarUsers >= 4.5) {
-        parts.push('Highly rated (4.5+ stars)')
-      }
-
+      if (resource.score >= 80) parts.push(`${resource.score}% match for your barriers`)
+      else if (resource.score >= 60) parts.push(`${resource.score}% match`)
+      if (resource.averageRatingFromSimilarUsers >= 4.5) parts.push('Highly rated (4.5+ stars)')
       return parts.length > 0 ? parts.join(' • ') : resource.matchReason
-    })
+    }
+
+    if (!isLLMEnabled() || resources.length === 0) {
+      return resources.map(ruleBased)
+    }
+
+    const top = resources.slice(0, 10)
+    const payload = top.map((r, i) => ({
+      i,
+      name: (r as any).name || (r as any).resource_name || `Resource ${i}`,
+      score: r.score,
+      similarUsers: r.similarUsersCount,
+      avgRating: r.averageRatingFromSimilarUsers,
+    }))
+
+    const data = await completeJSON<{ explanations: string[] }>(
+      'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific.',
+      `Barriers: ${barriers.map((b) => b.type).join(', ') || 'none'}\n` +
+        `Resources (JSON): ${JSON.stringify(payload)}\n` +
+        `Return JSON: {"explanations": ["sentence about resource 0", "sentence about resource 1", ...]}\n` +
+        `One sentence (max 25 words) per resource, same order as input.`,
+      { temperature: 0.5, maxTokens: 600 }
+    )
+
+    if (data && Array.isArray(data.explanations) && data.explanations.length === top.length) {
+      const llmExplanations = data.explanations.map(String)
+      // Append rule-based for any resources beyond the top batch
+      return [...llmExplanations, ...resources.slice(10).map(ruleBased)]
+    }
+    return resources.map(ruleBased)
   }
 
   /**

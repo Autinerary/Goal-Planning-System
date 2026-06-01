@@ -44,7 +44,7 @@ export class SynthesisEngine {
       const validatedResults = this.applyValidation(rankedResults, validations)
 
       // Step 3: Generate human-readable explanations
-      const explanation = generateExplanation(
+      const explanation = await generateExplanation(
         validatedResults,
         input.agentOutputs,
         input.userContext

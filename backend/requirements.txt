@@ -18,5 +18,8 @@ scikit-learn==1.3.2
 pinecone-client==2.2.4
 httpx==0.25.2
 python-multipart==0.0.6
-# AutoGen - Microsoft Multi-Agent Framework
+# AutoGen - Microsoft Multi-Agent Framework (optional)
 pyautogen==0.2.35
+# LangGraph - state-machine multi-agent orchestration (primary)
+langgraph>=0.2.0
+langchain-core>=0.3.0

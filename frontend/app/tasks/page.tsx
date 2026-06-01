@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles, Check, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
+import { useAgentPath } from '../context/AgentPathContext'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -21,7 +23,7 @@ import { ArrowLeft, Sparkles, Check, Lock, Unlock, Music, Play, Pause, Upload } 
   • After ready → to the right
 */
 
-const todaysTasks = [
+const FALLBACK_TASKS = [
   { id: 't1', name: 'Fill out accommodation form', icon: '🔒' },
   { id: 't2', name: 'Email disability office', icon: '🔒' },
   { id: 't3', name: 'Read accommodation guide', icon: '🔒' },
@@ -30,7 +32,7 @@ const todaysTasks = [
   { id: 't6', name: 'Practice self-advocacy script', icon: '🔒' },
 ]
 
-const todaysGoals = [
+const FALLBACK_GOALS = [
   { id: 'g1', name: 'Complete 3 accommodation tasks', icon: '🔒' },
   { id: 'g2', name: 'Use 2 new tools', icon: '🔒' },
   { id: 'g3', name: 'Break through 1 big barrier', icon: '🔒' },
@@ -39,6 +41,29 @@ const todaysGoals = [
 
 export default function TasksPage() {
   const router = useRouter()
+  const { pathPlanning, calendarOptimization, payload } = useAgentPath()
+  // Real "today's tasks" from the calendar optimisation agent (first scheduled
+  // day), falling back to path-planning tasks, then to the static demo list.
+  const firstDay: any = (payload?.schedule || calendarOptimization?.schedule || [])[0]
+  const agentDayTasks: any[] = firstDay?.tasks || []
+  const todaysTasks = (agentDayTasks.length ? agentDayTasks : (pathPlanning?.tasks || []).slice(0, 6))
+    .slice(0, 8)
+    .map((t: any, idx: number) => ({
+      id: t.id || `t${idx + 1}`,
+      name: t.name || t.title || 'Task',
+      icon: '🔒',
+    }))
+  const tasksToRender = todaysTasks.length ? todaysTasks : FALLBACK_TASKS
+  // "Today's goals" derived from the user's actual goals + first milestone.
+  const profileGoals: string[] = (payload?.userProfile?.goals || []) as string[]
+  const firstMilestoneName: string | undefined = pathPlanning?.milestones?.[0]?.name
+  const agentGoals = profileGoals.length
+    ? [
+        ...profileGoals.slice(0, 3).map((g: string, idx: number) => ({ id: `g${idx + 1}`, name: g, icon: '🔒' })),
+        ...(firstMilestoneName ? [{ id: 'g_ms', name: `Advance: ${firstMilestoneName}`, icon: '🔒' }] : []),
+      ]
+    : []
+  const goalsToRender = agentGoals.length ? agentGoals : FALLBACK_GOALS
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
   const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
@@ -47,7 +72,7 @@ export default function TasksPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const completionCount = completedTasks.size
-  const totalTasks = todaysTasks.length
+  const totalTasks = tasksToRender.length
   const allDone = completionCount === totalTasks
 
   // Mascot mood from progress
@@ -94,6 +119,10 @@ export default function TasksPage() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm relative overflow-hidden">
+      <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3 relative z-10">
+        <AgentInsightsBanner agent="path_planning" />
+        <AgentInsightsBanner agent="calendar_optimization" />
+      </div>
       <style>{`
         @keyframes bunnyIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
         @keyframes bunnyHappy{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(3deg)}}
@@ -144,7 +173,7 @@ export default function TasksPage() {
               <h2 className="text-sm font-bold text-slate-800 mb-0.5">Tasks/</h2>
               <h2 className="text-sm font-bold text-slate-800 mb-3">Hack:</h2>
               <div className="flex-1 space-y-2">
-                {todaysTasks.map(task => {
+                {tasksToRender.map(task => {
                   const done = completedTasks.has(task.id)
                   return (
                     <button
@@ -239,7 +268,7 @@ export default function TasksPage() {
             <div className="border-l-2 border-slate-200 p-4 flex flex-col">
               <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s Goals:</h2>
               <div className="flex-1 space-y-2">
-                {todaysGoals.map(goal => {
+                {goalsToRender.map(goal => {
                   const done = completedGoals.has(goal.id)
                   return (
                     <button

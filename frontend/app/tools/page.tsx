@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ExternalLink, Star, Filter, Search } from 'lucide-react'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 
 // Mock tools data organized by category
 const toolsDatabase = {
@@ -283,6 +285,34 @@ function ToolsContent() {
   const [activeCategory, setActiveCategory] = useState(typeParam)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedBarrier, setSelectedBarrier] = useState<string | null>(null)
+  const { toolRecommendation, payload } = useAgentPath()
+
+  // Merge the static demo catalogue with the agent's pit-stop tools so the
+  // user sees their personalised recommendations alongside the curated set.
+  const userBarriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
+  const agentBucketToTool = (t: any): Tool => ({
+    id: t.id,
+    name: t.name,
+    description: t.description || '',
+    url: t.url || '#',
+    rating: typeof t.rating === 'number' ? t.rating : 4.5,
+    reviews: 0,
+    barriers: userBarriers.map((b) => b.toLowerCase()),
+    tags: [t.type || 'tool'],
+    highlight: (t.description || '').split('.')[0] || 'Recommended by your agents',
+  })
+  const agentByCategory: Record<string, Tool[]> = {}
+  const pit = toolRecommendation?.pit_stop_tools || {}
+  ;(['services', 'commentaries', 'products', 'other'] as const).forEach((cat) => {
+    const arr = (pit as any)[cat] || []
+    agentByCategory[cat] = arr.map(agentBucketToTool)
+  })
+  const mergedToolsByCategory: Record<string, Tool[]> = {
+    services: [...(agentByCategory.services || []), ...toolsDatabase.services as Tool[]],
+    commentaries: [...(agentByCategory.commentaries || []), ...toolsDatabase.commentaries as Tool[]],
+    products: [...(agentByCategory.products || []), ...((toolsDatabase as any).products || []) as Tool[]],
+    other: [...(agentByCategory.other || []), ...((toolsDatabase as any).other || []) as Tool[]],
+  }
 
   useEffect(() => {
     if (typeParam && toolsDatabase[typeParam as keyof typeof toolsDatabase]) {
@@ -291,7 +321,7 @@ function ToolsContent() {
   }, [typeParam])
 
   const categories = Object.keys(toolsDatabase)
-  const currentTools = (toolsDatabase[activeCategory as keyof typeof toolsDatabase] || []) as Tool[]
+  const currentTools = (mergedToolsByCategory[activeCategory] || (toolsDatabase[activeCategory as keyof typeof toolsDatabase] || [])) as Tool[]
 
   // Filter tools
   const filteredTools = currentTools.filter((tool: Tool) => {
@@ -309,6 +339,9 @@ function ToolsContent() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8">
+      <div className="max-w-6xl mx-auto mb-4">
+        <AgentInsightsBanner agent="tool_recommendation" />
+      </div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/pit-stop" className="p-2 border-2 border-black rounded hover:bg-gray-100">
@@ -331,7 +364,7 @@ function ToolsContent() {
           >
             {cat === '(tool x)' ? 'Communities' : cat}
             <span className="ml-2 text-sm opacity-70">
-              ({toolsDatabase[cat as keyof typeof toolsDatabase].length})
+              ({(mergedToolsByCategory[cat] || toolsDatabase[cat as keyof typeof toolsDatabase] || []).length})
             </span>
           </button>
         ))}

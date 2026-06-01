@@ -26,6 +26,8 @@ class Config:
     # API Keys (only needed in production)
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
+    PINECONE_INDEX_HOST = os.getenv("PINECONE_INDEX_HOST", "")
+    PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "goal-planning-users")
     
     # Vector DB
     VECTOR_DB_URL = os.getenv("VECTOR_DB_URL", "")

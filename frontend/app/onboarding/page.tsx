@@ -437,6 +437,7 @@ export default function OnboardingPage() {
       // Send to Goal Planning backend
       const response = await axios.post(`${API_URL}/api/onboarding/`, {
         email: user.email,
+        userId: user.id, // Supabase auth UUID — shared with ServiceHub via public.user_barriers
         barrierTypes: formData.barrierTypes,
         goals: formData.goals.filter(g => g.trim()),
         dreams: formData.dreams.filter(d => d.trim()),
@@ -446,7 +447,7 @@ export default function OnboardingPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 180000, // 3 min — multi-agent OpenAI orchestration can take 40–90s
       })
 
       // Save saved resources to ServiceHub if user is authenticated

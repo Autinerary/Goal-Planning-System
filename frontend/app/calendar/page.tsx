@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar } from 'lucide-react'
-
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -225,7 +226,62 @@ function CalendarContent() {
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
 
-  const currentData = scenarioData[scenario]
+  // Pull the live calendar-optimization scenarios from the agent payload.
+  const { calendarOptimization } = useAgentPath()
+  const agentScenarios = calendarOptimization?.scenarios as
+    | { best_case?: any; worst_case?: any; average_case?: any }
+    | undefined
+
+  const scenarioKeyMap = { worst: 'worst_case', average: 'average_case', best: 'best_case' } as const
+  const agentScenario = agentScenarios?.[scenarioKeyMap[scenario]]
+
+  const buildAgentScenarioData = () => {
+    if (!agentScenario?.days?.length) return null
+    const weekday = (iso: string) => {
+      const d = new Date(iso)
+      if (isNaN(d.getTime())) return 'Day'
+      return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]
+    }
+    const formatMinutes = (m: number | undefined) => {
+      if (!m) return '30 min'
+      if (m >= 60) {
+        const h = Math.floor(m / 60)
+        const rem = m % 60
+        return rem ? `${h} hr ${rem} min` : `${h} hr`
+      }
+      return `${m} min`
+    }
+    const days = agentScenario.days.map((d: any) => {
+      let cursorMinutes = 9 * 60 // 09:00
+      const tasks = (d.tasks || []).map((t: any) => {
+        const hh = String(Math.floor(cursorMinutes / 60)).padStart(2, '0')
+        const mm = String(cursorMinutes % 60).padStart(2, '0')
+        const dur = t.adjustedDuration || t.estimatedDuration || 30
+        cursorMinutes += dur + 15 // 15-min buffer between tasks
+        return {
+          id: t.id,
+          time: `${hh}:${mm}`,
+          name: t.name,
+          duration: formatMinutes(dur),
+          priority: t.priority || 'medium',
+        }
+      })
+      return {
+        name: weekday(d.date),
+        theme: agentScenario.name || scenarioData[scenario].days[0]?.theme || '',
+        typeOfDay: d.type || 'Focus Day',
+        motivation: scenarioData[scenario].days[0]?.motivation || '',
+        tasks,
+      }
+    })
+    return {
+      description: agentScenario.description || scenarioData[scenario].description,
+      icon: scenarioData[scenario].icon,
+      days,
+    }
+  }
+
+  const currentData = buildAgentScenarioData() || scenarioData[scenario]
   const ScenarioIcon = currentData.icon
 
   // Check for pending suggestion on mount or when params change
@@ -433,6 +489,9 @@ function CalendarContent() {
         {/* Header — Travel Guide / Map Scroll */}
         <div className="mb-8">
           {/* Milestone from Race at top */}
+          <div className="mb-3">
+            <AgentInsightsBanner agent="calendar_optimization" />
+          </div>
           <div className="flex items-center gap-3 mb-3">
             <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 Race 1: Graduate University</div>
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: Request Accommodations</div>

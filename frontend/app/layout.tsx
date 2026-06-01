@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { AuthProvider } from './context/AuthContext'
+import { AgentPathProvider } from './context/AgentPathContext'
 import Navigation from './components/Navigation'
 
 export const metadata: Metadata = {
@@ -17,10 +18,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen">
         <AuthProvider>
-          <Navigation />
-          <main>
-            {children}
-          </main>
+          <AgentPathProvider>
+            <Navigation />
+            <main>
+              {children}
+            </main>
+          </AgentPathProvider>
         </AuthProvider>
       </body>
     </html>

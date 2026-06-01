@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { detectSpam, containsProfanity } from './spam-detector'
+import { completeJSON, isLLMEnabled } from '@/lib/llm'
 import type { ContentCheckResult } from './types'
 
 /**
@@ -50,6 +51,24 @@ export async function validateContent(
 
   if (itemType === 'resource' && contentText && contentText.length < 10) {
     issues.push('Description too short (minimum 10 characters)')
+  }
+
+  // Check 6: LLM-powered safety moderation (graceful no-op if disabled)
+  if (isLLMEnabled() && contentText && contentText.length >= 20) {
+    const moderation = await completeJSON<{
+      safe: boolean
+      issues: string[]
+    }>(
+      'You are a content safety reviewer for a neurodivergent community resource platform. Flag content only for: harassment, hate speech, scams, dangerous medical claims, doxxing, or explicit sexual content. Be permissive of frank personal stories.',
+      `Item type: ${itemType}\nContent: """${contentText.slice(0, 1500)}"""\n` +
+        `Return JSON: {"safe": boolean, "issues": ["short reason", ...]}`,
+      { temperature: 0.1, maxTokens: 200 }
+    )
+    if (moderation && moderation.safe === false && Array.isArray(moderation.issues)) {
+      for (const i of moderation.issues.slice(0, 3)) {
+        if (i && typeof i === 'string') issues.push(`AI safety: ${i}`)
+      }
+    }
   }
 
   const score = issues.length === 0 ? 100 : Math.max(0, 100 - issues.length * 25)

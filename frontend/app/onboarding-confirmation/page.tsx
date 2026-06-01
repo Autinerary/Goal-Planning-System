@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Sparkles, Users, UserCheck, ChevronRight } from 'lucide-react'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 
 // Mock role models - in production, these would come from AI/backend
 const mockRoleModels = [
@@ -20,6 +22,7 @@ const mockMentors = [
 
 export default function OnboardingConfirmationPage() {
   const router = useRouter()
+  const { payload, patternRecognition, pathPlanning } = useAgentPath()
   const [currentStep, setCurrentStep] = useState<'roleModels' | 'mentors'>('roleModels')
   const [roleModelChoices, setRoleModelChoices] = useState<Record<string, string>>({})
   const [selectedMentors, setSelectedMentors] = useState<Record<string, boolean>>({})
@@ -70,6 +73,10 @@ export default function OnboardingConfirmationPage() {
 
   return (
     <div className="min-h-screen text-slate-900 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto mb-4 space-y-3">
+        <AgentInsightsBanner agent="pattern_recognition" />
+        <AgentInsightsBanner agent="tool_recommendation" />
+      </div>
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
@@ -84,6 +91,42 @@ export default function OnboardingConfirmationPage() {
           </h1>
           <p className="text-slate-600">Let's connect you with role models and mentors</p>
         </div>
+
+        {/* Personalised plan summary — straight from the agents */}
+        {(() => {
+          const goals: string[] = (payload?.userProfile?.goals || []) as string[]
+          const barriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
+          const patterns: any[] = (patternRecognition?.successPatterns || patternRecognition?.patterns || []) as any[]
+          const firstMilestone = pathPlanning?.milestones?.[0]?.name
+          if (!goals.length && !patterns.length && !firstMilestone) return null
+          return (
+            <div className="bg-white/60 backdrop-blur-lg border border-slate-300 rounded-2xl p-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <h2 className="font-bold text-slate-900">Your personalised plan</h2>
+              </div>
+              {goals.length > 0 && (
+                <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Goals: </span>{goals.join(' · ')}</div>
+              )}
+              {barriers.length > 0 && (
+                <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Barriers: </span>{barriers.join(' · ')}</div>
+              )}
+              {firstMilestone && (
+                <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">First milestone: </span>{firstMilestone}</div>
+              )}
+              {patterns.length > 0 && (
+                <div className="text-sm text-slate-700 mt-2">
+                  <div className="font-semibold mb-1">Patterns we noticed:</div>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    {patterns.slice(0, 3).map((p: any, i: number) => (
+                      <li key={i}>{typeof p === 'string' ? p : (p.description || p.pattern || p.name)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Step Content Card */}
         <div className="bg-white/60 backdrop-blur-lg border border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">

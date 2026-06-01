@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
 import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette } from 'lucide-react'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -15,7 +17,7 @@ function ReflectionContent() {
   const searchParams = useSearchParams()
   const contextType = searchParams.get('contextType') || 'path'
   const contextId = searchParams.get('contextId') || ''
-  
+  const { reflectionAnalysis, adaptation } = useAgentPath()
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
@@ -99,6 +101,10 @@ function ReflectionContent() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto mb-4 relative z-10 space-y-3">
+        <AgentInsightsBanner agent="reflection_analysis" />
+        <AgentInsightsBanner agent="adaptation" />
+      </div>
       <style>{`
         @keyframes deskBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
         @keyframes penWrite{0%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}100%{transform:rotate(-5deg)}}
@@ -205,6 +211,33 @@ function ReflectionContent() {
           </div>
 
           {/* Questions */}
+          {(() => {
+            const themes: string[] = (reflectionAnalysis?.keyThemes || reflectionAnalysis?.themes || []) as string[]
+            const sentiment: string | undefined = reflectionAnalysis?.overallSentiment || reflectionAnalysis?.sentiment
+            const recs: any[] = (adaptation?.recommendations || adaptation?.adjustments || []) as any[]
+            const hasAny = (themes && themes.length) || sentiment || (recs && recs.length)
+            if (!hasAny) return null
+            return (
+              <div className={`mb-6 p-4 rounded-xl border-2 ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-purple-50 border-purple-200 text-slate-700'}`}>
+                <div className="font-bold mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Agent insights from past reflections</div>
+                {sentiment && <div className="text-sm mb-1">Sentiment: <span className="font-semibold capitalize">{sentiment}</span></div>}
+                {themes && themes.length > 0 && (
+                  <div className="text-sm mb-2">
+                    <span className="font-semibold">Recurring themes: </span>
+                    {themes.slice(0, 5).join(' · ')}
+                  </div>
+                )}
+                {recs && recs.length > 0 && (
+                  <ul className="text-sm list-disc pl-5 space-y-1">
+                    {recs.slice(0, 3).map((r: any, i: number) => (
+                      <li key={i}>{typeof r === 'string' ? r : (r.description || r.action || r.title)}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )
+          })()}
+
           <div className="space-y-5">
             {questions.map((q) => {
               const Icon = q.icon

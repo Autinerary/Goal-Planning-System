@@ -1,24 +1,51 @@
 import type { AgentOutputs, RankedResult, UserContext } from './types'
 import type { RecommendationAgentOutput } from '@/lib/agents/recommendation-agent/types'
 import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
+import { completeText, isLLMEnabled } from '@/lib/llm'
 
 /**
- * Generates human-readable explanations from agent outputs
- * MVP: Rule-based explanations (will upgrade to LLM-powered natural language post-funding)
+ * Generates a human-readable top-line synthesis explanation.
+ * Uses OpenAI when configured, falls back to rule-based concatenation.
  */
-export function generateExplanation(
+export async function generateExplanation(
+  results: RankedResult[],
+  agentOutputs: AgentOutputs,
+  userContext: UserContext
+): Promise<string> {
+  const ruleBased = ruleBasedExplanation(results, agentOutputs, userContext)
+  if (!isLLMEnabled() || !results || results.length === 0) return ruleBased
+
+  const top = results.slice(0, 3).map((r) => ({
+    name: (r.resource as any).name,
+    category: (r.resource as any).category,
+    score: Math.round((r.finalScore || 0) * 100),
+    similarUsers: (r.resource as any).similarUsersCount || 0,
+  }))
+  const patterns = Array.isArray(agentOutputs.PatternAgent)
+    ? agentOutputs.PatternAgent.slice(0, 3).map((p: any) => p.insight).filter(Boolean)
+    : []
+  const barriers = (userContext.barriers || []).map((b: any) => b.type).join(', ')
+
+  const llm = await completeText(
+    'You are a warm, plain-language assistant that summarises why a set of community resources were surfaced for a neurodivergent user. Two short sentences, max 45 words total. No markdown, no lists.',
+    `User barriers: ${barriers || 'none'}\n` +
+      `Top resources: ${JSON.stringify(top)}\n` +
+      `Community patterns: ${JSON.stringify(patterns)}\n` +
+      `Fallback wording: ${ruleBased}`,
+    { temperature: 0.5, maxTokens: 160 }
+  )
+  return llm || ruleBased
+}
+
+function ruleBasedExplanation(
   results: RankedResult[],
   agentOutputs: AgentOutputs,
   userContext: UserContext
 ): string {
-  if (!results || results.length === 0) {
-    return 'No results found'
-  }
+  if (!results || results.length === 0) return 'No results found'
 
   const topResult = results[0]
-  if (!topResult || !topResult.resource) {
-    return 'Unable to generate explanation'
-  }
+  if (!topResult || !topResult.resource) return 'Unable to generate explanation'
 
   const resource = topResult.resource
   const parts: string[] = []

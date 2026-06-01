@@ -7,6 +7,7 @@ SIMULATION MODE: Uses keyword-based sentiment and pattern detection
 from typing import Dict, Any, List
 from core.agents.base_agent import BaseAgent
 from core.config import Config
+from core import llm
 import re
 
 class ReflectionAnalysisAgent(BaseAgent):
@@ -85,7 +86,8 @@ class ReflectionAnalysisAgent(BaseAgent):
         }
         
         self.initialized = True
-        print(f"   ✓ {self.agent_name} initialized with pattern detection")
+        mode = "with OpenAI sentiment" if llm.is_enabled() else "with pattern detection"
+        print(f"   ✓ {self.agent_name} initialized {mode}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -143,8 +145,32 @@ class ReflectionAnalysisAgent(BaseAgent):
         return ' '.join(text_parts).lower()
     
     async def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
-        """Analyze sentiment of text"""
-        
+        """Analyze sentiment of text (LLM-backed with keyword fallback)."""
+
+        if llm.is_enabled() and text.strip():
+            data = await llm.complete_json(
+                system=(
+                    "You are a sentiment analyst for neurodivergent users' journal entries. "
+                    "Be empathetic and accurate."
+                ),
+                user=(
+                    f"Reflection text: {text[:1500]}\n"
+                    "Return JSON: {\"label\": \"positive|negative|neutral\", \"score\": 0.0-1.0, \"key_themes\": [\"...\"]}"
+                ),
+                temperature=0.2,
+                max_tokens=200,
+            )
+            if data and data.get('label') in ('positive', 'negative', 'neutral'):
+                try:
+                    return {
+                        'label': data['label'],
+                        'score': round(float(data.get('score', 0.5)), 2),
+                        'breakdown': {'positive': 0, 'negative': 0, 'neutral': 0},
+                        'key_themes': data.get('key_themes', []),
+                    }
+                except (TypeError, ValueError):
+                    pass
+
         positive_count = sum(1 for word in self.sentiment_keywords['positive'] if word in text)
         negative_count = sum(1 for word in self.sentiment_keywords['negative'] if word in text)
         neutral_count = sum(1 for word in self.sentiment_keywords['neutral'] if word in text)

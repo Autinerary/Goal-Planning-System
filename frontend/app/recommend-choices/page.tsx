@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles, CheckCircle, Clock, TrendingUp, Star, ExternalLink, Filter } from 'lucide-react'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 
 interface RecommendedChoice {
   id: string
@@ -22,9 +24,34 @@ export default function RecommendChoicesPage() {
   const router = useRouter()
   const [filterService, setFilterService] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'success' | 'attempts' | 'name'>('success')
+  const { toolRecommendation, pathPlanning, payload } = useAgentPath()
+
+  // Build choices from the tool-recommendation agent. Each milestone becomes a
+  // "service" bucket containing its recommended tools as actionable choices.
+  const userBarriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
+  const milestones: any[] = pathPlanning?.milestones || []
+  const recsByMilestoneId: Record<string, any[]> = (toolRecommendation?.recommendations || {}) as any
+  const agentChoicesByService: Record<string, RecommendedChoice[]> = {}
+  milestones.forEach((m) => {
+    const rec = recsByMilestoneId[m.id] || []
+    if (!rec.length) return
+    const serviceName: string = m.name || 'Milestone'
+    agentChoicesByService[serviceName] = rec.slice(0, 6).map((t: any, idx: number) => ({
+      id: `${m.id}_${t.id || idx}`,
+      name: t.name || 'Recommended action',
+      description: t.description || `Recommended for: ${serviceName}`,
+      service: serviceName,
+      successRate: Math.round((t.relevanceScore || 0.85) * 100),
+      attempts: t.reviews || 100 + idx * 25,
+      estimatedTime: t.estimatedTime || 30,
+      bestFor: userBarriers.slice(0, 3),
+      status: 'not_started' as const,
+      progress: 0,
+    }))
+  })
 
   // Mock data - choices organized by service
-  const choicesByService: Record<string, RecommendedChoice[]> = {
+  const mockChoicesByService: Record<string, RecommendedChoice[]> = {
     'University Accommodations': [
       {
         id: 'choice_1',
@@ -105,6 +132,10 @@ export default function RecommendChoicesPage() {
     ],
   }
 
+  const choicesByService: Record<string, RecommendedChoice[]> = Object.keys(agentChoicesByService).length
+    ? agentChoicesByService
+    : mockChoicesByService
+
   const allChoices = Object.values(choicesByService).flat()
   const services = Object.keys(choicesByService)
 
@@ -143,6 +174,9 @@ export default function RecommendChoicesPage() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto mb-4 relative z-10">
+        <AgentInsightsBanner agent="tool_recommendation" />
+      </div>
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />

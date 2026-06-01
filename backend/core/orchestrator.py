@@ -1,11 +1,17 @@
 """
-Multi-Agent Orchestrator
-Coordinates 6 specialized AI agents to create personalized life plans
+LangGraph Multi-Agent Orchestrator
+Coordinates 6 specialized AI agents using LangGraph state machines.
+
+Public interface (kept compatible with the previous custom orchestrator):
+    - initialize()
+    - cleanup()
+    - generate_path(user_profile, goals, barriers) -> dict
+    - adapt_path(user_id, path_id, reflection_data) -> dict
+    - health_check() -> dict
 """
 
-from typing import Dict, List, Any, Optional
-import asyncio
-from datetime import datetime
+from typing import Dict, List, Any, Optional, TypedDict
+import importlib
 
 from core.agents.path_planning_agent import PathPlanningAgent
 from core.agents.pattern_recognition_agent import PatternRecognitionAgent
@@ -14,23 +20,67 @@ from core.agents.reflection_analysis_agent import ReflectionAnalysisAgent
 from core.agents.adaptation_agent import AdaptationAgent
 from core.agents.calendar_optimization_agent import CalendarOptimizationAgent
 from core.synthesis_engine import SynthesisEngine
-# Note: shared.types is TypeScript, using dicts for Python
+
+try:
+    langgraph_graph = importlib.import_module("langgraph.graph")
+    StateGraph = langgraph_graph.StateGraph
+    END = langgraph_graph.END
+    LANGGRAPH_AVAILABLE = True
+except Exception:
+    LANGGRAPH_AVAILABLE = False
+    StateGraph = None  # type: ignore
+    END = None  # type: ignore
+
+
+# ---------- LangGraph state definitions ----------
+
+class GenerationState(TypedDict, total=False):
+    user_profile: Dict[str, Any]
+    goals: List[str]
+    barriers: List[str]
+    pattern_response: Dict[str, Any]
+    path_response: Dict[str, Any]
+    tool_response: Dict[str, Any]
+    calendar_response: Dict[str, Any]
+    agent_responses: List[Dict[str, Any]]
+    final: Dict[str, Any]
+
+
+class AdaptationState(TypedDict, total=False):
+    user_id: str
+    path_id: str
+    reflection_data: Dict[str, Any]
+    reflection_response: Dict[str, Any]
+    adaptation_response: Dict[str, Any]
+    needs_calendar_update: bool
+    calendar_response: Dict[str, Any]
+    final: Dict[str, Any]
+
 
 class Orchestrator:
     """
-    Orchestrator coordinates all agents and synthesizes their outputs
+    LangGraph-based orchestrator that wires the 6 specialized agents
+    into two state machines: one for path generation and one for adaptation.
     """
-    
+
     def __init__(self):
-        self.agents = {}
+        self.agents: Dict[str, Any] = {}
         self.synthesis_engine = SynthesisEngine()
         self.initialized = False
-    
+        self.generation_graph = None
+        self.adaptation_graph = None
+
+    # ---------- lifecycle ----------
+
     async def initialize(self):
-        """Initialize all agents"""
         if self.initialized:
             return
-        
+
+        if not LANGGRAPH_AVAILABLE:
+            raise RuntimeError(
+                "LangGraph is not installed. Run: pip install langgraph langchain-core"
+            )
+
         # Initialize all agents
         self.agents['path_planning'] = PathPlanningAgent()
         self.agents['pattern_recognition'] = PatternRecognitionAgent()
@@ -38,142 +88,188 @@ class Orchestrator:
         self.agents['reflection_analysis'] = ReflectionAnalysisAgent()
         self.agents['adaptation'] = AdaptationAgent()
         self.agents['calendar_optimization'] = CalendarOptimizationAgent()
-        
-        # Initialize each agent
+
         for agent in self.agents.values():
             await agent.initialize()
-        
+
+        # Build the two LangGraph state machines
+        self.generation_graph = self._build_generation_graph()
+        self.adaptation_graph = self._build_adaptation_graph()
+
         self.initialized = True
-        print("Orchestrator initialized with 6 agents")
-    
+        print("LangGraph Orchestrator initialized with 6 agents")
+
     async def cleanup(self):
-        """Cleanup resources"""
         for agent in self.agents.values():
             await agent.cleanup()
+        self.agents = {}
+        self.generation_graph = None
+        self.adaptation_graph = None
         self.initialized = False
-    
-    async def generate_path(
-        self, 
-        user_profile: dict,
-        goals: List[str],
-        barriers: List[str]
-    ) -> dict:
-        """
-        Main orchestration method: Generate a personalized path
-        """
-        if not self.initialized:
-            await self.initialize()
-        
-        # Step 1: Pattern Recognition Agent finds similar users and models
-        pattern_response = await self.agents['pattern_recognition'].find_similar_patterns(
-            user_profile=user_profile,
-            goals=goals,
-            barriers=barriers
+
+    # ---------- generation graph ----------
+
+    def _build_generation_graph(self):
+        graph = StateGraph(GenerationState)
+
+        graph.add_node("pattern_recognition", self._node_pattern_recognition)
+        graph.add_node("path_planning", self._node_path_planning)
+        graph.add_node("tool_recommendation", self._node_tool_recommendation)
+        graph.add_node("calendar_optimization", self._node_calendar_optimization)
+        graph.add_node("synthesis", self._node_generation_synthesis)
+
+        graph.set_entry_point("pattern_recognition")
+        graph.add_edge("pattern_recognition", "path_planning")
+        graph.add_edge("path_planning", "tool_recommendation")
+        graph.add_edge("tool_recommendation", "calendar_optimization")
+        graph.add_edge("calendar_optimization", "synthesis")
+        graph.add_edge("synthesis", END)
+
+        return graph.compile()
+
+    async def _node_pattern_recognition(self, state: GenerationState) -> Dict[str, Any]:
+        response = await self.agents['pattern_recognition'].find_similar_patterns(
+            user_profile=state['user_profile'],
+            goals=state['goals'],
+            barriers=state['barriers'],
         )
-        
-        # Step 2: Path Planning Agent creates the roadmap
-        path_response = await self.agents['path_planning'].generate_path(
-            user_profile=user_profile,
-            goals=goals,
-            barriers=barriers,
-            similar_patterns=pattern_response.get('patterns', [])
+        return {"pattern_response": response}
+
+    async def _node_path_planning(self, state: GenerationState) -> Dict[str, Any]:
+        response = await self.agents['path_planning'].generate_path(
+            user_profile=state['user_profile'],
+            goals=state['goals'],
+            barriers=state['barriers'],
+            similar_patterns=state.get('pattern_response', {}).get('patterns', []),
         )
-        
-        # Step 3: Tool Recommendation Agent finds resources
-        tool_response = await self.agents['tool_recommendation'].recommend_tools(
-            user_profile=user_profile,
-            milestones=path_response.get('milestones', []),
-            barriers=barriers
+        return {"path_response": response}
+
+    async def _node_tool_recommendation(self, state: GenerationState) -> Dict[str, Any]:
+        response = await self.agents['tool_recommendation'].recommend_tools(
+            user_profile=state['user_profile'],
+            milestones=state.get('path_response', {}).get('milestones', []),
+            barriers=state['barriers'],
         )
-        
-        # Step 4: Calendar Optimization Agent creates schedule
-        calendar_response = await self.agents['calendar_optimization'].optimize_calendar(
-            user_profile=user_profile,
-            milestones=path_response.get('milestones', []),
-            tasks=path_response.get('tasks', [])
+        return {"tool_response": response}
+
+    async def _node_calendar_optimization(self, state: GenerationState) -> Dict[str, Any]:
+        response = await self.agents['calendar_optimization'].optimize_calendar(
+            user_profile=state['user_profile'],
+            milestones=state.get('path_response', {}).get('milestones', []),
+            tasks=state.get('path_response', {}).get('tasks', []),
         )
-        
-        # Step 5: Synthesis Engine combines all agent outputs
+        return {"calendar_response": response}
+
+    async def _node_generation_synthesis(self, state: GenerationState) -> Dict[str, Any]:
         agent_responses = [
             {
                 'agentId': 'pattern_recognition',
                 'agentName': 'Pattern Recognition Agent',
-                'result': pattern_response,
-                'confidence': pattern_response.get('confidence', 0.8)
+                'result': state.get('pattern_response', {}),
+                'confidence': state.get('pattern_response', {}).get('confidence', 0.8),
             },
             {
                 'agentId': 'path_planning',
                 'agentName': 'Path Planning Agent',
-                'result': path_response,
-                'confidence': path_response.get('confidence', 0.85)
+                'result': state.get('path_response', {}),
+                'confidence': state.get('path_response', {}).get('confidence', 0.85),
             },
             {
                 'agentId': 'tool_recommendation',
                 'agentName': 'Tool Recommendation Agent',
-                'result': tool_response,
-                'confidence': tool_response.get('confidence', 0.75)
+                'result': state.get('tool_response', {}),
+                'confidence': state.get('tool_response', {}).get('confidence', 0.75),
             },
             {
                 'agentId': 'calendar_optimization',
                 'agentName': 'Calendar Optimization Agent',
-                'result': calendar_response,
-                'confidence': calendar_response.get('confidence', 0.8)
-            }
+                'result': state.get('calendar_response', {}),
+                'confidence': state.get('calendar_response', {}).get('confidence', 0.8),
+            },
         ]
-        
+
         synthesized = await self.synthesis_engine.synthesize(agent_responses)
-        
-        return {
+
+        final = {
             'path': synthesized.get('path'),
             'races': synthesized.get('races'),
             'recommendations': synthesized.get('recommendations'),
             'schedule': synthesized.get('schedule'),
             'explanations': synthesized.get('explanations', []),
-            'agentResponses': agent_responses
+            'agentResponses': agent_responses,
         }
-    
-    async def adapt_path(
-        self,
-        user_id: str,
-        path_id: str,
-        reflection_data: Dict[str, Any]
-    ) -> dict:
-        """
-        Adapt existing path based on user reflections
-        """
-        if not self.initialized:
-            await self.initialize()
-        
-        # Step 1: Reflection Analysis Agent analyzes the reflection
-        reflection_response = await self.agents['reflection_analysis'].analyze_reflection(
-            reflection_data=reflection_data,
-            user_id=user_id
+        return {"agent_responses": agent_responses, "final": final}
+
+    # ---------- adaptation graph ----------
+
+    def _build_adaptation_graph(self):
+        graph = StateGraph(AdaptationState)
+
+        graph.add_node("reflection_analysis", self._node_reflection_analysis)
+        graph.add_node("adaptation", self._node_adaptation)
+        graph.add_node("calendar_optimization", self._node_adapt_calendar)
+        graph.add_node("synthesis", self._node_adaptation_synthesis)
+
+        graph.set_entry_point("reflection_analysis")
+        graph.add_edge("reflection_analysis", "adaptation")
+        graph.add_conditional_edges(
+            "adaptation",
+            self._needs_calendar_update,
+            {
+                "calendar": "calendar_optimization",
+                "skip": "synthesis",
+            },
         )
-        
-        # Step 2: Adaptation Agent adjusts the path
-        adaptation_response = await self.agents['adaptation'].adapt_path(
-            user_id=user_id,
-            path_id=path_id,
-            reflection_insights=reflection_response.get('insights', {}),
-            current_progress=reflection_response.get('progress', {})
+        graph.add_edge("calendar_optimization", "synthesis")
+        graph.add_edge("synthesis", END)
+
+        return graph.compile()
+
+    async def _node_reflection_analysis(self, state: AdaptationState) -> Dict[str, Any]:
+        response = await self.agents['reflection_analysis'].analyze_reflection(
+            reflection_data=state['reflection_data'],
+            user_id=state['user_id'],
         )
-        
-        # Step 3: If calendar needs updating, Calendar Agent optimizes
-        if adaptation_response.get('needs_calendar_update', False):
-            calendar_response = await self.agents['calendar_optimization'].optimize_calendar(
-                user_profile=reflection_response.get('user_profile'),
-                milestones=adaptation_response.get('updated_milestones', []),
-                tasks=adaptation_response.get('updated_tasks', [])
-            )
-            adaptation_response['calendar'] = calendar_response
-        
-        # Step 4: Synthesis
-        synthesized = await self.synthesis_engine.synthesize_adaptation(
-            reflection_response=reflection_response,
-            adaptation_response=adaptation_response
+        return {"reflection_response": response}
+
+    async def _node_adaptation(self, state: AdaptationState) -> Dict[str, Any]:
+        reflection = state.get('reflection_response', {})
+        response = await self.agents['adaptation'].adapt_path(
+            user_id=state['user_id'],
+            path_id=state['path_id'],
+            reflection_insights=reflection.get('insights', {}),
+            current_progress=reflection.get('progress', {}),
         )
-        
         return {
+            "adaptation_response": response,
+            "needs_calendar_update": bool(response.get('needs_calendar_update', False)),
+        }
+
+    def _needs_calendar_update(self, state: AdaptationState) -> str:
+        return "calendar" if state.get("needs_calendar_update") else "skip"
+
+    async def _node_adapt_calendar(self, state: AdaptationState) -> Dict[str, Any]:
+        reflection = state.get('reflection_response', {})
+        adaptation = state.get('adaptation_response', {})
+        response = await self.agents['calendar_optimization'].optimize_calendar(
+            user_profile=reflection.get('user_profile'),
+            milestones=adaptation.get('updated_milestones', []),
+            tasks=adaptation.get('updated_tasks', []),
+        )
+        merged = dict(adaptation)
+        merged['calendar'] = response
+        return {"adaptation_response": merged, "calendar_response": response}
+
+    async def _node_adaptation_synthesis(self, state: AdaptationState) -> Dict[str, Any]:
+        reflection = state.get('reflection_response', {})
+        adaptation = state.get('adaptation_response', {})
+
+        synthesized = await self.synthesis_engine.synthesize_adaptation(
+            reflection_response=reflection,
+            adaptation_response=adaptation,
+        )
+
+        final = {
             'path': synthesized.get('path'),
             'races': synthesized.get('races'),
             'schedule': synthesized.get('schedule'),
@@ -182,30 +278,66 @@ class Orchestrator:
                 {
                     'agentId': 'reflection_analysis',
                     'agentName': 'Reflection Analysis Agent',
-                    'result': reflection_response,
-                    'confidence': reflection_response.get('confidence', 0.8)
+                    'result': reflection,
+                    'confidence': reflection.get('confidence', 0.8),
                 },
                 {
                     'agentId': 'adaptation',
                     'agentName': 'Adaptation Agent',
-                    'result': adaptation_response,
-                    'confidence': adaptation_response.get('confidence', 0.75)
-                }
-            ]
+                    'result': adaptation,
+                    'confidence': adaptation.get('confidence', 0.75),
+                },
+            ],
         }
-    
+        return {"final": final}
+
+    # ---------- public API (unchanged signatures) ----------
+
+    async def generate_path(
+        self,
+        user_profile: dict,
+        goals: List[str],
+        barriers: List[str],
+    ) -> dict:
+        if not self.initialized:
+            await self.initialize()
+
+        initial: GenerationState = {
+            "user_profile": user_profile,
+            "goals": goals,
+            "barriers": barriers,
+        }
+        result = await self.generation_graph.ainvoke(initial)
+        return result.get("final", {})
+
+    async def adapt_path(
+        self,
+        user_id: str,
+        path_id: str,
+        reflection_data: Dict[str, Any],
+    ) -> dict:
+        if not self.initialized:
+            await self.initialize()
+
+        initial: AdaptationState = {
+            "user_id": user_id,
+            "path_id": path_id,
+            "reflection_data": reflection_data,
+        }
+        result = await self.adaptation_graph.ainvoke(initial)
+        return result.get("final", {})
+
     async def health_check(self) -> Dict[str, Any]:
-        """Check health of all agents"""
         health = {
             'initialized': self.initialized,
-            'agents': {}
+            'orchestrator': 'langgraph',
+            'langgraph_available': LANGGRAPH_AVAILABLE,
+            'agents': {},
         }
-        
         for name, agent in self.agents.items():
             try:
-                agent_health = await agent.health_check()
-                health['agents'][name] = agent_health
+                health['agents'][name] = await agent.health_check()
             except Exception as e:
                 health['agents'][name] = {'status': 'error', 'error': str(e)}
-        
         return health
+

@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp } from 'lucide-react'
+import { useAgentPath } from '../context/AgentPathContext'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 export default function MilestoneView() {
   const router = useRouter()
+  const { pathPlanning, toolRecommendation, patternRecognition, payload } = useAgentPath()
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set())
   const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
   const [expandedTool, setExpandedTool] = useState<string | null>(null)
@@ -28,10 +31,22 @@ export default function MilestoneView() {
     }, 600)
   }
 
-  const races = [
-    { id: 'race_1', name: 'Graduate University', progress: 45 },
-    { id: 'race_2', name: 'Get Tech Job', progress: 20 },
-  ]
+  // Real races derived from agent payload (fallback to mock).
+  const agentRaces = payload?.races?.length
+    ? payload.races.map((r: any, idx: number) => ({
+        id: r.id || `race_${idx + 1}`,
+        name: r.name || r.goal || `Goal ${idx + 1}`,
+        progress: typeof r.progress === 'number' ? r.progress : 0,
+      }))
+    : (payload?.userProfile?.goals as string[] | undefined)?.map((g: string, idx: number) => ({
+        id: `race_${idx + 1}`,
+        name: g,
+        progress: 0,
+      })) || [
+        { id: 'race_1', name: 'Graduate University', progress: 45 },
+        { id: 'race_2', name: 'Get Tech Job', progress: 20 },
+      ]
+  const races = agentRaces
 
   /* Tool symbols - keys, hammers, lift, spray boots, etc. */
   const toolSymbols = [
@@ -43,16 +58,67 @@ export default function MilestoneView() {
     { emoji: '🛡️', name: 'Shield', desc: 'Protects from setbacks' },
   ]
 
-  const tools = [
-    { id: 't1', name: 'Disability Office', type: 'Service', symbol: '🔑', barrier: 'b1', desc: 'Access accommodations', url: '#' },
-    { id: 't2', name: 'Academic Advisor', type: 'Service', symbol: '🔧', barrier: 'b2', desc: 'Plan your path', url: '#' },
-    { id: 't3', name: '"Accommodation Guide" video', type: 'Commentary', symbol: '🏋️', barrier: 'b3', desc: 'Learn the process', url: '#' },
-    { id: 't4', name: 'Tiimo App', type: 'Product', symbol: '👢', barrier: 'b4', desc: 'ADHD-friendly planner', url: '#' },
-    { id: 't5', name: 'Study Group (online)', type: 'Other', symbol: '🛡️', barrier: 'b5', desc: 'Peer accountability', url: '#' },
-    { id: 't6', name: 'Notion Templates', type: 'Product', symbol: '🔨', barrier: 'b3', desc: 'Organize everything', url: '#' },
-  ]
+  // Real tools from the tool-recommendation agent. We flatten the per-milestone
+  // map plus the pit-stop bucket and dedupe so the user sees a useful list.
+  const symbolForType = (t: string) => {
+    const m: Record<string, string> = {
+      service: '🔑', product: '👢', commentary: '🏋️', community: '🛡️', tool: '🔧', other: '🔨',
+    }
+    return m[(t || '').toLowerCase()] || '🔧'
+  }
+  const flattenAgentTools = (): any[] => {
+    if (!toolRecommendation) return []
+    const out: any[] = []
+    const seen = new Set<string>()
+    const push = (t: any, barrierId?: string) => {
+      if (!t || !t.id || seen.has(t.id)) return
+      seen.add(t.id)
+      out.push({
+        id: t.id,
+        name: t.name,
+        type: (t.type || 'tool').replace(/^./, (c: string) => c.toUpperCase()),
+        symbol: symbolForType(t.type),
+        barrier: barrierId || 'b1',
+        desc: t.description || '',
+        url: t.url || '#',
+      })
+    }
+    const recs = toolRecommendation.recommendations || {}
+    const milestoneKeys = Object.keys(recs)
+    milestoneKeys.forEach((mk, idx) => {
+      const barrierId = `b${(idx % 5) + 1}`
+      ;(recs[mk] || []).forEach((t: any) => push(t, barrierId))
+    })
+    const pit = toolRecommendation.pit_stop_tools || {}
+    Object.values(pit).forEach((arr: any) => (arr || []).forEach((t: any) => push(t)))
+    return out
+  }
+  const agentTools = flattenAgentTools()
+  const tools = agentTools.length
+    ? agentTools.slice(0, 8)
+    : [
+        { id: 't1', name: 'Disability Office', type: 'Service', symbol: '🔑', barrier: 'b1', desc: 'Access accommodations', url: '#' },
+        { id: 't2', name: 'Academic Advisor', type: 'Service', symbol: '🔧', barrier: 'b2', desc: 'Plan your path', url: '#' },
+        { id: 't3', name: '"Accommodation Guide" video', type: 'Commentary', symbol: '🏋️', barrier: 'b3', desc: 'Learn the process', url: '#' },
+        { id: 't4', name: 'Tiimo App', type: 'Product', symbol: '👢', barrier: 'b4', desc: 'ADHD-friendly planner', url: '#' },
+        { id: 't5', name: 'Study Group (online)', type: 'Other', symbol: '🛡️', barrier: 'b5', desc: 'Peer accountability', url: '#' },
+        { id: 't6', name: 'Notion Templates', type: 'Product', symbol: '🔨', barrier: 'b3', desc: 'Organize everything', url: '#' },
+      ]
 
-  const barriers = [
+  // Real barriers from the user profile (challenges and barrier types).
+  const profileBarriers: string[] = [
+    ...((payload?.userProfile?.currentChallenges || []) as string[]),
+    ...((payload?.userProfile?.barrierTypes || []) as string[]),
+  ].filter(Boolean)
+  const agentBarriers = profileBarriers.length
+    ? profileBarriers.slice(0, 6).map((name, idx) => ({
+        id: `b${idx + 1}`,
+        name,
+        severity: ((idx % 3) + 1) as 1 | 2 | 3,
+        unlocked: idx === 0,
+      }))
+    : null
+  const barriers = agentBarriers || [
     { id: 'b1', name: 'Don\'t know where to start', severity: 1, unlocked: true },
     { id: 'b2', name: 'Overwhelmed by paperwork', severity: 2, unlocked: false },
     { id: 'b3', name: 'Fear of disclosure', severity: 3, unlocked: false },
@@ -62,6 +128,10 @@ export default function MilestoneView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100">
+      <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3">
+        <AgentInsightsBanner agent="path_planning" />
+        <AgentInsightsBanner agent="pattern_recognition" />
+      </div>
       {/* Wooden signpost header */}
       <div className="relative">
         <div className="max-w-4xl mx-auto px-4 pt-6 pb-4">
@@ -259,7 +329,7 @@ export default function MilestoneView() {
         {/* Summary section */}
         <div className="mt-6 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
           <h3 className="font-bold text-amber-900 mb-2">📋 Summary</h3>
-          <p className="text-sm text-slate-600">Current Milestone: <strong>Request accommodations for classes.</strong></p>
+          <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || 'Request accommodations for classes.'}</strong></p>
           <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
         </div>
 

@@ -8,6 +8,7 @@ from typing import Dict, Any, List
 from datetime import datetime, timedelta
 from core.agents.base_agent import BaseAgent
 from core.config import Config
+from core import llm
 import random
 
 class CalendarOptimizationAgent(BaseAgent):
@@ -82,7 +83,8 @@ class CalendarOptimizationAgent(BaseAgent):
         }
         
         self.initialized = True
-        print(f"   ✓ {self.agent_name} initialized with scheduling rules")
+        mode = "with OpenAI rationale" if llm.is_enabled() else "with scheduling rules"
+        print(f"   ✓ {self.agent_name} initialized {mode}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -124,14 +126,34 @@ class CalendarOptimizationAgent(BaseAgent):
         
         # Create scenario variants
         scenarios = await self._create_scenarios(scheduled_days, rules)
-        
+
+        explanation = f'Optimized {len(tasks)} tasks across {len(scheduled_days)} days with barrier-aware scheduling'
+        if llm.is_enabled() and tasks:
+            text = await llm.complete_text(
+                system=(
+                    "You are a productivity coach for neurodivergent users. "
+                    "In one warm sentence (max 40 words), summarize how you scheduled their week."
+                ),
+                user=(
+                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    f"Total tasks: {len(tasks)}\n"
+                    f"Days scheduled: {len(scheduled_days)}\n"
+                    f"Unscheduled: {len(remaining_tasks)}\n"
+                    "Return just the sentence."
+                ),
+                temperature=0.6,
+                max_tokens=100,
+            )
+            if text:
+                explanation = text
+
         return {
             'schedule': scheduled_days,
             'scenarios': scenarios,
             'rules_applied': rules,
             'unscheduled_tasks': remaining_tasks,
             'confidence': 0.82,
-            'explanation': f'Optimized {len(tasks)} tasks across {len(scheduled_days)} days with barrier-aware scheduling'
+            'explanation': explanation
         }
     
     async def _get_combined_rules(self, barrier_keys: List[str]) -> Dict[str, Any]:

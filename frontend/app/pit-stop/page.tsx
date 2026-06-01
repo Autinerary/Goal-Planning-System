@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, UserPlus, UserMinus, Users, UserCheck, Sparkles, Share2, Lock, Globe, MessageSquare, Bell, Trophy, Video, X, Filter, Heart, Star, Users2, Crown, Code, Eye, ChevronRight, ChevronLeft } from 'lucide-react'
 import axios from 'axios'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { useAgentPath } from '../context/AgentPathContext'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -12,6 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 function PitStopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toolRecommendation } = useAgentPath()
   
   // Read URL params on mount
   const initialTab = searchParams.get('tab') as 'tools' | 'haveworld' || 'tools'
@@ -357,6 +360,11 @@ function PitStopContent() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto mb-4 space-y-3 relative z-10">
+        <AgentInsightsBanner agent="adaptation" />
+        <AgentInsightsBanner agent="reflection_analysis" />
+        <AgentInsightsBanner agent="pattern_recognition" />
+      </div>
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -406,6 +414,45 @@ function PitStopContent() {
 
         {/* Tools Tab - Redirects to ServiceHub */}
         {activeTab === 'tools' && (
+          <div className="space-y-4">
+            {/* Agent-recommended pit-stop tools (from tool_recommendation agent) */}
+            {(() => {
+              const pit: any = toolRecommendation?.pit_stop_tools || {}
+              const buckets: Array<{ key: string; label: string; icon: string; color: string }> = [
+                { key: 'services', label: 'Services', icon: '🔑', color: 'border-cyan-200 bg-cyan-50' },
+                { key: 'products', label: 'Products', icon: '👢', color: 'border-amber-200 bg-amber-50' },
+                { key: 'commentaries', label: 'Commentaries', icon: '🏋️', color: 'border-purple-200 bg-purple-50' },
+                { key: 'other', label: 'Other', icon: '🔨', color: 'border-slate-200 bg-slate-50' },
+              ]
+              const hasAny = buckets.some((b) => (pit[b.key] || []).length > 0)
+              if (!hasAny) return null
+              return (
+                <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
+                  <h3 className="text-lg font-bold mb-1">Recommended for you</h3>
+                  <p className="text-sm text-slate-600 mb-4">Personalised pit-stop picks from your tool recommendation agent.</p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {buckets.map((b) => {
+                      const items = (pit[b.key] || []).slice(0, 4)
+                      if (!items.length) return null
+                      return (
+                        <div key={b.key} className={`rounded-xl border-2 ${b.color} p-4`}>
+                          <div className="font-semibold mb-2 flex items-center gap-2"><span>{b.icon}</span>{b.label}</div>
+                          <ul className="space-y-2">
+                            {items.map((t: any) => (
+                              <li key={t.id} className="text-sm">
+                                <a href={t.url || '#'} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
+                                {t.description && <div className="text-xs text-slate-600 line-clamp-2">{t.description}</div>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+
           <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
@@ -430,6 +477,7 @@ function PitStopContent() {
                 </p>
               </div>
             </div>
+          </div>
           </div>
         )}
 

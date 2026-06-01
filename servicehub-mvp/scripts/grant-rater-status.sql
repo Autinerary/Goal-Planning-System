@@ -1,27 +1,32 @@
 -- Grant Rater Status to Users
 -- Run this in Supabase SQL Editor
+--
+-- IMPORTANT: All UPDATE statements below are commented out by default.
+-- Uncomment ONLY the option you need, and replace placeholder values
+-- with real ones BEFORE running. Otherwise you'll get errors like
+-- "invalid input syntax for type uuid: 'user-uuid-here'".
 
 -- Option 1: Grant rater status to a specific user by email
 -- Replace 'user@example.com' with the actual email
-UPDATE public.profiles 
-SET is_rater = TRUE 
-WHERE email = 'user@example.com';
+-- UPDATE public.profiles
+-- SET is_rater = TRUE
+-- WHERE email = 'user@example.com';
 
 -- Option 2: Grant rater status to a specific user by UUID
--- Replace 'user-uuid-here' with the actual user ID (from auth.users table)
-UPDATE public.profiles 
-SET is_rater = TRUE 
-WHERE id = 'user-uuid-here';
+-- Replace '00000000-0000-0000-0000-000000000000' with the actual user ID (from auth.users table)
+-- UPDATE public.profiles
+-- SET is_rater = TRUE
+-- WHERE id = '00000000-0000-0000-0000-000000000000';
 
--- Option 3: Grant rater status to all admins
-UPDATE public.profiles 
-SET is_rater = TRUE 
-WHERE role = 'admin';
+-- Option 3: Grant rater status to all admins (safe to run as-is)
+-- UPDATE public.profiles
+-- SET is_rater = TRUE
+-- WHERE role = 'admin';
 
 -- Option 4: Grant rater status to multiple users by email
-UPDATE public.profiles 
-SET is_rater = TRUE 
-WHERE email IN ('user1@example.com', 'user2@example.com', 'user3@example.com');
+-- UPDATE public.profiles
+-- SET is_rater = TRUE
+-- WHERE email IN ('user1@example.com', 'user2@example.com', 'user3@example.com');
 
 -- Option 5: List all users with their IDs and emails (to help you find the right user)
 SELECT 

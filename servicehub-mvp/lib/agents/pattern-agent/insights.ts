@@ -1,25 +1,41 @@
 import type { DiscoveredPattern, BarrierCombination, ResourceAffinity, IntersectionalityPattern } from './types'
 import { getResourceById } from '@/lib/supabase/queries'
 import { getResources } from '@/lib/supabase/queries'
+import { completeText, isLLMEnabled } from '@/lib/llm'
 
 /**
  * Generate human-readable insights from discovered patterns
- * Agent explains its discoveries in natural language
+ * Agent explains its discoveries in natural language.
+ * Uses OpenAI when configured, falls back to rule-based phrasing.
  */
 export async function generateInsight(pattern: DiscoveredPattern): Promise<string> {
+  const ruleBased = await ruleBasedInsight(pattern)
+
+  if (!isLLMEnabled()) return ruleBased
+
+  const llm = await completeText(
+    'You translate raw statistical patterns from a neurodiversity resource community into one concise, warm, plain-language insight (max 30 words).',
+    `Pattern type: ${pattern.type}\n` +
+      `Frequency: ${pattern.frequency}\n` +
+      `Confidence: ${pattern.confidence}\n` +
+      `Raw data: ${JSON.stringify(pattern.pattern).slice(0, 600)}\n` +
+      `Fallback phrasing: ${ruleBased}\n` +
+      `Return ONLY the sentence \u2014 no quotes, no preamble.`,
+    { temperature: 0.5, maxTokens: 100 }
+  )
+  return llm || ruleBased
+}
+
+async function ruleBasedInsight(pattern: DiscoveredPattern): Promise<string> {
   switch (pattern.type) {
     case 'barrier_combination':
       return generateBarrierCombinationInsight(pattern)
-
     case 'resource_affinity':
       return generateResourceAffinityInsight(pattern)
-
     case 'intersectionality':
       return generateIntersectionalityInsight(pattern)
-
     case 'non_obvious':
       return generateNonObviousInsight(pattern)
-
     default:
       return pattern.insight || 'Pattern discovered'
   }

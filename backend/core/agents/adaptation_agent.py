@@ -7,6 +7,7 @@ SIMULATION MODE: Uses rule-based adaptation logic
 from typing import Dict, Any, List
 from core.agents.base_agent import BaseAgent
 from core.config import Config
+from core import llm
 
 class AdaptationAgent(BaseAgent):
     """Adapts paths based on user progress and feedback"""
@@ -81,7 +82,8 @@ class AdaptationAgent(BaseAgent):
         }
         
         self.initialized = True
-        print(f"   ✓ {self.agent_name} initialized with adaptation rules")
+        mode = "with OpenAI rationale" if llm.is_enabled() else "with adaptation rules"
+        print(f"   ✓ {self.agent_name} initialized {mode}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -143,11 +145,31 @@ class AdaptationAgent(BaseAgent):
         needs_calendar_update = any(
             a.get('requires_calendar_update', False) for a in adaptations
         )
-        
+
+        # LLM-generated overall explanation
+        explanation = f'Applied {len(adaptations)} adaptations based on reflection analysis'
+        if llm.is_enabled() and adaptations:
+            text = await llm.complete_text(
+                system=(
+                    "You are a coach explaining plan adaptations to a neurodivergent user. "
+                    "Be supportive, concise (max 50 words), and reference specific reasons."
+                ),
+                user=(
+                    f"Adaptations: {[a.get('type') for a in adaptations]}\n"
+                    f"Completion rate: {current_progress.get('completion_rate', 1.0):.0%}\n"
+                    f"Sentiment: {reflection_insights.get('sentiment', {}).get('label', 'neutral')}\n"
+                    "Explain why you're making these changes."
+                ),
+                temperature=0.6,
+                max_tokens=120,
+            )
+            if text:
+                explanation = text
+
         # Generate updated milestones and tasks
         updated_milestones = await self._update_milestones(adaptations, barrier_adjustments)
         updated_tasks = await self._update_tasks(adaptations, barrier_adjustments)
-        
+
         return {
             'adaptations': adaptations,
             'barrier_adjustments': barrier_adjustments,
@@ -157,7 +179,7 @@ class AdaptationAgent(BaseAgent):
             'updated_races': await self._generate_updated_races(adaptations),
             'needs_calendar_update': needs_calendar_update,
             'confidence': 0.78,
-            'explanation': f'Applied {len(adaptations)} adaptations based on reflection analysis'
+            'explanation': explanation
         }
     
     async def _adapt_for_low_completion(

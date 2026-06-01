@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye } from 'lucide-react'
+import { useAgentPath } from '../context/AgentPathContext'
+import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -13,6 +15,7 @@ import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserC
 */
 
 function RacesContent() {
+  const { payload, pathPlanning, toolRecommendation } = useAgentPath()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -143,52 +146,151 @@ function RacesContent() {
 
   const theirStats = { mentality: 7, happiness: 9, focus: 8, energy: 6 }
   const theirProgress = 65, yourProgress = 45
+  // Derive stats from the real user profile so the radar reflects them.
+  const _userBarrierCount = (payload?.userProfile?.barrierTypes || []).length
+  const _userGoalCount = (payload?.userProfile?.goals || []).length
+  const _userDreamCount = (payload?.userProfile?.dreams || []).length
+  const _userChallengeCount = (payload?.userProfile?.currentChallenges || []).length
+  const _clamp = (n: number) => Math.max(1, Math.min(10, n))
   const stats = [
-    { name: 'Mentality', value: 5, max: 10 },
-    { name: 'Happiness', value: 8, max: 10 },
-    { name: 'Fear', value: 3, max: 10 },
-    { name: 'Creativity', value: 7, max: 10 },
+    { name: 'Mentality', value: _clamp(4 + _userBarrierCount), max: 10 },
+    { name: 'Happiness', value: _clamp(5 + _userDreamCount), max: 10 },
+    { name: 'Fear', value: _clamp(2 + _userChallengeCount), max: 10 },
+    { name: 'Creativity', value: _clamp(4 + _userGoalCount + _userDreamCount), max: 10 },
   ]
   const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your barriers are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
-  const recommendedChoices = [
-    { id: 'c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
-    { id: 'c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
-    { id: 'see', name: '(See more)', success: null, attempts: null },
-    { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
-  ]
+  // Recommended choices for the CURRENT milestone come from the
+  // tool_recommendation agent. Fall back to the demo list if we have none.
+  const _agentMs: any[] = (pathPlanning?.milestones || []) as any[]
+  const _currentMsId: string | undefined = _agentMs[0]?.id
+  const _currentRecs: any[] = _currentMsId ? ((toolRecommendation?.recommendations || {})[_currentMsId] || []) : []
+  const _agentChoices = _currentRecs.slice(0, 3).map((t: any, i: number) => ({
+    id: `c${i + 1}`,
+    name: t.name || `Recommended Choice ${i + 1}`,
+    success: Math.round((t.relevanceScore || 0.85) * 100),
+    attempts: t.reviews || 100 + i * 25,
+  }))
+  const recommendedChoices = _agentChoices.length
+    ? [
+        ..._agentChoices,
+        { id: 'see', name: '(See more)', success: null as any, attempts: null as any },
+        _currentRecs[3]
+          ? { id: 'cX', name: _currentRecs[3].name || 'Choice X, Last', success: Math.round(((_currentRecs[3].relevanceScore || 0.1)) * 100), attempts: _currentRecs[3].reviews || 102 }
+          : { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
+      ]
+    : [
+        { id: 'c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
+        { id: 'c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
+        { id: 'see', name: '(See more)', success: null as any, attempts: null as any },
+        { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
+      ]
   const previousSteps = [
     { id: 's1', name: 'Completed: Research accommodations' },
     { id: 's2', name: 'Completed: Initial assessment' },
     { id: 's3', name: 'Completed: Set up profile' },
   ]
-  const races = [
-    { id: 'r1', name: 'Graduate University', progress: 45, milestone: 'Request Accommodations', models: ['Autism', 'ADHD', 'First-Gen'] },
-    { id: 'r2', name: 'Get Tech Job', progress: 20, milestone: 'Build Portfolio', models: ['ADHD', 'Visible Minority'] },
-  ]
-  const shopItems = [
-    { emoji: '🍎', name: 'Energy Apple', cost: '5 coins' },
-    { emoji: '☕', name: 'Focus Brew', cost: '8 coins' },
-    { emoji: '🧃', name: 'Calm Juice', cost: '6 coins' },
-    { emoji: '🔧', name: 'Planner Tool', cost: '12 coins' },
-    { emoji: '📚', name: 'Study Guide', cost: '15 coins' },
-    { emoji: '🎧', name: 'Headphones', cost: '20 coins' },
-    { emoji: '⚡', name: 'Speed Boost', cost: '25 coins' },
-    { emoji: '🛡️', name: 'Barrier Shield', cost: '30 coins' },
-    { emoji: '✨', name: 'Motivation Spark', cost: '18 coins' },
-  ]
-  const milestones = [
-    { name: 'Request Accommodations', dist: 'Current', status: 'active' as const },
-    { name: 'Complete Semester 1', dist: '2 steps', status: 'upcoming' as const },
-    { name: 'Join Study Group', dist: '4 steps', status: 'upcoming' as const },
-    { name: 'Graduate!', dist: '10 steps', status: 'far' as const },
-  ]
-  const schedule = [
-    { time: '9 AM', task: 'Morning Focus', emoji: '📖' },
-    { time: '11 AM', task: 'Accommodation Meeting', emoji: '🎯' },
-    { time: '1 PM', task: 'Lunch & Recharge', emoji: '☕' },
-    { time: '3 PM', task: 'Group Study', emoji: '👥' },
-    { time: '5 PM', task: 'Reflection', emoji: '📝' },
-  ]
+  // Real agent-derived races (fallback to mock if no path data yet)
+  const userBarrierLabels: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
+  const userGoalNames: string[] = (payload?.userProfile?.goals || []) as string[]
+  const agentMilestoneList: any[] = (pathPlanning?.milestones || payload?.milestones || []) as any[]
+  const firstMilestoneName: string | undefined = agentMilestoneList[0]?.name || agentMilestoneList[0]?.title
+  const rawRaces = payload?.races?.length
+    ? payload.races.map((r: any, idx: number) => ({
+        id: r.id || `r${idx + 1}`,
+        // Prefer the user's actual goal text over the backend's generic\n        // "Main Goal" label.
+        name: userGoalNames[idx] || r.name || r.goal || `Goal ${idx + 1}`,
+        progress: typeof r.progress === 'number' ? r.progress : 0,
+        milestone: r.milestone || r.currentMilestone || firstMilestoneName || 'Getting started',
+        models: userBarrierLabels.length ? userBarrierLabels : (r.models || []),
+      }))
+    : (payload?.userProfile?.goals as string[] | undefined)?.map((goal: string, idx: number) => ({
+        id: `r${idx + 1}`,
+        name: goal,
+        progress: 0,
+        milestone: firstMilestoneName || 'Getting started',
+        models: userBarrierLabels,
+      })) || [
+        { id: 'r1', name: 'Graduate University', progress: 45, milestone: 'Request Accommodations', models: ['Autism', 'ADHD', 'First-Gen'] },
+        { id: 'r2', name: 'Get Tech Job', progress: 20, milestone: 'Build Portfolio', models: ['ADHD', 'Visible Minority'] },
+      ]
+  // The UI hard-references races[0] and races[1]. Pad with a placeholder when
+  // the user only declared a single goal so we never crash.
+  const races = rawRaces.length >= 2
+    ? rawRaces
+    : [
+        ...rawRaces,
+        { id: 'r_placeholder', name: 'Add another goal', progress: 0, milestone: 'Open onboarding to add', models: userBarrierLabels },
+      ]
+  // Pit-stop shop items from the tool_recommendation agent. Each bucket
+  // (products/services/commentaries/other) gets a distinct emoji.
+  const _pit: any = toolRecommendation?.pit_stop_tools || {}
+  const _emojiByBucket: Record<string, string> = { products: '👢', services: '🔑', commentaries: '🏋️', other: '🔨' }
+  const _agentShop: { emoji: string; name: string; cost: string }[] = []
+  ;(['products', 'services', 'commentaries', 'other'] as const).forEach((bucket) => {
+    ((_pit[bucket] || []) as any[]).slice(0, 3).forEach((t: any, idx: number) => {
+      _agentShop.push({
+        emoji: _emojiByBucket[bucket],
+        name: t.name || `${bucket.slice(0, -1)} ${idx + 1}`,
+        cost: `${5 + idx * 3} coins`,
+      })
+    })
+  })
+  const shopItems = _agentShop.length
+    ? _agentShop
+    : [
+        { emoji: '🍎', name: 'Energy Apple', cost: '5 coins' },
+        { emoji: '☕', name: 'Focus Brew', cost: '8 coins' },
+        { emoji: '🧃', name: 'Calm Juice', cost: '6 coins' },
+        { emoji: '🔧', name: 'Planner Tool', cost: '12 coins' },
+        { emoji: '📚', name: 'Study Guide', cost: '15 coins' },
+        { emoji: '🎧', name: 'Headphones', cost: '20 coins' },
+        { emoji: '⚡', name: 'Speed Boost', cost: '25 coins' },
+        { emoji: '🛡️', name: 'Barrier Shield', cost: '30 coins' },
+        { emoji: '✨', name: 'Motivation Spark', cost: '18 coins' },
+      ]
+  // Real agent-derived milestones (fallback to mock if no path data yet).
+  // We intentionally render ALL milestones so every dimension's roadmap
+  // (Education, Workplace, Relationships, Health) is visible on the track.
+  const _dimLabel = (d?: string): string => {
+    switch ((d || '').toLowerCase()) {
+      case 'education':     return 'Education'
+      case 'workplace':
+      case 'career':        return 'Workplace'
+      case 'relationships': return 'Relationships'
+      case 'health':        return 'Health & Lifestyle'
+      default:              return ''
+    }
+  }
+  const milestones = agentMilestoneList.length
+    ? agentMilestoneList.map((m: any, idx: number) => ({
+        id: m.id || `m${idx}`,
+        name: m.name || m.title || `Milestone ${idx + 1}`,
+        dist: idx === 0 ? 'Current' : `${idx} of ${agentMilestoneList.length}`,
+        status: (idx === 0 ? 'active' : idx < Math.ceil(agentMilestoneList.length / 2) ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far',
+        dimension: m.dimension || m.category || '',
+        dimensionLabel: m.dimensionLabel || _dimLabel(m.dimension || m.category),
+        goal: m.goal || '',
+      }))
+    : [
+        { id: 'm0', name: 'Request Accommodations', dist: 'Current', status: 'active' as const, dimension: '', dimensionLabel: '', goal: '' },
+        { id: 'm1', name: 'Complete Semester 1', dist: '2 steps', status: 'upcoming' as const, dimension: '', dimensionLabel: '', goal: '' },
+        { id: 'm2', name: 'Join Study Group', dist: '4 steps', status: 'upcoming' as const, dimension: '', dimensionLabel: '', goal: '' },
+        { id: 'm3', name: 'Graduate!', dist: '10 steps', status: 'far' as const, dimension: '', dimensionLabel: '', goal: '' },
+      ]
+  // Real agent-derived schedule (fallback to mock if no path data yet)
+  const schedule = payload?.schedule?.length
+    ? payload.schedule.slice(0, 6).map((s: any) => ({
+        time: s.time || s.start || '',
+        task: s.task || s.title || s.name || 'Task',
+        emoji: s.emoji || '⏰',
+      }))
+    : [
+        { time: '9 AM', task: 'Morning Focus', emoji: '📖' },
+        { time: '11 AM', task: 'Accommodation Meeting', emoji: '🎯' },
+        { time: '1 PM', task: 'Lunch & Recharge', emoji: '☕' },
+        { time: '3 PM', task: 'Group Study', emoji: '👥' },
+        { time: '5 PM', task: 'Reflection', emoji: '📝' },
+      ]
   const spinWheel = () => {
     if (isWheelSpinning) return
     setIsWheelSpinning(true)
@@ -429,7 +531,7 @@ function RacesContent() {
                   <div className={`text-center p-3 rounded-xl mb-3 ${day ? 'bg-gradient-to-b from-purple-50 to-sky-50 border-purple-200' : 'bg-gradient-to-b from-purple-900/30 to-indigo-900/30 border-purple-700'} border`}>
                     <div className="text-2xl mb-1">✨</div>
                     <div className={`font-bold text-xs ${txt}`}>Dream Self</div>
-                    <div className={`text-[9px] ${sub}`}>Cloud 9 — Your ideal future</div>
+                    <div className={`text-[9px] ${sub}`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
                   </div>
 
                   {/* Your Stats */}
@@ -667,7 +769,7 @@ function RacesContent() {
               </div>
             </div>
             <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
-            <div className={`text-xs ${sub} mb-1`}>Cloud 9 — Your ideal future</div>
+            <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
           </div>
 
           {/* ─── ROAD: fan out from Dream Self into 5 paths ─── */}
@@ -717,73 +819,105 @@ function RacesContent() {
           <FanIn count={5} />
 
           {/* ═══════════════════════════════════════
-              MILESTONES AS NODES ON THE ROAD PATH
-              Each milestone is a node with road between
+              FOUR DIMENSION LANES — Education /
+              Workplace / Relationships / Health
+              Each lane is its own mini-roadmap for
+              the SAME goal, tagged with barriers.
              ═══════════════════════════════════════ */}
-          {[...milestones].reverse().map((m, i) => {
-            const isLeft = i % 2 === 0
+          {(() => {
+            const dimOrder: Array<{ key: string; label: string; emoji: string; tint: string; tintDark: string }> = [
+              { key: 'education',     label: 'Education',          emoji: '🎓', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
+              { key: 'workplace',     label: 'Workplace',          emoji: '💼', tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
+              { key: 'relationships', label: 'Relationships',      emoji: '🤝', tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
+              { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
+            ]
+            const byDim: Record<string, typeof milestones> = { education: [], workplace: [], relationships: [], health: [] }
+            milestones.forEach(m => {
+              const k = ((m as any).dimension || '').toLowerCase()
+              const norm = k === 'career' ? 'workplace' : k
+              if (byDim[norm]) byDim[norm].push(m)
+            })
+            // If the agent payload predates dimensions, fall back to one
+            // single lane labelled "Roadmap" so we still render everything.
+            const hasAnyDim = Object.values(byDim).some(arr => arr.length > 0)
             return (
-              <div key={i} className="w-full max-w-md">
-                {/* Road segment into this node */}
-                <RoadDown h={i === 0 ? 30 : 50} />
-                {/* Node on the road */}
-                <div className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
-                  {/* Signboard hanging off the road */}
-                  <button onClick={() => router.push('/milestones')}
-                    className={`flex-1 sw relative transition-all hover:shadow-lg hover:scale-[1.02] group ${m.status === 'active' ? `${day ? 'bg-amber-100 border-amber-500' : 'bg-amber-900/60 border-amber-500'} border-2 shadow-md rounded-xl` : m.status === 'upcoming' ? `${day ? 'bg-amber-50/80 border-amber-300' : 'bg-amber-950/40 border-amber-700'} border rounded-xl` : `${day ? 'bg-amber-50/40 border-amber-200' : 'bg-amber-950/20 border-amber-800'} border rounded-xl opacity-50`}`}
-                    style={{ animationDelay: `${i * .5}s`, transformOrigin: isLeft ? 'right center' : 'left center' }}>
-                    {/* Nails */}
-                    <div className={`absolute top-1.5 left-2 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-400' : 'bg-amber-500'}`} />
-                    <div className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-400' : 'bg-amber-500'}`} />
-                    <div className="p-2.5 pt-3">
-                      <div className={`font-bold text-xs ${txt}`}>{m.name}</div>
-                      <div className={`text-[9px] ${sub} mt-0.5`}>{m.dist}</div>
-                      {m.status === 'active' && <div className="text-[9px] text-amber-500 font-bold mt-0.5">🏁 You are here</div>}
-                      <div className={`text-[8px] ${sub} opacity-0 group-hover:opacity-100 transition-opacity`}>Tap to view →</div>
-                    </div>
-                  </button>
-
-                  {/* Connector arm from road to signboard */}
-                  <div className={`flex items-center ${isLeft ? '' : ''}`}>
-                    <div className={`w-6 h-[3px] ${day ? 'bg-amber-500' : 'bg-amber-700'}`} />
-                  </div>
-
-                  {/* Road node (circle on the track) */}
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center shadow-md ${m.status === 'active' ? `${day ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-br from-amber-500 to-orange-600'} ring-4 ${day ? 'ring-amber-200' : 'ring-amber-800'}` : m.status === 'upcoming' ? `${day ? 'bg-amber-200 border-2 border-amber-400' : 'bg-amber-900 border-2 border-amber-600'}` : `${day ? 'bg-slate-200 border-2 border-slate-300' : 'bg-slate-800 border-2 border-slate-600'} opacity-50`}`}>
-                      <span className="text-sm">{m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}</span>
-                    </div>
-                  </div>
-
-                  {/* Connector arm (other side — for schedule on first, empty on others) */}
-                  <div className={`flex items-center ${isLeft ? '' : ''}`}>
-                    <div className={`w-6 h-[3px] ${i === 0 ? (day ? 'bg-sky-300' : 'bg-indigo-600') : 'bg-transparent'}`} />
-                  </div>
-
-                  {/* Schedule card hangs off the first milestone node */}
-                  {i === 0 ? (
-                    <div className="flex-1">
-                      <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
-                        <div className="flex items-center justify-between px-2 py-1 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}">
-                          <span className={`text-[10px] font-bold ${txt}`}>📅 Today</span>
-                          <Link href="/calendar" className={`text-[8px] ${day ? 'text-sky-600' : 'text-sky-400'} font-medium`}>Calendar →</Link>
-                        </div>
-                        {schedule.slice(0, 3).map((s, si) => (
-                          <div key={si} className={`flex items-center gap-1 px-2 py-1 ${si !== 2 ? `border-b ${day ? 'border-sky-50' : 'border-indigo-800/50'}` : ''}`}>
-                            <div className={`text-[8px] font-mono font-bold w-8 ${sub}`}>{s.time}</div>
-                            <span className="text-[10px]">{s.emoji}</span>
-                            <div className={`flex-1 ${txt} font-medium text-[9px]`}>{s.task}</div>
+              <div className="w-full px-4 py-6">
+                <div className={`text-center mb-4 font-bold text-sm ${txt}`}>
+                  🛣️ Four life dimensions, one goal
+                </div>
+                {hasAnyDim ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {dimOrder.map(dim => {
+                      const lane = byDim[dim.key]
+                      return (
+                        <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm backdrop-blur-sm`}>
+                          <div className={`flex items-center gap-1.5 mb-2 font-bold text-xs ${txt}`}>
+                            <span className="text-base">{dim.emoji}</span>
+                            <span className="uppercase tracking-wider">{dim.label}</span>
+                            <span className={`ml-auto text-[9px] ${sub}`}>{lane.length} steps</span>
                           </div>
-                        ))}
-                      </div>
+                          {/* Barriers chips */}
+                          {userBarrierLabels.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {userBarrierLabels.slice(0, 4).map(b => (
+                                <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>{b}</span>
+                              ))}
+                            </div>
+                          )}
+                          {/* Vertical milestone list */}
+                          <div className="relative pl-4">
+                            {/* lane road */}
+                            <div className={`absolute left-1.5 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
+                            {lane.length === 0 && (
+                              <div className={`text-[10px] italic ${sub}`}>No milestones yet</div>
+                            )}
+                            {lane.map((m, i) => (
+                              <button
+                                key={(m as any).id || i}
+                                onClick={() => router.push(`/milestones/${(m as any).id}`)}
+                                className={`relative w-full text-left mb-2 p-2 rounded-lg border transition-all hover:shadow-md hover:scale-[1.01] ${m.status === 'active' ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600'} shadow-sm` : m.status === 'upcoming' ? `${day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}` : `${day ? 'bg-white/60 border-slate-200' : 'bg-indigo-950/30 border-indigo-800'} opacity-70`}`}
+                              >
+                                {/* node dot on the lane road */}
+                                <span className={`absolute -left-[14px] top-3 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${m.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : m.status === 'upcoming' ? (day ? 'bg-sky-400' : 'bg-sky-600') : (day ? 'bg-slate-300' : 'bg-slate-600')}`} />
+                                <div className={`flex items-center gap-1 mb-0.5`}>
+                                  <span className="text-[10px]">{m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}</span>
+                                  <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
+                                  {m.status === 'active' && <span className="text-[8px] font-bold text-amber-500 ml-auto">YOU ARE HERE</span>}
+                                </div>
+                                <div className={`text-[11px] font-bold leading-snug ${txt}`}>{m.name}</div>
+                                <div className={`text-[8px] mt-1 ${sub} opacity-0 hover:opacity-100`}>Tap to view →</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className={`text-center text-xs italic ${sub}`}>
+                    Generating your dimension roadmaps…
+                  </div>
+                )}
+
+                {/* Today's schedule below the lanes */}
+                <div className="mt-6 max-w-md mx-auto">
+                  <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
+                    <div className={`flex items-center justify-between px-3 py-2 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}`}>
+                      <span className={`text-xs font-bold ${txt}`}>📅 Today</span>
+                      <Link href="/calendar" className={`text-[10px] ${day ? 'text-sky-600' : 'text-sky-400'} font-medium`}>Calendar →</Link>
                     </div>
-                  ) : (
-                    <div className="flex-1" />
-                  )}
+                    {schedule.slice(0, 3).map((s, si) => (
+                      <div key={si} className={`flex items-center gap-2 px-3 py-1.5 ${si !== 2 ? `border-b ${day ? 'border-sky-50' : 'border-indigo-800/50'}` : ''}`}>
+                        <div className={`text-[10px] font-mono font-bold w-10 ${sub}`}>{s.time}</div>
+                        <span className="text-sm">{s.emoji}</span>
+                        <div className={`flex-1 ${txt} font-medium text-[11px]`}>{s.task}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )
-          })}
+          })()}
           {/* ═══════════════════════════════
               CURRENT PLACE — character on road
              ═══════════════════════════════ */}

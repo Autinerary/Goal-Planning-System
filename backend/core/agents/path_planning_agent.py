@@ -4,9 +4,11 @@ Creates the roadmap from current state to goals
 SIMULATION MODE: Uses predefined models and generates realistic paths
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
+from core import llm
+import asyncio
 import random
 
 class PathPlanningAgent(BaseAgent):
@@ -93,7 +95,8 @@ class PathPlanningAgent(BaseAgent):
         }
         
         self.initialized = True
-        print(f"   ✓ {self.agent_name} initialized (simulation mode)")
+        mode = "with OpenAI" if llm.is_enabled() else "(simulation mode)"
+        print(f"   ✓ {self.agent_name} initialized {mode}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -121,32 +124,42 @@ class PathPlanningAgent(BaseAgent):
                 combined_strengths.extend(model['strengths'])
                 combined_accommodations.extend(model['accommodations'])
         
-        # Generate milestones based on goals
-        all_milestones = []
-        all_tasks = []
-        
-        for goal_idx, goal in enumerate(goals):
-            goal_milestones = await self._generate_milestones_for_goal(
+        # Generate milestones for all goals in parallel.
+        goal_milestone_lists = await asyncio.gather(*[
+            self._generate_milestones_for_goal(
                 goal=goal,
                 goal_idx=goal_idx,
                 barriers=barriers,
                 strategies=combined_strategies,
                 similar_patterns=similar_patterns or []
             )
+            for goal_idx, goal in enumerate(goals)
+        ])
+        all_milestones: List[Dict[str, Any]] = []
+        for goal_milestones in goal_milestone_lists:
             all_milestones.extend(goal_milestones)
-            
-            # Generate tasks for each milestone
-            for milestone in goal_milestones:
-                tasks = await self._generate_tasks_for_milestone(milestone, barriers)
-                all_tasks.extend(tasks)
-        
-        # Add recommended choices
-        for milestone in all_milestones:
-            milestone['recommendedChoices'] = await self._generate_recommended_choices(
-                milestone=milestone,
-                barriers=barriers,
-                strengths=combined_strengths
-            )
+
+        # Helper tricks depend only on the barrier list, so compute once and
+        # reuse across every task instead of calling the LLM 80 times.
+        shared_helper_tricks = await self._get_helper_tricks(barriers)
+
+        # Generate tasks and recommended choices for every milestone in
+        # parallel — these were the slowest sequential loops (one LLM round
+        # trip per milestone, ~16 each) and the calls are independent.
+        task_lists, choices_lists = await asyncio.gather(
+            asyncio.gather(*[
+                self._generate_tasks_for_milestone(m, barriers, helper_tricks=shared_helper_tricks) for m in all_milestones
+            ]),
+            asyncio.gather(*[
+                self._generate_recommended_choices(milestone=m, barriers=barriers, strengths=combined_strengths)
+                for m in all_milestones
+            ]),
+        )
+        all_tasks: List[Dict[str, Any]] = []
+        for tlist in task_lists:
+            all_tasks.extend(tlist)
+        for m, choices in zip(all_milestones, choices_lists):
+            m['recommendedChoices'] = choices
         
         return {
             'milestones': all_milestones,
@@ -166,57 +179,128 @@ class PathPlanningAgent(BaseAgent):
         strategies: List[str],
         similar_patterns: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Generate milestones for a specific goal"""
-        
-        # Determine goal category
-        goal_lower = goal.lower()
-        category = 'education'  # default
-        if any(word in goal_lower for word in ['job', 'career', 'work', 'employment']):
-            category = 'career'
-        elif any(word in goal_lower for word in ['health', 'fitness', 'wellness', 'sleep']):
-            category = 'health'
-        elif any(word in goal_lower for word in ['relationship', 'friend', 'social', 'family']):
-            category = 'relationships'
-        
-        templates = self.goal_templates.get(category, self.goal_templates['education'])
-        
-        milestones = []
-        for i, template in enumerate(templates):
-            milestone = {
-                'id': f'milestone_g{goal_idx}_{i}',
-                'raceId': f'race_{goal_idx}',
-                'name': template,
-                'description': await self._enrich_description(template, barriers, goal),
-                'order': i,
-                'status': 'not_started' if i > 0 else 'in_progress',
-                'barrierAware': True,
-                'strategies': random.sample(strategies, min(2, len(strategies))) if strategies else [],
-                'estimatedDays': random.randint(7, 30)
-            }
-            milestones.append(milestone)
-        
-        return milestones
+        """Generate milestones for a specific goal across four life dimensions.
+
+        Every goal — regardless of category — gets its own roadmap in each of
+        Education, Workplace (career), Relationships, and Health/Lifestyle.
+        These four dimensions describe HOW the same goal is supported from
+        different angles of the user's life.
+        """
+
+        # Four life dimensions every goal must address.
+        dimensions = [
+            ('education',     'Education',        'learning, study habits, courses, credentials, knowledge'),
+            ('workplace',     'Workplace',        'job tasks, career moves, professional skills, work environment'),
+            ('relationships', 'Relationships',    'mentors, peers, family, networking, communication, support system'),
+            ('health',        'Health & Lifestyle','sleep, energy, exercise, nutrition, mental health, daily routine'),
+        ]
+
+        # Ask the LLM for a per-dimension roadmap of milestone names so the
+        # same goal yields a distinct, actionable plan in each life area.
+        per_dim_names: Dict[str, List[str]] = {}
+        if llm.is_enabled():
+            data = await llm.complete_json(
+                system=(
+                    "You are a neurodiversity-aware life coach. For ONE user goal, "
+                    "produce four ordered mini-roadmaps — one for each life dimension: "
+                    "education, workplace, relationships, health. Each roadmap must contain "
+                    "4 concrete, actionable milestone names (max 8 words each) that move "
+                    "the user toward the SAME goal from that dimension's angle. "
+                    "Tailor wording to the user's barriers. No numbering, no commentary."
+                ),
+                user=(
+                    f"Goal: {goal}\n"
+                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    "Return JSON: {"
+                    "\"education\": [\"...\", \"...\", \"...\", \"...\"], "
+                    "\"workplace\": [\"...\", \"...\", \"...\", \"...\"], "
+                    "\"relationships\": [\"...\", \"...\", \"...\", \"...\"], "
+                    "\"health\": [\"...\", \"...\", \"...\", \"...\"]}"
+                ),
+                temperature=0.7,
+                max_tokens=900,
+            )
+            if isinstance(data, dict):
+                for key, _, _ in dimensions:
+                    vals = data.get(key)
+                    if isinstance(vals, list) and vals:
+                        per_dim_names[key] = [str(m).strip() for m in vals if str(m).strip()][:4]
+
+        # Fallback templates per dimension when LLM is unavailable.
+        fallback_map = {
+            'education':     self.goal_templates['education'],
+            'workplace':     self.goal_templates['career'],
+            'relationships': self.goal_templates['relationships'],
+            'health':        self.goal_templates['health'],
+        }
+
+        # First collect the milestone shells with their template names so we
+        # can fire all description-enrichment LLM calls in parallel.
+        shells: List[Dict[str, Any]] = []
+        order_counter = 0
+        for dim_key, dim_label, _focus in dimensions:
+            names = per_dim_names.get(dim_key) or fallback_map[dim_key][:4]
+            for i, template in enumerate(names):
+                shells.append({
+                    'id': f'milestone_g{goal_idx}_{dim_key}_{i}',
+                    'raceId': f'race_{goal_idx}',
+                    'name': template,
+                    'order': order_counter,
+                    'status': 'not_started' if order_counter > 0 else 'in_progress',
+                    'barrierAware': True,
+                    'strategies': random.sample(strategies, min(2, len(strategies))) if strategies else [],
+                    'estimatedDays': random.randint(7, 30),
+                    'goal': goal,
+                    'dimension': dim_key,
+                    'dimensionLabel': dim_label,
+                    'category': dim_key if dim_key != 'workplace' else 'career',
+                })
+                order_counter += 1
+
+        descriptions = await asyncio.gather(*[
+            self._enrich_description(s['name'], barriers, goal) for s in shells
+        ])
+        for shell, desc in zip(shells, descriptions):
+            shell['description'] = desc
+
+        return shells
     
     async def _enrich_description(self, template: str, barriers: List[str], goal: str) -> str:
-        """Enrich milestone description with barrier-specific details"""
+        """Enrich milestone description with barrier-specific details (LLM-backed)."""
+        if llm.is_enabled():
+            text = await llm.complete_text(
+                system=(
+                    "You are a neurodiversity-aware life coach. Write ONE concise, "
+                    "warm sentence (max 35 words) describing a milestone in a personal "
+                    "goal plan, tailored to the user's barriers."
+                ),
+                user=(
+                    f"Goal: {goal}\nMilestone: {template}\nBarriers: {', '.join(barriers) or 'none'}\n"
+                    "Return only the sentence — no quotes, no preamble."
+                ),
+                temperature=0.6,
+                max_tokens=80,
+            )
+            if text:
+                return text
+
         description = f"{template} - tailored for {goal}"
-        
         if 'autism' in [b.lower() for b in barriers]:
             description += ". Using structured, step-by-step approach with clear expectations."
         if 'adhd' in [b.lower() for b in barriers]:
             description += ". Broken into small, engaging chunks with built-in rewards."
         if any('minority' in b.lower() for b in barriers):
             description += ". Connecting with culturally relevant resources and networks."
-        
         return description
     
     async def _generate_tasks_for_milestone(
         self,
         milestone: Dict[str, Any],
-        barriers: List[str]
+        barriers: List[str],
+        helper_tricks: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Generate tasks for a milestone"""
-        
+
         task_templates = [
             ("Research and gather information", 30),
             ("Create action plan", 20),
@@ -224,13 +308,17 @@ class PathPlanningAgent(BaseAgent):
             ("Review and adjust approach", 20),
             ("Complete and celebrate", 25)
         ]
-        
+
+        # Reuse the caller-provided helper tricks when available so we don't
+        # hit the LLM 5× per milestone for identical input.
+        tricks = helper_tricks if helper_tricks is not None else await self._get_helper_tricks(barriers)
+
         tasks = []
         for i, (task_name, duration) in enumerate(task_templates):
             # Adjust for ADHD - shorter tasks
             if 'adhd' in [b.lower() for b in barriers]:
                 duration = min(duration, 20)
-            
+
             task = {
                 'id': f'task_{milestone["id"]}_{i}',
                 'milestoneId': milestone['id'],
@@ -240,16 +328,31 @@ class PathPlanningAgent(BaseAgent):
                 'estimatedDuration': duration,
                 'difficulty': ['easy', 'medium', 'medium', 'easy', 'easy'][i],
                 'priority': 'high' if i == 0 else 'medium',
-                'helperTricks': await self._get_helper_tricks(barriers)
+                'helperTricks': tricks,
             }
             tasks.append(task)
-        
+
         return tasks
     
     async def _get_helper_tricks(self, barriers: List[str]) -> List[str]:
-        """Get helper tricks based on barriers"""
+        """Get helper tricks based on barriers (LLM-backed with rule fallback)."""
+        if llm.is_enabled():
+            data = await llm.complete_json(
+                system=(
+                    "You are a neurodiversity coach. Generate 3 short, actionable "
+                    "helper tricks (max 12 words each) for someone with the listed barriers."
+                ),
+                user=(
+                    f"Barriers: {', '.join(barriers) or 'general'}\n"
+                    "Return JSON: {\"tricks\": [\"...\", \"...\", \"...\"]}"
+                ),
+                temperature=0.7,
+                max_tokens=200,
+            )
+            if data and isinstance(data.get('tricks'), list) and data['tricks']:
+                return [str(t) for t in data['tricks'][:3]]
+
         tricks = []
-        
         if 'adhd' in [b.lower() for b in barriers]:
             tricks.extend([
                 "Set a 15-minute timer and just start",

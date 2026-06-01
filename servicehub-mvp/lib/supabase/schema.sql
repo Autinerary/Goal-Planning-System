@@ -160,6 +160,10 @@ CREATE INDEX IF NOT EXISTS pattern_discoveries_category_idx ON public.pattern_di
 CREATE INDEX IF NOT EXISTS pattern_discoveries_confidence_idx ON public.pattern_discoveries(confidence DESC);
 CREATE INDEX IF NOT EXISTS pattern_discoveries_discovered_at_idx ON public.pattern_discoveries(discovered_at DESC);
 
+-- Unique constraint on insight so upserts (onConflict: 'insight') dedupe correctly
+CREATE UNIQUE INDEX IF NOT EXISTS pattern_discoveries_insight_key
+  ON public.pattern_discoveries(insight);
+
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_barriers ENABLE ROW LEVEL SECURITY;
@@ -173,6 +177,28 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pattern_discoveries ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (users can read their own data, admins can read all)
+-- Drop existing policies first so this script is safe to re-run (CREATE POLICY has no IF NOT EXISTS)
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own barriers" ON public.user_barriers;
+DROP POLICY IF EXISTS "Users can manage own barriers" ON public.user_barriers;
+DROP POLICY IF EXISTS "Anyone can view approved resources" ON public.resources;
+DROP POLICY IF EXISTS "Authenticated users can create resources" ON public.resources;
+DROP POLICY IF EXISTS "Users can update own submitted resources" ON public.resources;
+DROP POLICY IF EXISTS "Anyone can view ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Authenticated users can create ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Users can update own ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Users can manage own saved resources" ON public.saved_resources;
+DROP POLICY IF EXISTS "Only admins can view moderation queue" ON public.moderation_queue;
+DROP POLICY IF EXISTS "Users can view own embeddings" ON public.user_embeddings;
+DROP POLICY IF EXISTS "Users can manage own embeddings" ON public.user_embeddings;
+DROP POLICY IF EXISTS "Anyone can view resource embeddings" ON public.resource_embeddings;
+DROP POLICY IF EXISTS "Anyone can view pattern discoveries" ON public.pattern_discoveries;
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
+
 -- Profiles: Users can read their own profile, update their own profile
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);

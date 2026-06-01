@@ -1,13 +1,24 @@
 """
 Agent 3: Tool Recommendation Agent
-Connects users with the right resources at the right time
-SIMULATION MODE: Uses curated knowledge base of tools/services/resources
+Connects users with the right resources at the right time.
+
+Primary source: ServiceHub MVP (`GET /api/search?barriers=...`) — community
+curated, rated resources.
+Fallback: curated in-memory knowledge base (used when ServiceHub is
+unreachable or returns no matches).
 """
 
-from typing import List, Dict, Any
+import os
+from typing import List, Dict, Any, Optional
+
+import httpx
+
 from core.agents.base_agent import BaseAgent
 from core.config import Config
+from core import llm
 import random
+
+SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
 
 class ToolRecommendationAgent(BaseAgent):
     """Recommends services, products, articles, and other tools"""
@@ -83,7 +94,8 @@ class ToolRecommendationAgent(BaseAgent):
         }
         
         self.initialized = True
-        print(f"   ✓ {self.agent_name} initialized with curated knowledge base")
+        mode = "with OpenAI + curated knowledge base" if llm.is_enabled() else "with curated knowledge base"
+        print(f"   ✓ {self.agent_name} initialized {mode}")
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -112,13 +124,32 @@ class ToolRecommendationAgent(BaseAgent):
         
         # Get pit stop tools (general quick-access tools)
         pit_stop_tools = await self._get_pit_stop_tools(barriers)
-        
+
+        explanation = f'Found {len(all_tools)} relevant tools across {len(milestones)} milestones'
+        if llm.is_enabled() and all_tools:
+            sample_names = [t.get('name', '') for t in all_tools[:5]]
+            text = await llm.complete_text(
+                system=(
+                    "You are a coach explaining tool recommendations. "
+                    "In one warm sentence (max 35 words), explain why these tools fit the user's barriers."
+                ),
+                user=(
+                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    f"Sample tools: {sample_names}\n"
+                    "Return just the sentence."
+                ),
+                temperature=0.6,
+                max_tokens=100,
+            )
+            if text:
+                explanation = text
+
         return {
             'recommendations': recommendations,
             'pit_stop_tools': pit_stop_tools,
             'total_tools': len(all_tools),
             'confidence': 0.78,
-            'explanation': f'Found {len(all_tools)} relevant tools across {len(milestones)} milestones'
+            'explanation': explanation
         }
     
     async def _find_relevant_tools(
@@ -127,14 +158,30 @@ class ToolRecommendationAgent(BaseAgent):
         barriers: List[str],
         user_profile: dict
     ) -> List[Dict[str, Any]]:
-        """Find relevant tools for a milestone"""
-        tools = []
+        """Find relevant tools for a milestone.
+
+        Tries ServiceHub first (real community resources), then falls back to
+        the local curated knowledge base for any gaps.
+        """
+        tools: List[Dict[str, Any]] = []
+
+        # 1. Pull live resources from ServiceHub matching the user's barriers
+        servicehub_tools = await self._fetch_servicehub_resources(
+            barriers=barriers,
+            query=milestone.get('name'),
+            limit=6,
+        )
+        for t in servicehub_tools:
+            t['relevanceScore'] = self._calculate_relevance(t, milestone, barriers)
+            tools.append(t)
+
+        # 2. Always include knowledge-base tools as a backup / supplement
         barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
-        
+
         # Gather tools from each category
         for category in ['services', 'products', 'commentaries', 'other']:
             category_tools = self.knowledge_base.get(category, {})
-            
+
             # Get barrier-specific tools
             for key in barrier_keys:
                 if key in category_tools:
@@ -142,13 +189,13 @@ class ToolRecommendationAgent(BaseAgent):
                         tool_copy = tool.copy()
                         tool_copy['relevanceScore'] = self._calculate_relevance(tool, milestone, barriers)
                         tools.append(tool_copy)
-            
+
             # Add general tools
             for tool in category_tools.get('general', []):
                 tool_copy = tool.copy()
                 tool_copy['relevanceScore'] = self._calculate_relevance(tool, milestone, barriers) * 0.8
                 tools.append(tool_copy)
-        
+
         # Sort by relevance and deduplicate
         tools = sorted(tools, key=lambda x: x.get('relevanceScore', 0), reverse=True)
         seen = set()
@@ -157,8 +204,54 @@ class ToolRecommendationAgent(BaseAgent):
             if tool['id'] not in seen:
                 seen.add(tool['id'])
                 unique_tools.append(tool)
-        
+
         return unique_tools[:6]
+
+    async def _fetch_servicehub_resources(
+        self,
+        barriers: List[str],
+        query: Optional[str] = None,
+        limit: int = 6,
+    ) -> List[Dict[str, Any]]:
+        """Fetch approved resources from ServiceHub matching the user's barriers.
+
+        Returns an empty list on any failure so the agent gracefully falls back
+        to the local knowledge base.
+        """
+        params: Dict[str, Any] = {
+            "pageSize": limit,
+            "sort": "popular",
+        }
+        if barriers:
+            params["barriers"] = ",".join(b.lower().replace(' ', '_') for b in barriers)
+        if query:
+            params["q"] = query
+
+        try:
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                resp = await client.get(f"{SERVICE_HUB_URL}/api/search", params=params)
+                if resp.status_code != 200:
+                    return []
+                data = resp.json()
+        except Exception as e:
+            print(f"[tool_recommendation] ServiceHub unreachable: {e}")
+            return []
+
+        # ServiceHub returns { resources: [...] } or { data: [...] } depending on endpoint
+        items = data.get("resources") or data.get("data") or data.get("results") or []
+        normalized: List[Dict[str, Any]] = []
+        for r in items:
+            normalized.append({
+                "id": f"sh_{r.get('id')}",
+                "name": r.get("name") or r.get("title") or "Resource",
+                "description": r.get("description") or "",
+                "url": (r.get("contact_info") or {}).get("website")
+                       or f"{SERVICE_HUB_URL}/resources/{r.get('id')}",
+                "rating": r.get("average_rating") or r.get("rating") or 4.0,
+                "type": r.get("category") or "service",
+                "source": "servicehub",
+            })
+        return normalized
     
     def _calculate_relevance(
         self,

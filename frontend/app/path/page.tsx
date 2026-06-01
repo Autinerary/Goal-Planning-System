@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Wand2, X, Lock, Star, Trophy, Coins } from 'lucide-react'
+import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Wand2, X, Lock, Star, Trophy, Coins, Loader2 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const gameStyles = `
   @keyframes bounce {
@@ -29,23 +32,137 @@ const gameStyles = `
   }
 `
 
+interface PathData {
+  id: string
+  userId: string
+  path?: any
+  races?: any[]
+  recommendations?: any
+  schedule?: any[]
+  explanations?: string[]
+  agentResponses?: any[]
+  userProfile?: any
+}
+
 export default function PathView() {
   const router = useRouter()
+  const { supabaseUser } = useAuth()
   const [showMotivationPopUp, setShowMotivationPopUp] = useState(false)
   const [generatedMotivation, setGeneratedMotivation] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // AI-generated path data
+  const [pathData, setPathData] = useState<PathData | null>(null)
+  const [isLoadingPath, setIsLoadingPath] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Motivation tips based on progress
-  const motivationTips = [
-    "You're making great progress! Remember: small steps lead to big achievements.",
-    "Your current stats show you're on the right track. Keep pushing forward!",
-    "Based on your progress, try breaking down your next goal into smaller tasks.",
-    "You've got this! Your consistency is building momentum.",
-    "Focus on one race at a time. You're doing better than you think!",
-    "Your happiness stat is strong - use that positive energy to fuel your next steps.",
-    "Remember why you started. Your goals are within reach!",
-    "Progress isn't always linear. Celebrate how far you've come!",
+  // Fetch AI-generated path on mount
+  useEffect(() => {
+    const fetchPath = async () => {
+      const pathId = supabaseUser?.user_metadata?.path_id
+      const userId = supabaseUser?.id
+
+      try {
+        // Prefer pathId (set after a successful onboarding); fall back to user_id
+        // lookup so users whose metadata never got written still see their path.
+        let response: Response | null = null
+        if (pathId) {
+          response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)
+        }
+        if ((!response || !response.ok) && userId) {
+          response = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`)
+        }
+
+        if (response && response.ok) {
+          const data = await response.json()
+          setPathData(data)
+        } else if (response) {
+          setLoadError('Could not load your path. Using default view.')
+        }
+      } catch (err) {
+        setLoadError('Backend not available. Showing demo path.')
+      } finally {
+        setIsLoadingPath(false)
+      }
+    }
+
+    fetchPath()
+  }, [supabaseUser])
+
+  // Derive races from AI data or use defaults
+  const races = pathData?.races?.length
+    ? pathData.races.map((race: any, idx: number) => ({
+        id: race.id || `race_${idx + 1}`,
+        name: race.name || race.goal || `Goal ${idx + 1}`,
+        progress: race.progress || 0,
+        color: idx === 0 ? 'from-cyan-500 to-blue-500' : 'from-purple-500 to-pink-500',
+      }))
+    : pathData?.userProfile?.goals?.map((goal: string, idx: number) => ({
+        id: `race_${idx + 1}`,
+        name: goal,
+        progress: 0,
+        color: idx % 2 === 0 ? 'from-cyan-500 to-blue-500' : 'from-purple-500 to-pink-500',
+      })) || [
+        { id: 'race_1', name: 'Graduate University', progress: 45, color: 'from-cyan-500 to-blue-500' },
+        { id: 'race_2', name: 'Get Tech Job', progress: 20, color: 'from-purple-500 to-pink-500' },
+      ]
+
+  // Derive path nodes from agent-generated milestones or use defaults
+  const agentMilestones = pathData?.agentResponses?.find(
+    (r: any) => r.agentId === 'path_planning'
+  )?.result?.milestones
+
+  const pathNodes = agentMilestones?.length
+    ? agentMilestones.map((milestone: any, idx: number) => {
+        const total = agentMilestones.length
+        // Distribute along a curve
+        const t = idx / (total - 1 || 1)
+        return {
+          id: idx + 1,
+          // Real milestone id from the path-planning agent so the detail page
+          // can look up tools and tasks for this exact milestone.
+          milestoneId: milestone.id || `node_${idx + 1}`,
+          number: idx + 1,
+          label: milestone.name || milestone,
+          completed: false,
+          locked: idx > 0,
+          isCurrent: idx === 0,
+          stars: 0,
+          position: {
+            x: 10 + t * 85,
+            y: 80 - t * 65 + Math.sin(t * Math.PI * 2) * 10,
+          },
+        }
+      })
+    : [
+        { id: 1, number: 1, completed: true, stars: 3, position: { x: 10, y: 80 } },
+        { id: 2, number: 2, completed: true, stars: 2, position: { x: 25, y: 60 } },
+        { id: 3, number: 3, completed: true, stars: 1, position: { x: 40, y: 75 } },
+        { id: 4, number: 4, completed: true, stars: 3, position: { x: 55, y: 50 } },
+        { id: 5, number: 5, completed: true, stars: 3, position: { x: 70, y: 65 }, isCurrent: true },
+        { id: 6, number: 6, completed: false, locked: false, position: { x: 85, y: 45 } },
+        { id: 7, number: 7, completed: false, locked: true, position: { x: 90, y: 30 } },
+        { id: 8, number: 8, completed: false, locked: true, position: { x: 95, y: 15 } },
+      ]
+
+  // Derive stats - boost based on barrier count (more barriers = more starting XP for resilience)
+  const barrierCount = pathData?.userProfile?.barrierTypes?.length || 0
+  const stats = [
+    { name: 'Mentality', value: 3 + barrierCount, icon: Brain, color: 'text-purple-500' },
+    { name: 'Happiness', value: 8, icon: Heart, color: 'text-pink-500' },
+    { name: 'Focus', value: 5, icon: Target, color: 'text-cyan-500' },
+    { name: 'Energy', value: 6, icon: Zap, color: 'text-amber-500' },
   ]
+
+  // Agent explanations as motivation tips
+  const motivationTips = pathData?.explanations?.length
+    ? pathData.explanations.filter(Boolean)
+    : [
+        "You're making great progress! Remember: small steps lead to big achievements.",
+        "Your current stats show you're on the right track. Keep pushing forward!",
+        "Based on your progress, try breaking down your next goal into smaller tasks.",
+        "You've got this! Your consistency is building momentum.",
+      ]
 
   const handleGenerateMotivation = () => {
     setIsGenerating(true)
@@ -56,48 +173,48 @@ export default function PathView() {
     }, 1000)
   }
 
-  // Mock data for Have World
+  // Have World data (static for now)
   const roleModels = [
     { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer' },
     { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur' },
   ]
-
   const mentors = [
     { id: 'm1', name: 'James Wilson', role: 'Career Coach' },
     { id: 'm2', name: 'Lisa Park', role: 'Academic Advisor' },
   ]
-
   const friendModels = [
     { id: 'f1', name: 'Alex Taylor', role: 'Study Buddy' },
   ]
-  
-  const stats = [
-    { name: 'Mentality', value: 3, icon: Brain, color: 'text-purple-500' },
-    { name: 'Happiness', value: 8, icon: Heart, color: 'text-pink-500' },
-    { name: 'Focus', value: 5, icon: Target, color: 'text-cyan-500' },
-    { name: 'Energy', value: 6, icon: Zap, color: 'text-amber-500' },
-  ]
-  
-  const races = [
-    { id: 'race_1', name: 'Graduate University', progress: 45, color: 'from-cyan-500 to-blue-500' },
-    { id: 'race_2', name: 'Get Tech Job', progress: 20, color: 'from-purple-500 to-pink-500' },
-  ]
 
-  // Game path nodes
-  const pathNodes = [
-    { id: 1, number: 1, completed: true, stars: 3, position: { x: 10, y: 80 } },
-    { id: 2, number: 2, completed: true, stars: 2, position: { x: 25, y: 60 } },
-    { id: 3, number: 3, completed: true, stars: 1, position: { x: 40, y: 75 } },
-    { id: 4, number: 4, completed: true, stars: 3, position: { x: 55, y: 50 } },
-    { id: 5, number: 5, completed: true, stars: 3, position: { x: 70, y: 65 }, isCurrent: true },
-    { id: 6, number: 6, completed: false, locked: false, position: { x: 85, y: 45 } },
-    { id: 7, number: 7, completed: false, locked: true, position: { x: 90, y: 30 } },
-    { id: 8, number: 8, completed: false, locked: true, position: { x: 95, y: 15 } },
-  ]
+  // Loading state
+  if (isLoadingPath) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-cyan-500" />
+        <p className="text-slate-600 font-medium">AI Agents generating your path...</p>
+        <p className="text-sm text-slate-400">Pattern Recognition → Path Planning → Tools → Calendar</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: gameStyles }} />
+
+      {/* AI-Generated Badge */}
+      {pathData && (
+        <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
+          <Sparkles className="w-3 h-3" />
+          AI-Generated Path
+        </div>
+      )}
+
+      {/* Error banner */}
+      {loadError && (
+        <div className="relative z-50 mb-4 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2 rounded-lg">
+          {loadError}
+        </div>
+      )}
       
       {/* Sky with clouds */}
       <div className="fixed inset-0 pointer-events-none">
@@ -197,7 +314,7 @@ export default function PathView() {
                   }
                   // Navigate to milestone or show details
                   if (node.completed || node.isCurrent || !node.locked) {
-                    router.push(`/milestones/node_${node.number}`)
+                    router.push(`/milestones/${(node as any).milestoneId || `node_${node.number}`}`)
                   }
                 }
 
@@ -433,6 +550,41 @@ export default function PathView() {
               </div>
             </div>
           </div>
+
+          {/* AI Agent Insights Panel - only shown when real data exists */}
+          {pathData?.agentResponses && (
+            <div className="bg-gradient-to-br from-slate-50 to-cyan-50 rounded-2xl border-2 border-cyan-300 p-6 mb-6 shadow-lg">
+              <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-cyan-500" />
+                Agent Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {pathData.agentResponses.map((agent: any, idx: number) => (
+                  <div key={idx} className="bg-white/80 rounded-lg p-3 border border-slate-200">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-slate-700">{agent.agentName}</span>
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                        {Math.round((agent.confidence || 0) * 100)}% confident
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      {agent.result?.explanation || `Analyzed ${pathData.userProfile?.barrierTypes?.join(', ') || 'barriers'}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {pathData.userProfile?.barrierTypes && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="text-xs text-slate-500">Barriers addressed:</span>
+                  {pathData.userProfile.barrierTypes.map((b: string) => (
+                    <span key={b} className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4">
