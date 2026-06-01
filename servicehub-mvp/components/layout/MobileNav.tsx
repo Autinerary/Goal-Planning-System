@@ -17,31 +17,89 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
   const { user } = useAuth()
   const pathname = usePathname()
   const navRef = useRef<HTMLDivElement>(null)
+  const backdropRef = useRef<HTMLDivElement>(null)
+  const justOpenedRef = useRef(false)
+  const [backdropDisabled, setBackdropDisabled] = useState(false)
+
+  // Track when menu just opened to prevent immediate closing
+  useEffect(() => {
+    if (isOpen) {
+      justOpenedRef.current = true
+      setBackdropDisabled(true)
+      // Longer delay to prevent immediate closing - 1 second
+      const timer = setTimeout(() => {
+        justOpenedRef.current = false
+        setBackdropDisabled(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else {
+      justOpenedRef.current = false
+      setBackdropDisabled(false)
+    }
+  }, [isOpen])
 
   // Close menu when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
-        onClose()
-      }
+    if (!isOpen) {
+      document.body.style.overflow = 'unset'
+      return
     }
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      // Prevent body scroll when menu is open
-      document.body.style.overflow = 'hidden'
-    }
+    // Prevent body scroll when menu is open
+    document.body.style.overflow = 'hidden'
+
+    let clickHandler: ((event: MouseEvent) => void) | null = null
+
+      // Much longer delay before setting up click-outside handler - 1 second
+      const timeoutId = setTimeout(() => {
+        clickHandler = (event: MouseEvent) => {
+          // Don't close if we just opened
+          if (justOpenedRef.current) {
+            return
+          }
+
+          const target = event.target as HTMLElement
+          
+          // Don't close if clicking on the hamburger menu button
+          const menuButton = target.closest('button[aria-label="Open main menu"]') || 
+                            target.closest('button[aria-label="Close main menu"]')
+          if (menuButton) {
+            return
+          }
+          
+          // Don't close if clicking inside the menu
+          if (navRef.current && navRef.current.contains(target)) {
+            return
+          }
+          
+          // Close if clicking outside
+          onClose()
+        }
+
+        // Use capture phase to catch events earlier, but still with delay
+        document.addEventListener('mousedown', clickHandler, true)
+      }, 1000) // Increased delay to 1 second
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      clearTimeout(timeoutId)
+      if (clickHandler) {
+        document.removeEventListener('mousedown', clickHandler, true)
+      }
       document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose])
 
-  // Close menu on route change
+  // Close menu on route change (but not on initial mount)
+  const prevPathnameRef = useRef(pathname)
   useEffect(() => {
-    onClose()
-  }, [pathname, onClose])
+    // Only close if pathname actually changed (not on initial mount)
+    if (isOpen && prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname
+      onClose()
+    } else {
+      prevPathnameRef.current = pathname
+    }
+  }, [pathname, isOpen, onClose])
 
   // Focus trap for accessibility
   useEffect(() => {
@@ -83,22 +141,40 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
     <>
       {/* Backdrop */}
       <div
+        ref={backdropRef}
         className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-        onClick={onClose}
+        onMouseDown={(e) => {
+          // Prevent immediate closing when menu just opened
+          if (backdropDisabled || justOpenedRef.current) {
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+          }
+        }}
+        onClick={(e) => {
+          // Prevent immediate closing when menu just opened
+          if (backdropDisabled || justOpenedRef.current) {
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+          }
+          onClose()
+        }}
+        style={{ pointerEvents: backdropDisabled ? 'none' : 'auto' }}
         aria-hidden="true"
       />
 
       {/* Mobile Menu */}
       <nav
         ref={navRef}
-        className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl z-50 md:hidden transform transition-transform duration-300 ease-in-out"
+        className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-xl z-50 md:hidden transform transition-transform duration-300 ease-in-out overflow-hidden"
         role="navigation"
         aria-label="Main navigation"
         aria-modal="true"
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
             <button
               onClick={onClose}
@@ -110,7 +186,7 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
           </div>
 
           {/* Navigation Links */}
-          <div className="flex-1 overflow-y-auto py-4">
+          <div className="flex-1 overflow-y-auto py-4" style={{ minHeight: 0 }}>
             <div className="space-y-1 px-4">
               <Link
                 href="/"
@@ -166,8 +242,7 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
                     Recommend Resource
                   </Link>
 
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    <Bell className="w-5 h-5 text-gray-600" aria-hidden="true" />
+                  <div className="px-4 py-3">
                     <NotificationBell userId={user.id} />
                   </div>
                 </>
@@ -205,7 +280,7 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
 
           {/* Footer */}
           {user && (
-            <div className="border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 border-t border-gray-200 p-4">
               <div className="flex items-center gap-3 px-4 py-2">
                 <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="w-5 h-5 text-blue-600" aria-hidden="true" />

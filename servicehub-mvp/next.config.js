@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_GOAL_PLANNING_URL: process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000',
+  },
   webpack: (config, { isServer }) => {
     // Exclude native Node.js modules from webpack bundling
     // These are only needed server-side and shouldn't be bundled

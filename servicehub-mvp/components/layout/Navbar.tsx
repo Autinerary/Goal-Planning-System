@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
@@ -12,6 +12,11 @@ export default function Navbar() {
   const { user } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  
+  // Memoize the close handler to prevent unnecessary re-renders
+  const handleCloseMenu = useCallback(() => {
+    setMobileMenuOpen(false)
+  }, [])
 
   useEffect(() => {
     async function checkAdmin() {
@@ -101,9 +106,13 @@ export default function Navbar() {
           <div className="md:hidden ml-4">
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(true)}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setMobileMenuOpen(prev => !prev)
+              }}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 min-w-[44px] min-h-[44px]"
-              aria-label="Open main menu"
+              aria-label={mobileMenuOpen ? "Close main menu" : "Open main menu"}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
             >
@@ -116,7 +125,7 @@ export default function Navbar() {
       {/* Mobile Navigation */}
       <MobileNav
         isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
+        onClose={handleCloseMenu}
         isAdmin={isAdmin}
       />
     </nav>

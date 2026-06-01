@@ -59,8 +59,18 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // All routes are now public - no authentication required
-  // Authentication checks are disabled
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/signup', '/auth/callback']
+  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+
+  // If user is not authenticated and trying to access a protected route, redirect to Goal Planning login
+  if (!user && !isPublicRoute) {
+    const goalPlanningUrl = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
+    const returnUrl = encodeURIComponent(request.nextUrl.href)
+    const redirectUrl = `${goalPlanningUrl}/login?returnTo=${returnUrl}`
+    
+    return NextResponse.redirect(redirectUrl)
+  }
 
   return response
 }

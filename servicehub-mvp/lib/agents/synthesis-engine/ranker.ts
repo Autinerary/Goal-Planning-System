@@ -38,7 +38,7 @@ export function rankResults(
 
     // Community rating (normalize to 0-1)
     const communityRating =
-      (resource.averageRatingFromSimilarUsers || 0) / 5 || (resource.averageRating || 0) / 5 || 0
+      (resource.averageRatingFromSimilarUsers || 0) / 5 || 0
 
     // Calculate final score with weighted combination
     let finalScore = baseScore * baseWeight

@@ -47,7 +47,7 @@ export function generateExplanation(
   }
 
   // From community ratings
-  const rating = resource.averageRatingFromSimilarUsers || resource.averageRating || 0
+  const rating = resource.averageRatingFromSimilarUsers || 0
   const ratingCount = resource.similarUsersCount || resource.ratingCount || 0
 
   if (rating > 0 && ratingCount > 0) {

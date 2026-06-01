@@ -250,10 +250,6 @@ export class AgentCoordinator {
     return {
       ...recommendations,
       explanations: enhancedExplanations,
-      metadata: {
-        ...recommendations,
-        patternInsights: relevantPatterns,
-      },
     }
   }
 }

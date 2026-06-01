@@ -86,7 +86,7 @@ export default function SignupPage() {
                 </h3>
                 <div className="mt-2 text-sm text-green-700">
                   <p>
-                    We've sent a confirmation email to <strong>{email}</strong>.
+                    We&apos;ve sent a confirmation email to <strong>{email}</strong>.
                     Please click the link in the email to verify your account.
                   </p>
                 </div>

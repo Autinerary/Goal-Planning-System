@@ -39,7 +39,17 @@ export async function findSimilarUsersByBarriers(
 
     // Option 2: Generate embedding on-the-fly for anonymous users or custom barriers
     if (barriers && barriers.length > 0) {
-      const barrierEmbedding = await generateBarrierEmbedding(barriers)
+      // Convert Barrier[] to UserBarrier[] format for embedding generation
+      const userBarriersForEmbedding = barriers.map((b) => ({
+        id: '',
+        user_id: userId || '',
+        barrier_category: b.category,
+        barrier_type: b.type,
+        severity: b.severity || null,
+        notes: b.notes || null,
+        created_at: new Date().toISOString(),
+      }))
+      const barrierEmbedding = await generateBarrierEmbedding(userBarriersForEmbedding)
 
       // Search directly with embedding using vector database
       const { data, error } = await supabase.rpc('find_similar_users', {

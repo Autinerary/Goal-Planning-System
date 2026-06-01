@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
 
     if (action === 'seed') {
       const result = await seedDatabase()
-      return NextResponse.json({ success: true, ...result })
+      return NextResponse.json(result)
     } else if (action === 'clear') {
       const result = await clearTestData()
-      return NextResponse.json({ success: true, ...result })
+      return NextResponse.json(result)
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }

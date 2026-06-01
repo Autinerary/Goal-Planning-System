@@ -129,9 +129,9 @@ export class SynthesisEngine {
       let confidence = 0
 
       // Extract confidence from different output formats
-      if (typeof output === 'object') {
-        if (output.confidence !== undefined) {
-          confidence = output.confidence
+      if (typeof output === 'object' && output !== null) {
+        if ('confidence' in output && typeof (output as any).confidence === 'number') {
+          confidence = (output as any).confidence
         } else if (Array.isArray(output) && output.length > 0) {
           // For pattern arrays, average confidence
           const confidences = output

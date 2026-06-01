@@ -155,7 +155,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
                         type="button"
                         onClick={() => handleBarrierScoreChange(barrier.key, score)}
                         className={`w-6 h-6 rounded-full border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          barrierScores[barrier.key] >= score
+                          (barrierScores[barrier.key] ?? 0) >= score
                             ? 'bg-blue-600 border-blue-600'
                             : 'bg-white border-gray-300 hover:border-blue-400'
                         }`}

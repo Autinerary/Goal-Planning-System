@@ -12,17 +12,33 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const { updatePassword } = useAuth()
+  const { updatePassword, user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Check if we have a valid reset token
-    const token = searchParams.get('token')
-    if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset.')
+    // Check for error parameter from redirect
+    const errorParam = searchParams.get('error')
+    
+    if (errorParam === 'invalid_token') {
+      setError('Invalid or expired reset token. Please request a new password reset.')
+      return
     }
-  }, [searchParams])
+    
+    // Wait for auth to load, then check if user has valid session
+    // Supabase automatically processes hash fragments and creates a session
+    if (!authLoading && !user) {
+      // Check if we have hash fragments (Supabase password reset flow)
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash
+        if (!hash || !hash.includes('access_token')) {
+          // No hash fragments and no user session - invalid reset link
+          setError('Invalid or missing reset token. Please use the link from your password reset email.')
+        }
+        // If hash exists, Supabase client will process it and user will be set automatically
+      }
+    }
+  }, [searchParams, user, authLoading])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -36,6 +52,12 @@ export default function ResetPasswordPage() {
 
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.')
+      return
+    }
+
+    // Check if user has a valid session (required for password update)
+    if (!user) {
+      setError('You must be authenticated to reset your password. Please use the link from your email.')
       return
     }
 

@@ -36,7 +36,7 @@ export default function NotificationList({
       <div className="text-center py-12 text-gray-500">
         <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" aria-hidden="true" />
         <p>No notifications yet</p>
-        <p className="text-sm mt-2">You'll see notifications here when someone interacts with your content</p>
+        <p className="text-sm mt-2">You&apos;ll see notifications here when someone interacts with your content</p>
       </div>
     )
   }

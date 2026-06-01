@@ -579,7 +579,7 @@ export default function ResourceForm({
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Submission Review</p>
             <p>
-              Your submission will be reviewed before appearing publicly. We'll notify you once it's
+              Your submission will be reviewed before appearing publicly. We&apos;ll notify you once it&apos;s
               approved or if we need more information.
             </p>
           </div>

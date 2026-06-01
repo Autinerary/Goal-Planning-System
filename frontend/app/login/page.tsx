@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
@@ -14,6 +14,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Check for return URL from ServiceHub
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const returnTo = params.get('returnTo')
+    if (returnTo) {
+      // Store return URL in sessionStorage to use after successful login
+      sessionStorage.setItem('returnTo', returnTo)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +33,14 @@ export default function LoginPage() {
     const success = await login(email, password)
     
     if (success) {
-      router.push('/path')
+      // Check if there's a return URL from ServiceHub
+      const returnTo = sessionStorage.getItem('returnTo')
+      if (returnTo) {
+        sessionStorage.removeItem('returnTo')
+        window.location.href = returnTo
+      } else {
+        router.push('/path')
+      }
     } else {
       // Check if user exists
       const storedUsers = JSON.parse(localStorage.getItem('users') || '{}')
@@ -39,27 +56,105 @@ export default function LoginPage() {
   // Demo login - creates account and logs in
   const handleDemoLogin = async () => {
     setIsSubmitting(true)
-    const demoEmail = 'demo@autinerary.com'
-    const demoPassword = 'Demo123!'
+    setError('')
     
-    // Create demo account if it doesn't exist
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '{}')
-    if (!storedUsers[demoEmail]) {
-      storedUsers[demoEmail] = {
-        id: 'demo_user',
+    try {
+      const demoEmail = 'demo@autinerary.com'
+      const demoPassword = 'Demo123!'
+      
+      // Import supabase client for demo account creation
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      
+      // Try to sign in with Supabase first (in case demo account already exists)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
-        name: 'Demo User',
-        hasCompletedOnboarding: true
+      })
+      
+      if (signInData?.user) {
+        // Demo account exists in Supabase, login successful
+        const returnTo = sessionStorage.getItem('returnTo')
+        if (returnTo) {
+          sessionStorage.removeItem('returnTo')
+          window.location.href = returnTo
+        } else {
+          router.push('/path')
+        }
+        return
       }
-      localStorage.setItem('users', JSON.stringify(storedUsers))
+      
+      // If sign in fails, try to create the demo account in Supabase
+      if (signInError) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: demoEmail,
+          password: demoPassword,
+          options: {
+            data: {
+              full_name: 'Demo User',
+              name: 'Demo User',
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+        
+        if (signUpError) {
+          // If signup fails (e.g., account already exists but password is wrong), 
+          // fall back to localStorage
+          console.warn('Supabase demo account creation failed, using localStorage fallback:', signUpError.message)
+          
+          const storedUsers = JSON.parse(localStorage.getItem('users') || '{}')
+          if (!storedUsers[demoEmail]) {
+            storedUsers[demoEmail] = {
+              id: 'demo_user',
+              email: demoEmail,
+              password: demoPassword,
+              name: 'Demo User',
+              hasCompletedOnboarding: true
+            }
+            localStorage.setItem('users', JSON.stringify(storedUsers))
+          }
+          
+          const userData = storedUsers[demoEmail]
+          const user = {
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            hasCompletedOnboarding: userData.hasCompletedOnboarding || true
+          }
+          localStorage.setItem('user', JSON.stringify(user))
+          
+          // Note: ServiceHub won't work with localStorage-only auth
+          // User will need to sign up properly for ServiceHub access
+          router.push('/path')
+          return
+        }
+        
+        // Signup successful - check if email confirmation is required
+        if (signUpData.user) {
+          // If email confirmation is disabled in Supabase, user is immediately signed in
+          // Otherwise, they need to confirm email first
+          if (signUpData.session) {
+            // User is signed in immediately (no email confirmation required)
+            const returnTo = sessionStorage.getItem('returnTo')
+            if (returnTo) {
+              sessionStorage.removeItem('returnTo')
+              window.location.href = returnTo
+            } else {
+              router.push('/path')
+            }
+          } else {
+            // Email confirmation required
+            setError('Demo account created! Please check your email to confirm your account, then try logging in again.')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Demo login error:', error)
+      setError('An error occurred during demo login. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    const success = await login(demoEmail, demoPassword)
-    if (success) {
-      router.push('/path')
-    }
-    setIsSubmitting(false)
   }
 
   if (isLoading) {

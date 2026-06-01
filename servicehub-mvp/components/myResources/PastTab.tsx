@@ -97,6 +97,28 @@ export default function PastTab({ userId }: PastTabProps) {
     }
   }
 
+  const handleDeleteNote = async (resourceId: string) => {
+    try {
+      const response = await fetch(`/api/my-resources/saved/${resourceId}/note`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete note')
+      }
+
+      showToast.success('Note deleted')
+      setResources((prev) =>
+        prev.map((r) =>
+          r.resource_id === resourceId ? { ...r, notes: null } : r
+        )
+      )
+    } catch (error) {
+      console.error('Error deleting note:', error)
+      showToast.error('Failed to delete note. Please try again.')
+    }
+  }
+
   const handleSaveNote = async (resourceId: string, note: string) => {
     try {
       const response = await fetch(`/api/my-resources/saved/${resourceId}/note`, {
@@ -207,6 +229,7 @@ export default function PastTab({ userId }: PastTabProps) {
                   resourceId={savedResource.resource_id}
                   initialNote={savedResource.notes || ''}
                   onSave={handleSaveNote}
+                  onDelete={handleDeleteNote}
                 />
 
                 {/* Actions */}

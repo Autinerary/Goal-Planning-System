@@ -186,8 +186,8 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[600px] overflow-y-auto">
-          <div className="p-4">
+        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[calc(100vh-120px)] flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 min-h-0">
             <NotificationList
               notifications={notifications}
               onMarkAsRead={handleMarkAsRead}
@@ -197,7 +197,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
             />
           </div>
           {notifications.length > 0 && (
-            <div className="border-t border-gray-200 p-3 bg-gray-50">
+            <div className="flex-shrink-0 border-t border-gray-200 p-3 bg-gray-50">
               <Link
                 href="/notifications"
                 onClick={() => setIsOpen(false)}

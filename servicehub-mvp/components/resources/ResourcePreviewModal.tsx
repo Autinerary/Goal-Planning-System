@@ -160,7 +160,7 @@ export default function ResourcePreviewModal({
           {/* Recommendation Reason */}
           {data.recommendation_reason && (
             <section>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Why You're Recommending This</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Why You&apos;re Recommending This</h3>
               <div className="text-base text-gray-900 whitespace-pre-wrap">
                 {data.recommendation_reason}
               </div>
@@ -174,8 +174,8 @@ export default function ResourcePreviewModal({
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Submission Review</p>
                 <p>
-                  Your submission will be reviewed before appearing publicly. We'll notify you once
-                  it's approved or if we need more information.
+                  Your submission will be reviewed before appearing publicly. We&apos;ll notify you once
+                  it&apos;s approved or if we need more information.
                 </p>
               </div>
             </div>

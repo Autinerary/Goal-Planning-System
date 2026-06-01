@@ -14,7 +14,7 @@ export interface Database {
           id: string
           email: string | null
           full_name: string | null
-          role: 'user' | 'admin' | 'self_advocate' | 'parent' | 'caregiver'
+          role: 'user' | 'admin' | 'self_advocate' | 'parent' | 'caregiver' | 'banned'
           location: Json | null
           is_rater: boolean
           created_at: string

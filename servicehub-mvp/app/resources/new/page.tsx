@@ -120,7 +120,7 @@ export default function NewResourcePage() {
       } = await supabase.auth.getUser()
 
       if (!user) {
-        addToast('You must be logged in to submit a resource', 'error')
+        showToast.error('You must be logged in to submit a resource')
         router.push('/login')
         return
       }

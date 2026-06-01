@@ -3,16 +3,36 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, MessageSquare, Trophy, RefreshCw, Filter, X, Info, AlertTriangle } from 'lucide-react'
 
 function RacesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const viewMode = searchParams.get('mode') || 'combined'
+  const comparisonView = searchParams.get('compare') || null // 'rolemodel' | 'friend' | 'mentor'
+  const newView = searchParams.get('newview') || null // 'avoidance' | 'suggestions' | 'compete'
   const [showPreviousSteps, setShowPreviousSteps] = useState(false)
   const [isWheelSpinning, setIsWheelSpinning] = useState(false)
   const [wheelRotation, setWheelRotation] = useState(0)
   const [todaysMotivation, setTodaysMotivation] = useState<string | null>(null)
+  const [showCompareMenu, setShowCompareMenu] = useState(false)
+  const [showNewViewsMenu, setShowNewViewsMenu] = useState(false)
+  const [suggestionFilter, setSuggestionFilter] = useState<string>('All')
+  // Separate races wheel states
+  const [raceWheelRotations, setRaceWheelRotations] = useState<Record<string, number>>({})
+  const [raceWheelSpinning, setRaceWheelSpinning] = useState<Record<string, boolean>>({})
+  const [raceMotivations, setRaceMotivations] = useState<Record<string, string | null>>({})
+
+  // Mock comparison data
+  const theirStats = {
+    mentality: 7,
+    happiness: 9,
+    focus: 8,
+    energy: 6
+  }
+
+  const theirProgress = 65
+  const yourProgress = 45
 
   const stats = [
     { name: 'Mentality', value: 5, maxValue: 10, color: 'text-emerald-500' },
@@ -74,31 +94,642 @@ function RacesContent() {
     }, 2000)
   }
 
+  const spinRaceWheel = (raceId: string) => {
+    if (raceWheelSpinning[raceId]) return
+    setRaceWheelSpinning(prev => ({ ...prev, [raceId]: true }))
+    const spins = 3 + Math.random() * 2 // 3-5 full spins
+    const finalAngle = spins * 360 + Math.random() * 360
+    setRaceWheelRotations(prev => ({ ...prev, [raceId]: (prev[raceId] || 0) + finalAngle }))
+    
+    setTimeout(() => {
+      const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)]
+      setRaceMotivations(prev => ({ ...prev, [raceId]: randomMotivation }))
+      setRaceWheelSpinning(prev => ({ ...prev, [raceId]: false }))
+    }, 2000)
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      {/* View Toggle */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => router.push('/races?mode=combined')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-            viewMode === 'combined' 
-              ? 'bg-slate-900 text-white' 
-              : 'bg-white border-2 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          Combined View
-        </button>
-        <button
-          onClick={() => router.push('/races?mode=separate')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-            viewMode === 'separate' 
-              ? 'bg-slate-900 text-white' 
-              : 'bg-white border-2 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          Separate Races
-        </button>
+      {/* Header Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-white border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+            <h1 className="text-2xl font-bold text-slate-900">2. Race View</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                onClick={() => setShowCompareMenu(!showCompareMenu)}
+                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Compare
+              </button>
+              {showCompareMenu && (
+                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-slate-200 rounded-lg shadow-xl z-20 min-w-[200px]">
+                  <div className="p-2">
+                    <div className="text-xs font-semibold text-slate-500 mb-2 px-2">(NEW: View Mentors / Collaborators /...)</div>
+                    <button
+                      onClick={() => {
+                        router.push('/races?compare=rolemodel')
+                        setShowCompareMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      To Role Model (s)
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push('/races?compare=friend')
+                        setShowCompareMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      To Friend-vals
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push('/races?compare=mentor')
+                        setShowCompareMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      To Mentoring
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push('/races?compare=recommendations')
+                        setShowCompareMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      To Recommendations
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowNewViewsMenu(!showNewViewsMenu)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                New Views
+              </button>
+              {showNewViewsMenu && (
+                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-slate-200 rounded-lg shadow-xl z-20 min-w-[200px]">
+                  <div className="p-2">
+                    <button
+                      onClick={() => {
+                        router.push('/races?newview=avoidance')
+                        setShowNewViewsMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
+                    >
+                      ① Avoidance
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push('/races?newview=suggestions')
+                        setShowNewViewsMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
+                    >
+                      ② Suggestions
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push('/races?newview=compete')
+                        setShowNewViewsMenu(false)
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
+                    >
+                      ③ Compete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* View Toggle */}
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push('/races?mode=combined')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              viewMode === 'combined' 
+                ? 'bg-slate-900 text-white' 
+                : 'bg-white border-2 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            Combined View
+          </button>
+          <button
+            onClick={() => router.push('/races?mode=separate')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              viewMode === 'separate' 
+                ? 'bg-slate-900 text-white' 
+                : 'bg-white border-2 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            Separate Races
+          </button>
+        </div>
       </div>
+
+      {/* Comparison View */}
+      {comparisonView && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Compare: {comparisonView === 'rolemodel' ? 'Role Model' : comparisonView === 'friend' ? 'Friend' : comparisonView === 'mentor' ? 'Mentor' : 'Recommendations'}</h2>
+            <button
+              onClick={() => router.push('/races')}
+              className="text-slate-500 hover:text-slate-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: You vs. Them Flow */}
+            <div className="space-y-4">
+              <button
+                onClick={() => router.push('/tasks/current')}
+                className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to task view
+              </button>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <h3 className="font-bold mb-2">Their Stats:</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Mentality:</span>
+                    <span className="font-bold text-emerald-500">{theirStats.mentality}XP</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Happiness:</span>
+                    <span className="font-bold text-emerald-500">{theirStats.happiness}XP</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Focus:</span>
+                    <span className="font-bold text-emerald-500">{theirStats.focus}XP</span>
+                  </div>
+                  <div className="text-slate-400">...</div>
+                </div>
+              </div>
+
+              <div className="text-sm">
+                <span className="font-medium">Progress: </span>
+                <span className="text-emerald-500 font-bold">{theirProgress}%</span>
+                <span className="text-slate-500"> (vs. Your {yourProgress}%)</span>
+              </div>
+
+              {/* You vs. Them Stick Figures */}
+              <div className="flex items-center justify-center gap-8 py-4">
+                <div className="flex flex-col items-center">
+                  <div className="text-xs font-medium mb-2">You</div>
+                  <svg viewBox="0 0 40 50" className="w-12 h-14">
+                    <circle cx="20" cy="12" r="6" fill="none" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="18" x2="20" y2="32" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="22" x2="12" y2="28" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="22" x2="28" y2="28" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="32" x2="14" y2="42" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="32" x2="26" y2="42" stroke="#1e293b" strokeWidth="2"/>
+                  </svg>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="text-xs font-medium mb-2">Them</div>
+                  <svg viewBox="0 0 40 50" className="w-12 h-14">
+                    <circle cx="20" cy="12" r="6" fill="none" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="18" x2="20" y2="32" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="22" x2="12" y2="28" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="22" x2="28" y2="28" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="32" x2="14" y2="42" stroke="#1e293b" strokeWidth="2"/>
+                    <line x1="20" y1="32" x2="26" y2="42" stroke="#1e293b" strokeWidth="2"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Milestone Buttons */}
+              <div className="space-y-2">
+                <button 
+                  onClick={() => router.push('/milestones/their_current')}
+                  className="w-full px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Their Curr
+                </button>
+                <div className="w-full h-px bg-slate-300 border-dashed"></div>
+                <button 
+                  onClick={() => router.push('/milestones/next_step')}
+                  className="w-full px-4 py-2 bg-amber-100 border-2 border-amber-400 rounded-lg text-sm font-medium hover:bg-amber-200 transition-colors cursor-pointer"
+                >
+                  AT YOUR NEXT STEP
+                </button>
+                <button 
+                  onClick={() => router.push('/milestones/current')}
+                  className="w-full px-4 py-2 bg-cyan-100 border-2 border-cyan-400 rounded-lg text-sm font-medium hover:bg-cyan-200 transition-colors cursor-pointer"
+                >
+                  AT YOUR CURR
+                </button>
+                <button 
+                  onClick={() => router.push('/milestones/your_step')}
+                  className="w-full px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Your Step
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Models Comparison & New Views */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-slate-500" />
+                  <span className="font-medium">Compare</span>
+                </div>
+                <span className="text-xs text-slate-500">→ (can change Race View here)</span>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <h3 className="font-bold mb-2">Models: vs. yours</h3>
+                <div className="text-sm space-y-1">
+                  <div>Their: Autism + Parent + Black + Canadian</div>
+                  <div>Yours: Autism + ADHD + First-Gen</div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
+                <h3 className="font-bold mb-3">New Views:</h3>
+                <div className="space-y-3 text-sm">
+                  <button
+                    onClick={() => router.push('/races?newview=avoidance')}
+                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <span className="font-medium">① Avoidance</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/races?newview=suggestions')}
+                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <div>
+                      <span className="font-medium">② Suggestions</span>
+                      <div className="text-xs text-slate-600 mt-1 ml-4">
+                        <div>L should be like to filter by ppl;</div>
+                        <div>us, R.M.'s, M's, ...)</div>
+                        <div className="mt-1">→ could be like Journal</div>
+                        <div>→ Or Daily suggestions in Notifs/Bell</div>
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => router.push('/races?newview=compete')}
+                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <div>
+                      <span className="font-medium">③ Compete</span>
+                      <div className="text-xs text-slate-600 mt-1 ml-4">
+                        <div>Rival Notifs</div>
+                        <div>Person's Icon @ goal</div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Views Content */}
+      {newView && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {newView === 'avoidance' && <Info className="w-5 h-5 text-slate-600" />}
+              {newView === 'suggestions' && <span className="text-lg">②</span>}
+              {newView === 'compete' && <span className="text-lg">③</span>}
+              <h2 className="text-xl font-bold">
+                {newView === 'avoidance' ? 'Avoidance View' : 
+                 newView === 'suggestions' ? 'Suggestions View' : 
+                 'Compete View'}
+              </h2>
+            </div>
+            <button
+              onClick={() => router.push('/races')}
+              className="text-slate-500 hover:text-slate-700 p-1 hover:bg-slate-100 rounded transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {newView === 'avoidance' && (
+            <div className="space-y-4">
+              <p className="text-slate-600">
+                View showing tasks/approaches to avoid based on your barriers and past experiences.
+              </p>
+              
+              {/* Avoidance List */}
+              <div className="mt-6 space-y-3">
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  Things to Avoid:
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { task: 'All-night study sessions', reason: 'Triggers ADHD burnout' },
+                    { task: 'Cramming before exams', reason: 'Increases anxiety' },
+                    { task: 'Skipping meals for work', reason: 'Affects focus and mood' },
+                    { task: 'Overcommitting to projects', reason: 'Leads to overwhelm' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="font-medium text-red-900">{item.task}</div>
+                        <div className="text-sm text-red-700">{item.reason}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {newView === 'suggestions' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell className="w-5 h-5 text-purple-500" />
+                <h3 className="font-semibold text-lg">Daily Suggestions</h3>
+              </div>
+              <p className="text-slate-600 mb-4">
+                Filter suggestions by people: us, Role Models, Mentors, etc.
+              </p>
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <span>→</span>
+                  <span>Could be like Journal format</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>→</span>
+                  <span>Or Daily suggestions in Notifications/Bell</span>
+                </div>
+              </div>
+
+              {/* Suggestions List */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Filter className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm font-medium text-slate-600">Filter by:</span>
+                  <div className="flex gap-2">
+                    {['All', 'Role Models', 'Mentors', 'Friends'].map((filter) => (
+                      <button
+                        key={filter}
+                        onClick={() => setSuggestionFilter(filter)}
+                        className={`px-3 py-1 text-xs border rounded-lg transition-colors ${
+                          suggestionFilter === filter
+                            ? 'bg-purple-500 text-white border-purple-500'
+                            : 'border-slate-300 hover:bg-purple-50 hover:border-purple-300'
+                        }`}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {(() => {
+                    const allSuggestions = [
+                      { from: 'Sarah Chen (Role Model)', suggestion: 'Try the Pomodoro technique for this task', time: '2 hours ago', type: 'Role Models' },
+                      { from: 'Marcus Johnson (Role Model)', suggestion: 'Use body doubling for focus sessions', time: '3 hours ago', type: 'Role Models' },
+                      { from: 'James Wilson (Mentor)', suggestion: 'Break this into 3 smaller steps', time: '5 hours ago', type: 'Mentors' },
+                      { from: 'Lisa Park (Mentor)', suggestion: 'Take breaks every 25 minutes to maintain focus', time: '6 hours ago', type: 'Mentors' },
+                      { from: 'Alex Taylor (Friend)', suggestion: 'We can body double on this together', time: '1 day ago', type: 'Friends' },
+                      { from: 'Jordan Smith (Friend)', suggestion: 'Want to compete on completing this task?', time: '2 days ago', type: 'Friends' },
+                    ]
+                    const filteredSuggestions = allSuggestions.filter(item => suggestionFilter === 'All' || item.type === suggestionFilter)
+                    
+                    if (filteredSuggestions.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-slate-500">
+                          No suggestions found for this filter.
+                        </div>
+                      )
+                    }
+                    
+                    return filteredSuggestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          // Apply suggestion to calendar
+                          const suggestionData = {
+                            suggestion: item.suggestion,
+                            from: item.from,
+                            time: new Date().toISOString(),
+                            type: item.type
+                          }
+                          
+                          // Store in localStorage for calendar to pick up
+                          const existingSuggestions = JSON.parse(localStorage.getItem('pendingCalendarSuggestions') || '[]')
+                          existingSuggestions.push(suggestionData)
+                          localStorage.setItem('pendingCalendarSuggestions', JSON.stringify(existingSuggestions))
+                          
+                          // Navigate to calendar with suggestion
+                          router.push(`/calendar?suggestion=${encodeURIComponent(item.suggestion)}&from=${encodeURIComponent(item.from)}`)
+                        }}
+                        className="w-full text-left p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="font-medium text-purple-900 text-sm">{item.from}</div>
+                          <div className="text-xs text-slate-500">{item.time}</div>
+                        </div>
+                        <div className="text-sm text-slate-700">{item.suggestion}</div>
+                      </button>
+                    ))
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {newView === 'compete' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                <h3 className="font-semibold text-lg">Compete Features</h3>
+              </div>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <Bell className="w-4 h-4 text-amber-600" />
+                  <span className="font-medium text-amber-900">Rival Notifications</span>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <Users className="w-4 h-4 text-amber-600" />
+                  <span className="font-medium text-amber-900">Person's Icon @ goal</span>
+                </div>
+              </div>
+
+              {/* Active Competitions */}
+              <div className="mt-6 space-y-3">
+                <h3 className="font-semibold text-slate-800 mb-3">Active Competitions:</h3>
+                <div className="space-y-2">
+                  {[
+                    { rival: 'Marcus Johnson', goal: 'Complete 10 tasks this week', yourProgress: 6, theirProgress: 8 },
+                    { rival: 'Alex Taylor', goal: 'Study 20 hours this week', yourProgress: 12, theirProgress: 15 },
+                  ].map((comp, idx) => (
+                    <div key={idx} className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                            {comp.rival.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium text-slate-900">{comp.rival}</div>
+                            <div className="text-xs text-slate-600">{comp.goal}</div>
+                          </div>
+                        </div>
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600">You:</span>
+                          <span className="font-bold text-emerald-600">{comp.yourProgress}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600">Them:</span>
+                          <span className="font-bold text-amber-600">{comp.theirProgress}</span>
+                        </div>
+                        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 rounded-full" style={{ width: `${(comp.yourProgress / Math.max(comp.yourProgress, comp.theirProgress)) * 100}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stats/Goal/Motivation Wheel Section - Show when newView is active */}
+      {newView && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
+          {/* Top Section: Stats + Goal + Motivation Wheel */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Stats Box */}
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <h3 className="font-bold text-lg mb-3">Stats:</h3>
+              <div className="space-y-2">
+                {stats.map((stat, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <span className="text-sm">- {stat.name}:</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${
+                            stat.value >= 7 ? 'bg-emerald-500' : stat.value >= 4 ? 'bg-amber-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${(stat.value / stat.maxValue) * 100}%` }}
+                        />
+                      </div>
+                      <span className={`font-bold text-sm ${stat.color}`}>{stat.value}XP</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Goal/Ideal Self - Center */}
+            <div className="flex flex-col items-center justify-center">
+              {/* Stick Figure on Platform */}
+              <div className="relative">
+                <svg viewBox="0 0 80 100" className="w-20 h-24">
+                  {/* Platform/podium */}
+                  <ellipse cx="40" cy="85" rx="35" ry="12" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2"/>
+                  <ellipse cx="40" cy="80" rx="25" ry="8" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1"/>
+                  
+                  {/* Stick figure */}
+                  <circle cx="40" cy="25" r="10" fill="none" stroke="#1e293b" strokeWidth="3"/>
+                  <line x1="40" y1="35" x2="40" y2="60" stroke="#1e293b" strokeWidth="3"/>
+                  <line x1="40" y1="42" x2="25" y2="52" stroke="#1e293b" strokeWidth="3"/>
+                  <line x1="40" y1="42" x2="55" y2="52" stroke="#1e293b" strokeWidth="3"/>
+                  <line x1="40" y1="60" x2="28" y2="78" stroke="#1e293b" strokeWidth="3"/>
+                  <line x1="40" y1="60" x2="52" y2="78" stroke="#1e293b" strokeWidth="3"/>
+                </svg>
+              </div>
+              <div className="text-center mt-2">
+                <span className="text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+                  Goal/Ideal Self
+                </span>
+              </div>
+            </div>
+
+            {/* Motivation Wheel */}
+            <div className="flex flex-col items-center">
+              <span className="text-sm font-medium text-slate-600 mb-2">Motivation Wheel:</span>
+              <button 
+                onClick={spinWheel}
+                disabled={isWheelSpinning}
+                className="relative group"
+              >
+                <svg 
+                  viewBox="0 0 100 100" 
+                  className="w-24 h-24 transition-transform duration-[2000ms] ease-out"
+                  style={{ transform: `rotate(${wheelRotation}deg)` }}
+                >
+                  {/* Wheel segments */}
+                  {[0, 60, 120, 180, 240, 300].map((angle, i) => {
+                    const colors = ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6']
+                    const startAngle = (angle - 90) * Math.PI / 180
+                    const endAngle = (angle + 60 - 90) * Math.PI / 180
+                    const x1 = 50 + 40 * Math.cos(startAngle)
+                    const y1 = 50 + 40 * Math.sin(startAngle)
+                    const x2 = 50 + 40 * Math.cos(endAngle)
+                    const y2 = 50 + 40 * Math.sin(endAngle)
+                    return (
+                      <path
+                        key={i}
+                        d={`M 50 50 L ${x1} ${y1} A 40 40 0 0 1 ${x2} ${y2} Z`}
+                        fill={colors[i]}
+                        stroke="white"
+                        strokeWidth="2"
+                      />
+                    )
+                  })}
+                  {/* Center circle */}
+                  <circle cx="50" cy="50" r="12" fill="white" stroke="#1e293b" strokeWidth="2"/>
+                  <text x="50" y="54" textAnchor="middle" fontSize="8" fontWeight="bold">SPIN</text>
+                </svg>
+                {/* Pointer */}
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[12px] border-l-transparent border-r-transparent border-t-slate-900" />
+              </button>
+              {todaysMotivation && (
+                <div className="mt-3 text-center max-w-[200px]">
+                  <div className="text-xs text-slate-500">Today's motivation:</div>
+                  <div className="text-sm font-medium text-slate-700 italic">"{todaysMotivation}"</div>
+                </div>
+              )}
+              {!todaysMotivation && !isWheelSpinning && (
+                <div className="mt-2 text-xs text-slate-400">Click to spin!</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {viewMode === 'combined' ? (
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
@@ -410,8 +1041,16 @@ function RacesContent() {
                   {/* Motivation Wheel */}
                   <div className="flex flex-col items-center">
                     <div className="text-xs text-slate-500 mb-1">Motivation Wheel:</div>
-                    <div className="relative">
-                      <svg viewBox="0 0 60 60" className="w-14 h-14 drop-shadow-md">
+                    <button
+                      onClick={() => spinRaceWheel(race.id)}
+                      disabled={raceWheelSpinning[race.id]}
+                      className="relative group cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg 
+                        viewBox="0 0 60 60" 
+                        className="w-14 h-14 drop-shadow-md transition-transform duration-[2000ms] ease-out"
+                        style={{ transform: `rotate(${raceWheelRotations[race.id] || 0}deg)` }}
+                      >
                         {/* Gradient definitions */}
                         <defs>
                           <linearGradient id={`wheelGrad1-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -483,10 +1122,21 @@ function RacesContent() {
                         </defs>
                         {/* Sparkle dots */}
                         <circle cx="30" cy="30" r="2" fill="#6366f1"/>
+                        {/* Spin text in center */}
+                        <text x="30" y="35" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#1e293b">SPIN</text>
                       </svg>
                       {/* Pointer triangle */}
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-r-[5px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-800 drop-shadow-sm" />
-                    </div>
+                    </button>
+                    {raceMotivations[race.id] && (
+                      <div className="mt-1 text-center max-w-[120px]">
+                        <div className="text-[10px] text-slate-500">Motivation:</div>
+                        <div className="text-[10px] font-medium text-slate-700 italic leading-tight">"{raceMotivations[race.id]}"</div>
+                      </div>
+                    )}
+                    {!raceMotivations[race.id] && !raceWheelSpinning[race.id] && (
+                      <div className="mt-1 text-[10px] text-slate-400">Click to spin!</div>
+                    )}
                   </div>
                 </div>
 

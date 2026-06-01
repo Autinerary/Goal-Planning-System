@@ -3,6 +3,9 @@ import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
 import type { ValidationAgentOutput } from '@/lib/agents/validation-agent/types'
 import type { RecommendationAgentOutput } from '@/lib/agents/recommendation-agent/types'
 
+// Re-export for use in other orchestrator modules
+export type { DiscoveredPattern }
+
 export type RequestType = 'recommendations' | 'search' | 'validate_submission' | 'pattern_discovery'
 
 export interface UserRequest {

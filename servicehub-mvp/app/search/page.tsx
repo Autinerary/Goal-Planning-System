@@ -41,7 +41,7 @@ function SearchResults() {
 
   // Update URL params
   const updateSearchParams = useCallback(
-    (updates: Record<string, string | undefined>) => {
+    (updates: Record<string, string | string[] | undefined>) => {
       const params = new URLSearchParams(searchParams.toString())
       
       Object.entries(updates).forEach(([key, value]) => {

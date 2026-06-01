@@ -180,6 +180,74 @@ const mockMilestones: Record<string, any> = {
       { id: 't2', type: 'service', name: 'Black Professionals Network Canada', description: 'Career support and mentorship', rating: 4.6 },
       { id: 't3', type: 'other', name: 'LinkedIn ADHD Professionals', description: 'Networking group for ADHD adults', rating: 4.3 },
     ]
+  },
+  // Comparison View Milestones (Their vs Yours)
+  'their_current': {
+    id: 'their_current',
+    name: 'Their Current Milestone',
+    description: 'This is where your comparison partner (Role Model, Friend, or Mentor) is currently at in their journey.',
+    status: 'in_progress',
+    race: 'Comparison View',
+    progress: 65,
+    theirStats: {
+      mentality: 7,
+      happiness: 9,
+      focus: 8
+    },
+    nextSteps: [
+      'They are working on advanced networking',
+      'Building industry connections',
+      'Preparing for leadership role',
+      'Mentoring others along the way'
+    ],
+    tools: [
+      { id: 't1', type: 'service', name: 'Professional Network Groups', description: 'Industry-specific networking events', rating: 4.7 },
+      { id: 't2', type: 'commentary', name: 'Leadership Development Path', description: 'How they approached leadership', rating: 4.8 },
+      { id: 't3', type: 'product', name: 'Notion Workspace', description: 'Their productivity setup', rating: 4.6 },
+    ]
+  },
+  'next_step': {
+    id: 'next_step',
+    name: 'At Your Next Step',
+    description: 'This milestone shows what you should be working on next based on your current progress and comparison with others.',
+    status: 'upcoming',
+    race: 'Your Journey',
+    progress: 0,
+    nextSteps: [
+      'Review what successful people did at this stage',
+      'Identify key skills to develop',
+      'Find resources and tools they used',
+      'Set timeline based on their experience'
+    ],
+    tools: [
+      { id: 't1', type: 'service', name: 'Skill Assessment Tool', description: 'Identify gaps in your current skillset', rating: 4.5 },
+      { id: 't2', type: 'commentary', name: 'Roadmap from Peers', description: 'Learn from those who were in your shoes', rating: 4.9 },
+      { id: 't3', type: 'product', name: 'Goal Tracker', description: 'Track progress on your next milestone', rating: 4.4 },
+    ]
+  },
+  'your_step': {
+    id: 'your_step',
+    name: 'Your Current Step',
+    description: 'This is your current position in the journey. Compare with others to see different approaches and strategies.',
+    status: 'in_progress',
+    race: 'Your Journey',
+    progress: 45,
+    yourStats: {
+      mentality: 5,
+      happiness: 6,
+      focus: 5
+    },
+    nextSteps: [
+      'Continue building foundation skills',
+      'Seek mentorship from those ahead',
+      'Document your progress',
+      'Celebrate small wins'
+    ],
+    tools: [
+      { id: 't1', type: 'service', name: 'Peer Support Group', description: 'Connect with others at similar stage', rating: 4.6 },
+      { id: 't2', type: 'commentary', name: 'Progress Journal Template', description: 'Track your journey and learnings', rating: 4.5 },
+      { id: 't3', type: 'product', name: 'Accountability Partner App', description: 'Stay on track with peer support', rating: 4.7 },
+    ]
   }
 }
 

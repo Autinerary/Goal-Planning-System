@@ -12,11 +12,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     .single()
 
   if (error) {
-    // PGRST116 means no rows found - this is expected when a user doesn't have a profile yet
-    // Don't log this as an error since it's a normal case
-    if (error.code !== 'PGRST116') {
-      console.error('Error fetching profile:', error)
-    }
+    console.error('Error fetching profile:', error)
     return null
   }
 

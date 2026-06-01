@@ -244,7 +244,7 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
           <EmptyState
             type="ratings"
             onAction={userId ? undefined : () => {}}
-            actionLabel={userId ? undefined : undefined}
+            actionLabel={userId ? undefined : 'Sign in to rate'}
           />
           {userId && (
             <div className="mt-4">

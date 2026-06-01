@@ -178,7 +178,7 @@ export default function NotificationsPageClient({ userId }: NotificationsPageCli
               <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <p className="text-gray-900 font-medium mb-2">No notifications</p>
               <p className="text-sm text-gray-600">
-                You'll see notifications here when someone interacts with your content
+                You&apos;ll see notifications here when someone interacts with your content
               </p>
             </div>
           ) : (

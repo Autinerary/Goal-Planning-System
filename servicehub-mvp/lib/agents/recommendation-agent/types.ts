@@ -1,5 +1,8 @@
 import type { UserBarrier, Resource, Location } from '@/types/database'
 
+// Re-export for use in other recommendation-agent modules
+export type { Resource, Location }
+
 export interface Barrier {
   category: string
   type: string

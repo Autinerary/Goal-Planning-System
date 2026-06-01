@@ -2,41 +2,84 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { X, Sparkles, Calendar } from 'lucide-react'
+import { useState } from 'react'
+import { X, Sparkles, Calendar, Heart } from 'lucide-react'
 
 export default function MilestoneView() {
   const router = useRouter()
+  const [likedItems, setLikedItems] = useState<Set<string>>(new Set())
+
+  const toggleLike = (itemId: string) => {
+    setLikedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
 
   const races = [
     { id: 'race_1', name: 'Race 1', progress: 80 },
     { id: 'race_2', name: 'Race 2', progress: 25 },
   ]
 
+  // Updated to show "Yours vs. theirs" structure
   const rows = [
     { 
       category: 'Summary',
-      race1: { milestone: 'Current Milestone:', details: 'Request accommodations for classes.' },
-      race2: { milestone: 'Current Milestone:', details: 'Build portfolio for job applications.' }
+      yours: { milestone: 'Current Milestone:', details: 'Request accommodations for classes.' },
+      theirs: { milestone: 'Current Milestone:', details: 'Sarah completed this in her 2nd semester.' }
     },
     {
       category: 'Services',
-      race1: { items: ['○ Disability Office', '○ Academic Advisor', '○ ...'] },
-      race2: { items: ['~'] }
+      yours: { items: [
+        { id: 'y_s1', text: '○ Disability Office', liked: false },
+        { id: 'y_s2', text: '○ Academic Advisor', liked: false },
+        { id: 'y_s3', text: '○ ...', liked: false }
+      ]},
+      theirs: { items: [
+        { id: 't_s1', text: '○ Used same disability office', liked: false },
+        { id: 't_s2', text: '○ Found peer mentor', liked: false },
+        { id: 't_s3', text: '○ ...', liked: false }
+      ]}
     },
     {
       category: 'Commentaries\n(Reviews/Videos/\nArticles)',
-      race1: { items: ['○ "Accommodation Guide" video', '○ Student success story', '○ ...'] },
-      race2: { items: ['~'] }
+      yours: { items: [
+        { id: 'y_c1', text: '○ "Accommodation Guide" video', liked: false },
+        { id: 'y_c2', text: '○ Student success story', liked: false },
+        { id: 'y_c3', text: '○ ...', liked: false }
+      ]},
+      theirs: { items: [
+        { id: 't_c1', text: '○ Watched same video series', liked: false },
+        { id: 't_c2', text: '○ Found helpful blog posts', liked: false },
+        { id: 't_c3', text: '○ ...', liked: false }
+      ]}
     },
     {
       category: 'Products',
-      race1: { items: ['○ Tiimo app', '○ Notion templates'] },
-      race2: { items: ['~'] }
+      yours: { items: [
+        { id: 'y_p1', text: '○ Tiimo app', liked: false },
+        { id: 'y_p2', text: '○ Notion templates', liked: false }
+      ]},
+      theirs: { items: [
+        { id: 't_p1', text: '○ Used similar planner app', liked: false },
+        { id: 't_p2', text: '○ Created custom templates', liked: false }
+      ]}
     },
     {
       category: '(Other Helpful\nTools)',
-      race1: { items: ['○ Study group (online)', '○ Peer support'] },
-      race2: { items: ['~'] }
+      yours: { items: [
+        { id: 'y_o1', text: '○ Study group (online)', liked: false },
+        { id: 'y_o2', text: '○ Peer support', liked: false }
+      ]},
+      theirs: { items: [
+        { id: 't_o1', text: '○ Joined same study group', liked: false },
+        { id: 't_o2', text: '○ Connected with mentors', liked: false }
+      ]}
     },
   ]
 
@@ -54,20 +97,14 @@ export default function MilestoneView() {
                 <X className="w-5 h-5 text-slate-600" />
               </button>
             </div>
-            {races.map((race, idx) => (
-              <div key={race.id} className={`p-4 ${idx === 0 ? 'border-r-2 border-slate-200' : ''}`}>
-                <div className="font-bold text-slate-800">{race.name}:...</div>
-                <div className="text-slate-600">
-                  Progress: <span className="text-emerald-500 font-bold">{race.progress}%</span>
-                </div>
-                <div className="h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
-                    style={{ width: `${race.progress}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+            <div className="p-4 border-r-2 border-slate-200">
+              <div className="font-bold text-slate-800">Yours</div>
+              <div className="text-slate-600 text-sm">Your current progress</div>
+            </div>
+            <div className="p-4">
+              <div className="font-bold text-slate-800">Theirs</div>
+              <div className="text-slate-600 text-sm">Role models' / Mentors' approach</div>
+            </div>
           </div>
 
           {/* Data rows */}
@@ -80,25 +117,51 @@ export default function MilestoneView() {
                 {row.category}
               </div>
               <div className="p-4 border-r-2 border-slate-200 text-sm">
-                {row.race1.milestone && (
+                {row.yours.milestone && (
                   <>
-                    <div className="font-medium text-slate-700">{row.race1.milestone}</div>
-                    <div className="text-slate-500 italic">{row.race1.details}</div>
+                    <div className="font-medium text-slate-700">{row.yours.milestone}</div>
+                    <div className="text-slate-500 italic">{row.yours.details}</div>
                   </>
                 )}
-                {row.race1.items && row.race1.items.map((item, i) => (
-                  <div key={i} className="text-slate-600 hover:text-cyan-600 cursor-pointer transition-colors">{item}</div>
+                {row.yours.items && row.yours.items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 text-slate-600 hover:text-cyan-600 cursor-pointer transition-colors group">
+                    <span>{item.text}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleLike(item.id)
+                      }}
+                      className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                        likedItems.has(item.id) ? 'opacity-100 text-red-500' : 'text-slate-400 hover:text-red-500'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${likedItems.has(item.id) ? 'fill-red-500' : ''}`} />
+                    </button>
+                  </div>
                 ))}
               </div>
               <div className="p-4 text-sm">
-                {row.race2.milestone && (
+                {row.theirs.milestone && (
                   <>
-                    <div className="font-medium text-slate-700">{row.race2.milestone}</div>
-                    <div className="text-slate-500 italic">{row.race2.details}</div>
+                    <div className="font-medium text-slate-700">{row.theirs.milestone}</div>
+                    <div className="text-slate-500 italic">{row.theirs.details}</div>
                   </>
                 )}
-                {row.race2.items && row.race2.items.map((item, i) => (
-                  <div key={i} className="text-slate-400">{item}</div>
+                {row.theirs.items && row.theirs.items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 text-slate-600 hover:text-cyan-600 cursor-pointer transition-colors group">
+                    <span>{item.text}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleLike(item.id)
+                      }}
+                      className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                        likedItems.has(item.id) ? 'opacity-100 text-red-500' : 'text-slate-400 hover:text-red-500'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${likedItems.has(item.id) ? 'fill-red-500' : ''}`} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>

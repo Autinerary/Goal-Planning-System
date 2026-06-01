@@ -172,9 +172,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     })
   } catch (error) {
     const formatted = formatErrorForUser(error)
+    const supabaseForError = createClient()
+    const { data: { user: errorUser } } = await supabaseForError.auth.getUser()
     await logError(error, {
       action: 'create_rating',
-      userId: (await supabase.auth.getUser()).data.user?.id,
+      userId: errorUser?.id,
       path: `/resources/${params.id}/ratings`,
     })
     return NextResponse.json(

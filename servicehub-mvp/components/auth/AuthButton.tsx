@@ -29,8 +29,21 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
   }
 
   if (!user) {
-    // No login required - return empty div
-    return <div className={className}></div>
+    // Redirect to Goal Planning login instead of showing buttons
+    const goalPlanningUrl = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+    const returnUrl = encodeURIComponent(currentUrl)
+    
+    // Auto-redirect to Goal Planning login
+    if (typeof window !== 'undefined') {
+      window.location.href = `${goalPlanningUrl}/login?returnTo=${returnUrl}`
+    }
+    
+    return (
+      <div className={`flex items-center ${className}`}>
+        <div className="animate-pulse bg-gray-200 h-10 w-24 rounded-md"></div>
+      </div>
+    )
   }
 
   if (!showUserMenu) {

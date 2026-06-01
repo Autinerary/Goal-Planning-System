@@ -21,6 +21,7 @@ const steps = [
   { id: 'dreams', title: 'Your Dreams', icon: Sparkles },
   { id: 'challenges', title: 'Current Challenges', icon: Heart },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
+  { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
 ]
 
 const roles = [
@@ -116,6 +117,11 @@ export default function OnboardingPage() {
     currentChallenges: [''],
     motivationType: ''
   })
+  
+  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
+  const [recommendationExplanation, setRecommendationExplanation] = useState('')
 
   // Redirect if not logged in
   useEffect(() => {
@@ -164,8 +170,93 @@ export default function OnboardingPage() {
       case 3: return formData.goals.some(g => g.trim())
       case 4: return formData.dreams.some(d => d.trim())
       case 5: return formData.currentChallenges.some(c => c.trim())
-      case 6: return formData.motivationType !== ''
+      case 6: return formData.motivationType !== '' && formData.lifeStage !== ''
+      case 7: return true // Recommendations step - can always proceed (optional to save)
       default: return false
+    }
+  }
+  
+  // Fetch AI recommendations when reaching the recommendations step
+  useEffect(() => {
+    if (currentStep === 7 && recommendations.length === 0 && !isLoadingRecommendations) {
+      fetchRecommendations()
+    }
+  }, [currentStep])
+  
+  const fetchRecommendations = async () => {
+    setIsLoadingRecommendations(true)
+    try {
+      const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
+      
+      const serviceHubResponse = await axios.post(`${SERVICE_HUB_URL}/api/onboarding/complete`, {
+        role: formData.role,
+        location: formData.location,
+        barriers: serviceHubBarriers,
+        lifeStage: formData.lifeStage,
+        goals: formData.goals.filter(g => g.trim()),
+        culturalNotes: '',
+        additionalNotes: formData.currentChallenges.filter(c => c.trim()).join('; ')
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        validateStatus: () => true // Don't throw on any status
+      })
+
+      if (serviceHubResponse.status === 200 && serviceHubResponse.data.recommendations) {
+        setRecommendations(serviceHubResponse.data.recommendations || [])
+        setRecommendationExplanation(serviceHubResponse.data.recommendationExplanation || '')
+      } else {
+        // Fallback: show empty state with message
+        setRecommendations([])
+        setRecommendationExplanation('Recommendations will be available after you sign in to ServiceHub.')
+      }
+    } catch (error) {
+      console.error('Error fetching recommendations:', error)
+      setRecommendations([])
+      setRecommendationExplanation('Unable to load recommendations at this time.')
+    } finally {
+      setIsLoadingRecommendations(false)
+    }
+  }
+  
+  const handleSaveResource = async (resourceId: string) => {
+    // Toggle save state
+    if (savedResources.has(resourceId)) {
+      setSavedResources(prev => {
+        const next = new Set(prev)
+        next.delete(resourceId)
+        return next
+      })
+      
+      // Try to unsave from ServiceHub if authenticated
+      try {
+        await axios.delete(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {
+          validateStatus: () => true
+        })
+      } catch (error) {
+        // Silent fail
+      }
+    } else {
+      setSavedResources(prev => new Set([...prev, resourceId]))
+      
+      // Try to save to ServiceHub if user is authenticated
+      // Since both apps now use Supabase Auth, the user should be authenticated
+      try {
+        const response = await axios.post(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {}, {
+          validateStatus: () => true
+        })
+        
+        if (response.status === 200 || response.status === 201) {
+          console.log('Resource saved to ServiceHub')
+        } else if (response.status === 401) {
+          // User not authenticated in ServiceHub - will save after sign-in
+          console.log('Resource will be saved after ServiceHub sign-in')
+        }
+      } catch (error) {
+        // Silent fail - will be saved when user signs into ServiceHub
+        console.log('Resource will be saved after ServiceHub sign-in')
+      }
     }
   }
 
@@ -233,59 +324,69 @@ export default function OnboardingPage() {
         dreams: formData.dreams.filter(d => d.trim()),
         currentChallenges: formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000, // 30 second timeout
       })
 
-      // Sync to ServiceHub (non-blocking - don't fail if this fails)
-      // Note: ServiceHub requires user authentication, so this will only work if:
-      // 1. User has a ServiceHub account with same email, OR
-      // 2. ServiceHub onboarding endpoint is made public for cross-service sync
-      // For now, we'll attempt the sync but gracefully handle failures
-      try {
-        const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
-        const serviceHubGoals = formData.goals
-          .filter(g => g.trim())
-          .map(g => {
-            // Map to ServiceHub goal format
-            if (g.toLowerCase().includes('education') || g.toLowerCase().includes('school') || g.toLowerCase().includes('university')) return 'education'
-            if (g.toLowerCase().includes('job') || g.toLowerCase().includes('employment') || g.toLowerCase().includes('career')) return 'employment'
-            if (g.toLowerCase().includes('independent') || g.toLowerCase().includes('autonomy')) return 'independence'
-            if (g.toLowerCase().includes('relationship') || g.toLowerCase().includes('friend') || g.toLowerCase().includes('social')) return 'relationships'
-            if (g.toLowerCase().includes('health') || g.toLowerCase().includes('wellness')) return 'health'
-            return 'education' // Default
-          })
-
-        const serviceHubResponse = await axios.post(`${SERVICE_HUB_URL}/api/onboarding/complete`, {
-          role: formData.role,
-          location: formData.location,
-          barriers: serviceHubBarriers,
-          lifeStage: formData.lifeStage,
-          goals: [...new Set(serviceHubGoals)], // Remove duplicates
-          culturalNotes: '',
-          additionalNotes: formData.currentChallenges.filter(c => c.trim()).join('; ')
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          validateStatus: () => true // Don't throw on any status
-        })
-
-        if (serviceHubResponse.status === 200 || serviceHubResponse.status === 201) {
-          console.log('Successfully synced to ServiceHub')
-        } else {
-          console.warn('ServiceHub sync returned non-success status:', serviceHubResponse.status)
+      // Save saved resources to ServiceHub if user is authenticated
+      // Since both apps use Supabase Auth, try to save directly
+      if (savedResources.size > 0) {
+        const resourcesToSave = Array.from(savedResources)
+        
+        // Try to save each resource to ServiceHub
+        for (const resourceId of resourcesToSave) {
+          try {
+            await axios.post(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {}, {
+              validateStatus: () => true
+            })
+          } catch (error) {
+            // If save fails, store in localStorage for later sync
+            const pendingResources = JSON.parse(localStorage.getItem('pendingSavedResources') || '[]')
+            if (!pendingResources.includes(resourceId)) {
+              pendingResources.push(resourceId)
+              localStorage.setItem('pendingSavedResources', JSON.stringify(pendingResources))
+            }
+          }
         }
-      } catch (serviceHubError: any) {
-        // Log but don't fail - ServiceHub sync is optional
-        // This is expected if user doesn't have a ServiceHub account yet
-        console.warn('ServiceHub sync skipped (user may need to complete ServiceHub onboarding separately):', 
-          serviceHubError?.response?.status || serviceHubError?.message)
       }
 
-      completeOnboarding(response.data.pathId)
-      router.push('/path')
-    } catch (error) {
+      // Note: ServiceHub sync already happened in step 7 (recommendations step)
+      // We don't need to sync onboarding data again here
+
+      // Check if response has pathId
+      if (!response.data || !response.data.pathId) {
+        throw new Error('Invalid response from server: missing pathId')
+      }
+
+      await completeOnboarding(response.data.pathId)
+      router.push('/onboarding-confirmation')
+    } catch (error: any) {
       console.error('Error creating path:', error)
-      alert('Error creating your path. Please try again.')
+      console.error('Error details:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+        API_URL
+      })
+      
+      // More detailed error handling
+      let errorMessage = 'Error creating your path. Please try again.'
+      
+      if (error?.response) {
+        // Server responded with error
+        errorMessage = error.response.data?.detail || error.response.data?.message || `Server error: ${error.response.status}`
+      } else if (error?.request) {
+        // Request made but no response (network error)
+        errorMessage = `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
+      } else if (error?.message) {
+        // Other error
+        errorMessage = error.message
+      }
+      
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -624,6 +725,111 @@ export default function OnboardingPage() {
             </div>
           )}
 
+          {/* Step 7: AI Recommendations */}
+          {currentStep === 7 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-6 h-6 text-cyan-400" />
+                <h2 className="text-2xl font-bold">AI-Recommended Services</h2>
+              </div>
+              <p className="text-slate-400 mb-4">
+                Based on your profile, we've found resources that may help you achieve your goals. 
+                Save any that interest you to access them later in ServiceHub.
+              </p>
+              
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-6">
+                <p className="text-sm text-blue-300">
+                  💡 <strong>Note:</strong> To save resources permanently and access "My Resources" in ServiceHub, 
+                  you'll need to sign in to ServiceHub with the same email. Your saved selections will be synced automatically.
+                </p>
+              </div>
+
+              {isLoadingRecommendations ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mb-4" />
+                  <p className="text-slate-400">Generating personalized recommendations...</p>
+                </div>
+              ) : recommendations.length === 0 ? (
+                <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                  <p className="text-slate-300 mb-2">No recommendations available yet</p>
+                  <p className="text-sm text-slate-500">
+                    {recommendationExplanation || 'Sign in to ServiceHub to get personalized recommendations based on your profile.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recommendationExplanation && (
+                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-cyan-300">{recommendationExplanation}</p>
+                    </div>
+                  )}
+                  
+                  <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2">
+                    {recommendations.map((resource) => (
+                      <div
+                        key={resource.id}
+                        className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-lg">{resource.name}</h3>
+                              {resource.category && (
+                                <span className="px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded">
+                                  {resource.category}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-slate-400 mb-2 line-clamp-2">
+                              {resource.description}
+                            </p>
+                            {resource.location && (
+                              <p className="text-xs text-slate-500 mb-2">
+                                📍 {resource.location.city}, {resource.location.province}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 text-xs text-slate-500">
+                              {resource.averageRating > 0 && (
+                                <span>⭐ {resource.averageRating.toFixed(1)} ({resource.ratingCount} reviews)</span>
+                              )}
+                              {resource.score > 0 && (
+                                <span className="text-cyan-400">{resource.score}% match</span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleSaveResource(resource.id)}
+                            className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              savedResources.has(resource.id)
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
+                            }`}
+                          >
+                            {savedResources.has(resource.id) ? (
+                              <>
+                                <Check className="w-4 h-4 inline mr-1" />
+                                Saved
+                              </>
+                            ) : (
+                              'Save'
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-4">
+                    <p className="text-sm text-blue-300">
+                      💡 <strong>Tip:</strong> You can always find these resources later in ServiceHub's "My Resources" section. 
+                      You can also recommend new resources to help others in the community.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
@@ -642,7 +848,7 @@ export default function OnboardingPage() {
                 disabled={!canProceed()}
                 className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
               >
-                Continue
+                {currentStep === 6 ? 'View Recommendations' : 'Continue'}
                 <ChevronRight className="w-5 h-5" />
               </button>
             ) : (
@@ -658,8 +864,8 @@ export default function OnboardingPage() {
                   </>
                 ) : (
                   <>
-                    Generate My Path
-                    <Sparkles className="w-5 h-5" />
+                    Continue to Role Models & Mentors
+                    <ChevronRight className="w-5 h-5" />
                   </>
                 )}
               </button>

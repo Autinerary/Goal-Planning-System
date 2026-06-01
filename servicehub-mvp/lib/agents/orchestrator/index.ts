@@ -283,7 +283,7 @@ export class Orchestrator {
         )
       } else {
         // Keyword search
-        searchResults = await searchResources(
+        const searchResponse = await searchResources(
           {
             query: request.context.query,
             categories: request.context.category ? [request.context.category] : undefined,
@@ -293,6 +293,7 @@ export class Orchestrator {
           1,
           20
         )
+        searchResults = searchResponse.results || []
       }
 
       agentOutputs.SearchService = searchResults

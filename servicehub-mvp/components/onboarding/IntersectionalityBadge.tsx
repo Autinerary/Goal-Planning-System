@@ -31,12 +31,12 @@ export default function IntersectionalityBadge({ count, barriers }: Intersection
         </div>
         <div className="ml-4 flex-1">
           <h3 className="text-lg font-semibold text-purple-900">
-            You've selected {count} {count === 1 ? 'barrier' : 'barriers'}
+            You&apos;ve selected {count} {count === 1 ? 'barrier' : 'barriers'}
           </h3>
           <p className="mt-2 text-sm text-purple-800">
             <strong className="font-semibold">Rated BY people like you, FOR people like you.</strong>
             <br />
-            We'll find resources that work for people with your unique combination of experiences.
+            We&apos;ll find resources that work for people with your unique combination of experiences.
           </p>
           {barriers.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">

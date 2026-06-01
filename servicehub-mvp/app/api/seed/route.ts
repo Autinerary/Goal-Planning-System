@@ -35,11 +35,10 @@ export async function POST() {
     console.log('🌱 Starting database seeding...')
     const result = await seedDatabase()
     
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Database seeded successfully!',
-      ...result 
-    })
+      return NextResponse.json({
+        ...result,
+        message: 'Database seeded successfully!'
+      })
   } catch (error) {
     console.error('❌ Seed error:', error)
     return NextResponse.json(

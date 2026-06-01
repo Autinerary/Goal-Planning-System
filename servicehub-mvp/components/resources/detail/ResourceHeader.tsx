@@ -20,8 +20,8 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
   const handleSave = async () => {
     if (!userId) {
-      // No login required - allow saving without user
-      // You can implement guest saving or just show a message
+      // Redirect to login or show login modal
+      window.location.href = '/login'
       return
     }
 
