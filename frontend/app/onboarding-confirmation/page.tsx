@@ -69,7 +69,7 @@ export default function OnboardingConfirmationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-8">
+    <div className="min-h-screen text-slate-900 p-4 md:p-8">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
@@ -79,23 +79,23 @@ export default function OnboardingConfirmationPage() {
       <div className="relative max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
             O.S. Confirmation Page
           </h1>
-          <p className="text-slate-400">Let's connect you with role models and mentors</p>
+          <p className="text-slate-600">Let's connect you with role models and mentors</p>
         </div>
 
         {/* Step Content Card */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white/60 backdrop-blur-lg border border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">
           {/* Step 1: Role Models */}
           {currentStep === 'roleModels' && (
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <Users className="w-6 h-6 text-cyan-400" />
-                <h2 className="text-2xl font-bold">a) Role-Model Q (NEW)</h2>
+                <Users className="w-6 h-6 text-blue-600" />
+                <h2 className="text-2xl font-bold text-slate-900">a) Role-Model Q (NEW)</h2>
               </div>
               
-              <p className="text-slate-300 mb-6">
+              <p className="text-slate-700 mb-6">
                 We identified the following role models:
               </p>
 
@@ -103,23 +103,23 @@ export default function OnboardingConfirmationPage() {
                 {mockRoleModels.map((rm) => (
                   <div 
                     key={rm.id} 
-                    className="bg-white/5 border border-white/10 rounded-xl p-4"
+                    className="bg-white/60 border border-slate-300 rounded-xl p-4"
                   >
                     <div className="flex items-start gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl font-bold text-white">
                         {rm.name.charAt(0)}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{rm.name}</h3>
-                        <p className="text-sm text-slate-400">{rm.role}</p>
-                        <p className="text-sm text-slate-300 mt-1">{rm.description}</p>
-                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded">
+                        <h3 className="font-semibold text-lg text-slate-900">{rm.name}</h3>
+                        <p className="text-sm text-slate-600">{rm.role}</p>
+                        <p className="text-sm text-slate-700 mt-1">{rm.description}</p>
+                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-cyan-500/20 text-blue-600 rounded">
                           {rm.category}
                         </span>
                       </div>
                     </div>
 
-                    <p className="text-slate-300 mb-3 font-medium">Would you like us to:</p>
+                    <p className="text-slate-700 mb-3 font-medium">Would you like us to:</p>
                     
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -133,13 +133,13 @@ export default function OnboardingConfirmationPage() {
                           onClick={() => handleRoleModelChoice(rm.id, option.value)}
                           className={`p-3 rounded-lg text-left text-sm transition-all ${
                             roleModelChoices[rm.id] === option.value
-                              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                              : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500 text-slate-900'
+                              : 'bg-white/60 border border-slate-300 hover:bg-white/80 text-slate-800'
                           }`}
                         >
                           <div className="flex items-center gap-2">
                             {roleModelChoices[rm.id] === option.value && (
-                              <Check className="w-4 h-4 text-cyan-400" />
+                              <Check className="w-4 h-4 text-blue-600" />
                             )}
                             <span>{option.label}</span>
                           </div>
@@ -150,7 +150,7 @@ export default function OnboardingConfirmationPage() {
                 ))}
               </div>
 
-              <p className="text-xs text-slate-400 italic mb-6">
+              <p className="text-xs text-slate-600 italic mb-6">
                 * Check boxes - Multiple mentors possible
               </p>
             </div>
@@ -160,11 +160,11 @@ export default function OnboardingConfirmationPage() {
           {currentStep === 'mentors' && (
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <UserCheck className="w-6 h-6 text-purple-400" />
-                <h2 className="text-2xl font-bold">b) Mentors. Q (NEW)</h2>
+                <UserCheck className="w-6 h-6 text-purple-600" />
+                <h2 className="text-2xl font-bold text-slate-900">b) Mentors. Q (NEW)</h2>
               </div>
               
-              <p className="text-slate-300 mb-6">
+              <p className="text-slate-700 mb-6">
                 (copy until below:)
               </p>
 
@@ -172,17 +172,17 @@ export default function OnboardingConfirmationPage() {
                 {mockMentors.map((mentor) => (
                   <div 
                     key={mentor.id} 
-                    className="bg-white/5 border border-white/10 rounded-xl p-4"
+                    className="bg-white/60 border border-slate-300 rounded-xl p-4"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold text-white">
                         {mentor.name.charAt(0)}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{mentor.name}</h3>
-                        <p className="text-sm text-slate-400">{mentor.role}</p>
-                        <p className="text-sm text-slate-300 mt-1">{mentor.description}</p>
-                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded">
+                        <h3 className="font-semibold text-lg text-slate-900">{mentor.name}</h3>
+                        <p className="text-sm text-slate-600">{mentor.role}</p>
+                        <p className="text-sm text-slate-700 mt-1">{mentor.description}</p>
+                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-purple-500/20 text-purple-600 rounded">
                           {mentor.category}
                         </span>
                       </div>
@@ -191,7 +191,7 @@ export default function OnboardingConfirmationPage() {
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
                           selectedMentors[mentor.id]
                             ? 'bg-purple-500 border-purple-500'
-                            : 'border-white/30 hover:border-white/50'
+                            : 'border-slate-400 hover:border-slate-600'
                         }`}
                       >
                         {selectedMentors[mentor.id] && (
@@ -204,8 +204,8 @@ export default function OnboardingConfirmationPage() {
               </div>
 
               <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 mb-6">
-                <p className="text-sm text-cyan-300 font-medium mb-2">Options:</p>
-                <div className="space-y-2 text-sm text-slate-300">
+                <p className="text-sm text-blue-600 font-medium mb-2">Options:</p>
+                <div className="space-y-2 text-sm text-slate-700">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">a)</span>
                     <span>Add all to your path</span>
@@ -221,18 +221,18 @@ export default function OnboardingConfirmationPage() {
                 </div>
               </div>
 
-              <p className="text-xs text-slate-400 italic">
+              <p className="text-xs text-slate-600 italic">
                 * Checkboxes - ONLY 1 PER ROLE/CATEGORY
               </p>
             </div>
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+          <div className="flex justify-between mt-8 pt-6 border-t border-slate-300">
             <button
               onClick={handleBack}
               disabled={currentStep === 'roleModels'}
-              className="flex items-center gap-2 px-6 py-3 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-6 py-3 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               Back
             </button>

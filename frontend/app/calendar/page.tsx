@@ -330,7 +330,7 @@ function CalendarContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -341,53 +341,53 @@ function CalendarContent() {
         {/* Suggestion Modal */}
         {showSuggestionModal && pendingSuggestion && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-white/20 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="bg-white/95 backdrop-blur-sm border-2 border-slate-300 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-lg">
-                    <Calendar className="w-6 h-6 text-purple-300" />
+                    <Calendar className="w-6 h-6 text-purple-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Add to Calendar</h3>
+                  <h3 className="text-2xl font-bold text-slate-800">Add to Calendar</h3>
                 </div>
                 <button 
                   onClick={() => {
                     setShowSuggestionModal(false)
                     setPendingSuggestion(null)
                   }} 
-                  className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors"
+                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               
               <div className="space-y-5">
-                <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl backdrop-blur-sm">
-                  <div className="text-sm font-semibold text-purple-300 mb-2">{pendingSuggestion.from}</div>
-                  <div className="text-sm text-white">{pendingSuggestion.suggestion}</div>
+                <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-300 rounded-xl backdrop-blur-sm">
+                  <div className="text-sm font-semibold text-purple-700 mb-2">{pendingSuggestion.from}</div>
+                  <div className="text-sm text-slate-800">{pendingSuggestion.suggestion}</div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-slate-300">Select Day:</label>
+                  <label className="block text-sm font-medium text-slate-700">Select Day:</label>
                   <select
                     id="suggestion-day"
-                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:outline-none focus:border-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800"
                     defaultValue={currentData.days[0]?.name || 'Monday'}
                   >
                     {currentData.days.map(day => (
-                      <option key={day.name} value={day.name} className="bg-slate-800">{day.name}</option>
+                      <option key={day.name} value={day.name} className="bg-white text-slate-800">{day.name}</option>
                     ))}
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-slate-300">Select Time:</label>
+                  <label className="block text-sm font-medium text-slate-700">Select Time:</label>
                   <select
                     id="suggestion-time"
-                    className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-lg focus:outline-none focus:border-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800"
                     defaultValue="14:00"
                   >
                     {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(time => (
-                      <option key={time} value={time} className="bg-slate-800">{time}</option>
+                      <option key={time} value={time} className="bg-white text-slate-800">{time}</option>
                     ))}
                   </select>
                 </div>
@@ -398,7 +398,7 @@ function CalendarContent() {
                       setShowSuggestionModal(false)
                       setPendingSuggestion(null)
                     }}
-                    className="flex-1 px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white rounded-lg hover:bg-white/20 transition-all"
+                    className="flex-1 px-4 py-3 bg-white/60 backdrop-blur-sm border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all"
                   >
                     Cancel
                   </button>
@@ -427,8 +427,8 @@ function CalendarContent() {
       )}
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Calendar</h1>
-          <p className="text-slate-300">Plan your week with personalized schedules</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Calendar</h1>
+          <p className="text-slate-700">Plan your week with personalized schedules</p>
         </div>
 
         {/* View Toggle */}
@@ -439,7 +439,7 @@ function CalendarContent() {
               className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
                 viewType === 'list' 
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
               }`}
             >
               📋 List View
@@ -449,7 +449,7 @@ function CalendarContent() {
               className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
                 viewType === 'timeblock' 
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
               }`}
             >
               ⏰ Time Blocks
@@ -461,7 +461,7 @@ function CalendarContent() {
               className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
                 comparisonType === 'day' 
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
               }`}
             >
               📅 Day Comparison
@@ -471,7 +471,7 @@ function CalendarContent() {
               className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
                 comparisonType === 'week' 
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
               }`}
             >
               📊 Week Comparison
@@ -486,7 +486,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'worst' 
                 ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 
-                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
             }`}
           >
             <BatteryLow className="w-5 h-5" />
@@ -497,7 +497,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'average' 
                 ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
-                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
             }`}
           >
             <Battery className="w-5 h-5" />
@@ -508,7 +508,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'best' 
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
-                : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
             }`}
           >
             <Zap className="w-5 h-5" />
@@ -516,7 +516,7 @@ function CalendarContent() {
           </button>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">
           {/* Scenario Info Banner */}
           <div className={`mb-8 p-5 rounded-xl border-2 backdrop-blur-sm ${
             scenario === 'worst' ? 'bg-red-500/20 border-red-400/30' :
@@ -530,14 +530,14 @@ function CalendarContent() {
                 'bg-green-500/30'
               }`}>
                 <ScenarioIcon className={`w-6 h-6 ${
-                  scenario === 'worst' ? 'text-red-300' :
-                  scenario === 'average' ? 'text-yellow-300' :
-                  'text-green-300'
+                  scenario === 'worst' ? 'text-red-600' :
+                  scenario === 'average' ? 'text-amber-600' :
+                  'text-green-600'
                 }`} />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-white capitalize">{scenario} Case Schedule</h3>
-                <p className="text-sm text-slate-300 mt-1">{currentData.description}</p>
+                <h3 className="font-bold text-lg text-slate-800 capitalize">{scenario} Case Schedule</h3>
+                <p className="text-sm text-slate-700 mt-1">{currentData.description}</p>
               </div>
             </div>
           </div>
@@ -545,9 +545,9 @@ function CalendarContent() {
           {comparisonType === 'day' ? (
             // Side-by-side comparison for a single day
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
-                  <span className="text-cyan-400">✨</span> Your Day
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
+                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
+                  <span className="text-blue-600">✨</span> Your Day
                 </h3>
                 {viewType === 'list' ? (
                   <ListView 
@@ -565,32 +565,32 @@ function CalendarContent() {
                   />
                 )}
               </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
-                  <span className="text-purple-400">👥</span> Their Day
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
+                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
+                  <span className="text-purple-600">👥</span> Their Day
                 </h3>
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-400/30">
-                  <p className="text-sm text-purple-200 mb-4 font-medium">Role Model's / Mentor's schedule:</p>
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
+                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model's / Mentor's schedule:</p>
                   <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
-                      <span className="text-purple-300 font-mono font-semibold w-16">8:00</span>
-                      <span className="text-white">Morning routine + exercise</span>
+                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                      <span className="text-purple-600 font-mono font-semibold w-16">8:00</span>
+                      <span className="text-slate-800">Morning routine + exercise</span>
                     </div>
-                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
-                      <span className="text-purple-300 font-mono font-semibold w-16">9:00</span>
-                      <span className="text-white">Deep work session</span>
+                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                      <span className="text-purple-600 font-mono font-semibold w-16">9:00</span>
+                      <span className="text-slate-800">Deep work session</span>
                     </div>
-                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
-                      <span className="text-purple-300 font-mono font-semibold w-16">12:00</span>
-                      <span className="text-white">Lunch break</span>
+                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                      <span className="text-purple-600 font-mono font-semibold w-16">12:00</span>
+                      <span className="text-slate-800">Lunch break</span>
                     </div>
-                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
-                      <span className="text-purple-300 font-mono font-semibold w-16">14:00</span>
-                      <span className="text-white">Continue project work</span>
+                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                      <span className="text-purple-600 font-mono font-semibold w-16">14:00</span>
+                      <span className="text-slate-800">Continue project work</span>
                     </div>
-                    <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
-                      <span className="text-purple-300 font-mono font-semibold w-16">16:00</span>
-                      <span className="text-white">Review & plan tomorrow</span>
+                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                      <span className="text-purple-600 font-mono font-semibold w-16">16:00</span>
+                      <span className="text-slate-800">Review & plan tomorrow</span>
                     </div>
                   </div>
                 </div>
@@ -599,9 +599,9 @@ function CalendarContent() {
           ) : (
             // Top vs. Bottom comparison for week
             <div className="space-y-8">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
-                  <span className="text-cyan-400">✨</span> Your Week
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
+                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
+                  <span className="text-blue-600">✨</span> Your Week
                 </h3>
                 {viewType === 'list' ? (
                   <ListView 
@@ -619,26 +619,26 @@ function CalendarContent() {
                   />
                 )}
               </div>
-              <div className="border-t-2 border-white/20 pt-8">
-                <h3 className="font-bold mb-4 text-lg text-white flex items-center gap-2">
-                  <span className="text-purple-400">👥</span> Their Week
+              <div className="border-t-2 border-slate-300 pt-8">
+                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
+                  <span className="text-purple-600">👥</span> Their Week
                 </h3>
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-400/30">
-                  <p className="text-sm text-purple-200 mb-4 font-medium">Role Model's / Mentor's weekly schedule:</p>
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
+                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model's / Mentor's weekly schedule:</p>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
-                      <div key={day} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                        <div className="font-bold mb-2 text-white">{day}</div>
-                        <div className="space-y-1.5 text-slate-200">
-                          <div className="text-purple-300 font-mono">8:00</div>
+                      <div key={day} className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-slate-300">
+                        <div className="font-bold mb-2 text-slate-800">{day}</div>
+                        <div className="space-y-1.5 text-slate-700">
+                          <div className="text-purple-600 font-mono">8:00</div>
                           <div className="text-xs">Routine</div>
-                          <div className="text-purple-300 font-mono">9:00</div>
+                          <div className="text-purple-600 font-mono">9:00</div>
                           <div className="text-xs">Work</div>
-                          <div className="text-purple-300 font-mono">12:00</div>
+                          <div className="text-purple-600 font-mono">12:00</div>
                           <div className="text-xs">Break</div>
-                          <div className="text-purple-300 font-mono">14:00</div>
+                          <div className="text-purple-600 font-mono">14:00</div>
                           <div className="text-xs">Continue</div>
-                          <div className="text-purple-300 font-mono">16:00</div>
+                          <div className="text-purple-600 font-mono">16:00</div>
                           <div className="text-xs">Review</div>
                         </div>
                       </div>
@@ -693,12 +693,12 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {visibleDays.map((day, idx) => (
-          <div key={idx} className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <div className="mb-4 pb-4 border-b border-white/10">
-              <h3 className="font-bold text-xl text-white mb-2">{day.name}</h3>
-              <div className="text-sm italic text-cyan-300 mb-1">Theme: {day.theme}</div>
-              <div className="text-sm italic text-purple-300 mb-2">{day.typeOfDay}</div>
-              <div className="text-sm italic text-pink-300 mt-2">"{day.motivation}"</div>
+          <div key={idx} className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
+            <div className="mb-4 pb-4 border-b border-slate-300">
+              <h3 className="font-bold text-xl text-slate-800 mb-2">{day.name}</h3>
+              <div className="text-sm italic text-blue-600 mb-1">Theme: {day.theme}</div>
+              <div className="text-sm italic text-purple-600 mb-2">{day.typeOfDay}</div>
+              <div className="text-sm italic text-pink-600 mt-2">"{day.motivation}"</div>
             </div>
 
             <div className="space-y-3">
@@ -710,27 +710,27 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
                     task.priority === 'medium' ? 'bg-yellow-500/20 border-yellow-400/30' :
                     task.priority === 'essential' ? 'bg-orange-500/20 border-orange-400/30' :
                     'bg-cyan-500/20 border-cyan-400/30'
-                  } ${completedTasks.has(task.id) ? 'opacity-50' : 'hover:bg-white/5'}`}
+                  } ${completedTasks.has(task.id) ? 'opacity-50' : 'hover:bg-white/40'}`}
                 >
                   <input 
                     type="checkbox" 
-                    className="w-5 h-5 cursor-pointer accent-cyan-400"
+                    className="w-5 h-5 cursor-pointer accent-blue-600"
                     checked={completedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <span className="text-sm text-cyan-300 font-mono font-semibold w-16">{task.time}</span>
+                  <span className="text-sm text-blue-600 font-mono font-semibold w-16">{task.time}</span>
                   <Link 
                     href={`/tasks/${task.id}`}
-                    className={`flex-1 text-white hover:text-cyan-300 transition-colors ${
+                    className={`flex-1 text-slate-800 hover:text-blue-600 transition-colors ${
                       completedTasks.has(task.id) ? 'line-through' : ''
                     }`}
                   >
                     {task.name}
                     {(task as any).from && (
-                      <span className="text-xs text-purple-300 ml-2">(from {(task as any).from})</span>
+                      <span className="text-xs text-purple-600 ml-2">(from {(task as any).from})</span>
                     )}
                   </Link>
-                  <span className="text-xs text-slate-300 bg-white/10 px-2 py-1 rounded">{task.duration}</span>
+                  <span className="text-xs text-slate-600 bg-white/60 px-2 py-1 rounded">{task.duration}</span>
                 </div>
               ))}
             </div>
@@ -743,17 +743,17 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
         <button 
           onClick={() => setCurrentDayIndex(Math.max(0, currentDayIndex - 1))}
           disabled={currentDayIndex === 0}
-          className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="py-2 text-sm text-slate-300 font-medium">
+        <span className="py-2 text-sm text-slate-700 font-medium">
           Days {currentDayIndex + 1}-{Math.min(currentDayIndex + 2, days.length)} of {days.length}
         </span>
         <button 
           onClick={() => setCurrentDayIndex(Math.min(days.length - 2, currentDayIndex + 1))}
           disabled={currentDayIndex >= days.length - 2}
-          className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg text-white hover:bg-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -789,30 +789,30 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/20">
+    <div className="overflow-x-auto rounded-xl border border-slate-300">
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="bg-gradient-to-r from-cyan-500/30 to-purple-500/30 backdrop-blur-sm p-3 text-white font-bold w-24 border-b-2 border-white/20">Time</th>
+            <th className="bg-gradient-to-r from-cyan-500/30 to-purple-500/30 backdrop-blur-sm p-3 text-slate-800 font-bold w-24 border-b-2 border-slate-300">Time</th>
             {days.map((day, idx) => (
-              <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-white/20">
-                <div className="font-bold text-white text-lg">{day.name}</div>
-                <div className="text-xs italic font-normal text-cyan-300 mt-1">{day.theme}</div>
-                <div className="text-xs italic font-normal text-purple-300">{day.typeOfDay}</div>
-                <div className="text-xs italic font-normal text-pink-300 mt-1">"{day.motivation}"</div>
+              <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-slate-300">
+                <div className="font-bold text-slate-800 text-lg">{day.name}</div>
+                <div className="text-xs italic font-normal text-blue-600 mt-1">{day.theme}</div>
+                <div className="text-xs italic font-normal text-purple-600">{day.typeOfDay}</div>
+                <div className="text-xs italic font-normal text-pink-600 mt-1">"{day.motivation}"</div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {allTimes.map((time, timeIdx) => (
-            <tr key={timeIdx} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-              <td className="p-3 font-bold text-center bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm text-cyan-300 border-r border-white/10">{time}</td>
+            <tr key={timeIdx} className="border-b border-slate-300 hover:bg-white/40 transition-colors">
+              <td className="p-3 font-bold text-center bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm text-blue-600 border-r border-slate-300">{time}</td>
               {days.map((day, dayIdx) => {
                 const tasksForDay = getTasksForDay(day.name)
                 const task = tasksForDay.find(t => t.time === time)
                 return (
-                  <td key={dayIdx} className={`p-3 border-r border-white/10 ${
+                  <td key={dayIdx} className={`p-3 border-r border-slate-300 ${
                     task 
                       ? task.priority === 'high' ? 'bg-red-500/10' :
                         task.priority === 'medium' ? 'bg-yellow-500/10' :
@@ -824,21 +824,21 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
                       <div className={`flex items-start gap-2 ${completedTasks.has(task.id) ? 'opacity-50' : ''}`}>
                         <input 
                           type="checkbox" 
-                          className="w-5 h-5 mt-0.5 cursor-pointer accent-cyan-400"
+                          className="w-5 h-5 mt-0.5 cursor-pointer accent-blue-600"
                           checked={completedTasks.has(task.id)}
                           onChange={() => toggleTask(task.id)}
                         />
                         <div className="flex-1">
                           <Link 
                             href={`/tasks/${task.id}`}
-                            className={`text-white hover:text-cyan-300 transition-colors block ${completedTasks.has(task.id) ? 'line-through' : ''}`}
+                            className={`text-slate-800 hover:text-blue-600 transition-colors block ${completedTasks.has(task.id) ? 'line-through' : ''}`}
                           >
                             {task.name}
                             {(task as any).from && (
-                              <span className="text-xs text-purple-300 ml-1">(from {(task as any).from})</span>
+                              <span className="text-xs text-purple-600 ml-1">(from {(task as any).from})</span>
                             )}
                           </Link>
-                          <span className="text-xs text-slate-300 mt-1 block">{task.duration}</span>
+                          <span className="text-xs text-slate-600 mt-1 block">{task.duration}</span>
                         </div>
                       </div>
                     )}

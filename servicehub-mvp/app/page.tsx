@@ -19,6 +19,7 @@ import {
   getRecommendedResources
 } from '@/lib/resources/recommendations'
 import DiscoveryCard from '@/components/agents/DiscoveryCard'
+import PersonalizedBanner from '@/components/agents/PersonalizedBanner'
 import type { Location } from '@/types/database'
 import Link from 'next/link'
 import { 
@@ -847,6 +848,7 @@ export default async function Home() {
 
         {/* Content Sections - Organized per Architecture */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <PersonalizedBanner />
           {/* 1. Recommended for You - AI/Agent-based (works without login) */}
           <Suspense
             fallback={

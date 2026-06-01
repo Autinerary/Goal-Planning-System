@@ -303,7 +303,7 @@ export default function MilestoneDetailView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-white/30 backdrop-blur-sm">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Loading milestone...</p>
@@ -314,7 +314,7 @@ export default function MilestoneDetailView() {
 
   if (!milestone) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-white/30 backdrop-blur-sm">
         <div className="text-center">
           <p className="text-slate-600 mb-4">Milestone not found</p>
           <Link href="/races" className="text-cyan-600 hover:underline">Back to Races</Link>
@@ -331,7 +331,7 @@ export default function MilestoneDetailView() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />

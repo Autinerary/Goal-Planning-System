@@ -96,7 +96,7 @@ export default function PathView() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-green-100 to-green-200 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: gameStyles }} />
       
       {/* Sky with clouds */}

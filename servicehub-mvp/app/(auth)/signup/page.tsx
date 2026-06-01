@@ -35,15 +35,20 @@ export default function SignupPage() {
 
     setLoading(true)
 
-    const { error } = await signUp(email, password, fullName || undefined)
+    const { error, session } = await signUp(email, password, fullName || undefined)
 
     if (error) {
       setError(getErrorMessage(error))
       setLoading(false)
+    } else if (session) {
+      // Account created and signed in (e.g. email confirmation disabled in Supabase)
+      setLoading(false)
+      router.push('/')
+      router.refresh()
     } else {
       setSuccess(true)
       setLoading(false)
-      // User will receive confirmation email
+      // Email confirmation required – check your email
     }
   }
 
@@ -86,8 +91,8 @@ export default function SignupPage() {
                 </h3>
                 <div className="mt-2 text-sm text-green-700">
                   <p>
-                    We&apos;ve sent a confirmation email to <strong>{email}</strong>.
-                    Please click the link in the email to verify your account.
+                    Your account has been created. We&apos;ve sent a confirmation email to <strong>{email}</strong>.
+                    Click the link in the email to verify and sign in. (Check spam if you don&apos;t see it.)
                   </p>
                 </div>
                 <div className="mt-4">

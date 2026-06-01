@@ -137,7 +137,7 @@ export default function TaskView() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-800 p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -156,19 +156,19 @@ export default function TaskView() {
       </Link>
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-white">Task View</h1>
+        <h1 className="text-3xl font-bold mb-8 text-slate-800">Task View</h1>
 
-        <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">
           {/* Task Title */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Task: Complete Assignment</h2>
-            <div className="h-px bg-white/30 w-32 mx-auto"></div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Task: Complete Assignment</h2>
+            <div className="h-px bg-slate-400 w-32 mx-auto"></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16 mb-8">
             {/* Left: Animal Dancing Animation */}
             <div className="flex flex-col items-center justify-center">
-              <div className="text-sm text-slate-300 mb-4 italic">Ultimate Chicken Horse Style</div>
+              <div className="text-sm text-slate-600 mb-4 italic">Ultimate Chicken Horse Style</div>
               <div className="relative w-32 h-32 flex items-center justify-center">
                 {/* Animated Animals */}
                 {animalAnimation === 'chicken' && (
@@ -191,11 +191,11 @@ export default function TaskView() {
 
             {/* Middle: Spinning Motivation Wheel */}
             <div className="flex flex-col items-center justify-center px-6 md:px-8 lg:px-12 mb-8 md:mb-0">
-              <div className="text-sm text-slate-300 mb-4 font-semibold">Today's Motivation</div>
+              <div className="text-sm text-slate-600 mb-4 font-semibold">Today's Motivation</div>
               <div className="relative w-40 h-40 flex-shrink-0">
                 {/* Wheel */}
                 <div
-                  className="w-40 h-40 rounded-full border-4 border-white/30 relative overflow-hidden cursor-pointer transition-transform"
+                  className="w-40 h-40 rounded-full border-4 border-slate-400 relative overflow-hidden cursor-pointer transition-transform"
                   style={{
                     transform: `rotate(${wheelRotation}deg)`,
                     transition: isWheelSpinning ? 'transform 2s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
@@ -210,7 +210,7 @@ export default function TaskView() {
                     <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-green-500 to-emerald-500"></div>
                   </div>
                   {/* Center circle */}
-                  <div className="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center border-2 border-white/20">
+                  <div className="absolute inset-4 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-400">
                     <Sparkles className="w-8 h-8 text-yellow-400" />
                   </div>
                   {/* Pointer */}
@@ -219,7 +219,7 @@ export default function TaskView() {
                 {/* Motivation Text */}
                 {todaysMotivation && (
                   <div className="mt-4 text-center">
-                    <p className="text-sm text-cyan-300 font-medium bg-white/10 px-3 py-2 rounded-lg">
+                    <p className="text-sm text-blue-600 font-medium bg-white/60 px-3 py-2 rounded-lg">
                       {todaysMotivation}
                     </p>
                   </div>
@@ -237,30 +237,30 @@ export default function TaskView() {
             </div>
 
             {/* Right: Helper Screen / Social Features */}
-            <div className="border-l-2 border-white/30 pl-8 md:pl-12 lg:pl-16 mt-8 md:mt-0">
+            <div className="border-l-2 border-slate-300 pl-8 md:pl-12 lg:pl-16 mt-8 md:mt-0">
               {/* Tabs */}
-              <div className="flex gap-2 mb-3 border-b-2 border-white/30">
+              <div className="flex gap-2 mb-3 border-b-2 border-slate-300">
               <button
                 onClick={() => setActiveTab('helper')}
-                className={`px-2 py-1 text-xs border-b-2 transition-colors ${activeTab === 'helper' ? 'border-cyan-400 font-bold text-cyan-300' : 'border-transparent text-slate-400 hover:text-white'}`}
+                className={`px-2 py-1 text-xs border-b-2 transition-colors ${activeTab === 'helper' ? 'border-blue-600 font-bold text-blue-600' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
               >
                 Helper
               </button>
               <button
                 onClick={() => setActiveTab('friends')}
-                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'friends' ? 'border-black font-bold' : 'border-transparent'}`}
+                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'friends' ? 'border-slate-800 font-bold text-slate-800' : 'border-transparent text-slate-600'}`}
               >
                 Friends
               </button>
               <button
                 onClick={() => setActiveTab('mentors')}
-                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'mentors' ? 'border-black font-bold' : 'border-transparent'}`}
+                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'mentors' ? 'border-slate-800 font-bold text-slate-800' : 'border-transparent text-slate-600'}`}
               >
                 Mentors
               </button>
               <button
                 onClick={() => setActiveTab('rolemodels')}
-                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'rolemodels' ? 'border-black font-bold' : 'border-transparent'}`}
+                className={`px-2 py-1 text-xs border-b-2 ${activeTab === 'rolemodels' ? 'border-slate-800 font-bold text-slate-800' : 'border-transparent text-slate-600'}`}
               >
                 R.M.'s
               </button>
@@ -269,22 +269,22 @@ export default function TaskView() {
               {/* Helper Tab */}
               {activeTab === 'helper' && (
                 <>
-                  <h3 className="font-bold text-white mb-3">Helper Screen</h3>
-                  <div className="space-y-1 text-sm mb-4 text-slate-300">
+                  <h3 className="font-bold text-slate-800 mb-3">Helper Screen</h3>
+                  <div className="space-y-1 text-sm mb-4 text-slate-700">
                     {helperTricks.map((trick, idx) => (
                       <div key={idx}>{trick}</div>
                     ))}
                   </div>
                   <button 
                     onClick={handleGenerateAnother}
-                    className="border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                    className="border-2 border-slate-400 px-3 py-1 rounded text-sm text-slate-800 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     Generate Another
                   </button>
                   {/* Helpful Quote Below */}
                   {currentQuote && (
-                    <div className="mt-6 pt-4 border-t border-white/20">
-                      <p className="text-xs text-slate-400 italic text-center">
+                    <div className="mt-6 pt-4 border-t border-slate-300">
+                      <p className="text-xs text-slate-600 italic text-center">
                         {currentQuote}
                       </p>
                     </div>
@@ -295,17 +295,17 @@ export default function TaskView() {
             {/* Friends Tab */}
             {activeTab === 'friends' && (
               <>
-                <h3 className="font-bold underline mb-2 flex items-center gap-2">
+                <h3 className="font-bold text-slate-800 underline mb-2 flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   Friend-vals: Shared Tasks
                 </h3>
                 <div className="space-y-2 text-sm mb-4">
                   {friendModels.map((friend) => (
-                    <div key={friend.id} className="border border-gray-300 rounded p-2">
+                    <div key={friend.id} className="border border-slate-300 rounded p-2 bg-white/40">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{friend.name}</span>
+                        <span className="font-medium text-slate-800">{friend.name}</span>
                         <span className={`text-xs px-2 py-0.5 rounded ${
-                          friend.status === 'available' ? 'bg-green-500/30 text-green-300' : 'bg-slate-700 text-slate-400'
+                          friend.status === 'available' ? 'bg-green-500/30 text-green-700' : 'bg-slate-200 text-slate-600'
                         }`}>
                           {friend.status}
                         </span>
@@ -313,14 +313,14 @@ export default function TaskView() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleCompete(friend)}
-                          className="flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="flex-1 border border-slate-400 px-2 py-1 rounded text-xs text-slate-800 hover:bg-white/60 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Share2 className="w-3 h-3" />
                           Compete
                         </button>
                         <button 
                           onClick={() => handleCollaborate(friend)}
-                          className="flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="flex-1 border border-slate-400 px-2 py-1 rounded text-xs text-slate-800 hover:bg-white/60 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Users className="w-3 h-3" />
                           Collaborate
@@ -328,8 +328,8 @@ export default function TaskView() {
                         <button 
                           onClick={() => handleCall(friend, 'friend')}
                           disabled={friend.status === 'busy'}
-                          className={`flex-1 border border-white/30 px-2 py-1 rounded text-xs text-white flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                            friend.status === 'busy' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
+                          className={`flex-1 border border-slate-400 px-2 py-1 rounded text-xs text-slate-800 flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                            friend.status === 'busy' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/60'
                           }`}
                         >
                           <Phone className="w-3 h-3" />
@@ -341,7 +341,7 @@ export default function TaskView() {
                 </div>
                   <button 
                     onClick={handleInviteFriends}
-                    className="w-full border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                    className="w-full border-2 border-slate-400 px-3 py-1 rounded text-sm text-slate-800 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     Invite More Friends
                   </button>
@@ -351,20 +351,20 @@ export default function TaskView() {
               {/* Mentors Tab */}
               {activeTab === 'mentors' && (
                 <>
-                  <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                  <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <UserCheck className="w-4 h-4" />
                     Mentors: Shared Tasks with Guidance
                   </h3>
                   <div className="space-y-2 text-sm mb-4">
                     {mentors.map((mentor) => (
-                      <div key={mentor.id} className="border border-white/20 rounded p-2 bg-white/5">
+                      <div key={mentor.id} className="border border-slate-300 rounded p-2 bg-white/40">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <div className="font-medium">{mentor.name}</div>
+                          <div className="font-medium text-slate-800">{mentor.name}</div>
                           <div className="text-xs text-gray-600">{mentor.role}</div>
                         </div>
                         {mentor.available && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/30 text-green-300">
+                          <span className="text-xs px-2 py-0.5 rounded bg-green-500/30 text-green-700">
                             Available
                           </span>
                         )}
@@ -372,14 +372,14 @@ export default function TaskView() {
                       <div className="space-y-2">
                         <button 
                           onClick={() => handleCall(mentor, 'mentor')}
-                          className="w-full border border-white/30 px-2 py-1 rounded text-xs text-white hover:bg-white/10 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                          className="w-full border border-slate-400 px-2 py-1 rounded text-xs text-slate-800 hover:bg-white/60 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Phone className="w-3 h-3" />
                           Call for Guidance
                         </button>
-                        <div className="border-t border-white/20 pt-2">
-                          <div className="text-xs font-medium mb-1 text-white">Recommended Tricks/Approaches:</div>
-                          <ul className="text-xs text-slate-300 space-y-1">
+                        <div className="border-t border-slate-300 pt-2">
+                          <div className="text-xs font-medium mb-1 text-slate-800">Recommended Tricks/Approaches:</div>
+                          <ul className="text-xs text-slate-700 space-y-1">
                             <li>• Break task into smaller steps</li>
                             <li>• Use timer for focus sessions</li>
                             <li>• Take breaks every 25 minutes</li>
@@ -395,15 +395,15 @@ export default function TaskView() {
               {/* Role Models Tab */}
               {activeTab === 'rolemodels' && (
                 <>
-                  <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                  <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     R.M.'s: Their Tricks/Approaches
                   </h3>
                   <div className="space-y-2 text-sm mb-4">
                     {roleModels.map((rm) => (
-                      <div key={rm.id} className="border border-white/20 rounded p-2 bg-white/5">
-                        <div className="font-medium mb-1 text-white">{rm.name}</div>
-                        <div className="text-xs text-slate-300 italic">
+                      <div key={rm.id} className="border border-slate-300 rounded p-2 bg-white/40">
+                        <div className="font-medium mb-1 text-slate-800">{rm.name}</div>
+                        <div className="text-xs text-slate-700 italic">
                           "{rm.trick}"
                         </div>
                       </div>
@@ -411,7 +411,7 @@ export default function TaskView() {
                   </div>
                   <button 
                     onClick={handleSeeMoreTricks}
-                    className="w-full border-2 border-white/30 px-3 py-1 rounded text-sm text-white hover:bg-white/10 cursor-pointer transition-colors"
+                    className="w-full border-2 border-slate-400 px-3 py-1 rounded text-sm text-slate-800 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     See More Tricks
                   </button>

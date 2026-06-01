@@ -46,12 +46,14 @@ export default function JournalHistory() {
   const fetchJournals = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${API_URL}/api/reflections/user/user_123`)
-      setJournals(response.data)
       setError(null)
+      const response = await axios.get(`${API_URL}/api/reflections/user/user_123`)
+      setJournals(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
       console.error('Error fetching journals:', err)
-      setError('Failed to load journals. Make sure the backend is running.')
+      // Backend (Python, port 8000) may not be running; show empty state instead of blocking error
+      setJournals([])
+      setError(null)
     } finally {
       setLoading(false)
     }
@@ -70,7 +72,7 @@ export default function JournalHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white/20 backdrop-blur-sm flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-slate-600" />
           <p className="text-slate-600">Loading journals...</p>
@@ -81,7 +83,7 @@ export default function JournalHistory() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white p-8">
+      <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/reflection" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
@@ -102,7 +104,7 @@ export default function JournalHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -113,16 +115,16 @@ export default function JournalHistory() {
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/reflection" className="p-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-lg hover:bg-white/20 transition-all">
-            <ChevronLeft className="w-5 h-5 text-white" />
+          <Link href="/reflection" className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg hover:bg-white/80 transition-all">
+            <ChevronLeft className="w-5 h-5 text-slate-800" />
           </Link>
           <div className="flex items-center gap-3">
             <div className="text-4xl">📖</div>
-            <h1 className="text-3xl font-bold text-white">Previous Journals</h1>
+            <h1 className="text-3xl font-bold text-slate-800">Previous Journals</h1>
           </div>
           <button 
             onClick={fetchJournals}
-            className="ml-auto px-4 py-2 bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white rounded-lg hover:bg-white/20 transition-all text-sm font-medium"
+            className="ml-auto px-4 py-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all text-sm font-medium"
           >
             Refresh
           </button>
@@ -130,21 +132,21 @@ export default function JournalHistory() {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl p-6 text-center shadow-lg">
-            <div className="text-4xl font-bold text-white mb-2">{journals.length}</div>
-            <div className="text-sm text-slate-300">Total Entries</div>
+          <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl p-6 text-center shadow-lg">
+            <div className="text-4xl font-bold text-slate-800 mb-2">{journals.length}</div>
+            <div className="text-sm text-slate-700">Total Entries</div>
           </div>
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-lg border-2 border-green-400/30 rounded-xl p-6 text-center shadow-lg">
-            <div className="text-4xl font-bold text-green-300 mb-2">{sentimentCounts.positive}</div>
-            <div className="text-sm text-green-200">Positive Days</div>
+            <div className="text-4xl font-bold text-green-700 mb-2">{sentimentCounts.positive}</div>
+            <div className="text-sm text-green-800">Positive Days</div>
           </div>
           <div className="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 backdrop-blur-lg border-2 border-yellow-400/30 rounded-xl p-6 text-center shadow-lg">
-            <div className="text-4xl font-bold text-yellow-300 mb-2">{sentimentCounts.neutral}</div>
-            <div className="text-sm text-yellow-200">Neutral Days</div>
+            <div className="text-4xl font-bold text-amber-700 mb-2">{sentimentCounts.neutral}</div>
+            <div className="text-sm text-amber-800">Neutral Days</div>
           </div>
           <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-lg border-2 border-red-400/30 rounded-xl p-6 text-center shadow-lg">
-            <div className="text-4xl font-bold text-red-300 mb-2">{sentimentCounts.negative}</div>
-            <div className="text-sm text-red-200">Challenging Days</div>
+            <div className="text-4xl font-bold text-red-700 mb-2">{sentimentCounts.negative}</div>
+            <div className="text-sm text-red-800">Challenging Days</div>
           </div>
         </div>
 
@@ -157,7 +159,7 @@ export default function JournalHistory() {
               className={`px-5 py-2.5 rounded-lg capitalize font-medium transition-all ${
                 filter === f 
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg scale-105' 
-                  : 'bg-white/10 backdrop-blur-lg border-2 border-white/20 text-white hover:bg-white/20'
+                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
               }`}
             >
               {f} ({sentimentCounts[f]})
@@ -173,10 +175,10 @@ export default function JournalHistory() {
             const isExpanded = expandedId === journal.id
 
             return (
-              <div key={journal.id} className="bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
+              <div key={journal.id} className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
                 {/* Header Row */}
                 <div 
-                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-white/5 transition-all"
+                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-white/40 transition-all"
                   onClick={() => setExpandedId(isExpanded ? null : journal.id)}
                 >
                   {/* Sentiment Icon */}
@@ -185,44 +187,44 @@ export default function JournalHistory() {
                   </div>
 
                   {/* Date */}
-                  <div className="flex items-center gap-2 text-slate-300">
+                  <div className="flex items-center gap-2 text-slate-700">
                     <Calendar className="w-4 h-4" />
                     <span className="font-mono text-sm">{journal.date}</span>
                   </div>
 
                   {/* Context Badge */}
-                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${contextTypeColors[journal.contextType] || 'bg-white/20 text-white'}`}>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${contextTypeColors[journal.contextType] || 'bg-white/60 text-slate-800'}`}>
                     {journal.contextType}
                   </span>
 
                   {/* Context Name */}
-                  <span className="font-medium flex-1 text-white">{journal.contextName}</span>
+                  <span className="font-medium flex-1 text-slate-800">{journal.contextName}</span>
 
                   {/* Expand Icon */}
                   {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-white" />
+                    <ChevronUp className="w-5 h-5 text-slate-800" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-white" />
+                    <ChevronDown className="w-5 h-5 text-slate-800" />
                   )}
                 </div>
 
                 {/* Summary (always visible) */}
                 <div className="px-5 pb-4 -mt-2">
-                  <p className="text-slate-200 italic">"{journal.summary}"</p>
+                  <p className="text-slate-700 italic">"{journal.summary}"</p>
                 </div>
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t-2 border-white/20 p-5 bg-white/5">
+                  <div className="border-t-2 border-slate-300 p-5 bg-white/40">
                     {/* Questions & Answers */}
                     {journal.questions && journal.questions.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="font-bold mb-3 text-white">Reflection Responses:</h4>
+                        <h4 className="font-bold mb-3 text-slate-800">Reflection Responses:</h4>
                         <div className="space-y-3">
                           {journal.questions.map((qa, idx) => (
-                            <div key={idx} className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-                              <div className="font-medium text-cyan-300 text-sm mb-2">{qa.q}</div>
-                              <div className="mt-1 text-slate-200">{qa.a}</div>
+                            <div key={idx} className="bg-white/60 backdrop-blur-sm p-4 rounded-lg border border-slate-300">
+                              <div className="font-medium text-blue-600 text-sm mb-2">{qa.q}</div>
+                              <div className="mt-1 text-slate-700">{qa.a}</div>
                             </div>
                           ))}
                         </div>
@@ -232,12 +234,12 @@ export default function JournalHistory() {
                     {/* AI Insights */}
                     {journal.insights && journal.insights.length > 0 && (
                       <div>
-                        <h4 className="font-bold mb-3 text-white">AI Insights:</h4>
+                        <h4 className="font-bold mb-3 text-slate-800">AI Insights:</h4>
                         <div className="flex flex-wrap gap-2">
                           {journal.insights.map((insight, idx) => (
                             <span 
                               key={idx}
-                              className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-400/30 text-cyan-200 rounded-full text-sm font-medium"
+                              className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-400/30 text-blue-700 rounded-full text-sm font-medium"
                             >
                               💡 {insight}
                             </span>
@@ -247,10 +249,10 @@ export default function JournalHistory() {
                     )}
 
                     {/* View Full Entry Button */}
-                    <div className="mt-6 pt-4 border-t border-white/20">
+                    <div className="mt-6 pt-4 border-t border-slate-300">
                       <Link 
                         href={`/reflection?contextType=${journal.contextType}&journalId=${journal.id}`}
-                        className="text-cyan-400 hover:text-cyan-300 hover:underline text-sm font-medium flex items-center gap-1"
+                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium flex items-center gap-1"
                       >
                         View full entry →
                       </Link>
@@ -263,10 +265,10 @@ export default function JournalHistory() {
         </div>
 
         {filteredJournals.length === 0 && (
-          <div className="text-center py-16 bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-xl">
+          <div className="text-center py-16 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl">
             <div className="text-6xl mb-4">📝</div>
-            <p className="text-slate-300 text-lg mb-4">No journal entries found for this filter.</p>
-            <Link href="/reflection" className="text-cyan-400 hover:text-cyan-300 hover:underline font-medium inline-flex items-center gap-2">
+            <p className="text-slate-700 text-lg mb-4">No journal entries found for this filter.</p>
+            <Link href="/reflection" className="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-2">
               Write your first reflection →
             </Link>
           </div>
@@ -274,41 +276,41 @@ export default function JournalHistory() {
 
         {/* Pattern Summary */}
         {journals.length > 0 && (
-          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border-2 border-white/20 rounded-xl p-8 shadow-2xl">
-            <h3 className="font-bold text-2xl mb-6 text-white flex items-center gap-2">
+          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border-2 border-slate-300 rounded-xl p-8 shadow-2xl">
+            <h3 className="font-bold text-2xl mb-6 text-slate-800 flex items-center gap-2">
               <span className="text-3xl">📊</span>
               Detected Patterns
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
-                <div className="font-semibold text-green-300 mb-2 flex items-center gap-2">
+              <div className="bg-white/60 backdrop-blur-sm p-5 rounded-lg border border-slate-300">
+                <div className="font-semibold text-green-700 mb-2 flex items-center gap-2">
                   <span>✓</span> Positive Pattern
                 </div>
-                <div className="text-sm text-slate-200">
+                <div className="text-sm text-slate-700">
                   Morning routines correlate with higher productivity ratings
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
-                <div className="font-semibold text-red-300 mb-2 flex items-center gap-2">
+              <div className="bg-white/60 backdrop-blur-sm p-5 rounded-lg border border-slate-300">
+                <div className="font-semibold text-red-700 mb-2 flex items-center gap-2">
                   <span>⚠</span> Warning Pattern
                 </div>
-                <div className="text-sm text-slate-200">
+                <div className="text-sm text-slate-700">
                   Extended social interactions often lead to next-day fatigue
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
-                <div className="font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+              <div className="bg-white/60 backdrop-blur-sm p-5 rounded-lg border border-slate-300">
+                <div className="font-semibold text-blue-600 mb-2 flex items-center gap-2">
                   <span>💡</span> Recommendation
                 </div>
-                <div className="text-sm text-slate-200">
+                <div className="text-sm text-slate-700">
                   Schedule recovery time after collaborative sessions
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm p-5 rounded-lg border border-white/20">
-                <div className="font-semibold text-purple-300 mb-2 flex items-center gap-2">
+              <div className="bg-white/60 backdrop-blur-sm p-5 rounded-lg border border-slate-300">
+                <div className="font-semibold text-purple-700 mb-2 flex items-center gap-2">
                   <span>🎯</span> Success Factor
                 </div>
-                <div className="text-sm text-slate-200">
+                <div className="text-sm text-slate-700">
                   Connecting with peers who understand your barriers boosts motivation
                 </div>
               </div>

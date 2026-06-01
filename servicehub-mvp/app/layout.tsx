@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { Toaster } from 'react-hot-toast'
+import { Suspense } from 'react'
+import ProfileSync from '@/components/layout/ProfileSync'
 
 export const metadata: Metadata = {
   title: "ServiceHub",
@@ -24,7 +26,10 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <Suspense fallback={null}><ProfileSync /></Suspense>
+          {children}
+        </AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{

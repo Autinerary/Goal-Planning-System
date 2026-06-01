@@ -29,19 +29,21 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
   }
 
   if (!user) {
-    // Redirect to Goal Planning login instead of showing buttons
-    const goalPlanningUrl = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
-    const returnUrl = encodeURIComponent(currentUrl)
-    
-    // Auto-redirect to Goal Planning login
-    if (typeof window !== 'undefined') {
-      window.location.href = `${goalPlanningUrl}/login?returnTo=${returnUrl}`
-    }
-    
+    // Stay on ServiceHub: link to ServiceHub's own login/signup so session persists here.
     return (
-      <div className={`flex items-center ${className}`}>
-        <div className="animate-pulse bg-gray-200 h-10 w-24 rounded-md"></div>
+      <div className={`flex items-center gap-2 ${className}`}>
+        <Link
+          href="/signup"
+          className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+        >
+          Sign up
+        </Link>
+        <Link
+          href="/login"
+          className="px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+        >
+          Sign in
+        </Link>
       </div>
     )
   }

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
-import { Search, Home, User, Shield, Menu } from 'lucide-react'
+import { Search, Home, User, Shield, Menu, ArrowLeft } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 export default function Navbar() {
@@ -90,6 +90,17 @@ export default function Navbar() {
                 Admin
               </Link>
             )}
+          </div>
+
+          {/* Back to Goal Planning */}
+          <div className="hidden md:flex items-center">
+            <a
+              href="http://localhost:3000/path"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+              My Journey
+            </a>
           </div>
 
           {/* Notifications & Auth */}

@@ -98,8 +98,8 @@ export default function HomePage() {
     <div className="min-h-screen text-white relative overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: sunsetStyles }} />
       
-      {/* Sunset Background with Clouds */}
-      <div className="fixed inset-0 bg-gradient-to-b from-orange-300 via-pink-300 via-purple-300 to-blue-400 z-0">
+      {/* Sunset Background with Clouds - semi-transparent so global cloud bg shows through */}
+      <div className="fixed inset-0 bg-white/20 backdrop-blur-sm z-0">
         {/* Clouds */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="cloud-move-1 absolute top-20 left-0 w-64 h-32 bg-white/30 rounded-full blur-xl cloud-float" />

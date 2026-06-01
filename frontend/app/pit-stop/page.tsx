@@ -356,7 +356,7 @@ function PitStopContent() {
   }, [activeCallId])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -367,18 +367,18 @@ function PitStopContent() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Pit Stop</h1>
-          <p className="text-slate-300">Your hub for tools and connections</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Pit Stop</h1>
+          <p className="text-slate-700">Your hub for tools and connections</p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-4 mb-6 border-b-2 border-slate-600">
+        <div className="flex gap-4 mb-6 border-b-2 border-slate-300">
           <button
             onClick={() => setActiveTab('tools')}
             className={`px-6 py-3 font-medium transition-all border-b-2 ${
               activeTab === 'tools'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-slate-300'
+                ? 'border-cyan-500 text-blue-600'
+                : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
             Tools & Resources
@@ -387,8 +387,8 @@ function PitStopContent() {
             onClick={() => setActiveTab('haveworld')}
             className={`px-6 py-3 font-medium transition-all border-b-2 ${
               activeTab === 'haveworld'
-                ? 'border-purple-400 text-purple-400'
-                : 'border-transparent text-slate-400 hover:text-slate-300'
+                ? 'border-purple-500 text-purple-600'
+                : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
             3.5. Pit Stop #2: Have World

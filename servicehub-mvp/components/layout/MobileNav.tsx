@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, Home, Search, Star, Plus, User, Shield, Bell } from 'lucide-react'
+import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/lib/auth/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
@@ -276,6 +276,18 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
                 Accessibility Settings
               </Link>
             </div>
+          </div>
+
+          {/* Back to Goal Planning - always visible */}
+          <div className="flex-shrink-0 border-t border-gray-200 p-4">
+            <a
+              href="http://localhost:3000/path"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-base font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all shadow-sm"
+              onClick={onClose}
+            >
+              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+              Back to My Journey
+            </a>
           </div>
 
           {/* Footer */}

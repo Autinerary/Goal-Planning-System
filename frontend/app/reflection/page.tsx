@@ -98,7 +98,7 @@ function ReflectionContent() {
   }
 
   return (
-    <div className={`min-h-screen ${currentTheme.bg} p-4 md:p-8 relative overflow-hidden`}>
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       {/* Background decorations */}
       {theme === 'dark' && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none">

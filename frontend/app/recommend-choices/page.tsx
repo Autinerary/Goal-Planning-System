@@ -142,7 +142,7 @@ export default function RecommendChoicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-green-100 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />

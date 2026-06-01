@@ -126,7 +126,7 @@ function RacesContent() {
   `
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-green-100 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: raceStyles }} />
       
       {/* Sky with clouds */}

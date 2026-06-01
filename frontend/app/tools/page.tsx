@@ -308,7 +308,7 @@ function ToolsContent() {
   const availableBarriers = [...new Set(currentTools.flatMap((t: Tool) => t.barriers))]
 
   return (
-    <div className="min-h-screen bg-white p-8">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link href="/pit-stop" className="p-2 border-2 border-black rounded hover:bg-gray-100">

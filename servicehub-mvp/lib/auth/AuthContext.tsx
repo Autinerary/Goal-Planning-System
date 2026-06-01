@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: AuthError | null; session?: Session }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
@@ -26,43 +26,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    let cancelled = false
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+    async function init() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (cancelled) return
+        if (session?.user) {
+          setSession(session)
+          setUser(session.user)
+        }
+      } catch (err) {
+        console.error('Auth init error:', err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
 
-      // Redirect based on auth state
-      if (_event === 'SIGNED_IN' && session) {
-        // Create profile if it doesn't exist
-        createProfileIfNeeded(session.user)
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setSession(session)
+        setUser(session.user)
+        setLoading(false)
+        if (_event === 'SIGNED_IN') createProfileIfNeeded(session.user)
+      } else if (_event === 'SIGNED_OUT') {
+        setSession(null)
+        setUser(null)
+        setLoading(false)
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [router, supabase])
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
+  }, [])
 
-  /**
-   * Create user profile in database after signup
-   */
   async function createProfileIfNeeded(user: User) {
     try {
-      const { data: existingProfile } = await supabase
+      const { data: existing } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', user.id)
         .single()
 
-      if (!existingProfile) {
+      if (!existing) {
         await supabase.from('profiles').insert({
           id: user.id,
           email: user.email,
@@ -75,91 +85,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   /**
-   * Sign up with email and password
+   * Sign up using server-side admin API (auto-confirms email),
+   * then sign in to get a real session.
    */
   async function signUp(
     email: string,
     password: string,
     fullName?: string
-  ): Promise<{ error: AuthError | null }> {
+  ): Promise<{ error: AuthError | null; session?: Session }> {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName || null,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, fullName }),
       })
-
-      if (error) {
-        return { error }
+      const body = await res.json()
+      if (!res.ok) {
+        return { error: { message: body.error || 'Signup failed' } as AuthError }
       }
 
-      // Profile will be created in onAuthStateChange handler
-      return { error: null }
-    } catch (error) {
-      return { error: error as AuthError }
+      // User created and confirmed — now sign in for a real session
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInErr) return { error: signInErr }
+
+      router.push('/')
+      router.refresh()
+      return { error: null, session: data.session ?? undefined }
+    } catch (err: any) {
+      return { error: { message: err.message || 'Network error during signup' } as AuthError }
     }
   }
 
-  /**
-   * Sign in with email and password
-   */
   async function signIn(email: string, password: string): Promise<{ error: AuthError | null }> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        return { error }
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) return { error }
 
       router.push('/')
       router.refresh()
       return { error: null }
-    } catch (error) {
-      return { error: error as AuthError }
+    } catch (err: any) {
+      return { error: { message: err.message || 'Network error during login' } as AuthError }
     }
   }
 
-  /**
-   * Sign out current user
-   */
   async function signOut(): Promise<void> {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch {}
+    setUser(null)
+    setSession(null)
     router.push('/login')
     router.refresh()
   }
 
-  /**
-   * Send password reset email
-   */
   async function resetPassword(email: string): Promise<{ error: AuthError | null }> {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       })
-
       return { error }
     } catch (error) {
       return { error: error as AuthError }
     }
   }
 
-  /**
-   * Update user password (requires authenticated session)
-   */
   async function updatePassword(newPassword: string): Promise<{ error: AuthError | null }> {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      })
-
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
       return { error }
     } catch (error) {
       return { error: error as AuthError }
@@ -180,9 +173,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-/**
- * Hook to access auth context
- */
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

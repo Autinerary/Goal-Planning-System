@@ -373,6 +373,16 @@ export default function OnboardingPage() {
         throw new Error('Invalid response from server: missing pathId')
       }
 
+      // Save the barrier profile so ServiceHub can personalize recommendations
+      const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
+      localStorage.setItem('autinerary_profile', JSON.stringify({
+        barriers: serviceHubBarriers,
+        goals: formData.goals.filter(g => g.trim()),
+        lifeStage: formData.lifeStage,
+        location: formData.location,
+        role: formData.role,
+      }))
+
       await completeOnboarding(response.data.pathId)
       router.push('/onboarding-confirmation')
     } catch (error: any) {
@@ -406,7 +416,7 @@ export default function OnboardingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
       </div>
     )
@@ -426,7 +436,7 @@ export default function OnboardingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-100 to-purple-100 text-slate-900 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-900 p-4 md:p-8 relative overflow-hidden">
       {/* Cloudy Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Clouds */}
