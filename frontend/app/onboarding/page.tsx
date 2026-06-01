@@ -10,14 +10,32 @@ import {
 } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
 // Step components
 const steps = [
+  { id: 'role', title: 'Your Role', icon: User },
+  { id: 'location', title: 'Location', icon: User },
   { id: 'barriers', title: 'Your Barriers', icon: AlertCircle },
   { id: 'goals', title: 'Your Goals', icon: Target },
   { id: 'dreams', title: 'Your Dreams', icon: Sparkles },
   { id: 'challenges', title: 'Current Challenges', icon: Heart },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
+]
+
+const roles = [
+  { id: 'self_advocate', label: 'Self-Advocate', description: 'Person with lived experience', icon: '👤' },
+  { id: 'parent', label: 'Parent/Family', description: 'Parent or family member', icon: '👨‍👩‍👧‍👦' },
+  { id: 'caregiver', label: 'Caregiver', description: 'Professional or family caregiver', icon: '🤝' },
+  { id: 'professional', label: 'Professional', description: 'Therapist, educator, researcher', icon: '💼' },
+]
+
+const lifeStages = [
+  { id: 'preschool', label: 'Preschool' },
+  { id: 'school_age', label: 'School-age' },
+  { id: 'university', label: 'University' },
+  { id: 'employment', label: 'Employment' },
+  { id: 'retirement', label: 'Retirement' },
 ]
 
 const barrierCategories = [
@@ -85,6 +103,13 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const [formData, setFormData] = useState({
+    role: '' as string,
+    location: {
+      city: '',
+      province: '',
+      country: ''
+    },
+    lifeStage: '' as string,
     barrierTypes: [] as string[],
     goals: [''],
     dreams: [''],
@@ -133,13 +158,54 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return formData.barrierTypes.length > 0
-      case 1: return formData.goals.some(g => g.trim())
-      case 2: return formData.dreams.some(d => d.trim())
-      case 3: return formData.currentChallenges.some(c => c.trim())
-      case 4: return formData.motivationType !== ''
+      case 0: return formData.role !== ''
+      case 1: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
+      case 2: return formData.barrierTypes.length > 0
+      case 3: return formData.goals.some(g => g.trim())
+      case 4: return formData.dreams.some(d => d.trim())
+      case 5: return formData.currentChallenges.some(c => c.trim())
+      case 6: return formData.motivationType !== ''
       default: return false
     }
+  }
+
+  // Map Goal Planning barriers to ServiceHub format
+  const mapBarriersToServiceHub = (barriers: string[]) => {
+    const barrierMap: Record<string, { id: string; category: string; categoryLabel: string }> = {
+      'Autism': { id: 'autism', category: 'neurodivergence', categoryLabel: 'Neurodivergence' },
+      'ADHD': { id: 'adhd', category: 'neurodivergence', categoryLabel: 'Neurodivergence' },
+      'OCD': { id: 'ocd', category: 'neurodivergence', categoryLabel: 'Neurodivergence' },
+      'Bipolar Disorder': { id: 'bipolar', category: 'neurodivergence', categoryLabel: 'Neurodivergence' },
+      'Dyslexia': { id: 'neurodivergence_other', category: 'neurodivergence', categoryLabel: 'Neurodivergence' },
+      'Anxiety': { id: 'mental_health', category: 'health', categoryLabel: 'Health' },
+      'Depression': { id: 'mental_health', category: 'health', categoryLabel: 'Health' },
+      'Sensory Impairment': { id: 'sensory_deaf', category: 'disability', categoryLabel: 'Non-Neurodivergent Disabilities' },
+      'Physical Impairment': { id: 'physical_mobility', category: 'disability', categoryLabel: 'Non-Neurodivergent Disabilities' },
+      'Chronic Illness': { id: 'chronic_health', category: 'health', categoryLabel: 'Health' },
+      'Chronic Pain': { id: 'chronic_health', category: 'health', categoryLabel: 'Health' },
+      'Visible Minority': { id: 'race_visible_minority', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Language Barrier': { id: 'language', category: 'identity', categoryLabel: 'Identity & Background' },
+      'First Generation': { id: 'ethnicity', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Gender': { id: 'gender', category: 'identity', categoryLabel: 'Identity & Background' },
+      'LGBTQ+': { id: 'lgbtq', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Religious Minority': { id: 'ethnicity', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Limited Income': { id: 'socioeconomic', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Food Insecurity': { id: 'socioeconomic', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Housing Instability': { id: 'socioeconomic', category: 'identity', categoryLabel: 'Identity & Background' },
+      'Limited Technology Access': { id: 'socioeconomic', category: 'identity', categoryLabel: 'Identity & Background' },
+    }
+
+    return barriers.map(barrier => {
+      const mapped = barrierMap[barrier] || { id: 'neurodivergence_other', category: 'neurodivergence', categoryLabel: 'Neurodivergence' }
+      return {
+        id: mapped.id,
+        label: barrier,
+        category: mapped.category,
+        categoryLabel: mapped.categoryLabel,
+        severity: 3, // Default severity
+        notes: null
+      }
+    })
   }
 
   const handleNext = () => {
@@ -159,6 +225,7 @@ export default function OnboardingPage() {
     
     setIsSubmitting(true)
     try {
+      // Send to Goal Planning backend
       const response = await axios.post(`${API_URL}/api/onboarding/`, {
         email: user.email,
         barrierTypes: formData.barrierTypes,
@@ -167,6 +234,52 @@ export default function OnboardingPage() {
         currentChallenges: formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType
       })
+
+      // Sync to ServiceHub (non-blocking - don't fail if this fails)
+      // Note: ServiceHub requires user authentication, so this will only work if:
+      // 1. User has a ServiceHub account with same email, OR
+      // 2. ServiceHub onboarding endpoint is made public for cross-service sync
+      // For now, we'll attempt the sync but gracefully handle failures
+      try {
+        const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
+        const serviceHubGoals = formData.goals
+          .filter(g => g.trim())
+          .map(g => {
+            // Map to ServiceHub goal format
+            if (g.toLowerCase().includes('education') || g.toLowerCase().includes('school') || g.toLowerCase().includes('university')) return 'education'
+            if (g.toLowerCase().includes('job') || g.toLowerCase().includes('employment') || g.toLowerCase().includes('career')) return 'employment'
+            if (g.toLowerCase().includes('independent') || g.toLowerCase().includes('autonomy')) return 'independence'
+            if (g.toLowerCase().includes('relationship') || g.toLowerCase().includes('friend') || g.toLowerCase().includes('social')) return 'relationships'
+            if (g.toLowerCase().includes('health') || g.toLowerCase().includes('wellness')) return 'health'
+            return 'education' // Default
+          })
+
+        const serviceHubResponse = await axios.post(`${SERVICE_HUB_URL}/api/onboarding/complete`, {
+          role: formData.role,
+          location: formData.location,
+          barriers: serviceHubBarriers,
+          lifeStage: formData.lifeStage,
+          goals: [...new Set(serviceHubGoals)], // Remove duplicates
+          culturalNotes: '',
+          additionalNotes: formData.currentChallenges.filter(c => c.trim()).join('; ')
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          validateStatus: () => true // Don't throw on any status
+        })
+
+        if (serviceHubResponse.status === 200 || serviceHubResponse.status === 201) {
+          console.log('Successfully synced to ServiceHub')
+        } else {
+          console.warn('ServiceHub sync returned non-success status:', serviceHubResponse.status)
+        }
+      } catch (serviceHubError: any) {
+        // Log but don't fail - ServiceHub sync is optional
+        // This is expected if user doesn't have a ServiceHub account yet
+        console.warn('ServiceHub sync skipped (user may need to complete ServiceHub onboarding separately):', 
+          serviceHubError?.response?.status || serviceHubError?.message)
+      }
 
       completeOnboarding(response.data.pathId)
       router.push('/path')
@@ -245,8 +358,80 @@ export default function OnboardingPage() {
 
         {/* Step Content Card */}
         <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
-          {/* Step 0: Barriers */}
+          {/* Step 0: Role */}
           {currentStep === 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Tell us about yourself</h2>
+              <p className="text-slate-400 mb-6">Your role helps us personalize your experience.</p>
+              
+              <div className="grid gap-3">
+                {roles.map((role) => (
+                  <button
+                    key={role.id}
+                    onClick={() => setFormData(prev => ({ ...prev, role: role.id }))}
+                    className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
+                      formData.role === role.id
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
+                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="text-2xl">{role.icon}</span>
+                    <div className="flex-1">
+                      <div className="font-medium">{role.label}</div>
+                      <div className="text-sm text-slate-400">{role.description}</div>
+                    </div>
+                    {formData.role === role.id && (
+                      <Check className="w-5 h-5 text-cyan-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Location */}
+          {currentStep === 1 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Where are you located?</h2>
+              <p className="text-slate-400 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">City *</label>
+                  <input
+                    type="text"
+                    value={formData.location.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
+                    placeholder="e.g., Toronto"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Province/State *</label>
+                  <input
+                    type="text"
+                    value={formData.location.province}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, province: e.target.value } }))}
+                    placeholder="e.g., Ontario"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Country *</label>
+                  <input
+                    type="text"
+                    value={formData.location.country}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
+                    placeholder="e.g., Canada"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Barriers */}
+          {currentStep === 2 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">What barriers do you face?</h2>
               <p className="text-slate-400 mb-6">Select all that apply. This helps us find strategies that worked for people like you.</p>
@@ -277,8 +462,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 1: Goals */}
-          {currentStep === 1 && (
+          {/* Step 3: Goals */}
+          {currentStep === 3 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">What are your goals?</h2>
               <p className="text-slate-400 mb-6">What do you want to achieve? Be specific!</p>
@@ -313,8 +498,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: Dreams */}
-          {currentStep === 2 && (
+          {/* Step 4: Dreams */}
+          {currentStep === 4 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">What are your dreams?</h2>
               <p className="text-slate-400 mb-6">Think bigger! Where do you see yourself in 5-10 years?</p>
@@ -349,8 +534,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: Challenges */}
-          {currentStep === 3 && (
+          {/* Step 5: Challenges */}
+          {currentStep === 5 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">What's currently stopping you?</h2>
               <p className="text-slate-400 mb-6">Be honest about the obstacles you're facing right now.</p>
@@ -385,36 +570,60 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: Motivation */}
-          {currentStep === 4 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2">What motivates you most?</h2>
-              <p className="text-slate-400 mb-6">Understanding your motivation style helps us personalize your plan.</p>
-              
-              <div className="grid gap-3">
-                {motivationOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setFormData(prev => ({ ...prev, motivationType: option.value }))}
-                    className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
-                      formData.motivationType === option.value
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="text-2xl">{option.emoji}</span>
-                    <div>
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-sm text-slate-400">{option.description}</div>
-                    </div>
-                    {formData.motivationType === option.value && (
-                      <Check className="w-5 h-5 text-cyan-400 ml-auto" />
-                    )}
-                  </button>
-                ))}
+          {/* Step 6: Motivation & Life Stage */}
+          {currentStep === 6 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">What motivates you most?</h2>
+                <p className="text-slate-400 mb-6">Understanding your motivation style helps us personalize your plan.</p>
+                
+                <div className="grid gap-3">
+                  {motivationOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setFormData(prev => ({ ...prev, motivationType: option.value }))}
+                      className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
+                        formData.motivationType === option.value
+                          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
+                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="text-2xl">{option.emoji}</span>
+                      <div>
+                        <div className="font-medium">{option.label}</div>
+                        <div className="text-sm text-slate-400">{option.description}</div>
+                      </div>
+                      {formData.motivationType === option.value && (
+                        <Check className="w-5 h-5 text-cyan-400 ml-auto" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/10">
+                <h2 className="text-2xl font-bold mb-2">What's your current life stage?</h2>
+                <p className="text-slate-400 mb-6">This helps us match you with relevant resources.</p>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {lifeStages.map((stage) => (
+                    <button
+                      key={stage.id}
+                      onClick={() => setFormData(prev => ({ ...prev, lifeStage: stage.id }))}
+                      className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        formData.lifeStage === stage.id
+                          ? 'border-cyan-500 bg-cyan-500/20 text-white'
+                          : 'border-white/10 hover:border-cyan-500/50 text-slate-300'
+                      }`}
+                    >
+                      {stage.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
+
 
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-8 pt-6 border-t border-white/10">

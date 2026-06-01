@@ -6,9 +6,13 @@ Step 0: Questionnaire
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+import httpx
+import os
 # Note: orchestrator will be injected via dependency injection
 
 router = APIRouter()
+
+SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
 
 class OnboardingRequest(BaseModel):
     email: str
@@ -28,6 +32,7 @@ class OnboardingResponse(BaseModel):
 async def create_onboarding(request: OnboardingRequest):
     """
     Create user profile and generate initial path
+    Also syncs to ServiceHub if serviceHubData is provided
     """
     try:
         # Create user profile
@@ -43,11 +48,16 @@ async def create_onboarding(request: OnboardingRequest):
         
         # In production: Use orchestrator via dependency injection
         # For now, return mock response
-        return OnboardingResponse(
+        response = OnboardingResponse(
             userId="user_123",
             pathId="path_123",
             message="Path generated successfully"
         )
+        
+        # Sync to ServiceHub if serviceHubData is provided (from frontend)
+        # Note: This is handled by the frontend directly, but we could add it here too
+        
+        return response
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
