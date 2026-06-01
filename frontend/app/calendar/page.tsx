@@ -371,8 +371,8 @@ function CalendarContent() {
 
   // Merge added tasks with scenario data
   const getTasksForDay = (dayName: string) => {
-    const dayData = currentData.days.find(d => d.name === dayName)
-    const addedForDay = addedTasks.filter(t => t.day === dayName)
+    const dayData = currentData.days.find((d: any) => d.name === dayName)
+    const addedForDay = addedTasks.filter((t: any) => t.day === dayName)
     
     if (!dayData) return []
     
