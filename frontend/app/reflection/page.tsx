@@ -99,6 +99,12 @@ function ReflectionContent() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+      <style>{`
+        @keyframes deskBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+        @keyframes penWrite{0%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}100%{transform:rotate(-5deg)}}
+        @keyframes lampGlow{0%,100%{opacity:0.4}50%{opacity:0.8}}
+      `}</style>
+
       {/* Background decorations */}
       {theme === 'dark' && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -163,21 +169,39 @@ function ReflectionContent() {
       <div className="max-w-2xl mx-auto">
         {/* Main Card */}
         <div className={`${currentTheme.card} rounded-2xl border-2 p-6 md:p-8 shadow-2xl`}>
-          {/* Header with Animal and Pencil */}
+          {/* Desk Scene — Characters at desk writing */}
           <div className="text-center mb-8">
             <div className="relative inline-block mb-4">
-              {/* Animal with Pencil */}
-              <div className="relative">
-                <div className="text-6xl animate-bounce" style={{ animationDuration: '1.5s' }}>
-                  🐰
+              {/* Desk scene */}
+              <div className="relative flex items-end justify-center gap-1">
+                {/* Lamp */}
+                <div className="flex flex-col items-center mr-2">
+                  <div className="text-2xl" style={{ animation: 'lampGlow 3s ease-in-out infinite' }}>💡</div>
+                  <div className="w-0.5 h-4 bg-amber-600 rounded" />
                 </div>
-                <div className="absolute -top-2 -right-4 text-3xl animate-pulse" style={{ animationDuration: '1s' }}>
-                  ✏️
+                {/* Character 1: bunny writing */}
+                <div style={{ animation: 'deskBob 3s ease-in-out infinite' }}>
+                  <div className="text-5xl">🐰</div>
+                  <div className="absolute -top-1 left-[42%] text-xl" style={{ animation: 'penWrite 1.5s ease-in-out infinite' }}>✏️</div>
                 </div>
+                {/* Desk surface */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-3 bg-amber-700 rounded-t-sm" />
+                {/* Books on desk */}
+                <div className="text-lg mb-1 mr-1">📚</div>
+                {/* Character 2: turtle reading */}
+                <div style={{ animation: 'deskBob 3s ease-in-out infinite', animationDelay: '0.5s' }}>
+                  <div className="text-4xl">🐢</div>
+                </div>
+                {/* Coffee/tea */}
+                <div className="text-lg mb-1 ml-1">☕</div>
               </div>
             </div>
             <h1 className={`text-3xl font-bold ${currentTheme.text} mb-2`}>Journal</h1>
-            <p className={`${currentTheme.textSecondary} mt-2`}>Take a moment to reflect on your journey</p>
+            <p className={`${currentTheme.textSecondary} mt-1`}>Take a moment to reflect on your journey</p>
+            {/* Auto-journal hint */}
+            <div className={`mt-2 text-xs ${currentTheme.textSecondary} italic flex items-center justify-center gap-1`}>
+              <Sparkles className="w-3 h-3" /> Auto-journal captures your progress as you go
+            </div>
           </div>
 
           {/* Questions */}

@@ -1,16 +1,26 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, MessageSquare, Trophy, RefreshCw, Filter, X, Info, AlertTriangle } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye } from 'lucide-react'
+
+/*
+  DREAM LAND — One continuous race-track roadmap.
+  Roads are HTML elements IN the document flow (not a background SVG),
+  so they always stay connected to the content.
+  Pit Stop Shop opens ServiceHub. Milestone sign is a signboard.
+*/
 
 function RacesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const viewMode = searchParams.get('mode') || 'combined'
-  const comparisonView = searchParams.get('compare') || null // 'rolemodel' | 'friend' | 'mentor'
-  const newView = searchParams.get('newview') || null // 'avoidance' | 'suggestions' | 'compete'
+
+  const [isDayTheme, setIsDayTheme] = useState(true)
+  const [showRocketEntry, setShowRocketEntry] = useState(true)
+  const [rocketPhase, setRocketPhase] = useState<'flying' | 'landing' | 'landed'>('flying')
+  const comparisonView = searchParams.get('compare') || null
+  const newView = searchParams.get('newview') || null
   const [showPreviousSteps, setShowPreviousSteps] = useState(false)
   const [isWheelSpinning, setIsWheelSpinning] = useState(false)
   const [wheelRotation, setWheelRotation] = useState(0)
@@ -18,1350 +28,936 @@ function RacesContent() {
   const [showCompareMenu, setShowCompareMenu] = useState(false)
   const [showNewViewsMenu, setShowNewViewsMenu] = useState(false)
   const [suggestionFilter, setSuggestionFilter] = useState<string>('All')
-  // Separate races wheel states
-  const [raceWheelRotations, setRaceWheelRotations] = useState<Record<string, number>>({})
-  const [raceWheelSpinning, setRaceWheelSpinning] = useState<Record<string, boolean>>({})
-  const [raceMotivations, setRaceMotivations] = useState<Record<string, string | null>>({})
+  const [expandShop, setExpandShop] = useState(false)
+  const [suggestionText, setSuggestionText] = useState('')
+  const [sentSuggestions, setSentSuggestions] = useState<{ to: string; text: string }[]>([])
 
-  // Mock comparison data
-  const theirStats = {
-    mentality: 7,
-    happiness: 9,
-    focus: 8,
-    energy: 6
-  }
+  /* ═══ MOCK DATA FOR OTHER PEOPLE'S RACE TRACKS ═══ */
+  const comparePeople = {
+    rolemodel: {
+      name: 'Sarah Chen',
+      avatar: '👩‍🔬',
+      relation: 'Role Model',
+      dreamSelf: 'Tenured Professor & Research Lead',
+      races: [
+        { id: 'rm1', name: 'Get PhD in CS', progress: 85, milestone: 'Defend Dissertation' },
+        { id: 'rm2', name: 'Publish 5 Papers', progress: 100, milestone: 'Complete!' },
+        { id: 'rm3', name: 'Secure Faculty Position', progress: 60, milestone: 'Campus Interviews' },
+      ],
+      stats: [
+        { name: 'Mentality', value: 9, max: 10 },
+        { name: 'Happiness', value: 8, max: 10 },
+        { name: 'Fear', value: 2, max: 10 },
+        { name: 'Creativity', value: 9, max: 10 },
+      ],
+      milestones: [
+        { name: 'Defend Dissertation', dist: 'Current', status: 'active' as const },
+        { name: 'Submit Final Paper', dist: '1 step', status: 'upcoming' as const },
+        { name: 'Faculty Interviews', dist: '3 steps', status: 'upcoming' as const },
+        { name: 'Secure Grant Funding', dist: '5 steps', status: 'upcoming' as const },
+        { name: 'Start Lab', dist: '8 steps', status: 'far' as const },
+        { name: 'Get Tenure', dist: '15 steps', status: 'far' as const },
+      ],
+      completedSteps: [
+        'Published 5 peer-reviewed papers',
+        'Completed coursework with 4.0 GPA',
+        'Won Best Paper Award',
+        'TA\'d 3 semesters',
+        'Passed qualifying exams',
+      ],
+      models: ['Autism', 'Woman in STEM', 'Immigrant'],
+    },
+    friend: {
+      name: 'Marcus Williams',
+      avatar: '👨‍🎨',
+      relation: 'Friend-val',
+      dreamSelf: 'Full-Stack Developer & Indie Game Creator',
+      races: [
+        { id: 'f1', name: 'Land Tech Job', progress: 55, milestone: 'Technical Interviews' },
+        { id: 'f2', name: 'Ship Indie Game', progress: 30, milestone: 'Build Demo' },
+      ],
+      stats: [
+        { name: 'Mentality', value: 6, max: 10 },
+        { name: 'Happiness', value: 7, max: 10 },
+        { name: 'Fear', value: 5, max: 10 },
+        { name: 'Creativity', value: 8, max: 10 },
+      ],
+      milestones: [
+        { name: 'Technical Interviews', dist: 'Current', status: 'active' as const },
+        { name: 'Accept Offer', dist: '2 steps', status: 'upcoming' as const },
+        { name: 'Ship Game Demo', dist: '5 steps', status: 'far' as const },
+      ],
+      completedSteps: [
+        'Built portfolio website',
+        'Completed 3 coding bootcamp projects',
+        'Got 2 referrals',
+      ],
+      models: ['ADHD', 'First-Gen', 'Visible Minority'],
+    },
+    mentor: {
+      name: 'Dr. James Park',
+      avatar: '👨‍💼',
+      relation: 'Mentor',
+      dreamSelf: 'VP of Engineering & Community Leader',
+      races: [
+        { id: 'm1', name: 'VP of Engineering', progress: 92, milestone: 'Board Presentation' },
+        { id: 'm2', name: 'Launch Mentorship Nonprofit', progress: 70, milestone: 'Secure 501(c)(3)' },
+        { id: 'm3', name: 'Write Technical Book', progress: 45, milestone: 'Finish Draft' },
+        { id: 'm4', name: 'Build Dream Home', progress: 20, milestone: 'Find Land' },
+      ],
+      stats: [
+        { name: 'Mentality', value: 9, max: 10 },
+        { name: 'Happiness', value: 9, max: 10 },
+        { name: 'Fear', value: 1, max: 10 },
+        { name: 'Creativity', value: 7, max: 10 },
+      ],
+      milestones: [
+        { name: 'Board Presentation', dist: 'Current', status: 'active' as const },
+        { name: 'Get VP Title', dist: '1 step', status: 'upcoming' as const },
+        { name: 'Secure 501(c)(3)', dist: '3 steps', status: 'upcoming' as const },
+        { name: 'Finish Book Draft', dist: '6 steps', status: 'upcoming' as const },
+        { name: 'Publish Book', dist: '8 steps', status: 'far' as const },
+        { name: 'Open Community Center', dist: '12 steps', status: 'far' as const },
+        { name: 'Retire & Advise', dist: '20 steps', status: 'far' as const },
+      ],
+      completedSteps: [
+        'Promoted to Senior Director',
+        'Led 50-person engineering org',
+        'Mentored 20+ engineers',
+        'Spoke at 5 conferences',
+        'Drafted nonprofit charter',
+        'Published 3 blog posts',
+      ],
+      models: ['ADHD', 'Dyslexia', 'Immigrant'],
+    },
+  } as const
 
-  const theirProgress = 65
-  const yourProgress = 45
+  useEffect(() => {
+    if (showRocketEntry) {
+      const t1 = setTimeout(() => setRocketPhase('landing'), 1500)
+      const t2 = setTimeout(() => setRocketPhase('landed'), 2500)
+      const t3 = setTimeout(() => setShowRocketEntry(false), 3500)
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+    }
+  }, [showRocketEntry])
 
+  const theirStats = { mentality: 7, happiness: 9, focus: 8, energy: 6 }
+  const theirProgress = 65, yourProgress = 45
   const stats = [
-    { name: 'Mentality', value: 5, maxValue: 10, color: 'text-emerald-500' },
-    { name: 'Happiness', value: 8, maxValue: 10, color: 'text-emerald-500' },
-    { name: 'Fear-Overcoming', value: 3, maxValue: 10, color: 'text-amber-500' },
-    { name: 'Creativity', value: 7, maxValue: 10, color: 'text-cyan-500' },
+    { name: 'Mentality', value: 5, max: 10 },
+    { name: 'Happiness', value: 8, max: 10 },
+    { name: 'Fear', value: 3, max: 10 },
+    { name: 'Creativity', value: 7, max: 10 },
   ]
-
-  const motivations = [
-    'Focus on progress, not perfection',
-    'One small step at a time',
-    'Your barriers are your superpowers',
-    'Rest is part of the journey',
-    'Celebrate every win',
-    'You are enough',
-  ]
-
+  const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your barriers are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
   const recommendedChoices = [
-    { id: 'choice_1', name: 'Recommended Choice 1', success: 90, attempts: 1000, description: 'Request accommodations early' },
-    { id: 'choice_2', name: 'Recommended Choice 2', success: 89, attempts: 101, description: 'Join study group with peers' },
-    { id: 'see_more', name: '(See more choices)', success: null, attempts: null, description: null },
-    { id: 'choice_last', name: 'Recommended Choice X, Last', success: 10, attempts: 102, description: 'Alternative path option' },
+    { id: 'c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
+    { id: 'c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
+    { id: 'see', name: '(See more)', success: null, attempts: null },
+    { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
   ]
-
   const previousSteps = [
-    { id: 'step_1', name: 'Completed: Research accommodations', completed: true },
-    { id: 'step_2', name: 'Completed: Initial assessment', completed: true },
-    { id: 'step_3', name: 'Completed: Set up profile', completed: true },
+    { id: 's1', name: 'Completed: Research accommodations' },
+    { id: 's2', name: 'Completed: Initial assessment' },
+    { id: 's3', name: 'Completed: Set up profile' },
   ]
-
   const races = [
-    { 
-      id: 'race_1', 
-      name: 'Graduate University', 
-      progress: 45,
-      currentMilestone: 'Request Accommodations',
-      models: ['Autism', 'ADHD', 'First-Gen']
-    },
-    { 
-      id: 'race_2', 
-      name: 'Get Tech Job', 
-      progress: 20,
-      currentMilestone: 'Build Portfolio',
-      models: ['ADHD', 'Visible Minority']
-    },
+    { id: 'r1', name: 'Graduate University', progress: 45, milestone: 'Request Accommodations', models: ['Autism', 'ADHD', 'First-Gen'] },
+    { id: 'r2', name: 'Get Tech Job', progress: 20, milestone: 'Build Portfolio', models: ['ADHD', 'Visible Minority'] },
   ]
-
+  const shopItems = [
+    { emoji: '🍎', name: 'Energy Apple', cost: '5 coins' },
+    { emoji: '☕', name: 'Focus Brew', cost: '8 coins' },
+    { emoji: '🧃', name: 'Calm Juice', cost: '6 coins' },
+    { emoji: '🔧', name: 'Planner Tool', cost: '12 coins' },
+    { emoji: '📚', name: 'Study Guide', cost: '15 coins' },
+    { emoji: '🎧', name: 'Headphones', cost: '20 coins' },
+    { emoji: '⚡', name: 'Speed Boost', cost: '25 coins' },
+    { emoji: '🛡️', name: 'Barrier Shield', cost: '30 coins' },
+    { emoji: '✨', name: 'Motivation Spark', cost: '18 coins' },
+  ]
+  const milestones = [
+    { name: 'Request Accommodations', dist: 'Current', status: 'active' as const },
+    { name: 'Complete Semester 1', dist: '2 steps', status: 'upcoming' as const },
+    { name: 'Join Study Group', dist: '4 steps', status: 'upcoming' as const },
+    { name: 'Graduate!', dist: '10 steps', status: 'far' as const },
+  ]
+  const schedule = [
+    { time: '9 AM', task: 'Morning Focus', emoji: '📖' },
+    { time: '11 AM', task: 'Accommodation Meeting', emoji: '🎯' },
+    { time: '1 PM', task: 'Lunch & Recharge', emoji: '☕' },
+    { time: '3 PM', task: 'Group Study', emoji: '👥' },
+    { time: '5 PM', task: 'Reflection', emoji: '📝' },
+  ]
   const spinWheel = () => {
     if (isWheelSpinning) return
     setIsWheelSpinning(true)
-    const spins = 3 + Math.random() * 2 // 3-5 full spins
-    const finalAngle = spins * 360 + Math.random() * 360
-    setWheelRotation(prev => prev + finalAngle)
-    
-    setTimeout(() => {
-      const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)]
-      setTodaysMotivation(randomMotivation)
-      setIsWheelSpinning(false)
-    }, 2000)
+    setWheelRotation(prev => prev + 1080 + Math.random() * 720)
+    setTimeout(() => { setTodaysMotivation(motivations[Math.floor(Math.random() * motivations.length)]); setIsWheelSpinning(false) }, 2000)
   }
 
-  const spinRaceWheel = (raceId: string) => {
-    if (raceWheelSpinning[raceId]) return
-    setRaceWheelSpinning(prev => ({ ...prev, [raceId]: true }))
-    const spins = 3 + Math.random() * 2 // 3-5 full spins
-    const finalAngle = spins * 360 + Math.random() * 360
-    setRaceWheelRotations(prev => ({ ...prev, [raceId]: (prev[raceId] || 0) + finalAngle }))
-    
-    setTimeout(() => {
-      const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)]
-      setRaceMotivations(prev => ({ ...prev, [raceId]: randomMotivation }))
-      setRaceWheelSpinning(prev => ({ ...prev, [raceId]: false }))
-    }, 2000)
-  }
+  const day = isDayTheme
+  const roadCol = day ? 'bg-slate-200/70' : 'bg-indigo-900/50'
+  const roadBorder = day ? 'border-slate-300' : 'border-indigo-700'
+  const trackCol = day ? 'bg-slate-300/60' : 'bg-indigo-800/40'
+  const laneMarkCol = day ? 'bg-white' : 'bg-indigo-400'
+  const txt = day ? 'text-slate-800' : 'text-white'
+  const sub = day ? 'text-slate-500' : 'text-indigo-300'
+  const pill = day ? 'bg-white/80 border-slate-200' : 'bg-indigo-950/70 border-indigo-700'
+  const accent = day ? 'from-sky-400 to-indigo-500' : 'from-purple-500 to-pink-500'
+  const line = day ? '#38bdf8' : '#818cf8'
+  const stroke = day ? '#0369a1' : '#a78bfa'
 
-  const raceStyles = `
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes walk {
-      0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(5px); }
-    }
-    .character-bounce {
-      animation: bounce 2s ease-in-out infinite;
-    }
-    .character-walk {
-      animation: walk 1.5s ease-in-out infinite;
-    }
+  const css = `
+    @keyframes rocketFly{0%{transform:translateY(100vh) rotate(-15deg) scale(.5);opacity:0}30%{opacity:1;transform:translateY(30vh) rotate(-5deg) scale(1)}60%{transform:translateY(-10vh) rotate(5deg) scale(1.1)}100%{transform:translateY(-120vh) rotate(0) scale(.3);opacity:0}}
+    @keyframes rocketLand{0%{transform:translateY(-50vh) scale(.5);opacity:0}50%{opacity:1;transform:translateY(10px) scale(1.1)}80%{transform:translateY(-5px) scale(1)}100%{transform:translateY(0) scale(1);opacity:1}}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes dreamGlow{0%,100%{filter:drop-shadow(0 0 12px rgba(139,92,246,.3))}50%{filter:drop-shadow(0 0 28px rgba(139,92,246,.6))}}
+    @keyframes cloudFloat{0%,100%{transform:translateX(0) translateY(0)}25%{transform:translateX(10px) translateY(-5px)}75%{transform:translateX(-8px) translateY(-3px)}}
+    @keyframes starTwinkle{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+    @keyframes signSwing{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+    @keyframes dashMove{to{stroke-dashoffset:-20}}
+    @keyframes awningWave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.03)}}
+    .bn{animation:bounce 2s ease-in-out infinite}
+    .dg{animation:dreamGlow 3s ease-in-out infinite}
+    .cf{animation:cloudFloat 8s ease-in-out infinite}
+    .st{animation:starTwinkle 2s ease-in-out infinite}
+    .sw{animation:signSwing 3s ease-in-out infinite}
+    .aw{animation:awningWave 4s ease-in-out infinite}
   `
 
-  return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{ __html: raceStyles }} />
-      
-      {/* Sky with clouds */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-16 bg-white/40 rounded-full blur-xl" />
-        <div className="absolute top-20 right-20 w-40 h-20 bg-white/30 rounded-full blur-2xl" />
-        <div className="absolute top-5 left-1/3 w-36 h-18 bg-white/35 rounded-full blur-xl" />
-      </div>
-      
-      {/* Background decorations - lighter, more playful */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-300/25 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
-      </div>
-      <div className="relative z-10">
-      {/* Header Section - More playful but still professional */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="px-4 py-2 bg-white/90 backdrop-blur-sm border-2 border-slate-300 rounded-xl font-medium hover:bg-white hover:shadow-md transition-all flex items-center gap-2 shadow-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </button>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-slate-800">🏁 Race View</h1>
-              <div className="text-sm bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full border border-amber-300 shadow-sm">
-                <span className="text-amber-700 font-semibold">Level 3</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <button
-                onClick={() => setShowCompareMenu(!showCompareMenu)}
-                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Compare
-              </button>
-              {showCompareMenu && (
-                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-slate-200 rounded-lg shadow-xl z-20 min-w-[200px]">
-                  <div className="p-2">
-                    <div className="text-xs font-semibold text-slate-500 mb-2 px-2">(NEW: View Mentors / Collaborators /...)</div>
-                    <button
-                      onClick={() => {
-                        router.push('/races?compare=rolemodel')
-                        setShowCompareMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
-                    >
-                      <Users className="w-4 h-4" />
-                      To Role Model (s)
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/races?compare=friend')
-                        setShowCompareMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      To Friend-vals
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/races?compare=mentor')
-                        setShowCompareMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
-                    >
-                      <UserCheck className="w-4 h-4" />
-                      To Mentoring
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/races?compare=recommendations')
-                        setShowCompareMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm flex items-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      To Recommendations
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowNewViewsMenu(!showNewViewsMenu)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
-              >
-                <Filter className="w-4 h-4" />
-                New Views
-              </button>
-              {showNewViewsMenu && (
-                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-slate-200 rounded-lg shadow-xl z-20 min-w-[200px]">
-                  <div className="p-2">
-                    <button
-                      onClick={() => {
-                        router.push('/races?newview=avoidance')
-                        setShowNewViewsMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
-                    >
-                      ① Avoidance
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/races?newview=suggestions')
-                        setShowNewViewsMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
-                    >
-                      ② Suggestions
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/races?newview=compete')
-                        setShowNewViewsMenu(false)
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm"
-                    >
-                      ③ Compete
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+  /* Race-track road segment with lane markings */
+  const RoadDown = ({ h = 60 }: { h?: number }) => (
+    <div className="flex justify-center" style={{ margin: '-1px 0' }}>
+      <div className={`relative ${trackCol} rounded-sm`} style={{ width: 52, height: h }}>
+        {/* Outer edge lines */}
+        <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+        <div className={`absolute right-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+        {/* Center dashed lane marking */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 flex flex-col items-center justify-around">
+          {Array.from({ length: Math.max(2, Math.floor(h / 16)) }, (_, i) => (
+            <div key={i} className={`w-[3px] h-[8px] ${laneMarkCol} rounded-full opacity-60`} />
+          ))}
         </div>
-
-        {/* View Toggle - More colorful and fun */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => router.push('/races?mode=combined')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all shadow-md ${
-              viewMode === 'combined' 
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg scale-105' 
-                : 'bg-white/90 backdrop-blur-sm border-2 border-blue-300 hover:border-blue-400 text-slate-700 hover:shadow-lg'
-            }`}
-          >
-            📊 Combined View
-          </button>
-          <button
-            onClick={() => router.push('/races?mode=separate')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all shadow-md ${
-              viewMode === 'separate' 
-                ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-lg scale-105' 
-                : 'bg-white/90 backdrop-blur-sm border-2 border-pink-300 hover:border-pink-400 text-slate-700 hover:shadow-lg'
-            }`}
-          >
-            🎯 Separate Races
-          </button>
-        </div>
-      </div>
-
-      {/* Comparison View */}
-      {comparisonView && (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Compare: {comparisonView === 'rolemodel' ? 'Role Model' : comparisonView === 'friend' ? 'Friend' : comparisonView === 'mentor' ? 'Mentor' : 'Recommendations'}</h2>
-            <button
-              onClick={() => router.push('/races')}
-              className="text-slate-500 hover:text-slate-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left: You vs. Them Flow */}
-            <div className="space-y-4">
-              <button
-                onClick={() => router.push('/tasks/current')}
-                className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to task view
-              </button>
-
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                <h3 className="font-bold mb-2">Their Stats:</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Mentality:</span>
-                    <span className="font-bold text-emerald-500">{theirStats.mentality}XP</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Happiness:</span>
-                    <span className="font-bold text-emerald-500">{theirStats.happiness}XP</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Focus:</span>
-                    <span className="font-bold text-emerald-500">{theirStats.focus}XP</span>
-                  </div>
-                  <div className="text-slate-400">...</div>
-                </div>
-              </div>
-
-              <div className="text-sm">
-                <span className="font-medium">Progress: </span>
-                <span className="text-emerald-500 font-bold">{theirProgress}%</span>
-                <span className="text-slate-500"> (vs. Your {yourProgress}%)</span>
-              </div>
-
-              {/* You vs. Them Stick Figures */}
-              <div className="flex items-center justify-center gap-8 py-4">
-                <div className="flex flex-col items-center">
-                  <div className="text-xs font-medium mb-2">You</div>
-                  <svg viewBox="0 0 40 50" className="w-12 h-14">
-                    <circle cx="20" cy="12" r="6" fill="none" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="18" x2="20" y2="32" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="22" x2="12" y2="28" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="22" x2="28" y2="28" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="32" x2="14" y2="42" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="32" x2="26" y2="42" stroke="#1e293b" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="text-xs font-medium mb-2">Them</div>
-                  <svg viewBox="0 0 40 50" className="w-12 h-14">
-                    <circle cx="20" cy="12" r="6" fill="none" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="18" x2="20" y2="32" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="22" x2="12" y2="28" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="22" x2="28" y2="28" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="32" x2="14" y2="42" stroke="#1e293b" strokeWidth="2"/>
-                    <line x1="20" y1="32" x2="26" y2="42" stroke="#1e293b" strokeWidth="2"/>
-                  </svg>
-                </div>
-              </div>
-
-              {/* Milestone Buttons */}
-              <div className="space-y-2">
-                <button 
-                  onClick={() => router.push('/milestones/their_current')}
-                  className="w-full px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors cursor-pointer"
-                >
-                  Their Curr
-                </button>
-                <div className="w-full h-px bg-slate-300 border-dashed"></div>
-                <button 
-                  onClick={() => router.push('/milestones/next_step')}
-                  className="w-full px-4 py-2 bg-amber-100 border-2 border-amber-400 rounded-lg text-sm font-medium hover:bg-amber-200 transition-colors cursor-pointer"
-                >
-                  AT YOUR NEXT STEP
-                </button>
-                <button 
-                  onClick={() => router.push('/milestones/current')}
-                  className="w-full px-4 py-2 bg-cyan-100 border-2 border-cyan-400 rounded-lg text-sm font-medium hover:bg-cyan-200 transition-colors cursor-pointer"
-                >
-                  AT YOUR CURR
-                </button>
-                <button 
-                  onClick={() => router.push('/milestones/your_step')}
-                  className="w-full px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  Your Step
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Models Comparison & New Views */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-slate-500" />
-                  <span className="font-medium">Compare</span>
-                </div>
-                <span className="text-xs text-slate-500">→ (can change Race View here)</span>
-              </div>
-
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                <h3 className="font-bold mb-2">Models: vs. yours</h3>
-                <div className="text-sm space-y-1">
-                  <div>Their: Autism + Parent + Black + Canadian</div>
-                  <div>Yours: Autism + ADHD + First-Gen</div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
-                <h3 className="font-bold mb-3">New Views:</h3>
-                <div className="space-y-3 text-sm">
-                  <button
-                    onClick={() => router.push('/races?newview=avoidance')}
-                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <span className="font-medium">① Avoidance</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/races?newview=suggestions')}
-                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <span className="font-medium">② Suggestions</span>
-                      <div className="text-xs text-slate-600 mt-1 ml-4">
-                        <div>L should be like to filter by ppl;</div>
-                        <div>us, R.M.'s, M's, ...)</div>
-                        <div className="mt-1">→ could be like Journal</div>
-                        <div>→ Or Daily suggestions in Notifs/Bell</div>
-                      </div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => router.push('/races?newview=compete')}
-                    className="w-full text-left p-2 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <span className="font-medium">③ Compete</span>
-                      <div className="text-xs text-slate-600 mt-1 ml-4">
-                        <div>Rival Notifs</div>
-                        <div>Person's Icon @ goal</div>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* New Views Content */}
-      {newView && (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              {newView === 'avoidance' && <Info className="w-5 h-5 text-slate-600" />}
-              {newView === 'suggestions' && <span className="text-lg">②</span>}
-              {newView === 'compete' && <span className="text-lg">③</span>}
-              <h2 className="text-xl font-bold">
-                {newView === 'avoidance' ? 'Avoidance View' : 
-                 newView === 'suggestions' ? 'Suggestions View' : 
-                 'Compete View'}
-              </h2>
-            </div>
-            <button
-              onClick={() => router.push('/races')}
-              className="text-slate-500 hover:text-slate-700 p-1 hover:bg-slate-100 rounded transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {newView === 'avoidance' && (
-            <div className="space-y-4">
-              <p className="text-slate-600">
-                View showing tasks/approaches to avoid based on your barriers and past experiences.
-              </p>
-              
-              {/* Avoidance List */}
-              <div className="mt-6 space-y-3">
-                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" />
-                  Things to Avoid:
-                </h3>
-                <div className="space-y-2">
-                  {[
-                    { task: 'All-night study sessions', reason: 'Triggers ADHD burnout' },
-                    { task: 'Cramming before exams', reason: 'Increases anxiety' },
-                    { task: 'Skipping meals for work', reason: 'Affects focus and mood' },
-                    { task: 'Overcommitting to projects', reason: 'Leads to overwhelm' },
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <div className="font-medium text-red-900">{item.task}</div>
-                        <div className="text-sm text-red-700">{item.reason}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {newView === 'suggestions' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Bell className="w-5 h-5 text-purple-500" />
-                <h3 className="font-semibold text-lg">Daily Suggestions</h3>
-              </div>
-              <p className="text-slate-600 mb-4">
-                Filter suggestions by people: us, Role Models, Mentors, etc.
-              </p>
-              <div className="space-y-2 text-sm text-slate-600">
-                <div className="flex items-center gap-2">
-                  <span>→</span>
-                  <span>Could be like Journal format</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>→</span>
-                  <span>Or Daily suggestions in Notifications/Bell</span>
-                </div>
-              </div>
-
-              {/* Suggestions List */}
-              <div className="mt-6 space-y-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Filter className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm font-medium text-slate-600">Filter by:</span>
-                  <div className="flex gap-2">
-                    {['All', 'Role Models', 'Mentors', 'Friends'].map((filter) => (
-                      <button
-                        key={filter}
-                        onClick={() => setSuggestionFilter(filter)}
-                        className={`px-3 py-1 text-xs border rounded-lg transition-colors ${
-                          suggestionFilter === filter
-                            ? 'bg-purple-500 text-white border-purple-500'
-                            : 'border-slate-300 hover:bg-purple-50 hover:border-purple-300'
-                        }`}
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {(() => {
-                    const allSuggestions = [
-                      { from: 'Sarah Chen (Role Model)', suggestion: 'Try the Pomodoro technique for this task', time: '2 hours ago', type: 'Role Models' },
-                      { from: 'Marcus Johnson (Role Model)', suggestion: 'Use body doubling for focus sessions', time: '3 hours ago', type: 'Role Models' },
-                      { from: 'James Wilson (Mentor)', suggestion: 'Break this into 3 smaller steps', time: '5 hours ago', type: 'Mentors' },
-                      { from: 'Lisa Park (Mentor)', suggestion: 'Take breaks every 25 minutes to maintain focus', time: '6 hours ago', type: 'Mentors' },
-                      { from: 'Alex Taylor (Friend)', suggestion: 'We can body double on this together', time: '1 day ago', type: 'Friends' },
-                      { from: 'Jordan Smith (Friend)', suggestion: 'Want to compete on completing this task?', time: '2 days ago', type: 'Friends' },
-                    ]
-                    const filteredSuggestions = allSuggestions.filter(item => suggestionFilter === 'All' || item.type === suggestionFilter)
-                    
-                    if (filteredSuggestions.length === 0) {
-                      return (
-                        <div className="text-center py-8 text-slate-500">
-                          No suggestions found for this filter.
-                        </div>
-                      )
-                    }
-                    
-                    return filteredSuggestions.map((item, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          // Apply suggestion to calendar
-                          const suggestionData = {
-                            suggestion: item.suggestion,
-                            from: item.from,
-                            time: new Date().toISOString(),
-                            type: item.type
-                          }
-                          
-                          // Store in localStorage for calendar to pick up
-                          const existingSuggestions = JSON.parse(localStorage.getItem('pendingCalendarSuggestions') || '[]')
-                          existingSuggestions.push(suggestionData)
-                          localStorage.setItem('pendingCalendarSuggestions', JSON.stringify(existingSuggestions))
-                          
-                          // Navigate to calendar with suggestion
-                          router.push(`/calendar?suggestion=${encodeURIComponent(item.suggestion)}&from=${encodeURIComponent(item.from)}`)
-                        }}
-                        className="w-full text-left p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between mb-1">
-                          <div className="font-medium text-purple-900 text-sm">{item.from}</div>
-                          <div className="text-xs text-slate-500">{item.time}</div>
-                        </div>
-                        <div className="text-sm text-slate-700">{item.suggestion}</div>
-                      </button>
-                    ))
-                  })()}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {newView === 'compete' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Trophy className="w-5 h-5 text-amber-500" />
-                <h3 className="font-semibold text-lg">Compete Features</h3>
-              </div>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <Bell className="w-4 h-4 text-amber-600" />
-                  <span className="font-medium text-amber-900">Rival Notifications</span>
-                </div>
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <Users className="w-4 h-4 text-amber-600" />
-                  <span className="font-medium text-amber-900">Person's Icon @ goal</span>
-                </div>
-              </div>
-
-              {/* Active Competitions */}
-              <div className="mt-6 space-y-3">
-                <h3 className="font-semibold text-slate-800 mb-3">Active Competitions:</h3>
-                <div className="space-y-2">
-                  {[
-                    { rival: 'Marcus Johnson', goal: 'Complete 10 tasks this week', yourProgress: 6, theirProgress: 8 },
-                    { rival: 'Alex Taylor', goal: 'Study 20 hours this week', yourProgress: 12, theirProgress: 15 },
-                  ].map((comp, idx) => (
-                    <div key={idx} className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
-                            {comp.rival.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-medium text-slate-900">{comp.rival}</div>
-                            <div className="text-xs text-slate-600">{comp.goal}</div>
-                          </div>
-                        </div>
-                        <Trophy className="w-5 h-5 text-amber-500" />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600">You:</span>
-                          <span className="font-bold text-emerald-600">{comp.yourProgress}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600">Them:</span>
-                          <span className="font-bold text-amber-600">{comp.theirProgress}</span>
-                        </div>
-                        <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 rounded-full" style={{ width: `${(comp.yourProgress / Math.max(comp.yourProgress, comp.theirProgress)) * 100}%` }} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Stats/Goal/Motivation Wheel Section - Show when newView is active */}
-      {newView && (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm mb-6">
-          {/* Top Section: Stats + Goal + Motivation Wheel */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Stats Box */}
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <h3 className="font-bold text-lg mb-3">Stats:</h3>
-              <div className="space-y-2">
-                {stats.map((stat, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <span className="text-sm">- {stat.name}:</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${
-                            stat.value >= 7 ? 'bg-emerald-500' : stat.value >= 4 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${(stat.value / stat.maxValue) * 100}%` }}
-                        />
-                      </div>
-                      <span className={`font-bold text-sm ${stat.color}`}>{stat.value}XP</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Goal/Ideal Self - Center */}
-            <div className="flex flex-col items-center justify-center">
-              {/* Stick Figure on Platform */}
-              <div className="relative">
-                <svg viewBox="0 0 80 100" className="w-20 h-24">
-                  {/* Platform/podium */}
-                  <ellipse cx="40" cy="85" rx="35" ry="12" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2"/>
-                  <ellipse cx="40" cy="80" rx="25" ry="8" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1"/>
-                  
-                  {/* Stick figure */}
-                  <circle cx="40" cy="25" r="10" fill="none" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="35" x2="40" y2="60" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="42" x2="25" y2="52" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="42" x2="55" y2="52" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="60" x2="28" y2="78" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="60" x2="52" y2="78" stroke="#1e293b" strokeWidth="3"/>
-                </svg>
-              </div>
-              <div className="text-center mt-2">
-                <span className="text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-                  Goal/Ideal Self
-                </span>
-              </div>
-            </div>
-
-            {/* Motivation Wheel */}
-            <div className="flex flex-col items-center">
-              <span className="text-sm font-medium text-slate-600 mb-2">Motivation Wheel:</span>
-              <button 
-                onClick={spinWheel}
-                disabled={isWheelSpinning}
-                className="relative group"
-              >
-                <svg 
-                  viewBox="0 0 100 100" 
-                  className="w-24 h-24 transition-transform duration-[2000ms] ease-out"
-                  style={{ transform: `rotate(${wheelRotation}deg)` }}
-                >
-                  {/* Wheel segments */}
-                  {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-                    const colors = ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6']
-                    const startAngle = (angle - 90) * Math.PI / 180
-                    const endAngle = (angle + 60 - 90) * Math.PI / 180
-                    const x1 = 50 + 40 * Math.cos(startAngle)
-                    const y1 = 50 + 40 * Math.sin(startAngle)
-                    const x2 = 50 + 40 * Math.cos(endAngle)
-                    const y2 = 50 + 40 * Math.sin(endAngle)
-                    return (
-                      <path
-                        key={i}
-                        d={`M 50 50 L ${x1} ${y1} A 40 40 0 0 1 ${x2} ${y2} Z`}
-                        fill={colors[i]}
-                        stroke="white"
-                        strokeWidth="2"
-                      />
-                    )
-                  })}
-                  {/* Center circle */}
-                  <circle cx="50" cy="50" r="12" fill="white" stroke="#1e293b" strokeWidth="2"/>
-                  <text x="50" y="54" textAnchor="middle" fontSize="8" fontWeight="bold">SPIN</text>
-                </svg>
-                {/* Pointer */}
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[12px] border-l-transparent border-r-transparent border-t-slate-900" />
-              </button>
-              {todaysMotivation && (
-                <div className="mt-3 text-center max-w-[200px]">
-                  <div className="text-xs text-slate-500">Today's motivation:</div>
-                  <div className="text-sm font-medium text-slate-700 italic">"{todaysMotivation}"</div>
-                </div>
-              )}
-              {!todaysMotivation && !isWheelSpinning && (
-                <div className="mt-2 text-xs text-slate-400">Click to spin!</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewMode === 'combined' ? (
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border-4 border-amber-800 shadow-2xl p-6 md:p-8 relative overflow-hidden">
-          {/* Dirt Road Background Pattern */}
-          <div className="absolute inset-0 bg-gradient-to-b from-amber-700 via-amber-600 to-amber-800 opacity-20" 
-               style={{
-                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-               }} />
-          
-          {/* Hare and Turtle Characters */}
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-            <div className="text-4xl character-bounce">🐰</div>
-            <div className="text-3xl character-walk">🐢</div>
-          </div>
-
-          {/* Top Section: Stats + Goal + Motivation Wheel */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
-            {/* Stats Box */}
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <h3 className="font-bold text-lg mb-3">Stats:</h3>
-              <div className="space-y-2">
-                {stats.map((stat, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <span className="text-sm">- {stat.name}:</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${
-                            stat.value >= 7 ? 'bg-emerald-500' : stat.value >= 4 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${(stat.value / stat.maxValue) * 100}%` }}
-                        />
-                      </div>
-                      <span className={`font-bold text-sm ${stat.color}`}>{stat.value}XP</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Goal/Ideal Self - Center */}
-            <div className="flex flex-col items-center justify-center">
-              {/* Stick Figure on Platform */}
-              <div className="relative">
-                <svg viewBox="0 0 80 100" className="w-20 h-24">
-                  {/* Platform/podium */}
-                  <ellipse cx="40" cy="85" rx="35" ry="12" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2"/>
-                  <ellipse cx="40" cy="80" rx="25" ry="8" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1"/>
-                  
-                  {/* Stick figure */}
-                  <circle cx="40" cy="25" r="10" fill="none" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="35" x2="40" y2="60" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="42" x2="25" y2="52" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="42" x2="55" y2="52" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="60" x2="28" y2="78" stroke="#1e293b" strokeWidth="3"/>
-                  <line x1="40" y1="60" x2="52" y2="78" stroke="#1e293b" strokeWidth="3"/>
-                </svg>
-              </div>
-              <div className="text-center mt-2">
-                <span className="text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-                  Goal/Ideal Self
-                </span>
-              </div>
-            </div>
-
-            {/* Motivation Wheel */}
-            <div className="flex flex-col items-center">
-              <span className="text-sm font-medium text-slate-600 mb-2">Motivation Wheel:</span>
-              <button 
-                onClick={spinWheel}
-                disabled={isWheelSpinning}
-                className="relative group"
-              >
-                <svg 
-                  viewBox="0 0 100 100" 
-                  className="w-24 h-24 transition-transform duration-[2000ms] ease-out"
-                  style={{ transform: `rotate(${wheelRotation}deg)` }}
-                >
-                  {/* Wheel segments */}
-                  {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-                    const colors = ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6']
-                    const startAngle = (angle - 90) * Math.PI / 180
-                    const endAngle = (angle + 60 - 90) * Math.PI / 180
-                    const x1 = 50 + 40 * Math.cos(startAngle)
-                    const y1 = 50 + 40 * Math.sin(startAngle)
-                    const x2 = 50 + 40 * Math.cos(endAngle)
-                    const y2 = 50 + 40 * Math.sin(endAngle)
-                    return (
-                      <path
-                        key={i}
-                        d={`M 50 50 L ${x1} ${y1} A 40 40 0 0 1 ${x2} ${y2} Z`}
-                        fill={colors[i]}
-                        stroke="white"
-                        strokeWidth="2"
-                      />
-                    )
-                  })}
-                  {/* Center circle */}
-                  <circle cx="50" cy="50" r="12" fill="white" stroke="#1e293b" strokeWidth="2"/>
-                  <text x="50" y="54" textAnchor="middle" fontSize="8" fontWeight="bold">SPIN</text>
-                </svg>
-                {/* Pointer */}
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[12px] border-l-transparent border-r-transparent border-t-slate-900" />
-              </button>
-              {todaysMotivation && (
-                <div className="mt-3 text-center max-w-[200px]">
-                  <div className="text-xs text-slate-500">Today's motivation:</div>
-                  <div className="text-sm font-medium text-slate-700 italic">"{todaysMotivation}"</div>
-                </div>
-              )}
-              {!todaysMotivation && !isWheelSpinning && (
-                <div className="mt-2 text-xs text-slate-400">Click to spin!</div>
-              )}
-            </div>
-          </div>
-
-          {/* Connecting lines visual */}
-          <div className="flex justify-center mb-4">
-            <svg viewBox="0 0 300 40" className="w-full max-w-md h-10">
-              <line x1="150" y1="0" x2="60" y2="35" stroke="#fbbf24" strokeWidth="2"/>
-              <line x1="150" y1="0" x2="120" y2="35" stroke="#fbbf24" strokeWidth="2"/>
-              <line x1="150" y1="0" x2="180" y2="35" stroke="#fbbf24" strokeWidth="2" strokeDasharray="4"/>
-              <line x1="150" y1="0" x2="240" y2="35" stroke="#fbbf24" strokeWidth="2"/>
-            </svg>
-          </div>
-
-          {/* Recommended Choices with connecting lines to Current button */}
-          <div className="relative z-10">
-            {/* SVG connecting lines from boxes down to Current button */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ height: 'calc(100% + 80px)' }}>
-              {/* Lines from each box to center point (Current button area) */}
-              <line x1="12.5%" y1="100%" x2="50%" y2="calc(100% + 60px)" stroke="#fbbf24" strokeWidth="2" />
-              <line x1="37.5%" y1="100%" x2="50%" y2="calc(100% + 60px)" stroke="#fbbf24" strokeWidth="2" />
-              <line x1="62.5%" y1="100%" x2="50%" y2="calc(100% + 60px)" stroke="#fbbf24" strokeWidth="2" strokeDasharray="6" />
-              <line x1="87.5%" y1="100%" x2="50%" y2="calc(100% + 60px)" stroke="#fbbf24" strokeWidth="2" />
-            </svg>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-0">
-              {recommendedChoices.map((choice, idx) => (
-                <Link
-                  key={choice.id}
-                  href={choice.id === 'see_more' ? '/races?mode=combined' : `/milestones/${choice.id}`}
-                  className={`p-4 rounded-xl border-2 transition-all hover:shadow-lg hover:scale-105 ${
-                    choice.id === 'see_more' 
-                      ? 'border-dashed border-amber-400 bg-amber-50/50 hover:bg-amber-100/50' 
-                      : idx === recommendedChoices.length - 1
-                        ? 'border-amber-800 bg-gradient-to-br from-amber-700 to-amber-900 text-white hover:from-amber-800 hover:to-amber-950 shadow-xl'
-                        : 'border-amber-500 bg-gradient-to-br from-white to-amber-50 hover:border-amber-600 shadow-md'
-                  }`}
-                >
-                  <div className={`font-semibold text-sm mb-1 ${idx === recommendedChoices.length - 1 ? 'text-cyan-300' : 'text-cyan-700'}`}>
-                    {choice.name}
-                  </div>
-                  {choice.success !== null && (
-                    <>
-                      <div className="text-xs">
-                        Success %: <span className={`font-bold ${idx === recommendedChoices.length - 1 ? 'text-emerald-300' : 'text-emerald-600'}`}>{choice.success}%</span>
-                      </div>
-                      <div className="text-xs">
-                        Attempts: <span className={`font-bold ${idx === recommendedChoices.length - 1 ? 'text-emerald-300' : 'text-emerald-600'}`}>{choice.attempts}</span>
-                      </div>
-                    </>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Connecting lines from boxes to Current - using div-based approach */}
-          <div className="flex justify-center py-4">
-            <svg viewBox="0 0 400 50" className="w-full max-w-2xl h-12">
-              {/* Lines converging from 4 points to center bottom */}
-              <line x1="50" y1="0" x2="200" y2="45" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="150" y1="0" x2="200" y2="45" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="250" y1="0" x2="200" y2="45" stroke="#fbbf24" strokeWidth="2.5" strokeDasharray="6" strokeLinecap="round" />
-              <line x1="350" y1="0" x2="200" y2="45" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" />
-              {/* Small dots at connection points */}
-              <circle cx="50" cy="0" r="3" fill="#fbbf24" />
-              <circle cx="150" cy="0" r="3" fill="#fbbf24" />
-              <circle cx="250" cy="0" r="3" fill="#94a3b8" />
-              <circle cx="350" cy="0" r="3" fill="#fbbf24" />
-            </svg>
-          </div>
-
-          {/* Path Visualization - Clean vertical timeline */}
-          <div className="flex flex-col items-center pb-8 relative">
-            {/* Pit Stop - Top right */}
-            <div className="absolute right-4 md:right-16 top-0">
-              <Link
-                href="/pit-stop"
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-md text-sm font-medium"
-              >
-                Pit Stop
-                <ExternalLink className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Current Milestone Button */}
-            <button
-              onClick={() => router.push('/milestones')}
-              className="px-10 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all border-2 border-amber-500"
-            >
-              Current
-            </button>
-
-            {/* Vertical line */}
-            <div className="w-1 h-8 bg-gradient-to-b from-amber-400 to-amber-300 rounded-full"></div>
-
-            {/* See Previous Steps */}
-            <button
-              onClick={() => setShowPreviousSteps(!showPreviousSteps)}
-              className="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-slate-700 transition-colors"
-            >
-              {showPreviousSteps ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              <span className="text-sm italic">(see previous steps)</span>
-            </button>
-
-            {/* Previous Steps Dropdown */}
-            {showPreviousSteps && (
-              <div className="mt-2 bg-white border-2 border-slate-200 rounded-xl p-4 w-full max-w-xs shadow-sm">
-                <div className="space-y-3">
-                  {previousSteps.map((step) => (
-                    <div key={step.id} className="flex items-center gap-3 text-sm">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                      <span className="text-slate-600">{step.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Vertical line to Start */}
-            <div className="w-1 h-8 bg-gradient-to-b from-slate-300 to-slate-200 rounded-full mt-2"></div>
-
-            {/* Start Point */}
-            <div className="px-6 py-2 border-2 border-slate-200 rounded-full bg-slate-50">
-              <span className="text-sm text-slate-500 font-medium">Start</span>
-            </div>
-          </div>
-
-          {/* Journal Button */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <Link 
-              href="/reflection?contextType=race"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-all"
-            >
-              <Sparkles className="w-4 h-4" />
-              Journal / Reflection Window
-            </Link>
-          </div>
-        </div>
-      ) : (
-        /* Separate View - Two Race Cards with gamified theme */
-        <div>
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {[
-              { 
-                id: 'race_1', 
-                name: 'Race 1', 
-                progress: 80,
-                models: [
-                  { name: 'Autism', color: 'text-orange-500' },
-                  { name: 'Parent', color: 'text-orange-500' },
-                  { name: 'Black', color: 'text-blue-500' },
-                  { name: 'Canadian', color: 'text-blue-500' },
-                ],
-                choices: [
-                  { id: 'r1c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
-                  { id: 'r1c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
-                  { id: 'r1see', name: '(See more choices)', success: null, attempts: null },
-                  { id: 'r1last', name: 'Recommended Choice X, Last', success: 10, attempts: 102 },
-                ]
-              },
-              { 
-                id: 'race_2', 
-                name: 'Race 2', 
-                progress: 25,
-                models: [
-                  { name: 'ADHD', color: 'text-green-500' },
-                  { name: 'Adult', color: 'text-green-500' },
-                  { name: 'Black', color: 'text-orange-500' },
-                  { name: 'Canadian', color: 'text-orange-500' },
-                ],
-                choices: [
-                  { id: 'r2c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
-                  { id: 'r2c2', name: 'Recommended Choice 2', success: 88, attempts: 101 },
-                  { id: 'r2see', name: '(See more choices)', success: null, attempts: null },
-                  { id: 'r2last', name: 'Recommended Choice X, Last', success: 10, attempts: 102 },
-                ]
-              },
-            ].map((race, raceIdx) => (
-              <div key={race.id} className="bg-white/90 backdrop-blur-sm rounded-2xl border-4 border-amber-800 shadow-2xl p-4 relative overflow-hidden">
-                {/* Dirt Road Background Pattern */}
-                <div className="absolute inset-0 bg-gradient-to-b from-amber-700 via-amber-600 to-amber-800 opacity-15" 
-                     style={{
-                       backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                     }} />
-                
-                {/* Hare and Turtle Characters */}
-                <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
-                  <div className="text-2xl character-bounce">🐰</div>
-                  <div className="text-xl character-walk">🐢</div>
-                </div>
-                {/* Top Row: Stats | Race Info | Models | Motivation Wheel */}
-                <div className="grid grid-cols-4 gap-2 mb-4 relative z-10">
-                  {/* Stats Box - Gamified */}
-                  <div className="border-2 border-purple-500 rounded-lg p-2 text-xs bg-gradient-to-br from-purple-50 to-pink-50 shadow-md">
-                    <div className="font-bold mb-1 flex items-center gap-1">
-                      <Trophy className="w-3 h-3 text-purple-600" />
-                      Stats:
-                    </div>
-                    <div className="bg-white/60 rounded px-1 mb-1">-Mentality: <span className="text-green-500 font-bold">3XP</span></div>
-                    <div className="bg-white/60 rounded px-1 mb-1">-Happiness: <span className="text-green-500 font-bold">5XP</span></div>
-                    <div className="text-slate-400">-...</div>
-                  </div>
-
-                  {/* Race Info */}
-                  <div className="text-sm">
-                    <div className="font-bold">{race.name}:...</div>
-                    <div>Progress: <span className="text-green-500 font-bold">{race.progress}%</span></div>
-                  </div>
-
-                  {/* Models */}
-                  <div className="text-sm">
-                    <div className="font-bold">Models:</div>
-                    {race.models.map((model, idx) => (
-                      <div key={idx} className={`${model.color} font-medium`}>
-                        {model.name} +
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Motivation Wheel */}
-                  <div className="flex flex-col items-center">
-                    <div className="text-xs text-slate-500 mb-1">Motivation Wheel:</div>
-                    <button
-                      onClick={() => spinRaceWheel(race.id)}
-                      disabled={raceWheelSpinning[race.id]}
-                      className="relative group cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <svg 
-                        viewBox="0 0 60 60" 
-                        className="w-14 h-14 drop-shadow-md transition-transform duration-[2000ms] ease-out"
-                        style={{ transform: `rotate(${raceWheelRotations[race.id] || 0}deg)` }}
-                      >
-                        {/* Gradient definitions */}
-                        <defs>
-                          <linearGradient id={`wheelGrad1-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#06b6d4" />
-                            <stop offset="100%" stopColor="#0891b2" />
-                          </linearGradient>
-                          <linearGradient id={`wheelGrad2-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#8b5cf6" />
-                            <stop offset="100%" stopColor="#7c3aed" />
-                          </linearGradient>
-                          <linearGradient id={`wheelGrad3-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#f59e0b" />
-                            <stop offset="100%" stopColor="#d97706" />
-                          </linearGradient>
-                          <linearGradient id={`wheelGrad4-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#10b981" />
-                            <stop offset="100%" stopColor="#059669" />
-                          </linearGradient>
-                          <linearGradient id={`wheelGrad5-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#ec4899" />
-                            <stop offset="100%" stopColor="#db2777" />
-                          </linearGradient>
-                          <linearGradient id={`wheelGrad6-${race.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#3b82f6" />
-                            <stop offset="100%" stopColor="#2563eb" />
-                          </linearGradient>
-                          <filter id={`glow-${race.id}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-                            <feMerge>
-                              <feMergeNode in="coloredBlur"/>
-                              <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                          </filter>
-                        </defs>
-                        {/* Outer glow ring */}
-                        <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(99, 102, 241, 0.2)" strokeWidth="3"/>
-                        {/* Wheel segments with gradients */}
-                        {[0, 60, 120, 180, 240, 300].map((angle, i) => {
-                          const gradients = [
-                            `url(#wheelGrad1-${race.id})`, `url(#wheelGrad2-${race.id})`, 
-                            `url(#wheelGrad3-${race.id})`, `url(#wheelGrad4-${race.id})`, 
-                            `url(#wheelGrad5-${race.id})`, `url(#wheelGrad6-${race.id})`
-                          ]
-                          const startAngle = (angle - 90) * Math.PI / 180
-                          const endAngle = (angle + 60 - 90) * Math.PI / 180
-                          const x1 = 30 + 22 * Math.cos(startAngle)
-                          const y1 = 30 + 22 * Math.sin(startAngle)
-                          const x2 = 30 + 22 * Math.cos(endAngle)
-                          const y2 = 30 + 22 * Math.sin(endAngle)
-                          return (
-                            <path
-                              key={i}
-                              d={`M 30 30 L ${x1} ${y1} A 22 22 0 0 1 ${x2} ${y2} Z`}
-                              fill={gradients[i]}
-                              stroke="white"
-                              strokeWidth="1.5"
-                              filter={`url(#glow-${race.id})`}
-                            />
-                          )
-                        })}
-                        {/* Inner circle with shine */}
-                        <circle cx="30" cy="30" r="8" fill="white" stroke="#e2e8f0" strokeWidth="1"/>
-                        <circle cx="30" cy="30" r="6" fill="url(#centerShine)" />
-                        <defs>
-                          <radialGradient id="centerShine">
-                            <stop offset="0%" stopColor="#f8fafc" />
-                            <stop offset="100%" stopColor="#e2e8f0" />
-                          </radialGradient>
-                        </defs>
-                        {/* Sparkle dots */}
-                        <circle cx="30" cy="30" r="2" fill="#6366f1"/>
-                        {/* Spin text in center */}
-                        <text x="30" y="35" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#1e293b">SPIN</text>
-                      </svg>
-                      {/* Pointer triangle */}
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-r-[5px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-800 drop-shadow-sm" />
-                    </button>
-                    {raceMotivations[race.id] && (
-                      <div className="mt-1 text-center max-w-[120px]">
-                        <div className="text-[10px] text-slate-500">Motivation:</div>
-                        <div className="text-[10px] font-medium text-slate-700 italic leading-tight">"{raceMotivations[race.id]}"</div>
-                      </div>
-                    )}
-                    {!raceMotivations[race.id] && !raceWheelSpinning[race.id] && (
-                      <div className="mt-1 text-[10px] text-slate-400">Click to spin!</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Goal/Ideal Self - with Hare and Turtle */}
-                <div className="flex flex-col items-center mb-4 relative z-10">
-                  <div className="relative">
-                    <svg viewBox="0 0 60 70" className="w-14 h-16">
-                      {/* Platform - dirt road style */}
-                      <ellipse cx="30" cy="60" rx="25" ry="8" fill="#8B6914" stroke="#654321" strokeWidth="2"/>
-                      <ellipse cx="30" cy="58" rx="20" ry="6" fill="#D4A574" stroke="#8B6914" strokeWidth="1"/>
-                    </svg>
-                    {/* Characters on platform */}
-                    <div className="absolute top-0 left-2 text-xl character-bounce">🐰</div>
-                    <div className="absolute top-1 right-2 text-lg character-walk">🐢</div>
-                  </div>
-                  <div className="text-sm font-medium mt-1 bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Goal/Ideal Self</div>
-                </div>
-
-                {/* Connecting lines (decorative) */}
-                <div className="flex justify-center mb-2">
-                  <svg viewBox="0 0 200 30" className="w-full h-6">
-                    <line x1="100" y1="0" x2="30" y2="25" stroke="#1e293b" strokeWidth="1" strokeDasharray="3"/>
-                    <line x1="100" y1="0" x2="70" y2="25" stroke="#1e293b" strokeWidth="1" strokeDasharray="3"/>
-                    <line x1="100" y1="0" x2="130" y2="25" stroke="#1e293b" strokeWidth="1" strokeDasharray="3"/>
-                    <line x1="100" y1="0" x2="170" y2="25" stroke="#1e293b" strokeWidth="1" strokeDasharray="3"/>
-                  </svg>
-                </div>
-
-                {/* Recommended Choices Row */}
-                <div className="flex gap-2 mb-0 relative">
-                  {/* Left arrow */}
-                  <button className="absolute -left-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center text-xs hover:bg-slate-100">
-                    ◀
-                  </button>
-
-                  <div className="flex gap-2 flex-1 overflow-hidden px-4">
-                    {race.choices.map((choice, idx) => (
-                      <Link
-                        key={choice.id}
-                        href={choice.id.includes('see') ? '#' : `/milestones/${choice.id}`}
-                        className={`flex-1 min-w-0 border-2 border-slate-900 rounded p-2 text-xs hover:bg-slate-50 transition-all ${
-                          idx === race.choices.length - 1 ? 'bg-slate-900 text-white' : ''
-                        }`}
-                      >
-                        <div className={`font-bold text-cyan-500 ${idx === race.choices.length - 1 ? 'text-cyan-400' : ''}`}>
-                          {choice.name}
-                        </div>
-                        {choice.success !== null && (
-                          <>
-                            <div>Success %: <span className={`font-bold ${idx === race.choices.length - 1 ? 'text-green-400' : 'text-green-500'}`}>{choice.success}%</span></div>
-                            <div>Attempts: <span className={`font-bold ${idx === race.choices.length - 1 ? 'text-green-400' : 'text-green-500'}`}>{choice.attempts}</span></div>
-                          </>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-
-                  {/* Right arrow */}
-                  <button className="absolute -right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-900 text-white border-2 border-slate-900 rounded-full flex items-center justify-center text-xs hover:bg-slate-800">
-                    ▶
-                  </button>
-                </div>
-
-                {/* Connecting lines from boxes to Current button */}
-                <div className="flex justify-center py-2">
-                  <svg viewBox="0 0 200 35" className="w-full h-8">
-                    {/* Lines converging from 4 points to center bottom */}
-                    <line x1="25" y1="0" x2="100" y2="30" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
-                    <line x1="75" y1="0" x2="100" y2="30" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
-                    <line x1="125" y1="0" x2="100" y2="30" stroke="#1e293b" strokeWidth="1.5" strokeDasharray="4" strokeLinecap="round" />
-                    <line x1="175" y1="0" x2="100" y2="30" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
-                    {/* Small dots at connection points */}
-                    <circle cx="25" cy="0" r="2" fill="#fbbf24" />
-                    <circle cx="75" cy="0" r="2" fill="#fbbf24" />
-                    <circle cx="125" cy="0" r="2" fill="#94a3b8" />
-                    <circle cx="175" cy="0" r="2" fill="#fbbf24" />
-                    {/* Center dot where lines meet */}
-                    <circle cx="100" cy="30" r="3" fill="#fbbf24" />
-                  </svg>
-                </div>
-
-                {/* Path: Current → See Previous → Start | Pit Stop */}
-                <div className="relative flex flex-col items-center">
-                  {/* Current Button */}
-                  <button
-                    onClick={() => router.push('/milestones')}
-                    className="px-6 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full border-2 border-amber-500 font-bold text-sm hover:scale-105 transition-all shadow-md"
-                  >
-                    Current
-                  </button>
-
-                  {/* Pit Stop - positioned to the right */}
-                  <Link
-                    href="/pit-stop"
-                    className="absolute right-0 top-0 px-3 py-1.5 border-2 border-slate-900 rounded text-xs font-medium hover:bg-slate-100 transition-all"
-                  >
-                    Pit Stop
-                  </Link>
-
-                  {/* Path line */}
-                  <div className="w-0.5 h-6 bg-amber-400 my-1"></div>
-
-                  {/* See previous steps */}
-                  <button 
-                    onClick={() => setShowPreviousSteps(!showPreviousSteps)}
-                    className="text-xs text-slate-500 italic hover:text-slate-700 border border-dashed border-slate-300 rounded px-3 py-1 hover:border-slate-400 transition-colors"
-                  >
-                    (see previous steps)
-                  </button>
-                  
-                  {/* Previous steps dropdown */}
-                  {showPreviousSteps && (
-                    <div className="mt-2 bg-slate-50 rounded-lg p-3 text-left w-full">
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
-                          <span className="text-slate-600">Research accommodations</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
-                          <span className="text-slate-600">Initial assessment</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
-                          <span className="text-slate-600">Set up profile</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Path line */}
-                  <div className="w-0.5 h-6 bg-slate-300 my-1"></div>
-
-                  {/* Start */}
-                  <div className="px-4 py-1 border-2 border-slate-300 rounded-full text-xs text-slate-500">
-                    (Start)
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Shared Journal/Reflection Window */}
-          <div className="flex justify-center">
-            <Link 
-              href="/reflection?contextType=race"
-              className="inline-flex items-center gap-2 px-8 py-3 border-2 border-slate-900 rounded-lg font-medium hover:bg-slate-100 transition-all"
-            >
-              Journal / Reflection Window
-            </Link>
-          </div>
-        </div>
-      )}
       </div>
     </div>
+  )
+
+  /* Fan-out: one point at top splits into N paths at bottom — race track style */
+  const FanOut = ({ count = 5 }: { count?: number }) => {
+    const w = 400, h = 120
+    const cx = w / 2
+    const spacing = w / (count + 1)
+    return (
+      <div className="flex justify-center" style={{ margin: '-2px 0' }}>
+        <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: '500px' }} preserveAspectRatio="xMidYMid meet">
+          {Array.from({ length: count }, (_, i) => {
+            const ex = spacing * (i + 1)
+            const sw = i === Math.floor(count / 2) ? 20 : 14
+            const op = i === Math.floor(count / 2) ? 0.6 : 0.4
+            return (
+              <g key={i}>
+                {/* Track surface */}
+                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={op} />
+                {/* Edge lines (amber) */}
+                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth={sw + 2} fill="none" strokeLinecap="round" opacity={op * 0.4} />
+                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw - 2} fill="none" strokeLinecap="round" opacity={op + 0.1} />
+                {/* Center lane dash */}
+                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+    )
+  }
+
+  /* Fan-in: N points at top converge to one at bottom — race track style */
+  const FanIn = ({ count = 5 }: { count?: number }) => {
+    const w = 400, h = 140
+    const cx = w / 2
+    const spacing = w / (count + 1)
+    return (
+      <div className="flex justify-center" style={{ margin: '-2px 0' }}>
+        <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: '500px' }} preserveAspectRatio="xMidYMid meet">
+          {Array.from({ length: count }, (_, i) => {
+            const sx = spacing * (i + 1)
+            const sw = i === Math.floor(count / 2) ? 20 : 14
+            const op = i === Math.floor(count / 2) ? 0.6 : 0.4
+            return (
+              <g key={i}>
+                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth={sw + 2} fill="none" strokeLinecap="round" opacity={op * 0.4} />
+                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={op} />
+                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+    )
+  }
+
+  /* Fork: one road splits into two — race track style */
+  const Fork = () => {
+    const w = 300, h = 80
+    return (
+      <div className="flex justify-center" style={{ margin: '-2px 0' }}>
+        <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: '360px' }} preserveAspectRatio="xMidYMid meet">
+          {/* Edge lines */}
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.3},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth="26" fill="none" strokeLinecap="round" opacity=".2" />
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.7},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth="26" fill="none" strokeLinecap="round" opacity=".2" />
+          {/* Track surface */}
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.3},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth="22" fill="none" strokeLinecap="round" opacity=".5" />
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.7},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth="22" fill="none" strokeLinecap="round" opacity=".5" />
+          {/* Lane dashes */}
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.3},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
+          <path d={`M${w / 2},0 Q${w / 2},${h * 0.5} ${w * 0.7},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
+        </svg>
+      </div>
+    )
+  }
+
+  /* Two parallel race track corridors */
+  const TwoCorridors = ({ h = 200 }: { h?: number }) => {
+    return (
+      <div className="flex justify-center gap-16" style={{ margin: '-2px 0' }}>
+        {/* Left corridor */}
+        <div className={`relative w-16 ${trackCol} rounded-t-3xl rounded-b-lg`} style={{ height: h }}>
+          {/* Edge lines */}
+          <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+          {/* Lane dashes */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-2 bottom-2 flex flex-col items-center justify-around">
+            {Array.from({ length: Math.floor(h / 18) }, (_, i) => (
+              <div key={i} className={`w-[3px] h-[8px] ${laneMarkCol} rounded-full opacity-50`} />
+            ))}
+          </div>
+        </div>
+        {/* Right corridor */}
+        <div className={`relative w-16 ${trackCol} rounded-t-3xl rounded-b-lg`} style={{ height: h }}>
+          <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
+          <div className="absolute left-1/2 -translate-x-1/2 top-2 bottom-2 flex flex-col items-center justify-around">
+            {Array.from({ length: Math.floor(h / 18) }, (_, i) => (
+              <div key={i} className={`w-[3px] h-[8px] ${laneMarkCol} rounded-full opacity-50`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {/* ═══ ROCKET ENTRY ═══ */}
+      {showRocketEntry && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-950 via-purple-900 to-sky-400">
+          <style>{css}</style>
+          {Array.from({ length: 25 }, (_, i) => (
+            <div key={i} className="absolute w-1 h-1 bg-white rounded-full" style={{ left: `${(i * 37 + 13) % 100}%`, top: `${(i * 23 + 7) % 60}%`, opacity: ((i * 17) % 80 + 20) / 100, animation: `starTwinkle ${1 + i % 3}s ease-in-out infinite`, animationDelay: `${(i * 13 % 200) / 100}s` }} />
+          ))}
+          <div className="text-8xl z-10" style={{ animation: rocketPhase === 'flying' ? 'rocketFly 3s ease-in-out forwards' : rocketPhase === 'landing' ? 'rocketLand 1s ease-out forwards' : 'none', transform: rocketPhase === 'landed' ? 'translateY(0) scale(1)' : undefined }}>🚀</div>
+          <div className={`text-center mt-8 z-10 transition-opacity duration-500 ${rocketPhase === 'flying' ? 'opacity-0' : 'opacity-100'}`}>
+            <h1 className="text-4xl font-bold text-white mb-2">{rocketPhase === 'landing' ? 'Landing in Dream Land...' : '☁️ Welcome to Dream Land!'}</h1>
+            <p className="text-sky-200 text-lg">Where your dreams take shape</p>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ PAGE ═══ */}
+      <div className={`min-h-screen ${day ? 'bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50' : 'bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950'} relative overflow-x-hidden transition-colors duration-700`}>
+        <style>{css}</style>
+
+        {/* Atmospheric background */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          {[{ w: 200, h: 80, l: '5%', tp: '5%' }, { w: 180, h: 70, l: '30%', tp: '2%' }, { w: 160, h: 65, l: '62%', tp: '8%' }, { w: 220, h: 90, l: '82%', tp: '3%' }, { w: 140, h: 60, l: '15%', tp: '50%' }, { w: 170, h: 75, l: '75%', tp: '60%' }].map((c, i) => (
+            <div key={i} className={`absolute rounded-full blur-xl cf ${day ? 'bg-white/40' : 'bg-indigo-300/8'}`} style={{ width: c.w, height: c.h, left: c.l, top: c.tp, animationDelay: `${i * 1.5}s` }} />
+          ))}
+          {!day && Array.from({ length: 25 }, (_, i) => (
+            <div key={`s${i}`} className="absolute w-1 h-1 bg-white rounded-full st" style={{ left: `${(i * 41 + 7) % 100}%`, top: `${(i * 31 + 13) % 100}%`, animationDelay: `${(i * 17 % 300) / 100}s` }} />
+          ))}
+        </div>
+
+        {/* ═══ STICKY HEADER ═══ */}
+        <header className={`sticky top-0 z-40 ${day ? 'bg-sky-100/90' : 'bg-indigo-950/90'} backdrop-blur-md border-b ${day ? 'border-sky-200' : 'border-indigo-800'} px-4 py-2`}>
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
+            <div className="flex items-center gap-3">
+              <button onClick={() => router.back()} className={`p-1 rounded-lg hover:opacity-70 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
+              <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setIsDayTheme(!isDayTheme)} className={`px-2 py-1 rounded-lg text-xs font-semibold shadow ${day ? 'bg-indigo-600 text-white' : 'bg-amber-400 text-slate-900'}`}>{day ? '🌙' : '☀️'}</button>
+              <div className="relative">
+                <button onClick={() => { setShowCompareMenu(!showCompareMenu); setShowNewViewsMenu(false) }} className={`px-2 py-1 bg-gradient-to-r ${accent} text-white rounded-lg text-xs font-semibold`}><RefreshCw className="w-3 h-3 inline mr-1" />Compare</button>
+                {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'To Role Model(s)', I: Users }, { k: 'friend', l: 'To Friend-vals', I: UserPlus }, { k: 'mentor', l: 'To Mentoring', I: UserCheck }, { k: 'recommendations', l: 'To Recommendations', I: Sparkles }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
+              </div>
+              <div className="relative">
+                <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
+                {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Compete' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ═══ COMPARISON: SIDE-BY-SIDE RACE TRACK VIEWS ═══ */}
+        {comparisonView && (comparisonView === 'rolemodel' || comparisonView === 'friend' || comparisonView === 'mentor') && (() => {
+          const person = comparePeople[comparisonView]
+          return (
+            <div className="relative z-30 max-w-6xl mx-auto px-3 pt-3 pb-6">
+              {/* Close bar */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Eye className={`w-4 h-4 ${sub}`} />
+                  <span className={`text-sm font-bold ${txt}`}>Comparing: You vs {person.name} ({person.relation})</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>Read-only</span>
+                </div>
+                <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:opacity-60 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* ═══ YOUR TRACK (left) ═══ */}
+                <div className={`${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/60 border-indigo-700'} border rounded-2xl p-4 backdrop-blur-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-2xl">🧑‍🚀</span>
+                    <div>
+                      <div className={`font-bold text-sm ${txt}`}>You</div>
+                      <div className={`text-[10px] ${sub}`}>Your Dream Land</div>
+                    </div>
+                  </div>
+
+                  {/* Dream Self */}
+                  <div className={`text-center p-3 rounded-xl mb-3 ${day ? 'bg-gradient-to-b from-purple-50 to-sky-50 border-purple-200' : 'bg-gradient-to-b from-purple-900/30 to-indigo-900/30 border-purple-700'} border`}>
+                    <div className="text-2xl mb-1">✨</div>
+                    <div className={`font-bold text-xs ${txt}`}>Dream Self</div>
+                    <div className={`text-[9px] ${sub}`}>Cloud 9 — Your ideal future</div>
+                  </div>
+
+                  {/* Your Stats */}
+                  <div className={`${pill} border rounded-xl p-3 mb-3`}>
+                    <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
+                    {stats.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1.5">
+                        <span className={`text-[10px] ${sub} w-16`}>{s.name}</span>
+                        <div className={`flex-1 h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
+                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                        </div>
+                        <span className={`text-[9px] font-bold ${txt}`}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Your Races */}
+                  <div className={`${pill} border rounded-xl p-3 mb-3`}>
+                    <div className={`font-bold text-xs mb-2 ${txt}`}>🏁 Races</div>
+                    {races.map(r => (
+                      <div key={r.id} className="mb-2 last:mb-0">
+                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
+                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden mt-1`}>
+                          <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full" style={{ width: `${r.progress}%` }} />
+                        </div>
+                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                      </div>
+                    ))}
+                    <div className="flex gap-1 flex-wrap mt-2">
+                      {races[0].models.map(m => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
+                    </div>
+                  </div>
+
+                  {/* Your Milestones */}
+                  <div className="space-y-2 mb-3">
+                    <div className={`font-bold text-xs ${txt}`}>🪧 Milestones</div>
+                    {milestones.map((m, i) => (
+                      <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${m.status === 'active' ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600'}` : m.status === 'upcoming' ? `${day ? 'bg-amber-50/50 border-amber-200' : 'bg-amber-950/20 border-amber-800'}` : `${day ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/30 border-slate-700'} opacity-50`}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${m.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : m.status === 'upcoming' ? `${day ? 'bg-amber-200' : 'bg-amber-900'}` : `${day ? 'bg-slate-200' : 'bg-slate-800'}`}`}>
+                          {m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}
+                        </div>
+                        <div>
+                          <div className={`text-[10px] font-bold ${txt}`}>{m.name}</div>
+                          <div className={`text-[8px] ${sub}`}>{m.dist}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Your Completed Steps */}
+                  <div className={`${pill} border rounded-xl p-3`}>
+                    <div className={`font-bold text-xs mb-1.5 ${txt}`}>✅ Completed</div>
+                    {previousSteps.map(s => (
+                      <div key={s.id} className="flex items-center gap-1.5 mb-1">
+                        <div className="w-3 h-3 rounded-full bg-sky-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[6px]">✓</span></div>
+                        <span className={`text-[9px] ${sub}`}>{s.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ═══ THEIR TRACK (right) ═══ */}
+                <div className={`${day ? 'bg-gradient-to-b from-emerald-50/80 to-white/70 border-emerald-200' : 'bg-gradient-to-b from-emerald-950/40 to-indigo-950/60 border-emerald-800'} border rounded-2xl p-4 backdrop-blur-sm relative`}>
+                  {/* Read-only badge */}
+                  <div className={`absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${day ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-900/60 text-emerald-300'}`}>
+                    <Eye className="w-3 h-3" /> View Only
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-2xl">{person.avatar}</span>
+                    <div>
+                      <div className={`font-bold text-sm ${txt}`}>{person.name}</div>
+                      <div className={`text-[10px] ${sub}`}>{person.relation}</div>
+                    </div>
+                  </div>
+
+                  {/* Their Dream Self */}
+                  <div className={`text-center p-3 rounded-xl mb-3 ${day ? 'bg-gradient-to-b from-emerald-50 to-teal-50 border-emerald-200' : 'bg-gradient-to-b from-emerald-900/30 to-teal-900/30 border-emerald-700'} border`}>
+                    <div className="text-2xl mb-1">✨</div>
+                    <div className={`font-bold text-xs ${txt}`}>{person.dreamSelf}</div>
+                    <div className={`text-[9px] ${sub}`}>Their Dream Self</div>
+                  </div>
+
+                  {/* Their Stats */}
+                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
+                    <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
+                    {person.stats.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1.5">
+                        <span className={`text-[10px] ${sub} w-16`}>{s.name}</span>
+                        <div className={`flex-1 h-1.5 ${day ? 'bg-emerald-100' : 'bg-emerald-900/40'} rounded-full overflow-hidden`}>
+                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-emerald-400' : 'bg-teal-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                        </div>
+                        <span className={`text-[9px] font-bold ${txt}`}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Their Races */}
+                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
+                    <div className={`font-bold text-xs mb-2 ${txt}`}>🏁 Races</div>
+                    {person.races.map(r => (
+                      <div key={r.id} className="mb-2 last:mb-0">
+                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
+                        <div className={`h-1.5 ${day ? 'bg-emerald-100' : 'bg-emerald-900/40'} rounded-full overflow-hidden mt-1`}>
+                          <div className={`h-full rounded-full ${r.progress === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`} style={{ width: `${r.progress}%` }} />
+                        </div>
+                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                      </div>
+                    ))}
+                    <div className="flex gap-1 flex-wrap mt-2">
+                      {person.models.map(m => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-900/40 text-emerald-300'}`}>{m}</span>)}
+                    </div>
+                  </div>
+
+                  {/* Their Milestones */}
+                  <div className="space-y-2 mb-3">
+                    <div className={`font-bold text-xs ${txt}`}>🪧 Milestones</div>
+                    {person.milestones.map((m, i) => (
+                      <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${m.status === 'active' ? `${day ? 'bg-emerald-50 border-emerald-400' : 'bg-emerald-900/40 border-emerald-600'}` : m.status === 'upcoming' ? `${day ? 'bg-emerald-50/50 border-emerald-200' : 'bg-emerald-950/20 border-emerald-800'}` : `${day ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/30 border-slate-700'} opacity-50`}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${m.status === 'active' ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white' : m.status === 'upcoming' ? `${day ? 'bg-emerald-200' : 'bg-emerald-900'}` : `${day ? 'bg-slate-200' : 'bg-slate-800'}`}`}>
+                          {m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}
+                        </div>
+                        <div>
+                          <div className={`text-[10px] font-bold ${txt}`}>{m.name}</div>
+                          <div className={`text-[8px] ${sub}`}>{m.dist}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Their Completed Steps */}
+                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
+                    <div className={`font-bold text-xs mb-1.5 ${txt}`}>✅ Completed ({person.completedSteps.length})</div>
+                    {person.completedSteps.map((s, i) => (
+                      <div key={i} className="flex items-center gap-1.5 mb-1">
+                        <div className="w-3 h-3 rounded-full bg-emerald-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[6px]">✓</span></div>
+                        <span className={`text-[9px] ${sub}`}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Suggestion box */}
+                  <div className={`${day ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'} border rounded-xl p-3`}>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <MessageSquare className={`w-3.5 h-3.5 ${day ? 'text-purple-500' : 'text-purple-400'}`} />
+                      <span className={`font-bold text-xs ${day ? 'text-purple-700' : 'text-purple-300'}`}>Send a Suggestion</span>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={suggestionText}
+                        onChange={e => setSuggestionText(e.target.value)}
+                        placeholder="e.g. Try the Pomodoro technique!"
+                        className={`flex-1 px-2.5 py-1.5 rounded-lg text-[10px] border ${day ? 'bg-white border-purple-200 text-slate-800 placeholder:text-slate-400' : 'bg-indigo-950 border-purple-700 text-white placeholder:text-indigo-400'} focus:outline-none focus:ring-1 focus:ring-purple-400`}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && suggestionText.trim()) {
+                            setSentSuggestions(prev => [...prev, { to: person.name, text: suggestionText.trim() }])
+                            setSuggestionText('')
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          if (suggestionText.trim()) {
+                            setSentSuggestions(prev => [...prev, { to: person.name, text: suggestionText.trim() }])
+                            setSuggestionText('')
+                          }
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'}`}
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {sentSuggestions.filter(s => s.to === person.name).length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {sentSuggestions.filter(s => s.to === person.name).map((s, i) => (
+                          <div key={i} className={`text-[9px] px-2 py-1 rounded-lg ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-800/40 text-purple-300'}`}>
+                            💬 You suggested: &ldquo;{s.text}&rdquo;
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ═══ OVERLAY PANELS (non-compare views) ═══ */}
+        {newView && (
+          <div className="relative z-30 max-w-3xl mx-auto px-4 pt-3">
+            <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border backdrop-blur-sm rounded-2xl p-4 shadow-lg`}>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Compete'}</h2>
+                <button onClick={() => router.push('/races')} className={`${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
+              </div>
+              {newView === 'avoidance' && <div className="space-y-1.5">{[{ t: 'All-night study', r: 'Triggers burnout' }, { t: 'Cramming', r: 'Increases anxiety' }, { t: 'Skipping meals', r: 'Affects focus' }, { t: 'Overcommitting', r: 'Overwhelm' }].map((x, i) => <div key={i} className={`flex items-start gap-2 p-2 ${day ? 'bg-red-50 border-red-200' : 'bg-red-900/30 border-red-800'} border rounded-lg`}><AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" /><div><div className={`font-medium text-xs ${day ? 'text-red-900' : 'text-red-300'}`}>{x.t}</div><div className={`text-[10px] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div></div></div>)}</div>}
+              {newView === 'suggestions' && <div className="space-y-2"><div className="flex gap-1">{['All', 'Role Models', 'Mentors', 'Friends'].map(f => <button key={f} onClick={() => setSuggestionFilter(f)} className={`px-2 py-0.5 text-[10px] border rounded-lg ${suggestionFilter === f ? 'bg-purple-500 text-white border-purple-500' : `${pill} ${sub}`}`}>{f}</button>)}</div>{[{ from: 'Sarah (RM)', sug: 'Pomodoro', time: '2h', cat: 'Role Models' }, { from: 'James (M)', sug: 'Smaller steps', time: '5h', cat: 'Mentors' }, { from: 'Alex (F)', sug: 'Body double', time: '1d', cat: 'Friends' }].filter(x => suggestionFilter === 'All' || x.cat === suggestionFilter).map((x, i) => <button key={i} onClick={() => router.push(`/calendar?suggestion=${encodeURIComponent(x.sug)}`)} className={`w-full text-left p-2 ${day ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'} border rounded-lg`}><div className="flex justify-between"><span className={`font-medium text-[10px] ${day ? 'text-purple-900' : 'text-purple-300'}`}>{x.from}</span><span className={`text-[9px] ${sub}`}>{x.time}</span></div><div className={`text-[10px] ${sub}`}>{x.sug}</div></button>)}</div>}
+              {newView === 'compete' && <div className="space-y-2">{[{ rival: 'Marcus', g: '10 tasks/wk', y: 6, th: 8 }, { rival: 'Alex', g: '20 hrs', y: 12, th: 15 }].map((c, i) => <div key={i} className={`p-2 border-2 rounded-lg ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}><div className="flex items-center gap-2 mb-1"><div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-[9px]">{c.rival[0]}</div><div className={`text-xs font-medium ${txt}`}>{c.rival} ({c.g})</div></div><div className={`h-1.5 ${day ? 'bg-slate-200' : 'bg-indigo-800'} rounded-full overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-amber-400 rounded-full" style={{ width: `${(c.y / Math.max(c.y, c.th)) * 100}%` }} /></div><div className="flex justify-between text-[9px] mt-0.5"><span className={sub}>You:{c.y}</span><span className={sub}>Them:{c.th}</span></div></div>)}</div>}
+            </div>
+          </div>
+        )}
+
+        {/* ═════════════════════════════════════════════════════════
+            THE CONTINUOUS ROADMAP
+            Every piece is in normal document flow.
+            Road connectors (SVGs) sit between content blocks
+            so the path is always visually connected.
+           ═════════════════════════════════════════════════════════ */}
+        <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
+
+          {/* ═══════════════════
+              DREAM SELF (top)
+             ═══════════════════ */}
+          <div className="pt-8 flex flex-col items-center">
+            <div className="relative dg rounded-full p-4 mb-1">
+              <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-28 h-8 rounded-full blur-lg ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
+              <div className="bn relative">
+                <svg viewBox="0 0 120 150" className="w-20 h-28">
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((a, i) => { const r = a * Math.PI / 180; return <line key={i} x1={60 + 26 * Math.cos(r)} y1={48 + 26 * Math.sin(r)} x2={60 + 44 * Math.cos(r)} y2={48 + 44 * Math.sin(r)} stroke={day ? '#bae6fd' : '#6366f1'} strokeWidth="1.5" strokeDasharray="4" opacity=".5" /> })}
+                  <circle cx="60" cy="32" r="14" fill="none" stroke={stroke} strokeWidth="3" />
+                  <path d="M54 30 Q56 27 58 30" fill="none" stroke={stroke} strokeWidth="1.5" />
+                  <path d="M62 30 Q64 27 66 30" fill="none" stroke={stroke} strokeWidth="1.5" />
+                  <path d="M54 37 Q60 44 66 37" fill="none" stroke={stroke} strokeWidth="2" />
+                  <line x1="60" y1="46" x2="60" y2="85" stroke={stroke} strokeWidth="3" />
+                  <line x1="60" y1="58" x2="42" y2="46" stroke={stroke} strokeWidth="3" />
+                  <line x1="60" y1="58" x2="78" y2="46" stroke={stroke} strokeWidth="3" />
+                  <text x="34" y="44" fontSize="11">⭐</text>
+                  <text x="74" y="44" fontSize="11">⭐</text>
+                  <line x1="60" y1="85" x2="48" y2="110" stroke={stroke} strokeWidth="3" />
+                  <line x1="60" y1="85" x2="72" y2="110" stroke={stroke} strokeWidth="3" />
+                  <circle cx="60" cy="14" r="6" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="3" />
+                </svg>
+              </div>
+            </div>
+            <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
+            <div className={`text-xs ${sub} mb-1`}>Cloud 9 — Your ideal future</div>
+          </div>
+
+          {/* ─── ROAD: fan out from Dream Self into 5 paths ─── */}
+          <FanOut count={5} />
+
+          {/* ─── Content sitting on the 5 paths (goals, stats, etc.) ─── */}
+          <div className="w-full grid grid-cols-5 gap-2 px-1 max-w-lg">
+            <div className={`${pill} border rounded-lg p-2 shadow-sm text-center`}>
+              <div className="text-base">🎯</div>
+              <div className={`font-bold text-[9px] ${txt}`}>{races[0].name}</div>
+              <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-1 overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full" style={{ width: `${races[0].progress}%` }} /></div>
+              <div className={`text-[8px] ${sub}`}>{races[0].progress}%</div>
+            </div>
+            <div className={`${pill} border rounded-lg p-1.5 shadow-sm`}>
+              <div className={`font-bold text-[8px] mb-0.5 ${txt}`}>✨Stats</div>
+              {stats.map((s, i) => (
+                <div key={i} className="flex items-center gap-0.5 mb-0.5">
+                  <span className={`text-[7px] ${sub} w-9 truncate`}>{s.name}</span>
+                  <div className={`flex-1 h-0.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}><div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} /></div>
+                </div>
+              ))}
+            </div>
+            <div className={`${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/50 border-purple-700'} border rounded-lg p-2 shadow-sm text-center`}>
+              <div className="text-base">☁️</div>
+              <div className={`font-bold text-[9px] ${txt}`}>Cloud 9</div>
+              <div className={`text-[7px] ${sub}`}>Vision</div>
+            </div>
+            <div className={`${pill} border rounded-lg p-2 shadow-sm text-center`}>
+              <div className="text-base">🎯</div>
+              <div className={`font-bold text-[9px] ${txt}`}>{races[1].name}</div>
+              <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-1 overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-indigo-400 rounded-full" style={{ width: `${races[1].progress}%` }} /></div>
+              <div className={`text-[8px] ${sub}`}>{races[1].progress}%</div>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <button onClick={spinWheel} disabled={isWheelSpinning} className="relative">
+                <svg viewBox="0 0 50 50" className="w-10 h-10 transition-transform duration-[2000ms] ease-out" style={{ transform: `rotate(${wheelRotation}deg)` }}>
+                  {[0, 60, 120, 180, 240, 300].map((a, i) => { const c = day ? ['#38bdf8', '#818cf8', '#f59e0b', '#34d399', '#f472b6', '#60a5fa'] : ['#0ea5e9', '#6366f1', '#d97706', '#059669', '#ec4899', '#3b82f6']; const sa = (a - 90) * Math.PI / 180, ea = (a + 60 - 90) * Math.PI / 180; return <path key={i} d={`M25 25 L${25 + 20 * Math.cos(sa)} ${25 + 20 * Math.sin(sa)} A20 20 0 0 1 ${25 + 20 * Math.cos(ea)} ${25 + 20 * Math.sin(ea)}Z`} fill={c[i]} stroke="white" strokeWidth="1" /> })}
+                  <circle cx="25" cy="25" r="6" fill="white" stroke={line} strokeWidth="1" />
+                  <text x="25" y="27" textAnchor="middle" fontSize="4" fontWeight="bold" fill={line}>SPIN</text>
+                </svg>
+              </button>
+              {todaysMotivation && <div className={`text-[7px] italic ${txt} text-center mt-0.5 max-w-[70px] leading-tight`}>{todaysMotivation}</div>}
+            </div>
+          </div>
+
+          {/* ─── ROAD: 5 paths converge back to character ─── */}
+          <FanIn count={5} />
+
+          {/* ═══════════════════════════════════════
+              MILESTONES AS NODES ON THE ROAD PATH
+              Each milestone is a node with road between
+             ═══════════════════════════════════════ */}
+          {[...milestones].reverse().map((m, i) => {
+            const isLeft = i % 2 === 0
+            return (
+              <div key={i} className="w-full max-w-md">
+                {/* Road segment into this node */}
+                <RoadDown h={i === 0 ? 30 : 50} />
+                {/* Node on the road */}
+                <div className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+                  {/* Signboard hanging off the road */}
+                  <button onClick={() => router.push('/milestones')}
+                    className={`flex-1 sw relative transition-all hover:shadow-lg hover:scale-[1.02] group ${m.status === 'active' ? `${day ? 'bg-amber-100 border-amber-500' : 'bg-amber-900/60 border-amber-500'} border-2 shadow-md rounded-xl` : m.status === 'upcoming' ? `${day ? 'bg-amber-50/80 border-amber-300' : 'bg-amber-950/40 border-amber-700'} border rounded-xl` : `${day ? 'bg-amber-50/40 border-amber-200' : 'bg-amber-950/20 border-amber-800'} border rounded-xl opacity-50`}`}
+                    style={{ animationDelay: `${i * .5}s`, transformOrigin: isLeft ? 'right center' : 'left center' }}>
+                    {/* Nails */}
+                    <div className={`absolute top-1.5 left-2 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-400' : 'bg-amber-500'}`} />
+                    <div className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-400' : 'bg-amber-500'}`} />
+                    <div className="p-2.5 pt-3">
+                      <div className={`font-bold text-xs ${txt}`}>{m.name}</div>
+                      <div className={`text-[9px] ${sub} mt-0.5`}>{m.dist}</div>
+                      {m.status === 'active' && <div className="text-[9px] text-amber-500 font-bold mt-0.5">🏁 You are here</div>}
+                      <div className={`text-[8px] ${sub} opacity-0 group-hover:opacity-100 transition-opacity`}>Tap to view →</div>
+                    </div>
+                  </button>
+
+                  {/* Connector arm from road to signboard */}
+                  <div className={`flex items-center ${isLeft ? '' : ''}`}>
+                    <div className={`w-6 h-[3px] ${day ? 'bg-amber-500' : 'bg-amber-700'}`} />
+                  </div>
+
+                  {/* Road node (circle on the track) */}
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center shadow-md ${m.status === 'active' ? `${day ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-br from-amber-500 to-orange-600'} ring-4 ${day ? 'ring-amber-200' : 'ring-amber-800'}` : m.status === 'upcoming' ? `${day ? 'bg-amber-200 border-2 border-amber-400' : 'bg-amber-900 border-2 border-amber-600'}` : `${day ? 'bg-slate-200 border-2 border-slate-300' : 'bg-slate-800 border-2 border-slate-600'} opacity-50`}`}>
+                      <span className="text-sm">{m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}</span>
+                    </div>
+                  </div>
+
+                  {/* Connector arm (other side — for schedule on first, empty on others) */}
+                  <div className={`flex items-center ${isLeft ? '' : ''}`}>
+                    <div className={`w-6 h-[3px] ${i === 0 ? (day ? 'bg-sky-300' : 'bg-indigo-600') : 'bg-transparent'}`} />
+                  </div>
+
+                  {/* Schedule card hangs off the first milestone node */}
+                  {i === 0 ? (
+                    <div className="flex-1">
+                      <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
+                        <div className="flex items-center justify-between px-2 py-1 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}">
+                          <span className={`text-[10px] font-bold ${txt}`}>📅 Today</span>
+                          <Link href="/calendar" className={`text-[8px] ${day ? 'text-sky-600' : 'text-sky-400'} font-medium`}>Calendar →</Link>
+                        </div>
+                        {schedule.slice(0, 3).map((s, si) => (
+                          <div key={si} className={`flex items-center gap-1 px-2 py-1 ${si !== 2 ? `border-b ${day ? 'border-sky-50' : 'border-indigo-800/50'}` : ''}`}>
+                            <div className={`text-[8px] font-mono font-bold w-8 ${sub}`}>{s.time}</div>
+                            <span className="text-[10px]">{s.emoji}</span>
+                            <div className={`flex-1 ${txt} font-medium text-[9px]`}>{s.task}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1" />
+                  )}
+                </div>
+              </div>
+            )
+          })}
+          {/* ═══════════════════════════════
+              CURRENT PLACE — character on road
+             ═══════════════════════════════ */}
+          <div className="w-full">
+            {/* Floating clouds */}
+            <div className="flex justify-center gap-6 mb-2">
+              {[1, 2, 3].map(i => <div key={i} className={`rounded-full blur-sm cf ${day ? 'bg-white/50' : 'bg-indigo-300/10'}`} style={{ width: `${36 + i * 10}px`, height: `${14 + i * 4}px`, animationDelay: `${i * 1.2}s` }} />)}
+            </div>
+
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center px-2">
+              {/* LEFT: Pit Stop Shop (opens ServiceHub) */}
+              <div className="flex justify-end">
+                <div className={`relative w-full max-w-[180px] ${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
+                  {/* Awning top */}
+                  <div className={`aw relative -mt-1 mx-[-2px] h-6 rounded-t-lg overflow-hidden ${day ? 'bg-gradient-to-b from-red-500 to-red-600' : 'bg-gradient-to-b from-purple-600 to-purple-800'}`}>
+                    <div className="absolute inset-0 flex">
+                      {Array.from({ length: 7 }, (_, i) => (
+                        <div key={i} className={`flex-1 ${i % 2 === 0 ? 'bg-white/20' : ''}`} />
+                      ))}
+                    </div>
+                    <div className={`absolute bottom-0 left-0 right-0 h-2 ${day ? 'bg-red-700' : 'bg-purple-900'}`} style={{ clipPath: 'polygon(0% 0%, 7% 100%, 14% 0%, 21% 100%, 28% 0%, 35% 100%, 42% 0%, 50% 100%, 57% 0%, 64% 100%, 71% 0%, 78% 100%, 85% 0%, 92% 100%, 100% 0%)' }} />
+                  </div>
+                  <div className="p-2.5">
+                    <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏪 Pit Stop Shop</h4>
+                    <div className="space-y-1">
+                      {shopItems.slice(0, expandShop ? shopItems.length : 3).map((item, i) => (
+                        <button key={i} className={`w-full flex items-center gap-1.5 p-1 rounded-lg text-left transition-all hover:scale-[1.02] ${day ? 'bg-white/60 hover:bg-white/90' : 'bg-indigo-800/40 hover:bg-indigo-700/50'}`}>
+                          <span className="text-base">{item.emoji}</span>
+                          <div>
+                            <div className={`text-[10px] font-bold ${txt}`}>{item.name}</div>
+                            <div className={`text-[8px] ${sub}`}>{item.cost}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Up/Down scroll arrows */}
+                    <div className="flex justify-center gap-2 mt-1.5">
+                      <button onClick={() => setExpandShop(false)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:opacity-70 transition-all`}>
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setExpandShop(true)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:opacity-70 transition-all`}>
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
+                  </div>
+                </div>
+              </div>
+
+              {/* CENTRE: Character + Signboard */}
+              <div className="flex flex-col items-center px-2">
+                <div className="relative">
+                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-14 h-5 rounded-full blur-md ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
+                  <div className="bn text-5xl">🧑‍🚀</div>
+                </div>
+                <div className={`text-[10px] font-semibold mt-1 ${sub}`}>📍 You are here</div>
+                {/* Signboard for current milestone */}
+                <button onClick={() => router.push('/milestones')} className="mt-3 relative group">
+                  {/* Post */}
+                  <div className={`absolute left-1/2 -translate-x-1/2 -bottom-4 w-2 h-6 ${day ? 'bg-amber-700' : 'bg-amber-900'} rounded-sm`} />
+                  {/* Board */}
+                  <div className={`sw relative px-4 py-2 rounded-lg shadow-lg border-2 ${day ? 'bg-amber-100 border-amber-600 text-amber-900' : 'bg-amber-900/80 border-amber-600 text-amber-100'}`} style={{ transformOrigin: 'top center' }}>
+                    {/* Nails */}
+                    <div className={`absolute top-1 left-1.5 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-500' : 'bg-amber-400'}`} />
+                    <div className={`absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-500' : 'bg-amber-400'}`} />
+                    <div className="text-[9px] font-bold uppercase tracking-wider">🪧 Current Milestone</div>
+                    <div className={`text-[10px] font-bold mt-0.5 ${day ? 'text-amber-800' : 'text-amber-200'}`}>{milestones[0].name}</div>
+                    <div className="text-[8px] opacity-70 mt-0.5 group-hover:underline">Tap to view →</div>
+                  </div>
+                </button>
+                <div className="h-4" />{/* spacer for post */}
+              </div>
+
+              {/* RIGHT: Current race info */}
+              <div className="flex justify-start">
+                <div className={`${pill} border rounded-xl p-2.5 shadow-sm w-full max-w-[180px]`}>
+                  <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Curr:...</h4>
+                  {races.map(r => (
+                    <div key={r.id} className="mb-1.5 last:mb-0">
+                      <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
+                      <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden mt-0.5`}><div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full" style={{ width: `${r.progress}%` }} /></div>
+                      <div className={`text-[8px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                    </div>
+                  ))}
+                  <div className="flex gap-0.5 flex-wrap mt-1">
+                    {races[0].models.map(m => <span key={m} className={`text-[8px] px-1 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Recommended choices as nodes on the road ─── */}
+          {recommendedChoices.map((ch, i) => {
+            const isLeft = i % 2 === 0
+            return (
+              <div key={ch.id} className="w-full max-w-md">
+                <RoadDown h={i === 0 ? 40 : 30} />
+                <div className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
+                  {/* Choice card */}
+                  <Link href={ch.id === 'see' ? '/races' : `/milestones/${ch.id}`}
+                    className={`flex-1 p-2.5 rounded-xl border transition-all hover:shadow-md hover:scale-[1.02] ${ch.id === 'see' ? `border-dashed ${pill}` : ch.id === 'cX' ? `${day ? 'bg-indigo-600 border-indigo-600' : 'bg-purple-800 border-purple-600'} text-white shadow-lg` : `${pill} shadow-sm`}`}>
+                    <div className={`font-semibold text-[10px] ${ch.id === 'cX' ? 'text-sky-200' : day ? 'text-sky-600' : 'text-sky-400'}`}>{ch.name}</div>
+                    {ch.success !== null && <div className={`text-[9px] ${ch.id === 'cX' ? 'text-sky-300' : sub}`}>Success: {ch.success}% · {ch.attempts}</div>}
+                  </Link>
+                  {/* Connector arm */}
+                  <div className={`w-6 h-[3px] ${day ? 'bg-sky-300' : 'bg-indigo-600'}`} />
+                  {/* Road node */}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md flex-shrink-0 ${ch.id === 'cX' ? 'bg-gradient-to-br from-indigo-500 to-purple-600 ring-2 ring-indigo-300' : ch.id === 'see' ? `${day ? 'bg-slate-100 border-2 border-dashed border-slate-300' : 'bg-indigo-900 border-2 border-dashed border-indigo-600'}` : `${day ? 'bg-sky-100 border-2 border-sky-300' : 'bg-indigo-800 border-2 border-indigo-500'}`}`}>
+                    <span className="text-xs">{ch.id === 'see' ? '…' : ch.id === 'cX' ? '⭐' : '🔵'}</span>
+                  </div>
+                  {/* Connector arm (other side) */}
+                  <div className="w-6 h-[3px] bg-transparent" />
+                  {/* Empty spacer for symmetry */}
+                  <div className="flex-1" />
+                </div>
+              </div>
+            )
+          })}
+
+          {/* ─── ROAD: continues down ─── */}
+          <RoadDown h={30} />
+
+          {/* Previous steps */}
+          <button onClick={() => setShowPreviousSteps(!showPreviousSteps)} className={`flex items-center gap-1 text-[10px] ${sub} hover:opacity-70`}>
+            {showPreviousSteps ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            <span className="italic">(previous steps)</span>
+          </button>
+          {showPreviousSteps && (
+            <div className="space-y-1 max-w-[240px] mt-1 mb-1">
+              {previousSteps.map(s => (
+                <div key={s.id} className="flex items-center gap-1.5 text-[10px]">
+                  <div className="w-3.5 h-3.5 rounded-full bg-sky-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[7px]">✓</span></div>
+                  <span className={sub}>{s.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ─── ROAD: down to start line ─── */}
+          <RoadDown h={60} />
+
+          {/* ═══════════════════
+              START LINE
+             ═══════════════════ */}
+          <div className="flex flex-col items-center mb-3">
+            {/* Checkered start line */}
+            <div className="flex mb-2">
+              {Array.from({ length: 10 }, (_, i) => (
+                <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
+              ))}
+            </div>
+            <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line — Landing Spot</span>
+          </div>
+
+
+          {/* Final road segment to journal */}
+          <RoadDown h={50} />
+
+          {/* Journal */}
+          <div className="pb-10">
+            <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-5 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
+              <Sparkles className="w-4 h-4" /> Journal / Reflection
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
 export default function RacesView() {
   return (
-    <Suspense fallback={<div className="p-8">Loading races...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-lg">🚀 Loading Dream Land...</div>}>
       <RacesContent />
     </Suspense>
   )

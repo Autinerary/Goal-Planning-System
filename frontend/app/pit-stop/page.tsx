@@ -365,10 +365,19 @@ function PitStopContent() {
       </div>
       <div className="relative z-10">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header — Tool Market / Shed / Shop */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Pit Stop</h1>
-          <p className="text-slate-700">Your hub for tools and connections</p>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-4xl">🛒</span>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800">Pit Stop</h1>
+              <p className="text-slate-600 text-sm italic">Tool Market · Shed · Shop</p>
+            </div>
+            <div className="flex gap-1 ml-auto text-2xl">
+              <span title="Key">🔑</span><span title="Hammer">🔨</span><span title="Shield">🛡️</span><span title="Boots">👢</span><span title="Wrench">🔧</span>
+            </div>
+          </div>
+          <p className="text-slate-700">Your hub for tools and connections — search for autism-friendly services</p>
         </div>
 
         {/* Tab Navigation */}
@@ -381,7 +390,7 @@ function PitStopContent() {
                 : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
-            Tools & Resources
+            Tools & Resources 🔧
           </button>
           <button
             onClick={() => setActiveTab('haveworld')}
@@ -497,9 +506,10 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {roleModels.map((rm) => (
+                  {roleModels.map((rm, i) => (
                     <div key={rm.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                       <div className="flex items-center gap-3">
+                        <span className="text-lg">{['🔑','🔨','🛡️','🔧','👢'][i % 5]}</span>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
                           {rm.icon}
                         </div>
@@ -539,9 +549,10 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {mentors.map((m) => (
+                  {mentors.map((m, i) => (
                     <div key={m.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-3">
+                        <span className="text-lg">{['🔧','🔑','🏋️','🛡️','🔨'][i % 5]}</span>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
                           {m.icon}
                         </div>
@@ -576,9 +587,10 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {friends.map((f) => (
+                  {friends.map((f, i) => (
                     <div key={f.id} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
                       <div className="flex items-center gap-3">
+                        <span className="text-lg">{['👢','🔨','🔑','🧴','🛡️'][i % 5]}</span>
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold">
                           {f.icon}
                         </div>

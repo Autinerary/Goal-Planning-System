@@ -330,12 +330,17 @@ function CalendarContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8 relative overflow-hidden">
-      {/* Background decorations */}
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/50 to-sky-50 p-8 relative overflow-hidden">
+      <style>{`@keyframes turtlePeek{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}} @keyframes scrollUnfurl{from{max-height:0;opacity:0}to{max-height:2000px;opacity:1}} .turtle-peek{animation:turtlePeek 3s ease-in-out infinite}`}</style>
+      {/* Background decorations + Turtles peeking */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-amber-200/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-sky-200/30 rounded-full blur-3xl" />
+        {/* Turtles peeking from edges */}
+        <div className="absolute top-32 left-0 text-3xl turtle-peek" style={{ animationDelay: '0s' }}>🐢</div>
+        <div className="absolute top-64 right-0 text-3xl turtle-peek transform -scale-x-100" style={{ animationDelay: '1s' }}>🐢</div>
+        <div className="absolute bottom-40 left-4 text-2xl turtle-peek" style={{ animationDelay: '0.5s' }}>🐢</div>
+        <div className="absolute bottom-20 right-6 text-2xl turtle-peek transform -scale-x-100" style={{ animationDelay: '1.5s' }}>🐢</div>
       </div>
       <div className="relative z-10">
         {/* Suggestion Modal */}
@@ -425,10 +430,22 @@ function CalendarContent() {
           </div>
         </div>
       )}
-        {/* Header */}
+        {/* Header — Travel Guide / Map Scroll */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Calendar</h1>
-          <p className="text-slate-700">Plan your week with personalized schedules</p>
+          {/* Milestone from Race at top */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 Race 1: Graduate University</div>
+            <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: Request Accommodations</div>
+          </div>
+          {/* Scroll-shaped header */}
+          <div className="relative bg-gradient-to-b from-amber-100 to-amber-50 border-2 border-amber-400 rounded-xl p-5 shadow-md">
+            {/* Scroll curl top */}
+            <div className="absolute -top-3 left-6 right-6 h-6 bg-gradient-to-b from-amber-300 to-amber-100 rounded-t-full border-2 border-b-0 border-amber-400" />
+            {/* Scroll curl bottom */}
+            <div className="absolute -bottom-3 left-6 right-6 h-6 bg-gradient-to-t from-amber-300 to-amber-100 rounded-b-full border-2 border-t-0 border-amber-400" />
+            <h1 className="text-3xl font-bold text-amber-900 mb-1 flex items-center gap-2">🗺️ Your Travel Guide</h1>
+            <p className="text-amber-700 text-sm">Schedule as your TRAVEL guide — plan your journey through each day</p>
+          </div>
         </div>
 
         {/* View Toggle */}

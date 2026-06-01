@@ -3,187 +3,284 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { X, Sparkles, Calendar, Heart } from 'lucide-react'
+import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function MilestoneView() {
   const router = useRouter()
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set())
+  const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
+  const [expandedTool, setExpandedTool] = useState<string | null>(null)
+  const [showGif, setShowGif] = useState<string | null>(null)
 
   const toggleLike = (itemId: string) => {
     setLikedItems(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId)
-      } else {
-        newSet.add(itemId)
-      }
+      if (newSet.has(itemId)) { newSet.delete(itemId) } else { newSet.add(itemId) }
       return newSet
     })
   }
 
+  const unlockBarrier = (barrierId: string) => {
+    setShowGif(barrierId)
+    setTimeout(() => {
+      setUnlockedBarriers(prev => new Set(prev).add(barrierId))
+      setTimeout(() => setShowGif(null), 1200)
+    }, 600)
+  }
+
   const races = [
-    { id: 'race_1', name: 'Race 1', progress: 80 },
-    { id: 'race_2', name: 'Race 2', progress: 25 },
+    { id: 'race_1', name: 'Graduate University', progress: 45 },
+    { id: 'race_2', name: 'Get Tech Job', progress: 20 },
   ]
 
-  // Updated to show "Yours vs. theirs" structure
-  const rows = [
-    { 
-      category: 'Summary',
-      yours: { milestone: 'Current Milestone:', details: 'Request accommodations for classes.' },
-      theirs: { milestone: 'Current Milestone:', details: 'Sarah completed this in her 2nd semester.' }
-    },
-    {
-      category: 'Services',
-      yours: { items: [
-        { id: 'y_s1', text: '○ Disability Office', liked: false },
-        { id: 'y_s2', text: '○ Academic Advisor', liked: false },
-        { id: 'y_s3', text: '○ ...', liked: false }
-      ]},
-      theirs: { items: [
-        { id: 't_s1', text: '○ Used same disability office', liked: false },
-        { id: 't_s2', text: '○ Found peer mentor', liked: false },
-        { id: 't_s3', text: '○ ...', liked: false }
-      ]}
-    },
-    {
-      category: 'Commentaries\n(Reviews/Videos/\nArticles)',
-      yours: { items: [
-        { id: 'y_c1', text: '○ "Accommodation Guide" video', liked: false },
-        { id: 'y_c2', text: '○ Student success story', liked: false },
-        { id: 'y_c3', text: '○ ...', liked: false }
-      ]},
-      theirs: { items: [
-        { id: 't_c1', text: '○ Watched same video series', liked: false },
-        { id: 't_c2', text: '○ Found helpful blog posts', liked: false },
-        { id: 't_c3', text: '○ ...', liked: false }
-      ]}
-    },
-    {
-      category: 'Products',
-      yours: { items: [
-        { id: 'y_p1', text: '○ Tiimo app', liked: false },
-        { id: 'y_p2', text: '○ Notion templates', liked: false }
-      ]},
-      theirs: { items: [
-        { id: 't_p1', text: '○ Used similar planner app', liked: false },
-        { id: 't_p2', text: '○ Created custom templates', liked: false }
-      ]}
-    },
-    {
-      category: '(Other Helpful\nTools)',
-      yours: { items: [
-        { id: 'y_o1', text: '○ Study group (online)', liked: false },
-        { id: 'y_o2', text: '○ Peer support', liked: false }
-      ]},
-      theirs: { items: [
-        { id: 't_o1', text: '○ Joined same study group', liked: false },
-        { id: 't_o2', text: '○ Connected with mentors', liked: false }
-      ]}
-    },
+  /* Tool symbols - keys, hammers, lift, spray boots, etc. */
+  const toolSymbols = [
+    { emoji: '🔑', name: 'Key', desc: 'Unlocks access barriers' },
+    { emoji: '🔨', name: 'Hammer', desc: 'Breaks through blockers' },
+    { emoji: '🏋️', name: 'Lift', desc: 'Builds strength over time' },
+    { emoji: '👢', name: 'Spray Boots', desc: 'Speeds through obstacles' },
+    { emoji: '🔧', name: 'Wrench', desc: 'Fixes broken processes' },
+    { emoji: '🛡️', name: 'Shield', desc: 'Protects from setbacks' },
+  ]
+
+  const tools = [
+    { id: 't1', name: 'Disability Office', type: 'Service', symbol: '🔑', barrier: 'b1', desc: 'Access accommodations', url: '#' },
+    { id: 't2', name: 'Academic Advisor', type: 'Service', symbol: '🔧', barrier: 'b2', desc: 'Plan your path', url: '#' },
+    { id: 't3', name: '"Accommodation Guide" video', type: 'Commentary', symbol: '🏋️', barrier: 'b3', desc: 'Learn the process', url: '#' },
+    { id: 't4', name: 'Tiimo App', type: 'Product', symbol: '👢', barrier: 'b4', desc: 'ADHD-friendly planner', url: '#' },
+    { id: 't5', name: 'Study Group (online)', type: 'Other', symbol: '🛡️', barrier: 'b5', desc: 'Peer accountability', url: '#' },
+    { id: 't6', name: 'Notion Templates', type: 'Product', symbol: '🔨', barrier: 'b3', desc: 'Organize everything', url: '#' },
+  ]
+
+  const barriers = [
+    { id: 'b1', name: 'Don\'t know where to start', severity: 1, unlocked: true },
+    { id: 'b2', name: 'Overwhelmed by paperwork', severity: 2, unlocked: false },
+    { id: 'b3', name: 'Fear of disclosure', severity: 3, unlocked: false },
+    { id: 'b4', name: 'Time management struggles', severity: 2, unlocked: false },
+    { id: 'b5', name: 'Social anxiety in groups', severity: 3, unlocked: false },
   ]
 
   return (
-    <div className="min-h-screen bg-white/30 backdrop-blur-sm p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
-          {/* Header row */}
-          <div className="grid grid-cols-[120px_1fr_1fr] md:grid-cols-[180px_1fr_1fr] border-b-2 border-slate-200 bg-slate-50">
-            <div className="p-4 border-r-2 border-slate-200 flex items-center justify-center">
-              <button 
-                onClick={() => router.back()}
-                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100">
+      {/* Wooden signpost header */}
+      <div className="relative">
+        <div className="max-w-4xl mx-auto px-4 pt-6 pb-4">
+          {/* Close button */}
+          <button onClick={() => router.back()} className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white shadow-sm z-10">
+            <X className="w-5 h-5 text-slate-600" />
+          </button>
+
+          {/* Sign post structure */}
+          <div className="flex flex-col items-center">
+            {/* Hanging sign */}
+            <div className="relative">
+              {/* Rope/chains */}
+              <div className="flex justify-center gap-32 mb-1">
+                <div className="w-1 h-4 bg-amber-700 rounded-full" />
+                <div className="w-1 h-4 bg-amber-700 rounded-full" />
+              </div>
+              <div className="bg-gradient-to-b from-amber-200 to-amber-300 border-4 border-amber-700 rounded-xl px-8 py-4 shadow-lg" style={{ animation: 'signSwing 4s ease-in-out infinite', transformOrigin: 'top center' }}>
+                <style>{`@keyframes signSwing{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1deg)}} @keyframes unlockPop{0%{transform:scale(1)}30%{transform:scale(1.3)}60%{transform:scale(0.9)}100%{transform:scale(1)}} @keyframes shatter{0%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}100%{opacity:0;transform:scale(0) rotate(180deg)}} @keyframes barGrow{from{width:0}}`}</style>
+                {/* Nails */}
+                <div className="absolute top-2 left-3 w-2 h-2 rounded-full bg-amber-600" />
+                <div className="absolute top-2 right-3 w-2 h-2 rounded-full bg-amber-600" />
+                <h1 className="text-2xl font-bold text-amber-900 text-center">🪧 Milestone View</h1>
+                <p className="text-amber-700 text-sm text-center mt-1">{races[0].name} — Race 1</p>
+              </div>
+            </div>
+            {/* Post */}
+            <div className="w-3 h-8 bg-amber-800 rounded-b" />
+          </div>
+
+          {/* Progress bar — game style, getting BIGGER */}
+          <div className="mt-4 max-w-md mx-auto">
+            <div className="flex justify-between text-xs font-bold text-amber-800 mb-1">
+              <span>Progress: {races[0].progress}%</span>
+              <span>🏁 Finish</span>
+            </div>
+            <div className="relative h-6 bg-amber-200 rounded-full border-2 border-amber-600 overflow-hidden shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-full transition-all duration-1000 relative"
+                style={{ width: `${races[0].progress}%`, animation: 'barGrow 1.5s ease-out' }}
               >
-                <X className="w-5 h-5 text-slate-600" />
-              </button>
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 text-sm">🧑‍🚀</div>
+              </div>
+              {/* Level markers */}
+              {[25, 50, 75].map(p => (
+                <div key={p} className="absolute top-0 bottom-0 w-0.5 bg-amber-600/30" style={{ left: `${p}%` }} />
+              ))}
             </div>
-            <div className="p-4 border-r-2 border-slate-200">
-              <div className="font-bold text-slate-800">Yours</div>
-              <div className="text-slate-600 text-sm">Your current progress</div>
+            <div className="flex justify-between text-[9px] text-amber-600 mt-0.5">
+              {['Start', 'Lv 1', 'Lv 2', 'Lv 3', 'Dream'].map((l, i) => (
+                <span key={i}>{l}</span>
+              ))}
             </div>
-            <div className="p-4">
-              <div className="font-bold text-slate-800">Theirs</div>
-              <div className="text-slate-600 text-sm">Role models' / Mentors' approach</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content: Tools to Use | Barriers Unlocked */}
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <div className="grid md:grid-cols-2 gap-4">
+
+          {/* LEFT: Tools to Use */}
+          <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
+            <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Wrench className="w-5 h-5" /> Tools to Use
+              </h2>
+              <p className="text-amber-100 text-xs">Choose your tools to remove barriers</p>
+            </div>
+
+            {/* Tool symbol legend */}
+            <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex flex-wrap gap-2">
+              {toolSymbols.map((ts, i) => (
+                <div key={i} className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  <span>{ts.emoji}</span>
+                  <span className="font-medium">{ts.name}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-3 space-y-2">
+              {tools.map(tool => {
+                const isUnlocked = unlockedBarriers.has(tool.barrier)
+                return (
+                  <button
+                    key={tool.id}
+                    onClick={() => setExpandedTool(expandedTool === tool.id ? null : tool.id)}
+                    className={`w-full text-left p-3 rounded-xl border-2 transition-all hover:shadow-md ${isUnlocked ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200 hover:border-amber-400'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{tool.symbol}</span>
+                      <div className="flex-1">
+                        <div className="font-bold text-sm text-slate-800">{tool.name}</div>
+                        <div className="text-xs text-slate-500">{tool.type} · {tool.desc}</div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {isUnlocked && <span className="text-green-500 text-xs font-bold">✓ Used</span>}
+                        <button
+                          onClick={e => { e.stopPropagation(); toggleLike(tool.id) }}
+                          className={`p-1 rounded-full transition-colors ${likedItems.has(tool.id) ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
+                        >
+                          <Heart className={`w-4 h-4 ${likedItems.has(tool.id) ? 'fill-red-500' : ''}`} />
+                        </button>
+                      </div>
+                    </div>
+                    {expandedTool === tool.id && (
+                      <div className="mt-2 pt-2 border-t border-amber-100 text-xs text-slate-600">
+                        <p>→ Targets barrier: <strong>{barriers.find(b => b.id === tool.barrier)?.name}</strong></p>
+                        <a href={tool.url} className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Data rows */}
-          {rows.map((row, rowIdx) => (
-            <div 
-              key={rowIdx} 
-              className="grid grid-cols-[120px_1fr_1fr] md:grid-cols-[180px_1fr_1fr] border-b-2 border-slate-200 last:border-b-0 hover:bg-slate-50/50 transition-colors"
-            >
-              <div className="p-4 border-r-2 border-slate-200 font-semibold whitespace-pre-line text-sm text-slate-700 bg-slate-50/50">
-                {row.category}
-              </div>
-              <div className="p-4 border-r-2 border-slate-200 text-sm">
-                {row.yours.milestone && (
-                  <>
-                    <div className="font-medium text-slate-700">{row.yours.milestone}</div>
-                    <div className="text-slate-500 italic">{row.yours.details}</div>
-                  </>
-                )}
-                {row.yours.items && row.yours.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 text-slate-600 hover:text-cyan-600 cursor-pointer transition-colors group">
-                    <span>{item.text}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleLike(item.id)
-                      }}
-                      className={`opacity-0 group-hover:opacity-100 transition-opacity ${
-                        likedItems.has(item.id) ? 'opacity-100 text-red-500' : 'text-slate-400 hover:text-red-500'
-                      }`}
+          {/* RIGHT: Barriers — Getting BIGGER each time */}
+          <div className="bg-white/80 backdrop-blur border-2 border-red-200 rounded-2xl overflow-hidden shadow-md">
+            <div className="bg-gradient-to-r from-red-400 to-rose-500 px-4 py-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Shield className="w-5 h-5" /> Barriers to Unlock
+              </h2>
+              <p className="text-red-100 text-xs">Getting bigger each time — break them down!</p>
+            </div>
+
+            <div className="p-3 space-y-3">
+              {barriers.map((barrier, idx) => {
+                const isUnlocked = unlockedBarriers.has(barrier.id)
+                const isAnimating = showGif === barrier.id
+                /* Bars get BIGGER with severity */
+                const barHeight = 40 + barrier.severity * 16
+                return (
+                  <div key={barrier.id} className="relative">
+                    {/* Barrier block — grows with severity */}
+                    <div
+                      className={`relative rounded-xl border-2 transition-all duration-500 overflow-hidden ${isUnlocked ? 'border-green-300 bg-green-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'} ${isAnimating ? 'animate-pulse' : ''}`}
+                      style={{ minHeight: barHeight }}
                     >
-                      <Heart className={`w-4 h-4 ${likedItems.has(item.id) ? 'fill-red-500' : ''}`} />
-                    </button>
+                      {/* Shatter effect when unlocking */}
+                      {isAnimating && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                          <div className="text-4xl" style={{ animation: 'unlockPop 0.6s ease-out' }}>🔓</div>
+                        </div>
+                      )}
+
+                      <div className="p-3 flex items-center gap-3">
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`}>
+                          {isUnlocked ? <Unlock className="w-5 h-5 text-green-600" /> : <Lock className="w-5 h-5 text-red-600" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`font-bold text-sm ${isUnlocked ? 'text-green-700 line-through' : 'text-red-800'}`}>
+                            {barrier.name}
+                          </div>
+                          {/* Game bar — highlighted, gets bigger */}
+                          <div className={`mt-1 rounded-full overflow-hidden ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`} style={{ height: 6 + barrier.severity * 3 }}>
+                            <div
+                              className={`h-full rounded-full transition-all duration-700 ${isUnlocked ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-red-400 to-rose-500'}`}
+                              style={{ width: isUnlocked ? '100%' : `${barrier.severity * 25}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[9px] text-slate-500">Severity: {'🔥'.repeat(barrier.severity)}</span>
+                            {isUnlocked && <span className="text-[9px] text-green-600 font-bold">CLEARED!</span>}
+                          </div>
+                        </div>
+                        {!isUnlocked && (
+                          <button
+                            onClick={() => unlockBarrier(barrier.id)}
+                            className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-lg shadow hover:scale-105 transition-all"
+                          >
+                            Use Tool
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ))}
+                )
+              })}
+            </div>
+
+            {/* Unlock progress */}
+            <div className="px-4 pb-4">
+              <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                <span>Barriers Cleared</span>
+                <span>{unlockedBarriers.size}/{barriers.length}</span>
               </div>
-              <div className="p-4 text-sm">
-                {row.theirs.milestone && (
-                  <>
-                    <div className="font-medium text-slate-700">{row.theirs.milestone}</div>
-                    <div className="text-slate-500 italic">{row.theirs.details}</div>
-                  </>
-                )}
-                {row.theirs.items && row.theirs.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 text-slate-600 hover:text-cyan-600 cursor-pointer transition-colors group">
-                    <span>{item.text}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleLike(item.id)
-                      }}
-                      className={`opacity-0 group-hover:opacity-100 transition-opacity ${
-                        likedItems.has(item.id) ? 'opacity-100 text-red-500' : 'text-slate-400 hover:text-red-500'
-                      }`}
-                    >
-                      <Heart className={`w-4 h-4 ${likedItems.has(item.id) ? 'fill-red-500' : ''}`} />
-                    </button>
-                  </div>
-                ))}
+              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all" style={{ width: `${(unlockedBarriers.size / barriers.length) * 100}%` }} />
               </div>
             </div>
-          ))}
-
-          {/* Footer buttons */}
-          <div className="p-4 flex flex-wrap gap-4 justify-end bg-slate-50 border-t-2 border-slate-200">
-            <Link 
-              href="/reflection?contextType=milestone"
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg transition-all"
-            >
-              <Sparkles className="w-4 h-4" />
-              Journal / Reflection
-            </Link>
-            <Link 
-              href="/calendar"
-              className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-all"
-            >
-              <Calendar className="w-4 h-4" />
-              Calendar View
-            </Link>
           </div>
+        </div>
+
+        {/* Summary section */}
+        <div className="mt-6 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
+          <h3 className="font-bold text-amber-900 mb-2">📋 Summary</h3>
+          <p className="text-sm text-slate-600">Current Milestone: <strong>Request accommodations for classes.</strong></p>
+          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
+        </div>
+
+        {/* Could add gifs of barriers being unlocked */}
+        {showGif && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 pointer-events-none">
+            <div className="text-center" style={{ animation: 'unlockPop 1s ease-out' }}>
+              <div className="text-8xl mb-2">🔓</div>
+              <div className="text-2xl font-bold text-white drop-shadow-lg">Barrier Unlocked!</div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer navigation */}
+        <div className="mt-6 flex justify-center gap-3">
+          <Link href="/reflection?contextType=milestone" className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+            <Sparkles className="w-4 h-4" /> Journal / Reflection
+          </Link>
+          <Link href="/calendar" className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+            <Calendar className="w-4 h-4" /> Calendar
+          </Link>
         </div>
       </div>
     </div>

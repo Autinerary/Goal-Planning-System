@@ -6,14 +6,70 @@ import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 import { 
   User, Check, ChevronRight, ChevronLeft, Loader2,
-  Target, Sparkles, Heart, Zap, AlertCircle
+  Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
+// Character avatar options
+const characterTypes = [
+  { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
+  { id: 'spirit_animal', label: 'Choose a Mascot / Spirit Animal', description: 'Pick an animal to represent your journey', icon: '🐾' },
+]
+
+const hairStyles = [
+  { id: 'short_straight', label: 'Short & Straight', emoji: '💇' },
+  { id: 'short_curly', label: 'Short & Curly', emoji: '🌀' },
+  { id: 'long_straight', label: 'Long & Straight', emoji: '💇‍♀️' },
+  { id: 'long_curly', label: 'Long & Curly', emoji: '🌊' },
+  { id: 'braids', label: 'Braids', emoji: '🎀' },
+  { id: 'buzz', label: 'Buzz Cut', emoji: '✂️' },
+  { id: 'none', label: 'No Hair / Bald', emoji: '🌟' },
+]
+
+const bodyTypes = [
+  { id: 'tall', label: 'Tall' },
+  { id: 'short', label: 'Short' },
+]
+
+const cloudThemes = [
+  { id: 'sunrise', label: 'Sunrise', colors: 'from-orange-200 via-pink-200 to-purple-200' },
+  { id: 'daydream', label: 'Daydream', colors: 'from-sky-200 via-blue-100 to-indigo-200' },
+  { id: 'sunset', label: 'Sunset', colors: 'from-amber-200 via-rose-200 to-violet-200' },
+  { id: 'night', label: 'Night Sky', colors: 'from-indigo-300 via-purple-300 to-slate-300' },
+]
+
+// Spirit animal options for the spirit animal step
+const spiritAnimalOptions = [
+  { id: 'bunny', emoji: '🐰', label: 'Bunny' },
+  { id: 'fox', emoji: '🦊', label: 'Fox' },
+  { id: 'owl', emoji: '🦉', label: 'Owl' },
+  { id: 'cat', emoji: '🐱', label: 'Cat' },
+  { id: 'dog', emoji: '🐶', label: 'Dog' },
+  { id: 'bear', emoji: '🐻', label: 'Bear' },
+  { id: 'deer', emoji: '🦌', label: 'Deer' },
+  { id: 'butterfly', emoji: '🦋', label: 'Butterfly' },
+  { id: 'turtle', emoji: '🐢', label: 'Turtle' },
+  { id: 'penguin', emoji: '🐧', label: 'Penguin' },
+  { id: 'dolphin', emoji: '🐬', label: 'Dolphin' },
+  { id: 'dragon', emoji: '🐉', label: 'Dragon' },
+]
+
+const spiritAnimalColors = [
+  { id: 'pink', label: 'Pink', hex: '#f472b6', bg: 'bg-pink-300' },
+  { id: 'blue', label: 'Blue', hex: '#60a5fa', bg: 'bg-blue-300' },
+  { id: 'purple', label: 'Purple', hex: '#a78bfa', bg: 'bg-purple-300' },
+  { id: 'green', label: 'Green', hex: '#4ade80', bg: 'bg-green-300' },
+  { id: 'orange', label: 'Orange', hex: '#fb923c', bg: 'bg-orange-300' },
+  { id: 'gold', label: 'Gold', hex: '#fbbf24', bg: 'bg-yellow-300' },
+  { id: 'teal', label: 'Teal', hex: '#2dd4bf', bg: 'bg-teal-300' },
+  { id: 'red', label: 'Red', hex: '#f87171', bg: 'bg-red-300' },
+]
+
 // Step components
 const steps = [
+  { id: 'character', title: 'Character Select', icon: User },
   { id: 'role', title: 'Your Role', icon: User },
   { id: 'location', title: 'Location', icon: User },
   { id: 'barriers', title: 'Your Barriers', icon: AlertCircle },
@@ -21,6 +77,8 @@ const steps = [
   { id: 'dreams', title: 'Your Dreams', icon: Sparkles },
   { id: 'challenges', title: 'Current Challenges', icon: Heart },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
+  { id: 'profile', title: 'Dream Self', icon: Palette },
+  { id: 'spiritAnimal', title: 'Spirit Animals', icon: Heart },
   { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
 ]
 
@@ -115,7 +173,16 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
+  // Rocket ship launch animation state
+  const [showRocketTransition, setShowRocketTransition] = useState(false)
+
   const [formData, setFormData] = useState({
+    // Character select
+    characterType: '' as string, // 'avatar' or 'spirit_animal'
+    bodyType: '' as string,
+    hairStyle: '' as string,
+    cloudTheme: 'daydream' as string,
+    // Questions
     role: '' as string,
     location: {
       city: '',
@@ -127,7 +194,11 @@ export default function OnboardingPage() {
     goals: [''],
     dreams: [''],
     currentChallenges: [''],
-    motivationType: ''
+    motivationType: '',
+    // Profile customization
+    dreamSelf: '',
+    // Spirit animals (up to 2)
+    spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
   
   const [recommendations, setRecommendations] = useState<any[]>([])
@@ -176,21 +247,24 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return formData.role !== ''
-      case 1: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
-      case 2: return formData.barrierTypes.length > 0
-      case 3: return formData.goals.some(g => g.trim())
-      case 4: return formData.dreams.some(d => d.trim())
-      case 5: return formData.currentChallenges.some(c => c.trim())
-      case 6: return formData.motivationType !== '' && formData.lifeStage !== ''
-      case 7: return true // Recommendations step - can always proceed (optional to save)
+      case 0: return formData.characterType !== '' // Character select
+      case 1: return formData.role !== ''
+      case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
+      case 3: return formData.barrierTypes.length > 0
+      case 4: return formData.goals.some(g => g.trim())
+      case 5: return formData.dreams.some(d => d.trim())
+      case 6: return formData.currentChallenges.some(c => c.trim())
+      case 7: return formData.motivationType !== '' && formData.lifeStage !== ''
+      case 8: return formData.dreamSelf.trim() !== '' // Profile customization
+      case 9: return formData.spiritAnimals.length > 0 && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals
+      case 10: return true // Recommendations step - can always proceed (optional to save)
       default: return false
     }
   }
   
   // Fetch AI recommendations when reaching the recommendations step
   useEffect(() => {
-    if (currentStep === 7 && recommendations.length === 0 && !isLoadingRecommendations) {
+    if (currentStep === 10 && recommendations.length === 0 && !isLoadingRecommendations) {
       fetchRecommendations()
     }
   }, [currentStep])
@@ -313,8 +387,40 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
+      // Rocket ship transition from character select to questions
+      if (currentStep === 0) {
+        setShowRocketTransition(true)
+        setTimeout(() => {
+          setCurrentStep(prev => prev + 1)
+          setShowRocketTransition(false)
+        }, 1500)
+        return
+      }
       setCurrentStep(prev => prev + 1)
     }
+  }
+
+  const addSpiritAnimal = () => {
+    if (formData.spiritAnimals.length < 2) {
+      setFormData(prev => ({
+        ...prev,
+        spiritAnimals: [...prev.spiritAnimals, { type: '', color: '' }]
+      }))
+    }
+  }
+
+  const updateSpiritAnimal = (index: number, field: 'type' | 'color', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      spiritAnimals: prev.spiritAnimals.map((a, i) => i === index ? { ...a, [field]: value } : a)
+    }))
+  }
+
+  const removeSpiritAnimal = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      spiritAnimals: prev.spiritAnimals.filter((_, i) => i !== index)
+    }))
   }
 
   const handleBack = () => {
@@ -424,15 +530,15 @@ export default function OnboardingPage() {
 
   const progressPercentage = (currentStep / (steps.length - 1)) * 100
   
-  // Food items positioned along the path
+  // Food items evenly spaced along the path
   const foodItems = [
-    { emoji: '🥕', position: 12.5 },
-    { emoji: '🍎', position: 25 },
-    { emoji: '🥬', position: 37.5 },
-    { emoji: '🍌', position: 50 },
-    { emoji: '🥕', position: 62.5 },
-    { emoji: '🍓', position: 75 },
-    { emoji: '🥕', position: 87.5 },
+    { emoji: '🥕', position: 11 },
+    { emoji: '🍎', position: 22 },
+    { emoji: '🥬', position: 33 },
+    { emoji: '🍌', position: 44 },
+    { emoji: '🥕', position: 55 },
+    { emoji: '🍓', position: 66 },
+    { emoji: '🥕', position: 77 },
   ]
 
   return (
@@ -504,18 +610,16 @@ export default function OnboardingPage() {
           </div>
           
           {/* Step Labels Below Path */}
-          <div className="flex justify-between mt-4 relative">
+          <div className="flex justify-between mt-4 px-2">
             {steps.map((step, idx) => {
               const Icon = step.icon
               const isActive = idx === currentStep
               const isCompleted = idx < currentStep
-              const stepPosition = (idx / (steps.length - 1)) * 100
               
               return (
                 <div 
                   key={step.id} 
-                  className="flex flex-col items-center relative"
-                  style={{ left: `${stepPosition}%`, transform: 'translateX(-50%)' }}
+                  className="flex flex-col items-center flex-1"
                 >
                   <div 
                     className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
@@ -543,8 +647,135 @@ export default function OnboardingPage() {
 
         {/* Step Content Card */}
         <div className="bg-white/90 backdrop-blur-lg border-2 border-white/50 rounded-2xl p-6 md:p-8 shadow-2xl">
-          {/* Step 0: Role */}
+          {/* Rocket Ship Transition Overlay */}
+          {showRocketTransition && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-sky-300 via-indigo-400 to-purple-600 transition-all">
+              <div className="animate-bounce text-8xl mb-4">🚀</div>
+              <h2 className="text-3xl font-bold text-white mb-2 animate-pulse">Launching to Dream Land!</h2>
+              <div className="flex gap-2 mt-4">
+                {['☁️', '⭐', '☁️', '✨', '☁️'].map((e, i) => (
+                  <span key={i} className="text-3xl animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>{e}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 0: Character Select */}
           {currentStep === 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character ✨</h2>
+              <p className="text-slate-600 mb-6">Choose how you want to be represented on your journey through Dream Land.</p>
+              
+              {/* Character Type Selection */}
+              <div className="grid gap-3 mb-6">
+                {characterTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setFormData(prev => ({ ...prev, characterType: type.id }))}
+                    className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
+                      formData.characterType === type.id
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
+                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="text-3xl">{type.icon}</span>
+                    <div className="flex-1">
+                      <div className="font-medium">{type.label}</div>
+                      <div className="text-sm text-slate-400">{type.description}</div>
+                    </div>
+                    {formData.characterType === type.id && (
+                      <Check className="w-5 h-5 text-cyan-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Avatar Customization (if avatar selected) */}
+              {formData.characterType === 'avatar' && (
+                <div className="space-y-6 border-t border-slate-200 pt-6">
+                  {/* Body Type (T/H) */}
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
+                    <div className="flex gap-3">
+                      {bodyTypes.map((bt) => (
+                        <button
+                          key={bt.id}
+                          onClick={() => setFormData(prev => ({ ...prev, bodyType: bt.id }))}
+                          className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                            formData.bodyType === bt.id
+                              ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                              : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                          }`}
+                        >
+                          {bt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Hair Style */}
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Style</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {hairStyles.map((hs) => (
+                        <button
+                          key={hs.id}
+                          onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
+                          className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                            formData.hairStyle === hs.id
+                              ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                              : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                          }`}
+                        >
+                          <span className="text-lg">{hs.emoji}</span>
+                          {hs.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Spirit Animal Preview (if spirit_animal selected) */}
+              {formData.characterType === 'spirit_animal' && (
+                <div className="border-t border-slate-200 pt-6">
+                  <p className="text-sm text-slate-500 mb-2">You'll get to choose and customize your spirit animal(s) after answering a few questions! 🐾</p>
+                </div>
+              )}
+              
+              {/* Cloud Theme */}
+              {formData.characterType && (
+                <div className="border-t border-slate-200 pt-6 mt-6">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Cloud Theme</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {cloudThemes.map((theme) => (
+                      <button
+                        key={theme.id}
+                        onClick={() => setFormData(prev => ({ ...prev, cloudTheme: theme.id }))}
+                        className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all ${
+                          formData.cloudTheme === theme.id
+                            ? 'border-cyan-500 ring-2 ring-cyan-300'
+                            : 'border-slate-200 hover:border-cyan-400'
+                        }`}
+                      >
+                        <div className={`absolute inset-0 bg-gradient-to-r ${theme.colors} opacity-60`} />
+                        <div className="relative">
+                          <span className="text-2xl">☁️</span>
+                          <span className="ml-2 text-sm font-medium text-slate-700">{theme.label}</span>
+                        </div>
+                        {formData.cloudTheme === theme.id && (
+                          <Check className="absolute top-2 right-2 w-4 h-4 text-cyan-600" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 1: Role */}
+          {currentStep === 1 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Tell us about yourself</h2>
               <p className="text-slate-600 mb-6">Your role helps us personalize your experience.</p>
@@ -574,8 +805,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 1: Location */}
-          {currentStep === 1 && (
+          {/* Step 2: Location */}
+          {currentStep === 2 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Where are you located?</h2>
               <p className="text-slate-600 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
@@ -615,8 +846,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: Barriers */}
-          {currentStep === 2 && (
+          {/* Step 3: Barriers */}
+          {currentStep === 3 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">What barriers do you face?</h2>
               <p className="text-slate-600 mb-6">Select all that apply. This helps us find strategies that worked for people like you.</p>
@@ -647,8 +878,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: Goals */}
-          {currentStep === 3 && (
+          {/* Step 4: Goals */}
+          {currentStep === 4 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your goals?</h2>
               <p className="text-slate-600 mb-6">What do you want to achieve? Be specific!</p>
@@ -683,8 +914,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: Dreams */}
-          {currentStep === 4 && (
+          {/* Step 5: Dreams */}
+          {currentStep === 5 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your dreams?</h2>
               <p className="text-slate-600 mb-6">Think bigger! Where do you see yourself in 5-10 years?</p>
@@ -719,8 +950,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 5: Challenges */}
-          {currentStep === 5 && (
+          {/* Step 6: Challenges */}
+          {currentStep === 6 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">What's currently stopping you?</h2>
               <p className="text-slate-600 mb-6">Be honest about the obstacles you're facing right now.</p>
@@ -755,8 +986,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 6: Motivation & Life Stage */}
-          {currentStep === 6 && (
+          {/* Step 7: Motivation & Life Stage */}
+          {currentStep === 7 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
@@ -809,8 +1040,146 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 7: AI Recommendations */}
-          {currentStep === 7 && (
+          {/* Step 8: Profile Customization - Dreams & Dream Self */}
+          {currentStep === 8 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Dream Self ✨</h2>
+              <p className="text-slate-600 mb-6">Start with your DREAMS. Close your eyes and imagine the best version of you — your Dream Self. What does that look like?</p>
+              
+              {/* Dreams Summary */}
+              {formData.dreams.filter(d => d.trim()).length > 0 && (
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+                  <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far 💭</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.dreams.filter(d => d.trim()).map((dream, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-white/80 border border-purple-200 rounded-full text-sm text-purple-700">{dream}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dream Self Description */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Describe your Dream Self</label>
+                  <textarea
+                    value={formData.dreamSelf}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dreamSelf: e.target.value }))}
+                    placeholder="When I close my eyes and imagine my best future self, I see someone who..."
+                    rows={5}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">Think about: What do you look like? What are you doing? How do you feel? Who is around you?</p>
+                </div>
+
+                {/* Avatar Preview */}
+                <div className="bg-gradient-to-br from-sky-100 via-purple-50 to-pink-100 rounded-xl p-6 text-center border border-purple-200">
+                  <div className="text-6xl mb-3">
+                    {formData.characterType === 'avatar' ? '👤' : formData.characterType === 'spirit_animal' ? '🐾' : '✨'}
+                  </div>
+                  <p className="text-sm text-purple-600 font-medium">
+                    {formData.dreamSelf ? `"${formData.dreamSelf.slice(0, 80)}${formData.dreamSelf.length > 80 ? '...' : ''}"` : 'Your Dream Self awaits...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 9: Spirit Animals */}
+          {currentStep === 9 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
+              <p className="text-slate-600 mb-6">Choose up to 2 spirit animals to guide you on your journey. Pick the animal first, then choose its color.</p>
+              
+              {/* Spirit Animal Slots */}
+              {formData.spiritAnimals.map((animal, idx) => (
+                <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-purple-700">Spirit Animal {idx + 1}</h3>
+                    <button
+                      onClick={() => removeSpiritAnimal(idx)}
+                      className="text-sm text-red-400 hover:text-red-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  
+                  {/* Step ① Select Animal */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">① Choose Animal</label>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {spiritAnimalOptions.map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => updateSpiritAnimal(idx, 'type', opt.id)}
+                          className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
+                            animal.type === opt.id
+                              ? 'border-purple-500 bg-purple-100 scale-105'
+                              : 'border-slate-200 hover:border-purple-300 hover:bg-purple-50'
+                          }`}
+                        >
+                          <span className="text-2xl">{opt.emoji}</span>
+                          <span className="text-xs mt-1 text-slate-600">{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Step ② Select Color */}
+                  {animal.type && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">② Choose Color</label>
+                      <div className="flex flex-wrap gap-2">
+                        {spiritAnimalColors.map((color) => (
+                          <button
+                            key={color.id}
+                            onClick={() => updateSpiritAnimal(idx, 'color', color.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
+                              animal.color === color.id
+                                ? 'border-purple-500 ring-2 ring-purple-300'
+                                : 'border-slate-200 hover:border-purple-300'
+                            }`}
+                          >
+                            <span className={`w-4 h-4 rounded-full ${color.bg}`} />
+                            <span className="text-sm text-slate-700">{color.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Preview */}
+                      {animal.color && (
+                        <div className="mt-3 flex items-center gap-3 bg-white rounded-lg p-3 border border-purple-100">
+                          <span className="text-4xl" style={{ filter: `drop-shadow(0 0 8px ${spiritAnimalColors.find(c => c.id === animal.color)?.hex || '#a78bfa'})` }}>
+                            {spiritAnimalOptions.find(o => o.id === animal.type)?.emoji}
+                          </span>
+                          <span className="text-sm text-purple-600 font-medium">
+                            {spiritAnimalColors.find(c => c.id === animal.color)?.label} {spiritAnimalOptions.find(o => o.id === animal.type)?.label}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Add Spirit Animal Button */}
+              {formData.spiritAnimals.length < 2 && (
+                <button
+                  onClick={addSpiritAnimal}
+                  className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-500 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
+                >
+                  {formData.spiritAnimals.length === 0 ? '+ Choose your first spirit animal' : '+ Add a second spirit animal'}
+                </button>
+              )}
+              
+              {formData.spiritAnimals.length === 2 && (
+                <p className="text-sm text-slate-400 text-center mt-2">You've selected 2 spirit animals — the maximum.</p>
+              )}
+            </div>
+          )}
+
+          {/* Step 10: AI Recommendations */}
+          {currentStep === 10 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-6 h-6 text-cyan-400" />
@@ -932,7 +1301,7 @@ export default function OnboardingPage() {
                 disabled={!canProceed()}
                 className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
               >
-                {currentStep === 6 ? 'View Recommendations' : 'Continue'}
+                {currentStep === 9 ? 'View Recommendations' : currentStep === 0 ? '🚀 Launch to Dream Land!' : 'Continue'}
                 <ChevronRight className="w-5 h-5" />
               </button>
             ) : (
