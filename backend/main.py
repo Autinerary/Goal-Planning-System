@@ -24,7 +24,7 @@ if USE_AUTOGEN:
 else:
     from core.orchestrator import Orchestrator
     orchestrator = Orchestrator()
-    print("🔧 Using Custom Multi-Agent Orchestrator")
+    print("� Using LangGraph Multi-Agent Orchestrator")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -72,14 +72,14 @@ async def root():
         "message": "Goal Planning System API",
         "version": "1.0.0",
         "status": "operational",
-        "orchestrator": "AutoGen" if USE_AUTOGEN else "Custom"
+        "orchestrator": "AutoGen" if USE_AUTOGEN else "LangGraph"
     }
 
 @app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
-        "orchestrator_type": "AutoGen" if USE_AUTOGEN else "Custom",
+        "orchestrator_type": "AutoGen" if USE_AUTOGEN else "LangGraph",
         "orchestrator": await orchestrator.health_check()
     }
 
