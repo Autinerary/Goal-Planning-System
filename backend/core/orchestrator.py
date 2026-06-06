@@ -38,6 +38,7 @@ class GenerationState(TypedDict, total=False):
     user_profile: Dict[str, Any]
     goals: List[str]
     barriers: List[str]
+    memory: Dict[str, Any]
     pattern_response: Dict[str, Any]
     path_response: Dict[str, Any]
     tool_response: Dict[str, Any]
@@ -132,6 +133,7 @@ class Orchestrator:
             user_profile=state['user_profile'],
             goals=state['goals'],
             barriers=state['barriers'],
+            memory=state.get('memory', {}),
         )
         return {"pattern_response": response}
 
@@ -141,6 +143,7 @@ class Orchestrator:
             goals=state['goals'],
             barriers=state['barriers'],
             similar_patterns=state.get('pattern_response', {}).get('patterns', []),
+            memory=state.get('memory', {}),
         )
         return {"path_response": response}
 
@@ -149,6 +152,8 @@ class Orchestrator:
             user_profile=state['user_profile'],
             milestones=state.get('path_response', {}).get('milestones', []),
             barriers=state['barriers'],
+            # Cross-agent context: patterns found by pattern_recognition
+            similar_patterns=state.get('pattern_response', {}).get('patterns', []),
         )
         return {"tool_response": response}
 
@@ -157,6 +162,9 @@ class Orchestrator:
             user_profile=state['user_profile'],
             milestones=state.get('path_response', {}).get('milestones', []),
             tasks=state.get('path_response', {}).get('tasks', []),
+            # Cross-agent context: tools and patterns for smarter scheduling
+            recommended_tools=state.get('tool_response', {}).get('tools', []),
+            similar_patterns=state.get('pattern_response', {}).get('patterns', []),
         )
         return {"calendar_response": response}
 
@@ -298,6 +306,7 @@ class Orchestrator:
         user_profile: dict,
         goals: List[str],
         barriers: List[str],
+        memory: Optional[Dict[str, Any]] = None,
     ) -> dict:
         if not self.initialized:
             await self.initialize()
@@ -306,6 +315,7 @@ class Orchestrator:
             "user_profile": user_profile,
             "goals": goals,
             "barriers": barriers,
+            "memory": memory or {},
         }
         result = await self.generation_graph.ainvoke(initial)
         return result.get("final", {})

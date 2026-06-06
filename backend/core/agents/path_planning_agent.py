@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
 from core import llm
+from core import memory as mem
 import asyncio
 import random
 
@@ -107,10 +108,15 @@ class PathPlanningAgent(BaseAgent):
         user_profile: dict,
         goals: List[str],
         barriers: List[str],
-        similar_patterns: List[Dict[str, Any]] = None
+        similar_patterns: List[Dict[str, Any]] = None,
+        memory: Dict[str, Any] = None,
+        **kwargs
     ) -> Dict[str, Any]:
         """Generate a personalized path with milestones"""
-        
+
+        # Render prior-session memory once so every goal's roadmap can build on it.
+        memory_hint = mem.summarize_for_prompt(memory)
+
         # Combine barrier models for intersectional planning
         combined_strategies = []
         combined_strengths = []
@@ -131,7 +137,8 @@ class PathPlanningAgent(BaseAgent):
                 goal_idx=goal_idx,
                 barriers=barriers,
                 strategies=combined_strategies,
-                similar_patterns=similar_patterns or []
+                similar_patterns=similar_patterns or [],
+                memory_hint=memory_hint,
             )
             for goal_idx, goal in enumerate(goals)
         ])
@@ -177,7 +184,8 @@ class PathPlanningAgent(BaseAgent):
         goal_idx: int,
         barriers: List[str],
         strategies: List[str],
-        similar_patterns: List[Dict[str, Any]]
+        similar_patterns: List[Dict[str, Any]],
+        memory_hint: str = ""
     ) -> List[Dict[str, Any]]:
         """Generate milestones for a specific goal across four life dimensions.
 
@@ -211,7 +219,8 @@ class PathPlanningAgent(BaseAgent):
                 user=(
                     f"Goal: {goal}\n"
                     f"Barriers: {', '.join(barriers) or 'none'}\n"
-                    "Return JSON: {"
+                    + (f"Prior history:\n{memory_hint}\n" if memory_hint else "")
+                    + "Return JSON: {"
                     "\"education\": [\"...\", \"...\", \"...\", \"...\"], "
                     "\"workplace\": [\"...\", \"...\", \"...\", \"...\"], "
                     "\"relationships\": [\"...\", \"...\", \"...\", \"...\"], "

@@ -105,7 +105,9 @@ class ToolRecommendationAgent(BaseAgent):
         self,
         user_profile: dict,
         milestones: List[Dict[str, Any]],
-        barriers: List[str]
+        barriers: List[str],
+        similar_patterns: List[Dict[str, Any]] = None,
+        **kwargs
     ) -> Dict[str, Any]:
         """Recommend tools for each milestone"""
         

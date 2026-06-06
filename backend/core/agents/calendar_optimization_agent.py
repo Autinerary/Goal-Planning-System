@@ -94,7 +94,10 @@ class CalendarOptimizationAgent(BaseAgent):
         self,
         user_profile: dict,
         milestones: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        tasks: List[Dict[str, Any]],
+        recommended_tools: List[Dict[str, Any]] = None,
+        similar_patterns: List[Dict[str, Any]] = None,
+        **kwargs
     ) -> Dict[str, Any]:
         """Optimize calendar schedule"""
         

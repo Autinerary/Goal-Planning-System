@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime
 
 from database.supabase_client import get_supabase
+from core import memory as mem
 
 router = APIRouter()
 
@@ -176,14 +177,28 @@ async def create_onboarding(request: OnboardingRequest):
         orchestrator = Orchestrator()
         await orchestrator.initialize()
 
+        # Load this user's cross-session memory so agents build on past plans
+        user_memory = mem.load_user_memory(user_id)
+
         # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
         agent_result = await orchestrator.generate_path(
             user_profile=user_profile,
             goals=request.goals,
-            barriers=request.barrierTypes
+            barriers=request.barrierTypes,
+            memory=user_memory,
         )
 
         await orchestrator.cleanup()
+
+        # Append this run to the user's persistent agent memory
+        mem.record_run(
+            user_id=user_id,
+            kind="generation",
+            user_profile=user_profile,
+            goals=request.goals,
+            barriers=request.barrierTypes,
+            agent_result=agent_result,
+        )
 
         # Store the generated path (cache + Supabase user_paths)
         payload = {
@@ -253,13 +268,23 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
 
         # No prior path → cold start
         if not prior:
+            user_memory = mem.load_user_memory(user_id)
             agent_result = await orchestrator.generate_path(
                 user_profile=merged_profile,
                 goals=merged_profile["goals"],
                 barriers=merged_profile["barrierTypes"],
+                memory=user_memory,
             )
             new_path_id = f"path_{uuid.uuid4().hex[:8]}"
             await orchestrator.cleanup()
+            mem.record_run(
+                user_id=user_id,
+                kind="generation",
+                user_profile=merged_profile,
+                goals=merged_profile["goals"],
+                barriers=merged_profile["barrierTypes"],
+                agent_result=agent_result,
+            )
             payload = {
                 "id": new_path_id,
                 "userId": user_id,
@@ -292,6 +317,16 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
             reflection_data=reflection_data,
         )
         await orchestrator.cleanup()
+
+        # Append this adaptation to the user's persistent agent memory
+        mem.record_run(
+            user_id=user_id,
+            kind="adaptation",
+            user_profile=merged_profile,
+            goals=merged_profile["goals"],
+            barriers=merged_profile["barrierTypes"],
+            agent_result=adaptation_result,
+        )
 
         # Merge adaptation output into the stored path
         updated_payload = dict(prior)

@@ -49,7 +49,9 @@ class PatternRecognitionAgent(BaseAgent):
         self,
         user_profile: dict,
         goals: List[str],
-        barriers: List[str]
+        barriers: List[str],
+        memory: Dict[str, Any] = None,
+        **kwargs
     ) -> Dict[str, Any]:
         """
         Find similar users and success patterns
