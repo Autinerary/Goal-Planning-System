@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
-from api.routes import auth, onboarding, paths, races, milestones, tasks, calendar, reflections, tools, messaging, calls, memes
+from api.routes import auth, onboarding, paths, races, milestones, tasks, calendar, reflections, tools, messaging, calls, memes, memory
 from database.connection import init_db
 
 load_dotenv()
@@ -64,6 +64,7 @@ app.include_router(tools.router, prefix="/api/tools", tags=["tools"])
 app.include_router(messaging.router, tags=["messaging"])
 app.include_router(calls.router, tags=["calls"])
 app.include_router(memes.router, prefix="/api/memes", tags=["memes"])
+app.include_router(memory.router, prefix="/api/memory", tags=["memory"])
 
 @app.get("/")
 async def root():

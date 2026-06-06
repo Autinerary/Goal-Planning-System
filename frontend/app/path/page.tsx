@@ -44,6 +44,20 @@ interface PathData {
   userProfile?: any
 }
 
+interface AgentMemory {
+  userId: string
+  runCount: number
+  recentRuns: Array<{
+    goals?: string[]
+    milestoneTitles?: string[]
+    timestamp?: string
+    kind?: string
+  }>
+  lastGoals: string[]
+  lastBarriers: string[]
+  promptSummary: string
+}
+
 export default function PathView() {
   const router = useRouter()
   const { supabaseUser } = useAuth()
@@ -55,6 +69,9 @@ export default function PathView() {
   const [pathData, setPathData] = useState<PathData | null>(null)
   const [isLoadingPath, setIsLoadingPath] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Cross-session agent memory ("building on your last plan")
+  const [memory, setMemory] = useState<AgentMemory | null>(null)
 
   // Fetch AI-generated path on mount
   useEffect(() => {
@@ -87,6 +104,24 @@ export default function PathView() {
     }
 
     fetchPath()
+  }, [supabaseUser])
+
+  // Fetch persistent agent memory so we can show users we're building on history
+  useEffect(() => {
+    const userId = supabaseUser?.id
+    if (!userId) return
+    const fetchMemory = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/memory/${userId}`)
+        if (res.ok) {
+          const data = (await res.json()) as AgentMemory
+          setMemory(data)
+        }
+      } catch {
+        // Memory is best-effort; silently skip when unavailable.
+      }
+    }
+    fetchMemory()
   }, [supabaseUser])
 
   // Derive races from AI data or use defaults
@@ -213,6 +248,23 @@ export default function PathView() {
       {loadError && (
         <div className="relative z-50 mb-4 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2 rounded-lg">
           {loadError}
+        </div>
+      )}
+
+      {/* Agent memory banner — surfaces cross-session persistence */}
+      {memory && memory.runCount > 0 && (
+        <div className="relative z-50 mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 text-indigo-800 text-sm px-4 py-2 rounded-lg flex items-start gap-2">
+          <Brain className="w-4 h-4 mt-0.5 flex-shrink-0 text-indigo-600" />
+          <div>
+            <span className="font-semibold">
+              Building on your previous {memory.runCount} planning session{memory.runCount === 1 ? '' : 's'}.
+            </span>{' '}
+            {memory.lastGoals.length > 0 && (
+              <span className="text-indigo-700">
+                Last goals: {memory.lastGoals.slice(0, 3).join(', ')}
+              </span>
+            )}
+          </div>
         </div>
       )}
       
