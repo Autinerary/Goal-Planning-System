@@ -3,6 +3,7 @@ import { findSimilarUsersByBarriers } from './similarity'
 import { getCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
 import { completeJSON, isLLMEnabled } from '@/lib/llm'
+import { loadUserMemory, recordRun, summarizeForPrompt } from './memory'
 import type {
   RecommendationAgentInput,
   RecommendationAgentOutput,
@@ -30,6 +31,10 @@ export class RecommendationAgent {
     input: RecommendationAgentInput
   ): Promise<RecommendationAgentOutput> {
     try {
+      // Step 0: Load this user's cross-session memory so the agent can build
+      // on past recommendations instead of starting fresh.
+      const memory = await loadUserMemory(input.userId)
+
       // Step 1: Find similar users (collaborative filtering)
       const similarUsers = await this.findSimilarUsers(input.userId, input.barriers)
 
@@ -46,18 +51,27 @@ export class RecommendationAgent {
         input.context
       )
 
-      // Step 4: Generate explanations (why agent chose these)
-      const explanations = await this.generateExplanations(scoredResources, input.barriers)
+      // Step 4: Generate explanations (why agent chose these), memory-aware
+      const explanations = await this.generateExplanations(
+        scoredResources,
+        input.barriers,
+        summarizeForPrompt(memory)
+      )
 
       // Step 5: Calculate confidence score
       const confidence = this.calculateConfidence(scoredResources, similarUsers.length)
 
-      return {
+      const output: RecommendationAgentOutput = {
         resources: scoredResources.slice(0, 20), // Top 20 recommendations
         matchScores: scoredResources.map((r) => r.score),
         explanations,
         confidence,
       }
+
+      // Step 6: Append this run to the user's persistent agent memory
+      await recordRun(input.userId, input, output)
+
+      return output
     } catch (error) {
       console.error('Error generating recommendations:', error)
       // Return empty result on error
@@ -118,7 +132,8 @@ export class RecommendationAgent {
    */
   private async generateExplanations(
     resources: ScoredResource[],
-    barriers: Barrier[]
+    barriers: Barrier[],
+    memoryHint: string = ''
   ): Promise<string[]> {
     const ruleBased = (resource: ScoredResource): string => {
       const parts: string[] = []
@@ -153,6 +168,7 @@ export class RecommendationAgent {
     const data = await completeJSON<{ explanations: string[] }>(
       'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific.',
       `Barriers: ${barriers.map((b) => b.type).join(', ') || 'none'}\n` +
+        (memoryHint ? `Prior history:\n${memoryHint}\n` : '') +
         `Resources (JSON): ${JSON.stringify(payload)}\n` +
         `Return JSON: {"explanations": ["sentence about resource 0", "sentence about resource 1", ...]}\n` +
         `One sentence (max 25 words) per resource, same order as input.`,
