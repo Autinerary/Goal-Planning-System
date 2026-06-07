@@ -158,6 +158,7 @@ async function RecommendedSection() {
     let finalConfidence = 0
     let finalSynthesisExplanation: string | undefined = undefined
     let finalAgentContributions: any[] | undefined = undefined
+    let finalMemory: { runCount: number; lastTopResources: string[] } | null = null
 
     // Helper to format barrier types for display
     const formatBarrierType = (type: string) => {
@@ -184,6 +185,7 @@ async function RecommendedSection() {
       finalConfidence = synthesis?.confidence || recommendationOutput.confidence || 0
       finalSynthesisExplanation = synthesis?.explanation || orchestrationResult?.explanation
       finalAgentContributions = synthesis?.agentContributions
+      finalMemory = recommendationOutput.memory || null
     } else {
       // Fallback: Use simple recommendation algorithm based on barrier matching
       console.log('Agent returned no recommendations, using fallback algorithm...')
@@ -363,6 +365,7 @@ async function RecommendedSection() {
           synthesisExplanation={finalSynthesisExplanation || orchestrationResult?.explanation}
           agentContributions={finalAgentContributions || synthesis?.agentContributions}
           showSynthesis={true}
+          memory={finalMemory}
         />
       </section>
     )

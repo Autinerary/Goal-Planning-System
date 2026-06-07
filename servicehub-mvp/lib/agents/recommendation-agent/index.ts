@@ -66,6 +66,10 @@ export class RecommendationAgent {
         matchScores: scoredResources.map((r) => r.score),
         explanations,
         confidence,
+        memory: {
+          runCount: memory.runCount,
+          lastTopResources: memory.lastTopResources,
+        },
       }
 
       // Step 6: Append this run to the user's persistent agent memory

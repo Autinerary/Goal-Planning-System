@@ -22,6 +22,15 @@ export interface RecommendationAgentOutput {
   matchScores: number[]
   explanations: string[]
   confidence: number // Agent's confidence in recommendations (0-100)
+  /**
+   * Cross-session memory summary for the requesting user. Present when the
+   * agent has seen this user before so the UI can show a "building on your past
+   * recommendations" note. Undefined / runCount 0 means a fresh user.
+   */
+  memory?: {
+    runCount: number
+    lastTopResources: string[]
+  }
 }
 
 export interface ScoredResource extends Resource {
