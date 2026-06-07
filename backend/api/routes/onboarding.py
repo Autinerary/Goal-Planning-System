@@ -13,6 +13,7 @@ from datetime import datetime
 
 from database.supabase_client import get_supabase
 from core import memory as mem
+from core.guardrails import validate_all_inputs
 
 router = APIRouter()
 
@@ -97,11 +98,11 @@ class OnboardingRequest(BaseModel):
     email: str
     userId: Optional[str] = None  # Supabase auth.users UUID (shared with ServiceHub)
     demographics: Optional[dict] = None
-    barrierTypes: List[str]
+    barrierTypes: List[str] = []  # can be empty — user may have no barriers
     motivationType: str
     goals: List[str]
-    dreams: List[str]
-    currentChallenges: List[str]
+    dreams: List[str] = []
+    currentChallenges: List[str] = []
 
 
 def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[str]) -> None:
@@ -153,6 +154,16 @@ async def create_onboarding(request: OnboardingRequest):
     try:
         user_id = request.userId or f"user_{uuid.uuid4().hex[:8]}"
         path_id = f"path_{uuid.uuid4().hex[:8]}"
+
+        # --- INPUT GUARDRAILS ---
+        is_valid, rejection = validate_all_inputs(
+            goals=request.goals,
+            barriers=request.barrierTypes,
+            dreams=request.dreams,
+            challenges=request.currentChallenges,
+        )
+        if not is_valid:
+            raise HTTPException(status_code=422, detail=rejection)
 
         # Sync barriers to the shared Supabase table so ServiceHub picks them up
         _persist_barriers_to_supabase(user_id, request.email, request.barrierTypes)
@@ -257,6 +268,16 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
             "currentChallenges": request.currentChallenges if request.currentChallenges is not None else prior_profile.get("currentChallenges", []),
             "updatedAt": datetime.utcnow().isoformat(),
         }
+
+        # --- INPUT GUARDRAILS ---
+        is_valid, rejection = validate_all_inputs(
+            goals=merged_profile["goals"],
+            barriers=merged_profile["barrierTypes"],
+            dreams=merged_profile["dreams"],
+            challenges=merged_profile["currentChallenges"],
+        )
+        if not is_valid:
+            raise HTTPException(status_code=422, detail=rejection)
 
         # Sync barriers to Supabase if they changed
         if request.barrierTypes is not None:
