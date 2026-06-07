@@ -962,7 +962,7 @@ function RacesContent() {
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
-                    <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
+                    <a href={process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
               </div>

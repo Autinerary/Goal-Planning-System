@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { LogOut, User, ExternalLink } from 'lucide-react'
 
 async function goToServiceHub() {
-  const base = 'http://localhost:3001'
+  const base = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
   const params = new URLSearchParams()
 
   const profile = localStorage.getItem('autinerary_profile')
