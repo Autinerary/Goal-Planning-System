@@ -2,20 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 import { ArrowRight, Sparkles, Target, Calendar, Brain, Users, Shield, TrendingUp, Trophy, Zap } from 'lucide-react'
 
 const sunsetStyles = `
-  @keyframes walk {
-    0%, 100% { transform: translateX(0) translateY(0); }
-    25% { transform: translateX(10px) translateY(-5px); }
-    50% { transform: translateX(20px) translateY(0); }
-    75% { transform: translateX(10px) translateY(-5px); }
-  }
-  @keyframes jump {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-  }
   @keyframes float {
     0%, 100% { transform: translateY(0) translateX(0); }
     33% { transform: translateY(-10px) translateX(5px); }
@@ -28,12 +17,6 @@ const sunsetStyles = `
   @keyframes cloudMoveSlow {
     0% { transform: translateX(0); }
     100% { transform: translateX(100vw); }
-  }
-  .animal-walk {
-    animation: walk 1s ease-in-out infinite;
-  }
-  .animal-jump {
-    animation: jump 0.8s ease-in-out infinite;
   }
   .cloud-float {
     animation: float 6s ease-in-out infinite;
@@ -51,25 +34,6 @@ const sunsetStyles = `
 
 export default function HomePage() {
   const router = useRouter()
-  const [animalPositions, setAnimalPositions] = useState([
-    { id: 1, x: 5, emoji: '🐰', animation: 'jump' },
-    { id: 2, x: 15, emoji: '🐔', animation: 'walk' },
-    { id: 3, x: 25, emoji: '🐴', animation: 'walk' },
-    { id: 4, x: 35, emoji: '🐶', animation: 'jump' },
-    { id: 5, x: 45, emoji: '🐱', animation: 'walk' },
-  ])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimalPositions(prev => 
-        prev.map(animal => ({
-          ...animal,
-          x: animal.x >= 85 ? 5 : animal.x + 0.5
-        }))
-      )
-    }, 100)
-    return () => clearInterval(interval)
-  }, [])
 
   const features = [
     {
@@ -114,37 +78,8 @@ export default function HomePage() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-48 h-48 bg-orange-400 rounded-full blur-xl opacity-90" />
       </div>
 
-      {/* Hero Section with Animals Walking to Sunset */}
+      {/* Hero Section */}
       <div className="relative z-10">
-        {/* Ground/Path */}
-        <div className="relative h-64 md:h-80 mt-32 md:mt-40">
-          {/* Path */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-r from-green-400 via-green-500 to-green-600 opacity-80" />
-          <div className="absolute bottom-0 left-0 right-0 h-2 bg-yellow-300 opacity-60" style={{ bottom: '24px' }} />
-          
-          {/* Animals Walking */}
-          <div className="absolute bottom-20 left-0 right-0" style={{ height: '80px' }}>
-            {animalPositions.map(animal => (
-              <div
-                key={animal.id}
-                className={`absolute text-6xl md:text-7xl ${animal.animation === 'jump' ? 'animal-jump' : 'animal-walk'}`}
-                style={{ 
-                  left: `${animal.x}%`,
-                  bottom: '0',
-                  transform: 'translateX(-50%)'
-                }}
-              >
-                {animal.emoji}
-              </div>
-            ))}
-          </div>
-
-          {/* Gate at the End */}
-          <div className="absolute bottom-0 right-10 md:right-20" style={{ bottom: '24px' }}>
-            <div className="text-6xl md:text-8xl">🚪</div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-32 h-4 bg-gray-700 rounded" />
-          </div>
-        </div>
 
         {/* Hero Content */}
         <div className="relative max-w-6xl mx-auto px-4 py-12 md:py-20">
