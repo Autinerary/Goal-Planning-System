@@ -199,6 +199,15 @@ async def create_onboarding(request: OnboardingRequest):
             memory=user_memory,
         )
 
+        # Index this user in the vector DB so future users get matched to them
+        await orchestrator.index_user(
+            user_id=user_id,
+            user_profile=user_profile,
+            goals=request.goals,
+            barriers=request.barrierTypes,
+            agent_result=agent_result,
+        )
+
         await orchestrator.cleanup()
 
         # Append this run to the user's persistent agent memory
@@ -297,6 +306,13 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
                 memory=user_memory,
             )
             new_path_id = f"path_{uuid.uuid4().hex[:8]}"
+            await orchestrator.index_user(
+                user_id=user_id,
+                user_profile=merged_profile,
+                goals=merged_profile["goals"],
+                barriers=merged_profile["barrierTypes"],
+                agent_result=agent_result,
+            )
             await orchestrator.cleanup()
             mem.record_run(
                 user_id=user_id,
@@ -337,6 +353,17 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
             path_id=prior_path_id,
             reflection_data=reflection_data,
         )
+
+        # Re-index with the real progress signal so similarity matches improve
+        await orchestrator.index_user(
+            user_id=user_id,
+            user_profile=merged_profile,
+            goals=merged_profile["goals"],
+            barriers=merged_profile["barrierTypes"],
+            agent_result=adaptation_result,
+            success_rate=request.completionRate if request.completionRate is not None else 0.5,
+        )
+
         await orchestrator.cleanup()
 
         # Append this adaptation to the user's persistent agent memory

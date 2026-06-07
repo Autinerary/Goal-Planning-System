@@ -177,3 +177,54 @@ class PatternRecognitionAgent(BaseAgent):
             'minority_networking_model'
         ]
         return models
+
+    async def upsert_user_vector(
+        self,
+        user_id: str,
+        user_profile: dict,
+        goals: List[str],
+        barriers: List[str],
+        success_rate: float = 0.5,
+        journey: str = "",
+    ) -> bool:
+        """Store a user's embedding + metadata in Pinecone.
+
+        This is what makes the "learn from people who came before you" feature
+        real: every onboarded user is indexed so future users can be matched
+        against them. No-ops gracefully when Pinecone isn't connected.
+
+        Returns True if the vector was written, False otherwise.
+        """
+        if not self.vector_db or not user_id:
+            return False
+
+        try:
+            embedding = await self._generate_embedding(
+                profile=user_profile,
+                goals=goals,
+                barriers=barriers,
+            )
+
+            # Pinecone metadata only accepts str/number/bool/list[str].
+            metadata: Dict[str, Any] = {
+                "barriers": [str(b) for b in barriers],
+                "goals": [str(g) for g in goals],
+                "success_rate": float(success_rate),
+                "journey": journey or f"Goals: {', '.join(goals)}",
+            }
+            motivation = user_profile.get("motivationType")
+            if motivation:
+                metadata["motivation_type"] = str(motivation)
+
+            self.vector_db.upsert(
+                vectors=[{
+                    "id": str(user_id),
+                    "values": embedding,
+                    "metadata": metadata,
+                }]
+            )
+            print(f"   ✓ Indexed user {user_id} in Pinecone")
+            return True
+        except Exception as e:
+            print(f"[pattern_recognition] Pinecone upsert skipped: {e}")
+            return False

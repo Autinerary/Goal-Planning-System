@@ -337,6 +337,44 @@ class Orchestrator:
         result = await self.adaptation_graph.ainvoke(initial)
         return result.get("final", {})
 
+    async def index_user(
+        self,
+        user_id: str,
+        user_profile: dict,
+        goals: List[str],
+        barriers: List[str],
+        agent_result: Optional[Dict[str, Any]] = None,
+        success_rate: float = 0.5,
+    ) -> bool:
+        """Store the user's embedding in the vector DB after a run.
+
+        This populates Pinecone so future users get matched against real
+        people. Must be called while the orchestrator is still initialized
+        (before cleanup). No-ops gracefully when Pinecone isn't available.
+        """
+        if not self.initialized:
+            await self.initialize()
+
+        agent = self.agents.get("pattern_recognition")
+        if agent is None:
+            return False
+
+        result = agent_result or {}
+        milestones = result.get("milestones") or (result.get("path") or {}).get("milestones") or []
+        journey = (
+            f"Goals: {', '.join(goals)}. "
+            f"Barriers: {', '.join(barriers) or 'none'}. "
+            f"Milestones: {len(milestones)}."
+        )
+        return await agent.upsert_user_vector(
+            user_id=user_id,
+            user_profile=user_profile,
+            goals=goals,
+            barriers=barriers,
+            success_rate=success_rate,
+            journey=journey,
+        )
+
     async def health_check(self) -> Dict[str, Any]:
         health = {
             'initialized': self.initialized,
