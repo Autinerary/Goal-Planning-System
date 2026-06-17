@@ -206,6 +206,46 @@ export default function OnboardingPage() {
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
   const [recommendationExplanation, setRecommendationExplanation] = useState('')
 
+  // ─── Autosave: persist progress to localStorage so it survives page reloads ───
+  const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
+
+  // Restore saved draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AUTOSAVE_KEY)
+      if (saved) {
+        const { step, data } = JSON.parse(saved)
+        if (data && typeof step === 'number') {
+          setFormData(prev => ({ ...prev, ...data }))
+          setCurrentStep(step)
+        }
+      }
+    } catch {
+      // corrupt data — ignore
+    }
+  }, [])
+
+  // Save on every step change or formData change (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          AUTOSAVE_KEY,
+          JSON.stringify({ step: currentStep, data: formData })
+        )
+      } catch {
+        // quota exceeded — ignore
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [currentStep, formData])
+
+  // Clear autosave on successful submission
+  const clearAutosave = () => {
+    try { localStorage.removeItem(AUTOSAVE_KEY) } catch {}
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -491,6 +531,7 @@ export default function OnboardingPage() {
       }))
 
       await completeOnboarding(response.data.pathId)
+      clearAutosave()
       router.push('/onboarding-confirmation')
     } catch (error: any) {
       console.error('Error creating path:', error)
