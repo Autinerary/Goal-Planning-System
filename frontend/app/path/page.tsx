@@ -358,7 +358,7 @@ export default function PathView() {
               </svg>
 
               {/* Path Nodes */}
-              {pathNodes.map((node) => {
+              {pathNodes.map((node: any) => {
                 const handleNodeClick = () => {
                   if (node.locked) {
                     alert(`Node ${node.number} is locked. Complete previous nodes to unlock it!`)
@@ -471,7 +471,7 @@ export default function PathView() {
                 Races
               </h3>
               <div className="space-y-4">
-                {races.map((race) => (
+                {races.map((race: any) => (
                   <Link 
                     key={race.id}
                     href="/races"

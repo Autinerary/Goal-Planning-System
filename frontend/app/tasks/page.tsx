@@ -173,7 +173,7 @@ export default function TasksPage() {
               <h2 className="text-sm font-bold text-slate-800 mb-0.5">Tasks/</h2>
               <h2 className="text-sm font-bold text-slate-800 mb-3">Hack:</h2>
               <div className="flex-1 space-y-2">
-                {tasksToRender.map(task => {
+                {tasksToRender.map((task: any) => {
                   const done = completedTasks.has(task.id)
                   return (
                     <button

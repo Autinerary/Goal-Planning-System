@@ -561,7 +561,7 @@ function RacesContent() {
                       </div>
                     ))}
                     <div className="flex gap-1 flex-wrap mt-2">
-                      {races[0].models.map(m => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
+                      {races[0].models.map((m: any) => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
                     </div>
                   </div>
 
@@ -1003,7 +1003,7 @@ function RacesContent() {
                     </div>
                   ))}
                   <div className="flex gap-0.5 flex-wrap mt-1">
-                    {races[0].models.map(m => <span key={m} className={`text-[8px] px-1 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
+                    {races[0].models.map((m: any) => <span key={m} className={`text-[8px] px-1 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
                   </div>
                 </div>
               </div>

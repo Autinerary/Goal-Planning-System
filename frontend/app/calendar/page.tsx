@@ -281,7 +281,7 @@ function CalendarContent() {
     }
   }
 
-  const currentData = buildAgentScenarioData() || scenarioData[scenario]
+  const currentData: any = buildAgentScenarioData() || scenarioData[scenario]
   const ScenarioIcon = currentData.icon
 
   // Check for pending suggestion on mount or when params change
@@ -434,7 +434,7 @@ function CalendarContent() {
                     className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800"
                     defaultValue={currentData.days[0]?.name || 'Monday'}
                   >
-                    {currentData.days.map(day => (
+                    {currentData.days.map((day: any) => (
                       <option key={day.name} value={day.name} className="bg-white text-slate-800">{day.name}</option>
                     ))}
                   </select>
