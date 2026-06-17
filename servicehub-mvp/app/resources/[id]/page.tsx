@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps) {
   const image = resource.image_url || '/og-default.png'
 
   return {
-    title: `${resource.name} | ServiceHub`,
+    title: `${resource.name} | ResourceHub`,
     description,
     openGraph: {
       title: resource.name,

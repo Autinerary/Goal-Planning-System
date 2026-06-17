@@ -408,7 +408,7 @@ function PitStopContent() {
                 : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
-            3.5. Pit Stop #2: Have World
+            3.5. Pit Stop #2: Hare World
           </button>
         </div>
 
@@ -456,13 +456,13 @@ function PitStopContent() {
           <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
-              <p className="text-slate-600 mb-4">Redirecting to Service Hub for tools and resources...</p>
+              <p className="text-slate-600 mb-4">Redirecting to Resource Hub for tools and resources...</p>
               <div className="space-y-3">
                 <button
                   onClick={handleToolsRedirect}
                   className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-lg transition-all"
                 >
-                  Go to Service Hub
+                  Go to Resource Hub
                 </button>
                 <a
                   href={SERVICE_HUB_URL}
@@ -470,10 +470,10 @@ function PitStopContent() {
                   rel="noopener noreferrer"
                   className="block text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
                 >
-                  Or open Service Hub in a new tab →
+                  Or open Resource Hub in a new tab →
                 </a>
                 <p className="text-xs text-slate-500 mt-4">
-                  Service Hub URL: {SERVICE_HUB_URL}
+                  Resource Hub URL: {SERVICE_HUB_URL}
                 </p>
               </div>
             </div>
@@ -481,12 +481,12 @@ function PitStopContent() {
           </div>
         )}
 
-        {/* Have World Tab */}
+        {/* Hare World Tab */}
         {activeTab === 'haveworld' && (
           <div className="space-y-6">
             {/* Description */}
             <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-2">3.5. Pit Stop #2: Have World</h2>
+              <h2 className="text-xl font-bold mb-2">3.5. Pit Stop #2: Hare World</h2>
               <p className="text-slate-600 mb-4">Pit Stop hub for people: Connect with Role Models, Mentors, and Friends</p>
               
               {/* View Toggle */}

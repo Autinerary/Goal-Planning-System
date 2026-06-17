@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import ProfileSync from '@/components/layout/ProfileSync'
 
 export const metadata: Metadata = {
-  title: "ServiceHub",
+  title: "ResourceHub",
   description: "Resource rating platform for the autism community",
 };
 

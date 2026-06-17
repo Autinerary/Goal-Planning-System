@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: isAuthenticated 
         ? 'Onboarding completed successfully' 
-        : 'Onboarding data received. Sign in to ServiceHub to save your profile and get personalized recommendations.',
+        : 'Onboarding data received. Sign in to ResourceHub to save your profile and get personalized recommendations.',
       userId: userId,
       barriersAdded,
       recommendations: recommendations.map((r) => ({

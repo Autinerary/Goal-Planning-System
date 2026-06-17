@@ -295,7 +295,7 @@ export default function OnboardingPage() {
       } else {
         // Fallback: show empty state with message
         setRecommendations([])
-        setRecommendationExplanation('Recommendations will be available after you sign in to ServiceHub.')
+        setRecommendationExplanation('Recommendations will be available after you sign in to ResourceHub.')
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error)
@@ -1188,13 +1188,13 @@ export default function OnboardingPage() {
               </div>
               <p className="text-slate-400 mb-4">
                 Based on your profile, we've found resources that may help you achieve your goals. 
-                Save any that interest you to access them later in ServiceHub.
+                Save any that interest you to access them later in ResourceHub.
               </p>
               
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-6">
                 <p className="text-sm text-blue-300">
                   💡 <strong>Note:</strong> To save resources permanently and access "My Resources" in ServiceHub, 
-                  you'll need to sign in to ServiceHub with the same email. Your saved selections will be synced automatically.
+                  you'll need to sign in to ResourceHub with the same email. Your saved selections will be synced automatically.
                 </p>
               </div>
 
@@ -1208,7 +1208,7 @@ export default function OnboardingPage() {
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                   <p className="text-slate-300 mb-2">No recommendations available yet</p>
                   <p className="text-sm text-slate-500">
-                    {recommendationExplanation || 'Sign in to ServiceHub to get personalized recommendations based on your profile.'}
+                    {recommendationExplanation || 'Sign in to ResourceHub to get personalized recommendations based on your profile.'}
                   </p>
                 </div>
               ) : (
@@ -1276,7 +1276,7 @@ export default function OnboardingPage() {
                   
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-4">
                     <p className="text-sm text-blue-300">
-                      💡 <strong>Tip:</strong> You can always find these resources later in ServiceHub's "My Resources" section. 
+                      💡 <strong>Tip:</strong> You can always find these resources later in ResourceHub's "My Resources" section. 
                       You can also recommend new resources to help others in the community.
                     </p>
                   </div>

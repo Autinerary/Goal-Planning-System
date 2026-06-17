@@ -11,13 +11,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-white text-lg font-semibold mb-4">ServiceHub</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">ResourceHub</h3>
             <p className="text-sm mb-4">
               Resource rating platform for the autism community. Rated BY people like you, FOR
               people like you.
             </p>
             <p className="text-xs text-gray-500">
-              © {currentYear} ServiceHub. All rights reserved.
+              © {currentYear} ResourceHub. All rights reserved.
             </p>
           </div>
 

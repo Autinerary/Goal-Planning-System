@@ -111,7 +111,7 @@ export default function AccessibilitySettingsClient({ userId }: AccessibilitySet
               <h1 className="text-3xl font-bold text-gray-900">Accessibility Settings</h1>
             </div>
             <p className="text-gray-600">
-              Customize your experience to make ServiceHub more accessible
+              Customize your experience to make ResourceHub more accessible
             </p>
           </div>
 

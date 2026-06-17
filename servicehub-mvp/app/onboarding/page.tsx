@@ -132,7 +132,7 @@ export default function OnboardingPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">Welcome to ServiceHub</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900">Welcome to ResourceHub</h1>
           <p className="mt-2 text-lg text-gray-600">
             Help us understand your experiences to find resources that work for you
           </p>
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
                   </h2>
                   <p className="text-gray-600">
                     Select all that apply to you. This is the <strong>core innovation</strong> of
-                    ServiceHub - we find resources rated by people with similar barriers.
+                    ResourceHub - we find resources rated by people with similar barriers.
                   </p>
                 </div>
 

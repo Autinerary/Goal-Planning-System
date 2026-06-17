@@ -46,11 +46,11 @@ export default function Navbar() {
             <Link
               href="/"
               className="flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
-              aria-label="ServiceHub Home"
+              aria-label="ResourceHub Home"
             >
-              <span className="sr-only">ServiceHub</span>
+              <span className="sr-only">ResourceHub</span>
               <Home className="w-6 h-6" aria-hidden="true" />
-              <span>ServiceHub</span>
+              <span>ResourceHub</span>
             </Link>
           </div>
 

@@ -208,7 +208,7 @@ export default function PathView() {
     }, 1000)
   }
 
-  // Have World data (static for now)
+  // Hare World data (static for now)
   const roleModels = [
     { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer' },
     { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur' },
@@ -493,7 +493,7 @@ export default function PathView() {
             </div>
           </div>
 
-          {/* Have World Section */}
+          {/* Hare World Section */}
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-300 p-6 mb-6 shadow-lg relative">
             <div className="absolute -top-3 -right-3">
               <button
@@ -555,7 +555,7 @@ export default function PathView() {
 
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-500" />
-              Have World:
+              Hare World:
             </h3>
             <div className="space-y-3">
               <div>
