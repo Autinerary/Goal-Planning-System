@@ -46,8 +46,28 @@ export default function TaskView() {
   const [musicFile, setMusicFile] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
   const [isDoneDancing, setIsDoneDancing] = useState(false)
+  const [todaysMotivation, setTodaysMotivation] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('todaysMotivation')
+    }
+    return null
+  })
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Listen for motivation updates from pinwheel (stored in localStorage by races page)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'todaysMotivation' && e.newValue) setTodaysMotivation(e.newValue)
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  // Derive task name from the route param ID
+  const taskId = params.id as string
+  const currentTask = todaysTasks.find(t => t.id === taskId)
+  const taskName = currentTask?.name || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
 
   const completionCount = completedTasks.size
   const totalTasks = todaysTasks.length
@@ -213,6 +233,7 @@ export default function TaskView() {
           {/* Task Title */}
           <div className="text-center py-5 px-4">
             <h1 className="text-2xl font-bold text-slate-800">Task View</h1>
+            <p className="text-sm text-slate-600 mt-1">{taskName}</p>
             <div className="h-px bg-slate-300 w-32 mx-auto mt-2" />
           </div>
 
@@ -222,8 +243,7 @@ export default function TaskView() {
             {/* LEFT PANEL — Today's Tasks / Hack: */}
             <div className="border-r-0 md:border-r-2 border-b-2 md:border-b-0 border-slate-200 p-4 flex flex-col">
               <h2 className="text-sm font-bold text-slate-800 mb-1">Today&apos;s</h2>
-              <h2 className="text-sm font-bold text-slate-800 mb-0.5">Tasks/</h2>
-              <h2 className="text-sm font-bold text-slate-800 mb-3">Hack:</h2>
+              <h2 className="text-sm font-bold text-slate-800 mb-3">Trick/Hack:</h2>
               <div className="flex-1 space-y-2">
                 {todaysTasks.map(task => {
                   const done = completedTasks.has(task.id)
@@ -308,33 +328,28 @@ export default function TaskView() {
               </div>
             </div>
 
-            {/* RIGHT PANEL — Today's Goals */}
+            {/* RIGHT PANEL — Today's Quote */}
             <div className="border-l-0 md:border-l-2 border-slate-200 p-4 flex flex-col">
-              <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s<br />Goals:</h2>
-              <div className="flex-1 space-y-2">
-                {todaysGoals.map(goal => {
-                  const done = completedGoals.has(goal.id)
-                  return (
-                    <button
-                      key={goal.id}
-                      onClick={() => toggleGoal(goal.id)}
-                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm ${
-                        done
-                          ? 'bg-green-100 border-green-300 text-green-700 line-through'
-                          : 'bg-white/60 border-slate-200 text-slate-700 hover:bg-white/80 hover:border-slate-300'
-                      }`}
-                    >
-                      <span className="flex-shrink-0">
-                        {done ? <Unlock className="w-4 h-4 text-green-500" /> : <Lock className="w-4 h-4 text-slate-400" />}
-                      </span>
-                      <span className="flex-1">{goal.name}</span>
-                    </button>
-                  )
-                })}
+              <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s<br />Quote:</h2>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center px-4">
+                  <p className="text-lg italic text-slate-600 leading-relaxed">&ldquo;The only way to do great work is to love what you do.&rdquo;</p>
+                  <p className="text-xs text-slate-400 mt-3">&mdash; Steve Jobs</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Today's Motivation (from pinwheel spin on Races page) */}
+        {todaysMotivation && (
+          <div className="mt-6 max-w-md mx-auto text-center">
+            <div className="bg-white/60 backdrop-blur-sm border border-amber-200 rounded-xl px-6 py-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Today&apos;s Motivation</p>
+              <p className="text-sm italic text-slate-700">&ldquo;{todaysMotivation}&rdquo;</p>
+            </div>
+          </div>
+        )}
 
         {/* DONE button */}
         <div className="flex justify-center mt-8">

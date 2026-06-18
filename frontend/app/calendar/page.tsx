@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 // Scenario-specific task data
@@ -225,6 +225,7 @@ function CalendarContent() {
   })
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
+  const [showComparison, setShowComparison] = useState(false)
 
   // Pull the live calendar-optimization scenarios from the agent payload.
   const { calendarOptimization } = useAgentPath()
@@ -486,9 +487,14 @@ function CalendarContent() {
           </div>
         </div>
       )}
-        {/* Header — Travel Guide / Map Scroll */}
+        {/* Header */}
         <div className="mb-8">
-          {/* Milestone from Race at top */}
+          {/* Back button */}
+          <button onClick={() => router.back()} className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-medium mb-4 group">
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Back
+          </button>
+          {/* Agent insights */}
           <div className="mb-3">
             <AgentInsightsBanner agent="calendar_optimization" />
           </div>
@@ -496,61 +502,84 @@ function CalendarContent() {
             <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 Race 1: Graduate University</div>
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: Request Accommodations</div>
           </div>
-          {/* Scroll-shaped header */}
-          <div className="relative bg-gradient-to-b from-amber-100 to-amber-50 border-2 border-amber-400 rounded-xl p-5 shadow-md">
-            {/* Scroll curl top */}
-            <div className="absolute -top-3 left-6 right-6 h-6 bg-gradient-to-b from-amber-300 to-amber-100 rounded-t-full border-2 border-b-0 border-amber-400" />
-            {/* Scroll curl bottom */}
-            <div className="absolute -bottom-3 left-6 right-6 h-6 bg-gradient-to-t from-amber-300 to-amber-100 rounded-b-full border-2 border-t-0 border-amber-400" />
-            <h1 className="text-3xl font-bold text-amber-900 mb-1 flex items-center gap-2">🗺️ Your Travel Guide</h1>
-            <p className="text-amber-700 text-sm">Schedule as your TRAVEL guide — plan your journey through each day</p>
+          {/* Title */}
+          <div className="bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">📅 Your Calendar</h1>
+            <p className="text-slate-500 text-sm">Plan your journey through each day</p>
           </div>
         </div>
 
-        {/* View Toggle */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <div className="flex gap-3">
+        {/* View Toggle + Compare + Google Cal */}
+        <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex gap-2">
             <button
               onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
-              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'list' 
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
               }`}
             >
               📋 List View
             </button>
             <button
               onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
-              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'timeblock' 
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
               }`}
             >
               ⏰ Time Blocks
             </button>
           </div>
-          <div className="flex gap-3">
+
+          <div className="h-6 w-px bg-slate-300" />
+
+          {/* Compare toggle */}
+          <button
+            onClick={() => setShowComparison(!showComparison)}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              showComparison
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+            }`}
+          >
+            👥 {showComparison ? 'Hide' : 'Compare with'} Role Model / Mentor
+          </button>
+
+          {showComparison && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => router.push(`/calendar?view=${viewType}&comparison=day`)}
+                className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                  comparisonType === 'day'
+                    ? 'bg-purple-100 border border-purple-300 text-purple-800'
+                    : 'bg-white/60 border border-slate-300 text-slate-700 hover:bg-white/80'
+                }`}
+              >
+                📅 Day
+              </button>
+              <button
+                onClick={() => router.push(`/calendar?view=${viewType}&comparison=week`)}
+                className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                  comparisonType === 'week'
+                    ? 'bg-purple-100 border border-purple-300 text-purple-800'
+                    : 'bg-white/60 border border-slate-300 text-slate-700 hover:bg-white/80'
+                }`}
+              >
+                📊 Week
+              </button>
+            </div>
+          )}
+
+          <div className="ml-auto">
             <button
-              onClick={() => router.push(`/calendar?view=${viewType}&comparison=day`)}
-              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
-                comparisonType === 'day' 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
-              }`}
+              className="px-4 py-2 rounded-lg font-medium text-sm bg-white/60 border border-slate-300 text-slate-700 hover:bg-white/80 transition-all flex items-center gap-1.5"
+              onClick={() => alert('Google Calendar integration coming soon! This will sync your schedule with Google Calendar.')}
             >
-              📅 Day Comparison
-            </button>
-            <button
-              onClick={() => router.push(`/calendar?view=${viewType}&comparison=week`)}
-              className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
-                comparisonType === 'week' 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
-              }`}
-            >
-              📊 Week Comparison
+              <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10z" opacity=".1"/><path fill="#4285F4" d="M17 12h-4V8h-2v4H7v2h4v4h2v-4h4z"/></svg>
+              Google Calendar
             </button>
           </div>
         </div>
@@ -618,110 +647,75 @@ function CalendarContent() {
             </div>
           </div>
 
-          {comparisonType === 'day' ? (
-            // Side-by-side comparison for a single day
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
-                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
-                  <span className="text-blue-600">✨</span> Your Day
-                </h3>
-                {viewType === 'list' ? (
-                  <ListView 
-                    days={currentData.days.length > 0 ? [currentData.days[0]] : []} 
-                    completedTasks={completedTasks}
-                    toggleTask={toggleTask}
-                    addedTasks={addedTasks}
-                  />
-                ) : (
-                  <TimeBlockView 
-                    days={currentData.days.length > 0 ? [currentData.days[0]] : []}
-                    completedTasks={completedTasks}
-                    toggleTask={toggleTask}
-                    addedTasks={addedTasks}
-                  />
-                )}
-              </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
-                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
-                  <span className="text-purple-600">👥</span> Their Day
-                </h3>
+          {/* YOUR CALENDAR — always shown */}
+          <div>
+            {viewType === 'list' ? (
+              <ListView 
+                days={currentData.days} 
+                completedTasks={completedTasks}
+                toggleTask={toggleTask}
+                addedTasks={addedTasks}
+              />
+            ) : (
+              <TimeBlockView 
+                days={currentData.days}
+                completedTasks={completedTasks}
+                toggleTask={toggleTask}
+                addedTasks={addedTasks}
+              />
+            )}
+          </div>
+
+          {/* COMPARISON — only shown when toggled on */}
+          {showComparison && (
+            <div className="mt-8 pt-6 border-t-2 border-purple-200">
+              <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
+                <span className="text-purple-600">👥</span> {comparisonType === 'day' ? 'Their Day' : 'Their Week'}
+              </h3>
+              {comparisonType === 'day' ? (
                 <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
-                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model's / Mentor's schedule:</p>
+                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model&apos;s / Mentor&apos;s schedule:</p>
                   <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                      <span className="text-purple-600 font-mono font-semibold w-16">8:00</span>
-                      <span className="text-slate-800">Morning routine + exercise</span>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                      <span className="text-purple-600 font-mono font-semibold w-16">9:00</span>
-                      <span className="text-slate-800">Deep work session</span>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                      <span className="text-purple-600 font-mono font-semibold w-16">12:00</span>
-                      <span className="text-slate-800">Lunch break</span>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                      <span className="text-purple-600 font-mono font-semibold w-16">14:00</span>
-                      <span className="text-slate-800">Continue project work</span>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                      <span className="text-purple-600 font-mono font-semibold w-16">16:00</span>
-                      <span className="text-slate-800">Review & plan tomorrow</span>
-                    </div>
+                    {[
+                      { time: '8:00', task: 'Morning routine + exercise' },
+                      { time: '9:00', task: 'Deep work session' },
+                      { time: '12:00', task: 'Lunch break' },
+                      { time: '14:00', task: 'Continue project work' },
+                      { time: '16:00', task: 'Review & plan tomorrow' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
+                        <span className="text-purple-600 font-mono font-semibold w-16">{item.time}</span>
+                        <span className="text-slate-800">{item.task}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            // Top vs. Bottom comparison for week
-            <div className="space-y-8">
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
-                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
-                  <span className="text-blue-600">✨</span> Your Week
-                </h3>
-                {viewType === 'list' ? (
-                  <ListView 
-                    days={currentData.days} 
-                    completedTasks={completedTasks}
-                    toggleTask={toggleTask}
-                    addedTasks={addedTasks}
-                  />
-                ) : (
-                  <TimeBlockView 
-                    days={currentData.days}
-                    completedTasks={completedTasks}
-                    toggleTask={toggleTask}
-                    addedTasks={addedTasks}
-                  />
-                )}
-              </div>
-              <div className="border-t-2 border-slate-300 pt-8">
-                <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
-                  <span className="text-purple-600">👥</span> Their Week
-                </h3>
+              ) : (
                 <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
-                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model's / Mentor's weekly schedule:</p>
+                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model&apos;s / Mentor&apos;s weekly schedule:</p>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
                       <div key={day} className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-slate-300">
                         <div className="font-bold mb-2 text-slate-800">{day}</div>
                         <div className="space-y-1.5 text-slate-700">
-                          <div className="text-purple-600 font-mono">8:00</div>
-                          <div className="text-xs">Routine</div>
-                          <div className="text-purple-600 font-mono">9:00</div>
-                          <div className="text-xs">Work</div>
-                          <div className="text-purple-600 font-mono">12:00</div>
-                          <div className="text-xs">Break</div>
-                          <div className="text-purple-600 font-mono">14:00</div>
-                          <div className="text-xs">Continue</div>
-                          <div className="text-purple-600 font-mono">16:00</div>
-                          <div className="text-xs">Review</div>
+                          {[
+                            { time: '8:00', label: 'Routine' },
+                            { time: '9:00', label: 'Work' },
+                            { time: '12:00', label: 'Break' },
+                            { time: '14:00', label: 'Continue' },
+                            { time: '16:00', label: 'Review' },
+                          ].map((s, i) => (
+                            <div key={i}>
+                              <div className="text-purple-600 font-mono">{s.time}</div>
+                              <div className="text-xs">{s.label}</div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -767,17 +761,17 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleDays.map((day, idx) => (
           <div key={idx} className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
-            <div className="mb-4 pb-4 border-b border-slate-300">
-              <h3 className="font-bold text-xl text-slate-800 mb-2">{day.name}</h3>
+            <div className="mb-4 pb-3 border-b border-slate-300">
+              <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
               <div className="text-sm italic text-blue-600 mb-1">Theme: {day.theme}</div>
-              <div className="text-sm italic text-purple-600 mb-2">{day.typeOfDay}</div>
-              <div className="text-sm italic text-pink-600 mt-2">"{day.motivation}"</div>
+              <div className="text-sm italic text-purple-600">{day.typeOfDay}</div>
+              <div className="text-sm italic text-pink-600 mt-1">&ldquo;{day.motivation}&rdquo;</div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {getTasksForDay(day.name).map((task) => (
                 <div 
                   key={task.id}
@@ -790,23 +784,19 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
                 >
                   <input 
                     type="checkbox" 
-                    className="w-5 h-5 cursor-pointer accent-blue-600"
+                    className="w-5 h-5 cursor-pointer accent-blue-600 flex-shrink-0"
                     checked={completedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <span className="text-sm text-blue-600 font-mono font-semibold w-16">{task.time}</span>
-                  <Link 
-                    href={`/tasks/${task.id}`}
-                    className={`flex-1 text-slate-800 hover:text-blue-600 transition-colors ${
-                      completedTasks.has(task.id) ? 'line-through' : ''
-                    }`}
-                  >
+                  <span className={`flex-1 text-sm text-slate-800 ${
+                    completedTasks.has(task.id) ? 'line-through' : ''
+                  }`}>
                     {task.name}
                     {(task as any).from && (
                       <span className="text-xs text-purple-600 ml-2">(from {(task as any).from})</span>
                     )}
-                  </Link>
-                  <span className="text-xs text-slate-600 bg-white/60 px-2 py-1 rounded">{task.duration}</span>
+                  </span>
+                  <span className="text-xs text-slate-600 bg-white/60 px-2 py-1 rounded flex-shrink-0">{task.duration}</span>
                 </div>
               ))}
             </div>
@@ -905,16 +895,12 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
                           onChange={() => toggleTask(task.id)}
                         />
                         <div className="flex-1">
-                          <Link 
-                            href={`/tasks/${task.id}`}
-                            className={`text-slate-800 hover:text-blue-600 transition-colors block ${completedTasks.has(task.id) ? 'line-through' : ''}`}
-                          >
+                          <span className={`text-slate-800 block ${completedTasks.has(task.id) ? 'line-through' : ''}`}>
                             {task.name}
                             {(task as any).from && (
                               <span className="text-xs text-purple-600 ml-1">(from {(task as any).from})</span>
                             )}
-                          </Link>
-                          <span className="text-xs text-slate-600 mt-1 block">{task.duration}</span>
+                          </span>
                         </div>
                       </div>
                     )}

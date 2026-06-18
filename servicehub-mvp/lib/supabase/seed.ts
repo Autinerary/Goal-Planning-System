@@ -92,6 +92,13 @@ async function createTestUsers() {
   const users = []
   
   const testUsers = [
+    // DEMO ACCOUNT — easy to remember credentials for presentations
+    {
+      email: 'demo@resourcehub.com',
+      full_name: 'Demo User',
+      role: 'self_advocate',
+      barriers: ['autism', 'adhd', 'anxiety'],
+    },
     {
       email: 'autism_parent@test.com',
       full_name: 'Sarah Johnson',
@@ -446,6 +453,65 @@ async function createTestRatings(resources: any[], userIds: string[]) {
   return ratingCount
 }
 
+// Create saved resource "groups" for the demo user
+async function createDemoSavedResources(demoUserId: string, resources: any[]) {
+  console.log('Creating demo saved resources (groups)...')
+  let savedCount = 0
+
+  // Group resources into collections by status
+  const wishlistResources = resources.filter(r => 
+    r.category === 'Therapist' || r.category === 'Support Group'
+  ).slice(0, 5)
+
+  const currentResources = resources.filter(r => 
+    r.category === 'Community Center' || r.category === 'Recreation'
+  ).slice(0, 4)
+
+  const pastResources = resources.filter(r => 
+    r.category === 'School' || r.category === 'Doctor'
+  ).slice(0, 3)
+
+  const groups: Array<{ resources: any[]; status: 'wishlist' | 'current' | 'past'; notes: string }> = [
+    { resources: wishlistResources, status: 'wishlist', notes: 'Want to check out' },
+    { resources: currentResources, status: 'current', notes: 'Currently using' },
+    { resources: pastResources, status: 'past', notes: 'Used previously' },
+  ]
+
+  for (const group of groups) {
+    for (const resource of group.resources) {
+      try {
+        // Check if already saved
+        const { data: existing } = await supabase
+          .from('saved_resources')
+          .select('id')
+          .eq('user_id', demoUserId)
+          .eq('resource_id', resource.id)
+          .single()
+
+        if (existing) continue
+
+        const { error } = await supabase.from('saved_resources').insert({
+          user_id: demoUserId,
+          resource_id: resource.id,
+          status: group.status,
+          notes: group.notes,
+        })
+
+        if (error) {
+          console.error(`Error saving resource for demo:`, error.message)
+          continue
+        }
+        savedCount++
+      } catch (error) {
+        // Ignore — likely doesn't exist yet
+      }
+    }
+  }
+
+  console.log(`✓ Created ${savedCount} saved resources for demo user`)
+  return savedCount
+}
+
 // Main seeding function
 export async function seedDatabase() {
   console.log('🌱 Starting database seeding...\n')
@@ -500,17 +566,26 @@ export async function seedDatabase() {
     const ratingCount = await createTestRatings(resources, userIds)
     console.log(`\n✓ Created ${ratingCount} test ratings\n`)
 
+    // Step 4: Create saved resources for demo user
+    const demoUser = users.find(u => u.email === 'demo@resourcehub.com')
+    let savedCount = 0
+    if (demoUser) {
+      savedCount = await createDemoSavedResources(demoUser.id, resources)
+    }
+
     console.log('✅ Database seeding completed successfully!')
     console.log(`\nSummary:`)
     console.log(`  - Users: ${users.length}`)
     console.log(`  - Resources: ${resources.length}`)
     console.log(`  - Ratings: ${ratingCount}`)
+    console.log(`  - Demo saved resources: ${savedCount}`)
 
     return {
       success: true,
       users: users.length,
       resources: resources.length,
       ratings: ratingCount,
+      savedResources: savedCount,
     }
   } catch (error) {
     console.error('❌ Error seeding database:', error)

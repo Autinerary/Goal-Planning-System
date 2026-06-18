@@ -12,10 +12,9 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
-// Character avatar options
+// Character avatar options — spirit animal selection is done later in the Spirit Animals step
 const characterTypes = [
   { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
-  { id: 'spirit_animal', label: 'Choose a Mascot / Spirit Animal', description: 'Pick an animal to represent your journey', icon: '🐾' },
 ]
 
 const hairStyles = [
@@ -70,49 +69,87 @@ const spiritAnimalColors = [
 // Step components
 const steps = [
   { id: 'character', title: 'Character Select', icon: User },
-  { id: 'role', title: 'Your Role', icon: User },
+  { id: 'barrierConnections', title: 'Barrier Connections', icon: AlertCircle },
   { id: 'location', title: 'Location', icon: User },
-  { id: 'barriers', title: 'Your Barriers', icon: AlertCircle },
-  { id: 'goals', title: 'Your Goals', icon: Target },
-  { id: 'dreams', title: 'Your Dreams', icon: Sparkles },
-  { id: 'challenges', title: 'Current Challenges', icon: Heart },
+  { id: 'goalsAndDreams', title: 'Goals & Dreams', icon: Target },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
   { id: 'profile', title: 'Dream Self', icon: Palette },
   { id: 'spiritAnimal', title: 'Spirit Animals', icon: Heart },
   { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
 ]
 
-const roles = [
-  { id: 'self_advocate', label: 'Self-Advocate', description: 'Person with lived experience', icon: '👤' },
-  { id: 'parent', label: 'Parent/Family', description: 'Parent or family member', icon: '👨‍👩‍👧‍👦' },
-  { id: 'caregiver', label: 'Caregiver', description: 'Professional or family caregiver', icon: '🤝' },
-  { id: 'professional', label: 'Professional', description: 'Therapist, educator, researcher', icon: '💼' },
+const goalCategories = [
+  { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
+  { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
+  { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
+  { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
+  { id: 'barrier', label: 'Barrier-Specific', emoji: '🌟', placeholder: 'e.g., Normalizing strategies, Self-advocacy skills' },
+  { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
+]
+
+const connectionTypes = [
+  { id: 'self', label: 'Self (Lived Experience)', icon: '👤' },
+  { id: 'parent', label: 'Parent', icon: '👨‍👩‍👧‍👦' },
+  { id: 'sibling', label: 'Sibling', icon: '👫' },
+  { id: 'educator', label: 'Educator', icon: '📚' },
+  { id: 'employer', label: 'Employer', icon: '💼' },
+  { id: 'therapist', label: 'Therapist', icon: '🧠' },
+  { id: 'researcher', label: 'Researcher', icon: '🔬' },
+  { id: 'ally', label: 'Ally', icon: '🤝' },
+  { id: 'medical', label: 'Medical Professional (coming soon)', icon: '🏥', disabled: true },
 ]
 
 const lifeStages = [
-  { id: 'preschool', label: 'Preschool' },
-  { id: 'school_age', label: 'School-age' },
-  { id: 'university', label: 'University' },
-  { id: 'employment', label: 'Employment' },
+  { id: 'preschool', label: 'Preschool (Ages 3-5)' },
+  { id: 'elementary', label: 'Elementary School' },
+  { id: 'middle_school', label: 'Middle School' },
+  { id: 'high_school', label: 'High School / Secondary' },
+  { id: 'post_secondary', label: 'University / College / Trade School' },
+  { id: 'post_graduate', label: 'Post-Graduate' },
+  { id: 'employment', label: 'Employment / Career' },
   { id: 'retirement', label: 'Retirement' },
+  { id: 'not_sure', label: "I'm Not Sure" },
 ]
 
 const barrierCategories = [
   {
     name: 'Neurodivergence',
-    items: ['Autism', 'ADHD', 'OCD', 'Bipolar Disorder', 'Dyslexia', 'Anxiety', 'Depression']
+    subcategories: [
+      { name: 'Neurodevelopmental', items: ['Autism', 'ADHD', 'AuDHD', 'Tourette Syndrome', 'Intellectual Disability'] },
+      { name: 'Learning Differences', items: ['Dyslexia', 'Dyscalculia', 'Dysgraphia', 'Auditory Processing Disorder'] },
+      { name: 'Sensory Processing', items: ['Sensory Processing Disorder', 'Synesthesia'] },
+      { name: 'Psychiatric Conditions', items: ['OCD', 'Schizophrenia', 'PTSD', 'Anxiety Disorder', 'Depression'] },
+      { name: 'Personality Disorders', items: ['BPD', 'Bipolar Disorder'] },
+      { name: 'Genetic Variations', items: ['Down Syndrome', 'Fragile X Syndrome'] },
+    ]
   },
   {
-    name: 'Physical & Sensory',
-    items: ['Sensory Impairment', 'Physical Impairment', 'Chronic Illness', 'Chronic Pain']
+    name: 'Physical',
+    subcategories: [
+      { name: 'Mobility', items: ['Wheelchair User', 'Limited Mobility', 'Amputation'] },
+      { name: 'Chronic Conditions', items: ['Chronic Illness', 'Chronic Pain', 'Autoimmune Disorder', 'Epilepsy'] },
+    ]
+  },
+  {
+    name: 'Sensory',
+    subcategories: [
+      { name: 'Vision', items: ['Blind', 'Low Vision', 'Color Blind'] },
+      { name: 'Hearing', items: ['Deaf', 'Hard of Hearing'] },
+    ]
   },
   {
     name: 'Social & Cultural',
-    items: ['Visible Minority', 'Language Barrier', 'First Generation', 'Gender', 'LGBTQ+', 'Religious Minority']
+    subcategories: [
+      { name: 'Identity', items: ['Visible Minority', 'LGBTQ+', 'Gender Identity', 'Religious Minority'] },
+      { name: 'Circumstance', items: ['Language Barrier', 'First Generation', 'Immigrant / Refugee'] },
+    ]
   },
   {
     name: 'Economic & Access',
-    items: ['Limited Income', 'Food Insecurity', 'Housing Instability', 'Limited Technology Access']
+    subcategories: [
+      { name: 'Economic', items: ['Limited Income', 'Food Insecurity', 'Housing Instability'] },
+      { name: 'Access', items: ['Limited Technology Access', 'Rural / Remote Area', 'Transportation Barrier'] },
+    ]
   },
 ]
 
@@ -178,28 +215,39 @@ export default function OnboardingPage() {
 
   const [formData, setFormData] = useState({
     // Character select
-    characterType: '' as string, // 'avatar' or 'spirit_animal'
+    characterType: 'avatar' as string, // always avatar now (spirit animal selection at end)
     bodyType: '' as string,
     hairStyle: '' as string,
     cloudTheme: 'daydream' as string,
+    // Barrier Connections (combined role + barriers)
+    role: '' as string, // kept for backward compat with backend
+    barrierConnections: {} as Record<string, string[]>, // { connectionType: [barriers] }
+    barrierConnectionText: '' as string, // free-text mode input
     // Questions
-    role: '' as string,
     location: {
       city: '',
       province: '',
       country: ''
     },
+    additionalLocations: [] as Array<{ city: string; province: string; country: string }>,
     lifeStage: '' as string,
     barrierTypes: [] as string[],
-    goals: [''],
-    dreams: [''],
-    currentChallenges: [''],
-    motivationType: '',
+    // Categorized goals with per-goal dreams and obstacles
+    goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string }>>,
+    ultimateDream: '' as string,
+    // Flat arrays kept for backward compat with backend API
+    goals: [''] as string[],
+    dreams: [''] as string[],
+    currentChallenges: [''] as string[],
+    motivationType: '' as string,
+    motivationTypes: [] as string[],
     // Profile customization
     dreamSelf: '',
     // Spirit animals (up to 2)
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
+
+  const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
   
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
@@ -287,24 +335,24 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return formData.characterType !== '' // Character select
-      case 1: return formData.role !== ''
+      case 0: return formData.bodyType !== '' && formData.hairStyle !== '' // Character select — body + hair chosen or skipped
+      case 1: return formData.barrierTypes.length > 0 // Barrier Connections — at least one barrier selected
       case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
-      case 3: return formData.barrierTypes.length > 0
-      case 4: return formData.goals.some(g => g.trim())
-      case 5: return formData.dreams.some(d => d.trim())
-      case 6: return formData.currentChallenges.some(c => c.trim())
-      case 7: return formData.motivationType !== '' && formData.lifeStage !== ''
-      case 8: return formData.dreamSelf.trim() !== '' // Profile customization
-      case 9: return formData.spiritAnimals.length > 0 && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals
-      case 10: return true // Recommendations step - can always proceed (optional to save)
+      case 3: { // Goals & Dreams — at least one goal in any category
+        const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
+        return hasGoal
+      }
+      case 4: return formData.motivationTypes.length > 0 && formData.lifeStage !== ''
+      case 5: return formData.dreamSelf.trim() !== '' // Profile customization
+      case 6: return formData.spiritAnimals.length > 0 && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals
+      case 7: return true // Recommendations step - can always proceed (optional to save)
       default: return false
     }
   }
   
   // Fetch AI recommendations when reaching the recommendations step
   useEffect(() => {
-    if (currentStep === 10 && recommendations.length === 0 && !isLoadingRecommendations) {
+    if (currentStep === 7 && recommendations.length === 0 && !isLoadingRecommendations) {
       fetchRecommendations()
     }
   }, [currentStep])
@@ -314,14 +362,35 @@ export default function OnboardingPage() {
     try {
       const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
       
+      // Derive role from barrierConnections (first key, or 'self' as fallback)
+      const connectionKeys = Object.keys(formData.barrierConnections)
+      const derivedRole = connectionKeys.length > 0 ? connectionKeys[0] : 'self'
+      
+      // Flatten goalsByCategory into a goals array (goals live there now, not in formData.goals)
+      const flattenedGoals: string[] = []
+      const flattenedChallenges: string[] = []
+      Object.values(formData.goalsByCategory).forEach(entries => {
+        entries.forEach(entry => {
+          if (entry.goal.trim()) flattenedGoals.push(entry.goal.trim())
+          if (entry.obstacles.trim()) flattenedChallenges.push(entry.obstacles.trim())
+        })
+      })
+      // Fallback to old goals array if goalsByCategory is empty
+      const goalsToSend = flattenedGoals.length > 0 
+        ? flattenedGoals 
+        : formData.goals.filter(g => g.trim())
+      const challengesToSend = flattenedChallenges.length > 0
+        ? flattenedChallenges
+        : formData.currentChallenges.filter(c => c.trim())
+      
       const serviceHubResponse = await axios.post(`${SERVICE_HUB_URL}/api/onboarding/complete`, {
-        role: formData.role,
+        role: derivedRole,
         location: formData.location,
         barriers: serviceHubBarriers,
         lifeStage: formData.lifeStage,
-        goals: formData.goals.filter(g => g.trim()),
+        goals: goalsToSend.length > 0 ? goalsToSend : ['General wellbeing'],
         culturalNotes: '',
-        additionalNotes: formData.currentChallenges.filter(c => c.trim()).join('; ')
+        additionalNotes: challengesToSend.join('; ')
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -333,14 +402,16 @@ export default function OnboardingPage() {
         setRecommendations(serviceHubResponse.data.recommendations || [])
         setRecommendationExplanation(serviceHubResponse.data.recommendationExplanation || '')
       } else {
-        // Fallback: show empty state with message
+        console.warn('Recommendations API returned:', serviceHubResponse.status, serviceHubResponse.data)
         setRecommendations([])
-        setRecommendationExplanation('Recommendations will be available after you sign in to ResourceHub.')
+        setRecommendationExplanation(
+          serviceHubResponse.data?.error || 'Recommendations will be available after you sign in to ResourceHub.'
+        )
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error)
       setRecommendations([])
-      setRecommendationExplanation('Unable to load recommendations at this time.')
+      setRecommendationExplanation('Unable to load recommendations at this time. Please try again later.')
     } finally {
       setIsLoadingRecommendations(false)
     }
@@ -474,14 +545,27 @@ export default function OnboardingPage() {
     
     setIsSubmitting(true)
     try {
+      // Flatten categorized goals into flat arrays for backend compat
+      const allGoals: string[] = []
+      const allDreams: string[] = []
+      const allObstacles: string[] = []
+      Object.values(formData.goalsByCategory).forEach(entries => {
+        entries.forEach(entry => {
+          if (entry.goal.trim()) allGoals.push(entry.goal.trim())
+          if (entry.dreams.trim()) allDreams.push(entry.dreams.trim())
+          if (entry.obstacles.trim()) allObstacles.push(entry.obstacles.trim())
+        })
+      })
+      if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
+
       // Send to Goal Planning backend
       const response = await axios.post(`${API_URL}/api/onboarding/`, {
         email: user.email,
         userId: user.id, // Supabase auth UUID — shared with ServiceHub via public.user_barriers
         barrierTypes: formData.barrierTypes,
-        goals: formData.goals.filter(g => g.trim()),
-        dreams: formData.dreams.filter(d => d.trim()),
-        currentChallenges: formData.currentChallenges.filter(c => c.trim()),
+        goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
+        dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
+        currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType
       }, {
         headers: {
@@ -706,144 +790,272 @@ export default function OnboardingPage() {
           {currentStep === 0 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character ✨</h2>
-              <p className="text-slate-600 mb-6">Choose how you want to be represented on your journey through Dream Land.</p>
+              <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land.</p>
               
-              {/* Character Type Selection */}
-              <div className="grid gap-3 mb-6">
-                {characterTypes.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => setFormData(prev => ({ ...prev, characterType: type.id }))}
-                    className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
-                      formData.characterType === type.id
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="text-3xl">{type.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium">{type.label}</div>
-                      <div className="text-sm text-slate-400">{type.description}</div>
-                    </div>
-                    {formData.characterType === type.id && (
-                      <Check className="w-5 h-5 text-cyan-400" />
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Avatar Customization (if avatar selected) */}
-              {formData.characterType === 'avatar' && (
-                <div className="space-y-6 border-t border-slate-200 pt-6">
-                  {/* Body Type (T/H) */}
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
-                    <div className="flex gap-3">
-                      {bodyTypes.map((bt) => (
-                        <button
-                          key={bt.id}
-                          onClick={() => setFormData(prev => ({ ...prev, bodyType: bt.id }))}
-                          className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                            formData.bodyType === bt.id
-                              ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                              : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                          }`}
-                        >
-                          {bt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Hair Style */}
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Style</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {hairStyles.map((hs) => (
-                        <button
-                          key={hs.id}
-                          onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
-                          className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                            formData.hairStyle === hs.id
-                              ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                              : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                          }`}
-                        >
-                          <span className="text-lg">{hs.emoji}</span>
-                          {hs.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Spirit Animal Preview (if spirit_animal selected) */}
-              {formData.characterType === 'spirit_animal' && (
-                <div className="border-t border-slate-200 pt-6">
-                  <p className="text-sm text-slate-500 mb-2">You'll get to choose and customize your spirit animal(s) after answering a few questions! 🐾</p>
-                </div>
-              )}
-              
-              {/* Cloud Theme */}
-              {formData.characterType && (
-                <div className="border-t border-slate-200 pt-6 mt-6">
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Cloud Theme</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {cloudThemes.map((theme) => (
+              {/* Avatar Customization */}
+              <div className="space-y-6">
+                {/* Body Type */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
+                  <div className="flex gap-3">
+                    {bodyTypes.map((bt) => (
                       <button
-                        key={theme.id}
-                        onClick={() => setFormData(prev => ({ ...prev, cloudTheme: theme.id }))}
-                        className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all ${
-                          formData.cloudTheme === theme.id
-                            ? 'border-cyan-500 ring-2 ring-cyan-300'
-                            : 'border-slate-200 hover:border-cyan-400'
+                        key={bt.id}
+                        onClick={() => setFormData(prev => ({ ...prev, bodyType: bt.id }))}
+                        className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                          formData.bodyType === bt.id
+                            ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
                         }`}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-r ${theme.colors} opacity-60`} />
-                        <div className="relative">
-                          <span className="text-2xl">☁️</span>
-                          <span className="ml-2 text-sm font-medium text-slate-700">{theme.label}</span>
-                        </div>
-                        {formData.cloudTheme === theme.id && (
-                          <Check className="absolute top-2 right-2 w-4 h-4 text-cyan-600" />
+                        {bt.label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, bodyType: 'skip' }))}
+                      className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                        formData.bodyType === 'skip'
+                          ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                          : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                      }`}
+                    >
+                      Skip / None
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Hair Style with visual preview */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Style</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {hairStyles.map((hs) => (
+                      <button
+                        key={hs.id}
+                        onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
+                        className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                          formData.hairStyle === hs.id
+                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 ring-2 ring-cyan-300'
+                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                        }`}
+                      >
+                        <span className="text-3xl">{hs.emoji}</span>
+                        <span className="text-xs text-center">{hs.label}</span>
+                        {formData.hairStyle === hs.id && (
+                          <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
                         )}
                       </button>
                     ))}
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, hairStyle: 'skip' }))}
+                      className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                        formData.hairStyle === 'skip'
+                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 ring-2 ring-cyan-300'
+                          : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                      }`}
+                    >
+                      <span className="text-3xl">⏭️</span>
+                      <span className="text-xs text-center">Skip / None</span>
+                      {formData.hairStyle === 'skip' && (
+                        <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
+                      )}
+                    </button>
                   </div>
                 </div>
-              )}
+
+                {/* Live Character Preview */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
+                  <div className="flex justify-center">
+                    <div className={`relative w-40 h-48 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden`}>
+                      {/* Head */}
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-amber-200 rounded-full border-2 border-amber-300 flex items-center justify-center">
+                          <div className="flex gap-2 mt-1">
+                            <span className="w-2 h-2 bg-slate-700 rounded-full" />
+                            <span className="w-2 h-2 bg-slate-700 rounded-full" />
+                          </div>
+                        </div>
+                        {/* Hair overlay */}
+                        {formData.hairStyle && formData.hairStyle !== 'none' && formData.hairStyle !== 'skip' && (
+                          <div className="absolute -top-2 -left-1 -right-1 text-center text-2xl leading-none">
+                            {hairStyles.find(h => h.id === formData.hairStyle)?.emoji || ''}
+                          </div>
+                        )}
+                      </div>
+                      {/* Body */}
+                      <div className={`mt-1 bg-slate-300 rounded-t-lg ${
+                        formData.bodyType === 'tall' ? 'w-12 h-16' : formData.bodyType === 'short' ? 'w-12 h-10' : 'w-12 h-12'
+                      }`} />
+                      {/* Label */}
+                      <p className="absolute bottom-1 text-[10px] text-slate-500 font-medium">
+                        {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''} 
+                        {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
             </div>
           )}
 
           {/* Step 1: Role */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Tell us about yourself</h2>
-              <p className="text-slate-600 mb-6">Your role helps us personalize your experience.</p>
-              
-              <div className="grid gap-3">
-                {roles.map((role) => (
-                  <button
-                    key={role.id}
-                    onClick={() => setFormData(prev => ({ ...prev, role: role.id }))}
-                    className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
-                      formData.role === role.id
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <span className="text-2xl">{role.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium">{role.label}</div>
-                      <div className="text-sm text-slate-400">{role.description}</div>
-                    </div>
-                    {formData.role === role.id && (
-                      <Check className="w-5 h-5 text-cyan-400" />
-                    )}
-                  </button>
-                ))}
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Barrier Connections</h2>
+              <p className="text-slate-600 mb-4">Tell us about the barriers in your life — either describe them in your own words, or select manually below.</p>
+
+              {/* Mode toggle */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => setBarrierInputMode('text')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    barrierInputMode === 'text'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  Describe in your words
+                </button>
+                <button
+                  onClick={() => setBarrierInputMode('manual')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    barrierInputMode === 'manual'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  Manual selection
+                </button>
               </div>
+
+              {/* Mode 1: Free-text */}
+              {barrierInputMode === 'text' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-500">
+                    Example: &quot;I identify as Black, have ADHD, and a sibling who is autistic&quot;
+                  </p>
+                  <textarea
+                    value={formData.barrierConnectionText}
+                    onChange={(e) => setFormData(prev => ({ ...prev, barrierConnectionText: e.target.value }))}
+                    placeholder="Describe your barrier connections in a sentence..."
+                    rows={3}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                  />
+                  <button
+                    onClick={() => setFormData(prev => ({ ...prev, barrierConnectionText: '' }))}
+                    className="text-sm text-slate-400 hover:text-red-400 transition-colors"
+                  >
+                    Reset text
+                  </button>
+                </div>
+              )}
+
+              {/* Mode 2: Manual selection */}
+              {barrierInputMode === 'manual' && (
+                <div className="space-y-6">
+                  {/* Connection type multi-select */}
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to barriers (select all that apply)</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {connectionTypes.map((conn) => (
+                        <button
+                          key={conn.id}
+                          disabled={'disabled' in conn && conn.disabled}
+                          onClick={() => {
+                            setFormData(prev => {
+                              const current = { ...prev.barrierConnections }
+                              if (current[conn.id]) {
+                                delete current[conn.id]
+                              } else {
+                                current[conn.id] = []
+                              }
+                              // Derive role from first selected connection for backend compat
+                              const selectedKeys = Object.keys(current)
+                              const role = selectedKeys.includes('self') ? 'self_advocate' : selectedKeys.length > 0 ? selectedKeys[0] : ''
+                              return { ...prev, barrierConnections: current, role }
+                            })
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            'disabled' in conn && conn.disabled
+                              ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                              : formData.barrierConnections[conn.id] !== undefined
+                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                                : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
+                          }`}
+                        >
+                          <span>{conn.icon}</span>
+                          {conn.label}
+                          {formData.barrierConnections[conn.id] !== undefined && <Check className="w-4 h-4 ml-1" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Per-connection barrier selectors */}
+                  {Object.keys(formData.barrierConnections).length > 0 && (
+                    <div className="space-y-4">
+                      {Object.keys(formData.barrierConnections).map((connId) => {
+                        const conn = connectionTypes.find(c => c.id === connId)
+                        if (!conn) return null
+                        return (
+                          <div key={connId} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <h4 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
+                              <span>{conn.icon}</span> Barriers for: {conn.label}
+                            </h4>
+                            <div className="space-y-4">
+                              {barrierCategories.map((category) => (
+                                <div key={category.name}>
+                                  <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">{category.name}</p>
+                                  <div className="space-y-2 ml-2">
+                                    {category.subcategories.map((sub) => (
+                                      <div key={sub.name}>
+                                        <p className="text-xs text-slate-400 mb-1">{sub.name}</p>
+                                        <div className="flex flex-wrap gap-1.5 mb-2">
+                                          {sub.items.map((barrier) => {
+                                            const isSelected = formData.barrierConnections[connId]?.includes(barrier)
+                                            return (
+                                              <button
+                                                key={barrier}
+                                                onClick={() => {
+                                                  setFormData(prev => {
+                                                    const current = { ...prev.barrierConnections }
+                                                    const list = [...(current[connId] || [])]
+                                                    if (list.includes(barrier)) {
+                                                      current[connId] = list.filter(b => b !== barrier)
+                                                    } else {
+                                                      current[connId] = [...list, barrier]
+                                                    }
+                                                    // Flatten all barriers into barrierTypes for backend compat
+                                                    const allBarriers = [...new Set(Object.values(current).flat())]
+                                                    return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
+                                                  })
+                                                }}
+                                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                                  isSelected
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
+                                                }`}
+                                              >
+                                                {isSelected && <Check className="w-3 h-3 inline mr-1" />}
+                                                {barrier}
+                                              </button>
+                                            )
+                                          })}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -885,182 +1097,273 @@ export default function OnboardingPage() {
                   />
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Step 3: Barriers */}
-          {currentStep === 3 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">What barriers do you face?</h2>
-              <p className="text-slate-600 mb-6">Select all that apply. This helps us find strategies that worked for people like you.</p>
-              
-              <div className="space-y-6">
-                {barrierCategories.map((category) => (
-                  <div key={category.name}>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">{category.name}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {category.items.map((barrier) => (
-                        <button
-                          key={barrier}
-                          onClick={() => handleBarrierToggle(barrier)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            formData.barrierTypes.includes(barrier)
-                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
-                          }`}
-                        >
-                          {formData.barrierTypes.includes(barrier) && <Check className="w-4 h-4 inline mr-1" />}
-                          {barrier}
-                        </button>
-                      ))}
+              {/* Additional resource locations */}
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="text-sm font-medium text-slate-700 mb-1">Where else can you access resources? <span className="text-slate-400 font-normal">(optional)</span></h3>
+                <p className="text-xs text-slate-500 mb-4">For example, dual citizenship, family in another city, etc. Not including online.</p>
+
+                {formData.additionalLocations.map((loc, idx) => (
+                  <div key={idx} className="mb-4 bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-slate-600">Additional location {idx + 1}</span>
+                      <button
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          additionalLocations: prev.additionalLocations.filter((_, i) => i !== idx)
+                        }))}
+                        className="text-slate-400 hover:text-red-400 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <input
+                        type="text"
+                        value={loc.city}
+                        onChange={(e) => setFormData(prev => {
+                          const updated = [...prev.additionalLocations]
+                          updated[idx] = { ...updated[idx], city: e.target.value }
+                          return { ...prev, additionalLocations: updated }
+                        })}
+                        placeholder="City"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
+                      <input
+                        type="text"
+                        value={loc.province}
+                        onChange={(e) => setFormData(prev => {
+                          const updated = [...prev.additionalLocations]
+                          updated[idx] = { ...updated[idx], province: e.target.value }
+                          return { ...prev, additionalLocations: updated }
+                        })}
+                        placeholder="Province/State"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
+                      <input
+                        type="text"
+                        value={loc.country}
+                        onChange={(e) => setFormData(prev => {
+                          const updated = [...prev.additionalLocations]
+                          updated[idx] = { ...updated[idx], country: e.target.value }
+                          return { ...prev, additionalLocations: updated }
+                        })}
+                        placeholder="Country"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
                     </div>
                   </div>
                 ))}
+
+                <button
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    additionalLocations: [...prev.additionalLocations, { city: '', province: '', country: '' }]
+                  }))}
+                  className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+                >
+                  + Add another location
+                </button>
               </div>
             </div>
           )}
 
-          {/* Step 4: Goals */}
+          {/* Step 3: Goals, Dreams & Obstacles (combined) */}
+          {currentStep === 3 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Goals, Dreams & Obstacles</h2>
+              <p className="text-slate-600 mb-6">Pick a category, add your goals, and optionally add dreams and obstacles for each one.</p>
+              
+              {/* Category tabs */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {goalCategories.map((cat) => {
+                  const count = (formData.goalsByCategory[cat.id] || []).filter(e => e.goal.trim()).length
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        // Toggle open/scroll to that category
+                        const el = document.getElementById(`goal-cat-${cat.id}`)
+                        el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        count > 0
+                          ? 'bg-cyan-100 text-cyan-700 border border-cyan-300'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:border-cyan-400'
+                      }`}
+                    >
+                      <span>{cat.emoji}</span>
+                      {cat.label}
+                      {count > 0 && <span className="bg-cyan-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{count}</span>}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Category sections */}
+              <div className="space-y-6">
+                {goalCategories.map((cat) => {
+                  const entries = formData.goalsByCategory[cat.id] || []
+                  return (
+                    <div key={cat.id} id={`goal-cat-${cat.id}`} className="bg-white border border-slate-200 rounded-xl p-4">
+                      <h3 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
+                        <span>{cat.emoji}</span> {cat.label}
+                      </h3>
+                      
+                      {entries.map((entry, idx) => (
+                        <div key={idx} className="mb-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
+                          <div className="flex gap-2 mb-2">
+                            <input
+                              type="text"
+                              value={entry.goal}
+                              onChange={(e) => {
+                                setFormData(prev => {
+                                  const updated = { ...prev.goalsByCategory }
+                                  const list = [...(updated[cat.id] || [])]
+                                  list[idx] = { ...list[idx], goal: e.target.value }
+                                  updated[cat.id] = list
+                                  return { ...prev, goalsByCategory: updated }
+                                })
+                              }}
+                              placeholder={cat.placeholder}
+                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                            <button
+                              onClick={() => {
+                                setFormData(prev => {
+                                  const updated = { ...prev.goalsByCategory }
+                                  updated[cat.id] = (updated[cat.id] || []).filter((_, i) => i !== idx)
+                                  if (updated[cat.id].length === 0) delete updated[cat.id]
+                                  return { ...prev, goalsByCategory: updated }
+                                })
+                              }}
+                              className="px-2 text-slate-400 hover:text-red-400 text-sm"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          
+                          {/* Per-goal dream */}
+                          <div className="ml-4 mb-1">
+                            <label className="text-xs text-purple-500 font-medium">Dream for this goal <span className="text-slate-400">(optional)</span></label>
+                            <input
+                              type="text"
+                              value={entry.dreams}
+                              onChange={(e) => {
+                                setFormData(prev => {
+                                  const updated = { ...prev.goalsByCategory }
+                                  const list = [...(updated[cat.id] || [])]
+                                  list[idx] = { ...list[idx], dreams: e.target.value }
+                                  updated[cat.id] = list
+                                  return { ...prev, goalsByCategory: updated }
+                                })
+                              }}
+                              placeholder="Where does this goal lead in 5-10 years?"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400 mt-1"
+                            />
+                          </div>
+                          
+                          {/* Per-goal obstacle */}
+                          <div className="ml-4">
+                            <label className="text-xs text-pink-500 font-medium">Obstacle <span className="text-slate-400">(optional)</span></label>
+                            <input
+                              type="text"
+                              value={entry.obstacles}
+                              onChange={(e) => {
+                                setFormData(prev => {
+                                  const updated = { ...prev.goalsByCategory }
+                                  const list = [...(updated[cat.id] || [])]
+                                  list[idx] = { ...list[idx], obstacles: e.target.value }
+                                  updated[cat.id] = list
+                                  return { ...prev, goalsByCategory: updated }
+                                })
+                              }}
+                              placeholder="What's stopping you from achieving this?"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 mt-1"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <button
+                        onClick={() => {
+                          setFormData(prev => {
+                            const updated = { ...prev.goalsByCategory }
+                            updated[cat.id] = [...(updated[cat.id] || []), { goal: '', dreams: '', obstacles: '' }]
+                            return { ...prev, goalsByCategory: updated }
+                          })
+                        }}
+                        className="text-cyan-600 hover:text-cyan-700 text-xs font-medium"
+                      >
+                        + Add a {cat.label.toLowerCase()} goal
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Ultimate Dream */}
+              <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                <h3 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+                  <span>🌟</span> Ultimate Dream
+                </h3>
+                <p className="text-xs text-purple-600 mb-3">Beyond all your goals — what&apos;s your biggest dream?</p>
+                <input
+                  type="text"
+                  value={formData.ultimateDream}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ultimateDream: e.target.value }))}
+                  placeholder='e.g., "Create a world where neurodivergent people thrive"'
+                  className="w-full bg-white border border-purple-200 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Motivation & Life Stage */}
           {currentStep === 4 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your goals?</h2>
-              <p className="text-slate-600 mb-6">What do you want to achieve? Be specific!</p>
-              
-              <div className="space-y-3">
-                {formData.goals.map((goal, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={goal}
-                      onChange={(e) => updateArrayField('goals', idx, e.target.value)}
-                      placeholder={`Goal ${idx + 1} (e.g., "Graduate university", "Get a tech job")`}
-                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                    />
-                    {formData.goals.length > 1 && (
-                      <button
-                        onClick={() => removeArrayItem('goals', idx)}
-                        className="px-3 text-slate-400 hover:text-red-400"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={() => addArrayItem('goals')}
-                  className="text-cyan-400 hover:text-cyan-300 text-sm font-medium"
-                >
-                  + Add another goal
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Dreams */}
-          {currentStep === 5 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">What are your dreams?</h2>
-              <p className="text-slate-600 mb-6">Think bigger! Where do you see yourself in 5-10 years?</p>
-              
-              <div className="space-y-3">
-                {formData.dreams.map((dream, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={dream}
-                      onChange={(e) => updateArrayField('dreams', idx, e.target.value)}
-                      placeholder={`Dream ${idx + 1} (e.g., "Lead a team that values neurodiversity")`}
-                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                    {formData.dreams.length > 1 && (
-                      <button
-                        onClick={() => removeArrayItem('dreams', idx)}
-                        className="px-3 text-slate-400 hover:text-red-400"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={() => addArrayItem('dreams')}
-                  className="text-purple-400 hover:text-purple-300 text-sm font-medium"
-                >
-                  + Add another dream
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Challenges */}
-          {currentStep === 6 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">What's currently stopping you?</h2>
-              <p className="text-slate-600 mb-6">Be honest about the obstacles you're facing right now.</p>
-              
-              <div className="space-y-3">
-                {formData.currentChallenges.map((challenge, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={challenge}
-                      onChange={(e) => updateArrayField('currentChallenges', idx, e.target.value)}
-                      placeholder={`Challenge ${idx + 1} (e.g., "Hard to focus in lectures", "Overwhelmed by group projects")`}
-                      className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                    />
-                    {formData.currentChallenges.length > 1 && (
-                      <button
-                        onClick={() => removeArrayItem('currentChallenges', idx)}
-                        className="px-3 text-slate-400 hover:text-red-400"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={() => addArrayItem('currentChallenges')}
-                  className="text-pink-400 hover:text-pink-300 text-sm font-medium"
-                >
-                  + Add another challenge
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 7: Motivation & Life Stage */}
-          {currentStep === 7 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
-                <p className="text-slate-600 mb-6">Understanding your motivation style helps us personalize your plan.</p>
+                <p className="text-slate-600 mb-6">Select all that apply — most people are motivated by more than one thing.</p>
                 
                 <div className="grid gap-3">
-                  {motivationOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setFormData(prev => ({ ...prev, motivationType: option.value }))}
-                      className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
-                        formData.motivationType === option.value
-                          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                      }`}
-                    >
-                      <span className="text-2xl">{option.emoji}</span>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-sm text-slate-400">{option.description}</div>
-                      </div>
-                      {formData.motivationType === option.value && (
-                        <Check className="w-5 h-5 text-cyan-400 ml-auto" />
-                      )}
-                    </button>
-                  ))}
+                  {motivationOptions.map((option) => {
+                    const isSelected = formData.motivationTypes.includes(option.value)
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          motivationTypes: isSelected
+                            ? prev.motivationTypes.filter(v => v !== option.value)
+                            : [...prev.motivationTypes, option.value],
+                          // Keep first selection as primary for backward compat
+                          motivationType: isSelected && prev.motivationTypes.length === 1
+                            ? ''
+                            : (!isSelected && prev.motivationTypes.length === 0 ? option.value : prev.motivationType)
+                        }))}
+                        className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
+                            : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-cyan-400'
+                        }`}
+                      >
+                        <span className="text-2xl">{option.emoji}</span>
+                        <div className="flex-1">
+                          <div className="font-medium text-slate-800">{option.label}</div>
+                          <div className="text-sm text-slate-500">{option.description}</div>
+                        </div>
+                        {isSelected && (
+                          <Check className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-white/10">
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What's your current life stage?</h2>
+              <div className="pt-6 border-t border-slate-200">
+                <h2 className="text-2xl font-bold mb-2 text-slate-800">What&apos;s your current life stage?</h2>
                 <p className="text-slate-600 mb-6">This helps us match you with relevant resources.</p>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1070,8 +1373,8 @@ export default function OnboardingPage() {
                       onClick={() => setFormData(prev => ({ ...prev, lifeStage: stage.id }))}
                       className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
                         formData.lifeStage === stage.id
-                          ? 'border-cyan-500 bg-cyan-500/20 text-white'
-                          : 'border-white/10 hover:border-cyan-500/50 text-slate-300'
+                          ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                          : 'border-slate-200 hover:border-cyan-400 text-slate-700'
                       }`}
                     >
                       {stage.label}
@@ -1082,32 +1385,79 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 8: Profile Customization - Dreams & Dream Self */}
-          {currentStep === 8 && (
+          {/* Step 5: Profile Customization - Dreams & Dream Self */}
+          {currentStep === 5 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Dream Self ✨</h2>
-              <p className="text-slate-600 mb-6">Start with your DREAMS. Close your eyes and imagine the best version of you — your Dream Self. What does that look like?</p>
+              {/* Variant heading based on connection type */}
+              {(() => {
+                const isParent = formData.barrierConnections['parent'] !== undefined
+                const isSibling = formData.barrierConnections['sibling'] !== undefined
+                const isSelfOnly = Object.keys(formData.barrierConnections).length === 0 || 
+                  (Object.keys(formData.barrierConnections).length === 1 && formData.barrierConnections['self'] !== undefined)
+                
+                if (isParent) {
+                  return (
+                    <>
+                      <h2 className="text-2xl font-bold mb-2 text-slate-800">Dream Future ✨</h2>
+                      <p className="text-slate-600 mb-6">Close your eyes. Where do you dream of seeing your child/children? What does their best life look like?</p>
+                    </>
+                  )
+                }
+                if (isSibling) {
+                  return (
+                    <>
+                      <h2 className="text-2xl font-bold mb-2 text-slate-800">Dream Future ✨</h2>
+                      <p className="text-slate-600 mb-6">Close your eyes. Where do you dream of seeing your sibling? What does their best life look like?</p>
+                    </>
+                  )
+                }
+                return (
+                  <>
+                    <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Dream Self ✨</h2>
+                    <p className="text-slate-600 mb-6">Close your eyes and imagine the best version of you — your Dream Self. What does that look like?</p>
+                  </>
+                )
+              })()}
               
-              {/* Dreams Summary */}
-              {formData.dreams.filter(d => d.trim()).length > 0 && (
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
-                  <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far 💭</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.dreams.filter(d => d.trim()).map((dream, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-white/80 border border-purple-200 rounded-full text-sm text-purple-700">{dream}</span>
-                    ))}
+              {/* Dreams Summary — pulled from per-goal dreams + ultimate dream */}
+              {(() => {
+                const allDreams = Object.values(formData.goalsByCategory)
+                  .flatMap(entries => entries.map(e => e.dreams).filter(d => d.trim()))
+                if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
+                // Fallback to old flat dreams array
+                const legacyDreams = formData.dreams.filter(d => d.trim())
+                const dreamsToShow = allDreams.length > 0 ? allDreams : legacyDreams
+                if (dreamsToShow.length === 0) return null
+                return (
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+                    <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far 💭</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {dreamsToShow.map((dream, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-white/80 border border-purple-200 rounded-full text-sm text-purple-700">{dream}</span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Dream Self Description */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Describe your Dream Self</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {formData.barrierConnections['parent'] !== undefined
+                      ? 'Describe your dream future for your child/children'
+                      : formData.barrierConnections['sibling'] !== undefined
+                        ? 'Describe your dream future for your sibling'
+                        : 'Describe your Dream Self'}
+                  </label>
                   <textarea
                     value={formData.dreamSelf}
                     onChange={(e) => setFormData(prev => ({ ...prev, dreamSelf: e.target.value }))}
-                    placeholder="When I close my eyes and imagine my best future self, I see someone who..."
+                    placeholder={
+                      formData.barrierConnections['parent'] !== undefined
+                        ? "When I close my eyes and imagine my child's best future, I see them..."
+                        : "When I close my eyes and imagine my best future self, I see someone who..."
+                    }
                     rows={5}
                     className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                   />
@@ -1127,17 +1477,19 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 9: Spirit Animals */}
-          {currentStep === 9 && (
+          {/* Step 6: Spirit Animals */}
+          {currentStep === 6 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
-              <p className="text-slate-600 mb-6">Choose up to 2 spirit animals to guide you on your journey. Pick the animal first, then choose its color.</p>
+              <p className="text-slate-600 mb-6">Pick 2 spirit animals to guide you — one for your <strong>fast days</strong> (energized, productive) and one for your <strong>slow days</strong> (rest, recharge).</p>
               
               {/* Spirit Animal Slots */}
               {formData.spiritAnimals.map((animal, idx) => (
                 <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-purple-700">Spirit Animal {idx + 1}</h3>
+                    <h3 className="font-medium text-purple-700">
+                      {idx === 0 ? '⚡ Fast Day Spirit Animal' : '🌙 Slow Day Spirit Animal'}
+                    </h3>
                     <button
                       onClick={() => removeSpiritAnimal(idx)}
                       className="text-sm text-red-400 hover:text-red-500"
@@ -1210,44 +1562,64 @@ export default function OnboardingPage() {
                   onClick={addSpiritAnimal}
                   className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-500 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
                 >
-                  {formData.spiritAnimals.length === 0 ? '+ Choose your first spirit animal' : '+ Add a second spirit animal'}
+                  {formData.spiritAnimals.length === 0 ? '+ Choose your Fast Day spirit animal ⚡' : '+ Add your Slow Day spirit animal 🌙'}
                 </button>
               )}
               
               {formData.spiritAnimals.length === 2 && (
-                <p className="text-sm text-slate-400 text-center mt-2">You've selected 2 spirit animals — the maximum.</p>
+                <p className="text-sm text-slate-500 text-center mt-2">You&apos;ve got both — your ⚡ Fast Day and 🌙 Slow Day spirit animals!</p>
               )}
             </div>
           )}
 
-          {/* Step 10: AI Recommendations */}
-          {currentStep === 10 && (
+          {/* Step 7: AI Recommendations */}
+          {currentStep === 7 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-cyan-400" />
-                <h2 className="text-2xl font-bold">AI-Recommended Services</h2>
+                <Sparkles className="w-6 h-6 text-cyan-600" />
+                <h2 className="text-2xl font-bold text-slate-800">AI-Recommended Services</h2>
               </div>
-              <p className="text-slate-400 mb-4">
-                Based on your profile, we've found resources that may help you achieve your goals. 
+              <p className="text-slate-600 mb-4">
+                Based on your profile, we&apos;ve found resources that may help you achieve your goals. 
                 Save any that interest you to access them later in ResourceHub.
               </p>
               
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-6">
-                <p className="text-sm text-blue-300">
-                  💡 <strong>Note:</strong> To save resources permanently and access "My Resources" in ServiceHub, 
-                  you'll need to sign in to ResourceHub with the same email. Your saved selections will be synced automatically.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                <p className="text-sm text-blue-700">
+                  💡 <strong>Note:</strong> To save resources permanently and access &quot;My Resources&quot; in ResourceHub, 
+                  you&apos;ll need to sign in to ResourceHub with the same email. Your saved selections will be synced automatically.
                 </p>
               </div>
 
               {isLoadingRecommendations ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mb-4" />
-                  <p className="text-slate-400">Generating personalized recommendations...</p>
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 rounded-full border-4 border-slate-200 border-t-cyan-500 animate-spin" />
+                    <Sparkles className="w-8 h-8 text-cyan-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">Finding Your Resources...</h3>
+                  <p className="text-slate-500 text-sm text-center max-w-sm">
+                    Our AI agents are analyzing your barriers, goals, and location to find the best matches. This may take a moment.
+                  </p>
+                  <div className="mt-6 space-y-2 w-full max-w-sm">
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                      <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                      Analyzing your barrier profile...
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+                      Matching with community-rated resources...
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                      <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                      Personalizing recommendations...
+                    </div>
+                  </div>
                 </div>
               ) : recommendations.length === 0 ? (
-                <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                  <p className="text-slate-300 mb-2">No recommendations available yet</p>
+                  <p className="text-slate-700 mb-2 font-medium">No recommendations available yet</p>
                   <p className="text-sm text-slate-500">
                     {recommendationExplanation || 'Sign in to ResourceHub to get personalized recommendations based on your profile.'}
                   </p>
@@ -1255,8 +1627,8 @@ export default function OnboardingPage() {
               ) : (
                 <div className="space-y-4">
                   {recommendationExplanation && (
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-cyan-300">{recommendationExplanation}</p>
+                    <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-cyan-700">{recommendationExplanation}</p>
                     </div>
                   )}
                   
@@ -1264,19 +1636,19 @@ export default function OnboardingPage() {
                     {recommendations.map((resource) => (
                       <div
                         key={resource.id}
-                        className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all"
+                        className="bg-white border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-all"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{resource.name}</h3>
+                              <h3 className="font-semibold text-lg text-slate-800">{resource.name}</h3>
                               {resource.category && (
-                                <span className="px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded">
+                                <span className="px-2 py-1 text-xs bg-cyan-100 text-cyan-700 rounded">
                                   {resource.category}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-slate-400 mb-2 line-clamp-2">
+                            <p className="text-sm text-slate-600 mb-2 line-clamp-2">
                               {resource.description}
                             </p>
                             {resource.location && (
@@ -1289,7 +1661,7 @@ export default function OnboardingPage() {
                                 <span>⭐ {resource.averageRating.toFixed(1)} ({resource.ratingCount} reviews)</span>
                               )}
                               {resource.score > 0 && (
-                                <span className="text-cyan-400">{resource.score}% match</span>
+                                <span className="text-cyan-600 font-medium">{resource.score}% match</span>
                               )}
                             </div>
                           </div>
@@ -1297,8 +1669,8 @@ export default function OnboardingPage() {
                             onClick={() => handleSaveResource(resource.id)}
                             className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                               savedResources.has(resource.id)
-                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
+                                ? 'bg-green-100 text-green-700 border border-green-300'
+                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                             }`}
                           >
                             {savedResources.has(resource.id) ? (
@@ -1315,9 +1687,9 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                   
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-4">
-                    <p className="text-sm text-blue-300">
-                      💡 <strong>Tip:</strong> You can always find these resources later in ResourceHub's "My Resources" section. 
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p className="text-sm text-blue-700">
+                      💡 <strong>Tip:</strong> You can always find these resources later in ResourceHub&apos;s &quot;My Resources&quot; section. 
                       You can also recommend new resources to help others in the community.
                     </p>
                   </div>
@@ -1343,7 +1715,7 @@ export default function OnboardingPage() {
                 disabled={!canProceed()}
                 className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
               >
-                {currentStep === 9 ? 'View Recommendations' : currentStep === 0 ? '🚀 Launch to Dream Land!' : 'Continue'}
+                {currentStep === 6 ? 'View Recommendations' : 'Continue'}
                 <ChevronRight className="w-5 h-5" />
               </button>
             ) : (
@@ -1359,8 +1731,8 @@ export default function OnboardingPage() {
                   </>
                 ) : (
                   <>
-                    Continue to Role Models & Mentors
-                    <ChevronRight className="w-5 h-5" />
+                    🚀 Launch to Dream Land!
+                    <Rocket className="w-5 h-5" />
                   </>
                 )}
               </button>

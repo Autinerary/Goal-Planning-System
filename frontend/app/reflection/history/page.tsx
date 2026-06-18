@@ -224,7 +224,11 @@ export default function JournalHistory() {
                           {journal.questions.map((qa, idx) => (
                             <div key={idx} className="bg-white/60 backdrop-blur-sm p-4 rounded-lg border border-slate-300">
                               <div className="font-medium text-blue-600 text-sm mb-2">{qa.q}</div>
-                              <div className="mt-1 text-slate-700">{qa.a}</div>
+                              <div className="mt-1 text-slate-700 whitespace-pre-line [&>p]:indent-6 leading-relaxed">
+                                {qa.a.split('\n').map((para: string, pIdx: number) => (
+                                  <p key={pIdx} className={pIdx > 0 ? 'mt-2 indent-6' : ''}>{para}</p>
+                                ))}
+                              </div>
                             </div>
                           ))}
                         </div>

@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
 
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email.trim().toLowerCase(), password)
 
     if (error) {
       setError(getErrorMessage(error))
@@ -37,6 +38,16 @@ export default function LoginPage() {
       return 'Please check your email and confirm your account before signing in.'
     }
     return error.message || 'An error occurred during sign in.'
+  }
+
+  async function handleDemoLogin() {
+    setError(null)
+    setDemoLoading(true)
+    const { error } = await signIn('demo@resourcehub.com', 'DemoPassword123!')
+    if (error) {
+      setError('Demo account not available. Please seed the database first.')
+      setDemoLoading(false)
+    }
   }
 
   return (
@@ -181,6 +192,24 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        {/* Demo Login */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gray-50 text-gray-500">Or</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleDemoLogin}
+          disabled={demoLoading || loading}
+          className="w-full flex justify-center py-2 px-4 border-2 border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {demoLoading ? 'Logging in...' : '🎮 Try Demo Account'}
+        </button>
       </div>
     </div>
   )

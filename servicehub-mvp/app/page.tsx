@@ -806,21 +806,21 @@ export default async function Home() {
 
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-8">
-              <form action="/search" method="get" className="flex">
+              <form action="/search" method="get" className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                 <input
                   type="search"
                   name="q"
                   placeholder="Search for resources..."
-                  className="flex-1 px-4 py-3 rounded-l-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-3 rounded-lg sm:rounded-r-none text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   aria-label="Search resources"
                 />
                 <button
                   type="submit"
-                  className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-r-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                  className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-lg sm:rounded-l-none font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center"
                   aria-label="Search"
                 >
-                  <Search className="w-5 h-5 mr-2" aria-hidden="true" />
-                  Search
+                  <Search className="w-5 h-5 sm:mr-2" aria-hidden="true" />
+                  <span className="hidden sm:inline">Search</span>
                 </button>
               </form>
             </div>

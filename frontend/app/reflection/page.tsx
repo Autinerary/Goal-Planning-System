@@ -21,6 +21,7 @@ function ReflectionContent() {
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [mode, setMode] = useState<'landing' | 'write'>('landing')
   const [answers, setAnswers] = useState({
     q1: '',
     q2: '',
@@ -57,20 +58,20 @@ function ReflectionContent() {
     dark: {
       bg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
       card: 'bg-white/10 backdrop-blur-lg border-white/20',
-      text: 'text-white',
-      textSecondary: 'text-slate-300',
+      text: 'text-slate-900',
+      textSecondary: 'text-slate-700',
     },
     light: {
       bg: 'bg-gradient-to-br from-slate-50 via-white to-slate-100',
       card: 'bg-white border-slate-200',
-      text: 'text-slate-800',
+      text: 'text-slate-900',
       textSecondary: 'text-slate-600',
     },
     colorful: {
       bg: 'bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200',
       card: 'bg-white/90 backdrop-blur-lg border-purple-300',
-      text: 'text-slate-800',
-      textSecondary: 'text-slate-600',
+      text: 'text-slate-900',
+      textSecondary: 'text-slate-700',
     },
   }
 
@@ -135,7 +136,7 @@ function ReflectionContent() {
             className="p-3 bg-white/20 backdrop-blur-lg rounded-full border-2 border-white/30 hover:bg-white/30 transition-all shadow-lg"
             title="Change theme"
           >
-            <Palette className="w-5 h-5 text-white" />
+            <Palette className="w-5 h-5 text-slate-700" />
           </button>
           {showThemeMenu && (
             <div className="absolute top-14 right-0 bg-white/90 backdrop-blur-lg rounded-xl border-2 border-white/30 shadow-2xl p-2 min-w-[150px]">
@@ -173,8 +174,63 @@ function ReflectionContent() {
 
       <div className="relative z-10">
       <div className="max-w-2xl mx-auto">
-        {/* Main Card */}
+        {/* ── Landing Screen: choose new entry or view history ── */}
+        {mode === 'landing' ? (
+          <div className={`${currentTheme.card} rounded-2xl border-2 p-8 md:p-12 shadow-2xl`}>
+            {/* Desk scene */}
+            <div className="text-center mb-8">
+              <div className="relative inline-block mb-4">
+                <div className="relative flex items-end justify-center gap-1">
+                  <div className="flex flex-col items-center mr-2">
+                    <div className="text-2xl" style={{ animation: 'lampGlow 3s ease-in-out infinite' }}>💡</div>
+                    <div className="w-0.5 h-4 bg-amber-600 rounded" />
+                  </div>
+                  <div style={{ animation: 'deskBob 3s ease-in-out infinite' }}>
+                    <div className="text-5xl">🐰</div>
+                  </div>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-3 bg-amber-700 rounded-t-sm" />
+                  <div className="text-lg mb-1 mr-1">📚</div>
+                  <div style={{ animation: 'deskBob 3s ease-in-out infinite', animationDelay: '0.5s' }}>
+                    <div className="text-4xl">🐢</div>
+                  </div>
+                  <div className="text-lg mb-1 ml-1">☕</div>
+                </div>
+              </div>
+              <h1 className={`text-3xl font-bold ${currentTheme.text} mb-2`}>Journal</h1>
+              <p className={`${currentTheme.textSecondary} mt-1`}>What would you like to do?</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                onClick={() => setMode('write')}
+                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+              >
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                  <Send className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-bold text-slate-800 text-lg">New Entry</span>
+                <span className="text-sm text-slate-500">Write a new journal reflection</span>
+              </button>
+
+              <Link
+                href="/reflection/history"
+                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-purple-50 to-cyan-50 border-2 border-purple-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+              >
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-cyan-500 flex items-center justify-center shadow-md">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-bold text-slate-800 text-lg">Previous Entries</span>
+                <span className="text-sm text-slate-500">Read your past journal entries</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+        /* ── Write Mode: the entry form ── */
         <div className={`${currentTheme.card} rounded-2xl border-2 p-6 md:p-8 shadow-2xl`}>
+          {/* Back to landing */}
+          <button onClick={() => setMode('landing')} className={`mb-4 text-sm ${currentTheme.textSecondary} hover:underline flex items-center gap-1`}>
+            ← Back
+          </button>
           {/* Desk Scene — Characters at desk writing */}
           <div className="text-center mb-8">
             <div className="relative inline-block mb-4">
@@ -218,7 +274,7 @@ function ReflectionContent() {
             const hasAny = (themes && themes.length) || sentiment || (recs && recs.length)
             if (!hasAny) return null
             return (
-              <div className={`mb-6 p-4 rounded-xl border-2 ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-purple-50 border-purple-200 text-slate-700'}`}>
+              <div className={`mb-6 p-4 rounded-xl border-2 ${theme === 'dark' ? 'bg-white/80 border-slate-300 text-slate-800' : 'bg-purple-50 border-purple-200 text-slate-700'}`}>
                 <div className="font-bold mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Agent insights from past reflections</div>
                 {sentiment && <div className="text-sm mb-1">Sentiment: <span className="font-semibold capitalize">{sentiment}</span></div>}
                 {themes && themes.length > 0 && (
@@ -253,7 +309,7 @@ function ReflectionContent() {
                       ...prev, 
                       [q.id]: e.target.value 
                     }))}
-                    className={`w-full ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white placeholder-slate-400' : `${q.bg} ${q.border} text-slate-700 placeholder-slate-400`} border-2 rounded-xl p-4 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-300 transition-all resize-none`}
+                    className={`w-full ${theme === 'dark' ? 'bg-white/80 border-slate-300 text-slate-900 placeholder-slate-400' : `${q.bg} ${q.border} text-slate-700 placeholder-slate-400`} border-2 rounded-xl p-4 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-300 transition-all resize-none`}
                     placeholder="Write your thoughts here..."
                   />
                 </div>
@@ -280,7 +336,7 @@ function ReflectionContent() {
               href="/reflection/history"
               className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 ${
                 theme === 'dark' 
-                  ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' 
+                  ? 'bg-white/80 text-slate-800 border-slate-300 hover:bg-white' 
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               } rounded-xl font-bold transition-all border-2`}
             >
@@ -289,6 +345,7 @@ function ReflectionContent() {
             </Link>
           </div>
         </div>
+        )}
       </div>
       </div>
     </div>

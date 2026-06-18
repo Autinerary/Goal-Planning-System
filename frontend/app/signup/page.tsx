@@ -41,7 +41,7 @@ export default function SignupPage() {
     }
 
     setIsSubmitting(true)
-    const result = await signup(email, password, name)
+    const result = await signup(email.trim().toLowerCase(), password, name)
     
     if (result.success) {
       router.push('/onboarding')

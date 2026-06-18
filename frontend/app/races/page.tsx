@@ -20,8 +20,8 @@ function RacesContent() {
   const searchParams = useSearchParams()
 
   const [isDayTheme, setIsDayTheme] = useState(true)
-  const [showRocketEntry, setShowRocketEntry] = useState(true)
-  const [rocketPhase, setRocketPhase] = useState<'flying' | 'landing' | 'landed'>('flying')
+  const [showRocketEntry, setShowRocketEntry] = useState(false)
+  const [rocketPhase, setRocketPhase] = useState<'flying' | 'landing' | 'landed'>('landed')
   const comparisonView = searchParams.get('compare') || null
   const newView = searchParams.get('newview') || null
   const [showPreviousSteps, setShowPreviousSteps] = useState(false)
@@ -34,6 +34,36 @@ function RacesContent() {
   const [expandShop, setExpandShop] = useState(false)
   const [suggestionText, setSuggestionText] = useState('')
   const [sentSuggestions, setSentSuggestions] = useState<{ to: string; text: string }[]>([])
+  const [gamifiedMode, setGamifiedMode] = useState(true)
+  const [showPinwheelPopup, setShowPinwheelPopup] = useState(false)
+  const [pinwheelHover, setPinwheelHover] = useState(false)
+  const [activeDimension, setActiveDimension] = useState('education')
+  const [activeDimRace, setActiveDimRace] = useState<string | null>(null)
+  const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
+  const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('completedMilestoneIds'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
+    }
+    return new Set()
+  })
+  const [heartedGoals, setHeartedGoals] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('heartedGoals'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
+    }
+    return new Set()
+  })
+  const [showNextMilestoneSelect, setShowNextMilestoneSelect] = useState(false)
+
+  // Persist hearted goals + completed milestones to localStorage
+  useEffect(() => { try { localStorage.setItem('heartedGoals', JSON.stringify([...heartedGoals])) } catch {} }, [heartedGoals])
+  useEffect(() => { try { localStorage.setItem('completedMilestoneIds', JSON.stringify([...completedMilestoneIds])) } catch {} }, [completedMilestoneIds])
+
+  const toggleHeart = (id: string) => {
+    setHeartedGoals(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next })
+  }
+  const toggleMilestoneComplete = (id: string) => {
+    setCompletedMilestoneIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next })
+  }
 
   /* ═══ MOCK DATA FOR OTHER PEOPLE'S RACE TRACKS ═══ */
   const comparePeople = {
@@ -295,7 +325,7 @@ function RacesContent() {
     if (isWheelSpinning) return
     setIsWheelSpinning(true)
     setWheelRotation(prev => prev + 1080 + Math.random() * 720)
-    setTimeout(() => { setTodaysMotivation(motivations[Math.floor(Math.random() * motivations.length)]); setIsWheelSpinning(false) }, 2000)
+    setTimeout(() => { const m = motivations[Math.floor(Math.random() * motivations.length)]; setTodaysMotivation(m); try { localStorage.setItem('todaysMotivation', m) } catch {}; setIsWheelSpinning(false) }, 2000)
   }
 
   const day = isDayTheme
@@ -488,6 +518,25 @@ function RacesContent() {
               <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
             </div>
             <div className="flex items-center gap-1.5">
+              {/* Motivation Pinwheel - tiny, top right */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowPinwheelPopup(true)}
+                  onMouseEnter={() => setPinwheelHover(true)}
+                  onMouseLeave={() => setPinwheelHover(false)}
+                  className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all"
+                >
+                  <svg viewBox="0 0 50 50" className="w-6 h-6">
+                    {[0, 60, 120, 180, 240, 300].map((a, i) => { const c = ['#38bdf8', '#818cf8', '#f59e0b', '#34d399', '#f472b6', '#60a5fa']; const sa = (a - 90) * Math.PI / 180, ea = (a + 60 - 90) * Math.PI / 180; return <path key={i} d={`M25 25 L${25 + 20 * Math.cos(sa)} ${25 + 20 * Math.sin(sa)} A20 20 0 0 1 ${25 + 20 * Math.cos(ea)} ${25 + 20 * Math.sin(ea)}Z`} fill={c[i]} stroke="white" strokeWidth="1" /> })}
+                    <circle cx="25" cy="25" r="5" fill="white" />
+                  </svg>
+                </button>
+                {pinwheelHover && (
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
+                    Motivation Pinwheel
+                  </div>
+                )}
+              </div>
               <button onClick={() => setIsDayTheme(!isDayTheme)} className={`px-2 py-1 rounded-lg text-xs font-semibold shadow ${day ? 'bg-indigo-600 text-white' : 'bg-amber-400 text-slate-900'}`}>{day ? '🌙' : '☀️'}</button>
               <div className="relative">
                 <button onClick={() => { setShowCompareMenu(!showCompareMenu); setShowNewViewsMenu(false) }} className={`px-2 py-1 bg-gradient-to-r ${accent} text-white rounded-lg text-xs font-semibold`}><RefreshCw className="w-3 h-3 inline mr-1" />Compare</button>
@@ -775,131 +824,402 @@ function RacesContent() {
           {/* ─── ROAD: fan out from Dream Self into 5 paths ─── */}
           <FanOut count={5} />
 
-          {/* ─── Content sitting on the 5 paths (goals, stats, etc.) ─── */}
-          <div className="w-full grid grid-cols-5 gap-2 px-1 max-w-lg">
-            <div className={`${pill} border rounded-lg p-2 shadow-sm text-center`}>
-              <div className="text-base">🎯</div>
-              <div className={`font-bold text-[9px] ${txt}`}>{races[0].name}</div>
-              <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-1 overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full" style={{ width: `${races[0].progress}%` }} /></div>
-              <div className={`text-[8px] ${sub}`}>{races[0].progress}%</div>
-            </div>
-            <div className={`${pill} border rounded-lg p-1.5 shadow-sm`}>
-              <div className={`font-bold text-[8px] mb-0.5 ${txt}`}>✨Stats</div>
-              {stats.map((s, i) => (
-                <div key={i} className="flex items-center gap-0.5 mb-0.5">
-                  <span className={`text-[7px] ${sub} w-9 truncate`}>{s.name}</span>
-                  <div className={`flex-1 h-0.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}><div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} /></div>
+          {/* ─── Goals + Stats layout ─── */}
+          <div className="w-full flex gap-4 px-2 max-w-2xl">
+            {/* LEFT: Stats (sticky, only if gamified) */}
+            {gamifiedMode && (
+              <div className="hidden md:block flex-shrink-0 w-40">
+                <div className="sticky top-16">
+                  <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
+                    <div className={`font-bold text-xs mb-2 ${txt} flex items-center gap-1`}>✨ Stats</div>
+                    {stats.map((s, i) => (
+                      <div key={i} className="mb-2 last:mb-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className={`text-[10px] ${sub}`}>{s.name}</span>
+                          <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
+                        </div>
+                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
+                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                    <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CENTER: All goals */}
+            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2">
+              {races.filter((r: any) => r.id !== 'r_placeholder').map((r: any) => (
+                <div key={r.id} className={`${pill} border rounded-lg p-3 shadow-sm text-center`}>
+                  <div className="text-lg">🎯</div>
+                  <div className={`font-bold text-xs ${txt} mt-1`}>{r.name}</div>
+                  <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-2 overflow-hidden`}>
+                    <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full" style={{ width: `${r.progress}%` }} />
+                  </div>
+                  <div className={`text-[10px] ${sub} mt-1`}>{r.progress}%</div>
                 </div>
               ))}
-            </div>
-            <div className={`${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/50 border-purple-700'} border rounded-lg p-2 shadow-sm text-center`}>
-              <div className="text-base">☁️</div>
-              <div className={`font-bold text-[9px] ${txt}`}>Cloud 9</div>
-              <div className={`text-[7px] ${sub}`}>Vision</div>
-            </div>
-            <div className={`${pill} border rounded-lg p-2 shadow-sm text-center`}>
-              <div className="text-base">🎯</div>
-              <div className={`font-bold text-[9px] ${txt}`}>{races[1].name}</div>
-              <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-1 overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-indigo-400 rounded-full" style={{ width: `${races[1].progress}%` }} /></div>
-              <div className={`text-[8px] ${sub}`}>{races[1].progress}%</div>
-            </div>
-            <div className="flex flex-col items-center justify-center">
-              <button onClick={spinWheel} disabled={isWheelSpinning} className="relative">
-                <svg viewBox="0 0 50 50" className="w-10 h-10 transition-transform duration-[2000ms] ease-out" style={{ transform: `rotate(${wheelRotation}deg)` }}>
-                  {[0, 60, 120, 180, 240, 300].map((a, i) => { const c = day ? ['#38bdf8', '#818cf8', '#f59e0b', '#34d399', '#f472b6', '#60a5fa'] : ['#0ea5e9', '#6366f1', '#d97706', '#059669', '#ec4899', '#3b82f6']; const sa = (a - 90) * Math.PI / 180, ea = (a + 60 - 90) * Math.PI / 180; return <path key={i} d={`M25 25 L${25 + 20 * Math.cos(sa)} ${25 + 20 * Math.sin(sa)} A20 20 0 0 1 ${25 + 20 * Math.cos(ea)} ${25 + 20 * Math.sin(ea)}Z`} fill={c[i]} stroke="white" strokeWidth="1" /> })}
-                  <circle cx="25" cy="25" r="6" fill="white" stroke={line} strokeWidth="1" />
-                  <text x="25" y="27" textAnchor="middle" fontSize="4" fontWeight="bold" fill={line}>SPIN</text>
-                </svg>
+              {/* Add another goal button */}
+              <button
+                onClick={() => router.push('/onboarding?step=3')}
+                className={`${pill} border-2 border-dashed rounded-lg p-3 shadow-sm text-center hover:opacity-80 transition-all cursor-pointer flex flex-col items-center justify-center gap-1`}
+              >
+                <div className="text-lg">➕</div>
+                <div className={`font-bold text-xs ${txt}`}>Add another goal</div>
               </button>
-              {todaysMotivation && <div className={`text-[7px] italic ${txt} text-center mt-0.5 max-w-[70px] leading-tight`}>{todaysMotivation}</div>}
             </div>
           </div>
+
+          {/* Mobile stats (inline, only if gamified) */}
+          {gamifiedMode && (
+            <div className="md:hidden w-full px-2 mt-3 max-w-2xl">
+              <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
+                <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {stats.map((s, i) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className={`text-[10px] ${sub}`}>{s.name}</span>
+                        <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
+                      </div>
+                      <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
+                        <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
+              </div>
+            </div>
+          )}
+
+          {/* Today's Motivation (from pinwheel) */}
+          {todaysMotivation && (
+            <div className={`mt-3 px-4 py-2 rounded-xl border text-center max-w-sm ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}>
+              <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Today&apos;s Motivation</div>
+              <div className={`text-sm italic ${txt}`}>&ldquo;{todaysMotivation}&rdquo;</div>
+            </div>
+          )}
 
           {/* ─── ROAD: 5 paths converge back to character ─── */}
           <FanIn count={5} />
 
-          {/* ═══════════════════════════════════════
-              FOUR DIMENSION LANES — Education /
-              Workplace / Relationships / Health
-              Each lane is its own mini-roadmap for
-              the SAME goal, tagged with barriers.
-             ═══════════════════════════════════════ */}
+          {/* ═══════════════════════════════════════════════════
+              CHECKLIST VIEW — One dimension at a time
+              Each dimension can contain multiple races (sub-races).
+              Individual vs Combined view toggle.
+              Next milestone selection after completing milestones.
+             ═══════════════════════════════════════════════════ */}
           {(() => {
-            const dimOrder: Array<{ key: string; label: string; emoji: string; tint: string; tintDark: string }> = [
+            const dimOrder = [
               { key: 'education',     label: 'Education',          emoji: '🎓', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
               { key: 'workplace',     label: 'Workplace',          emoji: '💼', tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
               { key: 'relationships', label: 'Relationships',      emoji: '🤝', tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
               { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
+              { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
             ]
-            const byDim: Record<string, typeof milestones> = { education: [], workplace: [], relationships: [], health: [] }
+            // Sub-races per dimension: each dimension can have multiple races
+            const dimSubRaces: Record<string, Array<{ id: string; name: string; steps: Array<{ id: string; name: string; status: 'active' | 'upcoming' | 'far'; isGeneric?: boolean }> }>> = {
+              education: [
+                { id: 'edu-academic', name: 'Academic Progress', steps: [
+                  { id: 'ea1', name: 'Set up a structured study schedule', status: 'active' },
+                  { id: 'ea2', name: 'Use noise-canceling headphones for focus', status: 'upcoming' },
+                  { id: 'ea3', name: 'Join a study group for support', status: 'upcoming' },
+                  { id: 'ea4', name: 'Access campus resources for disabilities', status: 'upcoming' },
+                  { id: 'ea5', name: 'Research tech programs with flexibility', status: 'upcoming' },
+                  { id: 'ea6', name: 'Create a study schedule for focus', status: 'far' },
+                  { id: 'ea7', name: 'Utilize sensory-friendly study environments', status: 'far' },
+                  { id: 'ea8', name: 'Complete semester final exams', status: 'far', isGeneric: true },
+                ]},
+                { id: 'edu-skills', name: 'Skill Building', steps: [
+                  { id: 'es1', name: 'Identify top 3 skills to develop', status: 'active' },
+                  { id: 'es2', name: 'Enroll in an online course', status: 'upcoming' },
+                  { id: 'es3', name: 'Practice skills daily for 30 min', status: 'upcoming' },
+                  { id: 'es4', name: 'Build a project showcasing new skills', status: 'upcoming' },
+                  { id: 'es5', name: 'Get feedback from peers or mentors', status: 'far' },
+                  { id: 'es6', name: 'Earn a certification', status: 'far', isGeneric: true },
+                ]},
+              ],
+              workplace: [
+                { id: 'work-job', name: 'Job Search', steps: [
+                  { id: 'wj1', name: 'Seek flexible job options for students', status: 'active' },
+                  { id: 'wj2', name: 'Communicate needs with employer early', status: 'upcoming' },
+                  { id: 'wj3', name: 'Find a mentor for guidance and support', status: 'upcoming' },
+                  { id: 'wj4', name: 'Explore internships related to your field', status: 'upcoming' },
+                  { id: 'wj5', name: 'Update resume with clear achievements', status: 'upcoming' },
+                  { id: 'wj6', name: 'Practice interview skills in low-pressure settings', status: 'far' },
+                  { id: 'wj7', name: 'Seek out inclusive companies', status: 'far' },
+                  { id: 'wj8', name: 'Accept an offer', status: 'far', isGeneric: true },
+                ]},
+                { id: 'work-career', name: 'Career Advancement', steps: [
+                  { id: 'wc1', name: 'Set 6-month career goals', status: 'active' },
+                  { id: 'wc2', name: 'Seek mentorship at work', status: 'upcoming' },
+                  { id: 'wc3', name: 'Take on a stretch project', status: 'upcoming' },
+                  { id: 'wc4', name: 'Build professional network', status: 'upcoming' },
+                  { id: 'wc5', name: 'Request performance review', status: 'far', isGeneric: true },
+                ]},
+              ],
+              relationships: [
+                { id: 'rel-social', name: 'Social Connections', steps: [
+                  { id: 'rs1', name: 'Connect with classmates through online forums', status: 'active' },
+                  { id: 'rs2', name: 'Join cultural or minority student groups', status: 'upcoming' },
+                  { id: 'rs3', name: 'Schedule regular check-ins with friends', status: 'upcoming' },
+                  { id: 'rs4', name: 'Share your experiences for mutual support', status: 'upcoming' },
+                  { id: 'rs5', name: 'Join support groups for tech job seekers', status: 'far' },
+                  { id: 'rs6', name: 'Connect with peers in tech education', status: 'far' },
+                  { id: 'rs7', name: 'Discuss job goals with family and friends', status: 'far', isGeneric: true },
+                ]},
+                { id: 'rel-support', name: 'Support Network', steps: [
+                  { id: 'rn1', name: 'Identify your core support people', status: 'active' },
+                  { id: 'rn2', name: 'Ask for help when you need it', status: 'upcoming' },
+                  { id: 'rn3', name: 'Attend a community event monthly', status: 'upcoming' },
+                  { id: 'rn4', name: 'Find an accountability partner', status: 'far', isGeneric: true },
+                ]},
+              ],
+              health: [
+                { id: 'health-mental', name: 'Mental Wellness', steps: [
+                  { id: 'hm1', name: 'Practice mindfulness to manage stress', status: 'active' },
+                  { id: 'hm2', name: 'Seek counseling for emotional guidance', status: 'upcoming' },
+                  { id: 'hm3', name: 'Establish a self-care routine for stress', status: 'upcoming' },
+                  { id: 'hm4', name: 'Practice mindfulness for focus improvement', status: 'upcoming' },
+                  { id: 'hm5', name: 'Journal weekly about mental state', status: 'far', isGeneric: true },
+                ]},
+                { id: 'health-physical', name: 'Physical Wellness', steps: [
+                  { id: 'hp1', name: 'Maintain a balanced diet for energy', status: 'active' },
+                  { id: 'hp2', name: 'Establish a consistent sleep routine', status: 'upcoming' },
+                  { id: 'hp3', name: 'Explore sensory-friendly workspaces', status: 'upcoming' },
+                  { id: 'hp4', name: 'Exercise 3x per week', status: 'upcoming' },
+                  { id: 'hp5', name: 'Schedule annual health check-up', status: 'far', isGeneric: true },
+                ]},
+              ],
+              barrier: [
+                { id: 'barrier-main', name: 'Barrier Support', steps: recommendedChoices
+                  .filter(ch => ch.id !== 'see')
+                  .map((ch, idx) => ({
+                    id: ch.id,
+                    name: ch.name,
+                    status: (idx === 0 ? 'active' : idx < 3 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far',
+                  })),
+                },
+              ],
+            }
+            // Also populate from agent milestones if they have dimension data
             milestones.forEach(m => {
               const k = ((m as any).dimension || '').toLowerCase()
               const norm = k === 'career' ? 'workplace' : k
-              if (byDim[norm]) byDim[norm].push(m)
+              if (norm && dimSubRaces[norm] && dimSubRaces[norm].length > 0) {
+                const lane = dimSubRaces[norm][0]
+                if (!lane.steps.find(s => s.id === (m as any).id)) {
+                  lane.steps.push({ id: (m as any).id || `agent-${lane.steps.length}`, name: m.name, status: m.status })
+                }
+              }
             })
-            // If the agent payload predates dimensions, fall back to one
-            // single lane labelled "Roadmap" so we still render everything.
-            const hasAnyDim = Object.values(byDim).some(arr => arr.length > 0)
+
+            const activeDim = dimOrder.find(d => d.key === activeDimension) || dimOrder[0]
+            const subRaces = dimSubRaces[activeDim.key] || []
+            const activeSubRace = activeDimRace ? subRaces.find(r => r.id === activeDimRace) : subRaces[0]
+            // For combined view, merge all sub-race steps
+            const combinedSteps = subRaces.flatMap(r => r.steps.map(s => ({ ...s, raceName: r.name })))
+
+            // Find the last completed milestone index to determine if branching should show
+            const displaySteps = dimViewMode === 'individual' && activeSubRace ? activeSubRace.steps : combinedSteps
+            const lastCompletedIdx = displaySteps.findIndex((s, i) => {
+              // Find first non-completed step → the one before it is last completed
+              return !completedMilestoneIds.has(s.id)
+            })
+            const hasMilestoneJustCompleted = lastCompletedIdx > 0 // At least one step is completed
+            // Next milestone options (branching) - only show if a milestone was just completed
+            const nextMilestoneOptions = hasMilestoneJustCompleted && lastCompletedIdx < displaySteps.length
+              ? [
+                  { id: 'opt-a', label: 'Continue on current path', desc: displaySteps[lastCompletedIdx]?.name || 'Next step' },
+                  { id: 'opt-b', label: 'Explore alternative approach', desc: 'Try a different strategy for this milestone' },
+                  { id: 'opt-c', label: 'Skip to next milestone', desc: 'Jump ahead if you feel ready' },
+                ]
+              : []
+
             return (
               <div className="w-full px-4 py-6">
-                <div className={`text-center mb-4 font-bold text-sm ${txt}`}>
-                  🛣️ Four life dimensions, one goal
+                {/* Header */}
+                <div className={`text-center mb-2 font-bold text-sm ${txt}`}>
+                  📋 Checklist View
                 </div>
-                {hasAnyDim ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {dimOrder.map(dim => {
-                      const lane = byDim[dim.key]
+                <div className={`text-center mb-4 text-[10px] ${sub}`}>
+                  One dimension at a time · Switch between races
+                </div>
+
+                {/* ── Dimension tab bar ── */}
+                <div className="flex flex-wrap justify-center gap-1.5 mb-4">
+                  {dimOrder.map(dim => (
+                    <button
+                      key={dim.key}
+                      onClick={() => { setActiveDimension(dim.key); setActiveDimRace(null) }}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all border ${activeDimension === dim.key
+                        ? `${day ? 'bg-white shadow-md border-slate-300 text-slate-800' : 'bg-indigo-800 shadow-md border-indigo-500 text-white'} scale-105`
+                        : `${day ? 'bg-white/60 border-slate-200 text-slate-500 hover:bg-white/80' : 'bg-indigo-950/40 border-indigo-700 text-indigo-400 hover:bg-indigo-900/60'}`
+                      }`}
+                    >
+                      <span>{dim.emoji}</span>
+                      <span className="hidden sm:inline">{dim.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* ── Active dimension card ── */}
+                <div className={`rounded-2xl border bg-gradient-to-b ${day ? activeDim.tint : activeDim.tintDark} p-4 shadow-sm backdrop-blur-sm max-w-lg mx-auto`}>
+                  {/* Dimension header */}
+                  <div className={`flex items-center justify-between mb-3`}>
+                    <div className={`flex items-center gap-2 font-bold text-sm ${txt}`}>
+                      <span className="text-lg">{activeDim.emoji}</span>
+                      <span className="uppercase tracking-wider">{activeDim.label}</span>
+                    </div>
+                    {/* Individual / Combined toggle */}
+                    {subRaces.length > 1 && (
+                      <div className={`flex rounded-lg border overflow-hidden text-[9px] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                        <button onClick={() => setDimViewMode('individual')} className={`px-2 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Individual</button>
+                        <button onClick={() => setDimViewMode('combined')} className={`px-2 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Combined</button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Barriers chips */}
+                  {userBarrierLabels.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {userBarrierLabels.slice(0, 4).map(b => (
+                        <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>{b}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Sub-race tabs (only in individual mode, only if > 1 race) */}
+                  {dimViewMode === 'individual' && subRaces.length > 1 && (
+                    <div className="flex gap-1.5 mb-3">
+                      {subRaces.map(sr => (
+                        <button
+                          key={sr.id}
+                          onClick={() => setActiveDimRace(sr.id)}
+                          className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${(activeDimRace === sr.id || (!activeDimRace && sr.id === subRaces[0].id))
+                            ? `${day ? 'bg-white border-slate-300 shadow-sm text-slate-800' : 'bg-indigo-800 border-indigo-500 text-white'}`
+                            : `${day ? 'bg-white/40 border-slate-200 text-slate-500' : 'bg-indigo-950/30 border-indigo-700 text-indigo-400'}`
+                          }`}
+                        >
+                          {sr.name}
+                          <span className={`ml-1 text-[8px] ${day ? 'text-slate-400' : 'text-indigo-500'}`}>{sr.steps.length} steps</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Steps list */}
+                  <div className="relative pl-5">
+                    {/* Lane road line */}
+                    <div className={`absolute left-2 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
+
+                    {(dimViewMode === 'individual' && activeSubRace ? activeSubRace.steps : combinedSteps).map((step, i, arr) => {
+                      const isCompleted = completedMilestoneIds.has(step.id)
+                      const isHearted = heartedGoals.has(step.id)
+                      // After a completed milestone, check if we should show branching
+                      const justCompletedMilestone = isCompleted && i < arr.length - 1 && !completedMilestoneIds.has(arr[i + 1].id)
+
                       return (
-                        <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm backdrop-blur-sm`}>
-                          <div className={`flex items-center gap-1.5 mb-2 font-bold text-xs ${txt}`}>
-                            <span className="text-base">{dim.emoji}</span>
-                            <span className="uppercase tracking-wider">{dim.label}</span>
-                            <span className={`ml-auto text-[9px] ${sub}`}>{lane.length} steps</span>
+                        <div key={step.id}>
+                          <div
+                            className={`relative w-full text-left mb-2 p-2.5 rounded-lg border transition-all ${
+                              isCompleted
+                                ? `${day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700'}`
+                                : step.status === 'active' && !isCompleted
+                                  ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600'} shadow-sm`
+                                  : step.status === 'upcoming'
+                                    ? `${day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`
+                                    : `${day ? 'bg-white/60 border-slate-200' : 'bg-indigo-950/30 border-indigo-800'} opacity-70`
+                            }`}
+                          >
+                            {/* Node dot */}
+                            <span className={`absolute -left-[18px] top-3.5 w-3.5 h-3.5 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${
+                              isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : step.status === 'upcoming' ? (day ? 'bg-sky-400' : 'bg-sky-600') : (day ? 'bg-slate-300' : 'bg-slate-600')
+                            }`} />
+
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <span className="text-[10px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
+                                  <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
+                                  {dimViewMode === 'combined' && (step as any).raceName && (
+                                    <span className={`text-[8px] px-1 py-0.5 rounded ${day ? 'bg-slate-100 text-slate-500' : 'bg-indigo-900 text-indigo-400'}`}>{(step as any).raceName}</span>
+                                  )}
+                                  {step.status === 'active' && !isCompleted && <span className="text-[8px] font-bold text-amber-500 ml-auto">YOU ARE HERE</span>}
+                                </div>
+                                <div className={`text-[11px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                {(step as any).isGeneric && !isCompleted && (
+                                  <div className={`text-[8px] mt-0.5 italic ${sub}`}>Generic step — will refine after milestone</div>
+                                )}
+                              </div>
+                              {/* Heart + Complete buttons */}
+                              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                                <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-70'}`}>
+                                  {isHearted ? '❤️' : '🤍'}
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
+                                  {isCompleted && <span className="text-white text-[8px] font-bold">✓</span>}
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                          {/* Barriers chips */}
-                          {userBarrierLabels.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {userBarrierLabels.slice(0, 4).map(b => (
-                                <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>{b}</span>
-                              ))}
+
+                          {/* ── Branching: 3 options after a completed milestone ── */}
+                          {justCompletedMilestone && (
+                            <div className={`ml-2 mb-3 p-3 rounded-xl border ${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/20 border-purple-700'}`}>
+                              <div className={`text-[10px] font-bold mb-2 ${txt}`}>🔀 Choose your next path:</div>
+                              <div className="space-y-1.5">
+                                {[
+                                  { id: 'opt-a', label: 'Continue on current path', desc: arr[i + 1]?.name || 'Next step', icon: '➡️' },
+                                  { id: 'opt-b', label: 'Explore alternative approach', desc: 'Try a different strategy', icon: '🔄' },
+                                  { id: 'opt-c', label: 'Skip to next milestone', desc: 'Jump ahead if ready', icon: '⏩' },
+                                ].map(opt => (
+                                  <button key={opt.id} className={`w-full flex items-start gap-2 p-2 rounded-lg border text-left transition-all hover:shadow-sm hover:scale-[1.01] ${day ? 'bg-white border-slate-200 hover:border-purple-300' : 'bg-indigo-950/40 border-indigo-700 hover:border-purple-500'}`}>
+                                    <span className="text-sm mt-0.5">{opt.icon}</span>
+                                    <div>
+                                      <div className={`text-[10px] font-bold ${txt}`}>{opt.label}</div>
+                                      <div className={`text-[9px] ${sub}`}>{opt.desc}</div>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           )}
-                          {/* Vertical milestone list */}
-                          <div className="relative pl-4">
-                            {/* lane road */}
-                            <div className={`absolute left-1.5 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
-                            {lane.length === 0 && (
-                              <div className={`text-[10px] italic ${sub}`}>No milestones yet</div>
-                            )}
-                            {lane.map((m, i) => (
-                              <button
-                                key={(m as any).id || i}
-                                onClick={() => router.push(`/milestones/${(m as any).id}`)}
-                                className={`relative w-full text-left mb-2 p-2 rounded-lg border transition-all hover:shadow-md hover:scale-[1.01] ${m.status === 'active' ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600'} shadow-sm` : m.status === 'upcoming' ? `${day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}` : `${day ? 'bg-white/60 border-slate-200' : 'bg-indigo-950/30 border-indigo-800'} opacity-70`}`}
-                              >
-                                {/* node dot on the lane road */}
-                                <span className={`absolute -left-[14px] top-3 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${m.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : m.status === 'upcoming' ? (day ? 'bg-sky-400' : 'bg-sky-600') : (day ? 'bg-slate-300' : 'bg-slate-600')}`} />
-                                <div className={`flex items-center gap-1 mb-0.5`}>
-                                  <span className="text-[10px]">{m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}</span>
-                                  <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
-                                  {m.status === 'active' && <span className="text-[8px] font-bold text-amber-500 ml-auto">YOU ARE HERE</span>}
-                                </div>
-                                <div className={`text-[11px] font-bold leading-snug ${txt}`}>{m.name}</div>
-                                <div className={`text-[8px] mt-1 ${sub} opacity-0 hover:opacity-100`}>Tap to view →</div>
-                              </button>
-                            ))}
-                          </div>
                         </div>
                       )
                     })}
                   </div>
-                ) : (
-                  <div className={`text-center text-xs italic ${sub}`}>
-                    Generating your dimension roadmaps…
-                  </div>
-                )}
 
-                {/* Today's schedule below the lanes */}
+                  {/* Nav arrows to switch dimensions */}
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-dashed" style={{ borderColor: day ? '#e2e8f0' : '#312e81' }}>
+                    <button
+                      onClick={() => {
+                        const idx = dimOrder.findIndex(d => d.key === activeDimension)
+                        const prev = dimOrder[(idx - 1 + dimOrder.length) % dimOrder.length]
+                        setActiveDimension(prev.key); setActiveDimRace(null)
+                      }}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
+                    >
+                      ← {dimOrder[(dimOrder.findIndex(d => d.key === activeDimension) - 1 + dimOrder.length) % dimOrder.length].label}
+                    </button>
+                    <span className={`text-[9px] ${sub}`}>{dimOrder.findIndex(d => d.key === activeDimension) + 1} / {dimOrder.length}</span>
+                    <button
+                      onClick={() => {
+                        const idx = dimOrder.findIndex(d => d.key === activeDimension)
+                        const next = dimOrder[(idx + 1) % dimOrder.length]
+                        setActiveDimension(next.key); setActiveDimRace(null)
+                      }}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
+                    >
+                      {dimOrder[(dimOrder.findIndex(d => d.key === activeDimension) + 1) % dimOrder.length].label} →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Today's schedule below */}
                 <div className="mt-6 max-w-md mx-auto">
                   <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
                     <div className={`flex items-center justify-between px-3 py-2 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}`}>
@@ -991,52 +1311,50 @@ function RacesContent() {
                 <div className="h-4" />{/* spacer for post */}
               </div>
 
-              {/* RIGHT: Current race info */}
+              {/* RIGHT: Hare World box */}
               <div className="flex justify-start">
-                <div className={`${pill} border rounded-xl p-2.5 shadow-sm w-full max-w-[180px]`}>
-                  <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Curr:...</h4>
-                  {races.map(r => (
-                    <div key={r.id} className="mb-1.5 last:mb-0">
-                      <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
-                      <div className={`h-1 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden mt-0.5`}><div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full" style={{ width: `${r.progress}%` }} /></div>
-                      <div className={`text-[8px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                <div className={`relative w-full max-w-[180px] ${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
+                  {/* Awning top */}
+                  <div className={`aw relative -mt-1 mx-[-2px] h-6 rounded-t-lg overflow-hidden ${day ? 'bg-gradient-to-b from-purple-500 to-purple-600' : 'bg-gradient-to-b from-indigo-600 to-indigo-800'}`}>
+                    <div className="absolute inset-0 flex">
+                      {Array.from({ length: 7 }, (_, i) => (
+                        <div key={i} className={`flex-1 ${i % 2 === 0 ? 'bg-white/20' : ''}`} />
+                      ))}
                     </div>
-                  ))}
-                  <div className="flex gap-0.5 flex-wrap mt-1">
-                    {races[0].models.map((m: any) => <span key={m} className={`text-[8px] px-1 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
+                    <div className={`absolute bottom-0 left-0 right-0 h-2 ${day ? 'bg-purple-700' : 'bg-indigo-900'}`} style={{ clipPath: 'polygon(0% 0%, 7% 100%, 14% 0%, 21% 100%, 28% 0%, 35% 100%, 42% 0%, 50% 100%, 57% 0%, 64% 100%, 71% 0%, 78% 100%, 85% 0%, 92% 100%, 100% 0%)' }} />
+                  </div>
+                  <div className="p-2.5">
+                    <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🐰 Hare World</h4>
+                    <div className="space-y-1.5">
+                      <div>
+                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Role Models</div>
+                        <div className="flex flex-wrap gap-1">
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-900/50 text-purple-300'}`}>Sarah C.</span>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-900/50 text-purple-300'}`}>Marcus J.</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Mentors</div>
+                        <div className="flex flex-wrap gap-1">
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-900/50 text-cyan-300'}`}>James W.</span>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-900/50 text-cyan-300'}`}>Lisa P.</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Friends / Family</div>
+                        <div className="flex flex-wrap gap-1">
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-pink-100 text-pink-700' : 'bg-pink-900/50 text-pink-300'}`}>Alex T.</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link href="/pit-stop?tab=haveworld&view=people" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-400 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🐰 See All People →</Link>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ─── Recommended choices as nodes on the road ─── */}
-          {recommendedChoices.map((ch, i) => {
-            const isLeft = i % 2 === 0
-            return (
-              <div key={ch.id} className="w-full max-w-md">
-                <RoadDown h={i === 0 ? 40 : 30} />
-                <div className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}>
-                  {/* Choice card */}
-                  <Link href={ch.id === 'see' ? '/races' : `/milestones/${ch.id}`}
-                    className={`flex-1 p-2.5 rounded-xl border transition-all hover:shadow-md hover:scale-[1.02] ${ch.id === 'see' ? `border-dashed ${pill}` : ch.id === 'cX' ? `${day ? 'bg-indigo-600 border-indigo-600' : 'bg-purple-800 border-purple-600'} text-white shadow-lg` : `${pill} shadow-sm`}`}>
-                    <div className={`font-semibold text-[10px] ${ch.id === 'cX' ? 'text-sky-200' : day ? 'text-sky-600' : 'text-sky-400'}`}>{ch.name}</div>
-                    {ch.success !== null && <div className={`text-[9px] ${ch.id === 'cX' ? 'text-sky-300' : sub}`}>Success: {ch.success}% · {ch.attempts}</div>}
-                  </Link>
-                  {/* Connector arm */}
-                  <div className={`w-6 h-[3px] ${day ? 'bg-sky-300' : 'bg-indigo-600'}`} />
-                  {/* Road node */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md flex-shrink-0 ${ch.id === 'cX' ? 'bg-gradient-to-br from-indigo-500 to-purple-600 ring-2 ring-indigo-300' : ch.id === 'see' ? `${day ? 'bg-slate-100 border-2 border-dashed border-slate-300' : 'bg-indigo-900 border-2 border-dashed border-indigo-600'}` : `${day ? 'bg-sky-100 border-2 border-sky-300' : 'bg-indigo-800 border-2 border-indigo-500'}`}`}>
-                    <span className="text-xs">{ch.id === 'see' ? '…' : ch.id === 'cX' ? '⭐' : '🔵'}</span>
-                  </div>
-                  {/* Connector arm (other side) */}
-                  <div className="w-6 h-[3px] bg-transparent" />
-                  {/* Empty spacer for symmetry */}
-                  <div className="flex-1" />
-                </div>
-              </div>
-            )
-          })}
+
 
           {/* ─── ROAD: continues down ─── */}
           <RoadDown h={30} />
@@ -1084,6 +1402,34 @@ function RacesContent() {
             </Link>
           </div>
         </div>
+
+        {/* ═══ MOTIVATION PINWHEEL POPUP ═══ */}
+        {showPinwheelPopup && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowPinwheelPopup(false)}>
+            <div className={`relative ${day ? 'bg-white' : 'bg-indigo-950'} rounded-2xl shadow-2xl border ${day ? 'border-slate-200' : 'border-indigo-700'} p-8 max-w-sm w-full mx-4`} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowPinwheelPopup(false)} className={`absolute top-3 right-3 ${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
+              <h2 className={`text-lg font-bold ${txt} text-center mb-1`}>Motivation Pinwheel</h2>
+              <p className={`text-xs ${sub} text-center mb-6`}>Spin to get today&apos;s motivation!</p>
+              <div className="flex flex-col items-center">
+                <button onClick={spinWheel} disabled={isWheelSpinning} className="relative mb-4">
+                  <svg viewBox="0 0 50 50" className="w-40 h-40 transition-transform duration-[2000ms] ease-out" style={{ transform: `rotate(${wheelRotation}deg)` }}>
+                    {[0, 60, 120, 180, 240, 300].map((a, i) => { const c = day ? ['#38bdf8', '#818cf8', '#f59e0b', '#34d399', '#f472b6', '#60a5fa'] : ['#0ea5e9', '#6366f1', '#d97706', '#059669', '#ec4899', '#3b82f6']; const sa = (a - 90) * Math.PI / 180, ea = (a + 60 - 90) * Math.PI / 180; return <path key={i} d={`M25 25 L${25 + 20 * Math.cos(sa)} ${25 + 20 * Math.sin(sa)} A20 20 0 0 1 ${25 + 20 * Math.cos(ea)} ${25 + 20 * Math.sin(ea)}Z`} fill={c[i]} stroke="white" strokeWidth="1" /> })}
+                    <circle cx="25" cy="25" r="6" fill="white" stroke={line} strokeWidth="1" />
+                    <text x="25" y="27" textAnchor="middle" fontSize="4" fontWeight="bold" fill={line}>SPIN</text>
+                  </svg>
+                </button>
+                {todaysMotivation ? (
+                  <div className={`text-center p-4 rounded-xl border ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}>
+                    <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-1`}>Today&apos;s Motivation</div>
+                    <div className={`text-base italic ${txt}`}>&ldquo;{todaysMotivation}&rdquo;</div>
+                  </div>
+                ) : (
+                  <p className={`text-sm ${sub}`}>Tap the wheel to spin!</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

@@ -94,10 +94,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullName?: string
   ): Promise<{ error: AuthError | null; session?: Session }> {
     try {
+      const normalizedEmail = email.trim().toLowerCase()
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName }),
+        body: JSON.stringify({ email: normalizedEmail, password, fullName }),
       })
       const body = await res.json()
       if (!res.ok) {
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // User created and confirmed — now sign in for a real session
-      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (signInErr) return { error: signInErr }
 
       router.push('/')
@@ -118,7 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signIn(email: string, password: string): Promise<{ error: AuthError | null }> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const normalizedEmail = email.trim().toLowerCase()
+      const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (error) return { error }
 
       router.push('/')
@@ -141,7 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function resetPassword(email: string): Promise<{ error: AuthError | null }> {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const normalizedEmail = email.trim().toLowerCase()
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       })
       return { error }

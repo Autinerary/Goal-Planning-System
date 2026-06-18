@@ -388,16 +388,6 @@ export default function MilestoneDetailView() {
                     {milestone.race}
                   </span>
                 )}
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  milestone.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                  milestone.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
-                  milestone.status === 'recommended' ? 'bg-cyan-100 text-cyan-700' :
-                  'bg-slate-100 text-slate-700'
-                }`}>
-                  {milestone.status === 'in_progress' ? 'In Progress' : 
-                   milestone.status === 'recommended' ? 'Recommended' :
-                   milestone.status.charAt(0).toUpperCase() + milestone.status.slice(1)}
-                </span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{milestone.name}</h1>
               <p className="text-slate-600">{milestone.description}</p>
@@ -445,6 +435,12 @@ export default function MilestoneDetailView() {
                   </div>
                 ))}
               </div>
+              <div className="mt-3 flex items-start gap-2 p-3 bg-sky-50 border border-sky-200 rounded-xl">
+                <span className="text-base mt-0.5">📅</span>
+                <p className="text-sm text-sky-800">
+                  These have been added to your <Link href="/calendar" className="font-bold underline hover:text-sky-600">Calendar</Link>, and can be seen by clicking the Calendar View below!
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -452,6 +448,49 @@ export default function MilestoneDetailView() {
         {/* Tools Section */}
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 md:p-8 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Recommended Tools</h2>
+
+          {/* Barriers Unlocked */}
+          {(milestone.tools?.length > 0) && (
+            <div className="mb-6 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🛡️</span>
+                <h3 className="text-lg font-semibold text-violet-900">Barriers Unlocked</h3>
+              </div>
+              <p className="text-sm text-violet-700 mb-3">Each tool below addresses specific barriers. Complete them to unlock progress.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-violet-200">
+                      <th className="text-left py-2 pr-4 text-violet-800 font-bold">Tool</th>
+                      <th className="text-left py-2 pr-4 text-violet-800 font-bold">Type</th>
+                      <th className="text-left py-2 text-violet-800 font-bold">Barriers Unlocked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {milestone.tools.map((tool: Tool) => (
+                      <tr key={tool.id} className="border-b border-violet-100 last:border-0">
+                        <td className="py-2 pr-4">
+                          <div className="flex items-center gap-2">
+                            {(() => { const TI = toolIcons[tool.type] || Lightbulb; return <TI className="w-4 h-4 text-violet-500 flex-shrink-0" /> })()}
+                            <span className="font-medium text-slate-800">{tool.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-2 pr-4 capitalize text-slate-500">{tool.type}</td>
+                        <td className="py-2">
+                          <div className="flex flex-wrap gap-1">
+                            {(tool.type === 'service' ? ['Access', 'Support'] : tool.type === 'product' ? ['Focus', 'Routine'] : tool.type === 'commentary' ? ['Knowledge', 'Confidence'] : ['Community', 'Connection']).map(b => (
+                              <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">{b}</span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-violet-500 mt-2 italic">Could add gifts of barriers fully unlocked</p>
+            </div>
+          )}
 
           {/* Services */}
           {toolsByType.services.length > 0 && (

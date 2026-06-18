@@ -35,7 +35,8 @@ export default function SignupPage() {
 
     setLoading(true)
 
-    const { error, session } = await signUp(email, password, fullName || undefined)
+    const normalizedEmail = email.trim().toLowerCase()
+    const { error, session } = await signUp(normalizedEmail, password, fullName || undefined)
 
     if (error) {
       setError(getErrorMessage(error))

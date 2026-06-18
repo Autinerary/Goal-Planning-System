@@ -124,17 +124,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return { success: false, error: 'Auth not available' }
 
     try {
+      const normalizedEmail = email.trim().toLowerCase()
+
       // Server-side signup with auto-confirm via admin API
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email: normalizedEmail, password, name }),
       })
       const body = await res.json()
       if (!res.ok) return { success: false, error: body.error || 'Signup failed' }
 
       // Now sign in to get a real session
-      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (signInErr) return { success: false, error: signInErr.message }
 
       return { success: true }
@@ -148,7 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return { success: false, error: 'Auth not available' }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const normalizedEmail = email.trim().toLowerCase()
+      const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (error) return { success: false, error: error.message }
       return { success: true }
     } catch (err: any) {

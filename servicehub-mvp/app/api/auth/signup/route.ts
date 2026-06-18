@@ -4,15 +4,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export async function POST(req: NextRequest) {
   try {
     const { email, password, fullName } = await req.json()
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
     const admin = createAdminClient()
 
     const { data, error } = await admin.auth.admin.createUser({
-      email,
+      email: normalizedEmail,
       password,
       email_confirm: true,
       user_metadata: { full_name: fullName || null },

@@ -134,6 +134,15 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
                 My Resources
               </Link>
               
+              <Link
+                href="/settings/accessibility"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Accessibility
+              </Link>
+              
               <button
                 onClick={handleSignOut}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

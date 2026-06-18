@@ -29,7 +29,7 @@ export default function LoginPage() {
     setError('')
     setIsSubmitting(true)
 
-    const result = await login(email, password)
+    const result = await login(email.trim().toLowerCase(), password)
     
     if (result.success) {
       const returnTo = sessionStorage.getItem('returnTo')
