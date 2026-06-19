@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 380px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .header {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      padding: 16px 20px;
+      color: white;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+    .section { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .focus-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 8px;
+    }
+    .focus-toggle.active { background: #fef3c7; border-color: #f59e0b; }
+    .focus-toggle label { font-size: 13px; font-weight: 600; }
+    .focus-toggle .desc { font-size: 11px; color: #64748b; }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 11px;
+      transition: 0.2s;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .toggle input:checked + .slider { background: #6366f1; }
+    .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+    .site-list { max-height: 180px; overflow-y: auto; }
+    .site-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .site-item .domain { font-weight: 500; }
+    .site-item .time-info { font-size: 11px; color: #64748b; }
+    .site-item .time-exceeded { color: #ef4444; font-weight: 600; }
+
+    .add-site {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .add-site input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+    }
+    .add-site input:focus { border-color: #6366f1; }
+    .add-site button {
+      padding: 8px 12px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .add-site button:hover { background: #4f46e5; }
+
+    .incognito-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    .incognito-section .info { font-size: 13px; font-weight: 500; }
+    .incognito-section .sub { font-size: 11px; color: #64748b; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      text-align: center;
+    }
+    .stat-card .value { font-size: 20px; font-weight: 700; color: #6366f1; }
+    .stat-card .label { font-size: 10px; color: #64748b; text-transform: uppercase; }
+
+    .footer {
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .footer a {
+      font-size: 12px;
+      color: #6366f1;
+      text-decoration: none;
+    }
+    .footer a:hover { text-decoration: underline; }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .btn-remove:hover { background: #fef2f2; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 Goal Focus</h1>
+    <p>Stay focused. Block distractions.</p>
+  </div>
+
+  <!-- Focus Mode -->
+  <div class="section">
+    <div class="focus-toggle" id="focusToggleBox">
+      <div>
+        <label>Focus Mode</label>
+        <div class="desc">Block all listed sites at once</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="focusMode">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="section">
+    <div class="section-title">Today's Stats</div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="value" id="sitesBlocked">0</div>
+        <div class="label">Sites Blocked</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="timeSaved">0m</div>
+        <div class="label">Limits Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blocked Sites -->
+  <div class="section">
+    <div class="section-title">Blocked Sites</div>
+    <div class="site-list" id="siteList"></div>
+    <div class="add-site">
+      <input type="text" id="newSiteInput" placeholder="e.g. twitter.com">
+      <button id="addSiteBtn">+ Add</button>
+    </div>
+  </div>
+
+  <!-- Time Limits -->
+  <div class="section">
+    <div class="section-title">Time Limits</div>
+    <div id="timeLimitsList"></div>
+    <div class="add-site" style="margin-top: 8px;">
+      <input type="text" id="timeDomainInput" placeholder="domain.com">
+      <input type="number" id="timeLimitInput" placeholder="min" style="width: 55px; flex: none;">
+      <button id="addTimeLimitBtn">Set</button>
+    </div>
+  </div>
+
+  <!-- Incognito -->
+  <div class="section">
+    <div class="incognito-section">
+      <div>
+        <div class="info">🕵️ Block Incognito</div>
+        <div class="sub">Close incognito tabs automatically</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="blockIncognito">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="options.html" target="_blank">⚙️ Advanced Settings</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

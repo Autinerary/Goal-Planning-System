@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Site Blocked - Goal Focus</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 480px;
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 16px;
+      opacity: 0.85;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .quote {
+      font-style: italic;
+      font-size: 14px;
+      opacity: 0.7;
+      border-left: 3px solid rgba(255,255,255,0.3);
+      padding-left: 16px;
+      margin: 24px auto;
+      max-width: 350px;
+      text-align: left;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .timer {
+      margin-top: 20px;
+      font-size: 13px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🛡️</div>
+    <h1>This site is blocked</h1>
+    <p>You blocked this site to stay focused on your goals. Keep going — your future self will thank you.</p>
+    
+    <div class="quote">
+      "The secret of getting ahead is getting started." — Mark Twain
+    </div>
+
+    <a class="btn" id="goBackBtn">← Go Back</a>
+
+    <div class="timer" id="timerInfo"></div>
+  </div>
+
+  <script>
+    document.getElementById('goBackBtn').addEventListener('click', () => {
+      history.back();
+    });
+
+    // Show which site was blocked
+    const params = new URLSearchParams(window.location.search);
+    const blockedUrl = params.get('url');
+    if (blockedUrl) {
+      try {
+        const domain = new URL(blockedUrl).hostname;
+        document.querySelector('p').textContent = 
+          `You blocked ${domain} to stay focused on your goals. Keep going — your future self will thank you.`;
+      } catch {}
+    }
+
+    // Check if it was a time limit
+    (async () => {
+      try {
+        const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+        if (response && response.settings) {
+          const { timeLimits, timeUsed } = response.settings;
+          const timerEl = document.getElementById('timerInfo');
+          for (const [domain, limit] of Object.entries(timeLimits)) {
+            const used = timeUsed[domain] || 0;
+            if (used >= limit) {
+              timerEl.textContent = `⏱ ${domain}: ${Math.round(used)}/${limit} minutes used today. Resets tomorrow.`;
+              break;
+            }
+          }
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>
