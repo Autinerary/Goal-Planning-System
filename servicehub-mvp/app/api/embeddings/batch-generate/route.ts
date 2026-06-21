@@ -8,15 +8,42 @@ import type { Resource } from '@/types/database'
  * Batch generate embeddings for users and resources that are missing them
  * Can be called manually or by cron job
  */
+/**
+ * Allow either an authenticated admin user OR a Vercel cron / scripted caller bearing
+ * `Authorization: Bearer ${process.env.CRON_SECRET}`. Without this gate the endpoint is
+ * a public cost/DoS vector — embedding generation loads an 80MB model and runs over
+ * every user + resource.
+ */
+async function isAuthorized(request: NextRequest, supabase: ReturnType<typeof createClient>): Promise<boolean> {
+  // Vercel cron hits set this header automatically when CRON_SECRET is configured.
+  if (request.headers.get('x-vercel-cron') === '1') return true
+
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret && request.headers.get('authorization') === `Bearer ${cronSecret}`) {
+    return true
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return false
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  return profile?.role === 'admin'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient()
 
-    // Check authentication (optional - could require admin)
-    // const { data: { user } } = await supabase.auth.getUser()
-    // if (!user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    // }
+    if (!(await isAuthorized(request, supabase))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const body = await request.json().catch(() => ({}))
     const { type = 'all', limit = 100 } = body // type: 'users' | 'resources' | 'all'
@@ -188,11 +215,15 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/embeddings/batch-generate
- * Get statistics on missing embeddings
+ * Get statistics on missing embeddings (admin / cron only — same auth as POST).
  */
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient()
+
+    if (!(await isAuthorized(request, supabase))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     // Count users with barriers but no embeddings
     const { data: usersWithBarriers } = await supabase

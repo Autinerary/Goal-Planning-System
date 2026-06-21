@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { onResourceCreated } from '@/lib/embeddings/auto-generate'
+import type { Resource } from '@/types/database'
 
 export async function POST(
   request: NextRequest,
@@ -74,6 +76,27 @@ export async function POST(
         .from('resources')
         .update({ status: resourceStatus })
         .eq('id', item.item_id)
+
+      // Generate embedding when a moderation review flips a resource to approved, so it
+      // shows up in semantic search. Awaited but error-tolerant — approval succeeds even
+      // if embedding generation fails (batch backfill can recover).
+      if (decision === 'approved') {
+        const { data: resource } = await supabase
+          .from('resources')
+          .select('*')
+          .eq('id', item.item_id)
+          .single()
+        if (resource) {
+          try {
+            await onResourceCreated(resource as Resource)
+          } catch (embeddingError) {
+            console.error(
+              `Embedding generation failed for resource ${item.item_id}:`,
+              embeddingError
+            )
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true, overrides: adminOverrides })

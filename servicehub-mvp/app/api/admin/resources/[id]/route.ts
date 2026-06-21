@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications/service'
+import { onResourceCreated } from '@/lib/embeddings/auto-generate'
+import type { Resource } from '@/types/database'
 
 export async function POST(
   request: NextRequest,
@@ -31,10 +33,10 @@ export async function POST(
     const resourceId = params.id
 
     if (action === 'approve') {
-      // Get resource details
+      // Get full resource (need all fields for embedding generation)
       const { data: resource } = await supabase
         .from('resources')
-        .select('name, submitted_by')
+        .select('*')
         .eq('id', resourceId)
         .single()
 
@@ -52,6 +54,18 @@ export async function POST(
         .update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
         .eq('item_id', resourceId)
         .eq('item_type', 'resource')
+
+      // Generate embedding now that resource is live (so it shows up in semantic search).
+      // Awaited so it actually runs to completion on Vercel serverless — admin actions are
+      // infrequent enough that the extra latency is acceptable. Failure is logged but does
+      // not roll back the approval; the batch backfill can pick it up later.
+      if (resource) {
+        try {
+          await onResourceCreated(resource as Resource)
+        } catch (embeddingError) {
+          console.error(`Embedding generation failed for resource ${resourceId}:`, embeddingError)
+        }
+      }
 
       // Send notification to submitter
       if (resource?.submitted_by) {
