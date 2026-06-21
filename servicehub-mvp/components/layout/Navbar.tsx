@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
@@ -10,8 +11,17 @@ import NotificationBell from '@/components/notifications/NotificationBell'
 
 export default function Navbar() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const [isAdmin, setIsAdmin] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Where did the user come from? Determines the back-link target/label.
+  const goalPlanningBase = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
+  const from = searchParams?.get('from') ?? null
+  const backHref = from === 'hare-world'
+    ? `${goalPlanningBase}/pit-stop?tab=haveworld`
+    : `${goalPlanningBase}/path`
+  const backLabel = from === 'hare-world' ? 'Back to Hare World' : 'My Journey'
   
   // Memoize the close handler to prevent unnecessary re-renders
   const handleCloseMenu = useCallback(() => {
@@ -95,11 +105,11 @@ export default function Navbar() {
           {/* Back to Goal Planning */}
           <div className="hidden md:flex items-center">
             <a
-              href={`${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/path`}
+              href={backHref}
               className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all shadow-sm"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-              My Journey
+              {backLabel}
             </a>
           </div>
 
@@ -138,6 +148,8 @@ export default function Navbar() {
         isOpen={mobileMenuOpen}
         onClose={handleCloseMenu}
         isAdmin={isAdmin}
+        backHref={backHref}
+        backLabel={backLabel}
       />
     </nav>
   )

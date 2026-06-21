@@ -11,9 +11,13 @@ interface MobileNavProps {
   isOpen: boolean
   onClose: () => void
   isAdmin: boolean
+  /** Where the back button should navigate to. Defaults to Goal Planning /path. */
+  backHref?: string
+  /** Display label for the back button. */
+  backLabel?: string
 }
 
-export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) {
+export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabel }: MobileNavProps) {
   const { user } = useAuth()
   const pathname = usePathname()
   const navRef = useRef<HTMLDivElement>(null)
@@ -281,12 +285,12 @@ export default function MobileNav({ isOpen, onClose, isAdmin }: MobileNavProps) 
           {/* Back to Goal Planning - always visible */}
           <div className="flex-shrink-0 border-t border-gray-200 p-4">
             <a
-              href={`${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/path`}
+              href={backHref || `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/path`}
               className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-base font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all shadow-sm"
               onClick={onClose}
             >
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
-              Back to My Journey
+              {backLabel ? `Back to ${backLabel.replace(/^Back to /, '')}` : 'Back to My Journey'}
             </a>
           </div>
 

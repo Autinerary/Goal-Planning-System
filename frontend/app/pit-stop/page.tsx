@@ -19,8 +19,10 @@ function PitStopContent() {
   const { user: authUser } = useAuth()
   const isSignedIn = !!authUser?.id
   
-  // Read URL params on mount
-  const initialTab = searchParams.get('tab') as 'tools' | 'haveworld' || 'tools'
+  // Read URL params on mount.
+  // Default to 'haveworld' so users land on Hare World (People/Collab/Relationships)
+  // and explicitly tap "Tools & Resources" → "Go to Resource Hub" to leave the app.
+  const initialTab = searchParams.get('tab') as 'tools' | 'haveworld' || 'haveworld'
   const initialView = searchParams.get('view') as 'people' | 'collab' | 'relationships' || 'people'
   
   const [activeTab, setActiveTab] = useState<'tools' | 'haveworld'>(initialTab)
@@ -168,17 +170,20 @@ function PitStopContent() {
   ]
 
   const handleToolsRedirect = () => {
+    // Pass `from=hare-world` so the ResourceHub navbar can offer a "Back to Hare World" link
+    const sep = SERVICE_HUB_URL.includes('?') ? '&' : '?'
+    const target = `${SERVICE_HUB_URL}${sep}from=hare-world`
     try {
       // Try replace first, fallback to href
       if (window.location.replace) {
-        window.location.replace(SERVICE_HUB_URL)
+        window.location.replace(target)
       } else {
-        window.location.href = SERVICE_HUB_URL
+        window.location.href = target
       }
     } catch (error) {
       console.error('Redirect error:', error)
       // Fallback: open in new tab
-      window.open(SERVICE_HUB_URL, '_blank')
+      window.open(target, '_blank')
     }
   }
 
@@ -485,10 +490,17 @@ function PitStopContent() {
       </div>
       <div className="relative z-10">
       <div className="max-w-6xl mx-auto">
-        {/* Back button */}
+        {/* Back button — always visible, goes to previous page (or /path if no history) */}
         <button
-          onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-2 px-3 py-2 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-white transition-all"
+          onClick={() => {
+            // Use history.length to decide whether we have a real previous page within this tab
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back()
+            } else {
+              router.push('/path')
+            }
+          }}
+          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
@@ -588,7 +600,7 @@ function PitStopContent() {
                   Go to Resource Hub →
                 </button>
                 <a
-                  href={SERVICE_HUB_URL}
+                  href={`${SERVICE_HUB_URL}${SERVICE_HUB_URL.includes('?') ? '&' : '?'}from=hare-world`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
