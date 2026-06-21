@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
+import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 /*
@@ -54,15 +55,78 @@ function RacesContent() {
   })
   const [showNextMilestoneSelect, setShowNextMilestoneSelect] = useState(false)
 
+  // Auth-aware persistence: localStorage for guests, Supabase for signed-in users.
+  const { supabaseUser } = useAuth()
+  const isSignedIn = Boolean(supabaseUser)
+
+  // On sign-in: replace local state with whatever Supabase has.
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/me/progress', { cache: 'no-store', credentials: 'include' })
+        if (!res.ok) return
+        const json = await res.json()
+        if (cancelled) return
+        const completed = new Set<string>()
+        const hearted = new Set<string>()
+        for (const row of json.progress || []) {
+          if (row.kind === 'completed') completed.add(row.milestone_id)
+          else if (row.kind === 'hearted') hearted.add(row.milestone_id)
+        }
+        setCompletedMilestoneIds(completed)
+        setHeartedGoals(hearted)
+      } catch {
+        /* keep local state */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isSignedIn])
+
   // Persist hearted goals + completed milestones to localStorage
   useEffect(() => { try { localStorage.setItem('heartedGoals', JSON.stringify([...heartedGoals])) } catch {} }, [heartedGoals])
   useEffect(() => { try { localStorage.setItem('completedMilestoneIds', JSON.stringify([...completedMilestoneIds])) } catch {} }, [completedMilestoneIds])
 
   const toggleHeart = (id: string) => {
-    setHeartedGoals(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next })
+    setHeartedGoals(prev => {
+      const next = new Set(prev)
+      const wasHearted = next.has(id)
+      if (wasHearted) next.delete(id); else next.add(id)
+      if (isSignedIn) {
+        if (wasHearted) {
+          fetch(`/api/me/progress?milestone_id=${encodeURIComponent(id)}&kind=hearted`, { method: 'DELETE', credentials: 'include' }).catch(() => {})
+        } else {
+          fetch('/api/me/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ milestone_id: id, kind: 'hearted' }),
+          }).catch(() => {})
+        }
+      }
+      return next
+    })
   }
   const toggleMilestoneComplete = (id: string) => {
-    setCompletedMilestoneIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next })
+    setCompletedMilestoneIds(prev => {
+      const next = new Set(prev)
+      const wasCompleted = next.has(id)
+      if (wasCompleted) next.delete(id); else next.add(id)
+      if (isSignedIn) {
+        if (wasCompleted) {
+          fetch(`/api/me/progress?milestone_id=${encodeURIComponent(id)}&kind=completed`, { method: 'DELETE', credentials: 'include' }).catch(() => {})
+        } else {
+          fetch('/api/me/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ milestone_id: id, kind: 'completed' }),
+          }).catch(() => {})
+        }
+      }
+      return next
+    })
   }
 
   /* ═══ MOCK DATA FOR OTHER PEOPLE'S RACE TRACKS ═══ */

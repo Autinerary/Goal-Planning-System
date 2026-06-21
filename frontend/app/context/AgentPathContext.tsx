@@ -78,6 +78,23 @@ export function AgentPathProvider({ children }: { children: ReactNode }) {
     const pathId = supabaseUser.user_metadata?.path_id
     const userId = supabaseUser.id
     try {
+      // 1. Prefer the Next.js /api/me/path route, which reads user_paths
+      //    directly from Supabase and works on Vercel without FastAPI.
+      try {
+        const meRes = await fetch('/api/me/path', { cache: 'no-store', credentials: 'include' })
+        if (meRes.ok) {
+          const json = await meRes.json()
+          if (json?.payload) {
+            setPayload(json.payload as AgentPathPayload)
+            return
+          }
+        }
+      } catch {
+        /* fall through to FastAPI */
+      }
+
+      // 2. Fallback: FastAPI (when running locally or when the user_paths
+      //    row hasn't been mirrored to Next.js yet).
       let res: Response | null = null
       if (pathId) {
         res = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)

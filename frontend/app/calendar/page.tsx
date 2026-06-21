@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
+import { useAuth } from '../context/AuthContext'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -215,8 +216,10 @@ function CalendarContent() {
   const fromParam = searchParams.get('from')
   const [scenario, setScenario] = useState<'worst' | 'average' | 'best'>('average')
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
+  const { supabaseUser } = useAuth()
+  const isSignedIn = Boolean(supabaseUser)
   const [addedTasks, setAddedTasks] = useState<Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>>(() => {
-    // Load from localStorage on mount
+    // Load from localStorage on mount (will be overwritten from Supabase below if signed in)
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('calendarAddedTasks')
       return saved ? JSON.parse(saved) : []
@@ -226,6 +229,33 @@ function CalendarContent() {
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
   const [showComparison, setShowComparison] = useState(false)
+
+  // When signed in, replace the localStorage-seeded state with whatever Supabase has.
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/me/calendar', { cache: 'no-store', credentials: 'include' })
+        if (!res.ok) return
+        const json = await res.json()
+        if (cancelled) return
+        const mapped = (json.tasks || []).map((t: any) => ({
+          id: t.client_id,
+          day: t.day,
+          time: t.time,
+          name: t.name,
+          duration: t.duration,
+          priority: t.priority,
+          from: t.source || undefined,
+        }))
+        setAddedTasks(mapped)
+      } catch {
+        /* keep localStorage state */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isSignedIn])
 
   // Pull the live calendar-optimization scenarios from the agent payload.
   const { calendarOptimization } = useAgentPath()
@@ -360,9 +390,28 @@ function CalendarContent() {
     const updated = [...addedTasks, newTask]
     setAddedTasks(updated)
     
-    // Save to localStorage
+    // Save to localStorage (always — guest fallback / instant offline copy)
     localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
-    
+
+    // Also persist to Supabase when signed in. Fire-and-forget — UI already updated.
+    if (isSignedIn) {
+      fetch('/api/me/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          client_id: taskId,
+          day: selectedDay,
+          time: selectedTime,
+          name: taskName,
+          duration,
+          priority,
+          source: from,
+          scenario,
+        }),
+      }).catch(() => {/* silent — localStorage still has it */})
+    }
+
     // Close modal
     setShowSuggestionModal(false)
     setPendingSuggestion(null)

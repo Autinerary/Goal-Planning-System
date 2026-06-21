@@ -73,7 +73,9 @@ function PitStopContent() {
   // Real-user social state (Phase A: profiles + Facebook-style requests)
   type SearchResult = { id: string; display_name: string | null; email: string | null; avatar_emoji: string; dream: string | null; connection_state: string | null }
   type PendingRequest = { id: string; category: string; requested_at: string; requester: { id: string; display_name: string | null; avatar_emoji?: string; dream?: string | null } }
+  type Suggestion = { id: string; from_user_id: string; name: string; url: string | null; description: string | null; note: string | null; status: string; created_at: string; from: { id: string; display_name: string | null; avatar_emoji: string | null } | null }
   const [pendingInbox, setPendingInbox] = useState<PendingRequest[]>([])
+  const [suggestionInbox, setSuggestionInbox] = useState<Suggestion[]>([])
   const [userSearchQuery, setUserSearchQuery] = useState('')
   const [userSearchResults, setUserSearchResults] = useState<SearchResult[]>([])
   const [isUserSearching, setIsUserSearching] = useState(false)
@@ -97,17 +99,17 @@ function PitStopContent() {
 
   // Mock data - converted to state so it can be modified.
   // When the user is signed in we replace these with rows from /api/connections.
-  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
+  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
     { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer', status: 'connected', icon: '👤' },
     { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur', status: 'pending', icon: '👤' },
   ])
 
-  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
+  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
     { id: 'm1', name: 'James Wilson', role: 'Career Coach', status: 'connected', icon: '👤' },
     { id: 'm2', name: 'Lisa Park', role: 'Academic Advisor', status: 'connected', icon: '👤' },
   ])
 
-  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
+  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
     { id: 'f1', name: 'Alex Taylor', role: 'Study Buddy', status: 'connected', icon: '👤' },
     { id: 'f2', name: 'Jordan Smith', role: 'Peer', status: 'connected', icon: '👤' },
   ])
@@ -224,13 +226,13 @@ function PitStopContent() {
         if (cancelled) return
         const grouped = data?.connections || {}
         setRoleModels((grouped.rolemodels || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
         })))
         setMentors((grouped.mentors || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
         })))
         setFriends((grouped.friends || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
         })))
       })
       .catch((err) => {
@@ -313,6 +315,41 @@ function PitStopContent() {
   }
   useEffect(() => { refreshPendingInbox() }, [isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ===== Phase B: Suggestion inbox (resources friends have recommended to me) =====
+  const refreshSuggestionInbox = async () => {
+    if (!isSignedIn) return
+    try {
+      const res = await fetch('/api/suggestions?box=inbox', { credentials: 'include' })
+      if (!res.ok) return
+      const body = await res.json()
+      setSuggestionInbox(body.inbox || [])
+    } catch (e) {
+      console.warn('[pit-stop] suggestion inbox fetch error:', e)
+    }
+  }
+  useEffect(() => { refreshSuggestionInbox() }, [isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateSuggestionStatus = async (id: string, status: 'viewed' | 'accepted' | 'dismissed') => {
+    // Optimistically remove if dismissed/accepted (it's "handled")
+    if (status === 'dismissed' || status === 'accepted') {
+      setSuggestionInbox(prev => prev.filter(s => s.id !== id))
+    } else {
+      setSuggestionInbox(prev => prev.map(s => s.id === id ? { ...s, status } : s))
+    }
+    try {
+      await fetch(`/api/suggestions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+      })
+    } catch (e) {
+      console.warn('[pit-stop] update suggestion status error:', e)
+      // Refetch on error to sync state
+      refreshSuggestionInbox()
+    }
+  }
+
   const acceptPendingRequest = async (id: string) => {
     try {
       const res = await fetch(`/api/connections/${id}/accept`, { method: 'POST', credentials: 'include' })
@@ -331,9 +368,9 @@ function PitStopContent() {
         if (r.ok) {
           const body = await r.json()
           const g = body?.connections || {}
-          setFriends((g.friends || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
-          setMentors((g.mentors || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
-          setRoleModels((g.rolemodels || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
+          setFriends((g.friends || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
+          setMentors((g.mentors || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
+          setRoleModels((g.rolemodels || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
         }
       } catch {}
     } catch (e) {
@@ -396,7 +433,7 @@ function PitStopContent() {
       // Mark this user as pending in the in-modal results so the button switches to "Pending"
       setUserSearchResults(prev => prev.map(r => r.id === target.id ? { ...r, connection_state: 'pending' } : r))
       // Optimistically reflect outgoing pending row in the appropriate column
-      const newRow = { id: body.connection?.id || `tmp_${Date.now()}`, name: target.display_name || target.email || 'Friend', role: 'Pending', status: 'pending', icon: target.avatar_emoji || '👤' }
+      const newRow = { id: body.connection?.id || `tmp_${Date.now()}`, name: target.display_name || target.email || 'Friend', role: 'Pending', status: 'pending', icon: target.avatar_emoji || '👤', target_user_id: target.id }
       if (category === 'rolemodels') setRoleModels(prev => [...prev, newRow])
       else if (category === 'mentors') setMentors(prev => [...prev, newRow])
       else setFriends(prev => [...prev, newRow])
@@ -864,6 +901,61 @@ function PitStopContent() {
               </div>
             )}
 
+            {/* Resource suggestion inbox */}
+            {isSignedIn && suggestionInbox.length > 0 && (
+              <div className="bg-white rounded-2xl border-2 border-emerald-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-500" />
+                  Resources friends suggested ({suggestionInbox.length})
+                </h3>
+                <p className="text-sm text-slate-600 mb-4">Things people who know you thought you should check out.</p>
+                <div className="space-y-2">
+                  {suggestionInbox.map((s) => (
+                    <div key={s.id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <span className="text-2xl flex-shrink-0">{s.from?.avatar_emoji || '👤'}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-slate-500 mb-0.5">
+                              <strong>{s.from?.display_name || 'A friend'}</strong> suggested
+                            </div>
+                            <div className="font-medium text-sm text-slate-900 truncate">{s.name}</div>
+                            {s.note && (
+                              <div className="text-xs text-slate-600 italic mt-1">“{s.note}”</div>
+                            )}
+                            {s.url && (
+                              <a
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-emerald-700 hover:text-emerald-800 underline mt-1 inline-block break-all"
+                              >
+                                {s.url}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => updateSuggestionStatus(s.id, 'accepted')}
+                            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-md"
+                          >
+                            Got it
+                          </button>
+                          <button
+                            onClick={() => updateSuggestionStatus(s.id, 'dismissed')}
+                            className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* People View */}
             {haveWorldView === 'people' && (
             <div className="grid md:grid-cols-3 gap-6">
@@ -897,6 +989,15 @@ function PitStopContent() {
                       <div className="flex items-center gap-2">
                         {rm.status === 'pending' && (
                           <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
+                        )}
+                        {rm.status === 'connected' && rm.target_user_id && (
+                          <button
+                            onClick={() => router.push(`/friend/${rm.target_user_id}`)}
+                            className="text-xs px-2 py-1 bg-orange-200 hover:bg-orange-300 text-orange-800 rounded font-medium"
+                            title="View pathway, calendar, suggest a resource"
+                          >
+                            View
+                          </button>
                         )}
                         <button
                           onClick={() => requestRemoveConnection(rm.id, rm.name, 'rolemodel')}
@@ -941,13 +1042,27 @@ function PitStopContent() {
                           <div className="text-xs text-slate-600">{m.role}</div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => requestRemoveConnection(m.id, m.name, 'mentor')}
-                        className="p-1 hover:bg-red-100 rounded transition-colors"
-                        title={`Remove ${m.name}`}
-                      >
-                        <UserMinus className="w-4 h-4 text-red-500" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {m.status === 'pending' && (
+                          <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
+                        )}
+                        {m.status === 'connected' && m.target_user_id && (
+                          <button
+                            onClick={() => router.push(`/friend/${m.target_user_id}`)}
+                            className="text-xs px-2 py-1 bg-blue-200 hover:bg-blue-300 text-blue-800 rounded font-medium"
+                            title="View pathway, calendar, suggest a resource"
+                          >
+                            View
+                          </button>
+                        )}
+                        <button
+                          onClick={() => requestRemoveConnection(m.id, m.name, 'mentor')}
+                          className="p-1 hover:bg-red-100 rounded transition-colors"
+                          title={`Remove ${m.name}`}
+                        >
+                          <UserMinus className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {mentors.filter(m => matchesSearch(m.name, m.role)).length === 0 && (
@@ -983,13 +1098,27 @@ function PitStopContent() {
                           <div className="text-xs text-slate-600">{f.role}</div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => requestRemoveConnection(f.id, f.name, 'friend')}
-                        className="p-1 hover:bg-red-100 rounded transition-colors"
-                        title={`Remove ${f.name}`}
-                      >
-                        <UserMinus className="w-4 h-4 text-red-500" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {f.status === 'pending' && (
+                          <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
+                        )}
+                        {f.status === 'connected' && f.target_user_id && (
+                          <button
+                            onClick={() => router.push(`/friend/${f.target_user_id}`)}
+                            className="text-xs px-2 py-1 bg-pink-200 hover:bg-pink-300 text-pink-800 rounded font-medium"
+                            title="View pathway, calendar, suggest a resource"
+                          >
+                            View
+                          </button>
+                        )}
+                        <button
+                          onClick={() => requestRemoveConnection(f.id, f.name, 'friend')}
+                          className="p-1 hover:bg-red-100 rounded transition-colors"
+                          title={`Remove ${f.name}`}
+                        >
+                          <UserMinus className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {friends.filter(f => matchesSearch(f.name, f.role)).length === 0 && (
