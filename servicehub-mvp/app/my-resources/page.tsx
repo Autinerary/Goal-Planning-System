@@ -11,14 +11,15 @@ import CurrentTab from '@/components/myResources/CurrentTab'
 import PastTab from '@/components/myResources/PastTab'
 import RatedTab from '@/components/myResources/RatedTab'
 import SubmittedTab from '@/components/myResources/SubmittedTab'
-import { Bookmark, Star, FileText, Calendar, History, Plus } from 'lucide-react'
+import BuildTeamTab from '@/components/myResources/BuildTeamTab'
+import { Bookmark, Star, FileText, Calendar, History, Plus, Users } from 'lucide-react'
 import Link from 'next/link'
 
-type TabType = 'saved' | 'current' | 'past' | 'rated' | 'submitted'
+type TabType = 'build-team' | 'saved' | 'current' | 'past' | 'rated' | 'submitted'
 
 export default function MyResourcesPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<TabType>('saved')
+  const [activeTab, setActiveTab] = useState<TabType>('build-team')
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -54,6 +55,7 @@ export default function MyResourcesPage() {
   }
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+    { id: 'build-team', label: 'Build a Team', icon: <Users className="w-5 h-5" aria-hidden="true" /> },
     { id: 'saved', label: 'Wishlist', icon: <Bookmark className="w-5 h-5" aria-hidden="true" /> },
     { id: 'current', label: 'My Resources', icon: <Calendar className="w-5 h-5" aria-hidden="true" /> },
     { id: 'past', label: 'Completed', icon: <History className="w-5 h-5" aria-hidden="true" /> },
@@ -115,6 +117,7 @@ export default function MyResourcesPage() {
 
           {/* Tab Content */}
           <div className="mt-8">
+            {activeTab === 'build-team' && <BuildTeamTab userId={userId} />}
             {activeTab === 'saved' && <SavedTab userId={userId} />}
             {activeTab === 'current' && <CurrentTab userId={userId} />}
             {activeTab === 'past' && <PastTab userId={userId} />}

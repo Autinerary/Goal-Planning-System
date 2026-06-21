@@ -153,6 +153,9 @@ export interface Database {
           resource_id: string
           notes: string | null
           status: 'wishlist' | 'current' | 'past'
+          calls_scheduled: boolean
+          contract_sent: boolean
+          added_to_team_at: string | null
           created_at: string
         }
         Insert: {
@@ -161,6 +164,9 @@ export interface Database {
           resource_id: string
           notes?: string | null
           status?: 'wishlist' | 'current' | 'past'
+          calls_scheduled?: boolean
+          contract_sent?: boolean
+          added_to_team_at?: string | null
           created_at?: string
         }
         Update: {
@@ -169,6 +175,9 @@ export interface Database {
           resource_id?: string
           notes?: string | null
           status?: 'wishlist' | 'current' | 'past'
+          calls_scheduled?: boolean
+          contract_sent?: boolean
+          added_to_team_at?: string | null
           created_at?: string
         }
       }
