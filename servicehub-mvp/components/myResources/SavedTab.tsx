@@ -70,7 +70,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
         throw new Error('Failed to update status')
       }
 
-      showToast.success('Added to Current Resources')
+      showToast.success('Added to My Resources')
       setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
     } catch (error) {
       console.error('Error updating status:', error)
@@ -88,13 +88,13 @@ export default function SavedTab({ userId }: SavedTabProps) {
         setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
       }
       if (!response.ok) {
-        throw new Error('Failed to remove saved resource')
+        throw new Error('Failed to remove from wishlist')
       }
-      showToast.success('Resource removed from saved list')
+      showToast.success('Removed from wishlist')
       setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
     } catch (error) {
       console.error('Error removing saved resource:', error)
-      showToast.error('Failed to remove saved resource. Please try again.')
+      showToast.error('Failed to remove from wishlist. Please try again.')
     }
   }
 
@@ -191,9 +191,9 @@ export default function SavedTab({ userId }: SavedTabProps) {
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Saved Resources</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Wishlist</h2>
           <p className="text-sm text-gray-600 mt-1">
-            {resources.length} {resources.length === 1 ? 'resource' : 'resources'} saved
+            {resources.length} {resources.length === 1 ? 'resource' : 'resources'} you want to try
           </p>
         </div>
 
@@ -277,7 +277,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
                   <button
                     onClick={() => handleRemoveSaved(resource.id)}
                     className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg"
-                    aria-label="Remove from saved"
+                    aria-label="Remove from wishlist"
                   >
                     <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
@@ -314,7 +314,7 @@ export default function SavedTab({ userId }: SavedTabProps) {
                     className="w-full mt-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2"
                   >
                     <Plus className="w-3 h-3" />
-                    Add to Current
+                    Start using this
                   </button>
                 </div>
               </div>

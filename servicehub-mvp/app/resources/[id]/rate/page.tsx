@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { Suspense, useState, useEffect } from 'react'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -11,7 +11,7 @@ import BarrierRatingInput from '@/components/ratings/BarrierRatingInput'
 import ImageUpload from '@/components/ratings/ImageUpload'
 import { ToastContainer } from '@/components/ui/Toast'
 import type { Toast } from '@/components/ui/Toast'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Camera } from 'lucide-react'
 import Link from 'next/link'
 import type { Resource, UserBarrier, Rating } from '@/types/database'
 import type { BarrierScores } from '@/types/database'
@@ -19,9 +19,19 @@ import type { BarrierScores } from '@/types/database'
 const MAX_COMMENT_LENGTH = 500
 
 export default function RateResourcePage() {
+  return (
+    <Suspense fallback={null}>
+      <RateResourceContent />
+    </Suspense>
+  )
+}
+
+function RateResourceContent() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const resourceId = params.id as string
+  const proofRequired = searchParams?.get('proof') === 'required'
 
   const [resource, setResource] = useState<Resource | null>(null)
   const [userBarriers, setUserBarriers] = useState<UserBarrier[]>([])
@@ -169,6 +179,11 @@ export default function RateResourcePage() {
       return
     }
 
+    if (proofRequired && images.length === 0) {
+      addToast('Please upload at least one photo as proof of going', 'error')
+      return
+    }
+
     const sanitizedComment = sanitizeInput(comment)
     if (sanitizedComment.length > MAX_COMMENT_LENGTH) {
       addToast(`Comment must be ${MAX_COMMENT_LENGTH} characters or less`, 'error')
@@ -296,6 +311,18 @@ export default function RateResourcePage() {
               <p className="text-gray-600">{resource.name}</p>
             </div>
 
+            {proofRequired && (
+              <div className="mb-6 flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+                <Camera className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="text-sm text-gray-800">
+                  <p className="font-semibold text-blue-900">Proof of going required</p>
+                  <p className="mt-1">
+                    Since this is a completed resource, please attach at least one photo as proof (a sign, receipt, room, event badge, etc.). This helps keep ratings authentic for everyone.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Overall Rating */}
               <div>
@@ -345,7 +372,15 @@ export default function RateResourcePage() {
 
               {/* Image Upload */}
               <div>
+                {proofRequired && (
+                  <p className="mb-2 text-sm font-medium text-gray-900">
+                    Photo proof <span className="text-red-600">*</span>
+                  </p>
+                )}
                 <ImageUpload images={images} onChange={setImages} maxImages={2} maxSizeKB={500} />
+                {proofRequired && images.length === 0 && (
+                  <p className="mt-2 text-xs text-red-600">At least one photo is required to submit this rating.</p>
+                )}
               </div>
 
               {/* Form Actions */}
@@ -358,7 +393,7 @@ export default function RateResourcePage() {
                 </Link>
                 <button
                   type="submit"
-                  disabled={submitting || overallRating === 0}
+                  disabled={submitting || overallRating === 0 || (proofRequired && images.length === 0)}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-4 h-4" aria-hidden="true" />

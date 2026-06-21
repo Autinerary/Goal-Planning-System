@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Star, Trash2, Calendar, RotateCcw } from 'lucide-react'
+import { Star, Trash2, Calendar, RotateCcw, Camera } from 'lucide-react'
 import Link from 'next/link'
 import ResourceCard from '@/components/resources/ResourceCard'
 import ResourceNote from './ResourceNote'
@@ -155,8 +155,8 @@ export default function PastTab({ userId }: PastTabProps) {
   if (resources.length === 0) {
     return (
       <EmptyState
-        title="No Past Resources"
-        message="Resources you've used in the past will appear here."
+        title="No Completed Resources"
+        message="Resources you've finished using will appear here. Each one can be rated with a photo as proof of going."
         actionLabel="Browse Resources"
         actionHref="/search"
         icon={<Calendar className="w-12 h-12 text-gray-400" />}
@@ -231,6 +231,16 @@ export default function PastTab({ userId }: PastTabProps) {
                   onSave={handleSaveNote}
                   onDelete={handleDeleteNote}
                 />
+
+                {/* Rate with proof CTA */}
+                <Link
+                  href={`/resources/${savedResource.resource_id}/rate?proof=required`}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                >
+                  <Camera className="w-4 h-4" aria-hidden="true" />
+                  <Star className="w-4 h-4" aria-hidden="true" />
+                  Rate this (proof required)
+                </Link>
 
                 {/* Actions */}
                 <div className="flex gap-2">

@@ -71,7 +71,7 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
         throw new Error('Failed to update status')
       }
 
-      showToast.success('Moved to Past Resources')
+      showToast.success('Marked as Completed — rate it next!')
       setResources((prev) => prev.filter((r) => r.resource_id !== resourceId))
     } catch (error) {
       console.error('Error updating status:', error)
@@ -155,8 +155,8 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
   if (resources.length === 0) {
     return (
       <EmptyState
-        title="No Current Resources"
-        message="Resources you're actively using will appear here."
+        title="No active resources"
+        message="Resources you're actively using will appear here. Add one from your Wishlist or browse the catalog."
         actionLabel="Browse Resources"
         actionHref="/search"
         icon={<Calendar className="w-12 h-12 text-gray-400" />}
@@ -238,7 +238,7 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
                     onClick={() => handleMoveToPast(savedResource.resource_id)}
                     className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Move to Past
+                    Mark as Completed
                   </button>
                   <button
                     onClick={() => handleRemove(savedResource.resource_id)}

@@ -11,7 +11,8 @@ import CurrentTab from '@/components/myResources/CurrentTab'
 import PastTab from '@/components/myResources/PastTab'
 import RatedTab from '@/components/myResources/RatedTab'
 import SubmittedTab from '@/components/myResources/SubmittedTab'
-import { Bookmark, Star, FileText, Calendar, History } from 'lucide-react'
+import { Bookmark, Star, FileText, Calendar, History, Plus } from 'lucide-react'
+import Link from 'next/link'
 
 type TabType = 'saved' | 'current' | 'past' | 'rated' | 'submitted'
 
@@ -53,9 +54,9 @@ export default function MyResourcesPage() {
   }
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
-    { id: 'saved', label: 'Saved', icon: <Bookmark className="w-5 h-5" aria-hidden="true" /> },
-    { id: 'current', label: 'Current', icon: <Calendar className="w-5 h-5" aria-hidden="true" /> },
-    { id: 'past', label: 'Past', icon: <History className="w-5 h-5" aria-hidden="true" /> },
+    { id: 'saved', label: 'Wishlist', icon: <Bookmark className="w-5 h-5" aria-hidden="true" /> },
+    { id: 'current', label: 'My Resources', icon: <Calendar className="w-5 h-5" aria-hidden="true" /> },
+    { id: 'past', label: 'Completed', icon: <History className="w-5 h-5" aria-hidden="true" /> },
     { id: 'rated', label: 'Rated', icon: <Star className="w-5 h-5" aria-hidden="true" /> },
     { id: 'submitted', label: 'Submitted', icon: <FileText className="w-5 h-5" aria-hidden="true" /> },
   ]
@@ -73,9 +74,22 @@ export default function MyResourcesPage() {
             ]}
           />
 
-          <div className="mt-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Resources</h1>
-            <p className="text-gray-600">Manage your saved resources, ratings, and submissions</p>
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Resources</h1>
+              <p className="text-gray-600">
+                Your <span className="font-medium text-gray-900">Wishlist</span> (want to use),{' '}
+                <span className="font-medium text-gray-900">My Resources</span> (currently using), and{' '}
+                <span className="font-medium text-gray-900">Completed</span> (rate with proof).
+              </p>
+            </div>
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              Add a resource
+            </Link>
           </div>
 
           {/* Tabs */}
