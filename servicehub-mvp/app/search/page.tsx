@@ -8,15 +8,51 @@ import ResourceCard from '@/components/resources/ResourceCard'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import FilterSidebar from '@/components/search/FilterSidebar'
 import SearchBar from '@/components/search/SearchBar'
-import SortSelect from '@/components/search/SortSelect'
+import SortMultiSelect, { type SortRule as UiSortRule, type SortKey } from '@/components/search/SortMultiSelect'
 import ViewToggle from '@/components/search/ViewToggle'
 import Pagination from '@/components/search/Pagination'
 import EmptyState from '@/components/feedback/EmptyState'
 import ErrorState from '@/components/feedback/ErrorState'
+import { findCondition, decodeCondition } from '@/lib/search/conditions'
 import { Search, Filter, X } from 'lucide-react'
-import type { SearchFilters, SortOption, SearchResult } from '@/lib/supabase/queries'
+import type { SearchResult } from '@/lib/supabase/queries'
 
 const RESULT_COUNT_PER_PAGE = 20
+
+const VALID_SORT_KEYS = new Set<SortKey>([
+  'relevance',
+  'rating',
+  'reviews',
+  'newest',
+  'distance',
+  'cost',
+])
+
+function encodeSortRules(rules: UiSortRule[]): string {
+  if (rules.length === 0) return ''
+  return rules.map((r) => `${r.key}:${r.direction}`).join(',')
+}
+
+function decodeSortRules(raw: string | null): UiSortRule[] {
+  if (!raw) return []
+  // Single-key legacy form: ?sort=rating
+  if (!raw.includes(',') && !raw.includes(':')) {
+    return VALID_SORT_KEYS.has(raw as SortKey)
+      ? [{ key: raw as SortKey, direction: raw === 'cost' ? 'asc' : 'desc' }]
+      : []
+  }
+  const out: UiSortRule[] = []
+  for (const piece of raw.split(',')) {
+    const trimmed = piece.trim()
+    if (!trimmed) continue
+    const [keyRaw, dirRaw] = trimmed.split(':')
+    const key = keyRaw?.trim() as SortKey
+    if (!VALID_SORT_KEYS.has(key)) continue
+    const direction = dirRaw?.trim() === 'asc' ? 'asc' : 'desc'
+    out.push({ key, direction })
+  }
+  return out
+}
 
 function SearchResults() {
   const searchParams = useSearchParams()
@@ -34,9 +70,20 @@ function SearchResults() {
   const query = searchParams.get('q') || ''
   const categories = searchParams.get('categories')?.split(',').filter(Boolean) || []
   const barriers = searchParams.get('barriers')?.split(',').filter(Boolean) || []
+  const conditions = searchParams.get('conditions')?.split(',').filter(Boolean) || []
+  const ratingStarsRaw = searchParams.get('ratingStars')?.split(',').filter(Boolean) || []
+  const ratingStars = ratingStarsRaw.map((s) => Number(s)).filter((n) => !Number.isNaN(n))
   const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined
+  const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined
+  const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined
   const maxDistance = searchParams.get('maxDistance') ? Number(searchParams.get('maxDistance')) : undefined
-  const sort = (searchParams.get('sort') as SortOption) || 'relevance'
+  const sortRules = decodeSortRules(searchParams.get('sort'))
+  const sortParam =
+    sortRules.length === 0
+      ? 'relevance'
+      : sortRules.length === 1
+      ? `${sortRules[0].key}:${sortRules[0].direction}`
+      : encodeSortRules(sortRules)
   const page = Number(searchParams.get('page') || '1')
 
   // Update URL params
@@ -70,18 +117,21 @@ function SearchResults() {
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(
-          `/api/search?${new URLSearchParams({
-            q: query,
-            categories: categories.join(','),
-            barriers: barriers.join(','),
-            minRating: minRating?.toString() || '',
-            maxDistance: maxDistance?.toString() || '',
-            sort,
-            page: page.toString(),
-            pageSize: RESULT_COUNT_PER_PAGE.toString(),
-          })}`
-        )
+        const apiParams = new URLSearchParams({
+          q: query,
+          categories: categories.join(','),
+          barriers: barriers.join(','),
+          conditions: conditions.join(','),
+          ratingStars: ratingStars.join(','),
+          minRating: minRating?.toString() || '',
+          minPrice: minPrice?.toString() || '',
+          maxPrice: maxPrice?.toString() || '',
+          maxDistance: maxDistance?.toString() || '',
+          sort: sortParam,
+          page: page.toString(),
+          pageSize: RESULT_COUNT_PER_PAGE.toString(),
+        })
+        const response = await fetch(`/api/search?${apiParams.toString()}`)
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
@@ -108,7 +158,19 @@ function SearchResults() {
     }
 
     fetchResults()
-  }, [query, categories.join(','), barriers.join(','), minRating, maxDistance, sort, page])
+  }, [
+    query,
+    categories.join(','),
+    barriers.join(','),
+    conditions.join(','),
+    ratingStars.join(','),
+    minRating,
+    minPrice,
+    maxPrice,
+    maxDistance,
+    sortParam,
+    page,
+  ])
 
   const handleQueryChange = useCallback(
     (newQuery: string) => {
@@ -137,6 +199,30 @@ function SearchResults() {
     [barriers, updateSearchParams]
   )
 
+  const handleConditionsChange = useCallback(
+    (next: string[]) => {
+      updateSearchParams({ conditions: next })
+    },
+    [updateSearchParams]
+  )
+
+  const handleRatingStarsChange = useCallback(
+    (next: number[]) => {
+      updateSearchParams({ ratingStars: next.map((n) => n.toString()) })
+    },
+    [updateSearchParams]
+  )
+
+  const handlePriceChange = useCallback(
+    (next: { min?: number; max?: number }) => {
+      updateSearchParams({
+        minPrice: next.min !== undefined ? next.min.toString() : undefined,
+        maxPrice: next.max !== undefined ? next.max.toString() : undefined,
+      })
+    },
+    [updateSearchParams]
+  )
+
   const handleMinRatingChange = useCallback(
     (rating: number | undefined) => {
       updateSearchParams({ minRating: rating?.toString() })
@@ -152,8 +238,8 @@ function SearchResults() {
   )
 
   const handleSortChange = useCallback(
-    (newSort: SortOption) => {
-      updateSearchParams({ sort: newSort })
+    (rules: UiSortRule[]) => {
+      updateSearchParams({ sort: rules.length === 0 ? undefined : encodeSortRules(rules) })
     },
     [updateSearchParams]
   )
@@ -171,13 +257,25 @@ function SearchResults() {
       q: '',
       categories: undefined,
       barriers: undefined,
+      conditions: undefined,
+      ratingStars: undefined,
       minRating: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
       maxDistance: undefined,
       sort: 'relevance',
     })
   }, [updateSearchParams])
 
-  const hasActiveFilters = categories.length > 0 || barriers.length > 0 || minRating !== undefined || maxDistance !== undefined
+  const hasActiveFilters =
+    categories.length > 0 ||
+    barriers.length > 0 ||
+    conditions.length > 0 ||
+    ratingStars.length > 0 ||
+    minRating !== undefined ||
+    minPrice !== undefined ||
+    maxPrice !== undefined ||
+    maxDistance !== undefined
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -203,11 +301,18 @@ function SearchResults() {
                 <FilterSidebar
                   categories={categories}
                   barriers={barriers}
+                  conditions={conditions}
                   minRating={minRating}
+                  ratingStars={ratingStars}
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
                   maxDistance={maxDistance}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
+                  onConditionsChange={handleConditionsChange}
                   onMinRatingChange={handleMinRatingChange}
+                  onRatingStarsChange={handleRatingStarsChange}
+                  onPriceChange={handlePriceChange}
                   onMaxDistanceChange={handleMaxDistanceChange}
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
                 />
@@ -229,7 +334,13 @@ function SearchResults() {
                       Filters
                       {hasActiveFilters && (
                         <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                          {categories.length + barriers.length + (minRating ? 1 : 0) + (maxDistance ? 1 : 0)}
+                          {categories.length +
+                            barriers.length +
+                            conditions.length +
+                            (ratingStars.length > 0 ? 1 : 0) +
+                            (minRating ? 1 : 0) +
+                            (minPrice !== undefined || maxPrice !== undefined ? 1 : 0) +
+                            (maxDistance ? 1 : 0)}
                         </span>
                       )}
                     </button>
@@ -253,7 +364,7 @@ function SearchResults() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <SortSelect value={sort} onChange={handleSortChange} />
+                    <SortMultiSelect value={sortRules} onChange={handleSortChange} />
                     <ViewToggle value={viewMode} onChange={setViewMode} />
                   </div>
                 </div>
@@ -271,6 +382,44 @@ function SearchResults() {
                         <X className="w-3 h-3" />
                       </button>
                     ))}
+                    {conditions.map((token) => {
+                      const { id, sub } = decodeCondition(token)
+                      const option = findCondition(id)
+                      const subOption = option?.subOptions?.find((s) => s.id === sub)
+                      const label = option
+                        ? subOption
+                          ? `${option.label}: ${subOption.label}`
+                          : option.label
+                        : token
+                      return (
+                        <button
+                          key={`cond-${token}`}
+                          onClick={() => handleConditionsChange(conditions.filter((t) => t !== token))}
+                          className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {label}
+                          <X className="w-3 h-3" />
+                        </button>
+                      )
+                    })}
+                    {(minPrice !== undefined || maxPrice !== undefined) && (
+                      <button
+                        onClick={() => handlePriceChange({ min: undefined, max: undefined })}
+                        className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        Cost: ${minPrice ?? 0} – ${maxPrice ?? '∞'}
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                    {ratingStars.length > 0 && (
+                      <button
+                        onClick={() => handleRatingStarsChange([])}
+                        className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {Math.min(...ratingStars)}+ stars
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                     {minRating && (
                       <button
                         onClick={() => handleMinRatingChange(undefined)}
@@ -389,11 +538,18 @@ function SearchResults() {
                 <FilterSidebar
                   categories={categories}
                   barriers={barriers}
+                  conditions={conditions}
                   minRating={minRating}
+                  ratingStars={ratingStars}
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
                   maxDistance={maxDistance}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
+                  onConditionsChange={handleConditionsChange}
                   onMinRatingChange={handleMinRatingChange}
+                  onRatingStarsChange={handleRatingStarsChange}
+                  onPriceChange={handlePriceChange}
                   onMaxDistanceChange={handleMaxDistanceChange}
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
                 />

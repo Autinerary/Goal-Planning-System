@@ -1,7 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchResources, type SearchFilters, type SortOption } from '@/lib/supabase/queries'
+import {
+  searchResources,
+  type SearchFilters,
+  type SortOption,
+  type SortRule,
+} from '@/lib/supabase/queries'
 import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
+
+const VALID_SORT_KEYS: SortOption[] = [
+  'relevance',
+  'rating',
+  'distance',
+  'reviews',
+  'newest',
+  'cost',
+]
+
+/**
+ * Parse the `sort` query param. Accepts either:
+ *  - a single sort key:        ?sort=rating
+ *  - a multi-rule, comma list: ?sort=cost:asc,rating:desc
+ */
+function parseSortParam(raw: string | null): SortOption | SortRule[] {
+  if (!raw) return 'relevance'
+  if (!raw.includes(',') && !raw.includes(':')) {
+    return VALID_SORT_KEYS.includes(raw as SortOption) ? (raw as SortOption) : 'relevance'
+  }
+  const rules: SortRule[] = []
+  for (const piece of raw.split(',')) {
+    const trimmed = piece.trim()
+    if (!trimmed) continue
+    const [keyRaw, dirRaw] = trimmed.split(':')
+    const key = keyRaw?.trim() as SortOption
+    const dir = (dirRaw?.trim() === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc'
+    if (VALID_SORT_KEYS.includes(key)) {
+      rules.push({
+        key,
+        direction: key === 'cost' && !dirRaw ? 'asc' : dir,
+      })
+    }
+  }
+  return rules.length > 0 ? rules : 'relevance'
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,13 +56,29 @@ export async function GET(request: NextRequest) {
     const barriers = searchParams.get('barriers')
       ? searchParams.get('barriers')!.split(',').filter(Boolean)
       : undefined
+    const conditions = searchParams.get('conditions')
+      ? searchParams.get('conditions')!.split(',').filter(Boolean)
+      : undefined
+    const ratingStars = searchParams.get('ratingStars')
+      ? searchParams
+          .get('ratingStars')!
+          .split(',')
+          .map((s) => Number(s))
+          .filter((n) => !Number.isNaN(n))
+      : undefined
     const minRating = searchParams.get('minRating')
       ? Number(searchParams.get('minRating'))
+      : undefined
+    const minPrice = searchParams.get('minPrice')
+      ? Number(searchParams.get('minPrice'))
+      : undefined
+    const maxPrice = searchParams.get('maxPrice')
+      ? Number(searchParams.get('maxPrice'))
       : undefined
     const maxDistance = searchParams.get('maxDistance')
       ? Number(searchParams.get('maxDistance'))
       : undefined
-    const sort = (searchParams.get('sort') as SortOption) || 'relevance'
+    const sort = parseSortParam(searchParams.get('sort'))
     const page = Number(searchParams.get('page') || '1')
     const pageSize = Number(searchParams.get('pageSize') || '20')
 
@@ -58,7 +115,11 @@ export async function GET(request: NextRequest) {
       query,
       categories,
       barriers,
+      conditions,
+      ratingStars,
       minRating,
+      minPrice,
+      maxPrice,
       maxDistance,
       userLocation,
       status: 'approved',

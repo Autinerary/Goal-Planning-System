@@ -687,13 +687,31 @@ export interface SearchFilters {
   query?: string // Text search
   categories?: string[] // Category multi-select
   barriers?: string[] // Barrier types (e.g., 'autism', 'adhd')
+  /**
+   * Static-taxonomy condition tokens (e.g. 'autism:level_2', 'cluster_b').
+   * Each token is decomposed into match keys that are tested against resource
+   * tags + the keys of any rating's barrier_scores object.
+   */
+  conditions?: string[]
   minRating?: number // Minimum star rating (1-5)
+  /**
+   * One or more "X+ stars" buckets. If multiple are set (e.g. [4, 5]) the
+   * lowest is used as the minimum threshold.
+   */
+  ratingStars?: number[]
+  minPrice?: number // Lower bound on resource price (inclusive)
+  maxPrice?: number // Upper bound on resource price (inclusive)
   maxDistance?: number // Maximum distance in km
   userLocation?: { lat: number; lng: number } // User's location for distance calculation
   status?: Resource['status'] // Resource status (default: 'approved')
 }
 
-export type SortOption = 'relevance' | 'rating' | 'distance' | 'reviews' | 'newest'
+export type SortOption = 'relevance' | 'rating' | 'distance' | 'reviews' | 'newest' | 'cost'
+
+export interface SortRule {
+  key: SortOption
+  direction: 'asc' | 'desc'
+}
 
 export interface SearchResult extends Resource {
   averageRating: number
@@ -761,11 +779,15 @@ async function getResourceRatings(resourceIds: string[]): Promise<Map<string, { 
 }
 
 /**
- * Comprehensive search function with filters, sorting, and pagination
+ * Comprehensive search function with filters, sorting, and pagination.
+ *
+ * `sort` accepts either a single SortOption (legacy) or an ordered array of
+ * SortRule objects. With an array, rules are applied as a primary/secondary/
+ * tertiary sort — the first non-equal comparison wins.
  */
 export async function searchResources(
   filters: SearchFilters = {},
-  sort: SortOption = 'relevance',
+  sort: SortOption | SortRule[] = 'relevance',
   page: number = 1,
   pageSize: number = 20
 ): Promise<{ results: SearchResult[]; total: number; page: number; pageSize: number }> {
@@ -836,14 +858,82 @@ export async function searchResources(
     resourceIds = resources.map((r) => r.id)
   }
 
+  // Filter by Conditions (static taxonomy tokens: 'autism', 'autism:level_2', …)
+  if (filters.conditions && filters.conditions.length > 0) {
+    // Build the flat set of match keys for all selected condition tokens.
+    const matchKeys = new Set<string>()
+    for (const token of filters.conditions) {
+      const colon = token.indexOf(':')
+      const id = colon === -1 ? token : token.slice(0, colon)
+      const sub = colon === -1 ? undefined : token.slice(colon + 1)
+      matchKeys.add(id.toLowerCase())
+      if (sub) {
+        matchKeys.add(sub.toLowerCase())
+        matchKeys.add(`${id}_${sub}`.toLowerCase())
+      }
+    }
+
+    // A resource matches if (a) one of its rating's barrier_scores keys hits
+    // the match set, OR (b) its name/description text contains a match key.
+    const { data: barrierRatings } = await supabase
+      .from('ratings')
+      .select('resource_id, barrier_scores')
+      .in('resource_id', resourceIds)
+      .not('barrier_scores', 'is', null)
+
+    const matchedByRatings = new Set<string>()
+    barrierRatings?.forEach((rating) => {
+      if (!rating.barrier_scores) return
+      const scores = rating.barrier_scores as { [key: string]: number }
+      const lowerKeys = Object.keys(scores).map((k) => k.toLowerCase())
+      if (lowerKeys.some((k) => matchKeys.has(k))) {
+        matchedByRatings.add(rating.resource_id)
+      }
+    })
+
+    resources = resources.filter((r) => {
+      if (matchedByRatings.has(r.id)) return true
+      const haystack = `${r.name || ''} ${r.description || ''} ${r.category || ''}`.toLowerCase()
+      for (const key of matchKeys) {
+        if (haystack.includes(key.replace(/_/g, ' '))) return true
+        if (haystack.includes(key)) return true
+      }
+      return false
+    })
+    resourceIds = resources.map((r) => r.id)
+  }
+
+  // Resolve effective minimum rating: explicit minRating wins, else the
+  // lowest selected rating-star bucket.
+  const effectiveMinRating =
+    filters.minRating ??
+    (filters.ratingStars && filters.ratingStars.length > 0
+      ? Math.min(...filters.ratingStars)
+      : undefined)
+
   // Filter by minimum rating
   let filteredResources = resources.filter((resource) => {
     const ratings = ratingMap.get(resource.id)
     if (!ratings) {
-      return !filters.minRating || filters.minRating <= 1 // Include unrated if minRating is 1 or less
+      return !effectiveMinRating || effectiveMinRating <= 1 // Include unrated if min is 1 or less
     }
-    return !filters.minRating || ratings.averageRating >= filters.minRating
+    return !effectiveMinRating || ratings.averageRating >= effectiveMinRating
   })
+
+  // Filter by price range. NULL price (free / unspecified) is always shown
+  // when no minPrice is set; if minPrice > 0, NULL prices are excluded.
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    filteredResources = filteredResources.filter((resource) => {
+      const price = (resource as any).price as number | null | undefined
+      if (price === null || price === undefined) {
+        // Unpriced resource: only include when there's no min restriction (or min is 0)
+        return !filters.minPrice || filters.minPrice <= 0
+      }
+      if (filters.minPrice !== undefined && price < filters.minPrice) return false
+      if (filters.maxPrice !== undefined && price > filters.maxPrice) return false
+      return true
+    })
+  }
 
   // Calculate distances if user location provided
   if (filters.userLocation) {
@@ -881,61 +971,73 @@ export async function searchResources(
     }
   })
 
-  // Sort results
-  switch (sort) {
-    case 'rating':
-      results.sort((a, b) => {
-        if (b.averageRating !== a.averageRating) {
-          return b.averageRating - a.averageRating
+  // Sort results — supports either a single SortOption (legacy) or an ordered
+  // list of SortRule. Multi-rule sort applies rules as a stable comparator:
+  // first rule wins; ties fall through to the next rule.
+  const sortRules: SortRule[] = Array.isArray(sort)
+    ? sort
+    : [{ key: sort, direction: sort === 'cost' ? 'asc' : 'desc' }]
+
+  const compareByRule = (a: SearchResult, b: SearchResult, rule: SortRule): number => {
+    const factor = rule.direction === 'asc' ? 1 : -1
+    switch (rule.key) {
+      case 'cost': {
+        const aPrice = (a as any).price as number | null | undefined
+        const bPrice = (b as any).price as number | null | undefined
+        // Push null prices to the end regardless of direction.
+        if (aPrice === null || aPrice === undefined) return 1
+        if (bPrice === null || bPrice === undefined) return -1
+        return (aPrice - bPrice) * factor
+      }
+      case 'rating': {
+        if (a.averageRating === b.averageRating) {
+          // Tie-break by review volume (always more = better).
+          return b.ratingCount - a.ratingCount
         }
-        return b.ratingCount - a.ratingCount // Tie-break by review count
-      })
-      break
-    case 'reviews':
-      results.sort((a, b) => b.ratingCount - a.ratingCount)
-      break
-    case 'distance':
-      if (filters.userLocation) {
-        results.sort((a, b) => {
-          const distA = a.distance ?? Infinity
-          const distB = b.distance ?? Infinity
-          return distA - distB
-        })
+        return (a.averageRating - b.averageRating) * factor
       }
-      break
-    case 'newest':
-      results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      break
-    case 'relevance':
-    default:
-      // Relevance: prioritize text match, then rating, then reviews
-      if (filters.query) {
-        const searchLower = filters.query.toLowerCase()
-        results.sort((a, b) => {
-          const aNameMatch = a.name.toLowerCase().includes(searchLower) ? 10 : 0
-          const bNameMatch = b.name.toLowerCase().includes(searchLower) ? 10 : 0
-          if (aNameMatch !== bNameMatch) return bNameMatch - aNameMatch
-
-          const aDescMatch = a.description?.toLowerCase().includes(searchLower) ? 5 : 0
-          const bDescMatch = b.description?.toLowerCase().includes(searchLower) ? 5 : 0
-          if (aDescMatch !== bDescMatch) return bDescMatch - aDescMatch
-
-          if (b.averageRating !== a.averageRating) {
-            return b.averageRating - a.averageRating
-          }
-          return b.ratingCount - a.ratingCount
-        })
-      } else {
-        // No query - sort by rating
-        results.sort((a, b) => {
-          if (b.averageRating !== a.averageRating) {
-            return b.averageRating - a.averageRating
-          }
-          return b.ratingCount - a.ratingCount
-        })
+      case 'reviews': {
+        return (a.ratingCount - b.ratingCount) * factor
       }
-      break
+      case 'distance': {
+        const distA = a.distance ?? Infinity
+        const distB = b.distance ?? Infinity
+        // Ascending = closest first.
+        return (distA - distB) * (rule.direction === 'desc' ? -1 : 1)
+      }
+      case 'newest': {
+        return (
+          (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) *
+          (rule.direction === 'asc' ? 1 : -1)
+        )
+      }
+      case 'relevance':
+      default: {
+        // Relevance scoring: name match > description match > rating > reviews.
+        let aScore = 0
+        let bScore = 0
+        if (filters.query) {
+          const q = filters.query.toLowerCase()
+          aScore += a.name.toLowerCase().includes(q) ? 10 : 0
+          bScore += b.name.toLowerCase().includes(q) ? 10 : 0
+          aScore += a.description?.toLowerCase().includes(q) ? 5 : 0
+          bScore += b.description?.toLowerCase().includes(q) ? 5 : 0
+        }
+        aScore += a.averageRating
+        bScore += b.averageRating
+        if (aScore !== bScore) return (aScore - bScore) * (rule.direction === 'asc' ? 1 : -1)
+        return b.ratingCount - a.ratingCount
+      }
+    }
   }
+
+  results.sort((a, b) => {
+    for (const rule of sortRules) {
+      const cmp = compareByRule(a, b, rule)
+      if (cmp !== 0) return cmp
+    }
+    return 0
+  })
 
   // Apply pagination
   const total = results.length

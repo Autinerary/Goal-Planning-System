@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import ConditionsFilter from './ConditionsFilter'
+import CostFilter from './CostFilter'
+import RatingChipsFilter from './RatingChipsFilter'
 
 interface BarrierCategory {
   category: string
@@ -12,11 +15,18 @@ interface BarrierCategory {
 interface FilterSidebarProps {
   categories: string[]
   barriers: string[]
+  conditions: string[]
   minRating?: number
+  ratingStars: number[]
+  minPrice?: number
+  maxPrice?: number
   maxDistance?: number
   onCategoryToggle: (category: string) => void
   onBarrierToggle: (barrier: string) => void
+  onConditionsChange: (next: string[]) => void
   onMinRatingChange: (rating: number | undefined) => void
+  onRatingStarsChange: (next: number[]) => void
+  onPriceChange: (next: { min?: number; max?: number }) => void
   onMaxDistanceChange: (distance: number | undefined) => void
   onClearFilters?: () => void
 }
@@ -24,11 +34,18 @@ interface FilterSidebarProps {
 export default function FilterSidebar({
   categories: selectedCategories,
   barriers: selectedBarriers,
+  conditions: selectedConditions,
   minRating,
+  ratingStars,
+  minPrice,
+  maxPrice,
   maxDistance,
   onCategoryToggle,
   onBarrierToggle,
+  onConditionsChange,
   onMinRatingChange,
+  onRatingStarsChange,
+  onPriceChange,
   onMaxDistanceChange,
   onClearFilters,
 }: FilterSidebarProps) {
@@ -152,6 +169,15 @@ export default function FilterSidebar({
           )}
         </div>
       </div>
+
+      {/* Conditions (static taxonomy with sub-options) */}
+      <ConditionsFilter selected={selectedConditions} onChange={onConditionsChange} />
+
+      {/* Service Ratings (chip style) */}
+      <RatingChipsFilter selectedStars={ratingStars} onChange={onRatingStarsChange} />
+
+      {/* Cost */}
+      <CostFilter min={minPrice} max={maxPrice} onChange={onPriceChange} />
 
       {/* Rating Filter */}
       <div>
