@@ -23,6 +23,9 @@ type SupabaseLike = SupabaseClient<any, any, any>
  * Store or update user embedding for similarity matching.
  * Pass an admin (service-role) client when writing from a context that is not
  * the owning user's session — otherwise RLS will silently drop the write.
+ *
+ * Empty arrays are coerced to NULL because `vector(384)` rejects zero-dim
+ * input but the columns are nullable.
  */
 export async function upsertUserEmbedding(
   userId: string,
@@ -35,8 +38,9 @@ export async function upsertUserEmbedding(
     .from('user_embeddings')
     .upsert({
       user_id: userId,
-      embedding,
-      barrier_embedding: barrierEmbedding || null,
+      embedding: embedding && embedding.length > 0 ? embedding : null,
+      barrier_embedding:
+        barrierEmbedding && barrierEmbedding.length > 0 ? barrierEmbedding : null,
       updated_at: new Date().toISOString(),
     })
     .select()
@@ -147,6 +151,9 @@ async function findSimilarUsersManual(
  * Store or update resource embedding for semantic search.
  * `resource_embeddings` has no INSERT/UPDATE policy in RLS, so every write must
  * go through a service-role client. Pass `client` from `createAdminClient()`.
+ *
+ * Empty arrays are coerced to NULL because `vector(384)` rejects zero-dim
+ * input but the columns are nullable.
  */
 export async function upsertResourceEmbedding(
   resourceId: string,
@@ -159,8 +166,11 @@ export async function upsertResourceEmbedding(
     .from('resource_embeddings')
     .upsert({
       resource_id: resourceId,
-      embedding,
-      description_embedding: descriptionEmbedding || null,
+      embedding: embedding && embedding.length > 0 ? embedding : null,
+      description_embedding:
+        descriptionEmbedding && descriptionEmbedding.length > 0
+          ? descriptionEmbedding
+          : null,
       updated_at: new Date().toISOString(),
     })
     .select()
