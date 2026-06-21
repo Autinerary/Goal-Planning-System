@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, Bookmark, Share2, MapPin } from 'lucide-react'
+import { Star, Bookmark, Share2, MapPin, Plus } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
+import { showToast } from '@/lib/toast'
+import AddRatingModal from './AddRatingModal'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -13,6 +15,7 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   const [isSaved, setIsSaved] = useState(resource.isSaved || false)
   const [isSaving, setIsSaving] = useState(false)
   const [showShareTooltip, setShowShareTooltip] = useState(false)
+  const [showRatingModal, setShowRatingModal] = useState(false)
 
   const location = resource.location as any
   const city = location?.city || 'Location not specified'
@@ -20,26 +23,51 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
   const handleSave = async () => {
     if (!userId) {
-      // Redirect to login or show login modal
-      window.location.href = '/login'
+      // Send the user to login and bring them back to this resource page.
+      const next = encodeURIComponent(window.location.pathname)
+      window.location.href = `/login?next=${next}`
       return
     }
 
     setIsSaving(true)
+    const willSave = !isSaved
     try {
       const response = await fetch(`/api/resources/${resource.id}/save`, {
-        method: isSaved ? 'DELETE' : 'POST',
+        method: willSave ? 'POST' : 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       })
 
       if (response.ok) {
-        setIsSaved(!isSaved)
+        setIsSaved(willSave)
+        showToast.success(willSave ? 'Saved to your resources' : 'Removed from saved')
+      } else {
+        const data = await response.json().catch(() => ({}))
+        const message = data?.error || 'Could not save this resource. Please try again.'
+        console.error('Save failed:', response.status, data)
+        showToast.error(message)
       }
     } catch (error) {
       console.error('Error saving resource:', error)
+      showToast.error('Network error. Please check your connection and try again.')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleRateClick = () => {
+    if (!userId) {
+      const next = encodeURIComponent(window.location.pathname)
+      window.location.href = `/login?next=${next}`
+      return
+    }
+    setShowRatingModal(true)
+  }
+
+  const handleRatingAdded = () => {
+    setShowRatingModal(false)
+    showToast.success('Thanks! Your rating has been added.')
+    // Reload so RatingsBreakdown + CommunityReviews refresh.
+    window.location.reload()
   }
 
   const handleShare = async () => {
@@ -87,7 +115,16 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleRateClick}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label={userId ? 'Rate this resource' : 'Sign in to rate this resource'}
+          >
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            Rate this resource
+          </button>
+
           <div className="relative">
             <button
               onClick={handleShare}
@@ -106,7 +143,7 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
           <button
             onClick={handleSave}
-            disabled={isSaving || !userId}
+            disabled={isSaving}
             className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               isSaved
                 ? 'text-white bg-blue-600 hover:bg-blue-700'
@@ -115,7 +152,7 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
             aria-label={isSaved ? 'Remove from saved' : 'Save resource'}
           >
             <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-            {isSaved ? 'Saved' : 'Save'}
+            {isSaving ? 'Saving…' : isSaved ? 'Saved' : 'Save'}
           </button>
         </div>
       </div>
@@ -159,6 +196,14 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
           </div>
         )}
       </div>
+
+      {showRatingModal && (
+        <AddRatingModal
+          resourceId={resource.id}
+          onClose={() => setShowRatingModal(false)}
+          onRatingAdded={handleRatingAdded}
+        />
+      )}
     </div>
   )
 }

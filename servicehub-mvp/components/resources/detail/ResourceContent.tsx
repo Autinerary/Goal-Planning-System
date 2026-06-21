@@ -3,6 +3,7 @@
 import { Phone, Mail, Globe, MapPin, Navigation } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import LocationMap from './LocationMap'
+import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
 import type { Location, ContactInfo } from '@/types/database'
 
 interface ResourceContentProps {
@@ -49,7 +50,11 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
           </div>
           {(location.lat && location.lng) ? (
             <>
-              <LocationMap lat={location.lat} lng={location.lng} name={resource.name} />
+              {hasGoogleMapsEmbedKey() ? (
+                <GoogleMapsEmbed lat={location.lat} lng={location.lng} name={resource.name} />
+              ) : (
+                <LocationMap lat={location.lat} lng={location.lng} name={resource.name} />
+              )}
               <div className="mt-4">
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`}
