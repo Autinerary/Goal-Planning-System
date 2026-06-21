@@ -69,6 +69,15 @@ function PitStopContent() {
   const [textMemeInput, setTextMemeInput] = useState('')
   const [activeSearchQuery, setActiveSearchQuery] = useState('')
   const [pendingRemoval, setPendingRemoval] = useState<{ id: string; name: string; category: string } | null>(null)
+
+  // Real-user social state (Phase A: profiles + Facebook-style requests)
+  type SearchResult = { id: string; display_name: string | null; email: string | null; avatar_emoji: string; dream: string | null; connection_state: string | null }
+  type PendingRequest = { id: string; category: string; requested_at: string; requester: { id: string; display_name: string | null; avatar_emoji?: string; dream?: string | null } }
+  const [pendingInbox, setPendingInbox] = useState<PendingRequest[]>([])
+  const [userSearchQuery, setUserSearchQuery] = useState('')
+  const [userSearchResults, setUserSearchResults] = useState<SearchResult[]>([])
+  const [isUserSearching, setIsUserSearching] = useState(false)
+  const [addMode, setAddMode] = useState<'search' | 'manual'>('search')
   
   // Mock data for features
   const [rivalNotifications, setRivalNotifications] = useState([
@@ -288,6 +297,113 @@ function PitStopContent() {
     }
     // Fire-and-forget backend delete (RLS already restricts to the owner)
     persistRemoveConnection(id)
+  }
+
+  // ===== Phase A: Pending inbox (incoming friend requests) =====
+  const refreshPendingInbox = async () => {
+    if (!isSignedIn) return
+    try {
+      const res = await fetch('/api/connections/pending', { credentials: 'include' })
+      if (!res.ok) return
+      const body = await res.json()
+      setPendingInbox(body.pending || [])
+    } catch (e) {
+      console.warn('[pit-stop] pending inbox fetch error:', e)
+    }
+  }
+  useEffect(() => { refreshPendingInbox() }, [isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const acceptPendingRequest = async (id: string) => {
+    try {
+      const res = await fetch(`/api/connections/${id}/accept`, { method: 'POST', credentials: 'include' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        console.warn('[pit-stop] accept failed:', body?.error)
+        return
+      }
+      // Drop from inbox locally, then re-fetch the user's full connection list
+      // so the now-connected friend appears in the right column.
+      setPendingInbox(prev => prev.filter(p => p.id !== id))
+      // Trigger a reload of /api/connections so the new friend appears
+      // (cheap: just re-run the effect by bumping a key — here we just hit it again inline)
+      try {
+        const r = await fetch('/api/connections', { credentials: 'include' })
+        if (r.ok) {
+          const body = await r.json()
+          const g = body?.connections || {}
+          setFriends((g.friends || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
+          setMentors((g.mentors || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
+          setRoleModels((g.rolemodels || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤' })))
+        }
+      } catch {}
+    } catch (e) {
+      console.warn('[pit-stop] accept error:', e)
+    }
+  }
+
+  const declinePendingRequest = async (id: string) => {
+    try {
+      // RLS lets the target_user_id DELETE pending rows -> reuse the existing endpoint
+      const res = await fetch(`/api/connections/${id}`, { method: 'DELETE', credentials: 'include' })
+      if (res.ok) setPendingInbox(prev => prev.filter(p => p.id !== id))
+    } catch (e) {
+      console.warn('[pit-stop] decline error:', e)
+    }
+  }
+
+  // ===== Phase A: User search for sending connection requests =====
+  useEffect(() => {
+    if (!isSignedIn) return
+    const q = userSearchQuery.trim()
+    if (q.length < 2) { setUserSearchResults([]); return }
+    let cancelled = false
+    setIsUserSearching(true)
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, { credentials: 'include' })
+        if (!res.ok) { if (!cancelled) setUserSearchResults([]); return }
+        const body = await res.json()
+        if (!cancelled) setUserSearchResults(body.results || [])
+      } catch {
+        if (!cancelled) setUserSearchResults([])
+      } finally {
+        if (!cancelled) setIsUserSearching(false)
+      }
+    }, 250) // debounce
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [userSearchQuery, isSignedIn])
+
+  const sendRealUserRequest = async (target: SearchResult, category: 'rolemodels' | 'mentors' | 'friends') => {
+    try {
+      const res = await fetch('/api/connections', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category,
+          name: target.display_name || target.email || 'Friend',
+          role: 'Pending Request',
+          icon: target.avatar_emoji || '👤',
+          target_user_id: target.id,
+          status: 'pending',
+        }),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        alert(body.error || 'Failed to send request')
+        return
+      }
+      // Mark this user as pending in the in-modal results so the button switches to "Pending"
+      setUserSearchResults(prev => prev.map(r => r.id === target.id ? { ...r, connection_state: 'pending' } : r))
+      // Optimistically reflect outgoing pending row in the appropriate column
+      const newRow = { id: body.connection?.id || `tmp_${Date.now()}`, name: target.display_name || target.email || 'Friend', role: 'Pending', status: 'pending', icon: target.avatar_emoji || '👤' }
+      if (category === 'rolemodels') setRoleModels(prev => [...prev, newRow])
+      else if (category === 'mentors') setMentors(prev => [...prev, newRow])
+      else setFriends(prev => [...prev, newRow])
+    } catch (e) {
+      console.warn('[pit-stop] send request error:', e)
+      alert('Network error sending request')
+    }
   }
 
   // Confirm-then-remove flow so the user sees exactly which connection is being deleted
@@ -693,7 +809,60 @@ function PitStopContent() {
                   ℹ️ Sign in to save these connections. Right now they only live in this browser tab.
                 </p>
               )}
+              {/* Profile/Discovery quick link */}
+              {isSignedIn && (
+                <div className="mt-2 flex items-center justify-between text-xs">
+                  <span className="text-slate-500">Want to be found by friends?</span>
+                  <a
+                    href="/profile/settings"
+                    className="text-purple-600 hover:text-purple-700 font-medium underline underline-offset-2"
+                  >
+                    Profile &amp; Discovery →
+                  </a>
+                </div>
+              )}
             </div>
+
+            {/* Pending friend-request inbox */}
+            {isSignedIn && pendingInbox.length > 0 && (
+              <div className="bg-white rounded-2xl border-2 border-amber-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-amber-500" />
+                  Friend requests ({pendingInbox.length})
+                </h3>
+                <p className="text-sm text-slate-600 mb-4">People who want to connect with you.</p>
+                <div className="space-y-2">
+                  {pendingInbox.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between gap-3 p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-2xl">{p.requester.avatar_emoji || '👤'}</span>
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm truncate">{p.requester.display_name || '(no name)'}</div>
+                          <div className="text-xs text-slate-500 truncate">
+                            wants to add you as a <strong>{p.category === 'rolemodels' ? 'role model' : p.category === 'mentors' ? 'mentor' : 'friend'}</strong>
+                            {p.requester.dream ? ` · "${p.requester.dream}"` : ''}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => acceptPendingRequest(p.id)}
+                          className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-md"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => declinePendingRequest(p.id)}
+                          className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* People View */}
             {haveWorldView === 'people' && (
@@ -1257,10 +1426,10 @@ function PitStopContent() {
           </div>
         )}
 
-        {/* Add Connection Modal */}
+        {/* Add Connection Modal — Phase A: search real users (default) or add free-form */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 shadow-xl max-h-[85vh] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">
                   Add {selectedCategory === 'rolemodels' ? 'Role Model' : selectedCategory === 'mentors' ? 'Mentor' : 'Friend'}
@@ -1269,63 +1438,135 @@ function PitStopContent() {
                   onClick={() => {
                     setShowAddModal(false)
                     setSelectedCategory(null)
+                    setUserSearchQuery('')
+                    setUserSearchResults([])
+                    setAddMode('search')
                   }}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Request via username:</label>
+
+              {/* Mode toggle */}
+              <div className="flex gap-2 mb-4 border-b border-slate-200">
+                <button
+                  onClick={() => setAddMode('search')}
+                  className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    addMode === 'search' ? 'border-purple-500 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Find real user
+                </button>
+                <button
+                  onClick={() => setAddMode('manual')}
+                  className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    addMode === 'manual' ? 'border-purple-500 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  Add manually
+                </button>
+              </div>
+
+              {addMode === 'search' && (
+                <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+                  {!isSignedIn && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                      Sign in to search for and request real users.
+                    </p>
+                  )}
                   <input
                     type="text"
-                    id="username-input"
-                    placeholder="Enter username"
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && selectedCategory) {
-                        const input = e.target as HTMLInputElement
-                        handleRequestConnection(input.value, selectedCategory)
-                      }
-                    }}
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    disabled={!isSignedIn}
+                    placeholder="Search by name or email…"
+                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 disabled:bg-slate-100 disabled:text-slate-400"
                   />
-                </div>
-                {selectedCategory && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Collab Type (if in a relationship):</label>
-                    <select className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500">
-                      <option value="">Select type...</option>
-                      {collabTypes.map((type) => (
-                        <option key={type.id} value={type.id}>{type.label}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-slate-500 mt-1">In Request, should specify this</p>
+                  <p className="text-xs text-slate-500">
+                    Only users who turned on <strong>Discoverable</strong> in <a href="/profile/settings" className="text-purple-600 underline">Profile Settings</a> appear here.
+                  </p>
+                  <div className="flex-1 overflow-y-auto -mx-1 px-1 space-y-2">
+                    {isUserSearching && <p className="text-xs text-slate-500 italic">Searching…</p>}
+                    {!isUserSearching && userSearchQuery.trim().length >= 2 && userSearchResults.length === 0 && (
+                      <p className="text-sm text-slate-500 italic py-4 text-center">No matching discoverable users.</p>
+                    )}
+                    {userSearchResults.map((r) => {
+                      const state = r.connection_state
+                      const disabled = state === 'pending' || state === 'connected'
+                      return (
+                        <div key={r.id} className="flex items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-2xl">{r.avatar_emoji || '👤'}</span>
+                            <div className="min-w-0">
+                              <div className="font-medium text-sm truncate">{r.display_name || '(no name)'}</div>
+                              {r.dream && <div className="text-xs text-slate-500 truncate">"{r.dream}"</div>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => selectedCategory && sendRealUserRequest(r, selectedCategory)}
+                            disabled={disabled || !selectedCategory}
+                            className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+                              state === 'connected'
+                                ? 'bg-emerald-100 text-emerald-700 cursor-default'
+                                : state === 'pending'
+                                ? 'bg-amber-100 text-amber-700 cursor-default'
+                                : 'bg-purple-500 hover:bg-purple-600 text-white'
+                            }`}
+                          >
+                            {state === 'connected' ? 'Connected' : state === 'pending' ? 'Pending' : 'Send Request'}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowAddModal(false)
-                      setSelectedCategory(null)
-                    }}
-                    className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (selectedCategory) {
-                        const input = document.getElementById('username-input') as HTMLInputElement
-                        handleRequestConnection(input?.value || '', selectedCategory)
-                      }
-                    }}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-                  >
-                    Send Request
-                  </button>
                 </div>
-              </div>
+              )}
+
+              {addMode === 'manual' && (
+                <div className="space-y-4">
+                  <p className="text-xs text-slate-500">
+                    Adds a local contact card. Doesn't send a request — useful for people who aren't on the app yet.
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Name:</label>
+                    <input
+                      type="text"
+                      id="username-input"
+                      placeholder="Enter a name"
+                      className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && selectedCategory) {
+                          const input = e.target as HTMLInputElement
+                          handleRequestConnection(input.value, selectedCategory)
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowAddModal(false)
+                        setSelectedCategory(null)
+                      }}
+                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (selectedCategory) {
+                          const input = document.getElementById('username-input') as HTMLInputElement
+                          handleRequestConnection(input?.value || '', selectedCategory)
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    >
+                      Add Contact
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
