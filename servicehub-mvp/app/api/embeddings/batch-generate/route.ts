@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { onUserBarriersLoadedFromDB, onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Resource } from '@/types/database'
 
@@ -48,70 +49,41 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const { type = 'all', limit = 100 } = body // type: 'users' | 'resources' | 'all'
 
+    // Admin client is required to scan candidates across all users \u2014 the
+    // session client (anon role) cannot see other users' `user_barriers` rows
+    // because of RLS, and `resource_embeddings` writes are blocked entirely
+    // outside service-role.
+    const admin = createAdminClient()
+
     const results = {
       users: { processed: 0, generated: 0, errors: 0 },
       resources: { processed: 0, generated: 0, errors: 0 },
     }
 
-    // Generate embeddings for users without embeddings
+    // Generate embeddings for users with barriers but no embedding yet
     if (type === 'all' || type === 'users') {
-      // Find users without embeddings
-      const { data: usersWithoutEmbeddings, error: usersError } = await supabase
-        .from('profiles')
-        .select('id')
-        .not(
-          'id',
-          'in',
-          supabase
-            .from('user_embeddings')
-            .select('user_id')
-            .then(({ data }) => `(${(data || []).map((r) => `'${r.user_id}'`).join(',') || 'null'})`)
-        )
-        .limit(limit)
-
-      if (usersError) {
-        console.error('Error fetching users without embeddings:', usersError)
-      } else {
-        const users = usersWithoutEmbeddings || []
-        results.users.processed = users.length
-
-        for (const user of users) {
-          try {
-            const success = await onUserBarriersLoadedFromDB(user.id)
-            if (success) {
-              results.users.generated++
-            } else {
-              results.users.errors++
-            }
-          } catch (error) {
-            console.error(`Error generating embedding for user ${user.id}:`, error)
-            results.users.errors++
-          }
-        }
-      }
-
-      // Alternative: Find users with barriers but no embeddings
-      // This is more efficient - only check users who have barriers
-      const { data: usersWithBarriers } = await supabase
+      const { data: usersWithBarriers, error: barriersError } = await admin
         .from('user_barriers')
         .select('user_id')
-        .limit(limit)
 
-      if (usersWithBarriers) {
-        const userIds = [...new Set(usersWithBarriers.map((b) => b.user_id))]
+      if (barriersError) {
+        console.error('Error fetching users with barriers:', barriersError)
+      } else {
+        const uniqueUserIds = [...new Set((usersWithBarriers || []).map((b) => b.user_id))]
 
-        // Check which ones don't have embeddings
-        const { data: existingEmbeddings } = await supabase
+        const { data: existingEmbeddings } = await admin
           .from('user_embeddings')
           .select('user_id')
-          .in('user_id', userIds)
+          .in('user_id', uniqueUserIds)
 
         const existingUserIds = new Set((existingEmbeddings || []).map((e) => e.user_id))
-        const usersNeedingEmbeddings = userIds.filter((id) => !existingUserIds.has(id))
+        const usersNeedingEmbeddings = uniqueUserIds
+          .filter((id) => !existingUserIds.has(id))
+          .slice(0, limit)
 
         results.users.processed = usersNeedingEmbeddings.length
 
-        for (const userId of usersNeedingEmbeddings.slice(0, limit)) {
+        for (const userId of usersNeedingEmbeddings) {
           try {
             const success = await onUserBarriersLoadedFromDB(userId)
             if (success) {
@@ -127,32 +99,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate embeddings for resources without embeddings
+    // Generate embeddings for approved resources without an embedding yet
     if (type === 'all' || type === 'resources') {
-      // Find approved resources without embeddings
-      const { data: resourcesWithoutEmbeddings, error: resourcesError } = await supabase
+      const { data: allResources, error: resourcesError } = await admin
         .from('resources')
         .select('*')
         .eq('status', 'approved')
-        .not(
-          'id',
-          'in',
-          supabase
-            .from('resource_embeddings')
-            .select('resource_id')
-            .then(({ data }) =>
-              `(${(data || []).map((r) => `'${r.resource_id}'`).join(',') || 'null'})`
-            )
-        )
-        .limit(limit)
 
       if (resourcesError) {
-        console.error('Error fetching resources without embeddings:', resourcesError)
+        console.error('Error fetching approved resources:', resourcesError)
       } else {
-        const resources = resourcesWithoutEmbeddings || []
-        results.resources.processed = resources.length
+        const { data: existingResourceEmbeddings } = await admin
+          .from('resource_embeddings')
+          .select('resource_id')
 
-        for (const resource of resources) {
+        const existingResourceIds = new Set(
+          (existingResourceEmbeddings || []).map((e) => e.resource_id)
+        )
+        const resourcesNeedingEmbeddings = (allResources || [])
+          .filter((r) => !existingResourceIds.has(r.id))
+          .slice(0, limit)
+
+        results.resources.processed = resourcesNeedingEmbeddings.length
+
+        for (const resource of resourcesNeedingEmbeddings) {
           try {
             const success = await onResourceCreated(resource as Resource)
             if (success) {
@@ -164,40 +134,6 @@ export async function POST(request: NextRequest) {
             console.error(`Error generating embedding for resource ${resource.id}:`, error)
             results.resources.errors++
           }
-        }
-      }
-
-      // More efficient: Check existing embeddings first
-      const { data: allResources } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('status', 'approved')
-        .limit(limit * 2)
-
-      const { data: existingResourceEmbeddings } = await supabase
-        .from('resource_embeddings')
-        .select('resource_id')
-
-      const existingResourceIds = new Set(
-        (existingResourceEmbeddings || []).map((e) => e.resource_id)
-      )
-      const resourcesNeedingEmbeddings = (allResources || []).filter(
-        (r) => !existingResourceIds.has(r.id)
-      )
-
-      results.resources.processed = resourcesNeedingEmbeddings.length
-
-      for (const resource of resourcesNeedingEmbeddings.slice(0, limit)) {
-        try {
-          const success = await onResourceCreated(resource as Resource)
-          if (success) {
-            results.resources.generated++
-          } else {
-            results.resources.errors++
-          }
-        } catch (error) {
-          console.error(`Error generating embedding for resource ${resource.id}:`, error)
-          results.resources.errors++
         }
       }
     }
@@ -225,14 +161,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Admin client required to count across all users (anon role can't see
+    // other users' user_barriers / user_embeddings rows).
+    const admin = createAdminClient()
+
     // Count users with barriers but no embeddings
-    const { data: usersWithBarriers } = await supabase
+    const { data: usersWithBarriers } = await admin
       .from('user_barriers')
       .select('user_id', { count: 'exact', head: false })
 
     const uniqueUserIds = new Set((usersWithBarriers || []).map((b) => b.user_id))
 
-    const { count: usersWithEmbeddings } = await supabase
+    const { count: usersWithEmbeddings } = await admin
       .from('user_embeddings')
       .select('user_id', { count: 'exact', head: true })
       .in('user_id', Array.from(uniqueUserIds))
@@ -240,12 +180,12 @@ export async function GET(request: NextRequest) {
     const usersNeedingEmbeddings = uniqueUserIds.size - (usersWithEmbeddings || 0)
 
     // Count approved resources without embeddings
-    const { count: totalApprovedResources } = await supabase
+    const { count: totalApprovedResources } = await admin
       .from('resources')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'approved')
 
-    const { count: resourcesWithEmbeddings } = await supabase
+    const { count: resourcesWithEmbeddings } = await admin
       .from('resource_embeddings')
       .select('resource_id', { count: 'exact', head: true })
 

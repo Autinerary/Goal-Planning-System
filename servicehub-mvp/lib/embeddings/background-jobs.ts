@@ -1,6 +1,12 @@
 /**
  * Background job helpers for generating embeddings
- * These functions can be called after user/resource updates
+ * These functions can be called after user/resource updates.
+ *
+ * All embedding writes use the service-role admin client because the
+ * `resource_embeddings` table has no INSERT/UPDATE policy and
+ * `user_embeddings` writes are restricted to the owning user's session, which
+ * is unreliable in fire-and-forget post-response callbacks. Caller
+ * authorization is enforced upstream in the route handler.
  */
 
 import {
@@ -14,6 +20,7 @@ import {
 } from '@/lib/supabase/vector-queries'
 import { getUserBarriers } from '@/lib/supabase/queries'
 import { getResourceById } from '@/lib/supabase/queries'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * Generate and store user embedding after onboarding or barrier updates
@@ -26,14 +33,16 @@ import { getResourceById } from '@/lib/supabase/queries'
  */
 export async function generateUserEmbeddingJob(userId: string): Promise<void> {
   try {
+    const admin = createAdminClient()
+
     // Get user barriers
-    const barriers = await getUserBarriers(userId)
+    const barriers = await getUserBarriers(userId, admin)
 
     // Generate barrier embedding
     const barrierEmbedding = await generateBarrierEmbedding(barriers)
 
     // Store embedding (user embedding can be null for now)
-    await upsertUserEmbedding(userId, [], barrierEmbedding)
+    await upsertUserEmbedding(userId, [], barrierEmbedding, admin)
 
     console.log(`Generated embedding for user ${userId}`)
   } catch (error) {
@@ -69,11 +78,12 @@ export async function generateResourceEmbeddingJob(
       ? await generateResourceDescriptionEmbedding(resource.description)
       : null
 
-    // Store embeddings
+    // Store embeddings (admin client required — resource_embeddings has no INSERT policy)
     await upsertResourceEmbedding(
       resourceId,
       embedding,
-      descriptionEmbedding || undefined
+      descriptionEmbedding || undefined,
+      createAdminClient()
     )
 
     console.log(`Generated embeddings for resource ${resourceId}`)
@@ -91,7 +101,7 @@ export async function regenerateAllUserEmbeddings(): Promise<{
   success: number
   failed: number
 }> {
-  const supabase = (await import('@/lib/supabase/server')).createClient()
+  const supabase = createAdminClient()
 
   let success = 0
   let failed = 0
@@ -136,7 +146,7 @@ export async function regenerateAllResourceEmbeddings(): Promise<{
   success: number
   failed: number
 }> {
-  const supabase = (await import('@/lib/supabase/server')).createClient()
+  const supabase = createAdminClient()
 
   let success = 0
   let failed = 0

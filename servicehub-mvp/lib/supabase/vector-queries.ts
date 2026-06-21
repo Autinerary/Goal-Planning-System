@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, ResourceEmbedding, UserEmbedding } from '@/types/database'
 import {
@@ -8,17 +9,28 @@ import {
   cosineSimilarity,
 } from '@/lib/embeddings/generator'
 
+/**
+ * Embedding writes must bypass RLS — `resource_embeddings` has no INSERT policy
+ * and `user_embeddings` writes are restricted to `auth.uid() = user_id`, which
+ * blocks system / cron / admin writes. Callers must pass a service-role client
+ * for any write path that runs outside the owning user's session.
+ */
+type SupabaseLike = SupabaseClient<any, any, any>
+
 // ==================== User Embedding Queries ====================
 
 /**
- * Store or update user embedding for similarity matching
+ * Store or update user embedding for similarity matching.
+ * Pass an admin (service-role) client when writing from a context that is not
+ * the owning user's session — otherwise RLS will silently drop the write.
  */
 export async function upsertUserEmbedding(
   userId: string,
   embedding: number[],
-  barrierEmbedding?: number[]
+  barrierEmbedding?: number[],
+  client?: SupabaseLike
 ): Promise<UserEmbedding | null> {
-  const supabase = createClient()
+  const supabase = client ?? createClient()
   const { data, error } = await supabase
     .from('user_embeddings')
     .upsert({
@@ -132,14 +144,17 @@ async function findSimilarUsersManual(
 // ==================== Resource Embedding Queries ====================
 
 /**
- * Store or update resource embedding for semantic search
+ * Store or update resource embedding for semantic search.
+ * `resource_embeddings` has no INSERT/UPDATE policy in RLS, so every write must
+ * go through a service-role client. Pass `client` from `createAdminClient()`.
  */
 export async function upsertResourceEmbedding(
   resourceId: string,
   embedding: number[],
-  descriptionEmbedding?: number[]
+  descriptionEmbedding?: number[],
+  client?: SupabaseLike
 ): Promise<ResourceEmbedding | null> {
-  const supabase = createClient()
+  const supabase = client ?? createClient()
   const { data, error } = await supabase
     .from('resource_embeddings')
     .upsert({

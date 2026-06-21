@@ -1,5 +1,8 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
+
+type SupabaseLike = SupabaseClient<any, any, any>
 
 // ==================== Profile Queries ====================
 
@@ -60,8 +63,13 @@ export async function updateProfile(userId: string, updates: Partial<Profile>): 
 
 // ==================== User Barriers Queries ====================
 
-export async function getUserBarriers(userId: string): Promise<UserBarrier[]> {
-  const supabase = createClient()
+/**
+ * Fetch user barriers. When called from a context outside the owning user's
+ * session (cron, admin batch jobs), pass a service-role `client` so RLS does
+ * not silently return an empty list.
+ */
+export async function getUserBarriers(userId: string, client?: SupabaseLike): Promise<UserBarrier[]> {
+  const supabase = client ?? createClient()
   const { data, error } = await supabase
     .from('user_barriers')
     .select('*')

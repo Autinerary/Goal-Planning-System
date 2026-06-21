@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { generateBarrierEmbedding, generateResourceEmbedding, generateResourceDescriptionEmbedding } from '@/lib/embeddings/generator'
 import { upsertUserEmbedding, upsertResourceEmbedding } from '@/lib/supabase/vector-queries'
 import { getUserBarriers } from '@/lib/supabase/queries'
@@ -7,6 +7,13 @@ import type { UserBarrier, Resource } from '@/types/database'
 /**
  * Auto-generate embeddings when data changes
  * This ensures the vector database stays up-to-date
+ *
+ * All write paths in this file use the service-role admin client because the
+ * embedding tables have restrictive RLS (`resource_embeddings` has no INSERT
+ * policy at all; `user_embeddings` restricts writes to the owning user). The
+ * functions here are system-level orchestrators \u2014 caller authorization is
+ * already enforced upstream (admin route checks, cron secret, owning user
+ * session). Using anon / session clients here silently drops writes.
  */
 
 /**
@@ -31,7 +38,11 @@ export async function onUserBarriersUpdated(userId: string, barriers: UserBarrie
     }
 
     // Store in vector database (main embedding is empty, barrier_embedding contains the barrier profile)
-    await upsertUserEmbedding(userId, [], barrierEmbedding)
+    const result = await upsertUserEmbedding(userId, [], barrierEmbedding, createAdminClient())
+    if (!result) {
+      console.error(`Failed to persist user embedding for ${userId}`)
+      return false
+    }
 
     return true
   } catch (error) {
@@ -46,7 +57,7 @@ export async function onUserBarriersUpdated(userId: string, barriers: UserBarrie
  */
 export async function onUserBarriersLoadedFromDB(userId: string): Promise<boolean> {
   try {
-    const userBarriers = await getUserBarriers(userId)
+    const userBarriers = await getUserBarriers(userId, createAdminClient())
 
     if (!userBarriers || userBarriers.length === 0) {
       console.warn(`No barriers found for user ${userId}`)
@@ -85,8 +96,17 @@ export async function onResourceCreated(resource: Resource): Promise<boolean> {
       return false
     }
 
-    // Store in vector database
-    await upsertResourceEmbedding(resource.id, mainEmbedding, descriptionEmbedding)
+    // Store in vector database (must use admin client \u2014 resource_embeddings has no INSERT policy)
+    const result = await upsertResourceEmbedding(
+      resource.id,
+      mainEmbedding,
+      descriptionEmbedding,
+      createAdminClient()
+    )
+    if (!result) {
+      console.error(`Failed to persist resource embedding for ${resource.id}`)
+      return false
+    }
 
     return true
   } catch (error) {
@@ -118,8 +138,17 @@ export async function onResourceDescriptionUpdated(
       return false
     }
 
-    // Update in vector database
-    await upsertResourceEmbedding(resourceId, mainEmbedding, descriptionEmbedding)
+    // Update in vector database (must use admin client \u2014 resource_embeddings has no INSERT/UPDATE policy)
+    const result = await upsertResourceEmbedding(
+      resourceId,
+      mainEmbedding,
+      descriptionEmbedding,
+      createAdminClient()
+    )
+    if (!result) {
+      console.error(`Failed to persist resource embedding update for ${resourceId}`)
+      return false
+    }
 
     return true
   } catch (error) {
@@ -133,7 +162,7 @@ export async function onResourceDescriptionUpdated(
  */
 export async function ensureUserEmbedding(userId: string): Promise<boolean> {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     const { data: existing } = await supabase
       .from('user_embeddings')
       .select('id')
@@ -157,7 +186,7 @@ export async function ensureUserEmbedding(userId: string): Promise<boolean> {
  */
 export async function ensureResourceEmbedding(resourceId: string): Promise<boolean> {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     const { data: existing } = await supabase
       .from('resource_embeddings')
       .select('id')
