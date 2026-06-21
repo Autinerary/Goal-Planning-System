@@ -6,6 +6,7 @@ import { Search, UserPlus, UserMinus, Users, UserCheck, Sparkles, Share2, Lock, 
 import axios from 'axios'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
+import { useAuth } from '../context/AuthContext'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -15,6 +16,8 @@ function PitStopContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toolRecommendation } = useAgentPath()
+  const { user: authUser } = useAuth()
+  const isSignedIn = !!authUser?.id
   
   // Read URL params on mount
   const initialTab = searchParams.get('tab') as 'tools' | 'haveworld' || 'tools'
@@ -81,21 +84,25 @@ function PitStopContent() {
     { id: 's2', from: 'Alex Taylor', message: 'Proud of your progress! 🎉', time: '3 hours ago' },
   ])
 
-  // Mock data - converted to state so it can be modified
-  const [roleModels, setRoleModels] = useState([
+  // Mock data - converted to state so it can be modified.
+  // When the user is signed in we replace these with rows from /api/connections.
+  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
     { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer', status: 'connected', icon: '👤' },
     { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur', status: 'pending', icon: '👤' },
   ])
 
-  const [mentors, setMentors] = useState([
+  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
     { id: 'm1', name: 'James Wilson', role: 'Career Coach', status: 'connected', icon: '👤' },
     { id: 'm2', name: 'Lisa Park', role: 'Academic Advisor', status: 'connected', icon: '👤' },
   ])
 
-  const [friends, setFriends] = useState([
+  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string }>>([
     { id: 'f1', name: 'Alex Taylor', role: 'Study Buddy', status: 'connected', icon: '👤' },
     { id: 'f2', name: 'Jordan Smith', role: 'Peer', status: 'connected', icon: '👤' },
   ])
+
+  const [connectionsLoading, setConnectionsLoading] = useState(false)
+  const [connectionsError, setConnectionsError] = useState<string | null>(null)
 
   // Collab Types
   const collabTypes = [
@@ -183,8 +190,90 @@ function PitStopContent() {
     setShowAddModal(true)
   }
 
+  // ===== Backend-backed connections =====
+  // Fetch the signed-in user's connections from /api/connections and replace the local seed lists.
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    setConnectionsLoading(true)
+    setConnectionsError(null)
+    fetch('/api/connections', { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) {
+          // Most likely 401 (not signed in) or 500 (table not migrated yet). Fall back to mock data silently.
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body?.error || `Failed to load connections (${res.status})`)
+        }
+        return res.json()
+      })
+      .then((data) => {
+        if (cancelled) return
+        const grouped = data?.connections || {}
+        setRoleModels((grouped.rolemodels || []).map((c: any) => ({
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+        })))
+        setMentors((grouped.mentors || []).map((c: any) => ({
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+        })))
+        setFriends((grouped.friends || []).map((c: any) => ({
+          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤'
+        })))
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.warn('[pit-stop] /api/connections fallback to local seed:', err?.message)
+          setConnectionsError(err?.message || 'Could not load saved connections; showing demo data.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setConnectionsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [isSignedIn])
+
+  const persistAddConnection = async (
+    category: 'rolemodels' | 'mentors' | 'friends',
+    payload: { name: string; role?: string; status?: 'pending' | 'connected' | 'matched'; icon?: string; match_dream?: string }
+  ): Promise<{ id: string; name: string; role: string; status: string; icon: string } | null> => {
+    if (!isSignedIn) return null
+    try {
+      const res = await fetch('/api/connections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ category, ...payload }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        console.warn('[pit-stop] add connection failed:', body?.error)
+        return null
+      }
+      const body = await res.json()
+      const c = body?.connection
+      if (!c) return null
+      return { id: c.id, name: c.name, role: c.role || '', status: c.status, icon: c.icon || '👤' }
+    } catch (e) {
+      console.warn('[pit-stop] add connection error:', e)
+      return null
+    }
+  }
+
+  const persistRemoveConnection = async (id: string): Promise<boolean> => {
+    if (!isSignedIn) return true // local-only
+    // Skip persistence for client-only ids (mock seeds or match_ ids) that aren't UUIDs
+    const looksLikeUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    if (!looksLikeUuid) return true
+    try {
+      const res = await fetch(`/api/connections/${id}`, { method: 'DELETE', credentials: 'include' })
+      return res.ok
+    } catch (e) {
+      console.warn('[pit-stop] remove connection error:', e)
+      return false
+    }
+  }
+
   const handleRemoveConnection = (id: string, category: string) => {
-    // Actually remove from state
+    // Optimistically update local state
     if (category === 'rolemodel') {
       setRoleModels(prev => prev.filter(rm => rm.id !== id))
     } else if (category === 'mentor') {
@@ -192,6 +281,8 @@ function PitStopContent() {
     } else if (category === 'friend') {
       setFriends(prev => prev.filter(f => f.id !== id))
     }
+    // Fire-and-forget backend delete (RLS already restricts to the owner)
+    persistRemoveConnection(id)
   }
 
   // Confirm-then-remove flow so the user sees exactly which connection is being deleted
@@ -334,17 +425,26 @@ function PitStopContent() {
     }
   }, [selectedConversation, showFeatureModal])
 
-  const handleRequestConnection = (username: string, category: 'rolemodels' | 'mentors' | 'friends') => {
-    // Actually add to state
-    const newId = `${category.charAt(0)}${Date.now()}`
-    const newConnection = {
-      id: newId,
-      name: username || `New ${category === 'rolemodels' ? 'Role Model' : category === 'mentors' ? 'Mentor' : 'Friend'}`,
+  const handleRequestConnection = async (username: string, category: 'rolemodels' | 'mentors' | 'friends') => {
+    const defaultName = `New ${category === 'rolemodels' ? 'Role Model' : category === 'mentors' ? 'Mentor' : 'Friend'}`
+    const name = (username || '').trim() || defaultName
+
+    // Try to persist first; if signed in this gives us a real UUID back
+    const persisted = await persistAddConnection(category, {
+      name,
+      role: 'Pending Connection',
+      status: 'pending',
+      icon: '👤',
+    })
+
+    const newConnection = persisted || {
+      id: `${category.charAt(0)}${Date.now()}`,
+      name,
       role: 'Pending Connection',
       status: 'pending',
       icon: '👤'
     }
-    
+
     if (category === 'rolemodels') {
       setRoleModels(prev => [...prev, newConnection])
     } else if (category === 'mentors') {
@@ -352,7 +452,7 @@ function PitStopContent() {
     } else if (category === 'friends') {
       setFriends(prev => [...prev, newConnection])
     }
-    
+
     setShowAddModal(false)
     setSelectedCategory(null)
   }
@@ -571,10 +671,16 @@ function PitStopContent() {
               {activeSearchQuery && (
                 <p className="mt-2 text-xs text-slate-500">Filtering by: <span className="font-medium text-slate-700">“{activeSearchQuery}”</span></p>
               )}
-              {/* Mock data note */}
-              <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-                ℹ️ Connections shown here are demo data stored in your browser. Multi-account connection requests aren't wired up yet — “Add” will create a pending row locally so you can test the UI flow.
-              </p>
+              {/* Connection persistence note */}
+              {isSignedIn ? (
+                <p className="mt-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+                  ✓ Saving to your account. Add/Remove/Match changes persist across sessions{connectionsLoading ? ' · loading…' : ''}{connectionsError ? ` · ${connectionsError}` : ''}.
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                  ℹ️ Sign in to save these connections. Right now they only live in this browser tab.
+                </p>
+              )}
             </div>
 
             {/* People View */}
@@ -1659,7 +1765,7 @@ function PitStopContent() {
                     Pass
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const currentProfile = matchProfiles[currentMatchIndex]
                       
                       // Add to matched profiles if not already matched
@@ -1669,17 +1775,25 @@ function PitStopContent() {
                           name: currentProfile.name,
                           dream: currentProfile.dream
                         }])
-                        // Also add to the Friends column in the People view so the match is actually useful
-                        const friendId = `match_${currentProfile.id}`
-                        setFriends(prev => prev.find(f => f.id === friendId)
+                        // Also add to the Friends column in the People view so the match is actually useful.
+                        // Persist as a friend with status 'matched' when signed in.
+                        const persisted = await persistAddConnection('friends', {
+                          name: currentProfile.name,
+                          role: `Matched — “${currentProfile.dream}”`,
+                          status: 'matched',
+                          icon: '💖',
+                          match_dream: currentProfile.dream,
+                        })
+                        const newFriend = persisted || {
+                          id: `match_${currentProfile.id}`,
+                          name: currentProfile.name,
+                          role: `Matched — “${currentProfile.dream}”`,
+                          status: 'matched',
+                          icon: '💖'
+                        }
+                        setFriends(prev => prev.find(f => f.name === currentProfile.name && (f.role || '').startsWith('Matched'))
                           ? prev
-                          : [...prev, {
-                              id: friendId,
-                              name: currentProfile.name,
-                              role: `Matched — “${currentProfile.dream}”`,
-                              status: 'connected',
-                              icon: '💖'
-                            }]
+                          : [...prev, newFriend]
                         )
                         setLastMatchedName(currentProfile.name)
                         setShowMatchSuccess(true)
