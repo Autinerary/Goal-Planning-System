@@ -849,10 +849,18 @@ function PitStopContent() {
               <div className="space-y-6">
                 {/* Match Prompt */}
                 <div className="bg-white rounded-2xl border-2 border-pink-200 p-6 shadow-sm">
-                  <h3 className="text-lg font-bold mb-4">Relationships / Profiles</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Generate smaller friends + swipe. Match based on dreams and interests.
+                  <h3 className="text-lg font-bold mb-1">Relationships / Matching</h3>
+                  <p className="text-sm text-slate-600 mb-3">
+                    Swipe through suggested profiles. Matches are scored on shared dreams and interests.
                   </p>
+                  {/* Clarifies difference between People › Friends and Matching */}
+                  <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-xs text-slate-700">
+                    <strong className="text-pink-700">How is this different from Friends in the People tab?</strong>
+                    <ul className="mt-1 list-disc pl-5 space-y-0.5">
+                      <li><strong>People › Friends</strong>: you manually add specific people you already know.</li>
+                      <li><strong>Matching</strong>: the system suggests new people based on dreams &amp; interests. When you tap <em>Match</em>, they're added to your Friends column automatically.</li>
+                    </ul>
+                  </div>
                   
                   <button
                     onClick={() => {
@@ -867,7 +875,7 @@ function PitStopContent() {
                   
                   {matchedProfiles.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-pink-200">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-semibold text-slate-700">
                           Your Matches ({matchedProfiles.length})
                         </span>
@@ -875,9 +883,12 @@ function PitStopContent() {
                           onClick={() => setMatchedProfiles([])}
                           className="text-xs text-slate-500 hover:text-slate-700"
                         >
-                          Clear
+                          Clear list
                         </button>
                       </div>
+                      <p className="text-xs text-slate-500 mb-3 italic">
+                        ✓ Also added to your <strong>Friends</strong> column in the People tab.
+                      </p>
                       <div className="space-y-2">
                         {matchedProfiles.map((match) => (
                           <div key={match.id} className="flex items-center gap-3 p-3 bg-pink-50 rounded-lg border border-pink-200">
@@ -1674,6 +1685,18 @@ function PitStopContent() {
                           name: currentProfile.name,
                           dream: currentProfile.dream
                         }])
+                        // Also add to the Friends column in the People view so the match is actually useful
+                        const friendId = `match_${currentProfile.id}`
+                        setFriends(prev => prev.find(f => f.id === friendId)
+                          ? prev
+                          : [...prev, {
+                              id: friendId,
+                              name: currentProfile.name,
+                              role: `Matched — “${currentProfile.dream}”`,
+                              status: 'connected',
+                              icon: '💖'
+                            }]
+                        )
                         setLastMatchedName(currentProfile.name)
                         setShowMatchSuccess(true)
                         
