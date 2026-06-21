@@ -62,6 +62,8 @@ function PitStopContent() {
   const [isSharingMeme, setIsSharingMeme] = useState(false)
   const [showTextMemeModal, setShowTextMemeModal] = useState(false)
   const [textMemeInput, setTextMemeInput] = useState('')
+  const [activeSearchQuery, setActiveSearchQuery] = useState('')
+  const [pendingRemoval, setPendingRemoval] = useState<{ id: string; name: string; category: string } | null>(null)
   
   // Mock data for features
   const [rivalNotifications, setRivalNotifications] = useState([
@@ -190,6 +192,24 @@ function PitStopContent() {
     } else if (category === 'friend') {
       setFriends(prev => prev.filter(f => f.id !== id))
     }
+  }
+
+  // Confirm-then-remove flow so the user sees exactly which connection is being deleted
+  const requestRemoveConnection = (id: string, name: string, category: string) => {
+    setPendingRemoval({ id, name, category })
+  }
+
+  const confirmRemoveConnection = () => {
+    if (!pendingRemoval) return
+    handleRemoveConnection(pendingRemoval.id, pendingRemoval.category)
+    setPendingRemoval(null)
+  }
+
+  // Filter helper for the search bar
+  const matchesSearch = (name: string, role: string) => {
+    const q = activeSearchQuery.trim().toLowerCase()
+    if (!q) return true
+    return name.toLowerCase().includes(q) || role.toLowerCase().includes(q)
   }
 
   const getUserId = () => {
@@ -530,10 +550,31 @@ function PitStopContent() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Find/Search people or groups..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-slate-900 placeholder-slate-400"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      setActiveSearchQuery(searchQuery)
+                    }
+                  }}
+                  placeholder="Find/Search people or groups... (press Enter)"
+                  className="w-full pl-10 pr-24 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-slate-900 placeholder-slate-400"
                 />
+                {activeSearchQuery && (
+                  <button
+                    onClick={() => { setSearchQuery(''); setActiveSearchQuery('') }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
+              {activeSearchQuery && (
+                <p className="mt-2 text-xs text-slate-500">Filtering by: <span className="font-medium text-slate-700">“{activeSearchQuery}”</span></p>
+              )}
+              {/* Mock data note */}
+              <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                ℹ️ Connections shown here are demo data stored in your browser. Multi-account connection requests aren't wired up yet — “Add” will create a pending row locally so you can test the UI flow.
+              </p>
             </div>
 
             {/* People View */}
@@ -554,7 +595,7 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {roleModels.map((rm, i) => (
+                  {roleModels.filter(rm => matchesSearch(rm.name, rm.role)).map((rm, i) => (
                     <div key={rm.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{['🔑','🔨','🛡️','🔧','👢'][i % 5]}</span>
@@ -571,14 +612,18 @@ function PitStopContent() {
                           <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
                         )}
                         <button
-                          onClick={() => handleRemoveConnection(rm.id, 'rolemodel')}
+                          onClick={() => requestRemoveConnection(rm.id, rm.name, 'rolemodel')}
                           className="p-1 hover:bg-red-100 rounded transition-colors"
+                          title={`Remove ${rm.name}`}
                         >
                           <UserMinus className="w-4 h-4 text-red-500" />
                         </button>
                       </div>
                     </div>
                   ))}
+                  {roleModels.filter(rm => matchesSearch(rm.name, rm.role)).length === 0 && (
+                    <p className="text-xs text-slate-500 italic text-center py-2">No role models match your search.</p>
+                  )}
                 </div>
               </div>
 
@@ -597,7 +642,7 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {mentors.map((m, i) => (
+                  {mentors.filter(m => matchesSearch(m.name, m.role)).map((m, i) => (
                     <div key={m.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{['🔧','🔑','🏋️','🛡️','🔨'][i % 5]}</span>
@@ -610,13 +655,17 @@ function PitStopContent() {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveConnection(m.id, 'mentor')}
+                        onClick={() => requestRemoveConnection(m.id, m.name, 'mentor')}
                         className="p-1 hover:bg-red-100 rounded transition-colors"
+                        title={`Remove ${m.name}`}
                       >
                         <UserMinus className="w-4 h-4 text-red-500" />
                       </button>
                     </div>
                   ))}
+                  {mentors.filter(m => matchesSearch(m.name, m.role)).length === 0 && (
+                    <p className="text-xs text-slate-500 italic text-center py-2">No mentors match your search.</p>
+                  )}
                 </div>
               </div>
 
@@ -635,7 +684,7 @@ function PitStopContent() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {friends.map((f, i) => (
+                  {friends.filter(f => matchesSearch(f.name, f.role)).map((f, i) => (
                     <div key={f.id} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{['👢','🔨','🔑','🧴','🛡️'][i % 5]}</span>
@@ -648,13 +697,17 @@ function PitStopContent() {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveConnection(f.id, 'friend')}
+                        onClick={() => requestRemoveConnection(f.id, f.name, 'friend')}
                         className="p-1 hover:bg-red-100 rounded transition-colors"
+                        title={`Remove ${f.name}`}
                       >
                         <UserMinus className="w-4 h-4 text-red-500" />
                       </button>
                     </div>
                   ))}
+                  {friends.filter(f => matchesSearch(f.name, f.role)).length === 0 && (
+                    <p className="text-xs text-slate-500 italic text-center py-2">No friends match your search.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1297,6 +1350,32 @@ function PitStopContent() {
           </div>
         )}
 
+        {/* Confirm Remove (single connection) */}
+        {pendingRemoval && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+              <h3 className="text-xl font-bold mb-2">Remove connection?</h3>
+              <p className="text-slate-600 mb-5">
+                Are you sure you want to remove <span className="font-semibold text-slate-900">{pendingRemoval.name}</span> from your connections? This only removes them locally and can't be undone in this session.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPendingRemoval(null)}
+                  className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRemoveConnection}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-medium"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Remove Connection Modal */}
         {showRemoveModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1323,8 +1402,8 @@ function PitStopContent() {
                       </div>
                       <button
                         onClick={() => {
-                          handleRemoveConnection(rm.id, 'rolemodel')
-                          if (roleModels.length === 1) setShowRemoveModal(false)
+                          requestRemoveConnection(rm.id, rm.name, 'rolemodel')
+                          setShowRemoveModal(false)
                         }}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
@@ -1340,8 +1419,8 @@ function PitStopContent() {
                       </div>
                       <button
                         onClick={() => {
-                          handleRemoveConnection(m.id, 'mentor')
-                          if (mentors.length === 1 && roleModels.length === 0) setShowRemoveModal(false)
+                          requestRemoveConnection(m.id, m.name, 'mentor')
+                          setShowRemoveModal(false)
                         }}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
@@ -1357,8 +1436,8 @@ function PitStopContent() {
                       </div>
                       <button
                         onClick={() => {
-                          handleRemoveConnection(f.id, 'friend')
-                          if (friends.length === 1 && mentors.length === 0 && roleModels.length === 0) setShowRemoveModal(false)
+                          requestRemoveConnection(f.id, f.name, 'friend')
+                          setShowRemoveModal(false)
                         }}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
