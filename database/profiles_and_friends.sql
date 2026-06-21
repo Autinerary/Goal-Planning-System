@@ -28,6 +28,23 @@ create table if not exists public.profiles (
   updated_at    timestamptz not null default now()
 );
 
+-- If an older version of public.profiles already exists, make sure every
+-- column this migration relies on is present. Safe to run repeatedly.
+alter table public.profiles
+  add column if not exists display_name text;
+alter table public.profiles
+  add column if not exists email        text;
+alter table public.profiles
+  add column if not exists avatar_emoji text not null default '👤';
+alter table public.profiles
+  add column if not exists dream        text;
+alter table public.profiles
+  add column if not exists discoverable boolean not null default false;
+alter table public.profiles
+  add column if not exists created_at   timestamptz not null default now();
+alter table public.profiles
+  add column if not exists updated_at   timestamptz not null default now();
+
 -- Case-insensitive name search; partial index on discoverable rows only
 create index if not exists profiles_discoverable_name_idx
   on public.profiles (lower(display_name))
@@ -144,6 +161,13 @@ create policy "profiles_insert_own"
 -- 6. Extend social_connections RLS so the RECEIVER of a request can
 --    see + accept it (the existing policies only allowed owner_id = auth.uid()).
 -- ----------------------------------------------------------------------------
+-- Defensive: if an older social_connections table is in place, make sure the
+-- columns the policies below reference actually exist.
+alter table public.social_connections
+  add column if not exists target_user_id uuid references auth.users(id) on delete set null;
+alter table public.social_connections
+  add column if not exists status text not null default 'pending';
+
 -- Drop and re-create the SELECT policy with the broader rule
 drop policy if exists "Users can read their own connections" on public.social_connections;
 create policy "Users can read their own connections"
