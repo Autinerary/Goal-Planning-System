@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/life-stats-snapshot",
+      "schedule": "5 7 * * *"
+    }
+  ]
+}

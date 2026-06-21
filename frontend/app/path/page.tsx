@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import LifeStatsCard from '../components/LifeStatsCard'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -99,14 +100,6 @@ export default function PathView() {
   // Group races by category
   const careerRaces = races.filter((r: any) => r.category === 'Career')
   const educationRaces = races.filter((r: any) => r.category === 'Education')
-
-  const barrierCount = pathData?.userProfile?.barrierTypes?.length || 0
-  const stats = [
-    { name: 'Mentality', value: 3 + barrierCount, maxValue: 10, icon: Brain, color: 'text-purple-600', bgColor: 'bg-purple-100', barColor: 'bg-purple-500', change: '+10% from last week' },
-    { name: 'Happiness', value: 8, maxValue: 10, icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-100', barColor: 'bg-pink-500', change: null },
-    { name: 'Focus', value: 5, maxValue: 10, icon: Target, color: 'text-cyan-600', bgColor: 'bg-cyan-100', barColor: 'bg-cyan-500', change: null },
-    { name: 'Energy', value: 6, maxValue: 10, icon: Zap, color: 'text-amber-600', bgColor: 'bg-amber-100', barColor: 'bg-amber-500', change: null },
-  ]
 
   const roleModels = [
     { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer', initials: 'SC' },
@@ -248,44 +241,7 @@ export default function PathView() {
           </div>
 
           {/* ── Card 2: Life Stats ── */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-emerald-500" />
-                Life Stats
-              </h2>
-            </div>
-            <p className="text-xs text-purple-500 font-medium italic mb-4">You&apos;re doing great — keep that momentum going! ✨</p>
-
-            <div className="space-y-4">
-              {stats.map((stat) => {
-                const Icon = stat.icon
-                return (
-                  <div key={stat.name}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                          <Icon className={`w-4 h-4 ${stat.color}`} />
-                        </div>
-                        <span className="text-sm font-medium text-slate-700">{stat.name}</span>
-                      </div>
-                      <span className={`font-bold text-sm ${stat.color}`}>{stat.value} x P</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden ml-9">
-                      <div className={`h-full ${stat.barColor} rounded-full transition-all`} style={{ width: `${(stat.value / stat.maxValue) * 100}%` }} />
-                    </div>
-                    {stat.change && (
-                      <p className="text-xs text-emerald-600 ml-9 mt-0.5">↑ {stat.change}</p>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-
-            <Link href="/pit-stop?tab=stats" className="flex items-center justify-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-4 py-2 rounded-lg hover:bg-emerald-50 transition-colors">
-              See all life stats <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <LifeStatsCard />
 
           {/* ── Card 3: Your People (Hare World) ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
