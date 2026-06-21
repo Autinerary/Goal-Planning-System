@@ -1025,22 +1025,6 @@ function PitStopContent() {
                     </button>
                   </div>
                 </div>
-                <button 
-                  onClick={() => {
-                    router.push('/path')
-                  }}
-                  className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left cursor-pointer"
-                >
-                  <span className="font-medium">Paths</span>
-                </button>
-                <button 
-                  onClick={() => {
-                    router.push('/races')
-                  }}
-                  className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left cursor-pointer"
-                >
-                  <span className="font-medium">Races</span>
-                </button>
               </div>
             </div>
             )}
