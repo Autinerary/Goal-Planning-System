@@ -173,16 +173,8 @@ function PitStopContent() {
     }
   }
 
-  // Auto-redirect to ServiceHub when Tools tab is selected
-  useEffect(() => {
-    if (activeTab === 'tools') {
-      // Small delay to show loading state, then redirect
-      const timer = setTimeout(() => {
-        handleToolsRedirect()
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-  }, [activeTab])
+  // NOTE: auto-redirect to ServiceHub removed — users now stay on the Tools tab
+  // and explicitly click "Go to Resource Hub" at the bottom to navigate away.
 
   const handleAddConnection = (category: 'rolemodels' | 'mentors' | 'friends') => {
     setSelectedCategory(category)
@@ -373,6 +365,14 @@ function PitStopContent() {
       </div>
       <div className="relative z-10">
       <div className="max-w-6xl mx-auto">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="mb-4 inline-flex items-center gap-2 px-3 py-2 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-white transition-all"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </button>
         {/* Header — Tool Market / Shed / Shop */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
@@ -455,14 +455,17 @@ function PitStopContent() {
 
           <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
-              <p className="text-slate-600 mb-4">Redirecting to Resource Hub for tools and resources...</p>
-              <div className="space-y-3">
+              <div className="text-5xl mb-4">🏪</div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Looking for more tools & services?</h3>
+              <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                Browse the full <strong>Resource Hub</strong> for a complete catalog of autism-friendly services, products, and community resources.
+              </p>
+              <div className="space-y-3 max-w-sm mx-auto">
                 <button
                   onClick={handleToolsRedirect}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
                 >
-                  Go to Resource Hub
+                  Go to Resource Hub →
                 </button>
                 <a
                   href={SERVICE_HUB_URL}
@@ -470,11 +473,8 @@ function PitStopContent() {
                   rel="noopener noreferrer"
                   className="block text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
                 >
-                  Or open Resource Hub in a new tab →
+                  Or open Resource Hub in a new tab ↗
                 </a>
-                <p className="text-xs text-slate-500 mt-4">
-                  Resource Hub URL: {SERVICE_HUB_URL}
-                </p>
               </div>
             </div>
           </div>
