@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
  *  - ?profile=   → stores barrier profile for personalised recommendations
  *  - ?access_token= + ?refresh_token= → sets a real Supabase session
  */
-export default function ProfileSync() {
+function ProfileSyncInner() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -53,4 +53,14 @@ export default function ProfileSync() {
   }, [])
 
   return null
+}
+
+export default function ProfileSync() {
+  // useSearchParams() must be wrapped in a Suspense boundary for Next.js 14
+  // static prerendering to succeed.
+  return (
+    <Suspense fallback={null}>
+      <ProfileSyncInner />
+    </Suspense>
+  )
 }

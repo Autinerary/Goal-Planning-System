@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
@@ -9,7 +9,7 @@ import MobileNav from './MobileNav'
 import { Search, Home, User, Shield, Menu, ArrowLeft } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
-export default function Navbar() {
+function NavbarInner() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const [isAdmin, setIsAdmin] = useState(false)
@@ -152,5 +152,16 @@ export default function Navbar() {
         backLabel={backLabel}
       />
     </nav>
+  )
+}
+
+export default function Navbar() {
+  // useSearchParams inside NavbarInner forces this whole tree to opt out of
+  // static prerendering. The Suspense boundary is required by Next.js 14 so
+  // the rest of the page can still prerender.
+  return (
+    <Suspense fallback={<nav className="bg-white shadow-sm border-b border-gray-200 h-16" aria-hidden="true" />}>
+      <NavbarInner />
+    </Suspense>
   )
 }
