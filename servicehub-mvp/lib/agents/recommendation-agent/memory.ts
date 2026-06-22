@@ -161,3 +161,108 @@ export function summarizeForPrompt(memory: RecommendationMemory | null): string 
   })
   return lines.join('\n')
 }
+
+// ---------------------------------------------------------------------------
+// Shared cross-product learning loop: `tool_outcomes` table.
+//
+// This table is written from BOTH:
+//   * goal-planning-system reflection route (when a user reflects on a path
+//     that included these resources), and
+//   * servicehub-mvp ratings flow (when a user rates a resource directly).
+//
+// It is READ from BOTH:
+//   * goal-planning-system tool_recommendation_agent, and
+//   * servicehub-mvp recommendation-agent scorer.
+//
+// Migration: backend/database/migrations/2026_universal_agent_learning.sql
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a 1-5 star rating into a [-1, 1] reward signal.
+ *  5 → +1.0     (loved it)
+ *  4 → +0.5     (helpful)
+ *  3 →  0.0     (neutral, ignored)
+ *  2 → -0.5     (not helpful)
+ *  1 → -1.0     (actively bad)
+ */
+function ratingToReward(overall1to5: number): number {
+  if (!Number.isFinite(overall1to5)) return 0
+  const clamped = Math.max(1, Math.min(5, overall1to5))
+  return (clamped - 3) / 2
+}
+
+/**
+ * Record a single rating as a reward attribution against the resource +
+ * barriers it was given for. Best-effort: silently no-ops when Supabase
+ * isn't configured. Skips ratings of exactly 3 (no learning signal).
+ */
+export async function recordRatingOutcome(
+  resourceId: string,
+  barriers: string[],
+  overallRating1to5: number
+): Promise<boolean> {
+  if (!resourceId) return false
+  const reward = ratingToReward(overallRating1to5)
+  if (reward === 0) return false // neutral ratings carry no signal
+
+  const client = getServiceClient()
+  if (!client) return false
+
+  try {
+    const cleanedBarriers = (barriers || [])
+      .map((b) => String(b || '').trim().toLowerCase())
+      .filter((b) => b.length > 0)
+    const { error } = await client.rpc('record_tool_outcomes', {
+      tool_ids_in: [resourceId],
+      barriers_in: cleanedBarriers,
+      reward_in: reward,
+    })
+    if (error) {
+      console.warn('[recommendation-memory] recordRatingOutcome skipped:', error.message)
+      return false
+    }
+    return true
+  } catch (err) {
+    console.warn('[recommendation-memory] recordRatingOutcome failed:', err)
+    return false
+  }
+}
+
+/**
+ * Pull learned per-tool reward scores for the user's barriers. Returns an
+ * empty Map when Supabase isn't configured / no data yet — the scorer
+ * treats that as "no learned signal, use static factors only".
+ */
+export async function getToolOutcomeScores(
+  barriers: string[]
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>()
+  const client = getServiceClient()
+  if (!client) return out
+
+  try {
+    const cleanedBarriers = (barriers || [])
+      .map((b) => String(b || '').trim().toLowerCase())
+      .filter((b) => b.length > 0)
+    const { data, error } = await client.rpc('get_tool_outcome_scores', {
+      barriers_in: cleanedBarriers.length > 0 ? cleanedBarriers : null,
+      min_samples: 2,
+    })
+    if (error) {
+      console.warn('[recommendation-memory] getToolOutcomeScores skipped:', error.message)
+      return out
+    }
+    for (const row of data || []) {
+      if (row && row.tool_id) {
+        const avg = Number(row.reward_avg)
+        if (Number.isFinite(avg)) {
+          out.set(String(row.tool_id), avg)
+        }
+      }
+    }
+    return out
+  } catch (err) {
+    console.warn('[recommendation-memory] getToolOutcomeScores failed:', err)
+    return out
+  }
+}

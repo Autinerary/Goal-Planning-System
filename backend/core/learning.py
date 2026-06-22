@@ -384,3 +384,320 @@ def merge_with_hardcoded_couples(
             ),
         }
     return out
+
+
+# ---------------------------------------------------------------------------
+# Universal agent feedback loops (2026_universal_agent_learning.sql)
+#
+# Every public function below either:
+#   * reads a learned signal an agent uses to bias its next decision, or
+#   * writes a reward attribution after a reflection, closing the loop.
+#
+# All degrade to safe defaults when Supabase isn't configured.
+# ---------------------------------------------------------------------------
+
+import hashlib
+
+
+def compute_profile_signature(
+    barriers: Optional[List[str]],
+    goals: Optional[List[str]],
+) -> str:
+    """Stable hash of (sorted barriers, sorted goal categories) so we can
+    aggregate path outcomes across users with the same shape of problem.
+
+    We intentionally lowercase + sort so 'ADHD'/'adhd' and order changes
+    don't fragment the aggregate. Length-capped to keep the key compact.
+    """
+    bset = sorted({str(b).strip().lower() for b in (barriers or []) if b})
+    gset = sorted({str(g).strip().lower()[:32] for g in (goals or []) if g})
+    raw = "barriers=" + ",".join(bset) + "|goals=" + ",".join(gset)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:24]
+
+
+# ---- path planning ---------------------------------------------------------
+
+async def get_best_path_shape(
+    profile_signature: str,
+    min_samples: int = 3,
+) -> Optional[Dict[str, Any]]:
+    """Returns {milestone_count, est_days_avg, reward_avg, sample_count} or
+    None if there isn't enough data yet — caller falls back to defaults."""
+    supa = get_supabase()
+    if supa is None or not profile_signature:
+        return None
+    try:
+        res = supa.rpc(
+            "get_best_path_shape",
+            {
+                "profile_signature_in": str(profile_signature),
+                "min_samples": int(min_samples),
+            },
+        ).execute()
+        rows = res.data or []
+        if rows and isinstance(rows[0], dict):
+            return rows[0]
+    except Exception as e:
+        print(f"[learning] get_best_path_shape skipped: {e}")
+    return None
+
+
+async def record_path_outcome(
+    profile_signature: str,
+    milestone_count: int,
+    est_days_avg: Optional[float],
+    reward: float,
+) -> bool:
+    supa = get_supabase()
+    if supa is None or not profile_signature:
+        return False
+    try:
+        supa.rpc(
+            "record_path_outcome",
+            {
+                "profile_signature_in": str(profile_signature),
+                "milestone_count_in":   int(milestone_count),
+                "est_days_avg_in":      float(est_days_avg) if est_days_avg is not None else None,
+                "reward_in":            float(reward),
+            },
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[learning] record_path_outcome skipped: {e}")
+        return False
+
+
+# ---- tool / resource recommendation ---------------------------------------
+
+async def get_tool_outcome_scores(
+    barriers: Optional[List[str]],
+    min_samples: int = 2,
+) -> Dict[str, Dict[str, Any]]:
+    """Returns {tool_id: {'reward_avg': float, 'sample_count': int}}. Empty
+    dict if no Supabase / no data. Used by tool_recommendation_agent and
+    ServiceHub scorer alike."""
+    supa = get_supabase()
+    if supa is None:
+        return {}
+    try:
+        bars = [str(b).strip().lower() for b in (barriers or []) if b]
+        res = supa.rpc(
+            "get_tool_outcome_scores",
+            {
+                "barriers_in": bars or None,
+                "min_samples": int(min_samples),
+            },
+        ).execute()
+        rows = res.data or []
+        out: Dict[str, Dict[str, Any]] = {}
+        for r in rows:
+            tid = r.get("tool_id")
+            if tid is None:
+                continue
+            out[str(tid)] = {
+                "reward_avg":   float(r.get("reward_avg") or 0.0),
+                "sample_count": int(r.get("sample_count") or 0),
+            }
+        return out
+    except Exception as e:
+        print(f"[learning] get_tool_outcome_scores skipped: {e}")
+        return {}
+
+
+async def record_tool_outcomes(
+    tool_ids: List[str],
+    barriers: Optional[List[str]],
+    reward: float,
+) -> bool:
+    supa = get_supabase()
+    if supa is None or not tool_ids:
+        return False
+    try:
+        supa.rpc(
+            "record_tool_outcomes",
+            {
+                "tool_ids_in": [str(t) for t in tool_ids],
+                "barriers_in": [str(b).strip().lower() for b in (barriers or []) if b],
+                "reward_in":   float(reward),
+            },
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[learning] record_tool_outcomes skipped: {e}")
+        return False
+
+
+# ---- calendar optimization -------------------------------------------------
+
+async def get_user_calendar_preferences(
+    user_id: Any,
+    min_samples: int = 2,
+    max_results: int = 5,
+) -> List[Dict[str, Any]]:
+    """Returns [{'time_bucket': str, 'reward_avg': float, 'sample_count': int}]
+    sorted best-first. Empty list if no data / no Supabase / non-UUID user."""
+    supa = get_supabase()
+    uid = _try_parse_uuid(user_id)
+    if supa is None or uid is None:
+        return []
+    try:
+        res = supa.rpc(
+            "get_user_calendar_preferences",
+            {
+                "user_id_in":  uid,
+                "min_samples": int(min_samples),
+                "max_results": int(max_results),
+            },
+        ).execute()
+        return res.data or []
+    except Exception as e:
+        print(f"[learning] get_user_calendar_preferences skipped: {e}")
+        return []
+
+
+async def record_calendar_outcomes(
+    user_id: Any,
+    time_buckets: List[str],
+    reward: float,
+) -> bool:
+    supa = get_supabase()
+    uid = _try_parse_uuid(user_id)
+    if supa is None or uid is None or not time_buckets:
+        return False
+    try:
+        supa.rpc(
+            "record_calendar_outcomes",
+            {
+                "user_id_in":     uid,
+                "time_buckets_in": [str(b) for b in time_buckets],
+                "reward_in":      float(reward),
+            },
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[learning] record_calendar_outcomes skipped: {e}")
+        return False
+
+
+# ---- pattern_recognition feedback (missing writer) ------------------------
+
+async def record_pattern_user_feedback(
+    query_user_id: Any,
+    retrieved_user_ids: List[str],
+    reward: float,
+    alpha: float = 0.3,
+) -> bool:
+    """Update pattern_user_feedback with an EMA toward the latest reward, for
+    every similar user that was retrieved on the last generation. Skips if
+    either id isn't a real UUID, or Supabase isn't configured."""
+    supa = get_supabase()
+    quid = _try_parse_uuid(query_user_id)
+    if supa is None or quid is None:
+        return False
+    rids: List[str] = []
+    for r in retrieved_user_ids or []:
+        parsed = _try_parse_uuid(r)
+        if parsed is not None:
+            rids.append(parsed)
+    if not rids:
+        return False
+    try:
+        supa.rpc(
+            "record_pattern_user_feedback",
+            {
+                "query_user_id_in":      quid,
+                "retrieved_user_ids_in": rids,
+                "reward_in":             float(reward),
+                "alpha_in":              float(alpha),
+            },
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[learning] record_pattern_user_feedback skipped: {e}")
+        return False
+
+
+# ---- attribution snapshot --------------------------------------------------
+
+async def snapshot_user_context(
+    user_id: Any,
+    profile_signature: str,
+    milestone_count: int,
+    est_days_avg: Optional[float],
+    recommended_tool_ids: List[str],
+    scheduled_buckets: List[str],
+    retrieved_user_ids: List[str],
+    barriers: List[str],
+) -> bool:
+    """Persist the most recent generation context so the NEXT reflection
+    can attribute reward back to the right (path shape, tool ids, schedule
+    buckets, retrieved similar users)."""
+    supa = get_supabase()
+    uid = _try_parse_uuid(user_id)
+    if supa is None or uid is None:
+        return False
+    rid_uuids: List[str] = []
+    for r in retrieved_user_ids or []:
+        parsed = _try_parse_uuid(r)
+        if parsed is not None:
+            rid_uuids.append(parsed)
+    try:
+        supa.rpc(
+            "snapshot_user_context",
+            {
+                "user_id_in":              uid,
+                "profile_signature_in":    str(profile_signature or ""),
+                "milestone_count_in":      int(milestone_count or 0),
+                "est_days_avg_in":         float(est_days_avg) if est_days_avg is not None else None,
+                "recommended_tool_ids_in": [str(t) for t in (recommended_tool_ids or [])],
+                "scheduled_buckets_in":    [str(b) for b in (scheduled_buckets or [])],
+                "retrieved_user_ids_in":   rid_uuids,
+                "barriers_in":             [str(b).strip().lower() for b in (barriers or []) if b],
+            },
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[learning] snapshot_user_context skipped: {e}")
+        return False
+
+
+async def get_user_latest_context(user_id: Any) -> Optional[Dict[str, Any]]:
+    """Read the most recent attribution context for a user. None if no
+    Supabase / no snapshot yet / non-UUID user."""
+    supa = get_supabase()
+    uid = _try_parse_uuid(user_id)
+    if supa is None or uid is None:
+        return None
+    try:
+        res = supa.rpc(
+            "get_user_latest_context",
+            {"user_id_in": uid},
+        ).execute()
+        rows = res.data or []
+        if rows and isinstance(rows[0], dict):
+            return rows[0]
+    except Exception as e:
+        print(f"[learning] get_user_latest_context skipped: {e}")
+    return None
+
+
+# ---- helpers used by the calendar agent for bucket naming ----------------
+
+def schedule_to_buckets(
+    scheduled_days: List[Dict[str, Any]],
+) -> List[str]:
+    """Map a day-by-day schedule (output of calendar_optimization_agent) into
+    a list of human-readable time_bucket strings the learning loop can
+    aggregate against. Stable strings, intentionally coarse-grained so we
+    actually accumulate samples.
+    """
+    out: List[str] = []
+    for day in scheduled_days or []:
+        if not isinstance(day, dict):
+            continue
+        dtype = str(day.get("type") or "balanced").lower()
+        energy = str(day.get("energyLevel") or "medium").lower()
+        bucket = f"{dtype}_{energy}"
+        out.append(bucket)
+    return out
+

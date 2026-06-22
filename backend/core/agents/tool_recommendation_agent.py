@@ -6,6 +6,13 @@ Primary source: ServiceHub MVP (`GET /api/search?barriers=...`) — community
 curated, rated resources.
 Fallback: curated in-memory knowledge base (used when ServiceHub is
 unreachable or returns no matches).
+
+Learning: every reflection feeds a reward back into `tool_outcomes` keyed by
+(tool_id, barrier). On the next recommendation we add the learned mean
+reward to the static relevance score so tools that have actually helped
+people with the same barriers get ranked higher. The same `tool_outcomes`
+table is read by the ServiceHub scorer, so the loop is shared across
+products. See backend/core/learning.py and 2026_universal_agent_learning.sql.
 """
 
 import os
@@ -15,7 +22,7 @@ import httpx
 
 from core.agents.base_agent import BaseAgent
 from core.config import Config
-from core import llm
+from core import llm, learning
 import random
 
 SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
@@ -113,13 +120,20 @@ class ToolRecommendationAgent(BaseAgent):
         
         recommendations = {}
         all_tools = []
-        
+
+        # Pull learned per-(tool, barrier) reward scores ONCE for the whole
+        # batch — avoids N Supabase round-trips inside the milestone loop.
+        learned_scores = await learning.get_tool_outcome_scores(
+            barriers=barriers, min_samples=2,
+        )
+
         for milestone in milestones:
             milestone_id = milestone.get('id')
             tools = await self._find_relevant_tools(
                 milestone=milestone,
                 barriers=barriers,
-                user_profile=user_profile
+                user_profile=user_profile,
+                learned_scores=learned_scores,
             )
             recommendations[milestone_id] = tools
             all_tools.extend(tools)
@@ -158,14 +172,18 @@ class ToolRecommendationAgent(BaseAgent):
         self,
         milestone: Dict[str, Any],
         barriers: List[str],
-        user_profile: dict
+        user_profile: dict,
+        learned_scores: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> List[Dict[str, Any]]:
         """Find relevant tools for a milestone.
 
         Tries ServiceHub first (real community resources), then falls back to
-        the local curated knowledge base for any gaps.
+        the local curated knowledge base for any gaps. Learned per-(tool,
+        barrier) reward scores are blended in to re-rank tools that have
+        actually helped people with these barriers.
         """
         tools: List[Dict[str, Any]] = []
+        scores = learned_scores or {}
 
         # 1. Pull live resources from ServiceHub matching the user's barriers
         servicehub_tools = await self._fetch_servicehub_resources(
@@ -174,7 +192,8 @@ class ToolRecommendationAgent(BaseAgent):
             limit=6,
         )
         for t in servicehub_tools:
-            t['relevanceScore'] = self._calculate_relevance(t, milestone, barriers)
+            base = self._calculate_relevance(t, milestone, barriers)
+            t['relevanceScore'] = self._blend_learned_score(base, t.get('id'), scores)
             tools.append(t)
 
         # 2. Always include knowledge-base tools as a backup / supplement
@@ -189,13 +208,19 @@ class ToolRecommendationAgent(BaseAgent):
                 if key in category_tools:
                     for tool in category_tools[key]:
                         tool_copy = tool.copy()
-                        tool_copy['relevanceScore'] = self._calculate_relevance(tool, milestone, barriers)
+                        base = self._calculate_relevance(tool, milestone, barriers)
+                        tool_copy['relevanceScore'] = self._blend_learned_score(
+                            base, tool_copy.get('id'), scores,
+                        )
                         tools.append(tool_copy)
 
             # Add general tools
             for tool in category_tools.get('general', []):
                 tool_copy = tool.copy()
-                tool_copy['relevanceScore'] = self._calculate_relevance(tool, milestone, barriers) * 0.8
+                base = self._calculate_relevance(tool, milestone, barriers) * 0.8
+                tool_copy['relevanceScore'] = self._blend_learned_score(
+                    base, tool_copy.get('id'), scores,
+                )
                 tools.append(tool_copy)
 
         # Sort by relevance and deduplicate
@@ -208,6 +233,34 @@ class ToolRecommendationAgent(BaseAgent):
                 unique_tools.append(tool)
 
         return unique_tools[:6]
+
+    def _blend_learned_score(
+        self,
+        base_score: float,
+        tool_id: Optional[str],
+        learned_scores: Dict[str, Dict[str, Any]],
+    ) -> float:
+        """Add the learned reward bias to a static relevance score.
+
+        Formula: blended = 0.7 * base + 0.3 * normalized_learned_reward
+        normalized_learned_reward = (reward_avg + 1) / 2 ∈ [0, 1]
+
+        For tools we have no history for, learned_reward defaults to neutral
+        (0.5) so the agent doesn't get punished for surfacing a brand-new
+        tool that simply hasn't been judged yet.
+        """
+        if not tool_id:
+            return base_score
+        row = learned_scores.get(str(tool_id))
+        if not row:
+            return base_score
+        try:
+            raw = float(row.get('reward_avg', 0.0) or 0.0)
+        except (TypeError, ValueError):
+            return base_score
+        # Map reward in [-1, 1] to [0, 1].
+        learned_norm = max(0.0, min(1.0, (raw + 1.0) / 2.0))
+        return 0.7 * base_score + 0.3 * learned_norm
 
     async def _fetch_servicehub_resources(
         self,

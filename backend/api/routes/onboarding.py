@@ -197,6 +197,7 @@ async def create_onboarding(request: OnboardingRequest):
             goals=request.goals,
             barriers=request.barrierTypes,
             memory=user_memory,
+            user_id=user_id,
         )
 
         # Index this user in the vector DB so future users get matched to them
@@ -304,6 +305,7 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
                 goals=merged_profile["goals"],
                 barriers=merged_profile["barrierTypes"],
                 memory=user_memory,
+                user_id=user_id,
             )
             new_path_id = f"path_{uuid.uuid4().hex[:8]}"
             await orchestrator.index_user(

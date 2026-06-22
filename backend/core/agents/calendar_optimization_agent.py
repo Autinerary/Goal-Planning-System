@@ -2,13 +2,21 @@
 Agent 6: Calendar Optimization Agent
 Schedules tasks realistically based on energy and patterns
 SIMULATION MODE: Uses rule-based scheduling with barrier-aware heuristics
+
+Learning: every reflection feeds a reward into `calendar_outcomes` keyed by
+(user_id, time_bucket) where time_bucket is a coarse string like
+"high_energy_high" or "recovery_low". On the next optimization we pull the
+user's top buckets and bias the schedule toward putting their priority tasks
+on those day shapes. Falls back to the original heuristics when there isn't
+enough data. See backend/core/learning.py and
+2026_universal_agent_learning.sql.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from core.agents.base_agent import BaseAgent
 from core.config import Config
-from core import llm
+from core import llm, learning
 import random
 
 class CalendarOptimizationAgent(BaseAgent):
@@ -106,10 +114,35 @@ class CalendarOptimizationAgent(BaseAgent):
         
         # Get combined scheduling rules
         rules = await self._get_combined_rules(barrier_keys)
-        
+
+        # Learning: read this user's best-performing time_bucket shapes so we
+        # can bias scheduling toward day shapes that actually produced good
+        # reflections in the past.
+        user_id = user_profile.get('id') or user_profile.get('userId')
+        learned_prefs = await learning.get_user_calendar_preferences(
+            user_id=user_id, min_samples=2, max_results=5,
+        )
+        # Materialize a ranked list of preferred buckets for downstream use.
+        preferred_buckets = [
+            row.get('time_bucket')
+            for row in learned_prefs
+            if isinstance(row, dict) and row.get('time_bucket')
+        ]
+
         # Classify upcoming days
         day_types = await self._classify_day_types(user_profile, rules)
-        
+
+        # Re-order day_types so days that match the user's top learned
+        # buckets come first. Each day's bucket key is `type_energyLevel`.
+        if preferred_buckets:
+            def _bucket_rank(day: Dict[str, Any]) -> int:
+                key = f"{day.get('type','balanced')}_{day.get('energy_level','medium')}"
+                try:
+                    return preferred_buckets.index(key)
+                except ValueError:
+                    return len(preferred_buckets) + 1
+            day_types = sorted(day_types, key=_bucket_rank)
+
         # Schedule tasks across days
         scheduled_days = []
         remaining_tasks = tasks.copy()
@@ -297,6 +330,8 @@ class CalendarOptimizationAgent(BaseAgent):
             'theme': day_type['theme'],
             'type': day_type['type'],
             'energyLevel': energy,
+            # Stable bucket key the learning loop aggregates against.
+            'time_bucket': f"{day_type['type']}_{energy}",
             'motivation': day_type['motivation'],
             'tasks': day_tasks,
             'worstCaseTasks': day_tasks[:1] if day_tasks else [],

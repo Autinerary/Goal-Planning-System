@@ -3,7 +3,12 @@ import { findSimilarUsersByBarriers } from './similarity'
 import { getCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
 import { completeJSON, isLLMEnabled } from '@/lib/llm'
-import { loadUserMemory, recordRun, summarizeForPrompt } from './memory'
+import {
+  loadUserMemory,
+  recordRun,
+  summarizeForPrompt,
+  getToolOutcomeScores,
+} from './memory'
 import type {
   RecommendationAgentInput,
   RecommendationAgentOutput,
@@ -35,6 +40,13 @@ export class RecommendationAgent {
       // on past recommendations instead of starting fresh.
       const memory = await loadUserMemory(input.userId)
 
+      // Step 0b: Pull cross-product learned tool reward scores in parallel
+      // with the rest of step 1. Same `tool_outcomes` table the goal-planning
+      // tool agent writes to, so a positive reflection over there boosts a
+      // resource over here.
+      const barrierTypes = (input.barriers || []).map((b) => b.type)
+      const learnedScoresPromise = getToolOutcomeScores(barrierTypes)
+
       // Step 1: Find similar users (collaborative filtering)
       const similarUsers = await this.findSimilarUsers(input.userId, input.barriers)
 
@@ -44,11 +56,15 @@ export class RecommendationAgent {
         input.location
       )
 
+      // Wait on the learned scores before scoring.
+      const learnedScores = await learnedScoresPromise
+
       // Step 3: Score each resource (agent's decision-making)
       const scoredResources = await this.scoreResources(
         candidateResources,
         input.barriers,
-        input.context
+        input.context,
+        learnedScores
       )
 
       // Step 4: Generate explanations (why agent chose these), memory-aware
@@ -125,9 +141,10 @@ export class RecommendationAgent {
   private async scoreResources(
     candidateResources: any[],
     barriers: Barrier[],
-    context?: string
+    context?: string,
+    learnedToolScores?: Map<string, number>
   ) {
-    return scoreResources(candidateResources, barriers, context)
+    return scoreResources(candidateResources, barriers, context, learnedToolScores)
   }
 
   /**

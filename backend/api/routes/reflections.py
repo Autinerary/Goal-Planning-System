@@ -27,6 +27,7 @@ When a journal entry comes in we now:
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -155,6 +156,51 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
         if ok:
             rules_logged += 1
 
+    # 5b. Close the universal-agent feedback loops.
+    #     The orchestrator snapshotted (profile_signature, milestone_count,
+    #     est_days_avg, recommended_tool_ids, scheduled_buckets,
+    #     retrieved_user_ids, barriers) when it generated the user's path.
+    #     We read that snapshot back and attribute today's reward to every
+    #     individual decision in parallel. Each call is best-effort; all
+    #     degrade to False/None when Supabase isn't configured.
+    path_outcome_recorded = False
+    tool_outcomes_recorded = False
+    calendar_outcomes_recorded = False
+    pattern_feedback_recorded = False
+    latest_ctx = await learning.get_user_latest_context(user_id)
+    if latest_ctx:
+        try:
+            results = await asyncio.gather(
+                learning.record_path_outcome(
+                    profile_signature=str(latest_ctx.get("profile_signature") or ""),
+                    milestone_count=int(latest_ctx.get("milestone_count") or 0),
+                    est_days_avg=latest_ctx.get("est_days_avg"),
+                    reward=reward,
+                ),
+                learning.record_tool_outcomes(
+                    tool_ids=list(latest_ctx.get("recommended_tool_ids") or []),
+                    barriers=list(latest_ctx.get("barriers") or []),
+                    reward=reward,
+                ),
+                learning.record_calendar_outcomes(
+                    user_id=user_id,
+                    time_buckets=list(latest_ctx.get("scheduled_buckets") or []),
+                    reward=reward,
+                ),
+                learning.record_pattern_user_feedback(
+                    query_user_id=user_id,
+                    retrieved_user_ids=list(latest_ctx.get("retrieved_user_ids") or []),
+                    reward=reward,
+                ),
+                return_exceptions=True,
+            )
+            path_outcome_recorded     = bool(results[0]) is True
+            tool_outcomes_recorded    = bool(results[1]) is True
+            calendar_outcomes_recorded = bool(results[2]) is True
+            pattern_feedback_recorded = bool(results[3]) is True
+        except Exception as e:
+            print(f"[reflections] universal loop close skipped: {e}")
+
     # 6. Re-index this user's embedding with the latest success signal so the
     #    similar-user retrieval ranker prefers them when they're doing well.
     #    success_rate is in [0, 1]; reward is in [-1, 1].
@@ -216,6 +262,10 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
             "previous_adaptations_resolved": closed,
             "adaptation_rules_logged": rules_logged,
             "user_reindexed": bool(indexed),
+            "path_outcome_recorded":     path_outcome_recorded,
+            "tool_outcomes_recorded":    tool_outcomes_recorded,
+            "calendar_outcomes_recorded": calendar_outcomes_recorded,
+            "pattern_feedback_recorded": pattern_feedback_recorded,
         },
     )
 

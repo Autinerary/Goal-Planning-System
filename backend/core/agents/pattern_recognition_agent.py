@@ -31,6 +31,9 @@ class PatternRecognitionAgent(BaseAgent):
         super().__init__('pattern_recognition', 'Pattern Recognition Agent')
         self.supabase = None
         self._openai_client = None
+        # Populated on each find_similar_patterns() call so the orchestrator
+        # can attribute future reward back to these retrieved users.
+        self.last_retrieved_user_ids: List[str] = []
 
     async def initialize(self):
         """Initialize vector store (Supabase pgvector) and embedding model."""
@@ -77,6 +80,16 @@ class PatternRecognitionAgent(BaseAgent):
             filters={'barriers': barriers},
         )
 
+        # Expose the retrieved user ids on `self` so the orchestrator can
+        # snapshot them on the user's latest context — the reflection route
+        # later reads that snapshot and pushes a reward back into
+        # `pattern_user_feedback`, closing the retrieval loop.
+        self.last_retrieved_user_ids = [
+            str(u.get('userId') or u.get('user_id'))
+            for u in similar_users
+            if (u.get('userId') or u.get('user_id'))
+        ]
+
         # Extract success patterns
         patterns = await self._extract_patterns(similar_users)
 
@@ -89,6 +102,7 @@ class PatternRecognitionAgent(BaseAgent):
             'models': models,
             'confidence': 0.8,
             'explanation': f'Found {len(similar_users)} similar users with {len(patterns)} success patterns',
+            'retrieved_user_ids': self.last_retrieved_user_ids,
         }
 
     async def _generate_embedding(

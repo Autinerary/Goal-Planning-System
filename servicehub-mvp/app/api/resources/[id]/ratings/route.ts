@@ -5,7 +5,34 @@ import { validationAgent } from '@/lib/agents/validation-agent'
 import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
 import { sendNotification } from '@/lib/notifications/service'
 import { formatErrorForUser, createAppError, logError } from '@/lib/errors/handler'
+import { recordRatingOutcome } from '@/lib/agents/recommendation-agent/memory'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
+
+/**
+ * Pull the barrier-type list to attribute a rating against. We prefer the
+ * explicit `barrier_scores` keys (the rater told us which barriers this
+ * rating speaks to) and fall back to the user's profile barriers when the
+ * rater didn't break it out.
+ */
+async function resolveBarriers(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  barrier_scores?: Record<string, unknown>
+): Promise<string[]> {
+  if (barrier_scores && typeof barrier_scores === 'object') {
+    const keys = Object.keys(barrier_scores)
+    if (keys.length > 0) return keys
+  }
+  try {
+    const { data } = await supabase
+      .from('user_barriers')
+      .select('barrier_type')
+      .eq('user_id', userId)
+    return (data || []).map((r: any) => r.barrier_type).filter(Boolean)
+  } catch {
+    return []
+  }
+}
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -115,6 +142,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     if (!rating) {
       return NextResponse.json({ error: 'Failed to create rating' }, { status: 500 })
+    }
+
+    // Universal-agent learning loop: record this rating as a reward
+    // attribution against (resource_id, barriers). Both this product and the
+    // goal-planning recommendation agent read from the same `tool_outcomes`
+    // table, so a single rating here improves both products' future
+    // suggestions. Best-effort: never blocks the user response.
+    try {
+      const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
+      await recordRatingOutcome(params.id, barrierTypes, overall_score)
+    } catch (err) {
+      console.warn('[ratings] recordRatingOutcome skipped:', err)
     }
 
     // Update moderation queue with rating ID if flagged
@@ -237,6 +276,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     if (!rating) {
       return NextResponse.json({ error: 'Failed to update rating' }, { status: 500 })
+    }
+
+    // Universal-agent learning loop (mirrors POST handler). Rating updates
+    // also produce a new reward attribution so the system stays current as
+    // user opinion evolves.
+    try {
+      const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
+      await recordRatingOutcome(params.id, barrierTypes, overall_score)
+    } catch (err) {
+      console.warn('[ratings] recordRatingOutcome skipped:', err)
     }
 
     return NextResponse.json({ success: true, rating })

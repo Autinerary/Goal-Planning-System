@@ -2,12 +2,19 @@
 Agent 1: Path Planning Agent
 Creates the roadmap from current state to goals
 SIMULATION MODE: Uses predefined models and generates realistic paths
+
+Learning: every reflection feeds a reward back into `path_planning_outcomes`
+keyed by a stable (barriers + goal categories) signature. On the next
+generation we pull the (milestone_count, est_days_avg) that has produced the
+highest mean reward for users like this one and bias the new plan toward it.
+Falls back to the original behavior when there isn't enough data yet.
+See backend/core/learning.py and 2026_universal_agent_learning.sql.
 """
 
 from typing import List, Dict, Any, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
-from core import llm
+from core import llm, learning
 from core import memory as mem
 import asyncio
 import random
@@ -145,6 +152,27 @@ class PathPlanningAgent(BaseAgent):
         all_milestones: List[Dict[str, Any]] = []
         for goal_milestones in goal_milestone_lists:
             all_milestones.extend(goal_milestones)
+
+        # Learning loop: if past users with the same barriers+goals profile
+        # achieved higher rewards on shorter (or longer) plans, prune/extend
+        # accordingly. This is a bandit pick on milestone_count.
+        profile_sig = learning.compute_profile_signature(barriers, goals)
+        best_shape = await learning.get_best_path_shape(profile_sig, min_samples=3)
+        if best_shape and isinstance(best_shape.get("milestone_count"), int):
+            target = int(best_shape["milestone_count"])
+            if 0 < target < len(all_milestones):
+                # Keep the highest-priority milestones in original order. We
+                # never grow past what the LLM/templates produced — adding
+                # synthetic milestones we don't have content for would hurt.
+                all_milestones = all_milestones[:target]
+            target_days = best_shape.get("est_days_avg")
+            if target_days and target_days > 0:
+                # Bias estimatedDays toward the learned mean (50/50 blend)
+                # so we move gradually rather than overcorrecting on a small
+                # sample.
+                for m in all_milestones:
+                    current = m.get('estimatedDays') or 14
+                    m['estimatedDays'] = int(round((current + target_days) / 2))
 
         # Helper tricks depend only on the barrier list, so compute once and
         # reuse across every task instead of calling the LLM 80 times.

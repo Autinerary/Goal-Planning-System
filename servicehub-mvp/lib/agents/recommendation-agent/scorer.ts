@@ -4,11 +4,20 @@ import { calculateBarrierOverlap } from './similarity'
 /**
  * Score resources based on multiple factors
  * Agent's decision-making algorithm
+ *
+ * Learning: when `learnedToolScores` is passed in, resources that have
+ * actually helped people with the same barriers (positive reward in
+ * `tool_outcomes`) get an extra 0–0.2 score boost. Resources with no
+ * history default to a neutral 0.1 so brand-new tools aren't punished.
+ * The map shape comes from the same `get_tool_outcome_scores` RPC that the
+ * goal-planning tool agent uses, so both products learn from the same
+ * shared signal.
  */
 export async function scoreResources(
   candidates: CandidateResource[],
   userBarriers: Barrier[],
-  context?: string
+  context?: string,
+  learnedToolScores?: Map<string, number>
 ): Promise<ScoredResource[]> {
   const scored: ScoredResource[] = candidates.map((candidate) => {
     // Factor 1: Barrier match score (40%)
@@ -26,8 +35,23 @@ export async function scoreResources(
       contextBonus = calculateContextBonus(candidate, context) * 0.1
     }
 
-    // Total score (0-1, scaled to 0-100)
-    const totalScore = (barrierScore + ratingScore + popularityScore + contextBonus) * 100
+    // Factor 5: Learned reward boost (0-0.2) from `tool_outcomes`.
+    // reward_avg lives in [-1, 1]; normalize to [0, 1] then scale to 0-0.2.
+    let learnedBoost = 0
+    if (learnedToolScores && candidate.resource?.id) {
+      const raw = learnedToolScores.get(candidate.resource.id)
+      // Tools with no history get a neutral midpoint so we don't penalize
+      // brand-new resources that simply haven't been judged yet.
+      const norm = raw === undefined ? 0.5 : Math.max(0, Math.min(1, (raw + 1) / 2))
+      learnedBoost = norm * 0.2
+    }
+
+    // Total score (0-1.2, scaled to 0-100; clamped at top end so the UI
+    // never shows >100).
+    const totalScore = Math.min(
+      (barrierScore + ratingScore + popularityScore + contextBonus + learnedBoost) * 100,
+      100
+    )
 
     // Generate match reason
     const matchReason = generateMatchReason(candidate, userBarriers, barrierScore)

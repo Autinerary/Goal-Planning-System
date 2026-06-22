@@ -20,6 +20,7 @@ from core.agents.reflection_analysis_agent import ReflectionAnalysisAgent
 from core.agents.adaptation_agent import AdaptationAgent
 from core.agents.calendar_optimization_agent import CalendarOptimizationAgent
 from core.synthesis_engine import SynthesisEngine
+from core import learning
 
 try:
     langgraph_graph = importlib.import_module("langgraph.graph")
@@ -35,6 +36,11 @@ except Exception:
 # ---------- LangGraph state definitions ----------
 
 class GenerationState(TypedDict, total=False):
+    # user_id is optional: when present, the synthesis node will snapshot the
+    # generation context into Supabase so the next reflection can attribute
+    # reward back to every individual agent decision (path shape, tool ids,
+    # schedule buckets, similar users). When absent, nothing is written.
+    user_id: str
     user_profile: Dict[str, Any]
     goals: List[str]
     barriers: List[str]
@@ -206,6 +212,65 @@ class Orchestrator:
             'explanations': synthesized.get('explanations', []),
             'agentResponses': agent_responses,
         }
+
+        # Snapshot the generation context so the next reflection can close
+        # every agent's feedback loop. Best-effort: never fail synthesis.
+        user_id = state.get('user_id')
+        if user_id:
+            try:
+                path_resp = state.get('path_response', {}) or {}
+                tool_resp = state.get('tool_response', {}) or {}
+                calendar_resp = state.get('calendar_response', {}) or {}
+                pattern_resp = state.get('pattern_response', {}) or {}
+
+                milestones = path_resp.get('milestones') or []
+                est_days_list = [
+                    float(m.get('estimatedDays') or 0)
+                    for m in milestones
+                    if m.get('estimatedDays')
+                ]
+                est_days_avg = (
+                    sum(est_days_list) / len(est_days_list)
+                    if est_days_list else None
+                )
+
+                tool_ids = [
+                    str(t.get('id'))
+                    for t in (tool_resp.get('tools') or [])
+                    if t.get('id')
+                ]
+
+                schedule_days = calendar_resp.get('schedule') or []
+                scheduled_buckets = [
+                    str(d.get('time_bucket'))
+                    for d in schedule_days
+                    if isinstance(d, dict) and d.get('time_bucket')
+                ]
+
+                retrieved_ids = (
+                    pattern_resp.get('retrieved_user_ids')
+                    or self.agents['pattern_recognition'].last_retrieved_user_ids
+                    or []
+                )
+
+                profile_sig = learning.compute_profile_signature(
+                    state.get('barriers') or [],
+                    state.get('goals') or [],
+                )
+
+                await learning.snapshot_user_context(
+                    user_id=user_id,
+                    profile_signature=profile_sig,
+                    milestone_count=len(milestones),
+                    est_days_avg=est_days_avg,
+                    recommended_tool_ids=tool_ids,
+                    scheduled_buckets=scheduled_buckets,
+                    retrieved_user_ids=retrieved_ids,
+                    barriers=state.get('barriers') or [],
+                )
+            except Exception as e:
+                print(f"[orchestrator] snapshot_user_context skipped: {e}")
+
         return {"agent_responses": agent_responses, "final": final}
 
     # ---------- adaptation graph ----------
@@ -307,9 +372,14 @@ class Orchestrator:
         goals: List[str],
         barriers: List[str],
         memory: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
     ) -> dict:
         if not self.initialized:
             await self.initialize()
+
+        # Prefer explicit user_id; fall back to user_profile['id'] which the
+        # API routes already populate from the auth session.
+        resolved_uid = user_id or user_profile.get('id') or user_profile.get('userId')
 
         initial: GenerationState = {
             "user_profile": user_profile,
@@ -317,6 +387,8 @@ class Orchestrator:
             "barriers": barriers,
             "memory": memory or {},
         }
+        if resolved_uid:
+            initial["user_id"] = str(resolved_uid)
         result = await self.generation_graph.ainvoke(initial)
         return result.get("final", {})
 
