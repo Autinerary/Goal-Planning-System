@@ -1,0 +1,11 @@
+# Local-only fine-tuning toolchain. macOS arm64 (Apple Silicon) ONLY.
+# Install with:
+#   pip install -r backend/requirements-local-finetune.txt
+#
+# Kept separate from requirements.txt because mlx-lm has no Linux/x86 wheels.
+# The main backend works fine without these — they're only needed if you run
+# the scripts/local_*.sh pipeline to fine-tune Llama 3.2 3B on your own
+# reflections corpus.
+
+mlx-lm>=0.20.0
+huggingface_hub>=0.24.0
