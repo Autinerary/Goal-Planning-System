@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { AuthProvider } from './context/AuthContext'
 import { AgentPathProvider } from './context/AgentPathContext'
 import Navigation from './components/Navigation'
+import FeedbackGate from './components/FeedbackGate'
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
@@ -23,6 +24,7 @@ export default function RootLayout({
             <main>
               {children}
             </main>
+            <FeedbackGate />
           </AgentPathProvider>
         </AuthProvider>
       </body>
