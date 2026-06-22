@@ -11,7 +11,18 @@
 
 -- =============================================================================
 -- 1. PERSISTENT JOURNAL LOG  (replaces backend's in-memory list)
+--
+-- IMPORTANT: an older, narrower `reflections` table already exists from
+-- database/schema.sql (id, user_id, context_type, context_id UUID NOT NULL,
+-- free_form_text, sentiment, created_at) and has a foreign key from
+-- reflection_questions(reflection_id) -> reflections(id). We therefore do
+-- NOT drop/replace it — we extend it additively. Every statement below is
+-- idempotent and safe to re-run.
 -- =============================================================================
+
+-- 1a. Create the table if it doesn't exist (fresh installs). On existing
+-- installs this is a no-op and the ALTER TABLE block below brings the schema
+-- up to date.
 CREATE TABLE IF NOT EXISTS public.reflections (
   id                    UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id               UUID        NOT NULL,
@@ -19,18 +30,62 @@ CREATE TABLE IF NOT EXISTS public.reflections (
   context_id            TEXT,
   questions             JSONB       NOT NULL DEFAULT '[]'::jsonb,
   free_form_text        TEXT,
-  -- Computed signals (so retrieval & analytics don't need to re-parse JSON)
   sentiment_label       TEXT,
   sentiment_score       REAL,
   completion_rate       REAL,
-  reward_signal         REAL,        -- in [-1, 1]; this is the RL "reward"
-  -- Full agent payloads (auditable training corpus for future fine-tuning)
+  reward_signal         REAL,
   reflection_response   JSONB,
   adaptation_response   JSONB,
-  -- Indicators detected in this entry (used to update learned_patterns)
   indicators            TEXT[]      NOT NULL DEFAULT '{}',
   created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- 1b. Bring an OLD reflections table (from database/schema.sql) up to the
+-- shape this learning loop expects. Each step is independently idempotent.
+ALTER TABLE public.reflections
+  ADD COLUMN IF NOT EXISTS questions             JSONB       NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS sentiment_label       TEXT,
+  ADD COLUMN IF NOT EXISTS sentiment_score       REAL,
+  ADD COLUMN IF NOT EXISTS completion_rate       REAL,
+  ADD COLUMN IF NOT EXISTS reward_signal         REAL,
+  ADD COLUMN IF NOT EXISTS reflection_response   JSONB,
+  ADD COLUMN IF NOT EXISTS adaptation_response   JSONB,
+  ADD COLUMN IF NOT EXISTS indicators            TEXT[]      NOT NULL DEFAULT '{}';
+
+-- 1c. The old schema declared context_id as UUID NOT NULL. The learning
+-- pipeline passes arbitrary strings (e.g. "path-1" in the demo seed and
+-- nullable values when the reflection is global), so widen the type and
+-- relax the NOT NULL. UUID values cast to TEXT lossless-ly.
+DO $$
+DECLARE
+  col_type TEXT;
+  is_nullable TEXT;
+BEGIN
+  SELECT data_type, is_nullable INTO col_type, is_nullable
+    FROM information_schema.columns
+   WHERE table_schema = 'public'
+     AND table_name   = 'reflections'
+     AND column_name  = 'context_id';
+
+  IF col_type = 'uuid' THEN
+    EXECUTE 'ALTER TABLE public.reflections
+               ALTER COLUMN context_id TYPE TEXT USING context_id::text';
+  END IF;
+
+  IF is_nullable = 'NO' THEN
+    EXECUTE 'ALTER TABLE public.reflections
+               ALTER COLUMN context_id DROP NOT NULL';
+  END IF;
+END $$;
+
+-- 1d. The old schema also had a CHECK on context_type with a fixed list.
+-- We accept additional context_type values in the new code path, so drop
+-- the constraint if it exists. (Constraint name follows the standard
+-- Postgres "<table>_<column>_check" pattern.)
+ALTER TABLE public.reflections
+  DROP CONSTRAINT IF EXISTS reflections_context_type_check;
+
+-- 1e. Indexes — safe to create after the columns above exist.
 CREATE INDEX IF NOT EXISTS reflections_user_idx
   ON public.reflections(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS reflections_reward_idx
