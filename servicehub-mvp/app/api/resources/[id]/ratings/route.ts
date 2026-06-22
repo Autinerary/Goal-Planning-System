@@ -6,6 +6,10 @@ import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
 import { sendNotification } from '@/lib/notifications/service'
 import { formatErrorForUser, createAppError, logError } from '@/lib/errors/handler'
 import { recordRatingOutcome } from '@/lib/agents/recommendation-agent/memory'
+import {
+  attributeReward,
+  ratingToReward,
+} from '@/lib/agents/shared/servicehub-learning'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
 
 /**
@@ -156,6 +160,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       console.warn('[ratings] recordRatingOutcome skipped:', err)
     }
 
+    // Fan the same reward out to the four non-recommendation ServiceHub
+    // agents (pattern, validation, synthesis, orchestrator). One RPC
+    // call hits every in-window decision touching (user, resource).
+    try {
+      const reward = ratingToReward(overall_score)
+      if (reward !== 0) {
+        await attributeReward(user.id, params.id, reward)
+      }
+    } catch (err) {
+      console.warn('[ratings] attributeReward (POST) skipped:', err)
+    }
+
     // Update moderation queue with rating ID if flagged
     if (validationResult.decision === 'flag_for_review') {
       await supabase
@@ -286,6 +302,17 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       await recordRatingOutcome(params.id, barrierTypes, overall_score)
     } catch (err) {
       console.warn('[ratings] recordRatingOutcome skipped:', err)
+    }
+
+    // Same fan-out as POST: credit pattern, validation, synthesis,
+    // orchestrator decisions that touched this (user, resource).
+    try {
+      const reward = ratingToReward(overall_score)
+      if (reward !== 0) {
+        await attributeReward(user.id, params.id, reward)
+      }
+    } catch (err) {
+      console.warn('[ratings] attributeReward (PUT) skipped:', err)
     }
 
     return NextResponse.json({ success: true, rating })

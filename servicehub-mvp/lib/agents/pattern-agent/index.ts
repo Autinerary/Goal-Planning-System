@@ -6,6 +6,11 @@ import { getResources } from '@/lib/supabase/queries'
 import { getRatingsByResource } from '@/lib/supabase/queries'
 import { getUserBarriers } from '@/lib/supabase/queries'
 import { getProfile } from '@/lib/supabase/queries'
+import {
+  buildPatternKey,
+  getAgentScores,
+  type AgentScore,
+} from '@/lib/agents/shared/servicehub-learning'
 import type {
   PatternAgentInput,
   DiscoveredPattern,
@@ -60,8 +65,10 @@ export class PatternRecognitionAgent {
       const surprisingPatterns = await this.exploreNonObviousConnections(scope, input.category)
       patterns.push(...surprisingPatterns)
 
-      // Agent filters and ranks patterns by confidence and usefulness
-      return this.rankPatterns(patterns)
+      // Agent filters and ranks patterns by confidence and usefulness.
+      // Learned bandit reward (from past patterns that led to high-rated
+      // resources) is blended in by rankPatterns().
+      return await this.rankPatterns(patterns)
     } catch (error) {
       console.error('Error discovering patterns:', error)
       return []
@@ -465,25 +472,75 @@ export class PatternRecognitionAgent {
   }
 
   /**
-   * Agent prioritizes patterns by confidence, novelty, and actionability
+   * Stable decision-key for a discovered pattern. Same shape is used by
+   * synthesis-engine when it logs the pattern decision against a (user,
+   * resource), so reads here line up with writes there.
    */
-  private rankPatterns(patterns: DiscoveredPattern[]): DiscoveredPattern[] {
-    return patterns
-      .filter((p) => p.confidence >= 50) // Minimum confidence threshold
-      .sort((a, b) => {
-        // Calculate composite score
-        const scoreA =
-          a.confidence * 0.5 +
-          (a.metadata?.novelty_score || 0) * 0.2 +
-          (a.metadata?.actionability_score || 0) * 0.3
+  static patternKey(p: DiscoveredPattern): string {
+    let signature: string[] = []
+    switch (p.type) {
+      case 'barrier_combination':
+        signature = p.pattern?.barrier_combination || []
+        break
+      case 'resource_affinity': {
+        const src = p.pattern?.source_resource_id ? [p.pattern.source_resource_id] : []
+        const rel = p.pattern?.related_resource_ids || []
+        signature = [...src, ...rel]
+        break
+      }
+      case 'intersectionality': {
+        const b = p.pattern?.barriers || []
+        const c = p.pattern?.resource_categories || []
+        signature = [...b, ...c]
+        break
+      }
+      case 'non_obvious': {
+        const t = p.pattern?.connection_type ? [String(p.pattern.connection_type)] : []
+        signature = t.length ? t : [String(p.pattern?.description || 'unknown').slice(0, 64)]
+        break
+      }
+      default:
+        signature = []
+    }
+    return buildPatternKey(p.type, signature)
+  }
 
-        const scoreB =
-          b.confidence * 0.5 +
-          (b.metadata?.novelty_score || 0) * 0.2 +
-          (b.metadata?.actionability_score || 0) * 0.3
+  /**
+   * Agent prioritizes patterns by confidence, novelty, actionability, AND
+   * learned reward from past patterns that produced high-rated resources.
+   *
+   * Learned reward is in [-1, +1]; we map it to a 0-20 point boost
+   * (5% of the 100-point composite) so it tilts the order without
+   * dominating cold-start patterns that have no reward history yet.
+   */
+  private async rankPatterns(patterns: DiscoveredPattern[]): Promise<DiscoveredPattern[]> {
+    const eligible = patterns.filter((p) => p.confidence >= 50)
+    if (!eligible.length) return []
 
-        return scoreB - scoreA
+    // Pull learned reward for every candidate pattern in one round-trip.
+    const keys = eligible.map((p) => PatternRecognitionAgent.patternKey(p))
+    let scores: Map<string, AgentScore> = new Map()
+    try {
+      scores = await getAgentScores('pattern', Array.from(new Set(keys)))
+    } catch (err) {
+      console.warn('[pattern-agent] learned-reward lookup skipped:', err)
+    }
+
+    return eligible
+      .map((p) => {
+        const key = PatternRecognitionAgent.patternKey(p)
+        const learned = scores.get(key)
+        // reward_avg in [-1, +1] → [0, 20] additive boost.
+        const learnedBoost = learned ? (learned.rewardAvg + 1) * 10 : 0
+        const composite =
+          p.confidence * 0.5 +
+          (p.metadata?.novelty_score || 0) * 0.2 +
+          (p.metadata?.actionability_score || 0) * 0.3 +
+          learnedBoost
+        return { p, composite }
       })
+      .sort((a, b) => b.composite - a.composite)
+      .map((entry) => entry.p)
       .slice(0, 50) // Top 50 patterns
   }
 }

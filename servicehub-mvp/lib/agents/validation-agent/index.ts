@@ -2,6 +2,11 @@ import { validateContent } from './content-validator'
 import { detectSpam } from './spam-detector'
 import { calculateUserTrust, getUserHistory } from './trust-scorer'
 import { detectAbuse } from './abuse-detector'
+import {
+  buildValidationKey,
+  getAgentScores,
+  recordAgentDecision,
+} from '@/lib/agents/shared/servicehub-learning'
 import type {
   ValidationAgentInput,
   ValidationAgentOutput,
@@ -74,8 +79,54 @@ export class ValidationAgent {
         })
       }
 
-      // Agent makes autonomous decision
-      return this.makeDecision(checks, trustResult.trustScore, spamCheck.spamScore)
+      // Agent makes autonomous decision based on the rules.
+      const ruleDecision = this.makeDecision(
+        checks,
+        trustResult.trustScore,
+        spamCheck.spamScore
+      )
+
+      // Bandit refinement: if this (trust, spam, length) bucket has
+      // strong learned evidence that the opposite call is better, flip
+      // gray-zone decisions. Conservative — we only flip flag_for_review,
+      // never override a clear approve/reject from the rule set.
+      // contentText already extracted above for the spam check; reuse it.
+      const finalDecision = await this.refineWithBandit(
+        ruleDecision,
+        trustResult.trustScore,
+        spamCheck.spamScore,
+        contentText
+      )
+
+      // Fire-and-forget trace write. Resource_id is only set for ratings
+      // (where item.resource_id exists), which is what the ratings-route
+      // attribution path keys on. For resource/user submissions we just
+      // log the decision without a resource binding.
+      const resourceId =
+        input.itemType === 'rating'
+          ? (input.item?.resource_id as string | undefined) || null
+          : input.itemType === 'resource'
+          ? (input.item?.id as string | undefined) || null
+          : null
+
+      try {
+        await recordAgentDecision({
+          agent: 'validation',
+          decisionKey: buildValidationKey({
+            decision: finalDecision.decision,
+            trustScore: trustResult.trustScore,
+            spamScore: spamCheck.spamScore,
+            contentText,
+          }),
+          userId: input.context.userId,
+          resourceId,
+          confidence: finalDecision.confidence,
+        })
+      } catch (err) {
+        console.warn('[validation-agent] decision trace skipped:', err)
+      }
+
+      return finalDecision
     } catch (error) {
       console.error('Error in validation agent:', error)
       // On error, flag for review
@@ -87,6 +138,67 @@ export class ValidationAgent {
         recommendedAction: 'Hold for manual review',
       }
     }
+  }
+
+  /**
+   * Bandit-based refinement of a rule-based decision. Only ever changes a
+   * `flag_for_review` into a clearer call — never overrides an explicit
+   * approve/reject. Returns the (possibly modified) decision.
+   */
+  private async refineWithBandit(
+    ruleDecision: ValidationAgentOutput,
+    trustScore: number,
+    spamScore: number,
+    contentText: string
+  ): Promise<ValidationAgentOutput> {
+    if (ruleDecision.decision !== 'flag_for_review') return ruleDecision
+
+    try {
+      const approveKey = buildValidationKey({
+        decision: 'approve',
+        trustScore,
+        spamScore,
+        contentText,
+      })
+      const rejectKey = buildValidationKey({
+        decision: 'reject',
+        trustScore,
+        spamScore,
+        contentText,
+      })
+      const scores = await getAgentScores(
+        'validation',
+        [approveKey, rejectKey],
+        3 // need at least 3 historical observations before we trust the signal
+      )
+      const approveAvg = scores.get(approveKey)?.rewardAvg ?? 0
+      const rejectAvg = scores.get(rejectKey)?.rewardAvg ?? 0
+
+      // Strong positive history on approve in this bucket → upgrade.
+      if (approveAvg >= 0.4 && approveAvg - rejectAvg > 0.5) {
+        return {
+          ...ruleDecision,
+          decision: 'approve',
+          reasons: [...ruleDecision.reasons, 'Bandit: similar approvals scored well'],
+          recommendedAction: 'Auto-approve based on learned bucket history',
+        }
+      }
+      // Strong negative history on approve in this bucket → downgrade to reject.
+      if (rejectAvg >= 0.4 && rejectAvg - approveAvg > 0.5) {
+        return {
+          ...ruleDecision,
+          decision: 'reject',
+          reasons: [
+            ...ruleDecision.reasons,
+            'Bandit: similar approvals scored badly historically',
+          ],
+          recommendedAction: 'Auto-reject based on learned bucket history',
+        }
+      }
+    } catch (err) {
+      console.warn('[validation-agent] bandit refinement skipped:', err)
+    }
+    return ruleDecision
   }
 
   /**

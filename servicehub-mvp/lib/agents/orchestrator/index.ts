@@ -7,6 +7,11 @@ import { agentCoordinator } from './coordinator'
 import { searchResources } from '@/lib/supabase/queries'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
+import {
+  buildOrchestratorKey,
+  recordAgentDecisions,
+  type AgentDecisionInput,
+} from '@/lib/agents/shared/servicehub-learning'
 import type {
   UserRequest,
   OrchestratorResponse,
@@ -18,6 +23,9 @@ import type { RecommendationAgentInput } from '@/lib/agents/recommendation-agent
 import type { PatternAgentInput } from '@/lib/agents/pattern-agent/types'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
 import type { SynthesisInput } from '@/lib/agents/synthesis-engine/types'
+
+// Cap so a high-result-count request doesn't dominate the bandit aggregate.
+const ORCHESTRATOR_TRACE_TOP_K = 20
 
 /**
  * Orchestrator: Coordinates all agents
@@ -243,6 +251,16 @@ export class Orchestrator {
 
     const synthesisResult = await synthesisEngine.synthesize(synthesisInput)
 
+    // Bandit trace: credit this routing set when the user later rates one
+    // of these resources. Different agent_name than synthesis so the two
+    // signals don't collide.
+    this.traceOrchestratorDecision(
+      'recommendations',
+      request.userId,
+      agentsInvolved,
+      synthesisResult.finalResults
+    )
+
     return {
       result: synthesisResult.finalResults,
       explanation: synthesisResult.explanation,
@@ -375,8 +393,16 @@ export class Orchestrator {
 
     const synthesisResult = await synthesisEngine.synthesize(synthesisInput)
 
+    // Bandit trace: same routing-signal write as recommendations, keyed
+    // by request_type so the aggregates stay separate per intent.
+    const finalSearchResults =
+      synthesisResult.finalResults.length > 0
+        ? synthesisResult.finalResults
+        : searchResults
+    this.traceOrchestratorDecision('search', request.userId, agentsInvolved, finalSearchResults)
+
     return {
-      result: synthesisResult.finalResults.length > 0 ? synthesisResult.finalResults : searchResults,
+      result: finalSearchResults,
       explanation: synthesisResult.explanation,
       agentsInvolved,
       executionTime: Date.now() - startTime,
@@ -505,6 +531,45 @@ export class Orchestrator {
       })
 
       throw error
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Bandit trace. Records the routing-set decision (which agents were
+  // actually involved) for this request, keyed by (request_type, sorted
+  // agents). When a user later rates one of the surfaced resources,
+  // attribute_servicehub_reward fans the reward back to this row and the
+  // (request_type, agent_set) bucket accumulates evidence the next
+  // request can use.
+  //
+  // Write-only for now. Read-side bandit on routing decisions is a future
+  // phase — too much UX-regression risk to flip on automatically.
+  // -------------------------------------------------------------------------
+  private async traceOrchestratorDecision(
+    requestType: string,
+    userId: string,
+    agentsInvolved: string[],
+    results: any[]
+  ): Promise<void> {
+    if (!userId || !results || !results.length) return
+    const decisionKey = buildOrchestratorKey(requestType, agentsInvolved)
+    const topResults = results.slice(0, ORCHESTRATOR_TRACE_TOP_K)
+
+    const decisions: AgentDecisionInput[] = topResults
+      .map((r) => r?.id)
+      .filter(Boolean)
+      .map((resourceId) => ({
+        agent: 'orchestrator' as const,
+        decisionKey,
+        userId,
+        resourceId: String(resourceId),
+      }))
+
+    if (!decisions.length) return
+    try {
+      await recordAgentDecisions(decisions)
+    } catch (err) {
+      console.warn('[orchestrator] decision trace skipped:', err)
     }
   }
 }

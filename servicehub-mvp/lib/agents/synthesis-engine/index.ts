@@ -1,5 +1,12 @@
 import { rankResults } from './ranker'
 import { generateExplanation, generateResultExplanation, generateAgentContributions } from './explainer'
+import {
+  buildSynthesisKey,
+  getAgentScores,
+  recordAgentDecisions,
+  type AgentDecisionInput,
+} from '@/lib/agents/shared/servicehub-learning'
+import { PatternRecognitionAgent } from '@/lib/agents/pattern-agent'
 import type {
   SynthesisInput,
   SynthesisOutput,
@@ -9,6 +16,10 @@ import type {
 import type { RecommendationAgentOutput } from '@/lib/agents/recommendation-agent/types'
 import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
 import type { ValidationAgentOutput } from '@/lib/agents/validation-agent/types'
+
+// How many top results to credit when reward eventually lands. Cap so a
+// large batch doesn't dominate the bandit aggregate.
+const TRACE_TOP_K = 20
 
 /**
  * Synthesis Engine: Combines agent outputs into final response
@@ -64,6 +75,19 @@ export class SynthesisEngine {
 
       // Step 5: Document agent contributions
       const agentContributions = this.documentContributions(input.agentOutputs)
+
+      // Step 6: Pick the synthesis strategy slug. Bandit-aware — when
+      // learned reward says one slug clearly beats the others for this
+      // request type, prefer it. Falls back to the deterministic default
+      // when there's no history yet.
+      const strategySlug = await this.pickStrategySlug(input.requestType)
+
+      // Step 7: Fire-and-forget bandit trace writes. Each top-K result we
+      // surface gets a synthesis decision row (so when the user later
+      // rates one of these resources, the strategy_slug gets credited)
+      // and pattern decision rows for each pattern that applied to it
+      // (closes the pattern-agent loop too).
+      this.traceDecisions(input, validatedResults, strategySlug)
 
       return {
         finalResults: validatedResults.map((r) => r.resource),
@@ -212,6 +236,134 @@ export class SynthesisEngine {
     }
 
     return conflicts
+  }
+
+  // -------------------------------------------------------------------------
+  // Bandit hooks. Read-side picks the strategy_slug; write-side records the
+  // decisions that the ratings flow will later attribute reward to.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Pick the synthesis-strategy slug for this request. When learned reward
+   * shows one slug clearly outperforming the others for this request_type,
+   * prefer it. Otherwise fall back to the deterministic default mapping.
+   *
+   * Slugs are short stable strings (no spaces / human prose) so they can
+   * serve as bandit keys without exploding the aggregate table.
+   */
+  private async pickStrategySlug(requestType: string): Promise<string> {
+    const candidates = ['weighted_blend', 'pattern_heavy', 'community_heavy', 'recommendation_pure']
+    const defaultSlug = this.defaultStrategySlug(requestType)
+
+    try {
+      const keys = candidates.map((s) => buildSynthesisKey(requestType, s))
+      const scores = await getAgentScores('synthesis', keys, 5)
+      if (scores.size === 0) return defaultSlug
+
+      let best: { slug: string; avg: number } | null = null
+      for (const slug of candidates) {
+        const k = buildSynthesisKey(requestType, slug)
+        const s = scores.get(k)
+        if (!s) continue
+        if (!best || s.rewardAvg > best.avg) {
+          best = { slug, avg: s.rewardAvg }
+        }
+      }
+      // Only override the default if learned signal is clearly positive.
+      if (best && best.avg > 0.2) return best.slug
+    } catch (err) {
+      console.warn('[synthesis] strategy slug pick skipped:', err)
+    }
+    return defaultSlug
+  }
+
+  private defaultStrategySlug(requestType: string): string {
+    switch (requestType) {
+      case 'recommendations':
+        return 'weighted_blend'
+      case 'search':
+        return 'pattern_heavy'
+      case 'validate_submission':
+        return 'recommendation_pure'
+      default:
+        return 'weighted_blend'
+    }
+  }
+
+  /**
+   * Fire-and-forget. Builds the bandit trace rows for synthesis (one per
+   * top-K result) and pattern (one per (top-result, applying-pattern) pair)
+   * and ships them in a single batch insert. Never throws into the caller.
+   */
+  private async traceDecisions(
+    input: SynthesisInput,
+    results: RankedResult[],
+    strategySlug: string
+  ): Promise<void> {
+    if (!input.userContext?.userId) return
+    const userId = input.userContext.userId
+    const topResults = results.slice(0, TRACE_TOP_K)
+    if (!topResults.length) return
+
+    const synthesisKey = buildSynthesisKey(input.requestType, strategySlug)
+    const patternsArr = (input.agentOutputs.PatternAgent as DiscoveredPattern[]) || []
+
+    const decisions: AgentDecisionInput[] = []
+
+    for (const r of topResults) {
+      const resourceId = r.resource?.id || null
+      if (!resourceId) continue
+
+      // Synthesis decision: credit the strategy when this resource gets rated.
+      decisions.push({
+        agent: 'synthesis',
+        decisionKey: synthesisKey,
+        userId,
+        resourceId,
+      })
+
+      // Pattern decisions: credit each pattern that contributed to ranking
+      // this resource. Only emit when the result actually got a pattern
+      // boost — otherwise no pattern applied.
+      if (r.patternBoost > 0 && patternsArr.length) {
+        for (const p of patternsArr) {
+          if (!this.patternApplies(p, r.resource)) continue
+          decisions.push({
+            agent: 'pattern',
+            decisionKey: PatternRecognitionAgent.patternKey(p),
+            userId,
+            resourceId,
+            confidence: p.confidence,
+          })
+        }
+      }
+    }
+
+    if (!decisions.length) return
+    try {
+      await recordAgentDecisions(decisions)
+    } catch (err) {
+      console.warn('[synthesis] decision trace skipped:', err)
+    }
+  }
+
+  /**
+   * Heuristic match between a discovered pattern and a resource. Same
+   * shape rule as ranker.calculatePatternBoost — pattern applies when its
+   * resource_categories include the resource category, or when the
+   * pattern is a barrier_combination / intersectionality pattern and the
+   * resource has at least one matching category.
+   */
+  private patternApplies(p: DiscoveredPattern, resource: any): boolean {
+    if (!p || !resource) return false
+    const cats = p.pattern?.resource_categories || []
+    const rcat = String(resource.category || '').toLowerCase()
+    if (cats.length && cats.some((c) => String(c).toLowerCase() === rcat)) return true
+    // Barrier-combination patterns apply to all resources in the batch
+    // (they're a user-side signal, not a resource-side signal), so we let
+    // them through. The bandit aggregate will smooth out false positives.
+    if (p.type === 'barrier_combination') return true
+    return false
   }
 }
 
