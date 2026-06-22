@@ -2,12 +2,19 @@
 Agent 4: Reflection Analysis Agent
 Analyzes journals and reflections to learn from user experience
 SIMULATION MODE: Uses keyword-based sentiment and pattern detection
+
+Learning: the `coupled_events` dict below is the agent's starting belief about
+which (trigger, outcome) pairs matter. On each reflection we ALSO query the
+shared `learned_patterns` Supabase table — pairs that real users have made
+co-occur. Over time, learned patterns dominate the hardcoded ones with zero
+fine-tuning cost. See backend/core/learning.py and the
+2026_reflection_learning.sql migration.
 """
 
 from typing import Dict, Any, List
 from core.agents.base_agent import BaseAgent
 from core.config import Config
-from core import llm
+from core import llm, learning
 import re
 
 class ReflectionAnalysisAgent(BaseAgent):
@@ -211,7 +218,15 @@ class ReflectionAnalysisAgent(BaseAgent):
         text: str,
         reflection_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
-        """Detect patterns in the reflection"""
+        """Detect patterns in the reflection.
+
+        Sources of (trigger, outcome) couples:
+          1. self.coupled_events       — hardcoded prior (this file)
+          2. learned_patterns (Supabase) — online correlation table grown
+                                           from every past reflection
+        Learned entries are merged in on every call so behavior strictly
+        improves as the table grows.
+        """
         detected_patterns = []
         detected_indicators = []
         
@@ -221,9 +236,26 @@ class ReflectionAnalysisAgent(BaseAgent):
                 if keyword in text:
                     detected_indicators.append(pattern_name)
                     break
-        
+
+        # Pull learned (trigger, outcome) correlations from Supabase and merge
+        # them with the hardcoded set. Empty list when Supabase isn't
+        # configured or there isn't enough data yet — no behavior change in
+        # that case.
+        try:
+            learned_rows = await learning.get_top_learned_patterns(
+                min_observations=5,
+                min_correlation=0.5,
+                max_results=50,
+            )
+        except Exception:
+            learned_rows = []
+        effective_couples = learning.merge_with_hardcoded_couples(
+            learned=learned_rows,
+            hardcoded=self.coupled_events,
+        )
+
         # Check for coupled event patterns
-        for couple_id, couple_data in self.coupled_events.items():
+        for couple_id, couple_data in effective_couples.items():
             trigger = couple_data['trigger']
             outcome = couple_data['outcome']
             

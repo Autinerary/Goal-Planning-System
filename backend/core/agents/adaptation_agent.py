@@ -2,12 +2,20 @@
 Agent 5: Adaptation Agent
 Adjusts plans based on progress and reflections
 SIMULATION MODE: Uses rule-based adaptation logic
+
+Learning: thresholds (low_completion, positive_momentum) used to be hardcoded
+at 0.5 / 0.8. They're now drawn from a greedy-mean contextual bandit over
+past (rule, threshold, next_reward) tuples in Supabase. The LLM prompt that
+generates the user-facing explanation is also augmented with success-
+conditioned few-shot examples retrieved from past high-reward adaptations.
+Both pieces fall back to the original hardcoded behavior when Supabase isn't
+configured.
 """
 
 from typing import Dict, Any, List
 from core.agents.base_agent import BaseAgent
 from core.config import Config
-from core import llm
+from core import llm, learning
 
 class AdaptationAgent(BaseAgent):
     """Adapts paths based on user progress and feedback"""
@@ -99,22 +107,36 @@ class AdaptationAgent(BaseAgent):
         """Adapt the path based on insights and progress"""
         
         adaptations = []
-        
+
+        # Adaptive thresholds via the bandit. Falls back to the hardcoded
+        # defaults defined in self.adaptation_rules when there isn't enough
+        # data yet.
+        low_completion_threshold = await learning.get_adaptive_threshold(
+            rule_name='low_completion',
+            default_threshold=self.adaptation_rules['low_completion']['threshold'],
+        )
+        positive_momentum_threshold = await learning.get_adaptive_threshold(
+            rule_name='positive_momentum',
+            default_threshold=self.adaptation_rules['positive_momentum']['threshold'],
+        )
+
         # Check for low completion rates
         completion_rate = current_progress.get('completion_rate', 1.0)
-        if completion_rate < self.adaptation_rules['low_completion']['threshold']:
+        if completion_rate < low_completion_threshold:
             adaptation = await self._adapt_for_low_completion(
                 path_id=path_id,
                 completion_rate=completion_rate
             )
+            adaptation['threshold_used'] = float(low_completion_threshold)
             adaptations.append(adaptation)
         
         # Check for positive momentum
-        if completion_rate > self.adaptation_rules['positive_momentum']['threshold']:
+        if completion_rate > positive_momentum_threshold:
             adaptation = await self._adapt_for_positive_momentum(
                 path_id=path_id,
                 completion_rate=completion_rate
             )
+            adaptation['threshold_used'] = float(positive_momentum_threshold)
             adaptations.append(adaptation)
         
         # Check for stress indicators
@@ -146,20 +168,33 @@ class AdaptationAgent(BaseAgent):
             a.get('requires_calendar_update', False) for a in adaptations
         )
 
-        # LLM-generated overall explanation
+        # LLM-generated overall explanation, augmented with retrieved
+        # success-conditioned few-shot examples (in-context "RLHF" — the
+        # foundation model stays fixed, the prompt gets richer with use).
         explanation = f'Applied {len(adaptations)} adaptations based on reflection analysis'
         if llm.is_enabled() and adaptations:
+            try:
+                examples = await learning.get_success_examples(
+                    barriers=user_barriers,
+                    max_results=3,
+                )
+            except Exception:
+                examples = []
+            examples_block = learning.format_success_examples_for_prompt(examples)
+            user_msg = (
+                f"Adaptations: {[a.get('type') for a in adaptations]}\n"
+                f"Completion rate: {current_progress.get('completion_rate', 1.0):.0%}\n"
+                f"Sentiment: {reflection_insights.get('sentiment', {}).get('label', 'neutral')}\n"
+                "Explain why you're making these changes."
+            )
+            if examples_block:
+                user_msg = examples_block + "\n\n" + user_msg
             text = await llm.complete_text(
                 system=(
                     "You are a coach explaining plan adaptations to a neurodivergent user. "
                     "Be supportive, concise (max 50 words), and reference specific reasons."
                 ),
-                user=(
-                    f"Adaptations: {[a.get('type') for a in adaptations]}\n"
-                    f"Completion rate: {current_progress.get('completion_rate', 1.0):.0%}\n"
-                    f"Sentiment: {reflection_insights.get('sentiment', {}).get('label', 'neutral')}\n"
-                    "Explain why you're making these changes."
-                ),
+                user=user_msg,
                 temperature=0.6,
                 max_tokens=120,
             )
