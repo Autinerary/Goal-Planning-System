@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd plist for the always-on mlx_lm.server inference process.
+
+  Keeps the OpenAI-compatible /v1/chat/completions endpoint alive on
+  127.0.0.1:8080. KeepAlive=true means launchd will restart it if it
+  crashes or is killed. RunAtLoad=true means it starts when you log in.
+
+  The cloudflared tunnel job (com.goalplanning.cloudflared.plist) forwards
+  this localhost port to a public stable URL, which is what your deployed
+  backend's LOCAL_LLM_BASE_URL points at.
+
+  When the weekly finetune cycle finishes and produces new fused weights,
+  run_full_finetune_cycle.sh calls `launchctl kickstart -k` on this label
+  to restart the server and pick up the new model.
+
+  Don't edit this file directly — edit the template and re-run
+  install_launchd_jobs.sh so paths get re-rendered.
+
+  Logs:  ~/Library/Logs/goal-planning-modelserver.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.goalplanning.modelserver</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__WORKSPACE__/.venv/bin/python</string>
+    <string>-m</string>
+    <string>mlx_lm.server</string>
+    <string>--model</string>
+    <string>__WORKSPACE__/backend/data/models/fused</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>8080</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__WORKSPACE__</string>
+
+  <!-- KeepAlive: relaunch if it ever exits. -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- Start at login. -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Don't thrash if the model dir is missing yet (e.g. before first finetune). -->
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-modelserver.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-modelserver.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>__HOME__</string>
+  </dict>
+</dict>
+</plist>

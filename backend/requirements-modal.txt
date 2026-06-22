@@ -1,0 +1,10 @@
+# Dependencies for the Modal cloud-deployed fine-tune pipeline.
+# Install on the machine that runs `modal deploy backend/scripts/modal_app.py`
+# (your laptop or CI). NOT required on the deployed backend itself — the
+# backend just talks to the Modal endpoint over HTTPS.
+#
+# These are kept separate from the main requirements.txt to keep the runtime
+# image lean. The actual training/serving deps live inside the Modal
+# container images (see modal_app.py).
+
+modal>=0.66.0

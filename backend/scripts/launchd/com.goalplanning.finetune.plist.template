@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd plist for the weekly fine-tune cycle.
+
+  Schedule:  Every Sunday at 03:00 local time.
+  Rationale: Runs while you're asleep, doesn't interfere with active use.
+             The training step pegs the GPU for ~30-90 min on an M-series Mac.
+
+  When launchd fires this, it executes run_full_finetune_cycle.sh which:
+    1. Pulls latest reflections from Supabase
+    2. Skips silently if there aren't enough new high-reward entries
+    3. Otherwise trains a LoRA adapter, fuses it, and restarts the
+       mlx_lm.server launchd job to pick up the new weights.
+
+  Don't edit this file directly — edit the template and re-run
+  install_launchd_jobs.sh so paths get re-rendered.
+
+  Logs:  ~/Library/Logs/goal-planning-finetune.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.goalplanning.finetune</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__WORKSPACE__/backend/scripts/run_full_finetune_cycle.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__WORKSPACE__</string>
+
+  <!--
+    Weekly cron: Sunday (weekday 0) at 03:00.
+    If the Mac is asleep at the scheduled time, launchd runs it as soon
+    as the machine wakes — exactly what we want.
+  -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>0</integer>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-finetune.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-finetune.log</string>
+
+  <!--
+    PATH for launchd-spawned shells is the system default and excludes
+    /opt/homebrew/bin. Add it so brew-installed tools (like cloudflared,
+    or any future deps) are findable from the cycle script.
+  -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>__HOME__</string>
+  </dict>
+</dict>
+</plist>

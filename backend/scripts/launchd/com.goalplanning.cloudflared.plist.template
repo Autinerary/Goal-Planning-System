@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd plist for the Cloudflare Tunnel that exposes the local
+  mlx_lm.server (127.0.0.1:8080) to the public internet at a stable URL.
+
+  Why we need this:
+    Your production backend lives somewhere else (Vercel / Render / Railway
+    / etc.) but the fine-tuned model lives on your Mac. The tunnel bridges
+    them: your backend sets LOCAL_LLM_BASE_URL to the tunnel URL, and the
+    tunnel forwards traffic to 127.0.0.1:8080 here.
+
+  Why cloudflared and not ngrok:
+    * Free, no time-limited sessions, no random URL changes
+    * Stable URL per tunnel ID (https://<UUID>.cfargotunnel.com)
+    * Or your own subdomain if you bring a domain to Cloudflare
+    * Built-in DDoS protection and Cloudflare's global edge
+
+  This plist assumes setup_cloudflare_tunnel.sh has already been run:
+    1. cloudflared installed (brew)
+    2. `cloudflared tunnel login` completed (browser auth)
+    3. A tunnel named "goal-planning-mlx" created
+    4. Credentials at ~/.cloudflared/<UUID>.json
+    5. A config.yml at ~/.cloudflared/config.yml routing the tunnel
+       to http://127.0.0.1:8080
+
+  Don't edit this file directly — edit the template and re-run
+  install_launchd_jobs.sh so paths get re-rendered.
+
+  Logs:  ~/Library/Logs/goal-planning-cloudflared.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.goalplanning.cloudflared</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/cloudflared</string>
+    <string>tunnel</string>
+    <string>--config</string>
+    <string>__HOME__/.cloudflared/config.yml</string>
+    <string>run</string>
+    <string>goal-planning-mlx</string>
+  </array>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-cloudflared.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/goal-planning-cloudflared.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>__HOME__</string>
+  </dict>
+</dict>
+</plist>
