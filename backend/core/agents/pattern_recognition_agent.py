@@ -61,10 +61,15 @@ class PatternRecognitionAgent(BaseAgent):
         goals: List[str],
         barriers: List[str],
         memory: Dict[str, Any] = None,
+        user_id: Optional[str] = None,
         **kwargs
     ) -> Dict[str, Any]:
         """
         Find similar users and success patterns.
+
+        When `user_id` is a real UUID, the underlying RPC re-ranks results
+        using this user's past `pattern_user_feedback` signals — closing the
+        retrieval loop with previous reflections.
         """
         # Generate embedding for user profile
         user_embedding = await self._generate_embedding(
@@ -78,6 +83,7 @@ class PatternRecognitionAgent(BaseAgent):
             embedding=user_embedding,
             top_k=10,
             filters={'barriers': barriers},
+            query_user_id=user_id,
         )
 
         # Expose the retrieved user ids on `self` so the orchestrator can
@@ -131,8 +137,15 @@ class PatternRecognitionAgent(BaseAgent):
         embedding: List[float],
         top_k: int = 10,
         filters: Optional[Dict[str, Any]] = None,
+        query_user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Search the vector database for similar users."""
+        """Search the vector database for similar users.
+
+        `query_user_id` is forwarded to the RPC so it can personalize the
+        ranking via `pattern_user_feedback`. Non-UUID values (e.g. demo
+        'user_123') are silently dropped so the RPC still runs in its
+        non-personalized mode.
+        """
         if self.supabase is not None:
             try:
                 barriers_filter = None
@@ -141,14 +154,29 @@ class PatternRecognitionAgent(BaseAgent):
                     # least one barrier with the query. NULL = no filter.
                     barriers_filter = [str(b) for b in filters['barriers']]
 
+                # The RPC's query_user_id parameter is UUID-typed in Postgres,
+                # so only forward values that parse as a UUID. Anything else
+                # (demo ids, None) is dropped here.
+                normalized_user_id: Optional[str] = None
+                if query_user_id:
+                    try:
+                        import uuid as _uuid
+                        normalized_user_id = str(_uuid.UUID(str(query_user_id)))
+                    except (ValueError, TypeError, AttributeError):
+                        normalized_user_id = None
+
+                rpc_args: Dict[str, Any] = {
+                    'query_embedding': embedding,
+                    'match_threshold': 0.7,
+                    'match_count': top_k,
+                    'barriers_filter': barriers_filter,
+                }
+                if normalized_user_id is not None:
+                    rpc_args['query_user_id'] = normalized_user_id
+
                 response = self.supabase.rpc(
                     'find_similar_pattern_users',
-                    {
-                        'query_embedding': embedding,
-                        'match_threshold': 0.7,
-                        'match_count': top_k,
-                        'barriers_filter': barriers_filter,
-                    },
+                    rpc_args,
                 ).execute()
 
                 rows = response.data or []

@@ -140,6 +140,7 @@ class Orchestrator:
             goals=state['goals'],
             barriers=state['barriers'],
             memory=state.get('memory', {}),
+            user_id=state.get('user_id'),
         )
         return {"pattern_response": response}
 
