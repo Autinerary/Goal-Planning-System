@@ -1,38 +1,45 @@
 """
 Agent 2: Pattern Recognition Agent
-Learns from people who came before you
+Learns from people who came before you.
+
+Vector storage: Supabase pgvector (table `pattern_user_embeddings`, 1536-dim,
+queried via the `find_similar_pattern_users` RPC). The previous Pinecone
+implementation was removed in favor of a single, unified vector database
+shared with the servicehub-mvp product. PINECONE_* environment variables are
+ignored if set.
+
+The agent's public interface and its placement in the LangGraph orchestration
+graph are unchanged \u2014 only the storage backend was swapped.
 """
 
 import os
 from typing import List, Dict, Any, Optional
-from core.agents.base_agent import BaseAgent
 
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
-PINECONE_INDEX_HOST = os.getenv("PINECONE_INDEX_HOST", "")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "goal-planning-users")
+from core.agents.base_agent import BaseAgent
+from database.supabase_client import get_supabase
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
+# Must match the VECTOR(N) declaration in the SQL migration.
+EMBEDDING_DIM = 1536
+
+
 class PatternRecognitionAgent(BaseAgent):
-    """Identifies patterns from similar users' journeys"""
-    
+    """Identifies patterns from similar users' journeys."""
+
     def __init__(self):
         super().__init__('pattern_recognition', 'Pattern Recognition Agent')
-        self.vector_db = None
+        self.supabase = None
         self._openai_client = None
-    
+
     async def initialize(self):
-        """Initialize vector database and embedding model"""
-        if PINECONE_API_KEY:
-            try:
-                from pinecone import Pinecone
-                pc = Pinecone(api_key=PINECONE_API_KEY)
-                if PINECONE_INDEX_HOST:
-                    self.vector_db = pc.Index(host=PINECONE_INDEX_HOST)
-                else:
-                    self.vector_db = pc.Index(PINECONE_INDEX_NAME)
-                print("   ✓ Pattern Recognition Agent connected to Pinecone")
-            except Exception as e:
-                print(f"   ⚠ Pattern Recognition Agent: Pinecone init failed ({e}), using mock")
+        """Initialize vector store (Supabase pgvector) and embedding model."""
+        self.supabase = get_supabase()
+        if self.supabase is not None:
+            print("   \u2713 Pattern Recognition Agent connected to Supabase pgvector")
+        else:
+            print("   \u26a0 Pattern Recognition Agent: Supabase not configured, using mock results")
+
         if OPENAI_API_KEY:
             try:
                 from openai import AsyncOpenAI
@@ -40,11 +47,11 @@ class PatternRecognitionAgent(BaseAgent):
             except Exception:
                 pass
         self.initialized = True
-    
+
     async def cleanup(self):
-        """Cleanup resources"""
+        """Cleanup resources."""
         self.initialized = False
-    
+
     async def find_similar_patterns(
         self,
         user_profile: dict,
@@ -54,127 +61,136 @@ class PatternRecognitionAgent(BaseAgent):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Find similar users and success patterns
+        Find similar users and success patterns.
         """
         # Generate embedding for user profile
         user_embedding = await self._generate_embedding(
             profile=user_profile,
             goals=goals,
-            barriers=barriers
+            barriers=barriers,
         )
-        
-        # Search for similar users in vector database
+
+        # Search for similar users in the vector database
         similar_users = await self._vector_search(
             embedding=user_embedding,
             top_k=10,
-            filters={'barriers': barriers}
+            filters={'barriers': barriers},
         )
-        
+
         # Extract success patterns
         patterns = await self._extract_patterns(similar_users)
-        
+
         # Identify models that worked
         models = await self._identify_models(similar_users, goals)
-        
+
         return {
             'similar_users': similar_users,
             'patterns': patterns,
             'models': models,
             'confidence': 0.8,
-            'explanation': f'Found {len(similar_users)} similar users with {len(patterns)} success patterns'
+            'explanation': f'Found {len(similar_users)} similar users with {len(patterns)} success patterns',
         }
-    
+
     async def _generate_embedding(
         self,
         profile: dict,
         goals: List[str],
-        barriers: List[str]
+        barriers: List[str],
     ) -> List[float]:
-        """Generate embedding vector for user profile"""
+        """Generate embedding vector for a user profile."""
         if self._openai_client:
             try:
                 text = f"barriers: {', '.join(barriers)}. goals: {', '.join(goals)}. profile: {profile}"
                 response = await self._openai_client.embeddings.create(
                     model="text-embedding-ada-002",
-                    input=text
+                    input=text,
                 )
                 return response.data[0].embedding
             except Exception:
                 pass
-        # Fallback: mock 1536-dim embedding (matches ada-002)
-        return [0.1] * 1536
-    
+        # Fallback: mock embedding (matches ada-002 dimension so writes/queries
+        # against the pgvector column still succeed in simulation mode).
+        return [0.1] * EMBEDDING_DIM
+
     async def _vector_search(
         self,
         embedding: List[float],
         top_k: int = 10,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """Search vector database for similar users"""
-        if self.vector_db:
+        """Search the vector database for similar users."""
+        if self.supabase is not None:
             try:
-                query_filter = None
+                barriers_filter = None
                 if filters and filters.get('barriers'):
-                    query_filter = {"barriers": {"$in": filters['barriers']}}
-                result = self.vector_db.query(
-                    vector=embedding,
-                    top_k=top_k,
-                    filter=query_filter,
-                    include_metadata=True
-                )
+                    # Array overlap on the SQL side: return users that share at
+                    # least one barrier with the query. NULL = no filter.
+                    barriers_filter = [str(b) for b in filters['barriers']]
+
+                response = self.supabase.rpc(
+                    'find_similar_pattern_users',
+                    {
+                        'query_embedding': embedding,
+                        'match_threshold': 0.7,
+                        'match_count': top_k,
+                        'barriers_filter': barriers_filter,
+                    },
+                ).execute()
+
+                rows = response.data or []
                 return [
                     {
-                        'user_id': match['id'],
-                        'similarity': match['score'],
-                        'barriers': match.get('metadata', {}).get('barriers', []),
-                        'success_rate': match.get('metadata', {}).get('success_rate', 0.8),
-                        'journey': match.get('metadata', {}).get('journey', '')
+                        'user_id': row['user_id'],
+                        'similarity': row['similarity'],
+                        'barriers': row.get('barriers') or [],
+                        'success_rate': row.get('success_rate', 0.5),
+                        'journey': row.get('journey', ''),
                     }
-                    for match in result.get('matches', [])
+                    for row in rows
                 ]
             except Exception as e:
-                print(f"[pattern_recognition] Pinecone query failed: {e}")
-        # Fallback mock results
+                print(f"[pattern_recognition] pgvector query failed: {e}")
+
+        # Fallback mock results (no Supabase configured or query failed)
         return [
             {
                 'user_id': f'user_{i}',
                 'similarity': 0.9 - (i * 0.05),
                 'barriers': filters.get('barriers', []) if filters else [],
                 'success_rate': 0.85,
-                'journey': f'Success story {i}'
+                'journey': f'Success story {i}',
             }
             for i in range(top_k)
         ]
-    
+
     async def _extract_patterns(self, similar_users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract common success patterns"""
+        """Extract common success patterns."""
         patterns = [
             {
                 'pattern_id': 'pattern_1',
                 'description': 'Early accommodation requests lead to better outcomes',
                 'frequency': 0.75,
-                'success_rate': 0.82
+                'success_rate': 0.82,
             },
             {
                 'pattern_id': 'pattern_2',
                 'description': 'Community support networks critical for minority users',
                 'frequency': 0.68,
-                'success_rate': 0.79
-            }
+                'success_rate': 0.79,
+            },
         ]
         return patterns
-    
+
     async def _identify_models(
         self,
         similar_users: List[Dict[str, Any]],
-        goals: List[str]
+        goals: List[str],
     ) -> List[str]:
-        """Identify which path models worked for similar users"""
-        # In production: Analyze which models were used by successful similar users
+        """Identify which path models worked for similar users."""
         models = [
             'autism_adult_education_model',
             'adhd_career_development_model',
-            'minority_networking_model'
+            'minority_networking_model',
         ]
         return models
 
@@ -187,15 +203,15 @@ class PatternRecognitionAgent(BaseAgent):
         success_rate: float = 0.5,
         journey: str = "",
     ) -> bool:
-        """Store a user's embedding + metadata in Pinecone.
+        """Store a user's embedding + metadata in pgvector.
 
         This is what makes the "learn from people who came before you" feature
         real: every onboarded user is indexed so future users can be matched
-        against them. No-ops gracefully when Pinecone isn't connected.
+        against them. No-ops gracefully when Supabase isn't configured.
 
         Returns True if the vector was written, False otherwise.
         """
-        if not self.vector_db or not user_id:
+        if self.supabase is None or not user_id:
             return False
 
         try:
@@ -205,26 +221,25 @@ class PatternRecognitionAgent(BaseAgent):
                 barriers=barriers,
             )
 
-            # Pinecone metadata only accepts str/number/bool/list[str].
-            metadata: Dict[str, Any] = {
-                "barriers": [str(b) for b in barriers],
-                "goals": [str(g) for g in goals],
-                "success_rate": float(success_rate),
-                "journey": journey or f"Goals: {', '.join(goals)}",
+            row: Dict[str, Any] = {
+                'user_id': str(user_id),
+                'embedding': embedding,
+                'barriers': [str(b) for b in barriers],
+                'goals': [str(g) for g in goals],
+                'success_rate': float(success_rate),
+                'journey': journey or f"Goals: {', '.join(goals)}",
             }
-            motivation = user_profile.get("motivationType")
+            motivation = user_profile.get('motivationType')
             if motivation:
-                metadata["motivation_type"] = str(motivation)
+                row['motivation_type'] = str(motivation)
 
-            self.vector_db.upsert(
-                vectors=[{
-                    "id": str(user_id),
-                    "values": embedding,
-                    "metadata": metadata,
-                }]
-            )
-            print(f"   ✓ Indexed user {user_id} in Pinecone")
+            self.supabase.table('pattern_user_embeddings').upsert(
+                row,
+                on_conflict='user_id',
+            ).execute()
+            print(f"   \u2713 Indexed user {user_id} in pgvector")
             return True
         except Exception as e:
-            print(f"[pattern_recognition] Pinecone upsert skipped: {e}")
+            print(f"[pattern_recognition] pgvector upsert skipped: {e}")
             return False
+

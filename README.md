@@ -5,8 +5,8 @@ An agentic AI system that creates personalized life plans specifically designed 
 ## Architecture
 
 - **Frontend**: Next.js (React) with TypeScript
-- **Backend**: Python FastAPI with multi-agent orchestration
-- **Databases**: PostgreSQL, Vector DB (Pinecone/Qdrant), Redis, MongoDB
+- **Backend**: Python FastAPI with multi-agent orchestration (LangGraph)
+- **Database**: Supabase (PostgreSQL + pgvector for similarity search)
 - **AI Agents**: 6 specialized agents (Path Planning, Pattern Recognition, Recommendation, Reflection Analysis, Adaptation, Calendar Optimization)
 
 ## Project Structure

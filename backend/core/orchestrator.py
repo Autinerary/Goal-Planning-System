@@ -348,9 +348,10 @@ class Orchestrator:
     ) -> bool:
         """Store the user's embedding in the vector DB after a run.
 
-        This populates Pinecone so future users get matched against real
-        people. Must be called while the orchestrator is still initialized
-        (before cleanup). No-ops gracefully when Pinecone isn't available.
+        This populates Supabase pgvector (table `pattern_user_embeddings`) so
+        future users get matched against real people. Must be called while the
+        orchestrator is still initialized (before cleanup). No-ops gracefully
+        when Supabase isn't configured.
         """
         if not self.initialized:
             await self.initialize()

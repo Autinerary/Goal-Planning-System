@@ -84,9 +84,9 @@ Frontend will be available at http://localhost:3000
 
 - **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
 - **Backend**: FastAPI with Python
-- **Database**: PostgreSQL for core data
+- **Database**: Supabase (PostgreSQL)
 - **AI Agents**: 6 specialized agents coordinated by Orchestrator
-- **Vector DB**: Pinecone/Qdrant for similarity search (configure in .env)
+- **Vector DB**: Supabase pgvector (no external vector DB required)
 
 ## Development
 
@@ -96,7 +96,7 @@ Frontend will be available at http://localhost:3000
 
 ## Next Steps
 
-1. Configure vector database (Pinecone/Qdrant)
+1. Apply pgvector migrations (`servicehub-mvp/lib/supabase/schema.sql` and `backend/database/migrations/2026_pattern_user_embeddings.sql`)
 2. Set up LLM API keys (OpenAI/Anthropic)
 3. Add real data to knowledge base
 4. Train/configure AI agents with actual models
