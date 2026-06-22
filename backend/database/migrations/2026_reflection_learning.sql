@@ -58,21 +58,22 @@ ALTER TABLE public.reflections
 -- relax the NOT NULL. UUID values cast to TEXT lossless-ly.
 DO $$
 DECLARE
-  col_type TEXT;
-  is_nullable TEXT;
+  v_col_type    TEXT;
+  v_is_nullable TEXT;
 BEGIN
-  SELECT data_type, is_nullable INTO col_type, is_nullable
-    FROM information_schema.columns
-   WHERE table_schema = 'public'
-     AND table_name   = 'reflections'
-     AND column_name  = 'context_id';
+  SELECT c.data_type, c.is_nullable
+    INTO v_col_type, v_is_nullable
+    FROM information_schema.columns c
+   WHERE c.table_schema = 'public'
+     AND c.table_name   = 'reflections'
+     AND c.column_name  = 'context_id';
 
-  IF col_type = 'uuid' THEN
+  IF v_col_type = 'uuid' THEN
     EXECUTE 'ALTER TABLE public.reflections
                ALTER COLUMN context_id TYPE TEXT USING context_id::text';
   END IF;
 
-  IF is_nullable = 'NO' THEN
+  IF v_is_nullable = 'NO' THEN
     EXECUTE 'ALTER TABLE public.reflections
                ALTER COLUMN context_id DROP NOT NULL';
   END IF;
