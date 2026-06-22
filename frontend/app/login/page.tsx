@@ -49,41 +49,6 @@ export default function LoginPage() {
     setIsSubmitting(false)
   }
 
-  const handleDemoLogin = async () => {
-    setIsSubmitting(true)
-    setError('')
-
-    const demoEmail = 'demo@autinerary.com'
-    const demoPassword = 'Demo123!'
-
-    try {
-      // Try login first (account may already exist)
-      let result = await login(demoEmail, demoPassword)
-      if (!result.success) {
-        // Account doesn't exist yet — create it via API and sign in
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: demoEmail, password: demoPassword, name: 'Demo User' }),
-        })
-        if (res.ok || res.status === 409) {
-          result = await login(demoEmail, demoPassword)
-        }
-      }
-
-      if (result.success) {
-        router.push('/path')
-      } else {
-        setError(result.error || 'Demo login failed.')
-      }
-    } catch (error) {
-      console.error('Demo login error:', error)
-      setError('An error occurred during demo login.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -181,28 +146,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-transparent text-slate-600">or</span>
-            </div>
-          </div>
-
-          {/* Demo Login Button */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={isSubmitting}
-            className="w-full bg-white/60 hover:bg-white/80 border border-slate-300 text-slate-800 font-medium py-3 rounded-lg transition-all disabled:opacity-50 mb-4"
-          >
-            🚀 Try Demo Account (Skip Setup)
-          </button>
-
           {/* Sign Up Link */}
-          <p className="text-center text-slate-600">
+          <p className="text-center text-slate-600 mt-6">
             Don't have an account?{' '}
             <Link 
               href="/signup" 
@@ -216,7 +161,7 @@ export default function LoginPage() {
         {/* Help Text */}
         <div className="mt-6 text-center">
           <p className="text-slate-500 text-sm">
-            💡 <strong>First time?</strong> Click "Create one" to sign up, or use the Demo Account
+            💡 <strong>First time?</strong> Click "Create one" to sign up.
           </p>
         </div>
       </div>
