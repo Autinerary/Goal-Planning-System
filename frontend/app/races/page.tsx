@@ -59,6 +59,18 @@ function RacesContent() {
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
 
+  // Live life-stats from /api/me/life-stats (real backend loader — mentality,
+  // happiness, focus, energy computed from reflections + milestones + calendar
+  // + check-ins). null until the first fetch resolves; falls back to a
+  // profile-derived approximation below for guests.
+  type LiveStat = { value: number; change: number | null }
+  const [liveStats, setLiveStats] = useState<null | {
+    mentality: LiveStat
+    happiness: LiveStat
+    focus: LiveStat
+    energy: LiveStat
+  }>(null)
+
   // On sign-in: replace local state with whatever Supabase has.
   useEffect(() => {
     if (!isSignedIn) return
@@ -79,6 +91,29 @@ function RacesContent() {
         setHeartedGoals(hearted)
       } catch {
         /* keep local state */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isSignedIn])
+
+  // On sign-in: hydrate live life-stats from the real backend loader.
+  useEffect(() => {
+    if (!isSignedIn) { setLiveStats(null); return }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/me/life-stats', { cache: 'no-store', credentials: 'include' })
+        if (!res.ok) return
+        const json = await res.json()
+        if (cancelled || !json?.stats) return
+        setLiveStats({
+          mentality: { value: Number(json.stats.mentality?.value ?? 0), change: json.stats.mentality?.change ?? null },
+          happiness: { value: Number(json.stats.happiness?.value ?? 0), change: json.stats.happiness?.change ?? null },
+          focus:     { value: Number(json.stats.focus?.value     ?? 0), change: json.stats.focus?.change     ?? null },
+          energy:    { value: Number(json.stats.energy?.value    ?? 0), change: json.stats.energy?.change    ?? null },
+        })
+      } catch {
+        /* keep fallback */
       }
     })()
     return () => { cancelled = true }
@@ -240,18 +275,28 @@ function RacesContent() {
 
   const theirStats = { mentality: 7, happiness: 9, focus: 8, energy: 6 }
   const theirProgress = 65, yourProgress = 45
-  // Derive stats from the real user profile so the radar reflects them.
+  // Stats card: prefer the real life-stats loader (Supabase-backed
+  // /api/me/life-stats — mentality, happiness, focus, energy computed from
+  // reflections + milestones + calendar + check-ins). For guests / pre-load,
+  // fall back to a profile-derived approximation so the demo still has bars.
   const _userBarrierCount = (payload?.userProfile?.barrierTypes || []).length
   const _userGoalCount = (payload?.userProfile?.goals || []).length
   const _userDreamCount = (payload?.userProfile?.dreams || []).length
   const _userChallengeCount = (payload?.userProfile?.currentChallenges || []).length
   const _clamp = (n: number) => Math.max(1, Math.min(10, n))
-  const stats = [
-    { name: 'Mentality', value: _clamp(4 + _userBarrierCount), max: 10 },
-    { name: 'Happiness', value: _clamp(5 + _userDreamCount), max: 10 },
-    { name: 'Fear', value: _clamp(2 + _userChallengeCount), max: 10 },
-    { name: 'Creativity', value: _clamp(4 + _userGoalCount + _userDreamCount), max: 10 },
-  ]
+  const stats: { name: string; value: number; max: number; change: number | null }[] = liveStats
+    ? [
+        { name: 'Mentality', value: liveStats.mentality.value, max: 10, change: liveStats.mentality.change },
+        { name: 'Happiness', value: liveStats.happiness.value, max: 10, change: liveStats.happiness.change },
+        { name: 'Focus',     value: liveStats.focus.value,     max: 10, change: liveStats.focus.change },
+        { name: 'Energy',    value: liveStats.energy.value,    max: 10, change: liveStats.energy.change },
+      ]
+    : [
+        { name: 'Mentality', value: _clamp(4 + _userBarrierCount), max: 10, change: null },
+        { name: 'Happiness', value: _clamp(5 + _userDreamCount), max: 10, change: null },
+        { name: 'Focus',     value: _clamp(3 + _userChallengeCount), max: 10, change: null },
+        { name: 'Energy',    value: _clamp(4 + _userGoalCount + _userDreamCount), max: 10, change: null },
+      ]
   const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your barriers are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
   // Recommended choices for the CURRENT milestone come from the
   // tool_recommendation agent. Fall back to the demo list if we have none.
