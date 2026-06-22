@@ -118,6 +118,12 @@ export default function AdminDashboard({ userId }: AdminDashboardProps) {
                 >
                   Insights
                 </Link>
+                <Link
+                  href="/admin/community"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
+                >
+                  Tidbits
+                </Link>
               </div>
             </div>
             <Link

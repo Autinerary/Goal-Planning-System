@@ -769,6 +769,35 @@ function PitStopContent() {
         {/* Hare World Tab */}
         {activeTab === 'haveworld' && (
           <div className="space-y-6">
+            {/* Tidbits Community CTA */}
+            <a
+              href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block group"
+            >
+              <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-300">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold uppercase tracking-wide">
+                        Tidbits Community
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900">Get insights from people who&apos;ve been there</h3>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Read tagged barriers, ask for help, and learn what worked in our autistic community Q&amp;A.
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex flex-col items-end gap-1">
+                    <span className="text-3xl">💡</span>
+                    <span className="text-xs font-medium text-emerald-700 group-hover:underline">Open Tidbits →</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+
             {/* Description */}
             <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-2">3.5. Pit Stop #2: Hare World</h2>

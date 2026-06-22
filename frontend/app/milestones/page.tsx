@@ -7,6 +7,8 @@ import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, S
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
+const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
+
 export default function MilestoneView() {
   const router = useRouter()
   const { pathPlanning, toolRecommendation, patternRecognition, payload } = useAgentPath()
@@ -131,6 +133,34 @@ export default function MilestoneView() {
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3">
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="pattern_recognition" />
+        <a
+          href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=milestones`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block group"
+        >
+          <div className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-4 shadow-sm transition-all hover:shadow-md hover:border-emerald-400">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wide">
+                      Tidbits
+                    </span>
+                    <span className="text-sm font-bold text-slate-800">Stuck on a barrier?</span>
+                  </div>
+                  <p className="text-xs text-slate-600">Ask the community — read insights from people who&apos;ve overcome the same blockers.</p>
+                </div>
+              </div>
+              <span className="hidden sm:block text-xs font-semibold text-emerald-700 group-hover:underline whitespace-nowrap">
+                Open Tidbits →
+              </span>
+            </div>
+          </div>
+        </a>
       </div>
       {/* Wooden signpost header */}
       <div className="relative">

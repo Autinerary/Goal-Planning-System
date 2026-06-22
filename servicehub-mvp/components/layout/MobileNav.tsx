@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft } from 'lucide-react'
+import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles } from 'lucide-react'
 import { useAuth } from '@/lib/auth/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
@@ -218,6 +218,19 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
                 Search
               </Link>
 
+              <Link
+                href="/community"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  pathname?.startsWith('/community')
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={onClose}
+              >
+                <Sparkles className="w-5 h-5" aria-hidden="true" />
+                Tidbits Community
+              </Link>
+
               {user && (
                 <>
                   <Link
@@ -264,6 +277,21 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
                 >
                   <Shield className="w-5 h-5" aria-hidden="true" />
                   Admin Dashboard
+                </Link>
+              )}
+
+              {user && (
+                <Link
+                  href="/community/settings"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                    pathname === '/community/settings'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  onClick={onClose}
+                >
+                  <Sparkles className="w-5 h-5" aria-hidden="true" />
+                  Tidbits Settings
                 </Link>
               )}
 
