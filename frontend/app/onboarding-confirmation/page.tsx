@@ -436,7 +436,7 @@ export default function OnboardingConfirmationPage() {
               </div>
               
               <p className="text-slate-700 mb-6">
-                These mentors match your barriers and goals. Select who you&apos;d like on your team.
+                These mentors match the barriers you face and your goals. Select who you&apos;d like on your team.
               </p>
 
               {/* Grouped by barrier category, then race category */}

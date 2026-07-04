@@ -69,7 +69,7 @@ const spiritAnimalColors = [
 // Step components
 const steps = [
   { id: 'character', title: 'Character Select', icon: User },
-  { id: 'barrierConnections', title: 'Barrier Connections', icon: AlertCircle },
+  { id: 'barrierConnections', title: 'Systemic Barriers', icon: AlertCircle },
   { id: 'location', title: 'Location', icon: User },
   { id: 'goalsAndDreams', title: 'Goals & Dreams', icon: Target },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
@@ -77,6 +77,10 @@ const steps = [
   { id: 'spiritAnimal', title: 'Spirit Animals', icon: Heart },
   { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
 ]
+
+// Steps the user is allowed to skip without filling anything in. The core
+// steps (barriers, location, goals) stay required.
+const skippableSteps = new Set([0, 4, 5, 6])
 
 const goalCategories = [
   { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
@@ -498,15 +502,13 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      // Rocket ship transition from character select to questions
-      if (currentStep === 0) {
-        setShowRocketTransition(true)
-        setTimeout(() => {
-          setCurrentStep(prev => prev + 1)
-          setShowRocketTransition(false)
-        }, 1500)
-        return
-      }
+      setCurrentStep(prev => prev + 1)
+    }
+  }
+
+  // Skip an optional step without validating its fields.
+  const handleSkip = () => {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1)
     }
   }
@@ -616,7 +618,10 @@ export default function OnboardingPage() {
 
       await completeOnboarding(response.data.pathId)
       clearAutosave()
-      router.push('/onboarding-confirmation')
+      // Play the "Launch to Dream Land" celebration only now — at the very end,
+      // after every question is answered and the path has actually been created.
+      setShowRocketTransition(true)
+      setTimeout(() => router.push('/onboarding-confirmation'), 1600)
     } catch (error: any) {
       console.error('Error creating path:', error)
       console.error('Error details:', {
@@ -902,8 +907,9 @@ export default function OnboardingPage() {
           {/* Step 1: Role */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Barrier Connections</h2>
-              <p className="text-slate-600 mb-4">Tell us about the barriers in your life — either describe them in your own words, or select manually below.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Systemic Barriers</h2>
+              <p className="text-slate-600 mb-2">Tell us about the systemic barriers you face — either describe them in your own words, or select manually below.</p>
+              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves — the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
 
               {/* Mode toggle */}
               <div className="flex gap-2 mb-6">
@@ -956,7 +962,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   {/* Connection type multi-select */}
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to barriers (select all that apply)</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to these systemic barriers (select all that apply)</h3>
                     <div className="flex flex-wrap gap-2">
                       {connectionTypes.map((conn) => (
                         <button
@@ -1599,7 +1605,7 @@ export default function OnboardingPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-slate-800 mb-2">Finding Your Resources...</h3>
                   <p className="text-slate-500 text-sm text-center max-w-sm">
-                    Our AI agents are analyzing your barriers, goals, and location to find the best matches. This may take a moment.
+                    Our AI agents are analyzing the systemic barriers you face, your goals, and location to find the best matches. This may take a moment.
                   </p>
                   <div className="mt-6 space-y-2 w-full max-w-sm">
                     <div className="flex items-center gap-3 text-sm text-slate-500">
@@ -1699,44 +1705,55 @@ export default function OnboardingPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-200">
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-6 py-3 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
               Back
             </button>
 
-            {currentStep < steps.length - 1 ? (
-              <button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
-              >
-                {currentStep === 6 ? 'View Recommendations' : 'Continue'}
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={!canProceed() || isSubmitting}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your path...
-                  </>
-                ) : (
-                  <>
-                    🚀 Launch to Dream Land!
-                    <Rocket className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {skippableSteps.has(currentStep) && currentStep < steps.length - 1 && (
+                <button
+                  onClick={handleSkip}
+                  className="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-all"
+                >
+                  Skip for now
+                </button>
+              )}
+
+              {currentStep < steps.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                >
+                  {currentStep === 6 ? 'View Recommendations' : 'Continue'}
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={!canProceed() || isSubmitting}
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Creating your path...
+                    </>
+                  ) : (
+                    <>
+                      🚀 Launch to Dream Land!
+                      <Rocket className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

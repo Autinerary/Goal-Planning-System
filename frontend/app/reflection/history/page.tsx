@@ -315,7 +315,7 @@ export default function JournalHistory() {
                   <span>🎯</span> Success Factor
                 </div>
                 <div className="text-sm text-slate-700">
-                  Connecting with peers who understand your barriers boosts motivation
+                  Connecting with peers who understand the barriers you face boosts motivation
                 </div>
               </div>
             </div>

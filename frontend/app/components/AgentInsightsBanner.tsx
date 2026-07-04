@@ -36,7 +36,7 @@ function extractMessage(slice: any): string | null {
     return p?.insight || p?.description || `${slice.patterns.length} similar patterns found`
   }
   if (Array.isArray(slice.recommendations) && slice.recommendations.length) {
-    return `${slice.recommendations.length} tools recommended for your barriers.`
+    return `${slice.recommendations.length} tools recommended for the barriers you face.`
   }
   if (typeof slice.confidence === 'number') {
     return `Confidence: ${Math.round(slice.confidence * 100)}%`

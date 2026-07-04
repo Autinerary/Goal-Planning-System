@@ -299,7 +299,7 @@ function RacesContent() {
         { name: 'Focus',     value: _clamp(3 + _userChallengeCount), max: 10, change: null },
         { name: 'Energy',    value: _clamp(4 + _userGoalCount + _userDreamCount), max: 10, change: null },
       ]
-  const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your barriers are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
+  const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your differences are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
   // Recommended choices for the CURRENT milestone come from the
   // tool_recommendation agent. Fall back to the demo list if we have none.
   const _agentMs: any[] = (pathPlanning?.milestones || []) as any[]
@@ -1020,7 +1020,7 @@ function RacesContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className={`${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
                   <h4 className={`font-bold text-xs mb-1 ${txt}`}>🏪 ResourceHub</h4>
-                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Curated tools, services &amp; support matched to your barriers and goals.</p>
+                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Curated tools, services &amp; support matched to the barriers you face and your goals.</p>
                   <a href={process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to ResourceHub →</a>
                 </div>
                 <div className={`${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
