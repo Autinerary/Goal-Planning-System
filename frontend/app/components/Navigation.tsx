@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { createClient } from '@/lib/supabase/client'
-import { LogOut, User, ExternalLink } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings } from 'lucide-react'
 
 async function goToServiceHub() {
   const base = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -66,6 +66,15 @@ export default function Navigation() {
               <ExternalLink className="w-4 h-4" />
               <span className="hidden sm:inline">Find Resources</span>
             </button>
+
+            <Link
+              href="/profile/settings"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+              title="Settings"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </Link>
 
             <button
               onClick={logout}

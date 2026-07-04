@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Eye, EyeOff, Save, Loader2 } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle } from 'lucide-react'
 
 type Profile = {
   id: string
@@ -22,6 +22,97 @@ export default function ProfileSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // ── Data & Progress management ──
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [dataBusy, setDataBusy] = useState<null | 'backup' | 'restore' | 'reset' | 'wipe'>(null)
+  const [dataMsg, setDataMsg] = useState<string | null>(null)
+  const [dataErr, setDataErr] = useState<string | null>(null)
+  const [confirm, setConfirm] = useState<null | 'progress' | 'all'>(null)
+
+  // localStorage keys that mirror server-side progress.
+  const PROGRESS_LS_KEYS = ['completedMilestoneIds', 'heartedGoals', 'calendarAddedTasks', 'todaysMotivation', 'pendingSavedResources']
+  const PLAN_LS_KEYS = ['autinerary_profile', 'autinerary_onboarding_draft']
+
+  const clearLocal = (keys: string[]) => {
+    try { keys.forEach(k => localStorage.removeItem(k)) } catch { /* ignore */ }
+  }
+
+  const downloadBackup = async () => {
+    setDataBusy('backup'); setDataMsg(null); setDataErr(null)
+    try {
+      const res = await fetch('/api/me/data', { cache: 'no-store', credentials: 'include' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+      const blob = new Blob([JSON.stringify(json.backup, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `autinerary-backup-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(url)
+      setDataMsg('Backup downloaded.')
+    } catch (e: any) {
+      setDataErr(e?.message || 'Backup failed.')
+    } finally {
+      setDataBusy(null)
+    }
+  }
+
+  const onRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file
+    if (!file) return
+    setDataBusy('restore'); setDataMsg(null); setDataErr(null)
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)
+      const backup = parsed?.tables ? parsed : parsed?.backup
+      if (!backup?.tables) throw new Error('That file doesn’t look like an Autinerary backup.')
+      const res = await fetch('/api/me/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ backup }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+      const total = Object.values(json.restored || {}).reduce((a: number, b: any) => a + Number(b), 0)
+      setDataMsg(`Restored ${total} record${total === 1 ? '' : 's'}. Reloading…`)
+      clearLocal([...PROGRESS_LS_KEYS])
+      setTimeout(() => window.location.reload(), 1200)
+    } catch (e: any) {
+      setDataErr(e?.message || 'Restore failed.')
+    } finally {
+      setDataBusy(null)
+    }
+  }
+
+  const doReset = async (scope: 'progress' | 'all') => {
+    setConfirm(null)
+    setDataBusy(scope === 'all' ? 'wipe' : 'reset'); setDataMsg(null); setDataErr(null)
+    try {
+      const res = await fetch('/api/me/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ scope }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+      clearLocal(scope === 'all' ? [...PROGRESS_LS_KEYS, ...PLAN_LS_KEYS] : PROGRESS_LS_KEYS)
+      if (scope === 'all') {
+        setDataMsg('Everything cleared. Starting fresh…')
+        setTimeout(() => { window.location.href = '/onboarding' }, 1200)
+      } else {
+        setDataMsg('Progress reset. Reloading…')
+        setTimeout(() => window.location.reload(), 1200)
+      }
+    } catch (e: any) {
+      setDataErr(e?.message || 'Reset failed.')
+      setDataBusy(null)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -204,7 +295,107 @@ export default function ProfileSettingsPage() {
             </div>
           )}
         </div>
+
+        {/* ── Data & Progress ── */}
+        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6 mt-6">
+          <h2 className="text-xl font-bold mb-1">Data &amp; Progress</h2>
+          <p className="text-slate-600 mb-5 text-sm">
+            Back up your data before testing, restore it later, or start over with a clean slate.
+          </p>
+
+          {dataMsg && (
+            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700">{dataMsg}</div>
+          )}
+          {dataErr && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{dataErr}</div>
+          )}
+
+          {/* Backup + Restore */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            <button
+              onClick={downloadBackup}
+              disabled={dataBusy !== null}
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-semibold disabled:opacity-50"
+            >
+              {dataBusy === 'backup' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              Back up my data
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={dataBusy !== null}
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-800 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {dataBusy === 'restore' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              Restore from backup
+            </button>
+            <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={onRestoreFile} className="hidden" />
+          </div>
+
+          {/* Danger zone */}
+          <div className="border-2 border-red-200 rounded-xl p-4 bg-red-50/40">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <span className="font-bold text-red-700 text-sm">Danger zone</span>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-slate-900 text-sm">Reset progress</div>
+                  <p className="text-xs text-slate-600">Clears completed steps, hearts, calendar tasks, stats and your AI portrait. Keeps your account and your generated plan.</p>
+                </div>
+                <button
+                  onClick={() => setConfirm('progress')}
+                  disabled={dataBusy !== null}
+                  className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-white border-2 border-amber-400 text-amber-700 rounded-lg text-sm font-semibold hover:bg-amber-50 disabled:opacity-50"
+                >
+                  {dataBusy === 'reset' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                  Reset
+                </button>
+              </div>
+              <div className="flex items-start justify-between gap-3 pt-3 border-t border-red-100">
+                <div>
+                  <div className="font-semibold text-slate-900 text-sm">Full restart</div>
+                  <p className="text-xs text-slate-600">Deletes all progress <strong>and</strong> your generated plan, then sends you back through onboarding. Your login stays.</p>
+                </div>
+                <button
+                  onClick={() => setConfirm('all')}
+                  disabled={dataBusy !== null}
+                  className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                >
+                  {dataBusy === 'wipe' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Restart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Confirm modal */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setConfirm(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} />
+              <h3 className="text-lg font-bold text-slate-900">{confirm === 'all' ? 'Full restart?' : 'Reset progress?'}</h3>
+            </div>
+            <p className="text-sm text-slate-600 mb-5">
+              {confirm === 'all'
+                ? 'This permanently deletes your progress and your generated plan, then restarts onboarding. This can’t be undone — back up first if you want to restore later.'
+                : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone — back up first if you want to restore later.'}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border-2 border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
+              <button
+                onClick={() => doReset(confirm)}
+                className={`flex-1 px-4 py-2 text-white rounded-lg font-semibold ${confirm === 'all' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}
+              >
+                {confirm === 'all' ? 'Delete everything' : 'Reset progress'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
