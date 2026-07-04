@@ -208,6 +208,76 @@ const bunnyStyles = `
   }
 `
 
+// ── Character-select avatar ───────────────────────────────────────────────
+// Renders a simple face with the chosen hairstyle so people can actually see
+// what they're picking (video-game-style character select) instead of a
+// generic emoji. Used both in the hairstyle tiles and the live preview.
+function HairShape({ id, color }: { id: string; color: string }) {
+  switch (id) {
+    case 'buzz':
+      return <path d="M26 46 A24 24 0 0 1 74 46 L71 41 A22 22 0 0 0 29 41 Z" fill={color} opacity="0.85" />
+    case 'short_straight':
+      return <path d="M24 50 Q24 25 50 25 Q76 25 76 50 L76 43 Q50 33 24 43 Z" fill={color} />
+    case 'short_curly':
+      return (
+        <g fill={color}>
+          {[29, 40, 50, 60, 71].map((x, i) => <circle key={i} cx={x} cy="31" r="9" />)}
+          <path d="M25 44 Q50 32 75 44 L75 37 Q50 28 25 37 Z" />
+        </g>
+      )
+    case 'long_straight':
+      return (
+        <g fill={color}>
+          <path d="M22 54 Q22 25 50 25 Q78 25 78 54 L78 44 Q50 33 22 44 Z" />
+          <rect x="19" y="44" width="8" height="44" rx="4" />
+          <rect x="73" y="44" width="8" height="44" rx="4" />
+        </g>
+      )
+    case 'long_curly':
+      return (
+        <g fill={color}>
+          <path d="M22 52 Q22 25 50 25 Q78 25 78 52 L78 44 Q50 31 22 44 Z" />
+          <path d="M22 46 Q12 60 22 72 Q14 82 24 90 L31 85 Q23 70 29 54 Z" />
+          <path d="M78 46 Q88 60 78 72 Q86 82 76 90 L69 85 Q77 70 71 54 Z" />
+        </g>
+      )
+    case 'braids':
+      return (
+        <g fill={color}>
+          <path d="M25 50 Q25 25 50 25 Q75 25 75 50 L75 42 Q50 31 25 42 Z" />
+          {[0, 1, 2, 3].map(i => <circle key={`l${i}`} cx="24" cy={50 + i * 10} r="5.5" />)}
+          {[0, 1, 2, 3].map(i => <circle key={`r${i}`} cx="76" cy={50 + i * 10} r="5.5" />)}
+        </g>
+      )
+    default:
+      return null
+  }
+}
+
+function CharacterAvatar({ hairStyle = '', bodyType = '', size = 96 }: { hairStyle?: string; bodyType?: string; size?: number }) {
+  const skin = '#f2c79b'
+  const hair = '#6b4a2b'
+  const showHair = Boolean(hairStyle) && hairStyle !== 'none' && hairStyle !== 'skip'
+  const bodyW = bodyType === 'short' ? 34 : 40
+  const bodyH = bodyType === 'tall' ? 36 : bodyType === 'short' ? 22 : 28
+  return (
+    <svg viewBox="0 0 100 130" width={size} height={size * 1.3} role="img" aria-label="Character preview">
+      {/* Shoulders / body */}
+      <rect x={50 - bodyW / 2} y={130 - bodyH} width={bodyW} height={bodyH} rx="9" fill="#cbd5e1" />
+      {/* Neck */}
+      <rect x="44" y="74" width="12" height="18" fill={skin} />
+      {/* Head */}
+      <circle cx="50" cy="50" r="26" fill={skin} stroke="#e0a97c" strokeWidth="1.5" />
+      {/* Eyes + smile */}
+      <circle cx="42" cy="50" r="2.6" fill="#334155" />
+      <circle cx="58" cy="50" r="2.6" fill="#334155" />
+      <path d="M42 60 Q50 66 58 60" fill="none" stroke="#b45f4d" strokeWidth="2" strokeLinecap="round" />
+      {/* Hair on top */}
+      {showHair && <HairShape id={hairStyle} color={hair} />}
+    </svg>
+  )
+}
+
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, completeOnboarding, isLoading: authLoading } = useAuth()
@@ -247,6 +317,9 @@ export default function OnboardingPage() {
     motivationTypes: [] as string[],
     // Profile customization
     dreamSelf: '',
+    // Alternate Persona (optional) — a named alter-ego for the Dream Self
+    alternatePersonaName: '' as string,
+    alternatePersonaNote: '' as string,
     // Spirit animals (up to 2)
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
@@ -614,6 +687,10 @@ export default function OnboardingPage() {
         lifeStage: formData.lifeStage,
         location: formData.location,
         role: formData.role,
+        alternatePersona: {
+          name: formData.alternatePersonaName.trim(),
+          note: formData.alternatePersonaNote.trim(),
+        },
       }))
 
       await completeOnboarding(response.data.pathId)
@@ -843,7 +920,7 @@ export default function OnboardingPage() {
                             : 'border-slate-200 hover:border-cyan-400 text-slate-600'
                         }`}
                       >
-                        <span className="text-3xl">{hs.emoji}</span>
+                        <CharacterAvatar hairStyle={hs.id} size={46} />
                         <span className="text-xs text-center">{hs.label}</span>
                         {formData.hairStyle === hs.id && (
                           <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
@@ -871,29 +948,10 @@ export default function OnboardingPage() {
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
-                    <div className={`relative w-40 h-48 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden`}>
-                      {/* Head */}
-                      <div className="relative">
-                        <div className="w-16 h-16 bg-amber-200 rounded-full border-2 border-amber-300 flex items-center justify-center">
-                          <div className="flex gap-2 mt-1">
-                            <span className="w-2 h-2 bg-slate-700 rounded-full" />
-                            <span className="w-2 h-2 bg-slate-700 rounded-full" />
-                          </div>
-                        </div>
-                        {/* Hair overlay */}
-                        {formData.hairStyle && formData.hairStyle !== 'none' && formData.hairStyle !== 'skip' && (
-                          <div className="absolute -top-2 -left-1 -right-1 text-center text-2xl leading-none">
-                            {hairStyles.find(h => h.id === formData.hairStyle)?.emoji || ''}
-                          </div>
-                        )}
-                      </div>
-                      {/* Body */}
-                      <div className={`mt-1 bg-slate-300 rounded-t-lg ${
-                        formData.bodyType === 'tall' ? 'w-12 h-16' : formData.bodyType === 'short' ? 'w-12 h-10' : 'w-12 h-12'
-                      }`} />
-                      {/* Label */}
-                      <p className="absolute bottom-1 text-[10px] text-slate-500 font-medium">
-                        {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''} 
+                    <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
+                      <CharacterAvatar hairStyle={formData.hairStyle} bodyType={formData.bodyType} size={120} />
+                      <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
+                        {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
                         {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
                       </p>
                     </div>
@@ -1478,6 +1536,36 @@ export default function OnboardingPage() {
                   <p className="text-sm text-purple-600 font-medium">
                     {formData.dreamSelf ? `"${formData.dreamSelf.slice(0, 80)}${formData.dreamSelf.length > 80 ? '...' : ''}"` : 'Your Dream Self awaits...'}
                   </p>
+                </div>
+
+                {/* Alternate Persona (optional) — a named alter-ego for the Dream Self */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-lg font-bold text-slate-800 mb-1">Alternate Persona <span className="text-xs font-normal text-slate-400">(optional)</span></h3>
+                  <p className="text-slate-600 text-sm mb-4">Some people picture their Dream Self as a named alter-ego — a confident version of them they can step into. Give yours a name if you like.</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Persona name</label>
+                      <input
+                        type="text"
+                        value={formData.alternatePersonaName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaName: e.target.value }))}
+                        placeholder="e.g. Nova, Captain Focus, Future Me"
+                        maxLength={60}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">What are they like? <span className="text-slate-400">(optional)</span></label>
+                      <textarea
+                        value={formData.alternatePersonaNote}
+                        onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaNote: e.target.value }))}
+                        placeholder="Bold, calm under pressure, speaks up in meetings, takes the first step..."
+                        rows={3}
+                        maxLength={400}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
