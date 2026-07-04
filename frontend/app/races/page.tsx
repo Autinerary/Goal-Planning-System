@@ -1062,6 +1062,7 @@ function RacesContent() {
             </div>
             <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
+            <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>✨ See more →</Link>
           </div>
 
           {/* ─── ROAD: fan out from Dream Self into 5 paths ─── */}
@@ -1540,6 +1541,7 @@ function RacesContent() {
                 <div className="text-4xl bn">🧑‍🚀</div>
                 <div className={`text-base font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
                 <div className={`text-[10px] ${sub}`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
+                <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>✨ See more →</Link>
               </div>
               <FanOut count={5} />
               <div className={`text-center mb-3 text-[10px] ${sub}`}>Each life dimension runs as its own parallel track</div>
