@@ -41,6 +41,7 @@ function RacesContent() {
   const [activeDimension, setActiveDimension] = useState('education')
   const [activeDimRace, setActiveDimRace] = useState<string | null>(null)
   const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
+  const [layoutMode, setLayoutMode] = useState<'track' | 'list'>('list')
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       try { const s = localStorage.getItem('completedMilestoneIds'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
@@ -903,6 +904,64 @@ function RacesContent() {
         <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
 
           {/* ═══════════════════
+              TRACK / LIST toggle — centered, below the main nav
+             ═══════════════════ */}
+          <div className="pt-4 w-full flex justify-center">
+            <div className={`inline-flex rounded-full border overflow-hidden text-xs font-bold shadow-sm ${day ? 'border-slate-200 bg-white/70' : 'border-indigo-700 bg-indigo-950/60'}`}>
+              <button onClick={() => setLayoutMode('track')} className={`px-4 py-1.5 transition-all ${layoutMode === 'track' ? `bg-gradient-to-r ${accent} text-white` : `${sub} hover:opacity-70`}`}>🏁 Track View</button>
+              <button onClick={() => setLayoutMode('list')} className={`px-4 py-1.5 transition-all ${layoutMode === 'list' ? `bg-gradient-to-r ${accent} text-white` : `${sub} hover:opacity-70`}`}>📋 List View</button>
+            </div>
+          </div>
+
+          {/* ═══════════════════
+              LIST VIEW — Stats + ResourceHub + Hare World (streamlined top)
+             ═══════════════════ */}
+          {layoutMode === 'list' && (
+            <div className="w-full max-w-2xl px-2 pt-5 space-y-3">
+              {/* Stats (moved to the top) */}
+              {gamifiedMode ? (
+                <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
+                  <div className={`font-bold text-xs mb-2 ${txt} flex items-center gap-1`}>✨ Stats</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {stats.map((s, i) => (
+                      <div key={i}>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className={`text-[10px] ${sub}`}>{s.name}</span>
+                          <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
+                        </div>
+                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
+                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
+                </div>
+              ) : (
+                <button onClick={() => setGamifiedMode(true)} className={`text-[10px] ${sub} hover:underline`}>Show stats</button>
+              )}
+
+              {/* ResourceHub + Hare World (moved up) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
+                  <h4 className={`font-bold text-xs mb-1 ${txt}`}>🏪 ResourceHub</h4>
+                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Curated tools, services &amp; support matched to your barriers and goals.</p>
+                  <a href={process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to ResourceHub →</a>
+                </div>
+                <div className={`${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
+                  <h4 className={`font-bold text-xs mb-1 ${txt}`}>🐰 Hare World</h4>
+                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Your role models, mentors &amp; people — see who&apos;s ahead and learn from them.</p>
+                  <Link href="/pit-stop?tab=haveworld&view=people" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-400 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to Hare World →</Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════════
+              TRACK VIEW — Dream Self + full road (Track View only)
+             ═══════════════════ */}
+          {layoutMode === 'track' && (<>
+          {/* ═══════════════════
               DREAM SELF (top)
              ═══════════════════ */}
           <div className="pt-8 flex flex-col items-center">
@@ -1014,6 +1073,7 @@ function RacesContent() {
 
           {/* ─── ROAD: 5 paths converge back to character ─── */}
           <FanIn count={5} />
+          </>)}
 
           {/* ═══════════════════════════════════════════════════
               CHECKLIST VIEW — One dimension at a time
@@ -1023,11 +1083,11 @@ function RacesContent() {
              ═══════════════════════════════════════════════════ */}
           {(() => {
             const dimOrder = [
-              { key: 'education',     label: 'Education',          emoji: '🎓', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
-              { key: 'workplace',     label: 'Workplace',          emoji: '💼', tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
-              { key: 'relationships', label: 'Relationships',      emoji: '🤝', tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
-              { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
-              { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
+              { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
+              { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
+              { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
+              { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
+              { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', goal: 'Navigate barriers with support',       tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
             ]
             // Sub-races per dimension: each dimension can have multiple races
             const dimSubRaces: Record<string, Array<{ id: string; name: string; steps: Array<{ id: string; name: string; status: 'active' | 'upcoming' | 'far'; isGeneric?: boolean }> }>> = {
@@ -1158,6 +1218,57 @@ function RacesContent() {
                   One dimension at a time · Switch between races
                 </div>
 
+                {/* Individual | Combined toggle — always available */}
+                <div className="flex justify-center mb-4">
+                  <div className={`inline-flex rounded-lg border overflow-hidden text-[10px] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                    <button onClick={() => setDimViewMode('individual')} className={`px-3 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Individual</button>
+                    <button onClick={() => setDimViewMode('combined')} className={`px-3 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Combined</button>
+                  </div>
+                </div>
+
+                {dimViewMode === 'combined' ? (
+                  /* ══ COMBINED — four life dimensions, one goal ══ */
+                  <div className="w-full">
+                    <div className={`text-center mb-3 text-[11px] font-bold ${txt}`}>🏠 Four life dimensions, one goal</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
+                      {dimOrder.filter(d => d.key !== 'barrier').map(dim => {
+                        const lanes = dimSubRaces[dim.key] || []
+                        const laneSteps = lanes[0]?.steps || []
+                        return (
+                          <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm`}>
+                            <div className={`flex items-center gap-1.5 font-bold text-[11px] mb-1 ${txt}`}>
+                              <span className="text-base">{dim.emoji}</span>
+                              <span className="uppercase tracking-wider">{dim.label}</span>
+                            </div>
+                            {userBarrierLabels.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {userBarrierLabels.slice(0, 3).map(b => (<span key={b} className={`text-[7px] px-1 py-0.5 rounded-full border ${day ? 'bg-white/70 text-slate-600 border-slate-200' : 'bg-indigo-900/60 text-indigo-300 border-indigo-700'}`}>{b}</span>))}
+                              </div>
+                            )}
+                            <div className={`text-[9px] font-bold mb-2 ${txt}`}>🎯 {dim.goal}</div>
+                            <div className="relative pl-4">
+                              <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
+                              {laneSteps.map((step, i) => {
+                                const isCompleted = completedMilestoneIds.has(step.id)
+                                return (
+                                  <div key={step.id} className={`relative mb-1.5 p-1.5 rounded-lg border ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : step.status === 'active' ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}>
+                                    <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
+                                    <div className="flex items-center gap-1 mb-0.5">
+                                      <span className="text-[8px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
+                                      <span className={`text-[7px] font-mono ${sub}`}>Step {i + 1}</span>
+                                      {step.status === 'active' && !isCompleted && <span className="text-[7px] font-bold text-amber-500 ml-auto">HERE</span>}
+                                    </div>
+                                    <div className={`text-[9px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (<>
                 {/* ── Dimension tab bar ── */}
                 <div className="flex flex-wrap justify-center gap-1.5 mb-4">
                   {dimOrder.map(dim => (
@@ -1183,13 +1294,6 @@ function RacesContent() {
                       <span className="text-lg">{activeDim.emoji}</span>
                       <span className="uppercase tracking-wider">{activeDim.label}</span>
                     </div>
-                    {/* Individual / Combined toggle */}
-                    {subRaces.length > 1 && (
-                      <div className={`flex rounded-lg border overflow-hidden text-[9px] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
-                        <button onClick={() => setDimViewMode('individual')} className={`px-2 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Individual</button>
-                        <button onClick={() => setDimViewMode('combined')} className={`px-2 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Combined</button>
-                      </div>
-                    )}
                   </div>
 
                   {/* Barriers chips */}
@@ -1200,6 +1304,12 @@ function RacesContent() {
                       ))}
                     </div>
                   )}
+
+                  {/* Goal(s) for this dimension — shown under the barrier chips */}
+                  <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`}>
+                    <div className={`text-[8px] font-bold uppercase tracking-wider ${sub}`}>🎯 Goal</div>
+                    <div className={`text-[11px] font-bold leading-snug ${txt}`}>{activeDim.goal}</div>
+                  </div>
 
                   {/* Sub-race tabs (only in individual mode, only if > 1 race) */}
                   {dimViewMode === 'individual' && subRaces.length > 1 && (
@@ -1225,7 +1335,7 @@ function RacesContent() {
                     {/* Lane road line */}
                     <div className={`absolute left-2 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
 
-                    {(dimViewMode === 'individual' && activeSubRace ? activeSubRace.steps : combinedSteps).map((step, i, arr) => {
+                    {(activeSubRace ? activeSubRace.steps : combinedSteps).map((step, i, arr) => {
                       const isCompleted = completedMilestoneIds.has(step.id)
                       const isHearted = heartedGoals.has(step.id)
                       // After a completed milestone, check if we should show branching
@@ -1254,9 +1364,6 @@ function RacesContent() {
                                 <div className="flex items-center gap-1 mb-0.5">
                                   <span className="text-[10px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
                                   <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
-                                  {dimViewMode === 'combined' && (step as any).raceName && (
-                                    <span className={`text-[8px] px-1 py-0.5 rounded ${day ? 'bg-slate-100 text-slate-500' : 'bg-indigo-900 text-indigo-400'}`}>{(step as any).raceName}</span>
-                                  )}
                                   {step.status === 'active' && !isCompleted && <span className="text-[8px] font-bold text-amber-500 ml-auto">YOU ARE HERE</span>}
                                 </div>
                                 <div className={`text-[11px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
@@ -1327,8 +1434,10 @@ function RacesContent() {
                     </button>
                   </div>
                 </div>
+                </>)}
 
-                {/* Today's schedule below */}
+                {/* Today's schedule below — only in Track View */}
+                {layoutMode === 'track' && (
                 <div className="mt-6 max-w-md mx-auto">
                   <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
                     <div className={`flex items-center justify-between px-3 py-2 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}`}>
@@ -1344,12 +1453,15 @@ function RacesContent() {
                     ))}
                   </div>
                 </div>
+                )}
               </div>
             )
           })()}
+
           {/* ═══════════════════════════════
-              CURRENT PLACE — character on road
+              CURRENT PLACE — character on road (Track View only)
              ═══════════════════════════════ */}
+          {layoutMode === 'track' && (<>
           <div className="w-full">
             {/* Floating clouds */}
             <div className="flex justify-center gap-6 mb-2">
@@ -1510,6 +1622,7 @@ function RacesContent() {
               <Sparkles className="w-4 h-4" /> Journal / Reflection
             </Link>
           </div>
+          </>)}
         </div>
 
         {/* ═══ MOTIVATION PINWHEEL POPUP ═══ */}
