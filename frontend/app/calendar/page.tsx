@@ -791,6 +791,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
   toggleTask: (id: string) => void,
   addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>
 }) {
+  const router = useRouter()
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
   const visibleDays = days.slice(currentDayIndex, currentDayIndex + 2)
 
@@ -837,14 +838,19 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
                     checked={completedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <span className={`flex-1 text-sm text-slate-800 ${
-                    completedTasks.has(task.id) ? 'line-through' : ''
-                  }`}>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)}
+                    className={`flex-1 text-left text-sm text-slate-800 hover:underline ${
+                      completedTasks.has(task.id) ? 'line-through' : ''
+                    }`}
+                    title="Open task view"
+                  >
                     {task.name}
                     {(task as any).from && (
                       <span className="text-xs text-purple-600 ml-2">(from {(task as any).from})</span>
                     )}
-                  </span>
+                  </button>
                   <span className="text-xs text-slate-600 bg-white/60 px-2 py-1 rounded flex-shrink-0">{task.duration}</span>
                 </div>
               ))}
@@ -883,6 +889,7 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
   toggleTask: (id: string) => void,
   addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>
 }) {
+  const router = useRouter()
   // Get all unique time slots (including added tasks)
   const allTimes = [...new Set([
     ...days.flatMap(d => d.tasks.map(t => t.time)),
@@ -944,12 +951,17 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
                           onChange={() => toggleTask(task.id)}
                         />
                         <div className="flex-1">
-                          <span className={`text-slate-800 block ${completedTasks.has(task.id) ? 'line-through' : ''}`}>
+                          <button
+                            type="button"
+                            onClick={() => router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)}
+                            className={`text-slate-800 block text-left hover:underline ${completedTasks.has(task.id) ? 'line-through' : ''}`}
+                            title="Open task view"
+                          >
                             {task.name}
                             {(task as any).from && (
                               <span className="text-xs text-purple-600 ml-1">(from {(task as any).from})</span>
                             )}
-                          </span>
+                          </button>
                         </div>
                       </div>
                     )}

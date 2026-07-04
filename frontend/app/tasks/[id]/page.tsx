@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useState, useRef, useEffect, Suspense } from 'react'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, BookOpen, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
 
@@ -38,8 +38,17 @@ const todaysGoals = [
 ]
 
 export default function TaskView() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-lg">Loading task…</div>}>
+      <TaskViewContent />
+    </Suspense>
+  )
+}
+
+function TaskViewContent() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
   const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
@@ -67,7 +76,10 @@ export default function TaskView() {
   // Derive task name from the route param ID
   const taskId = params.id as string
   const currentTask = todaysTasks.find(t => t.id === taskId)
-  const taskName = currentTask?.name || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
+  // Prefer an explicit ?name= (passed when opened from the calendar) so the
+  // real task title shows even when the id isn't in the local demo list.
+  const nameParam = searchParams.get('name')
+  const taskName = nameParam || currentTask?.name || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
 
   const completionCount = completedTasks.size
   const totalTasks = todaysTasks.length
