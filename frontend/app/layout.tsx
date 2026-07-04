@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { AuthProvider } from './context/AuthContext'
 import { AgentPathProvider } from './context/AgentPathContext'
 import Navigation from './components/Navigation'
+import ViewTabs from './components/ViewTabs'
 import FeedbackGate from './components/FeedbackGate'
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
         <AuthProvider>
           <AgentPathProvider>
             <Navigation />
+            <ViewTabs />
             <main>
               {children}
             </main>
