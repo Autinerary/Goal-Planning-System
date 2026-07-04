@@ -42,6 +42,7 @@ function RacesContent() {
   const [activeDimRace, setActiveDimRace] = useState<string | null>(null)
   const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
   const [layoutMode, setLayoutMode] = useState<'track' | 'list'>('list')
+  const [trackShape, setTrackShape] = useState<'one' | 'separate'>('one')
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       try { const s = localStorage.getItem('completedMilestoneIds'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
@@ -417,6 +418,31 @@ function RacesContent() {
         { id: 'm2', name: 'Join Study Group', dist: '4 steps', status: 'upcoming' as const, dimension: '', dimensionLabel: '', goal: '' },
         { id: 'm3', name: 'Graduate!', dist: '10 steps', status: 'far' as const, dimension: '', dimensionLabel: '', goal: '' },
       ]
+
+  // ── Real goal wiring ──────────────────────────────────────────────
+  // Each agent milestone carries { dimension, goal }. A single goal is
+  // supported across all four life dimensions, so the "Goal" shown under
+  // a dimension = the distinct real goal(s) whose milestones live in that
+  // dimension. Fall back to the user's onboarding goals, then to a
+  // per-dimension placeholder.
+  const _normDim = (d: string) => { const k = (d || '').toLowerCase(); return k === 'career' ? 'workplace' : k }
+  const goalForDim = (dimKey: string, fallback: string): string => {
+    const fromMs = Array.from(new Set(
+      milestones.filter((m: any) => _normDim(m.dimension) === dimKey).map((m: any) => m.goal).filter(Boolean)
+    )) as string[]
+    const list = fromMs.length ? fromMs : userGoalNames
+    return list.filter(Boolean).join(' · ') || fallback
+  }
+  // Shared dimension metadata — single source of truth for the checklist
+  // tabs and the "Separate" parallel-tracks view.
+  const dimMeta = [
+    { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
+    { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
+    { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
+    { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
+    { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', goal: 'Navigate barriers with support',       tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
+  ]
+
   // Real agent-derived schedule (fallback to mock if no path data yet)
   const schedule = payload?.schedule?.length
     ? payload.schedule.slice(0, 6).map((s: any) => ({
@@ -450,6 +476,12 @@ function RacesContent() {
   const line = day ? '#38bdf8' : '#818cf8'
   const stroke = day ? '#0369a1' : '#a78bfa'
 
+  // View gating: List shows the streamlined top + checklist. Track can be a
+  // single continuous road ("one") or parallel dimension tracks ("separate").
+  const showContinuousTrack = layoutMode === 'track' && trackShape === 'one'
+  const showSeparateTrack = layoutMode === 'track' && trackShape === 'separate'
+  const showChecklist = layoutMode === 'list' || showContinuousTrack
+
   const css = `
     @keyframes rocketFly{0%{transform:translateY(100vh) rotate(-15deg) scale(.5);opacity:0}30%{opacity:1;transform:translateY(30vh) rotate(-5deg) scale(1)}60%{transform:translateY(-10vh) rotate(5deg) scale(1.1)}100%{transform:translateY(-120vh) rotate(0) scale(.3);opacity:0}}
     @keyframes rocketLand{0%{transform:translateY(-50vh) scale(.5);opacity:0}50%{opacity:1;transform:translateY(10px) scale(1.1)}80%{transform:translateY(-5px) scale(1)}100%{transform:translateY(0) scale(1);opacity:1}}
@@ -467,6 +499,39 @@ function RacesContent() {
     .sw{animation:signSwing 3s ease-in-out infinite}
     .aw{animation:awningWave 4s ease-in-out infinite}
   `
+
+  /* Storefront navigation row — Toolbox · ResourceHub · Hare World · Tidbits */
+  const StorefrontRow = () => {
+    const hub = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
+    const shops: { emoji: string; name: string; desc: string; href: string; ext: boolean }[] = [
+      { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
+      { emoji: '🏪', name: 'ResourceHub', desc: 'Curated services & support', href: hub,                                     ext: true  },
+      { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/pit-stop?tab=haveworld&view=people',   ext: false },
+      { emoji: '💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community`,                      ext: true  },
+    ]
+    return (
+      <div className="w-full max-w-3xl px-2 my-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {shops.map(s => {
+            const inner = (
+              <>
+                <div className="text-2xl mb-1">{s.emoji}</div>
+                <div className={`font-bold text-xs ${txt}`}>{s.name}</div>
+                <div className={`text-[9px] ${sub} mb-2 leading-snug`}>{s.desc}</div>
+                <div className={`text-[10px] font-bold px-2 py-1 rounded-lg shadow bg-gradient-to-r ${accent} text-white`}>Go to {s.name} →</div>
+              </>
+            )
+            const cls = `${pill} border rounded-xl p-3 shadow-sm text-center flex flex-col items-center transition-all hover:scale-[1.03]`
+            return s.ext ? (
+              <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
+            ) : (
+              <Link key={s.name} href={s.href} className={cls}>{inner}</Link>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   /* Race-track road segment with lane markings */
   const RoadDown = ({ h = 60 }: { h?: number }) => (
@@ -913,6 +978,16 @@ function RacesContent() {
             </div>
           </div>
 
+          {/* Track shape sub-toggle — As One vs Separate parallel tracks */}
+          {layoutMode === 'track' && (
+            <div className="pt-2 w-full flex justify-center">
+              <div className={`inline-flex rounded-full border overflow-hidden text-[11px] font-bold ${day ? 'border-slate-200 bg-white/60' : 'border-indigo-700 bg-indigo-950/50'}`}>
+                <button onClick={() => setTrackShape('one')} className={`px-3 py-1 transition-all ${trackShape === 'one' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🛣️ As One</button>
+                <button onClick={() => setTrackShape('separate')} className={`px-3 py-1 transition-all ${trackShape === 'separate' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🏁 Separate Races</button>
+              </div>
+            </div>
+          )}
+
           {/* ═══════════════════
               LIST VIEW — Stats + ResourceHub + Hare World (streamlined top)
              ═══════════════════ */}
@@ -960,7 +1035,7 @@ function RacesContent() {
           {/* ═══════════════════
               TRACK VIEW — Dream Self + full road (Track View only)
              ═══════════════════ */}
-          {layoutMode === 'track' && (<>
+          {showContinuousTrack && (<>
           {/* ═══════════════════
               DREAM SELF (top)
              ═══════════════════ */}
@@ -1081,14 +1156,8 @@ function RacesContent() {
               Individual vs Combined view toggle.
               Next milestone selection after completing milestones.
              ═══════════════════════════════════════════════════ */}
-          {(() => {
-            const dimOrder = [
-              { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
-              { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
-              { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
-              { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
-              { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', goal: 'Navigate barriers with support',       tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
-            ]
+          {showChecklist && (() => {
+            const dimOrder = dimMeta
             // Sub-races per dimension: each dimension can have multiple races
             const dimSubRaces: Record<string, Array<{ id: string; name: string; steps: Array<{ id: string; name: string; status: 'active' | 'upcoming' | 'far'; isGeneric?: boolean }> }>> = {
               education: [
@@ -1245,7 +1314,7 @@ function RacesContent() {
                                 {userBarrierLabels.slice(0, 3).map(b => (<span key={b} className={`text-[7px] px-1 py-0.5 rounded-full border ${day ? 'bg-white/70 text-slate-600 border-slate-200' : 'bg-indigo-900/60 text-indigo-300 border-indigo-700'}`}>{b}</span>))}
                               </div>
                             )}
-                            <div className={`text-[9px] font-bold mb-2 ${txt}`}>🎯 {dim.goal}</div>
+                            <div className={`text-[9px] font-bold mb-2 ${txt}`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
                             <div className="relative pl-4">
                               <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
                               {laneSteps.map((step, i) => {
@@ -1308,7 +1377,7 @@ function RacesContent() {
                   {/* Goal(s) for this dimension — shown under the barrier chips */}
                   <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`}>
                     <div className={`text-[8px] font-bold uppercase tracking-wider ${sub}`}>🎯 Goal</div>
-                    <div className={`text-[11px] font-bold leading-snug ${txt}`}>{activeDim.goal}</div>
+                    <div className={`text-[11px] font-bold leading-snug ${txt}`}>{goalForDim(activeDim.key, activeDim.goal)}</div>
                   </div>
 
                   {/* Sub-race tabs (only in individual mode, only if > 1 race) */}
@@ -1458,10 +1527,98 @@ function RacesContent() {
             )
           })()}
 
+          {/* ═══════════════════════════════════════════════════
+              SEPARATE RACES — parallel dimension tracks
+              Each life dimension runs as its own vertical track,
+              fanning out from the Dream Self and converging at the
+              shared start line.  (Track View · "Separate" shape)
+             ═══════════════════════════════════════════════════ */}
+          {showSeparateTrack && (
+            <div className="w-full pt-6">
+              {/* Compact Dream Self header */}
+              <div className="flex flex-col items-center mb-2">
+                <div className="text-4xl bn">🧑‍🚀</div>
+                <div className={`text-base font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
+                <div className={`text-[10px] ${sub}`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
+              </div>
+              <FanOut count={5} />
+              <div className={`text-center mb-3 text-[10px] ${sub}`}>Each life dimension runs as its own parallel track</div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {dimMeta.map(dim => {
+                  const dimMs = milestones.filter((m: any) => _normDim(m.dimension) === dim.key)
+                  const steps: { id: string; name: string; status: 'active' | 'upcoming' | 'far' }[] = dimMs.length
+                    ? dimMs.map((m: any) => ({ id: m.id, name: m.name, status: m.status }))
+                    : dim.key === 'barrier'
+                      ? recommendedChoices.filter(c => c.id !== 'see').map((c, idx) => ({ id: c.id, name: c.name, status: (idx === 0 ? 'active' : idx < 2 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far' }))
+                      : [{ id: `${dim.key}-ph`, name: 'Getting started', status: 'active' as const }]
+                  const done = steps.filter(s => completedMilestoneIds.has(s.id)).length
+                  const pct = Math.round((done / steps.length) * 100)
+                  return (
+                    <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm`}>
+                      <div className={`flex items-center gap-1.5 font-bold text-[11px] mb-1 ${txt}`}>
+                        <span className="text-base">{dim.emoji}</span>
+                        <span className="uppercase tracking-wider truncate">{dim.label}</span>
+                      </div>
+                      <div className={`text-[9px] font-bold mb-1.5 ${txt} leading-snug`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
+                      <div className={`h-1.5 ${day ? 'bg-white/70' : 'bg-indigo-900/60'} rounded-full overflow-hidden mb-2`}>
+                        <div className={`h-full rounded-full bg-gradient-to-r ${accent}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="relative pl-4">
+                        <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
+                        {steps.map((step, i) => {
+                          const isCompleted = completedMilestoneIds.has(step.id)
+                          return (
+                            <button
+                              key={step.id}
+                              onClick={() => toggleMilestoneComplete(step.id)}
+                              className={`relative w-full text-left mb-1.5 p-1.5 rounded-lg border transition-all ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : step.status === 'active' ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}
+                            >
+                              <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
+                              <div className="flex items-center gap-1 mb-0.5">
+                                <span className="text-[8px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
+                                <span className={`text-[7px] font-mono ${sub}`}>Step {i + 1}</span>
+                                {step.status === 'active' && !isCompleted && <span className="text-[7px] font-bold text-amber-500 ml-auto">HERE</span>}
+                              </div>
+                              <div className={`text-[9px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <FanIn count={5} />
+              {/* Shared finish line */}
+              <div className="flex flex-col items-center my-2">
+                <div className="flex mb-2">
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
+                  ))}
+                </div>
+                <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line — Landing Spot</span>
+              </div>
+
+              {/* Storefronts */}
+              <div className="flex justify-center"><StorefrontRow /></div>
+
+              {/* Journal */}
+              <div className="flex justify-center pb-10">
+                <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-5 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
+                  <Sparkles className="w-4 h-4" /> Journal / Reflection
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* ═══════════════════════════════
-              CURRENT PLACE — character on road (Track View only)
+              CURRENT PLACE — character on road (Track View · "As One")
              ═══════════════════════════════ */}
-          {layoutMode === 'track' && (<>
+          {showContinuousTrack && (<>
+          {/* Storefront row */}
+          <StorefrontRow />
           <div className="w-full">
             {/* Floating clouds */}
             <div className="flex justify-center gap-6 mb-2">
