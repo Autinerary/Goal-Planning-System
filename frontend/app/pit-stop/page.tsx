@@ -7,6 +7,7 @@ import axios from 'axios'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
+import { resolveToolLink } from '@/lib/toolLink'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -725,7 +726,7 @@ function PitStopContent() {
                           <ul className="space-y-2">
                             {items.map((t: any) => (
                               <li key={t.id} className="text-sm">
-                                <a href={t.url || '#'} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
+                                <a href={resolveToolLink(t.url, t.name).href} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
                                 {t.description && <div className="text-xs text-slate-600 line-clamp-2">{t.description}</div>}
                               </li>
                             ))}

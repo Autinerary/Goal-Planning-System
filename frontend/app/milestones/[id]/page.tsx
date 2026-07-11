@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageSquare, Package, Lightbulb } from 'lucide-react'
 import { useAgentPath } from '../../context/AgentPathContext'
+import { resolveToolLink } from '@/lib/toolLink'
 
 // Mock milestone data for demonstration
 const mockMilestones: Record<string, any> = {
@@ -631,16 +632,14 @@ function ToolSection({ title, icon: Icon, tools, colorClass }: {
                     </div>
                   )}
                 </div>
-                {tool.url && (
-                  <a
-                    href={tool.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-4 p-2 text-slate-600 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors"
-                  >
-                    <ExternalLink className="h-5 w-5" />
-                  </a>
-                )}
+                <a
+                  href={resolveToolLink(tool.url, tool.name).href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-4 p-2 text-slate-600 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors"
+                >
+                  <ExternalLink className="h-5 w-5" />
+                </a>
               </div>
               
               {/* Progress Bar for Services */}

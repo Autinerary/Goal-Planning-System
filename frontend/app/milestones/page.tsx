@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
+import { resolveToolLink } from '@/lib/toolLink'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -270,7 +271,7 @@ export default function MilestoneView() {
                     {expandedTool === tool.id && (
                       <div className="mt-2 pt-2 border-t border-amber-100 text-xs text-slate-600">
                         <p>→ Targets barrier: <strong>{barriers.find(b => b.id === tool.barrier)?.name}</strong></p>
-                        <a href={tool.url} className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
+                        <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
                       </div>
                     )}
                   </button>

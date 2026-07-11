@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronLeft, ExternalLink, Star, Filter, Search } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
+import { resolveToolLink } from '@/lib/toolLink'
 
 // Mock tools data organized by category
 const toolsDatabase = {
@@ -456,15 +457,20 @@ function ToolsContent() {
             </div>
 
             {/* Action Button */}
-            <a
-              href={tool.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full border-2 border-black rounded py-2 hover:bg-gray-100 font-medium"
-            >
-              Visit Resource
-              <ExternalLink className="w-4 h-4" />
-            </a>
+            {(() => {
+              const link = resolveToolLink(tool.url, tool.name)
+              return (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full border-2 border-black rounded py-2 hover:bg-gray-100 font-medium"
+                >
+                  {link.usable ? 'Visit Resource' : 'Find on ResourceHub'}
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )
+            })()}
           </div>
         ))}
       </div>
