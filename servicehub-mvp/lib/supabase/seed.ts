@@ -31,9 +31,24 @@ const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
 
 // Test data constants
 const CITIES = [
+  // Major hubs
   { name: 'Toronto', province: 'Ontario', country: 'Canada', lat: 43.6532, lng: -79.3832 },
   { name: 'Vancouver', province: 'British Columbia', country: 'Canada', lat: 49.2827, lng: -123.1207 },
   { name: 'Montreal', province: 'Quebec', country: 'Canada', lat: 45.5017, lng: -73.5673 },
+  { name: 'Calgary', province: 'Alberta', country: 'Canada', lat: 51.0447, lng: -114.0719 },
+  { name: 'Ottawa', province: 'Ontario', country: 'Canada', lat: 45.4215, lng: -75.6972 },
+  { name: 'Edmonton', province: 'Alberta', country: 'Canada', lat: 53.5461, lng: -113.4938 },
+  { name: 'Winnipeg', province: 'Manitoba', country: 'Canada', lat: 49.8951, lng: -97.1384 },
+  { name: 'Halifax', province: 'Nova Scotia', country: 'Canada', lat: 44.6488, lng: -63.5752 },
+  // Smaller cities / towns so resources aren't all in big metros
+  { name: 'Kingston', province: 'Ontario', country: 'Canada', lat: 44.2312, lng: -76.4860 },
+  { name: 'Guelph', province: 'Ontario', country: 'Canada', lat: 43.5448, lng: -80.2482 },
+  { name: 'Kelowna', province: 'British Columbia', country: 'Canada', lat: 49.8880, lng: -119.4960 },
+  { name: 'Sherbrooke', province: 'Quebec', country: 'Canada', lat: 45.4040, lng: -71.8929 },
+  { name: 'Moncton', province: 'New Brunswick', country: 'Canada', lat: 46.0878, lng: -64.7782 },
+  { name: 'Red Deer', province: 'Alberta', country: 'Canada', lat: 52.2681, lng: -113.8112 },
+  { name: 'Thunder Bay', province: 'Ontario', country: 'Canada', lat: 48.3809, lng: -89.2477 },
+  { name: 'Nanaimo', province: 'British Columbia', country: 'Canada', lat: 49.1659, lng: -123.9401 },
 ]
 
 const CATEGORIES = [
