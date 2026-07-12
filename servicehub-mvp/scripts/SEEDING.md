@@ -46,6 +46,25 @@ npm install -g tsx
 npx tsx lib/supabase/seed.ts
 ```
 
+## Backfill geocoding for existing profiles
+
+Profiles created before onboarding geocoding shipped have `lat/lng = 0` and
+won't work with the "nearest to you" distance features. Backfill them:
+
+```bash
+# Requires SUPABASE_SERVICE_ROLE_KEY + NEXT_PUBLIC_SUPABASE_URL in your env
+# (or a .env.local that you source first).
+
+# Preview without writing:
+npx tsx scripts/backfill-geocode.ts --dry
+
+# Actually write coordinates:
+npx tsx scripts/backfill-geocode.ts
+```
+
+It geocodes each profile's city/province/country via OpenStreetMap Nominatim
+(free, no API key) and sleeps 1.1s between lookups to respect the rate limit.
+
 ## What Gets Created
 
 ### Test Users (8 users)
