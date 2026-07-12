@@ -103,6 +103,9 @@ class OnboardingRequest(BaseModel):
     goals: List[str]
     dreams: List[str] = []
     currentChallenges: List[str] = []
+    # View & interaction preferences (age range, tech savvy, view style). Optional
+    # so older clients keep working. Recorded to learn from intersecting profiles.
+    preferences: Optional[dict] = None
 
 
 def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[str]) -> None:
@@ -139,6 +142,28 @@ def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[
         print(f"[onboarding] Supabase barrier sync skipped: {e}")
 
 
+def _persist_preferences_to_supabase(user_id: str, email: str, preferences: Optional[dict]) -> None:
+    """Store view/interaction preferences on the shared profiles row.
+
+    Writes into profiles.preferences (JSON). No-op when Supabase isn't
+    configured or preferences are empty. Failures are swallowed.
+    """
+    client = get_supabase()
+    if client is None or not user_id or not preferences:
+        return
+    try:
+        client.table("profiles").upsert(
+            {
+                "id": user_id,
+                "email": email,
+                "preferences": preferences,
+            },
+            on_conflict="id",
+        ).execute()
+    except Exception as e:
+        print(f"[onboarding] Supabase preferences sync skipped: {e}")
+
+
 class OnboardingResponse(BaseModel):
     userId: str
     pathId: str
@@ -167,6 +192,8 @@ async def create_onboarding(request: OnboardingRequest):
 
         # Sync barriers to the shared Supabase table so ServiceHub picks them up
         _persist_barriers_to_supabase(user_id, request.email, request.barrierTypes)
+        # Record view/interaction preferences for intersecting-profile insights
+        _persist_preferences_to_supabase(user_id, request.email, request.preferences)
 
         # Build user profile from onboarding data
         user_profile = {

@@ -8,10 +8,10 @@ import {
   User, Check, ChevronRight, ChevronLeft, Loader2,
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
+import { AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, savePreferences } from '@/lib/preferences'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
-
 // Character avatar options — spirit animal selection is done later in the Spirit Animals step
 const characterTypes = [
   { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
@@ -75,12 +75,13 @@ const steps = [
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
   { id: 'profile', title: 'Dream Self', icon: Palette },
   { id: 'spiritAnimal', title: 'Spirit Animals', icon: Heart },
+  { id: 'personalize', title: 'Personalize', icon: Palette },
   { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
 ]
 
 // Steps the user is allowed to skip without filling anything in. The core
 // steps (barriers, location, goals) stay required.
-const skippableSteps = new Set([0, 4, 5, 6])
+const skippableSteps = new Set([0, 4, 5, 6, 7])
 
 const goalCategories = [
   { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
@@ -315,6 +316,10 @@ export default function OnboardingPage() {
     currentChallenges: [''] as string[],
     motivationType: '' as string,
     motivationTypes: [] as string[],
+    // View & interaction preferences (recorded for intersecting-profile insights)
+    ageRange: '' as string,
+    techSavvy: '' as string,
+    viewPreference: '' as string,
     // Profile customization
     dreamSelf: '',
     // Alternate Persona (optional) — a named alter-ego for the Dream Self
@@ -346,6 +351,25 @@ export default function OnboardingPage() {
           setFormData(prev => ({ ...prev, ...data }))
           setCurrentStep(step)
         }
+      }
+      // Path Market seed — if the user picked a path template, pre-fill its
+      // goals into the "other" category so they start with a head-start.
+      const seedRaw = localStorage.getItem('autinerary_path_seed')
+      if (seedRaw) {
+        const seed = JSON.parse(seedRaw)
+        if (seed?.goals?.length) {
+          setFormData(prev => {
+            const existing = prev.goalsByCategory || {}
+            if (Object.keys(existing).length > 0) return prev // don't clobber a resumed draft
+            return {
+              ...prev,
+              goalsByCategory: {
+                other: seed.goals.map((g: string) => ({ goal: g, dreams: '', obstacles: '' })),
+              },
+            }
+          })
+        }
+        localStorage.removeItem('autinerary_path_seed')
       }
     } catch {
       // corrupt data — ignore
@@ -424,14 +448,15 @@ export default function OnboardingPage() {
       case 4: return formData.motivationTypes.length > 0 && formData.lifeStage !== ''
       case 5: return formData.dreamSelf.trim() !== '' // Profile customization
       case 6: return formData.spiritAnimals.length > 0 && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals
-      case 7: return true // Recommendations step - can always proceed (optional to save)
+      case 7: return true // Personalize — all optional, can always proceed
+      case 8: return true // Recommendations step - can always proceed (optional to save)
       default: return false
     }
   }
   
   // Fetch AI recommendations when reaching the recommendations step
   useEffect(() => {
-    if (currentStep === 7 && recommendations.length === 0 && !isLoadingRecommendations) {
+    if (currentStep === 8 && recommendations.length === 0 && !isLoadingRecommendations) {
       fetchRecommendations()
     }
   }, [currentStep])
@@ -622,6 +647,14 @@ export default function OnboardingPage() {
     
     setIsSubmitting(true)
     try {
+      // Record view/interaction preferences (age, tech savvy, view style) so the
+      // rest of the app can adapt and we can learn from intersecting profiles.
+      savePreferences({
+        ageRange: (formData.ageRange || '') as any,
+        techSavvy: (formData.techSavvy || '') as any,
+        viewPreference: (formData.viewPreference || '') as any,
+      })
+
       // Flatten categorized goals into flat arrays for backend compat
       const allGoals: string[] = []
       const allDreams: string[] = []
@@ -643,7 +676,13 @@ export default function OnboardingPage() {
         goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
-        motivationType: formData.motivationType
+        motivationType: formData.motivationType,
+        // View & interaction preferences for intersecting-profile insights
+        preferences: {
+          ageRange: formData.ageRange,
+          techSavvy: formData.techSavvy,
+          viewPreference: formData.viewPreference,
+        }
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -692,6 +731,11 @@ export default function OnboardingPage() {
         alternatePersona: {
           name: formData.alternatePersonaName.trim(),
           note: formData.alternatePersonaNote.trim(),
+        },
+        preferences: {
+          ageRange: formData.ageRange,
+          techSavvy: formData.techSavvy,
+          viewPreference: formData.viewPreference,
         },
       }))
 
@@ -1739,8 +1783,93 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 7: AI Recommendations */}
+          {/* Step 7: Personalize — view & interaction preferences */}
           {currentStep === 7 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Palette className="w-6 h-6 text-cyan-600" />
+                <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
+              </div>
+              <p className="text-slate-600 mb-6">
+                This helps us tailor how the app looks and feels for you. Every mode is still a
+                fun, gamified checklist — this just tunes how much visual energy we add. All optional.
+              </p>
+
+              {/* Age Range */}
+              <div className="mb-6">
+                <label className="block font-semibold text-slate-800 mb-2">Age range</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {AGE_RANGES.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, ageRange: o.id }))}
+                      className={`px-4 py-3 rounded-xl border-2 font-medium transition-all ${
+                        formData.ageRange === o.id
+                          ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tech Savvyness */}
+              <div className="mb-6">
+                <label className="block font-semibold text-slate-800 mb-2">
+                  How often do you use apps?
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {TECH_SAVVY.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, techSavvy: o.id }))}
+                      className={`px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                        formData.techSavvy === o.id
+                          ? 'border-cyan-500 bg-cyan-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className={`font-medium ${formData.techSavvy === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
+                      <div className="text-xs text-slate-500">{o.hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* View Preference */}
+              <div className="mb-2">
+                <label className="block font-semibold text-slate-800 mb-2">View preference</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {VIEW_PREFERENCES.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, viewPreference: o.id }))}
+                      className={`px-4 py-4 rounded-xl border-2 text-center transition-all ${
+                        formData.viewPreference === o.id
+                          ? 'border-cyan-500 bg-cyan-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">{o.emoji}</div>
+                      <div className={`font-medium text-sm ${formData.viewPreference === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
+                      <div className="text-[11px] text-slate-500 leading-tight mt-0.5">{o.hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 mt-4">
+                You can fine-tune placement, size, and colors later in Settings and on each screen.
+              </p>
+            </div>
+          )}
+
+          {/* Step 8: AI Recommendations */}
+          {currentStep === 8 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-6 h-6 text-cyan-600" />
@@ -1892,7 +2021,7 @@ export default function OnboardingPage() {
                   disabled={!canProceed()}
                   className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
-                  {currentStep === 6 ? 'View Recommendations' : 'Continue'}
+                  {currentStep === 7 ? 'View Recommendations' : 'Continue'}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               ) : (

@@ -2,9 +2,13 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { AuthProvider } from './context/AuthContext'
 import { AgentPathProvider } from './context/AgentPathContext'
+import { LanguageProvider } from './context/LanguageContext'
 import Navigation from './components/Navigation'
 import ViewTabs from './components/ViewTabs'
 import FeedbackGate from './components/FeedbackGate'
+import MovementTracker from './components/MovementTracker'
+import AccessibilityProvider from './components/AccessibilityProvider'
+import InteractiveDemo from './components/InteractiveDemo'
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
@@ -21,12 +25,17 @@ export default function RootLayout({
       <body className="min-h-screen">
         <AuthProvider>
           <AgentPathProvider>
+            <LanguageProvider>
+            <AccessibilityProvider />
             <Navigation />
             <ViewTabs />
+            <MovementTracker />
             <main>
               {children}
             </main>
             <FeedbackGate />
+            <InteractiveDemo />
+            </LanguageProvider>
           </AgentPathProvider>
         </AuthProvider>
       </body>

@@ -8,6 +8,7 @@ import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { computeRaceProgress } from '@/lib/raceProgress'
+import { usePreferences } from '../context/usePreferences'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -20,6 +21,7 @@ function RacesContent() {
   const { payload, pathPlanning, toolRecommendation } = useAgentPath()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { prefs, updateLayout } = usePreferences()
 
   const [isDayTheme, setIsDayTheme] = useState(true)
   const [showRocketEntry, setShowRocketEntry] = useState(false)
@@ -705,8 +707,8 @@ function RacesContent() {
               <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
             </div>
             <div className="flex items-center gap-1.5">
-              {/* Motivation Pinwheel - tiny, top right */}
-              <div className="relative">
+              {/* Motivation Pinwheel - position follows the user's saved layout preference */}
+              <div className="relative" style={{ order: prefs.layout.pinwheelSide === 'right' ? 99 : -1 }}>
                 <button
                   onClick={() => setShowPinwheelPopup(true)}
                   onMouseEnter={() => setPinwheelHover(true)}
@@ -1822,6 +1824,26 @@ function RacesContent() {
                 ) : (
                   <p className={`text-sm ${sub}`}>Tap the wheel to spin!</p>
                 )}
+              </div>
+
+              {/* Placement customization — records the user's choice */}
+              <div className={`mt-6 pt-4 border-t ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-2 text-center`}>Pinwheel placement</div>
+                <div className="flex gap-2 justify-center">
+                  {(['left', 'right'] as const).map((side) => (
+                    <button
+                      key={side}
+                      onClick={() => updateLayout({ pinwheelSide: side })}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                        prefs.layout.pinwheelSide === side
+                          ? `bg-gradient-to-r ${accent} text-white`
+                          : `${day ? 'bg-slate-100 text-slate-600' : 'bg-indigo-900 text-indigo-200'}`
+                      }`}
+                    >
+                      {side === 'left' ? '← Left' : 'Right →'}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

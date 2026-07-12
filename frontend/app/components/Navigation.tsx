@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from '../context/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
-import { LogOut, User, ExternalLink, Settings } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle } from 'lucide-react'
 
 async function goToServiceHub() {
   const base = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -32,6 +33,7 @@ const hideNavRoutes = ['/', '/login', '/signup', '/onboarding']
 
 export default function Navigation() {
   const { user, logout, isLoading } = useAuth()
+  const { t } = useTranslation()
   const pathname = usePathname()
 
   if (isLoading || hideNavRoutes.includes(pathname)) {
@@ -64,7 +66,16 @@ export default function Navigation() {
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 rounded-lg transition-all"
             >
               <ExternalLink className="w-4 h-4" />
-              <span className="hidden sm:inline">Find Resources</span>
+              <span className="hidden sm:inline">{t('nav.findResources')}</span>
+            </button>
+
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+              title="How it works"
+            >
+              <PlayCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('nav.howItWorks')}</span>
             </button>
 
             <Link
@@ -73,7 +84,7 @@ export default function Navigation() {
               title="Settings"
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden sm:inline">{t('nav.settings')}</span>
             </Link>
 
             <button
@@ -81,7 +92,7 @@ export default function Navigation() {
               className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">{t('nav.logout')}</span>
             </button>
           </div>
         </div>

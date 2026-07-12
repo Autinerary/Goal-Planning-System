@@ -376,7 +376,7 @@ export default function PathView() {
         </div>
 
         {/* ── Quick Actions Row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <Link href="/races" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Target className="w-4 h-4 text-cyan-500" />
             Races
@@ -405,6 +405,10 @@ export default function PathView() {
           <Link href="/resource-roadmap" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Map className="w-4 h-4 text-cyan-500" />
             Resource Roadmap
+          </Link>
+          <Link href="/path-market" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            Path Market
           </Link>
         </div>
 

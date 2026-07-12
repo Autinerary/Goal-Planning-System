@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route } from 'lucide-react'
+import { loadMovement, movementSummary, exportMovement, clearMovement, type RouteVisit } from '@/lib/movement'
 
 type Profile = {
   id: string
@@ -29,6 +30,15 @@ export default function ProfileSettingsPage() {
   const [dataMsg, setDataMsg] = useState<string | null>(null)
   const [dataErr, setDataErr] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<null | 'progress' | 'all'>(null)
+
+  // ── App journey (movement order) ──
+  const [movement, setMovement] = useState<RouteVisit[]>([])
+  useEffect(() => {
+    setMovement(loadMovement())
+    const onMove = (e: Event) => setMovement(((e as CustomEvent).detail as RouteVisit[]) || loadMovement())
+    window.addEventListener('autinerary:movement', onMove as EventListener)
+    return () => window.removeEventListener('autinerary:movement', onMove as EventListener)
+  }, [])
 
   // localStorage keys that mirror server-side progress.
   const PROGRESS_LS_KEYS = ['completedMilestoneIds', 'heartedGoals', 'calendarAddedTasks', 'todaysMotivation', 'pendingSavedResources']
@@ -165,6 +175,13 @@ export default function ProfileSettingsPage() {
           className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+
+        <button
+          onClick={() => router.push('/profile/accessibility')}
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+        >
+          Accessibility →
         </button>
 
         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">
@@ -368,6 +385,48 @@ export default function ProfileSettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* ── App Journey (movement order) ── */}
+        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6 mt-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Route className="w-5 h-5 text-cyan-600" />
+            <h2 className="text-xl font-bold">App Journey</h2>
+          </div>
+          <p className="text-slate-600 mb-4 text-sm">
+            The order you moved through the app this session. This helps us understand how people
+            navigate — you can export it to share as feedback.
+          </p>
+
+          {movement.length === 0 ? (
+            <p className="text-sm text-slate-500">No screens recorded yet. Move around the app and it&apos;ll show here.</p>
+          ) : (
+            <>
+              <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 leading-relaxed">
+                {movement.map((v, i) => (
+                  <span key={i}>
+                    <span className="font-medium text-slate-900">{v.label}</span>
+                    {i < movement.length - 1 && <span className="text-slate-400"> → </span>}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mb-4">{movement.length} screen views recorded.</p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={exportMovement}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-semibold"
+                >
+                  <Download className="w-4 h-4" /> Export journey
+                </button>
+                <button
+                  onClick={() => { clearMovement(); setMovement([]) }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
+                >
+                  <Trash2 className="w-4 h-4" /> Clear
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

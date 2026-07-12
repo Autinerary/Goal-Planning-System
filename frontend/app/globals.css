@@ -23,6 +23,36 @@ input[type="checkbox"] {
   accent-color: #8b5cf6;
 }
 
+/* ── Accessibility settings (driven by data-attributes on <html>) ── */
+/* Font scaling — rem-based so the whole UI scales proportionally. */
+html[data-font-scale="large"] { font-size: 18px; }
+html[data-font-scale="xlarge"] { font-size: 20px; }
+
+/* High contrast — darken text and strengthen borders/links. */
+html[data-high-contrast="on"] body { filter: contrast(1.15); }
+html[data-high-contrast="on"] a { color: #0b3d91; }
+
+/* Reduce motion — neutralize animations and transitions. */
+html[data-reduce-motion="on"] *,
+html[data-reduce-motion="on"] *::before,
+html[data-reduce-motion="on"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Dyslexia-friendly font stack. */
+html[data-dyslexia-font="on"],
+html[data-dyslexia-font="on"] body {
+  font-family: 'Comic Sans MS', 'Trebuchet MS', Verdana, sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}
+
+/* Always underline links for clearer affordance. */
+html[data-underline-links="on"] a { text-decoration: underline; }
+
 /* Custom animations */
 @keyframes spin {
   from {
