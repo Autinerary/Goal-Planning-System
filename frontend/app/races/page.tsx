@@ -1010,7 +1010,10 @@ function RacesContent() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} hover:underline`}>Hide stats</button>
+                    <Link href="/stats" className={`text-[8px] font-bold ${day ? 'text-emerald-600' : 'text-emerald-300'} hover:underline`}>See full breakdown →</Link>
+                  </div>
                 </div>
               ) : (
                 <button onClick={() => setGamifiedMode(true)} className={`text-[10px] ${sub} hover:underline`}>Show stats</button>
