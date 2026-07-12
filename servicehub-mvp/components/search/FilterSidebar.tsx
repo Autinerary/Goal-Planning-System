@@ -218,7 +218,7 @@ export default function FilterSidebar({
 
       {/* Distance Filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Maximum Distance</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Near me (Maximum Distance)</h3>
         <div className="space-y-2">
           {[5, 10, 25, 50, 100].map((distance) => (
             <label
@@ -250,7 +250,8 @@ export default function FilterSidebar({
           </label>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Note: Location filtering requires your location to be set in your profile.
+          Distances are measured from the location in your profile. Complete
+          onboarding (or set a location in your profile) to sort by nearest.
         </p>
       </div>
 

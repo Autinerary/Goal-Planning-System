@@ -5,6 +5,7 @@ import { generateUserEmbeddingJob } from '@/lib/embeddings/background-jobs'
 import { orchestrator } from '@/lib/agents/orchestrator'
 import type { UserRequest } from '@/lib/agents/orchestrator/types'
 import type { Location } from '@/types/database'
+import { geocodeLocation } from '@/lib/geocode'
 
 interface OnboardingData {
   role: string | null
@@ -74,14 +75,23 @@ export async function POST(request: NextRequest) {
       notes: b.notes || undefined,
     }))
 
+    // Geocode the city/province/country to lat/lng so the 'nearest to you'
+    // distance features work for goal-planning users (whose onboarding only
+    // collects location as plain text). Falls back to null on failure.
+    const coords = await geocodeLocation({
+      city: body.location.city,
+      province: body.location.province,
+      country: body.location.country,
+    })
+
     // Convert location to Location type
     const location: Location = {
       city: body.location.city,
       province: body.location.province,
       country: body.location.country,
       address: '',
-      lat: 0,
-      lng: 0,
+      lat: coords?.lat ?? 0,
+      lng: coords?.lng ?? 0,
       postal_code: '',
     }
 
@@ -90,10 +100,10 @@ export async function POST(request: NextRequest) {
     let barriersAdded = 0
 
     if (isAuthenticated && user) {
-      // Update user profile
+      // Update user profile (with geocoded coords so distance search works)
       const profileUpdate = await updateProfile(user.id, {
         role: body.role as any,
-        location: body.location,
+        location,
       })
 
       if (!profileUpdate) {
