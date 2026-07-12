@@ -133,6 +133,7 @@ function PitStopContent() {
     { id: 'g1', name: 'ADHD Study Group', type: 'education', leader: 'You', members: 8, isPublic: true, code: null, joined: false },
     { id: 'g2', name: 'Parent Support Circle', type: 'parent_child', leader: 'Sarah Chen', members: 12, isPublic: false, code: 'PARENT2024', joined: false },
     { id: 'g3', name: 'Tech Career Mentors', type: 'work', leader: 'Marcus Johnson', members: 15, isPublic: true, code: null, joined: false },
+    { id: 'g4', name: 'Pre-Med Students', type: 'education', leader: 'Priya Patel', members: 10, isPublic: true, code: null, joined: false },
   ])
   const [showJoinSuccessModal, setShowJoinSuccessModal] = useState(false)
   const [joinedGroupName, setJoinedGroupName] = useState<string | null>(null)
@@ -694,7 +695,7 @@ function PitStopContent() {
                 : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
-            3.5. Pit Stop #2: Hare World
+            3.5. People &amp; Community (Hare World)
           </button>
         </div>
 
@@ -801,8 +802,8 @@ function PitStopContent() {
 
             {/* Description */}
             <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-2">3.5. Pit Stop #2: Hare World</h2>
-              <p className="text-slate-600 mb-4">Pit Stop hub for people: Connect with Role Models, Mentors, and Friends</p>
+              <h2 className="text-xl font-bold mb-2">People &amp; Community <span className="text-slate-400 font-normal text-base">(Hare World)</span></h2>
+              <p className="text-slate-600 mb-4">Your people hub — connect with role models, mentors, and friends, and join collaboration groups.</p>
               
               {/* View Toggle */}
               <div className="flex gap-2 mb-4">
@@ -1164,7 +1165,7 @@ function PitStopContent() {
               <div className="space-y-6">
                 {/* Collab Types */}
                 <div className="bg-white rounded-2xl border-2 border-indigo-200 p-6 shadow-sm">
-                  <h3 className="text-lg font-bold mb-4">Collab TYPES</h3>
+                  <h3 className="text-lg font-bold mb-4">Collaborate</h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     {collabTypes.map((type) => (
                       <button
@@ -1393,7 +1394,8 @@ function PitStopContent() {
             {/* Functions Section - Only show in People view */}
             {haveWorldView === 'people' && (
             <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold mb-4">Functions:</h3>
+              <h3 className="text-lg font-bold mb-1">What you can do here</h3>
+              <p className="text-sm text-slate-500 mb-4">Search for people, add connections, or manage who&apos;s on your team.</p>
               <div className="grid md:grid-cols-2 gap-4">
                 <button 
                   onClick={() => {

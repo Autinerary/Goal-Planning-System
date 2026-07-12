@@ -347,9 +347,9 @@ export default function PathView() {
           </Link>
           <Link href="/pit-stop?tab=haveworld" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Users className="w-4 h-4 text-purple-500" />
-            Hare World
+            People &amp; Community
           </Link>
-          <Link href="/pit-stop?tab=stats" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+          <Link href="/races" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
             Stats Breakdown
           </Link>

@@ -1168,7 +1168,7 @@ function RacesContent() {
                   { id: 'ea3', name: 'Join a study group for support', status: 'upcoming' },
                   { id: 'ea4', name: 'Access campus resources for disabilities', status: 'upcoming' },
                   { id: 'ea5', name: 'Research tech programs with flexibility', status: 'upcoming' },
-                  { id: 'ea6', name: 'Create a study schedule for focus', status: 'far' },
+                  { id: 'ea6', name: 'Review and adjust your study schedule', status: 'far' },
                   { id: 'ea7', name: 'Utilize sensory-friendly study environments', status: 'far' },
                   { id: 'ea8', name: 'Complete semester final exams', status: 'far', isGeneric: true },
                 ]},

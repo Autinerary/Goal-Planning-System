@@ -325,6 +325,8 @@ export default function OnboardingPage() {
   })
 
   const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
+  // Free-text custom barriers the user adds per connection (e.g. "public speaking").
+  const [customBarrierDraft, setCustomBarrierDraft] = useState<Record<string, string>>({})
   
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
@@ -1112,6 +1114,77 @@ export default function OnboardingPage() {
                                   </div>
                                 </div>
                               ))}
+                            </div>
+
+                            {/* Add your own — custom / more specific barriers */}
+                            <div className="mt-4 pt-3 border-t border-slate-200">
+                              <p className="text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Add your own</p>
+                              <p className="text-xs text-slate-400 mb-2">Don&apos;t see a barrier that fits? Add something specific — e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
+                              {/* Chips for already-added custom barriers on this connection */}
+                              {(formData.barrierConnections[connId] || []).filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b)))).length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                  {(formData.barrierConnections[connId] || [])
+                                    .filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b))))
+                                    .map(b => (
+                                      <button
+                                        key={b}
+                                        onClick={() => {
+                                          setFormData(prev => {
+                                            const current = { ...prev.barrierConnections }
+                                            current[connId] = (current[connId] || []).filter(x => x !== b)
+                                            const allBarriers = [...new Set(Object.values(current).flat())]
+                                            return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
+                                          })
+                                        }}
+                                        className="px-3 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                                      >
+                                        {b} ✕
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={customBarrierDraft[connId] || ''}
+                                  onChange={(e) => setCustomBarrierDraft(prev => ({ ...prev, [connId]: e.target.value }))}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      const val = (customBarrierDraft[connId] || '').trim()
+                                      if (!val) return
+                                      setFormData(prev => {
+                                        const current = { ...prev.barrierConnections }
+                                        const list = current[connId] || []
+                                        if (!list.some(x => x.toLowerCase() === val.toLowerCase())) current[connId] = [...list, val]
+                                        const allBarriers = [...new Set(Object.values(current).flat())]
+                                        return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
+                                      })
+                                      setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
+                                    }
+                                  }}
+                                  placeholder="Type a specific barrier and press Enter"
+                                  maxLength={60}
+                                  className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const val = (customBarrierDraft[connId] || '').trim()
+                                    if (!val) return
+                                    setFormData(prev => {
+                                      const current = { ...prev.barrierConnections }
+                                      const list = current[connId] || []
+                                      if (!list.some(x => x.toLowerCase() === val.toLowerCase())) current[connId] = [...list, val]
+                                      const allBarriers = [...new Set(Object.values(current).flat())]
+                                      return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
+                                    })
+                                    setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
+                                  }}
+                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:opacity-90"
+                                >
+                                  Add
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )
