@@ -91,7 +91,7 @@ function ReflectionContent() {
         freeFormText: Object.values(answers).join('\n')
       })
       alert('Reflection submitted successfully!')
-      router.push('/path')
+      router.push('/reflection/history')
     } catch (error) {
       console.error('Error:', error)
       alert('Error submitting reflection')
@@ -177,6 +177,13 @@ function ReflectionContent() {
         {/* ── Landing Screen: choose new entry or view history ── */}
         {mode === 'landing' ? (
           <div className={`${currentTheme.card} rounded-2xl border-2 p-8 md:p-12 shadow-2xl`}>
+            {/* Back to path */}
+            <button
+              onClick={() => router.push('/path')}
+              className={`mb-4 text-sm ${currentTheme.textSecondary} hover:underline flex items-center gap-1`}
+            >
+              ← Back
+            </button>
             {/* Desk scene */}
             <div className="text-center mb-8">
               <div className="relative inline-block mb-4">
@@ -219,7 +226,7 @@ function ReflectionContent() {
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-cyan-500 flex items-center justify-center shadow-md">
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-bold text-slate-800 text-lg">Previous Entries</span>
+                <span className="font-bold text-slate-800 text-lg">All Entries</span>
                 <span className="text-sm text-slate-500">Read your past journal entries</span>
               </Link>
             </div>

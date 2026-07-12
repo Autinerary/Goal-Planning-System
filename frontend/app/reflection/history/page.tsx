@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import axios from 'axios'
-import { ChevronLeft, Calendar, ChevronDown, ChevronUp, Smile, Meh, Frown, Loader2 } from 'lucide-react'
+import { ChevronLeft, Calendar, ChevronDown, ChevronUp, Smile, Meh, Frown, Loader2, Upload, Sparkles, X } from 'lucide-react'
+import { buildMotivationReport, MOTIVATION_META } from '@/lib/motivation'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -38,6 +39,11 @@ export default function JournalHistory() {
   const [error, setError] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
+  const [showImport, setShowImport] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [importBusy, setImportBusy] = useState(false)
+  const [importMsg, setImportMsg] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     fetchJournals()
@@ -58,6 +64,74 @@ export default function JournalHistory() {
       setLoading(false)
     }
   }
+
+  // Split pasted/uploaded text into entries. A line of only dashes, or a blank
+  // line between paragraphs, separates entries; otherwise the whole blob is one.
+  const splitEntries = (raw: string): string[] => {
+    const byDivider = raw
+      .split(/\n\s*(?:-{3,}|={3,}|\*{3,})\s*\n/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (byDivider.length > 1) return byDivider
+    const byBlank = raw
+      .split(/\n\s*\n\s*\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    return byBlank.length ? byBlank : [raw.trim()].filter(Boolean)
+  }
+
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    const texts = await Promise.all(files.map((f) => f.text().catch(() => '')))
+    setImportText((prev) => [prev, ...texts].filter(Boolean).join('\n\n---\n\n'))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleImportSubmit = async () => {
+    const entries = splitEntries(importText)
+    if (!entries.length) {
+      setImportMsg('Nothing to import — paste text or choose a file first.')
+      return
+    }
+    setImportBusy(true)
+    setImportMsg(null)
+    let ok = 0
+    for (const text of entries) {
+      try {
+        await axios.post(`${API_URL}/api/reflections/`, {
+          contextType: 'imported',
+          contextId: 'imported',
+          questions: [{ id: 'imported', question: 'Imported journal entry', answer: text }],
+          freeFormText: text,
+          source: 'import',
+        })
+        ok++
+      } catch {
+        /* backend may be offline; keep going */
+      }
+    }
+    setImportBusy(false)
+    setImportMsg(
+      ok === entries.length
+        ? `Imported ${ok} ${ok === 1 ? 'entry' : 'entries'}. They’ll be considered in your reflections.`
+        : ok > 0
+          ? `Imported ${ok} of ${entries.length}. Some couldn’t be saved (is the backend running?).`
+          : `Couldn’t save entries — the journal backend may be offline. Your text is kept below so you can retry.`
+    )
+    if (ok > 0) {
+      setImportText('')
+      fetchJournals()
+    }
+  }
+
+  // Motivation report — computed from the text of all loaded entries.
+  const motivationReport = buildMotivationReport(
+    journals.flatMap((j) => [
+      j.summary || '',
+      ...(j.questions || []).map((qa) => qa.a || ''),
+    ])
+  )
 
   const filteredJournals = filter === 'all' 
     ? journals 
@@ -88,7 +162,7 @@ export default function JournalHistory() {
           <Link href="/reflection" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold">Previous Journals</h1>
+          <h1 className="text-2xl font-bold">All Entries</h1>
         </div>
         <div className="text-center py-12">
           <p className="text-red-500 mb-4">{error}</p>
@@ -120,15 +194,113 @@ export default function JournalHistory() {
           </Link>
           <div className="flex items-center gap-3">
             <div className="text-4xl">📖</div>
-            <h1 className="text-3xl font-bold text-slate-800">Previous Journals</h1>
+            <h1 className="text-3xl font-bold text-slate-800">All Entries</h1>
           </div>
-          <button 
-            onClick={fetchJournals}
-            className="ml-auto px-4 py-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all text-sm font-medium"
-          >
-            Refresh
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setShowImport((v) => !v)}
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium inline-flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" /> Import entries
+            </button>
+            <button
+              onClick={fetchJournals}
+              className="px-4 py-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all text-sm font-medium"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
+
+        {/* Import panel — bring in journals kept elsewhere (Notes app, files, etc.) */}
+        {showImport && (
+          <div className="mb-8 bg-white/70 backdrop-blur-lg border-2 border-cyan-300 rounded-xl p-6 shadow-lg">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-cyan-600" /> Import past journal entries
+                </h2>
+                <p className="text-sm text-slate-600 mt-1 max-w-xl">
+                  Keep a journal somewhere else (phone Notes, a doc, text files)? Paste it or upload
+                  files here for a mass import. Separate entries with a blank line or a line of
+                  <code className="mx-1">---</code>. They&apos;ll be considered in your reflections and reports.
+                </p>
+              </div>
+              <button onClick={() => setShowImport(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder="Paste your journal entries here…"
+              className="w-full min-h-[160px] rounded-xl border-2 border-slate-300 p-4 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-y bg-white/80"
+            />
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,.md,.text,text/plain,text/markdown"
+                multiple
+                onChange={handleFilePick}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-white border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-medium inline-flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" /> Choose files (.txt / .md)
+              </button>
+              <button
+                onClick={handleImportSubmit}
+                disabled={importBusy || !importText.trim()}
+                className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+              >
+                {importBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {importBusy ? 'Importing…' : 'Import & consider these'}
+              </button>
+              {importMsg && <span className="text-sm text-slate-600">{importMsg}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Motivation Style report — "____ was your best Motivation Style" */}
+        {motivationReport.top && (
+          <div className="mb-8 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 backdrop-blur-lg border-2 border-indigo-300 rounded-xl p-6 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-lg font-bold text-slate-800">Your Motivation Style report</h2>
+            </div>
+            <p className="text-slate-800 text-lg">
+              <span className="text-2xl mr-1">{MOTIVATION_META[motivationReport.top].emoji}</span>
+              <span className="font-bold">{MOTIVATION_META[motivationReport.top].label}</span> was your
+              best Motivation Style this month.
+            </p>
+            <p className="text-sm text-slate-600 mt-1">
+              {MOTIVATION_META[motivationReport.top].blurb} Based on {motivationReport.entryCount}{' '}
+              {motivationReport.entryCount === 1 ? 'entry' : 'entries'}.
+            </p>
+            <div className="mt-3 space-y-1.5">
+              {motivationReport.ranked
+                .filter((r) => r.score > 0)
+                .slice(0, 4)
+                .map((r) => {
+                  const pct = Math.round((r.score / motivationReport.totalHits) * 100)
+                  return (
+                    <div key={r.style} className="flex items-center gap-2">
+                      <span className="w-32 text-xs text-slate-700 shrink-0">
+                        {MOTIVATION_META[r.style].emoji} {MOTIVATION_META[r.style].label}
+                      </span>
+                      <div className="flex-1 h-2 bg-white/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-slate-500 w-9 text-right">{pct}%</span>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )}
 
         {/* Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

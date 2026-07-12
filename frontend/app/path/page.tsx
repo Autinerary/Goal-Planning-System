@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings } from 'lucide-react'
+import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
+import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -15,6 +16,7 @@ interface PathData {
   userId: string
   path?: any
   races?: any[]
+  milestones?: any[]
   recommendations?: any
   schedule?: any[]
   explanations?: string[]
@@ -29,6 +31,29 @@ export default function PathView() {
   const [pathData, setPathData] = useState<PathData | null>(null)
   const [isLoadingPath, setIsLoadingPath] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+
+  // Real milestone completions (race_progress) — used to compute how much
+  // progress the user has actually made on each race. Refetches when the tab
+  // regains focus so returning from the Races page shows fresh numbers.
+  useEffect(() => {
+    if (!supabaseUser?.id) return
+    let cancelled = false
+    const load = async () => {
+      const ids = await fetchCompletedMilestoneIds()
+      if (!cancelled) setCompletedMilestoneIds(ids)
+    }
+    load()
+    const onFocus = () => { load() }
+    const onVisible = () => { if (document.visibilityState === 'visible') load() }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [supabaseUser?.id])
 
   // Fetch AI-generated path on mount
   useEffect(() => {
@@ -91,6 +116,17 @@ export default function PathView() {
         { id: 'race_1', name: 'Graduate University', progress: 45, category: 'Education', color: 'from-purple-500 to-pink-500' },
         { id: 'race_2', name: 'Get Tech Job', progress: 20, category: 'Career', color: 'from-cyan-500 to-blue-500' },
       ]
+
+  // ── Real progress ─────────────────────────────────────────────────
+  // Replace each race's progress with the % of its milestones the user has
+  // actually completed. Milestones come from the stored path payload; a race
+  // with no attributable milestones keeps its payload value.
+  const pathMilestones: ProgressMilestone[] =
+    (pathData?.milestones || pathData?.path?.milestones || []) as ProgressMilestone[]
+  races.forEach((r: any) => {
+    const p = computeRaceProgress(r, pathMilestones, completedMilestoneIds)
+    if (p !== null) r.progress = p
+  })
 
   const ultimateDream = pathData?.userProfile?.ultimateDream || 'Become a successful professional who thrives with my unique strengths'
   const overallProgress = races.length > 0
@@ -340,7 +376,7 @@ export default function PathView() {
         </div>
 
         {/* ── Quick Actions Row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
           <Link href="/races" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Target className="w-4 h-4 text-cyan-500" />
             Races
@@ -356,6 +392,19 @@ export default function PathView() {
           <Link href="/reflection?contextType=path" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <BookOpen className="w-4 h-4 text-amber-500" />
             Journal
+          </Link>
+          <a
+            href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=path`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-500" />
+            View related posts
+          </a>
+          <Link href="/resource-roadmap" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+            <Map className="w-4 h-4 text-cyan-500" />
+            Resource Roadmap
           </Link>
         </div>
 

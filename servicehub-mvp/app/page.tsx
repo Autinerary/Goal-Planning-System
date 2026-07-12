@@ -213,9 +213,20 @@ async function RecommendedSection() {
               score: Math.round(matchPercentage),
             }
           })
-          finalExplanations = [
-            `We analyzed resources rated highly by users with similar barrier profiles to yours (${barrierTypesList}).`,
-          ]
+          finalExplanations = finalResources.map((resource: any) => {
+            const parts: string[] = [
+              `Based on those who matched your Diagnostics profile (${barrierTypesList})`,
+            ]
+            if (resource.similarUsers > 0) {
+              parts.push(
+                `rated highly by ${resource.similarUsers} similar ${resource.similarUsers === 1 ? 'person' : 'people'}`
+              )
+            }
+            if (resource.averageRating >= 4) {
+              parts.push(`${resource.averageRating.toFixed(1)}★ average`)
+            }
+            return parts.join(' • ')
+          })
           finalConfidence = 0.82
           finalSynthesisExplanation = `These ${finalResources.length} resources were recommended because users with similar barriers (${barrierTypesList}) rated them highly. Each resource has an average rating of ${(finalResources.reduce((sum, r) => sum + (r.averageRating || 0), 0) / finalResources.length).toFixed(1)} stars based on ${finalResources.reduce((sum, r) => sum + (r.ratingCount || 0), 0)} community reviews.`
           // Create realistic agent contributions for fallback
@@ -253,9 +264,12 @@ async function RecommendedSection() {
                 score: Math.round(matchPercentage),
               }
             })
-            finalExplanations = [
-              `Based on your barriers (${barrierTypesList}), we're showing popular community resources that may be relevant.`,
-            ]
+            finalExplanations = finalResources.map((resource: any) => {
+              const parts = [`Based on those who matched your Diagnostics profile (${barrierTypesList})`]
+              if (resource.averageRating >= 4) parts.push(`popular pick at ${resource.averageRating.toFixed(1)}★`)
+              else parts.push('popular in the community')
+              return parts.join(' • ')
+            })
             finalConfidence = 0.65
             finalSynthesisExplanation = `These are ${finalResources.length} of the most popular resources in our community, selected based on high ratings and review counts. As more users with similar barriers (${barrierTypesList}) rate resources, we'll be able to provide more personalized recommendations.`
             // Create realistic agent contributions
@@ -288,9 +302,9 @@ async function RecommendedSection() {
                   score: Math.round(matchPercentage),
                 }
               })
-              finalExplanations = [
-                `Exploring resources that may be relevant for ${barrierTypesList}.`,
-              ]
+              finalExplanations = finalResources.map(
+                () => `Based on those who matched your Diagnostics profile (${barrierTypesList}) • exploring relevant options`
+              )
               finalConfidence = 0.55
               finalSynthesisExplanation = `We're showing ${finalResources.length} resources from our database that may be relevant to your barrier profile (${barrierTypesList}). As our community grows and more users share their experiences, we'll refine these recommendations.`
               // Create realistic agent contributions
@@ -328,7 +342,9 @@ async function RecommendedSection() {
                 score: Math.round(matchPercentage),
               }
             })
-            finalExplanations = [`Showing resources that may be relevant for ${barrierTypesList}.`]
+            finalExplanations = finalResources.map(
+              () => `Based on those who matched your Diagnostics profile (${barrierTypesList}) • exploring relevant options`
+            )
             finalConfidence = 0.55
             finalSynthesisExplanation = `These ${finalResources.length} resources are from our database and may be relevant to your needs. Complete your profile and interact with resources to get more personalized recommendations.`
             finalAgentContributions = [
@@ -361,7 +377,7 @@ async function RecommendedSection() {
           explanations={finalExplanations}
           confidence={finalConfidence}
           showConfidence={true}
-          showExplanations={false}
+          showExplanations={true}
           synthesisExplanation={finalSynthesisExplanation || orchestrationResult?.explanation}
           agentContributions={finalAgentContributions || synthesis?.agentContributions}
           showSynthesis={true}

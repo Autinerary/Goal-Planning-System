@@ -164,10 +164,10 @@ export class RecommendationAgent {
           .map((b) => b.type)
           .join(' + ')
         parts.push(
-          `Recommended by ${resource.similarUsersCount} ${resource.similarUsersCount === 1 ? 'user' : 'users'} with ${barrierTypes}`
+          `Based on those who matched your Diagnostics profile${barrierTypes ? ` (${barrierTypes})` : ''} — recommended by ${resource.similarUsersCount} similar ${resource.similarUsersCount === 1 ? 'person' : 'people'}`
         )
       }
-      if (resource.score >= 80) parts.push(`${resource.score}% match for your barriers`)
+      if (resource.score >= 80) parts.push(`${resource.score}% match for your profile`)
       else if (resource.score >= 60) parts.push(`${resource.score}% match`)
       if (resource.averageRatingFromSimilarUsers >= 4.5) parts.push('Highly rated (4.5+ stars)')
       return parts.length > 0 ? parts.join(' • ') : resource.matchReason
@@ -187,12 +187,12 @@ export class RecommendationAgent {
     }))
 
     const data = await completeJSON<{ explanations: string[] }>(
-      'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific.',
-      `Barriers: ${barriers.map((b) => b.type).join(', ') || 'none'}\n` +
+      'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific. When a resource was rated by similar users, frame it as being "based on those who matched your Diagnostics profile".',
+      `Barriers (the user's Diagnostics profile): ${barriers.map((b) => b.type).join(', ') || 'none'}\n` +
         (memoryHint ? `Prior history:\n${memoryHint}\n` : '') +
         `Resources (JSON): ${JSON.stringify(payload)}\n` +
         `Return JSON: {"explanations": ["sentence about resource 0", "sentence about resource 1", ...]}\n` +
-        `One sentence (max 25 words) per resource, same order as input.`,
+        `One sentence (max 25 words) per resource, same order as input. For resources with similarUsers > 0, start with "Based on those who matched your Diagnostics profile".`,
       { temperature: 0.5, maxTokens: 600 }
     )
 

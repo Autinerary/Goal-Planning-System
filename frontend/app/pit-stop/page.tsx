@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Search, UserPlus, UserMinus, Users, UserCheck, Sparkles, Share2, Lock, Globe, MessageSquare, Bell, Trophy, Video, X, Filter, Heart, Star, Users2, Crown, Code, Eye, ChevronRight, ChevronLeft } from 'lucide-react'
 import axios from 'axios'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
@@ -702,6 +703,30 @@ function PitStopContent() {
         {/* Tools Tab - Redirects to ServiceHub */}
         {activeTab === 'tools' && (
           <div className="space-y-4">
+            {/* Resource Roadmap CTA — upcoming resource types (Phase 3 seeding) */}
+            <Link href="/resource-roadmap" className="block group">
+              <div className="rounded-2xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-5 h-5 text-cyan-600" aria-hidden="true" />
+                      <span className="px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-xs font-semibold uppercase tracking-wide">
+                        Coming soon
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900">Resource Roadmap</h3>
+                    <p className="text-sm text-slate-600 mt-1">
+                      New resource areas we&apos;re building — insurance &amp; legacy planning, workplace
+                      fit, independent living, after-school activities, and Tidbits.
+                    </p>
+                  </div>
+                  <span className="hidden sm:block text-xs font-medium text-cyan-700 group-hover:underline whitespace-nowrap">
+                    View roadmap →
+                  </span>
+                </div>
+              </div>
+            </Link>
+
             {/* Agent-recommended pit-stop tools (from tool_recommendation agent) */}
             {(() => {
               const pit: any = toolRecommendation?.pit_stop_tools || {}
@@ -773,7 +798,7 @@ function PitStopContent() {
           <div className="space-y-6">
             {/* Tidbits Community CTA */}
             <a
-              href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world`}
+              href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=pit-stop`}
               target="_blank"
               rel="noopener noreferrer"
               className="block group"
@@ -794,7 +819,7 @@ function PitStopContent() {
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1">
                     <span className="text-3xl">💡</span>
-                    <span className="text-xs font-medium text-emerald-700 group-hover:underline">Open Tidbits →</span>
+                    <span className="text-xs font-medium text-emerald-700 group-hover:underline">View related posts →</span>
                   </div>
                 </div>
               </div>

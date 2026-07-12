@@ -10,7 +10,7 @@ import ResourceForm, { type ResourceFormData } from '@/components/resources/Reso
 import ResourcePreviewModal from '@/components/resources/ResourcePreviewModal'
 import { showToast } from '@/lib/toast'
 import { formatErrorForUser } from '@/lib/errors/handler'
-import { ArrowLeft, Save, Eye } from 'lucide-react'
+import { ArrowLeft, Save, Eye, ShieldCheck, Search as SearchIcon, Sparkles, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 const DRAFT_KEY = 'resource-submission-draft'
@@ -171,7 +171,7 @@ export default function NewResourcePage() {
       // Clear draft on successful submission
       clearDraft()
 
-      showToast.success('Resource submitted successfully! It will be reviewed before appearing publicly.')
+      showToast.success('Resource submitted! Once approved it becomes searchable and powers Autinerary recommendations. Track it under My Resources.')
 
       // Redirect after short delay
       setTimeout(() => {
@@ -217,6 +217,57 @@ export default function NewResourcePage() {
               <p className="text-gray-600">
                 Share a resource that has helped you or someone you know. Your submission will be
                 reviewed before appearing publicly.
+              </p>
+            </div>
+
+            {/* What happens after you submit — review process + searchability */}
+            <div className="mb-8 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-5 h-5 text-blue-600" aria-hidden="true" />
+                <h2 className="text-sm font-semibold text-gray-900">What happens after you submit</h2>
+              </div>
+              <ol className="space-y-3">
+                <li className="flex gap-3">
+                  <Clock className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" aria-hidden="true" />
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium text-gray-900">Automated review.</span> An AI
+                    validation check runs instantly. Trusted submissions are approved right away;
+                    everything else goes to a human moderator queue.
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <ShieldCheck className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" aria-hidden="true" />
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium text-gray-900">Manual approval.</span> A reviewer
+                    confirms the resource is accurate and helpful. You&apos;ll see it move from
+                    <span className="font-medium"> Pending</span> to
+                    <span className="font-medium"> Approved</span>.
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <SearchIcon className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" aria-hidden="true" />
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium text-gray-900">Searchable once approved.</span> Only
+                    approved resources appear in Search — after approval, yours is fully searchable
+                    (keyword and semantic) to everyone.
+                  </p>
+                </li>
+                <li className="flex gap-3">
+                  <Sparkles className="w-4 h-4 mt-0.5 text-emerald-500 shrink-0" aria-hidden="true" />
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium text-gray-900">Powers Autinerary.</span> Approved
+                    resources also feed personalized recommendations in{' '}
+                    <span className="font-medium">Autinerary</span>, so your submission helps people
+                    with similar barriers on their journey.
+                  </p>
+                </li>
+              </ol>
+              <p className="mt-3 text-xs text-gray-500">
+                Track status anytime under{' '}
+                <Link href="/my-resources" className="text-blue-600 hover:underline">
+                  My Resources
+                </Link>
+                .
               </p>
             </div>
 

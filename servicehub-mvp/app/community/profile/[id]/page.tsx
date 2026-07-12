@@ -2,12 +2,23 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, MessageSquare, CheckCircle2 } from 'lucide-react'
 import type { CommunityProfilePublic } from '@/types/community'
 import BadgeList from '@/components/community/BadgeList'
 import FollowButton from '@/components/community/FollowButton'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
+  const searchParams = useSearchParams()
+  const from = searchParams?.get('from') ?? ''
+  const context = searchParams?.get('context') ?? ''
+  const contextQuery = (() => {
+    const query = new URLSearchParams()
+    if (from) query.set('from', from)
+    if (context) query.set('context', context)
+    const built = query.toString()
+    return built ? `?${built}` : ''
+  })()
   const [profile, setProfile] = useState<CommunityProfilePublic | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -44,7 +55,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10 text-rose-600 text-sm">
         {error}{' '}
-        <Link href="/community" className="underline">
+        <Link href={`/community${contextQuery}`} className="underline">
           Back to community
         </Link>
       </div>
@@ -54,7 +65,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <Link
-        href="/community"
+        href={`/community${contextQuery}`}
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -111,7 +122,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
               {profile.posts.map((p) => (
                 <li key={p.id}>
                   <Link
-                    href={`/community/post/${p.id}`}
+                    href={`/community/post/${p.id}${contextQuery}`}
                     className="block rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300"
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -144,7 +155,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
               {profile.answers.map((a) => (
                 <li key={a.id}>
                   <Link
-                    href={`/community/post/${a.post_id}`}
+                    href={`/community/post/${a.post_id}${contextQuery}`}
                     className="block rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300"
                   >
                     <p className="text-sm text-gray-700 line-clamp-2">{a.body_markdown}</p>

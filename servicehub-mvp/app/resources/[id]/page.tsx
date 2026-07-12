@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getResourceDetail, getSimilarResources } from '@/lib/supabase/queries'
 import { findSimilarResources } from '@/lib/supabase/vector-queries'
+import { findSimilarUsers } from '@/lib/supabase/vector-queries'
+import { getUserBarriers } from '@/lib/supabase/queries'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ResourceHeader from '@/components/resources/detail/ResourceHeader'
@@ -11,6 +13,7 @@ import RatingsBreakdown from '@/components/resources/detail/RatingsBreakdown'
 import CommunityReviews from '@/components/resources/detail/CommunityReviews'
 import SimilarResources from '@/components/resources/detail/SimilarResources'
 import ResourcePatterns from '@/components/resources/detail/ResourcePatterns'
+import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMatchBanner'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import type { Location } from '@/types/database'
@@ -64,6 +67,46 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
   }
 
   const location = resource.location as Location | null
+
+  // Diagnostics-profile match: how many users who share this user's barrier
+  // (Diagnostics) profile rated THIS resource highly. Powers the "based on
+  // those who matched your Diagnostics profile" banner. Best-effort — any
+  // failure just hides the banner.
+  let diagnosticsMatch: { labels: string[]; count: number; avg: number } | null = null
+  if (user?.id) {
+    try {
+      const [userBarriers, similarUsers] = await Promise.all([
+        getUserBarriers(user.id),
+        findSimilarUsers(user.id, 50, 0.6),
+      ])
+      const labels = userBarriers.map((b) =>
+        b.barrier_type
+          .split('_')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ')
+      )
+      if (labels.length > 0) {
+        const similarIds = similarUsers.map((u) => u.user_id)
+        let count = 0
+        let avg = 0
+        if (similarIds.length > 0) {
+          const { data: ratings } = await supabase
+            .from('ratings')
+            .select('user_id, overall_score')
+            .eq('resource_id', resourceId)
+            .in('user_id', similarIds)
+            .gte('overall_score', 4)
+          if (ratings && ratings.length > 0) {
+            count = ratings.length
+            avg = ratings.reduce((s, r) => s + r.overall_score, 0) / ratings.length
+          }
+        }
+        diagnosticsMatch = { labels, count, avg }
+      }
+    } catch (error) {
+      console.error('Error computing Diagnostics-profile match:', error)
+    }
+  }
 
   // Get similar resources using vector similarity (semantic similarity, not just category)
   // This finds resources that are semantically similar, not just same category!
@@ -132,6 +175,14 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {diagnosticsMatch && (
+              <DiagnosticsMatchBanner
+                profileLabels={diagnosticsMatch.labels}
+                similarUserCount={diagnosticsMatch.count}
+                averageRating={diagnosticsMatch.avg}
+              />
+            )}
+
             <ResourceContent resource={resource} />
 
             <RatingsBreakdown

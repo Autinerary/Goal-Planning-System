@@ -34,12 +34,25 @@ function FeedInner() {
   const sort = (searchParams?.get('sort') as FeedSort) || 'recent'
   const initialQ = searchParams?.get('q') ?? ''
   const initialBarrier = searchParams?.get('barrier') ?? ''
+  const from = searchParams?.get('from') ?? ''
+  const context = searchParams?.get('context') ?? ''
 
   const [q, setQ] = useState(initialQ)
   const [barrier, setBarrier] = useState(initialBarrier)
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const withOriginContext = useCallback(
+    (path: string) => {
+      const params = new URLSearchParams()
+      if (from) params.set('from', from)
+      if (context) params.set('context', context)
+      const query = params.toString()
+      return query ? `${path}?${query}` : path
+    },
+    [from, context]
+  )
 
   const setQuery = useCallback(
     (next: Partial<{ sort: FeedSort; q: string; barrier: string }>) => {
@@ -96,7 +109,7 @@ function FeedInner() {
           </p>
         </div>
         <Link
-          href="/community/new"
+          href={withOriginContext('/community/new')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
@@ -158,7 +171,7 @@ function FeedInner() {
         {posts.map((p) => (
           <li key={p.id}>
             <Link
-              href={`/community/post/${p.id}`}
+              href={withOriginContext(`/community/post/${p.id}`)}
               className="block rounded-2xl border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition"
             >
               <div className="flex gap-4">

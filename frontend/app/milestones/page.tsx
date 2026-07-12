@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -17,6 +18,26 @@ export default function MilestoneView() {
   const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
   const [expandedTool, setExpandedTool] = useState<string | null>(null)
   const [showGif, setShowGif] = useState<string | null>(null)
+  const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+
+  // Real milestone completions (race_progress) for computing real progress.
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const ids = await fetchCompletedMilestoneIds()
+      if (!cancelled) setCompletedMilestoneIds(ids)
+    }
+    load()
+    const onFocus = () => { load() }
+    const onVisible = () => { if (document.visibilityState === 'visible') load() }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
 
   const toggleLike = (itemId: string) => {
     setLikedItems(prev => {
@@ -49,6 +70,13 @@ export default function MilestoneView() {
         { id: 'race_1', name: 'Graduate University', progress: 45 },
         { id: 'race_2', name: 'Get Tech Job', progress: 20 },
       ]
+  // Override with real progress: % of each race's milestones completed.
+  const _pathMilestones: ProgressMilestone[] =
+    (payload?.milestones || pathPlanning?.milestones || []) as ProgressMilestone[]
+  agentRaces.forEach((r: any) => {
+    const p = computeRaceProgress(r, _pathMilestones, completedMilestoneIds)
+    if (p !== null) r.progress = p
+  })
   const races = agentRaces
 
   /* Tool symbols - keys, hammers, lift, spray boots, etc. */

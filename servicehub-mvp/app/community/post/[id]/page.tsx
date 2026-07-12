@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowLeft,
   Lock,
@@ -21,6 +21,16 @@ import ReportButton from '@/components/community/ReportButton'
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams?.get('from') ?? ''
+  const context = searchParams?.get('context') ?? ''
+  const contextQuery = (() => {
+    const query = new URLSearchParams()
+    if (from) query.set('from', from)
+    if (context) query.set('context', context)
+    const built = query.toString()
+    return built ? `?${built}` : ''
+  })()
   const [post, setPost] = useState<CommunityPostDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -100,7 +110,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <Link
-        href="/community"
+        href={`/community${contextQuery}`}
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -139,7 +149,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{post.title}</h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
           <Link
-            href={`/community/profile/${post.author.user_id}`}
+            href={`/community/profile/${post.author.user_id}${contextQuery}`}
             className="font-medium text-blue-700 hover:underline"
           >
             {post.author.pseudonym}

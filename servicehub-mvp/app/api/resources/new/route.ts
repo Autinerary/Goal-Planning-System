@@ -239,12 +239,17 @@ export async function POST(request: NextRequest) {
     //   }),
     // })
 
-    // Generate embedding for approved resources (for semantic search)
+    // Generate embedding for auto-approved resources (for semantic search).
+    // Awaited — on Vercel serverless a fire-and-forget promise can be killed
+    // when the response returns, leaving the resource missing from semantic
+    // search. Approval still succeeds if embedding generation throws; the batch
+    // backfill can recover it later.
     if (resourceStatus === 'approved') {
-      // Generate embedding in background (don't block response)
-      onResourceCreated(resource).catch((error) => {
+      try {
+        await onResourceCreated(resource)
+      } catch (error) {
         console.error('Error generating resource embedding:', error)
-      })
+      }
     }
 
     return NextResponse.json({

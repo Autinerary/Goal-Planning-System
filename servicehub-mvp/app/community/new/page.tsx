@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import Markdown from '@/components/community/Markdown'
@@ -9,6 +9,16 @@ import ImageUploader from '@/components/community/ImageUploader'
 
 export default function NewPostPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams?.get('from') ?? ''
+  const context = searchParams?.get('context') ?? ''
+  const contextQuery = (() => {
+    const query = new URLSearchParams()
+    if (from) query.set('from', from)
+    if (context) query.set('context', context)
+    const built = query.toString()
+    return built ? `?${built}` : ''
+  })()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [barrierInput, setBarrierInput] = useState('')
@@ -49,7 +59,7 @@ export default function NewPostPage() {
         throw new Error(j?.error || `Create failed (${res.status})`)
       }
       const j = await res.json()
-      router.push(`/community/post/${j.id}`)
+      router.push(`/community/post/${j.id}${contextQuery}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create')
       setSubmitting(false)
@@ -62,7 +72,7 @@ export default function NewPostPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <Link
-        href="/community"
+        href={`/community${contextQuery}`}
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -231,7 +241,7 @@ export default function NewPostPage() {
 
       <div className="flex justify-end gap-2 pt-2">
         <Link
-          href="/community"
+          href={`/community${contextQuery}`}
           className="px-4 py-2 text-sm rounded-xl text-gray-700 hover:bg-gray-100"
         >
           Cancel

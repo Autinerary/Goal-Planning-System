@@ -7,6 +7,7 @@ import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserC
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { computeRaceProgress } from '@/lib/raceProgress'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -411,6 +412,7 @@ function RacesContent() {
         dimension: m.dimension || m.category || '',
         dimensionLabel: m.dimensionLabel || _dimLabel(m.dimension || m.category),
         goal: m.goal || '',
+        raceId: m.raceId || '',
       }))
     : [
         { id: 'm0', name: 'Request Accommodations', dist: 'Current', status: 'active' as const, dimension: '', dimensionLabel: '', goal: '' },
@@ -418,6 +420,15 @@ function RacesContent() {
         { id: 'm2', name: 'Join Study Group', dist: '4 steps', status: 'upcoming' as const, dimension: '', dimensionLabel: '', goal: '' },
         { id: 'm3', name: 'Graduate!', dist: '10 steps', status: 'far' as const, dimension: '', dimensionLabel: '', goal: '' },
       ]
+
+  // ── Real progress ─────────────────────────────────────────────────
+  // Override each race's progress with the % of its milestones the user has
+  // actually completed (from race_progress). When a race has no attributable
+  // milestones we keep whatever the payload provided (mock for guests).
+  races.forEach((r: any) => {
+    const p = computeRaceProgress(r, milestones, completedMilestoneIds)
+    if (p !== null) r.progress = p
+  })
 
   // ── Real goal wiring ──────────────────────────────────────────────
   // Each agent milestone carries { dimension, goal }. A single goal is
@@ -507,11 +518,12 @@ function RacesContent() {
       { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
       { emoji: '🏪', name: 'ResourceHub', desc: 'Curated services & support', href: hub,                                     ext: true  },
       { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/pit-stop?tab=haveworld&view=people',   ext: false },
-      { emoji: '💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community`,                      ext: true  },
+      { emoji: '�️', name: 'Roadmap',     desc: 'Upcoming resources',        href: '/resource-roadmap',                     ext: false },
+      { emoji: '�💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community?from=hare-world&context=races`, ext: true  },
     ]
     return (
       <div className="w-full max-w-3xl px-2 my-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
           {shops.map(s => {
             const inner = (
               <>
