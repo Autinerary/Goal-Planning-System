@@ -16,7 +16,33 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { geocodeLocation } from '../lib/geocode'
+
+// Load .env.local (and .env) so the script works without sourcing them first.
+// Zero-dependency parser — good enough for KEY=value lines.
+function loadEnvFile(file: string) {
+  try {
+    const text = readFileSync(join(process.cwd(), file), 'utf8')
+    for (const raw of text.split('\n')) {
+      const line = raw.trim()
+      if (!line || line.startsWith('#')) continue
+      const eq = line.indexOf('=')
+      if (eq === -1) continue
+      const key = line.slice(0, eq).trim()
+      let val = line.slice(eq + 1).trim()
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1)
+      }
+      if (!(key in process.env)) process.env[key] = val
+    }
+  } catch {
+    // File missing is fine — env may already be set in the shell.
+  }
+}
+loadEnvFile('.env.local')
+loadEnvFile('.env')
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
