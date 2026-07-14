@@ -289,9 +289,10 @@ export async function findSimilarResources(
   }
 
   const supabase = createClient()
+  // Note: the deployed find_similar_resources(query_embedding, match_count)
+  // does not take a threshold param — it orders by distance and limits.
   const { data, error } = await supabase.rpc('find_similar_resources', {
     query_embedding: resourceEmbedding.embedding,
-    match_threshold: threshold,
     match_count: limit + 1, // +1 to exclude source resource
   })
 

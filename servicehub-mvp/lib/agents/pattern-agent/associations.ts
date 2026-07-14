@@ -159,10 +159,10 @@ async function findSimilarResources(
       return []
     }
 
-    // Find similar resources using vector similarity
+    // Find similar resources using vector similarity.
+    // The deployed function signature is (query_embedding, match_count) — no threshold.
     const { data: similar, error } = await supabase.rpc('find_similar_resources', {
       query_embedding: embedding.embedding,
-      match_threshold: 0.7,
       match_count: limit + 1, // +1 to exclude the source resource
     })
 

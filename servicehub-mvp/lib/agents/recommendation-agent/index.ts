@@ -1,6 +1,6 @@
 import { getUserBarriers } from '@/lib/supabase/queries'
 import { findSimilarUsersByBarriers } from './similarity'
-import { getCandidateResources } from './matcher'
+import { getCandidateResources, getFallbackCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
 import { completeJSON, isLLMEnabled } from '@/lib/llm'
 import {
@@ -56,12 +56,22 @@ export class RecommendationAgent {
         input.location
       )
 
+      // Step 2b: Cold-start fallback. New users, niche barrier profiles, or
+      // cases where vector similarity finds no neighbours produce zero
+      // collaborative candidates — which used to surface as "No results
+      // found". Fall back to ranking approved resources directly so the user
+      // always gets recommendations.
+      const effectiveCandidates =
+        candidateResources.length > 0
+          ? candidateResources
+          : await getFallbackCandidateResources(input.location)
+
       // Wait on the learned scores before scoring.
       const learnedScores = await learnedScoresPromise
 
       // Step 3: Score each resource (agent's decision-making)
       const scoredResources = await this.scoreResources(
-        candidateResources,
+        effectiveCandidates,
         input.barriers,
         input.context,
         learnedScores
