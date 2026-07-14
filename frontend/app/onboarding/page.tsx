@@ -66,6 +66,28 @@ const spiritAnimalColors = [
   { id: 'red', label: 'Red', hex: '#f87171', bg: 'bg-red-300' },
 ]
 
+// Spirit animal modes (Odosa): how many animals the user assigns.
+const spiritAnimalModes = [
+  { id: 'general', label: 'One spirit animal', desc: 'A single guide for every day.', count: 1, emoji: '🐾' },
+  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides — one for high-energy days, one for rest days.', count: 2, emoji: '⚡' },
+  { id: 'weekly', label: 'One per weekday', desc: 'Seven guides — a different animal for each day of the week.', count: 7, emoji: '📅' },
+] as const
+
+// Labels for the 7-per-week mode slots.
+const weekdayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+/** How many spirit-animal slots a mode uses. */
+function spiritAnimalSlotCount(mode: 'general' | 'fastSlow' | 'weekly'): number {
+  return spiritAnimalModes.find(m => m.id === mode)?.count ?? 2
+}
+
+/** Label for a spirit-animal slot given the mode and index. */
+function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: number): string {
+  if (mode === 'general') return '🐾 Your Spirit Animal'
+  if (mode === 'fastSlow') return idx === 0 ? '⚡ Fast Day Spirit Animal' : '🌙 Slow Day Spirit Animal'
+  return `${weekdayLabels[idx] || `Day ${idx + 1}`} Spirit Animal`
+}
+
 // Step components
 const steps = [
   { id: 'character', title: 'Character Select', icon: User },
@@ -88,9 +110,118 @@ const goalCategories = [
   { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
   { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
   { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
-  { id: 'barrier', label: 'Barrier-Specific', emoji: '🌟', placeholder: 'e.g., Normalizing strategies, Self-advocacy skills' },
+  { id: 'barrier', label: 'Barrier-Specific', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
   { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
 ]
+
+// ── Goal suggestions ──────────────────────────────────────────────────
+// Suggest goals based on what the user selected in "Barrier Connections".
+// These are gentle, lived-experience prompts (never clinical advice) that a
+// user can tap to add as a starting goal. Keyed by barrier item label.
+
+// Strategies that apply to any barrier. "Normalizing/Positivity" is an
+// explicit Barrier-Specific strategy (reframing challenges, self-acceptance,
+// celebrating strengths).
+const universalBarrierStrategies: string[] = [
+  'Normalizing/Positivity',
+  'Self-advocacy skills',
+  'Build a support network',
+]
+
+// Barrier-specific goal ideas, grouped by goal category id.
+const barrierGoalSuggestions: Record<string, Partial<Record<string, string[]>>> = {
+  Autism: {
+    barrier: ['Sensory-friendly routines', 'Normalizing/Positivity'],
+    career: ['Find neurodivergent-friendly workplaces'],
+    relationships: ['Practice social scripts I find helpful'],
+  },
+  ADHD: {
+    barrier: ['Focus & time-management strategies', 'Normalizing/Positivity'],
+    education: ['Set up study accommodations'],
+    career: ['Find an ADHD-friendly work rhythm'],
+  },
+  AuDHD: {
+    barrier: ['Balance focus & sensory needs', 'Normalizing/Positivity'],
+  },
+  Dyslexia: {
+    barrier: ['Assistive reading tools', 'Normalizing/Positivity'],
+    education: ['Request learning accommodations'],
+  },
+  OCD: {
+    barrier: ['Grounding & coping strategies', 'Normalizing/Positivity'],
+  },
+  Anxiety: {
+    barrier: ['Calming & grounding strategies', 'Normalizing/Positivity'],
+  },
+  'Anxiety Disorder': {
+    barrier: ['Calming & grounding strategies', 'Normalizing/Positivity'],
+  },
+  Depression: {
+    barrier: ['Daily wellbeing routine', 'Normalizing/Positivity'],
+    health: ['Explore therapy or a support group'],
+  },
+  'Wheelchair User': {
+    barrier: ['Map accessible routes & spaces', 'Self-advocacy skills'],
+    career: ['Find accessible workplaces'],
+  },
+  'Limited Mobility': {
+    barrier: ['Find accessible spaces & tools'],
+  },
+  Blind: {
+    barrier: ['Screen-reader & assistive tech skills'],
+  },
+  'Low Vision': {
+    barrier: ['Screen-reader & assistive tech skills'],
+  },
+  Deaf: {
+    barrier: ['Captioning & communication tools'],
+    relationships: ['Build a signing / Deaf community network'],
+  },
+  'Hard of Hearing': {
+    barrier: ['Captioning & communication tools'],
+  },
+  'Language Barrier': {
+    education: ['Improve language skills'],
+    barrier: ['Find translation & interpreter support'],
+  },
+  'First Generation': {
+    education: ['Find first-gen mentorship'],
+    career: ['Build professional networks'],
+  },
+  'Immigrant / Refugee': {
+    barrier: ['Find newcomer support services'],
+    career: ['Get credentials recognized'],
+  },
+  'Limited Income': {
+    barrier: ['Find financial assistance programs'],
+  },
+  'Housing Instability': {
+    barrier: ['Find housing support services'],
+  },
+  'Limited Technology Access': {
+    barrier: ['Find low-cost tech & internet programs'],
+  },
+}
+
+/**
+ * Build suggested goals for a category based on the user's selected barriers.
+ * Returns a de-duplicated list. The Barrier-Specific category always includes
+ * the universal strategies (Normalizing/Positivity, etc.).
+ */
+function getGoalSuggestions(categoryId: string, barrierTypes: string[]): string[] {
+  const out = new Set<string>()
+
+  if (categoryId === 'barrier') {
+    universalBarrierStrategies.forEach(s => out.add(s))
+  }
+
+  barrierTypes.forEach(barrier => {
+    const perCategory = barrierGoalSuggestions[barrier]?.[categoryId]
+    perCategory?.forEach(s => out.add(s))
+  })
+
+  return Array.from(out)
+}
 
 const connectionTypes = [
   { id: 'self', label: 'Self (Lived Experience)', icon: '👤' },
@@ -308,7 +439,7 @@ export default function OnboardingPage() {
     lifeStage: '' as string,
     barrierTypes: [] as string[],
     // Categorized goals with per-goal dreams and obstacles
-    goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string }>>,
+    goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string; idealRelationship?: string }>>,
     ultimateDream: '' as string,
     // Flat arrays kept for backward compat with backend API
     goals: [''] as string[],
@@ -325,7 +456,9 @@ export default function OnboardingPage() {
     // Alternate Persona (optional) — a named alter-ego for the Dream Self
     alternatePersonaName: '' as string,
     alternatePersonaNote: '' as string,
-    // Spirit animals (up to 2)
+    // Spirit animals — mode decides how many slots:
+    //   general = 1, fastSlow = 2 (fast/slow day), weekly = 7 (one per day)
+    spiritAnimalMode: 'fastSlow' as 'general' | 'fastSlow' | 'weekly',
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
 
@@ -447,7 +580,7 @@ export default function OnboardingPage() {
       }
       case 4: return formData.motivationTypes.length > 0 && formData.lifeStage !== ''
       case 5: return formData.dreamSelf.trim() !== '' // Profile customization
-      case 6: return formData.spiritAnimals.length > 0 && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals
+      case 6: return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals — all slots for the chosen mode filled
       case 7: return true // Personalize — all optional, can always proceed
       case 8: return true // Recommendations step - can always proceed (optional to save)
       default: return false
@@ -614,12 +747,23 @@ export default function OnboardingPage() {
   }
 
   const addSpiritAnimal = () => {
-    if (formData.spiritAnimals.length < 2) {
+    const max = spiritAnimalSlotCount(formData.spiritAnimalMode)
+    if (formData.spiritAnimals.length < max) {
       setFormData(prev => ({
         ...prev,
         spiritAnimals: [...prev.spiritAnimals, { type: '', color: '' }]
       }))
     }
+  }
+
+  // Switch mode and resize the slot list to fit (trim extras, keep existing).
+  const setSpiritAnimalMode = (mode: 'general' | 'fastSlow' | 'weekly') => {
+    const max = spiritAnimalSlotCount(mode)
+    setFormData(prev => ({
+      ...prev,
+      spiritAnimalMode: mode,
+      spiritAnimals: prev.spiritAnimals.slice(0, max),
+    }))
   }
 
   const updateSpiritAnimal = (index: number, field: 'type' | 'color', value: string) => {
@@ -663,6 +807,7 @@ export default function OnboardingPage() {
         entries.forEach(entry => {
           if (entry.goal.trim()) allGoals.push(entry.goal.trim())
           if (entry.dreams.trim()) allDreams.push(entry.dreams.trim())
+          if (entry.idealRelationship?.trim()) allDreams.push(entry.idealRelationship.trim())
           if (entry.obstacles.trim()) allObstacles.push(entry.obstacles.trim())
         })
       })
@@ -682,6 +827,8 @@ export default function OnboardingPage() {
           ageRange: formData.ageRange,
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
+          spiritAnimalMode: formData.spiritAnimalMode,
+          spiritAnimals: formData.spiritAnimals,
         }
       }, {
         headers: {
@@ -1100,6 +1247,34 @@ export default function OnboardingPage() {
                         </button>
                       ))}
                     </div>
+
+                    {/* Yourself + whoever else — when you've picked someone
+                        other than yourself, quickly add that these barriers
+                        also apply to you (you can pick both). */}
+                    {Object.keys(formData.barrierConnections).some(id => id !== 'self') && (
+                      <label className="mt-3 flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={formData.barrierConnections['self'] !== undefined}
+                          onChange={() => {
+                            setFormData(prev => {
+                              const current = { ...prev.barrierConnections }
+                              if (current['self'] !== undefined) {
+                                delete current['self']
+                              } else {
+                                current['self'] = []
+                              }
+                              const selectedKeys = Object.keys(current)
+                              const role = selectedKeys.includes('self') ? 'self_advocate' : selectedKeys.length > 0 ? selectedKeys[0] : ''
+                              const allBarriers = [...new Set(Object.values(current).flat())]
+                              return { ...prev, barrierConnections: current, role, barrierTypes: allBarriers }
+                            })
+                          }}
+                          className="w-4 h-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-400"
+                        />
+                        <span>👤 These barriers also apply to me (add yourself)</span>
+                      </label>
+                    )}
                   </div>
 
                   {/* Per-connection barrier selectors */}
@@ -1350,7 +1525,16 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 3: Goals, Dreams & Obstacles (combined) */}
-          {currentStep === 3 && (
+          {currentStep === 3 && (() => {
+            // Detect connections to another person (sibling, parent, etc.) so we
+            // can offer an "ideal relationship" option alongside the dream — the
+            // user answers whichever speaks to them (one optional out of two).
+            const otherConnectionIds = Object.keys(formData.barrierConnections).filter(id => id !== 'self')
+            const hasOtherPerson = otherConnectionIds.length > 0
+            const otherPersonLabel = otherConnectionIds.length === 1
+              ? (connectionTypes.find(c => c.id === otherConnectionIds[0])?.label || 'them').replace(' (Lived Experience)', '')
+              : 'them'
+            return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Goals, Dreams & Obstacles</h2>
               <p className="text-slate-600 mb-6">Pick a category, add your goals, and optionally add dreams and obstacles for each one.</p>
@@ -1390,7 +1574,48 @@ export default function OnboardingPage() {
                       <h3 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
                         <span>{cat.emoji}</span> {cat.label}
                       </h3>
-                      
+
+                      {/* Suggestions based on selected barriers */}
+                      {(() => {
+                        const suggestions = getGoalSuggestions(cat.id, formData.barrierTypes)
+                          .filter(s => !entries.some(e => e.goal.trim().toLowerCase() === s.toLowerCase()))
+                        if (suggestions.length === 0) return null
+                        return (
+                          <div className="mb-3">
+                            <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                              Suggestions based on your barriers
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {suggestions.map((sug) => (
+                                <button
+                                  key={sug}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => {
+                                      const updated = { ...prev.goalsByCategory }
+                                      const list = [...(updated[cat.id] || [])]
+                                      // Fill the first empty goal, or append a new one.
+                                      const emptyIdx = list.findIndex(e => !e.goal.trim())
+                                      if (emptyIdx >= 0) {
+                                        list[emptyIdx] = { ...list[emptyIdx], goal: sug }
+                                      } else {
+                                        list.push({ goal: sug, dreams: '', obstacles: '' })
+                                      }
+                                      updated[cat.id] = list
+                                      return { ...prev, goalsByCategory: updated }
+                                    })
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-all"
+                                >
+                                  + {sug}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
+
                       {entries.map((entry, idx) => (
                         <div key={idx} className="mb-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
                           <div className="flex gap-2 mb-2">
@@ -1426,7 +1651,9 @@ export default function OnboardingPage() {
                           
                           {/* Per-goal dream */}
                           <div className="ml-4 mb-1">
-                            <label className="text-xs text-purple-500 font-medium">Dream for this goal <span className="text-slate-400">(optional)</span></label>
+                            <label className="text-xs text-purple-500 font-medium">
+                              {hasOtherPerson ? `Dream for ${otherPersonLabel}` : 'Dream for this goal'} <span className="text-slate-400">(optional)</span>
+                            </label>
                             <input
                               type="text"
                               value={entry.dreams}
@@ -1443,7 +1670,33 @@ export default function OnboardingPage() {
                               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400 mt-1"
                             />
                           </div>
-                          
+
+                          {/* Ideal relationship — second option when the goal
+                              involves another person (e.g. a sibling). Both this
+                              and the dream are optional; answer whichever fits. */}
+                          {hasOtherPerson && (
+                            <div className="ml-4 mb-1">
+                              <label className="text-xs text-indigo-500 font-medium">
+                                Ideal relationship with {otherPersonLabel} <span className="text-slate-400">(optional — instead of, or as well as, the dream)</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={entry.idealRelationship || ''}
+                                onChange={(e) => {
+                                  setFormData(prev => {
+                                    const updated = { ...prev.goalsByCategory }
+                                    const list = [...(updated[cat.id] || [])]
+                                    list[idx] = { ...list[idx], idealRelationship: e.target.value }
+                                    updated[cat.id] = list
+                                    return { ...prev, goalsByCategory: updated }
+                                  })
+                                }}
+                                placeholder={`What does a good relationship with ${otherPersonLabel} look like?`}
+                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 mt-1"
+                              />
+                            </div>
+                          )}
+
                           {/* Per-goal obstacle */}
                           <div className="ml-4">
                             <label className="text-xs text-pink-500 font-medium">Obstacle <span className="text-slate-400">(optional)</span></label>
@@ -1498,7 +1751,8 @@ export default function OnboardingPage() {
                 />
               </div>
             </div>
-          )}
+            )
+          })()}
 
           {/* Step 4: Motivation & Life Stage */}
           {currentStep === 4 && (
@@ -1689,17 +1943,53 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 6: Spirit Animals */}
-          {currentStep === 6 && (
+          {currentStep === 6 && (() => {
+            const slotCount = spiritAnimalSlotCount(formData.spiritAnimalMode)
+            return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
-              <p className="text-slate-600 mb-6">Pick 2 spirit animals to guide you — one for your <strong>fast days</strong> (energized, productive) and one for your <strong>slow days</strong> (rest, recharge).</p>
-              
+              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you. Pick how many you&apos;d like.</p>
+
+              {/* Mode selector (Odosa's 3 options) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                {spiritAnimalModes.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSpiritAnimalMode(m.id)}
+                    className={`text-left p-4 rounded-xl border-2 transition-all ${
+                      formData.spiritAnimalMode === m.id
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-slate-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-medium text-slate-800">
+                      <span className="text-lg">{m.emoji}</span> {m.label}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{m.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Fast vs slow day explainer (answers Eliyana's question) */}
+              {formData.spiritAnimalMode === 'fastSlow' && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+                  <p className="font-medium mb-1">⚡ Fast day vs 🌙 slow day</p>
+                  <p>
+                    A <strong>fast day</strong> is when you feel energized and productive — you want a guide that
+                    matches that momentum. A <strong>slow day</strong> is when you need rest and recharge — a
+                    gentler guide meets you there. Picking one for each lets the app adapt its tone to how
+                    you&apos;re actually feeling.
+                  </p>
+                </div>
+              )}
+
               {/* Spirit Animal Slots */}
               {formData.spiritAnimals.map((animal, idx) => (
                 <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-5">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-medium text-purple-700">
-                      {idx === 0 ? '⚡ Fast Day Spirit Animal' : '🌙 Slow Day Spirit Animal'}
+                      {spiritAnimalSlotLabel(formData.spiritAnimalMode, idx)}
                     </h3>
                     <button
                       onClick={() => removeSpiritAnimal(idx)}
@@ -1768,20 +2058,26 @@ export default function OnboardingPage() {
               ))}
 
               {/* Add Spirit Animal Button */}
-              {formData.spiritAnimals.length < 2 && (
+              {formData.spiritAnimals.length < slotCount && (
                 <button
                   onClick={addSpiritAnimal}
                   className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-500 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
                 >
-                  {formData.spiritAnimals.length === 0 ? '+ Choose your Fast Day spirit animal ⚡' : '+ Add your Slow Day spirit animal 🌙'}
+                  + Add {spiritAnimalSlotLabel(formData.spiritAnimalMode, formData.spiritAnimals.length).replace(/^[^\s]+\s/, '')}
+                  {slotCount > 1 && <span className="text-purple-400 text-sm"> ({formData.spiritAnimals.length + 1} of {slotCount})</span>}
                 </button>
               )}
               
-              {formData.spiritAnimals.length === 2 && (
-                <p className="text-sm text-slate-500 text-center mt-2">You&apos;ve got both — your ⚡ Fast Day and 🌙 Slow Day spirit animals!</p>
+              {formData.spiritAnimals.length === slotCount && slotCount > 0 && (
+                <p className="text-sm text-slate-500 text-center mt-2">
+                  {formData.spiritAnimalMode === 'general' && 'Your spirit animal is set! 🐾'}
+                  {formData.spiritAnimalMode === 'fastSlow' && 'You\u2019ve got both — your \u26A1 Fast Day and \uD83C\uDF19 Slow Day spirit animals!'}
+                  {formData.spiritAnimalMode === 'weekly' && 'All 7 days have a spirit animal! 📅'}
+                </p>
               )}
             </div>
-          )}
+            )
+          })()}
 
           {/* Step 7: Personalize — view & interaction preferences */}
           {currentStep === 7 && (
@@ -1888,27 +2184,45 @@ export default function OnboardingPage() {
               </div>
 
               {isLoadingRecommendations ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <div className="relative mb-6">
-                    <div className="w-20 h-20 rounded-full border-4 border-slate-200 border-t-cyan-500 animate-spin" />
-                    <Sparkles className="w-8 h-8 text-cyan-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-800 mb-2">Finding Your Resources...</h3>
-                  <p className="text-slate-500 text-sm text-center max-w-sm">
-                    Our AI agents are analyzing the systemic barriers you face, your goals, and location to find the best matches. This may take a moment.
-                  </p>
-                  <div className="mt-6 space-y-2 w-full max-w-sm">
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                      <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                      Analyzing your barrier profile...
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
-                      Matching with community-rated resources...
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                      <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-                      Personalizing recommendations...
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-indigo-950 via-purple-900 to-sky-400 py-16 px-6">
+                  {/* Twinkling stars */}
+                  {Array.from({ length: 25 }, (_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 bg-white rounded-full"
+                      style={{
+                        left: `${(i * 37 + 13) % 100}%`,
+                        top: `${(i * 23 + 7) % 70}%`,
+                        opacity: ((i * 17) % 80 + 20) / 100,
+                        animation: `twinkle ${1 + (i % 3)}s ease-in-out infinite`,
+                        animationDelay: `${(i * 13 % 200) / 100}s`,
+                      }}
+                    />
+                  ))}
+                  <style>{`
+                    @keyframes twinkle { 0%,100%{opacity:.2} 50%{opacity:1} }
+                    @keyframes rocketFloat { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-14px) rotate(4deg)} }
+                  `}</style>
+
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="text-7xl mb-4" style={{ animation: 'rocketFloat 2.5s ease-in-out infinite' }}>🚀</div>
+                    <h3 className="text-2xl font-bold text-white mb-2">☁️ Welcome to Dream Land!</h3>
+                    <p className="text-sky-100 text-sm max-w-sm mb-6">
+                      Our AI agents are analyzing the systemic barriers you face, your goals, and your location to find the best matches. Hang tight while we build your Dream Land.
+                    </p>
+                    <div className="space-y-2 w-full max-w-sm text-left">
+                      <div className="flex items-center gap-3 text-sm text-sky-100">
+                        <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" />
+                        Analyzing your barrier profile...
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-sky-100">
+                        <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+                        Matching with community-rated resources...
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-sky-100">
+                        <div className="w-2 h-2 bg-pink-300 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                        Personalizing recommendations...
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1916,9 +2230,15 @@ export default function OnboardingPage() {
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                   <p className="text-slate-700 mb-2 font-medium">No recommendations available yet</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 mb-4">
                     {recommendationExplanation || 'Sign in to ResourceHub to get personalized recommendations based on your profile.'}
                   </p>
+                  <button
+                    onClick={() => { setRecommendations([]); fetchRecommendations() }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
+                  >
+                    <Sparkles className="w-4 h-4" /> Try again
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">

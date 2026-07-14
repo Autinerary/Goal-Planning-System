@@ -9,6 +9,7 @@ import FeedbackGate from './components/FeedbackGate'
 import MovementTracker from './components/MovementTracker'
 import AccessibilityProvider from './components/AccessibilityProvider'
 import InteractiveDemo from './components/InteractiveDemo'
+import AppWideTranslator from './components/AppWideTranslator'
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
@@ -27,6 +28,7 @@ export default function RootLayout({
           <AgentPathProvider>
             <LanguageProvider>
             <AccessibilityProvider />
+            <AppWideTranslator />
             <Navigation />
             <ViewTabs />
             <MovementTracker />

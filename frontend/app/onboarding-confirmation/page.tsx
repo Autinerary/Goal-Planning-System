@@ -242,7 +242,7 @@ export default function OnboardingConfirmationPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Confirmation
+            Final Step - Guidance
           </h1>
           <p className="text-slate-600">Let's connect you with role models and mentors</p>
         </div>

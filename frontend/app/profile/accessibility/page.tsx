@@ -68,7 +68,7 @@ export default function AccessibilitySettingsPage() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mt-2">Core navigation is translated; more coming.</p>
+            <p className="text-xs text-slate-400 mt-2">Language now applies across app UI labels and common page text.</p>
           </div>
 
           {/* Text size */}
