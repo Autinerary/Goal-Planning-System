@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info } from 'lucide-react'
+import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 type Part = { label: string; value: number; weight: number }
@@ -54,6 +54,96 @@ function Trend({ change }: { change: number | null }) {
   if (change > 0) return <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600"><TrendingUp className="w-3 h-3" /> +{change.toFixed(1)} vs last week</span>
   if (change < 0) return <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500"><TrendingDown className="w-3 h-3" /> {change.toFixed(1)} vs last week</span>
   return <span className="inline-flex items-center gap-1 text-xs text-slate-400"><Minus className="w-3 h-3" /> no change</span>
+}
+
+// ── Ramifications ────────────────────────────────────────────────────
+// Odosa: the stats shouldn't just sit there — they should show the knock-on
+// effects (ramifications) of where each number sits. This maps a stat + its
+// level to a plain-language consequence so users see WHY it matters.
+const RAMIFICATIONS: Record<string, { low: string; mid: string; high: string }> = {
+  mentality: {
+    low: 'Showing up has slipped — goals may stall without a steady rhythm. A tiny daily check-in restarts momentum.',
+    mid: 'You\u2019re showing up fairly often. Locking in a daily habit would make your progress compound.',
+    high: 'Strong consistency — this is powering everything else. Your other stats rise on the back of it.',
+  },
+  happiness: {
+    low: 'Low mood drains motivation and makes focus harder. Small wins and support can lift the whole system.',
+    mid: 'Mood is steady. Protecting what lifts you keeps energy and focus from dipping.',
+    high: 'Good mood is fueling your drive — you\u2019ll find focus and energy easier to sustain.',
+  },
+  focus: {
+    low: 'Plans aren\u2019t turning into done tasks — milestones drift further away. Finish one small thing to break the stall.',
+    mid: 'You\u2019re completing a fair share of what you plan. Tightening follow-through speeds up your races.',
+    high: 'You finish what you start — milestones are arriving on time and dreams are getting closer.',
+  },
+  energy: {
+    low: 'Low momentum and connection make everything feel heavier. Rest and one social nudge can reset it.',
+    mid: 'Momentum is okay. Regular small actions and leaning on your people keeps it from sliding.',
+    high: 'High momentum — you have capacity to push a race forward or support someone else right now.',
+  },
+}
+
+function levelOf(value: number): 'low' | 'mid' | 'high' {
+  if (value < 4) return 'low'
+  if (value < 7) return 'mid'
+  return 'high'
+}
+
+function RamificationsBar({ stats, order, meta }: {
+  stats: Payload['stats']
+  order: Array<keyof Payload['stats']>
+  meta: typeof META
+}) {
+  // Composite wellbeing = average of the four stats. The bar visualises each
+  // stat's contribution as a stacked segment so users see the balance.
+  const values = order.map((k) => stats[k].value)
+  const composite = values.reduce((a, b) => a + b, 0) / values.length
+  const lowest = order.reduce((lo, k) => (stats[k].value < stats[lo].value ? k : lo), order[0])
+  const highest = order.reduce((hi, k) => (stats[k].value > stats[hi].value ? k : hi), order[0])
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-4">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="font-bold text-slate-800 flex items-center gap-2">
+          <Activity className="w-5 h-5 text-purple-600" /> Ramifications
+        </h2>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-slate-800">{composite.toFixed(1)}<span className="text-sm text-slate-400"> / 10</span></div>
+          <div className="text-[11px] text-slate-400">overall wellbeing</div>
+        </div>
+      </div>
+      <p className="text-sm text-slate-600 mb-3">
+        Your stats feed each other. Here&apos;s the combined picture and what it means for your journey.
+      </p>
+
+      {/* Stacked contribution bar */}
+      <div className="flex h-3 rounded-full overflow-hidden mb-2 border border-slate-100">
+        {order.map((k) => {
+          const share = (stats[k].value / (values.reduce((a, b) => a + b, 0) || 1)) * 100
+          return <div key={k} className={meta[k].bar} style={{ width: `${share}%` }} title={`${meta[k].label}: ${stats[k].value.toFixed(1)}`} />
+        })}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
+        {order.map((k) => (
+          <span key={k} className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
+            <span className={`w-2.5 h-2.5 rounded-full ${meta[k].bar}`} /> {meta[k].label}
+          </span>
+        ))}
+      </div>
+
+      {/* Weakest link + strongest driver */}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="bg-rose-50 border border-rose-100 rounded-xl p-3">
+          <div className="text-[11px] font-bold uppercase tracking-wide text-rose-500 mb-1">Needs attention · {meta[lowest].label}</div>
+          <p className="text-xs text-slate-600">{RAMIFICATIONS[lowest][levelOf(stats[lowest].value)]}</p>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+          <div className="text-[11px] font-bold uppercase tracking-wide text-emerald-600 mb-1">Your strength · {meta[highest].label}</div>
+          <p className="text-xs text-slate-600">{RAMIFICATIONS[highest][levelOf(stats[highest].value)]}</p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function StatsBreakdownPage() {
@@ -116,6 +206,9 @@ export default function StatsBreakdownPage() {
 
         {!loading && isSignedIn && payload && (
           <div className="space-y-4">
+            {/* Ramifications — combined picture + knock-on effects */}
+            <RamificationsBar stats={payload.stats} order={order} meta={META} />
+
             {order.map((key) => {
               const stat = payload.stats[key]
               const meta = META[key]
@@ -144,6 +237,11 @@ export default function StatsBreakdownPage() {
 
                   {/* What it measures */}
                   <p className="text-sm text-slate-600 mb-3">{meta.what}</p>
+
+                  {/* Ramification — what this level means for the journey */}
+                  <div className="bg-slate-50 border-l-2 border-purple-300 rounded-r-lg px-3 py-2 mb-3">
+                    <p className="text-xs text-slate-600"><span className="font-semibold text-purple-600">What it means: </span>{RAMIFICATIONS[key][levelOf(stat.value)]}</p>
+                  </div>
 
                   {/* What's driving it */}
                   {stat.parts.length > 0 && (
