@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map } from 'lucide-react'
+import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
@@ -32,7 +32,20 @@ export default function PathView() {
   const [isLoadingPath, setIsLoadingPath] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
+  // Reset the current path: clears the locally cached onboarding draft / path
+  // seeds and sends the user back through onboarding to build a fresh path.
+  const handleResetPath = () => {
+    try {
+      ;['autinerary_onboarding_draft', 'autinerary_path_seed', 'autinerary_profile'].forEach((k) =>
+        localStorage.removeItem(k)
+      )
+    } catch {
+      /* ignore storage errors */
+    }
+    router.push('/onboarding')
+  }
   // Real milestone completions (race_progress) — used to compute how much
   // progress the user has actually made on each race. Refetches when the tab
   // regains focus so returning from the Races page shows fresh numbers.
@@ -133,6 +146,42 @@ export default function PathView() {
     ? Math.round(races.reduce((sum: number, r: any) => sum + r.progress, 0) / races.length)
     : 0
 
+  // ── Motivational quote (Madhu) ──────────────────────────────────────
+  // A quote tuned to how the journey is going right now (a light proxy for
+  // "how the person is feeling"), so the Path always opens with encouragement.
+  const motivationalQuote = (() => {
+    if (overallProgress === 0) {
+      const start = [
+        'Every big journey begins with one small step. You\u2019ve got this.',
+        'The start is the hardest part — and you\u2019re already here.',
+        'You don\u2019t have to be great to start, but you have to start to be great.',
+      ]
+      return start[new Date().getDate() % start.length]
+    }
+    if (overallProgress < 40) {
+      const early = [
+        'Progress, not perfection. Keep going at your own pace.',
+        'Small steps every day add up to big change.',
+        'You\u2019re building momentum — one milestone at a time.',
+      ]
+      return early[new Date().getDate() % early.length]
+    }
+    if (overallProgress < 80) {
+      const mid = [
+        'You\u2019re over the hump — look how far you\u2019ve come.',
+        'Halfway is a milestone worth celebrating. Keep it up!',
+        'Consistency is your superpower. Stay the course.',
+      ]
+      return mid[new Date().getDate() % mid.length]
+    }
+    const near = [
+      'The finish line is in sight — finish strong!',
+      'You\u2019re so close. Your future self is cheering you on.',
+      'Almost there. Every step now counts double.',
+    ]
+    return near[new Date().getDate() % near.length]
+  })()
+
   // Group races by category
   const careerRaces = races.filter((r: any) => r.category === 'Career')
   const educationRaces = races.filter((r: any) => r.category === 'Education')
@@ -162,6 +211,36 @@ export default function PathView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-cyan-50/30 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
+
+        {/* Reset confirmation */}
+        {showResetConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <RotateCcw className="w-5 h-5 text-red-500" />
+                <h3 className="text-lg font-bold text-slate-800">Reset your path?</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-5">
+                This clears your saved onboarding answers on this device and restarts onboarding so
+                you can build a fresh path. Your existing saved path stays until you complete a new one.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResetPath}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg"
+                >
+                  Reset path
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error banner */}
         {loadError && (
@@ -197,13 +276,28 @@ export default function PathView() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => router.push('/onboarding')}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-white transition-all"
-          >
-            <Settings className="w-4 h-4" />
-            Customize
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-red-600 border border-slate-300 rounded-lg hover:bg-white hover:border-red-300 transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+            <button
+              onClick={() => router.push('/onboarding')}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-white transition-all"
+            >
+              <Settings className="w-4 h-4" />
+              Customize
+            </button>
+          </div>
+        </div>
+
+        {/* ── Motivational quote (mood-aware) ── */}
+        <div className="mb-6 bg-gradient-to-r from-purple-50 via-cyan-50 to-purple-50 border border-purple-100 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <Quote className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-slate-700 italic">{motivationalQuote}</p>
         </div>
 
         {/* ── 2x2 Dashboard Grid ── */}
@@ -382,8 +476,8 @@ export default function PathView() {
             Races
           </Link>
           <Link href="/pit-stop?tab=haveworld" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <Users className="w-4 h-4 text-purple-500" />
-            People &amp; Community
+            <Wrench className="w-4 h-4 text-purple-500" />
+            Pit Stop
           </Link>
           <Link href="/stats" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
