@@ -24,8 +24,13 @@ SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
 generated_paths: Dict[str, Any] = {}
 
 
-def _save_path(path_id: str, user_id: str, payload: Dict[str, Any]) -> None:
-    """Cache locally and upsert to Supabase user_paths (no-op if unavailable)."""
+def _save_path(path_id: str, user_id: str, payload: Dict[str, Any], label: Optional[str] = None) -> None:
+    """Cache locally and upsert to Supabase user_paths (no-op if unavailable).
+
+    Multi-path aware: a newly generated path becomes the active one and any
+    other paths for the same user are deactivated. Upserts on (user_id,
+    path_id) so existing paths are kept rather than overwritten.
+    """
     generated_paths[path_id] = payload
     if not user_id:
         return
@@ -33,17 +38,108 @@ def _save_path(path_id: str, user_id: str, payload: Dict[str, Any]) -> None:
     if client is None:
         return
     try:
-        client.table("user_paths").upsert(
-            {
-                "user_id": user_id,
-                "path_id": path_id,
-                "payload": payload,
-                "updated_at": datetime.utcnow().isoformat(),
-            },
-            on_conflict="user_id",
-        ).execute()
+        # Deactivate the user's other paths so exactly one stays active.
+        try:
+            client.table("user_paths").update({"is_active": False}).eq(
+                "user_id", user_id
+            ).execute()
+        except Exception:
+            pass  # is_active column may not exist yet (pre-migration) — ignore
+
+        row: Dict[str, Any] = {
+            "user_id": user_id,
+            "path_id": path_id,
+            "payload": payload,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        # Only send new columns when we have values; tolerate pre-migration DBs.
+        row["is_active"] = True
+        if label is not None:
+            row["label"] = label
+        try:
+            client.table("user_paths").upsert(row, on_conflict="user_id,path_id").execute()
+        except Exception:
+            # Fallback for pre-migration schema (user_id PK, no is_active/label).
+            legacy = {k: v for k, v in row.items() if k not in ("is_active", "label")}
+            client.table("user_paths").upsert(legacy, on_conflict="user_id").execute()
     except Exception as e:
         print(f"[onboarding] user_paths upsert skipped: {e}")
+
+
+def _list_paths_by_user(user_id: str) -> List[Dict[str, Any]]:
+    """Return metadata for all of a user's paths (newest first)."""
+    if not user_id:
+        return []
+    client = get_supabase()
+    if client is None:
+        # Fall back to in-memory cache.
+        return [
+            {
+                "path_id": pid,
+                "is_active": True,
+                "label": p.get("userProfile", {}).get("name"),
+                "generatedAt": p.get("generatedAt"),
+                "payload": p,
+            }
+            for pid, p in generated_paths.items()
+            if p.get("userId") == user_id
+        ]
+    try:
+        res = (
+            client.table("user_paths")
+            .select("path_id, payload, updated_at, is_active, label, created_at")
+            .eq("user_id", user_id)
+            .order("updated_at", desc=True)
+            .execute()
+        )
+        return res.data or []
+    except Exception:
+        # Pre-migration schema without is_active/label columns.
+        try:
+            res = (
+                client.table("user_paths")
+                .select("path_id, payload, updated_at")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            return res.data or []
+        except Exception as e:
+            print(f"[onboarding] user_paths list skipped: {e}")
+            return []
+
+
+def _set_active_path(user_id: str, path_id: str) -> bool:
+    """Mark one path active for the user, deactivating the rest."""
+    if not user_id or not path_id:
+        return False
+    client = get_supabase()
+    if client is None:
+        return False
+    try:
+        client.table("user_paths").update({"is_active": False}).eq("user_id", user_id).execute()
+        client.table("user_paths").update({"is_active": True}).eq("user_id", user_id).eq(
+            "path_id", path_id
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[onboarding] set active path skipped: {e}")
+        return False
+
+
+def _delete_path(user_id: str, path_id: str) -> bool:
+    """Delete a single path for the user."""
+    generated_paths.pop(path_id, None)
+    client = get_supabase()
+    if client is None:
+        return False
+    try:
+        client.table("user_paths").delete().eq("user_id", user_id).eq(
+            "path_id", path_id
+        ).execute()
+        return True
+    except Exception as e:
+        print(f"[onboarding] delete path skipped: {e}")
+        return False
 
 
 def _load_path_by_id(path_id: str) -> Optional[Dict[str, Any]]:
@@ -72,12 +168,28 @@ def _load_path_by_id(path_id: str) -> Optional[Dict[str, Any]]:
 
 
 def _load_path_by_user(user_id: str) -> Optional[Dict[str, Any]]:
-    """Look up the most recent path for a user from Supabase."""
+    """Look up the active (or most recent) path for a user from Supabase."""
     if not user_id:
         return None
     client = get_supabase()
     if client is None:
         return None
+    # Prefer the active path; fall back to most recent.
+    try:
+        res = (
+            client.table("user_paths")
+            .select("payload")
+            .eq("user_id", user_id)
+            .eq("is_active", True)
+            .order("updated_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        if rows:
+            return rows[0]["payload"]
+    except Exception:
+        pass  # is_active column may not exist yet (pre-migration)
     try:
         res = (
             client.table("user_paths")
@@ -450,6 +562,51 @@ async def get_user_path(user_id: str):
     if payload is None:
         raise HTTPException(status_code=404, detail="No path found for user.")
     return payload
+
+
+@router.get("/user/{user_id}/paths")
+async def list_user_paths(user_id: str):
+    """List all of a user's saved paths (metadata only) for the multi-path
+    switcher / compare views. Returns a lightweight summary per path so the
+    client can render a list without downloading every full payload."""
+    rows = _list_paths_by_user(user_id)
+    summaries = []
+    for row in rows:
+        payload = row.get("payload") or {}
+        races = payload.get("races") or []
+        progresses = [r.get("progress", 0) or 0 for r in races]
+        overall = round(sum(progresses) / len(progresses)) if progresses else 0
+        summaries.append(
+            {
+                "pathId": row.get("path_id"),
+                "label": row.get("label")
+                or payload.get("userProfile", {}).get("ultimateDream")
+                or "My Path",
+                "isActive": bool(row.get("is_active", False)),
+                "generatedAt": payload.get("generatedAt") or row.get("created_at"),
+                "updatedAt": row.get("updated_at"),
+                "ultimateDream": payload.get("userProfile", {}).get("ultimateDream"),
+                "raceCount": len(races),
+                "overallProgress": overall,
+            }
+        )
+    return {"paths": summaries}
+
+
+@router.post("/user/{user_id}/paths/{path_id}/activate")
+async def activate_user_path(user_id: str, path_id: str):
+    """Switch which path is active for the user."""
+    if not _set_active_path(user_id, path_id):
+        raise HTTPException(status_code=400, detail="Could not activate path.")
+    return {"pathId": path_id, "isActive": True}
+
+
+@router.delete("/user/{user_id}/paths/{path_id}")
+async def delete_user_path(user_id: str, path_id: str):
+    """Delete one of a user's paths."""
+    if not _delete_path(user_id, path_id):
+        raise HTTPException(status_code=400, detail="Could not delete path.")
+    return {"pathId": path_id, "deleted": True}
 
 @router.get("/questions")
 async def get_onboarding_questions():

@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import { saveSnapshot } from '@/lib/pathSnapshots'
+import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -35,6 +36,8 @@ export default function PathView() {
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [savedSnapshotName, setSavedSnapshotName] = useState<string | null>(null)
+  const [serverPaths, setServerPaths] = useState<ServerPathSummary[]>([])
+  const [switchingPath, setSwitchingPath] = useState(false)
 
   // Reset the current path: clears the locally cached onboarding draft / path
   // seeds and sends the user back through onboarding to build a fresh path.
@@ -100,6 +103,33 @@ export default function PathView() {
 
     fetchPath()
   }, [supabaseUser])
+
+  // Load the user's saved paths for the multi-path switcher.
+  useEffect(() => {
+    if (!supabaseUser?.id) return
+    let cancelled = false
+    listServerPaths(supabaseUser.id).then((paths) => {
+      if (!cancelled) setServerPaths(paths)
+    })
+    return () => { cancelled = true }
+  }, [supabaseUser?.id, pathData?.id])
+
+  // Switch the active path and reload it into the view.
+  const handleSwitchPath = async (newPathId: string) => {
+    const userId = supabaseUser?.id
+    if (!userId || !newPathId) return
+    setSwitchingPath(true)
+    try {
+      await activateServerPath(userId, newPathId)
+      const res = await fetch(`${API_URL}/api/onboarding/path/${newPathId}`, { cache: 'no-store' })
+      if (res.ok) {
+        setPathData(await res.json())
+        setServerPaths((prev) => prev.map((p) => ({ ...p, isActive: p.pathId === newPathId })))
+      }
+    } finally {
+      setSwitchingPath(false)
+    }
+  }
 
   // ── Derive data from AI path or use defaults ──
 
@@ -328,6 +358,31 @@ export default function PathView() {
             </button>
           </div>
         </div>
+
+        {/* ── Multi-path switcher (only when the user has more than one) ── */}
+        {serverPaths.length > 1 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
+            <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <GitCompare className="w-4 h-4 text-purple-500" /> Your paths
+            </span>
+            <select
+              value={pathData?.id || ''}
+              disabled={switchingPath}
+              onChange={(e) => handleSwitchPath(e.target.value)}
+              className="text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
+            >
+              {serverPaths.map((p) => (
+                <option key={p.pathId} value={p.pathId}>
+                  {p.label}{p.isActive ? ' (active)' : ''} — {p.overallProgress}%
+                </option>
+              ))}
+            </select>
+            {switchingPath && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+            <Link href="/paths/compare" className="text-xs font-medium text-purple-600 hover:text-purple-700 ml-auto inline-flex items-center gap-1">
+              Compare all <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+        )}
 
         {/* ── Motivational quote (mood-aware) ── */}
         <div className="mb-6 bg-gradient-to-r from-purple-50 via-cyan-50 to-purple-50 border border-purple-100 rounded-2xl px-5 py-4 flex items-start gap-3">

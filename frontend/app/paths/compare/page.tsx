@@ -9,34 +9,90 @@ import {
   snapshotOverallProgress,
   type PathSnapshot,
 } from '@/lib/pathSnapshots'
+import { listServerPaths, fetchServerPath } from '@/lib/serverPaths'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ComparePathsPage() {
   const router = useRouter()
+  const { supabaseUser } = useAuth()
   const [snapshots, setSnapshots] = useState<PathSnapshot[]>([])
   const [leftId, setLeftId] = useState<string>('')
   const [rightId, setRightId] = useState<string>('')
 
   useEffect(() => {
-    const load = () => {
+    const loadLocal = () => {
       const snaps = loadSnapshots()
-      setSnapshots(snaps)
-      setLeftId((prev) => prev || snaps[0]?.id || '')
-      setRightId((prev) => prev || snaps[1]?.id || '')
+      setSnapshots((prev) => {
+        // Keep any server-loaded snapshots (prefixed 'server:') already present.
+        const serverOnes = prev.filter((s) => s.id.startsWith('server:'))
+        const merged = [...serverOnes, ...snaps]
+        setLeftId((p) => p || merged[0]?.id || '')
+        setRightId((p) => p || merged[1]?.id || '')
+        return merged
+      })
     }
-    load()
-    window.addEventListener('autinerary:snapshots', load)
-    return () => window.removeEventListener('autinerary:snapshots', load)
+    loadLocal()
+    window.addEventListener('autinerary:snapshots', loadLocal)
+    return () => window.removeEventListener('autinerary:snapshots', loadLocal)
   }, [])
+
+  // Pull the user's server-saved paths so they show up cross-device.
+  useEffect(() => {
+    if (!supabaseUser?.id) return
+    let cancelled = false
+    ;(async () => {
+      const summaries = await listServerPaths(supabaseUser.id)
+      const full = await Promise.all(
+        summaries.map(async (s) => {
+          const payload = await fetchServerPath(s.pathId)
+          if (!payload) return null
+          const snap: PathSnapshot = {
+            id: `server:${s.pathId}`,
+            name: s.label + (s.isActive ? ' (active)' : ''),
+            createdAt: s.generatedAt || new Date().toISOString(),
+            data: {
+              ultimateDream: payload.userProfile?.ultimateDream,
+              races: (payload.races || []).map((r: any) => ({
+                id: r.id,
+                name: r.name || r.goal,
+                progress: r.progress || 0,
+                category: r.category,
+              })),
+              milestones: payload.milestones || [],
+              goals: payload.userProfile?.goals || [],
+            },
+          }
+          return snap
+        })
+      )
+      if (cancelled) return
+      const serverSnaps = full.filter(Boolean) as PathSnapshot[]
+      setSnapshots((prev) => {
+        const localOnes = prev.filter((s) => !s.id.startsWith('server:'))
+        const merged = [...serverSnaps, ...localOnes]
+        setLeftId((p) => p || merged[0]?.id || '')
+        setRightId((p) => p || merged[1]?.id || '')
+        return merged
+      })
+    })()
+    return () => { cancelled = true }
+  }, [supabaseUser?.id])
 
   const left = snapshots.find((s) => s.id === leftId) || null
   const right = snapshots.find((s) => s.id === rightId) || null
 
   const handleDelete = (id: string) => {
-    deleteSnapshot(id)
-    const remaining = loadSnapshots()
-    setSnapshots(remaining)
-    if (leftId === id) setLeftId(remaining[0]?.id || '')
-    if (rightId === id) setRightId(remaining[1]?.id || remaining[0]?.id || '')
+    // Server paths are managed from the Path switcher, not deleted here — just
+    // hide from this comparison. Local snapshots are removed from storage.
+    if (!id.startsWith('server:')) {
+      deleteSnapshot(id)
+    }
+    setSnapshots((prev) => {
+      const remaining = prev.filter((s) => s.id !== id)
+      if (leftId === id) setLeftId(remaining[0]?.id || '')
+      if (rightId === id) setRightId(remaining[1]?.id || remaining[0]?.id || '')
+      return remaining
+    })
   }
 
   return (
