@@ -298,6 +298,9 @@ class ToolRecommendationAgent(BaseAgent):
         for r in items:
             normalized.append({
                 "id": f"sh_{r.get('id')}",
+                # Real ServiceHub `resources` UUID so the frontend can call the
+                # save / status / ratings APIs (the `id` above is prefixed).
+                "resourceId": r.get("id"),
                 "name": r.get("name") or r.get("title") or "Resource",
                 "description": r.get("description") or "",
                 "url": (r.get("contact_info") or {}).get("website")

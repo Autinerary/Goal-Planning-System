@@ -11,6 +11,21 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
+/**
+ * Pull a real ResourceHub resource UUID out of a tool. ServiceHub tools have an
+ * id like "sh_<uuid>" and/or a url like ".../resources/<uuid>". Knowledge-base
+ * tools have neither, so this returns null and those tools stay local-only.
+ */
+function extractResourceId(id?: string, url?: string): string | null {
+  const fromId = id?.startsWith('sh_') ? id.slice(3) : undefined
+  if (fromId && UUID_RE.test(fromId)) return fromId
+  const m = (url || '').match(new RegExp(`/resources/(${UUID_RE.source})`, 'i'))
+  if (m) return m[1]
+  return null
+}
+
 export default function MilestoneView() {
   const router = useRouter()
   const { pathPlanning, toolRecommendation, patternRecognition, payload } = useAgentPath()
@@ -41,30 +56,47 @@ export default function MilestoneView() {
 
   // Toggle a tool's ResourceHub status. Best-effort sync to ServiceHub so it
   // shows up in the user's Wishlist / Currently Using lists there too.
-  const setToolStatusFor = (toolId: string, status: 'wishlist' | 'current') => {
+  const setToolStatusFor = (toolId: string, status: 'wishlist' | 'current', resourceId?: string | null) => {
+    let nextStatus: 'wishlist' | 'current' | null = status
     setToolStatus(prev => {
       const next = { ...prev }
       if (next[toolId] === status) {
         delete next[toolId] // toggle off
+        nextStatus = null
       } else {
         next[toolId] = status
       }
       return next
     })
-    // Best-effort ServiceHub sync (ignore failures / cross-origin auth).
-    try {
-      fetch(`${SERVICE_HUB_URL.replace(/\/$/, '')}/api/resources/${toolId}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      }).catch(() => {})
-    } catch { /* ignore */ }
+    // Persist server-side via our same-origin route (shared Supabase). Only
+    // fires for real ResourceHub resources; synthetic tool ids are skipped.
+    if (resourceId) {
+      try {
+        fetch('/api/me/resource-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ resourceId, status: nextStatus }),
+        }).catch(() => {})
+      } catch { /* ignore */ }
+    }
   }
 
-  const rateBarrier = (barrierId: string, stars: number) => {
+  const rateBarrier = (barrierId: string, stars: number, resourceId?: string | null) => {
     setBarrierRatings(prev => ({ ...prev, [barrierId]: prev[barrierId] === stars ? 0 : stars }))
     // Rating effectiveness also marks the barrier as being worked on / cleared.
     if (!unlockedBarriers.has(barrierId)) unlockBarrier(barrierId)
+    // Persist the rating to the shared Supabase when a real resource is paired.
+    if (resourceId && stars >= 1) {
+      try {
+        fetch('/api/me/resource-rating', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ resourceId, score: stars }),
+        }).catch(() => {})
+      } catch { /* ignore */ }
+    }
   }
 
 
@@ -150,6 +182,10 @@ export default function MilestoneView() {
       seen.add(t.id)
       out.push({
         id: t.id,
+        // Real ResourceHub UUID when the tool came from ServiceHub. Falls back
+        // to parsing the "sh_<uuid>" id or a /resources/<uuid> url so we can
+        // persist Wishlist/Using/ratings server-side.
+        resourceId: t.resourceId || extractResourceId(t.id, t.url),
         name: t.name,
         type: (t.type || 'tool').replace(/^./, (c: string) => c.toUpperCase()),
         symbol: symbolForType(t.type),
@@ -351,13 +387,13 @@ export default function MilestoneView() {
                         {/* Wishlist / Currently Using toggles (Odosa) */}
                         <div className="flex items-center gap-2 mt-2">
                           <button
-                            onClick={() => setToolStatusFor(tool.id, 'wishlist')}
+                            onClick={() => setToolStatusFor(tool.id, 'wishlist', tool.resourceId)}
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
                           >
                             <Bookmark className="w-3 h-3" /> Wishlist
                           </button>
                           <button
-                            onClick={() => setToolStatusFor(tool.id, 'current')}
+                            onClick={() => setToolStatusFor(tool.id, 'current', tool.resourceId)}
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
                           >
                             <CheckCircle2 className="w-3 h-3" /> Currently Using
@@ -390,7 +426,7 @@ export default function MilestoneView() {
                             <div className="flex items-center gap-1 mt-2">
                               <span className="text-[10px] font-semibold text-slate-500 mr-1">Effectiveness:</span>
                               {[1, 2, 3, 4, 5].map(star => (
-                                <button key={star} onClick={() => rateBarrier(barrier.id, star)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
+                                <button key={star} onClick={() => rateBarrier(barrier.id, star, tool?.resourceId)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
                                   <Star className={`w-4 h-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
                                 </button>
                               ))}
