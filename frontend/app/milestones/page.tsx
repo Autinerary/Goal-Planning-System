@@ -54,6 +54,32 @@ export default function MilestoneView() {
   useEffect(() => { try { localStorage.setItem('milestoneToolStatus', JSON.stringify(toolStatus)) } catch {} }, [toolStatus])
   useEffect(() => { try { localStorage.setItem('milestoneBarrierRatings', JSON.stringify(barrierRatings)) } catch {} }, [barrierRatings])
 
+  // Server-persisted saved statuses / ratings keyed by real resource UUID.
+  // Loaded on mount so Wishlist/Using and star ratings show as already-set for
+  // resources the user has interacted with (in this app or in ResourceHub).
+  const [serverStatusByResource, setServerStatusByResource] = useState<Record<string, string>>({})
+  const [serverRatingByResource, setServerRatingByResource] = useState<Record<string, number>>({})
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [sRes, rRes] = await Promise.all([
+          fetch('/api/me/resource-status', { cache: 'no-store', credentials: 'include' }),
+          fetch('/api/me/resource-rating', { cache: 'no-store', credentials: 'include' }),
+        ])
+        if (!cancelled && sRes.ok) {
+          const j = await sRes.json()
+          setServerStatusByResource(j?.statuses || {})
+        }
+        if (!cancelled && rRes.ok) {
+          const j = await rRes.json()
+          setServerRatingByResource(j?.ratings || {})
+        }
+      } catch { /* ignore — falls back to local state */ }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   // Toggle a tool's ResourceHub status. Best-effort sync to ServiceHub so it
   // shows up in the user's Wishlist / Currently Using lists there too.
   const setToolStatusFor = (toolId: string, status: 'wishlist' | 'current', resourceId?: string | null) => {
@@ -366,9 +392,15 @@ export default function MilestoneView() {
             {Array.from({ length: Math.max(tools.length, barriers.length) }).map((_, rowIdx) => {
               const tool = tools[rowIdx]
               const barrier = barriers[rowIdx]
-              const status = tool ? toolStatus[tool.id] : undefined
+              // Prefer local (just-clicked) state, else the server value keyed
+              // by the tool's real resource UUID.
+              const status = tool
+                ? (toolStatus[tool.id] || (tool.resourceId ? serverStatusByResource[tool.resourceId] : undefined))
+                : undefined
               const isUnlocked = barrier ? unlockedBarriers.has(barrier.id) : false
-              const rating = barrier ? (barrierRatings[barrier.id] || 0) : 0
+              const rating = barrier
+                ? (barrierRatings[barrier.id] || (tool?.resourceId ? serverRatingByResource[tool.resourceId] : 0) || 0)
+                : 0
               return (
                 <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2">
                   {/* LEFT: Tool cell */}

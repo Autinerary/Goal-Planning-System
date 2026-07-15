@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
+ * GET /api/me/resource-rating
+ * Returns the signed-in user's ratings as { resourceId: score } so the
+ * Milestone View can show the 5-star Effectiveness as already-set on load.
+ */
+export async function GET() {
+  const supabase = createServerSupabase()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return NextResponse.json({ ratings: {} })
+  }
+
+  const { data, error } = await supabase
+    .from('ratings')
+    .select('resource_id, overall_score')
+    .eq('user_id', user.id)
+
+  if (error) {
+    return NextResponse.json({ ratings: {} })
+  }
+
+  const ratings: Record<string, number> = {}
+  ;(data || []).forEach((row: any) => {
+    if (row.resource_id && typeof row.overall_score === 'number') ratings[row.resource_id] = row.overall_score
+  })
+  return NextResponse.json({ ratings })
+}
+
+/**
  * POST /api/me/resource-rating
  * Rate a ResourceHub resource's effectiveness (1–5) for the signed-in user,
  * writing to the shared Supabase `ratings` table. Powers the Milestone View's

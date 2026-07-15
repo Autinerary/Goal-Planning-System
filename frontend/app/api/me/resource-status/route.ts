@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
+ * GET /api/me/resource-status
+ * Returns the signed-in user's saved resources as { resourceId: status } so the
+ * Milestone View can show Wishlist / Currently Using as already-set on load.
+ */
+export async function GET() {
+  const supabase = createServerSupabase()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return NextResponse.json({ statuses: {} })
+  }
+
+  const { data, error } = await supabase
+    .from('saved_resources')
+    .select('resource_id, status')
+    .eq('user_id', user.id)
+
+  if (error) {
+    return NextResponse.json({ statuses: {} })
+  }
+
+  const statuses: Record<string, string> = {}
+  ;(data || []).forEach((row: any) => {
+    if (row.resource_id && row.status) statuses[row.resource_id] = row.status
+  })
+  return NextResponse.json({ statuses })
+}
+
+/**
  * POST /api/me/resource-status
  * Save (or update the status of) a ResourceHub resource for the signed-in user,
  * writing directly to the shared Supabase `saved_resources` table. This lets the
