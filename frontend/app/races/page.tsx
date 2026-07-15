@@ -1670,25 +1670,6 @@ function RacesContent() {
                   </div>
                 </div>
                 </>)}
-
-                {/* Today's schedule below — only in Track View */}
-                {layoutMode === 'track' && (
-                <div className="mt-6 max-w-md mx-auto">
-                  <div className={`${pill} border rounded-xl overflow-hidden shadow-sm`}>
-                    <div className={`flex items-center justify-between px-3 py-2 border-b ${day ? 'border-sky-100' : 'border-indigo-800'}`}>
-                      <span className={`text-xs font-bold ${txt}`}>📅 Today</span>
-                      <Link href="/calendar" className={`text-[10px] ${day ? 'text-sky-600' : 'text-sky-400'} font-medium`}>Calendar →</Link>
-                    </div>
-                    {schedule.slice(0, 3).map((s, si) => (
-                      <div key={si} className={`flex items-center gap-2 px-3 py-1.5 ${si !== 2 ? `border-b ${day ? 'border-sky-50' : 'border-indigo-800/50'}` : ''}`}>
-                        <div className={`text-[10px] font-mono font-bold w-10 ${sub}`}>{s.time}</div>
-                        <span className="text-sm">{s.emoji}</span>
-                        <div className={`flex-1 ${txt} font-medium text-[11px]`}>{s.task}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                )}
               </div>
             )
           })()}

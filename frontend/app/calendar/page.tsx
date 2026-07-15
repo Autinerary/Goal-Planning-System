@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft, Download, Upload } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
+import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -229,6 +230,7 @@ function CalendarContent() {
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
   const [showComparison, setShowComparison] = useState(false)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   // When signed in, replace the localStorage-seeded state with whatever Supabase has.
   useEffect(() => {
@@ -417,6 +419,87 @@ function CalendarContent() {
     setPendingSuggestion(null)
     
     alert(`✅ Task added to ${selectedDay} at ${selectedTime}!\n\n"${taskName}"\n\nFrom: ${from}`)
+  }
+
+  // Export the whole week (scenario tasks + user-added tasks) to an .ics file
+  // that Google Calendar, Outlook, Apple Calendar, etc. can import.
+  const handleExportIcs = () => {
+    const scenarioTasks = (currentData.days || []).flatMap((d: any) =>
+      (d.tasks || []).map((t: any) => ({
+        day: d.name,
+        time: t.time,
+        name: t.name,
+        duration: t.duration,
+        priority: t.priority,
+      })),
+    )
+    const userTasks = addedTasks.map((t) => ({
+      day: t.day,
+      time: t.time,
+      name: t.name,
+      duration: t.duration,
+      priority: t.priority,
+    }))
+    const all = [...scenarioTasks, ...userTasks]
+    if (all.length === 0) {
+      alert('Nothing to export yet — add some tasks first.')
+      return
+    }
+    const ics = buildIcs(all, 'My Journey')
+    downloadIcs(ics, 'my-journey.ics')
+  }
+
+  // Import events from an external .ics file (Google Calendar, Outlook, …) and
+  // add them as calendar tasks.
+  const handleImportIcs = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (e.target) e.target.value = '' // allow re-importing the same file
+    if (!file) return
+    try {
+      const text = await file.text()
+      const parsed = parseIcs(text)
+      if (parsed.length === 0) {
+        alert('No events found in that file.')
+        return
+      }
+      const imported = parsed.map((t, i) => ({
+        id: `import_${Date.now()}_${i}`,
+        day: t.day,
+        time: t.time,
+        name: t.name,
+        duration: t.duration || '30 min',
+        priority: t.priority || 'medium',
+        from: 'Imported (.ics)',
+      }))
+      const updated = [...addedTasks, ...imported]
+      setAddedTasks(updated)
+      localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
+
+      if (isSignedIn) {
+        for (const task of imported) {
+          fetch('/api/me/calendar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              client_id: task.id,
+              day: task.day,
+              time: task.time,
+              name: task.name,
+              duration: task.duration,
+              priority: task.priority,
+              source: task.from,
+              scenario,
+            }),
+          }).catch(() => {/* silent — localStorage still has it */})
+        }
+      }
+
+      alert(`✅ Imported ${imported.length} event${imported.length === 1 ? '' : 's'} into your calendar.`)
+    } catch (err) {
+      console.error('Failed to import .ics file:', err)
+      alert('Sorry, that file could not be read as a calendar (.ics) file.')
+    }
   }
 
   // Merge added tasks with scenario data
@@ -622,13 +705,29 @@ function CalendarContent() {
             </div>
           )}
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".ics,text/calendar"
+              onChange={handleImportIcs}
+              className="hidden"
+            />
             <button
+              onClick={() => importInputRef.current?.click()}
+              title="Import events from Google Calendar, Outlook, Apple Calendar (.ics)"
               className="px-4 py-2 rounded-lg font-medium text-sm bg-white/60 border border-slate-300 text-slate-700 hover:bg-white/80 transition-all flex items-center gap-1.5"
-              onClick={() => alert('Google Calendar integration coming soon! This will sync your schedule with Google Calendar.')}
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10z" opacity=".1"/><path fill="#4285F4" d="M17 12h-4V8h-2v4H7v2h4v4h2v-4h4z"/></svg>
-              Google Calendar
+              <Upload className="w-4 h-4" />
+              Import .ics
+            </button>
+            <button
+              onClick={handleExportIcs}
+              title="Export your schedule as an .ics file for Google Calendar, Outlook, Apple Calendar"
+              className="px-4 py-2 rounded-lg font-medium text-sm bg-white/60 border border-slate-300 text-slate-700 hover:bg-white/80 transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4" />
+              Export .ics
             </button>
           </div>
         </div>
