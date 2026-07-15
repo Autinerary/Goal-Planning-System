@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
@@ -14,11 +14,59 @@ const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://local
 export default function MilestoneView() {
   const router = useRouter()
   const { pathPlanning, toolRecommendation, patternRecognition, payload } = useAgentPath()
-  const [likedItems, setLikedItems] = useState<Set<string>>(new Set())
   const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
   const [expandedTool, setExpandedTool] = useState<string | null>(null)
   const [showGif, setShowGif] = useState<string | null>(null)
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+
+  // Tool status (Odosa): Wishlist vs Currently Using — mirrors ResourceHub's
+  // saved_resources status ('wishlist' | 'current'). Persisted locally and
+  // synced best-effort to ServiceHub.
+  const [toolStatus, setToolStatus] = useState<Record<string, 'wishlist' | 'current'>>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('milestoneToolStatus'); return s ? JSON.parse(s) : {} } catch { return {} }
+    }
+    return {}
+  })
+  // Barrier effectiveness ratings (Odosa): 5-star rating replaces "Use Tool".
+  const [barrierRatings, setBarrierRatings] = useState<Record<string, number>>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('milestoneBarrierRatings'); return s ? JSON.parse(s) : {} } catch { return {} }
+    }
+    return {}
+  })
+
+  useEffect(() => { try { localStorage.setItem('milestoneToolStatus', JSON.stringify(toolStatus)) } catch {} }, [toolStatus])
+  useEffect(() => { try { localStorage.setItem('milestoneBarrierRatings', JSON.stringify(barrierRatings)) } catch {} }, [barrierRatings])
+
+  // Toggle a tool's ResourceHub status. Best-effort sync to ServiceHub so it
+  // shows up in the user's Wishlist / Currently Using lists there too.
+  const setToolStatusFor = (toolId: string, status: 'wishlist' | 'current') => {
+    setToolStatus(prev => {
+      const next = { ...prev }
+      if (next[toolId] === status) {
+        delete next[toolId] // toggle off
+      } else {
+        next[toolId] = status
+      }
+      return next
+    })
+    // Best-effort ServiceHub sync (ignore failures / cross-origin auth).
+    try {
+      fetch(`${SERVICE_HUB_URL.replace(/\/$/, '')}/api/resources/${toolId}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }).catch(() => {})
+    } catch { /* ignore */ }
+  }
+
+  const rateBarrier = (barrierId: string, stars: number) => {
+    setBarrierRatings(prev => ({ ...prev, [barrierId]: prev[barrierId] === stars ? 0 : stars }))
+    // Rating effectiveness also marks the barrier as being worked on / cleared.
+    if (!unlockedBarriers.has(barrierId)) unlockBarrier(barrierId)
+  }
+
 
   // Real milestone completions (race_progress) for computing real progress.
   useEffect(() => {
@@ -40,11 +88,7 @@ export default function MilestoneView() {
   }, [])
 
   const toggleLike = (itemId: string) => {
-    setLikedItems(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(itemId)) { newSet.delete(itemId) } else { newSet.add(itemId) }
-      return newSet
-    })
+    // (deprecated) hearts removed from Tools per Odosa — kept as no-op guard.
   }
 
   const unlockBarrier = (barrierId: string) => {
@@ -248,148 +292,143 @@ export default function MilestoneView() {
         </div>
       </div>
 
-      {/* Main content: Tools to Use | Barriers Unlocked */}
+      {/* Main content: Summary + unified Tools/Barriers table */}
       <div className="max-w-4xl mx-auto px-4 pb-8">
-        <div className="grid md:grid-cols-2 gap-4">
 
-          {/* LEFT: Tools to Use */}
-          <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
+        {/* Summary — moved to just below the progress bar (Odosa) */}
+        <div className="mb-4 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
+          <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2">📋 Summary</h3>
+          <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || 'Request accommodations for classes.'}</strong></p>
+          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
+        </div>
+
+        {/* Unified table: Tools to Use | Barriers to Unlock (Odosa: one table) */}
+        <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            {/* Column headers */}
             <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Wrench className="w-5 h-5" /> Tools to Use
-              </h2>
-              <p className="text-amber-100 text-xs">Choose your tools to remove barriers</p>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools to Use</h2>
+              <p className="text-amber-100 text-xs">Add to your ResourceHub list</p>
             </div>
-
-            {/* Tool symbol legend */}
-            <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex flex-wrap gap-2">
-              {toolSymbols.map((ts, i) => (
-                <div key={i} className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                  <span>{ts.emoji}</span>
-                  <span className="font-medium">{ts.name}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-3 space-y-2">
-              {tools.map(tool => {
-                const isUnlocked = unlockedBarriers.has(tool.barrier)
-                return (
-                  <button
-                    key={tool.id}
-                    onClick={() => setExpandedTool(expandedTool === tool.id ? null : tool.id)}
-                    className={`w-full text-left p-3 rounded-xl border-2 transition-all hover:shadow-md ${isUnlocked ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200 hover:border-amber-400'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{tool.symbol}</span>
-                      <div className="flex-1">
-                        <div className="font-bold text-sm text-slate-800">{tool.name}</div>
-                        <div className="text-xs text-slate-500">{tool.type} · {tool.desc}</div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {isUnlocked && <span className="text-green-500 text-xs font-bold">✓ Used</span>}
-                        <button
-                          onClick={e => { e.stopPropagation(); toggleLike(tool.id) }}
-                          className={`p-1 rounded-full transition-colors ${likedItems.has(tool.id) ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
-                        >
-                          <Heart className={`w-4 h-4 ${likedItems.has(tool.id) ? 'fill-red-500' : ''}`} />
-                        </button>
-                      </div>
-                    </div>
-                    {expandedTool === tool.id && (
-                      <div className="mt-2 pt-2 border-t border-amber-100 text-xs text-slate-600">
-                        <p>→ Targets barrier: <strong>{barriers.find(b => b.id === tool.barrier)?.name}</strong></p>
-                        <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
+            <div className="bg-gradient-to-r from-red-400 to-rose-500 px-4 py-3 border-l border-white/30">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2"><Shield className="w-5 h-5" /> Barriers to Unlock</h2>
+              <p className="text-red-100 text-xs">Rate how effective the tool was</p>
             </div>
           </div>
 
-          {/* RIGHT: Barriers — Getting BIGGER each time */}
-          <div className="bg-white/80 backdrop-blur border-2 border-red-200 rounded-2xl overflow-hidden shadow-md">
-            <div className="bg-gradient-to-r from-red-400 to-rose-500 px-4 py-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Shield className="w-5 h-5" /> Barriers to Unlock
-              </h2>
-              <p className="text-red-100 text-xs">Getting bigger each time — break them down!</p>
-            </div>
+          {/* Tool symbol legend (spans both columns) */}
+          <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex flex-wrap gap-2">
+            {toolSymbols.map((ts, i) => (
+              <div key={i} className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                <span>{ts.emoji}</span><span className="font-medium">{ts.name}</span>
+              </div>
+            ))}
+          </div>
 
-            <div className="p-3 space-y-3">
-              {barriers.map((barrier, idx) => {
-                const isUnlocked = unlockedBarriers.has(barrier.id)
-                const isAnimating = showGif === barrier.id
-                /* Bars get BIGGER with severity */
-                const barHeight = 40 + barrier.severity * 16
-                return (
-                  <div key={barrier.id} className="relative">
-                    {/* Barrier block — grows with severity */}
-                    <div
-                      className={`relative rounded-xl border-2 transition-all duration-500 overflow-hidden ${isUnlocked ? 'border-green-300 bg-green-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'} ${isAnimating ? 'animate-pulse' : ''}`}
-                      style={{ minHeight: barHeight }}
-                    >
-                      {/* Shatter effect when unlocking */}
-                      {isAnimating && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                          <div className="text-4xl" style={{ animation: 'unlockPop 0.6s ease-out' }}>🔓</div>
-                        </div>
-                      )}
-
-                      <div className="p-3 flex items-center gap-3">
-                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`}>
-                          {isUnlocked ? <Unlock className="w-5 h-5 text-green-600" /> : <Lock className="w-5 h-5 text-red-600" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`font-bold text-sm ${isUnlocked ? 'text-green-700 line-through' : 'text-red-800'}`}>
-                            {barrier.name}
+          {/* Rows: pair each tool with a barrier, side by side */}
+          <div className="divide-y divide-amber-100">
+            {Array.from({ length: Math.max(tools.length, barriers.length) }).map((_, rowIdx) => {
+              const tool = tools[rowIdx]
+              const barrier = barriers[rowIdx]
+              const status = tool ? toolStatus[tool.id] : undefined
+              const isUnlocked = barrier ? unlockedBarriers.has(barrier.id) : false
+              const rating = barrier ? (barrierRatings[barrier.id] || 0) : 0
+              return (
+                <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2">
+                  {/* LEFT: Tool cell */}
+                  <div className="p-3 md:border-r border-amber-100">
+                    {tool ? (
+                      <div className={`rounded-xl border-2 p-3 transition-all ${status ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200'}`}>
+                        <button onClick={() => setExpandedTool(expandedTool === tool.id ? null : tool.id)} className="w-full text-left">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{tool.symbol}</span>
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-slate-800">{tool.name}</div>
+                              <div className="text-xs text-slate-500">{tool.type} · {tool.desc}</div>
+                            </div>
                           </div>
-                          {/* Game bar — highlighted, gets bigger */}
-                          <div className={`mt-1 rounded-full overflow-hidden ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`} style={{ height: 6 + barrier.severity * 3 }}>
-                            <div
-                              className={`h-full rounded-full transition-all duration-700 ${isUnlocked ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-red-400 to-rose-500'}`}
-                              style={{ width: isUnlocked ? '100%' : `${barrier.severity * 25}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[9px] text-slate-500">Severity: {'🔥'.repeat(barrier.severity)}</span>
-                            {isUnlocked && <span className="text-[9px] text-green-600 font-bold">CLEARED!</span>}
-                          </div>
-                        </div>
-                        {!isUnlocked && (
+                        </button>
+                        {/* Wishlist / Currently Using toggles (Odosa) */}
+                        <div className="flex items-center gap-2 mt-2">
                           <button
-                            onClick={() => unlockBarrier(barrier.id)}
-                            className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-lg shadow hover:scale-105 transition-all"
+                            onClick={() => setToolStatusFor(tool.id, 'wishlist')}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
                           >
-                            Use Tool
+                            <Bookmark className="w-3 h-3" /> Wishlist
                           </button>
+                          <button
+                            onClick={() => setToolStatusFor(tool.id, 'current')}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
+                          >
+                            <CheckCircle2 className="w-3 h-3" /> Currently Using
+                          </button>
+                        </div>
+                        {expandedTool === tool.id && (
+                          <div className="mt-2 pt-2 border-t border-amber-100 text-xs text-slate-600">
+                            <p>→ Targets barrier: <strong>{barriers.find(b => b.id === tool.barrier)?.name}</strong></p>
+                            <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
+                          </div>
                         )}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="h-full min-h-[60px] rounded-xl border-2 border-dashed border-amber-100" />
+                    )}
                   </div>
-                )
-              })}
-            </div>
 
-            {/* Unlock progress */}
-            <div className="px-4 pb-4">
-              <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                <span>Barriers Cleared</span>
-                <span>{unlockedBarriers.size}/{barriers.length}</span>
-              </div>
-              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all" style={{ width: `${(unlockedBarriers.size / barriers.length) * 100}%` }} />
-              </div>
+                  {/* RIGHT: Barrier cell */}
+                  <div className="p-3">
+                    {barrier ? (
+                      <div className={`relative rounded-xl border-2 p-3 transition-all ${isUnlocked ? 'border-green-300 bg-green-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`}>
+                            {isUnlocked ? <Unlock className="w-4 h-4 text-green-600" /> : <Lock className="w-4 h-4 text-red-600" />}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`font-bold text-sm ${isUnlocked ? 'text-green-700' : 'text-red-800'}`}>{barrier.name}</div>
+                            <div className="text-[9px] text-slate-500 mt-0.5">Severity: {'🔥'.repeat(barrier.severity)}{isUnlocked && <span className="text-green-600 font-bold ml-1">CLEARED!</span>}</div>
+                            {/* 5-star Effectiveness rating (replaces "Use Tool") */}
+                            <div className="flex items-center gap-1 mt-2">
+                              <span className="text-[10px] font-semibold text-slate-500 mr-1">Effectiveness:</span>
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <button key={star} onClick={() => rateBarrier(barrier.id, star)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
+                                  <Star className={`w-4 h-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full min-h-[60px] rounded-xl border-2 border-dashed border-red-100" />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Unlock progress (spans both columns) */}
+          <div className="px-4 py-3 bg-amber-50/60 border-t border-amber-200">
+            <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+              <span>Barriers Cleared</span>
+              <span>{unlockedBarriers.size}/{barriers.length}</span>
+            </div>
+            <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all" style={{ width: `${(unlockedBarriers.size / barriers.length) * 100}%` }} />
             </div>
           </div>
         </div>
 
-        {/* Summary section */}
-        <div className="mt-6 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
-          <h3 className="font-bold text-amber-900 mb-2">📋 Summary</h3>
-          <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || 'Request accommodations for classes.'}</strong></p>
-          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
+        {/* View all resources & ResourceHub (Odosa) */}
+        <div className="mt-4 flex justify-center">
+          <a
+            href={SERVICE_HUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
+          >
+            <ExternalLink className="w-4 h-4" /> View all resources &amp; ResourceHub
+          </a>
         </div>
 
         {/* Could add gifs of barriers being unlocked */}

@@ -59,6 +59,16 @@ function RacesContent() {
     return new Set()
   })
   const [showNextMilestoneSelect, setShowNextMilestoneSelect] = useState(false)
+  // Extra barriers the user adds directly on the Race checklist view (Odosa's
+  // "Add here" arrow). Persisted locally and merged with onboarding barriers.
+  const [extraBarriers, setExtraBarriers] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try { const s = localStorage.getItem('raceExtraBarriers'); return s ? JSON.parse(s) : [] } catch { return [] }
+    }
+    return []
+  })
+  const [addingBarrier, setAddingBarrier] = useState(false)
+  const [newBarrierText, setNewBarrierText] = useState('')
 
   // Auth-aware persistence: localStorage for guests, Supabase for signed-in users.
   const { supabaseUser } = useAuth()
@@ -127,6 +137,7 @@ function RacesContent() {
   // Persist hearted goals + completed milestones to localStorage
   useEffect(() => { try { localStorage.setItem('heartedGoals', JSON.stringify([...heartedGoals])) } catch {} }, [heartedGoals])
   useEffect(() => { try { localStorage.setItem('completedMilestoneIds', JSON.stringify([...completedMilestoneIds])) } catch {} }, [completedMilestoneIds])
+  useEffect(() => { try { localStorage.setItem('raceExtraBarriers', JSON.stringify(extraBarriers)) } catch {} }, [extraBarriers])
 
   const toggleHeart = (id: string) => {
     setHeartedGoals(prev => {
@@ -334,7 +345,10 @@ function RacesContent() {
     { id: 's3', name: 'Completed: Set up profile' },
   ]
   // Real agent-derived races (fallback to mock if no path data yet)
-  const userBarrierLabels: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
+  const userBarrierLabels: string[] = [
+    ...((payload?.userProfile?.barrierTypes || []) as string[]),
+    ...extraBarriers,
+  ]
   const userGoalNames: string[] = (payload?.userProfile?.goals || []) as string[]
   const agentMilestoneList: any[] = (pathPlanning?.milestones || payload?.milestones || []) as any[]
   const firstMilestoneName: string | undefined = agentMilestoneList[0]?.name || agentMilestoneList[0]?.title
@@ -703,7 +717,17 @@ function RacesContent() {
         <header className={`sticky top-0 z-40 ${day ? 'bg-sky-100/90' : 'bg-indigo-950/90'} backdrop-blur-md border-b ${day ? 'border-sky-200' : 'border-indigo-800'} px-4 py-2`}>
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <div className="flex items-center gap-3">
-              <button onClick={() => router.back()} className={`p-1 rounded-lg hover:opacity-70 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
+              <button onClick={() => {
+                // If an overlay view (compare / newview) is open, close it first
+                // so Back doesn't just undo query-param changes. Otherwise go
+                // back a screen to the Path (Odosa: "back button undoes actions
+                // rather than going back a screen").
+                if (comparisonView || newView) {
+                  router.push('/races')
+                } else {
+                  router.push('/path')
+                }
+              }} className={`p-1 rounded-lg hover:opacity-70 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
               <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
             </div>
             <div className="flex items-center gap-1.5">
@@ -967,7 +991,30 @@ function RacesContent() {
                 <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Compete'}</h2>
                 <button onClick={() => router.push('/races')} className={`${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
               </div>
-              {newView === 'avoidance' && <div className="space-y-1.5">{[{ t: 'All-night study', r: 'Triggers burnout' }, { t: 'Cramming', r: 'Increases anxiety' }, { t: 'Skipping meals', r: 'Affects focus' }, { t: 'Overcommitting', r: 'Overwhelm' }].map((x, i) => <div key={i} className={`flex items-start gap-2 p-2 ${day ? 'bg-red-50 border-red-200' : 'bg-red-900/30 border-red-800'} border rounded-lg`}><AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" /><div><div className={`font-medium text-xs ${day ? 'text-red-900' : 'text-red-300'}`}>{x.t}</div><div className={`text-[10px] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div></div></div>)}</div>}
+              {newView === 'avoidance' && (
+                <div className="space-y-1.5">
+                  <p className={`text-[11px] ${sub} mb-1`}>Habits and traps to steer clear of — based on your obstacles and common pitfalls.</p>
+                  {(() => {
+                    const obstacles = (payload?.userProfile?.currentChallenges || []) as string[]
+                    const fromObstacles = obstacles.map((o) => ({ t: `Avoid: ${o}`, r: 'You flagged this as an obstacle' }))
+                    const generic = [
+                      { t: 'All-night study', r: 'Triggers burnout' },
+                      { t: 'Cramming', r: 'Increases anxiety' },
+                      { t: 'Skipping meals', r: 'Affects focus' },
+                      { t: 'Overcommitting', r: 'Overwhelm' },
+                    ]
+                    return [...fromObstacles, ...generic]
+                  })().map((x, i) => (
+                    <div key={i} className={`flex items-start gap-2 p-2 ${day ? 'bg-red-50 border-red-200' : 'bg-red-900/30 border-red-800'} border rounded-lg`}>
+                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <div className={`font-medium text-xs ${day ? 'text-red-900' : 'text-red-300'}`}>{x.t}</div>
+                        <div className={`text-[10px] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {newView === 'suggestions' && <div className="space-y-2"><div className="flex gap-1">{['All', 'Role Models', 'Mentors', 'Friends'].map(f => <button key={f} onClick={() => setSuggestionFilter(f)} className={`px-2 py-0.5 text-[10px] border rounded-lg ${suggestionFilter === f ? 'bg-purple-500 text-white border-purple-500' : `${pill} ${sub}`}`}>{f}</button>)}</div>{[{ from: 'Sarah (RM)', sug: 'Pomodoro', time: '2h', cat: 'Role Models' }, { from: 'James (M)', sug: 'Smaller steps', time: '5h', cat: 'Mentors' }, { from: 'Alex (F)', sug: 'Body double', time: '1d', cat: 'Friends' }].filter(x => suggestionFilter === 'All' || x.cat === suggestionFilter).map((x, i) => <button key={i} onClick={() => router.push(`/calendar?suggestion=${encodeURIComponent(x.sug)}`)} className={`w-full text-left p-2 ${day ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'} border rounded-lg`}><div className="flex justify-between"><span className={`font-medium text-[10px] ${day ? 'text-purple-900' : 'text-purple-300'}`}>{x.from}</span><span className={`text-[9px] ${sub}`}>{x.time}</span></div><div className={`text-[10px] ${sub}`}>{x.sug}</div></button>)}</div>}
               {newView === 'compete' && <div className="space-y-2">{[{ rival: 'Marcus', g: '10 tasks/wk', y: 6, th: 8 }, { rival: 'Alex', g: '20 hrs', y: 12, th: 15 }].map((c, i) => <div key={i} className={`p-2 border-2 rounded-lg ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}><div className="flex items-center gap-2 mb-1"><div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-[9px]">{c.rival[0]}</div><div className={`text-xs font-medium ${txt}`}>{c.rival} ({c.g})</div></div><div className={`h-1.5 ${day ? 'bg-slate-200' : 'bg-indigo-800'} rounded-full overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-amber-400 rounded-full" style={{ width: `${(c.y / Math.max(c.y, c.th)) * 100}%` }} /></div><div className="flex justify-between text-[9px] mt-0.5"><span className={sub}>You:{c.y}</span><span className={sub}>Them:{c.th}</span></div></div>)}</div>}
             </div>
@@ -1438,13 +1485,60 @@ function RacesContent() {
                   </div>
 
                   {/* Barriers chips */}
-                  {userBarrierLabels.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {userBarrierLabels.slice(0, 4).map(b => (
-                        <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>{b}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1 mb-3">
+                    {userBarrierLabels.slice(0, 6).map(b => (
+                      <span key={b} className={`inline-flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                        {b}
+                        {extraBarriers.includes(b) && (
+                          <button
+                            onClick={() => setExtraBarriers(prev => prev.filter(x => x !== b))}
+                            className="hover:text-red-500"
+                            title="Remove"
+                          >
+                            <X className="w-2 h-2" />
+                          </button>
+                        )}
+                      </span>
+                    ))}
+                    {addingBarrier ? (
+                      <span className="inline-flex items-center gap-1">
+                        <input
+                          autoFocus
+                          value={newBarrierText}
+                          onChange={(e) => setNewBarrierText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const v = newBarrierText.trim()
+                              if (v && !userBarrierLabels.includes(v)) setExtraBarriers(prev => [...prev, v])
+                              setNewBarrierText(''); setAddingBarrier(false)
+                            } else if (e.key === 'Escape') {
+                              setNewBarrierText(''); setAddingBarrier(false)
+                            }
+                          }}
+                          placeholder="Add barrier…"
+                          className={`text-[8px] px-1.5 py-0.5 rounded-full border w-24 focus:outline-none ${day ? 'bg-white border-slate-300 text-slate-700' : 'bg-indigo-950 border-indigo-600 text-indigo-200'}`}
+                        />
+                        <button
+                          onClick={() => {
+                            const v = newBarrierText.trim()
+                            if (v && !userBarrierLabels.includes(v)) setExtraBarriers(prev => [...prev, v])
+                            setNewBarrierText(''); setAddingBarrier(false)
+                          }}
+                          className={`text-[8px] font-bold ${day ? 'text-cyan-600' : 'text-cyan-300'}`}
+                        >
+                          Add
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setAddingBarrier(true)}
+                        className={`text-[8px] px-1.5 py-0.5 rounded-full border border-dashed font-bold ${day ? 'border-slate-300 text-slate-500 hover:bg-white/70' : 'border-indigo-600 text-indigo-300 hover:bg-indigo-900/40'}`}
+                        title="Add a barrier/condition to consider here"
+                      >
+                        + Add
+                      </button>
+                    )}
+                  </div>
 
                   {/* Goal(s) for this dimension — shown under the barrier chips */}
                   <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`}>

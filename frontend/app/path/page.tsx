@@ -466,10 +466,13 @@ export default function PathView() {
 
           {/* ── Card 3: Your People (Hare World) ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-lg text-slate-800 mb-1 flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-500" />
-              Your People
+              Suggested People
             </h2>
+            <p className="text-xs text-slate-500 mb-4">
+              AI-suggested role models, mentors &amp; peers to learn from — not people you selected. Manage your own in Pit Stop.
+            </p>
 
             {/* Role Models */}
             <div className="mb-4">
