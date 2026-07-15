@@ -982,6 +982,60 @@ function RacesContent() {
            ═════════════════════════════════════════════════════════ */}
         <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
 
+          {/* ═══ YOUR GOALS, DREAMS & OBSTACLES (from onboarding) ═══
+              Surfaced at the very top so users can see their choices ARE
+              being considered in what was generated (Odosa's feedback). */}
+          {(() => {
+            const goalsList: string[] = (payload?.userProfile?.goals || []) as string[]
+            const dreamsList: string[] = (payload?.userProfile?.dreams || []) as string[]
+            const obstaclesList: string[] = (payload?.userProfile?.currentChallenges || []) as string[]
+            if (goalsList.length === 0 && dreamsList.length === 0 && obstaclesList.length === 0) return null
+            return (
+              <div className={`w-full max-w-2xl px-2 pt-4`}>
+                <div className={`${pill} border rounded-2xl p-4 shadow-sm`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className={`w-4 h-4 ${day ? 'text-purple-500' : 'text-purple-300'}`} />
+                    <h3 className={`font-bold text-sm ${txt}`}>Your Goals, Dreams &amp; Obstacles</h3>
+                    <span className={`text-[10px] ${sub} ml-auto`}>Used to generate your races</span>
+                  </div>
+
+                  {goalsList.length > 0 && (
+                    <div className="mb-2.5">
+                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>🎯 Goals ({goalsList.length})</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {goalsList.map((g, i) => (
+                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-cyan-900/30 text-cyan-200 border border-cyan-800'}`}>{g}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {dreamsList.length > 0 && (
+                    <div className="mb-2.5">
+                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>🌟 Dreams</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {dreamsList.map((d, i) => (
+                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-900/30 text-purple-200 border border-purple-800'}`}>{d}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {obstaclesList.length > 0 && (
+                    <div>
+                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>⛰️ Obstacles</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {obstaclesList.map((o, i) => (
+                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-pink-50 text-pink-700 border border-pink-200' : 'bg-pink-900/30 text-pink-200 border border-pink-800'}`}>{o}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* ═══════════════════
               TRACK / LIST toggle — centered, below the main nav
              ═══════════════════ */}

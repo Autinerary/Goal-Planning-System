@@ -352,6 +352,7 @@ export default function PathView() {
             <button
               onClick={() => router.push('/onboarding')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-white transition-all"
+              title="Edit your answers. Your progress and saved path are kept — use Reset to start over."
             >
               <Settings className="w-4 h-4" />
               Customize
