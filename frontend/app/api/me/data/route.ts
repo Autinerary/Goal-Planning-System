@@ -15,7 +15,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * caller's own user_id — a backup can never write another user's rows.
  */
 
-const BACKUP_VERSION = 1
+const BACKUP_VERSION = 2
 
 // Tables that make up "progress" (cleared by both reset + full wipe).
 const PROGRESS_TABLES = [
@@ -28,8 +28,11 @@ const PROGRESS_TABLES = [
 
 // The generated plan. Only wiped on a full restart.
 const PLAN_TABLE = 'user_paths'
+// Private account-level personalization data. Included in backups and removed
+// on a full restart, but preserved when the user resets progress only.
+const PRIVATE_PROFILE_TABLES = ['user_diagnostic_profiles'] as const
 
-const ALL_TABLES = [...PROGRESS_TABLES, PLAN_TABLE] as const
+const ALL_TABLES = [...PROGRESS_TABLES, PLAN_TABLE, ...PRIVATE_PROFILE_TABLES] as const
 
 // Per-table conflict targets used when restoring.
 const CONFLICT: Record<string, string> = {
@@ -39,6 +42,7 @@ const CONFLICT: Record<string, string> = {
   life_stats_checkins: 'user_id,checkin_date',
   ideal_self_portraits: 'user_id',
   user_paths: 'user_id',
+  user_diagnostic_profiles: 'user_id',
 }
 
 async function requireUser() {

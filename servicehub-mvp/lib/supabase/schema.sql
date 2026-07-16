@@ -24,6 +24,14 @@ CREATE TABLE IF NOT EXISTS public.user_barriers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- private self-reported condition and support details (not a diagnosis)
+CREATE TABLE IF NOT EXISTS public.user_diagnostic_profiles (
+  user_id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+  consented_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- resources (services, places, products, etc.)
 CREATE TABLE IF NOT EXISTS public.resources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,6 +126,8 @@ CREATE INDEX IF NOT EXISTS resources_category_idx ON public.resources(category);
 CREATE INDEX IF NOT EXISTS ratings_resource_id_idx ON public.ratings(resource_id);
 CREATE INDEX IF NOT EXISTS ratings_user_id_idx ON public.ratings(user_id);
 CREATE INDEX IF NOT EXISTS user_barriers_user_id_idx ON public.user_barriers(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_diagnostic_profiles_profile
+  ON public.user_diagnostic_profiles USING gin (profile);
 
 -- Notifications (user notifications) - Create before enabling RLS
 CREATE TABLE IF NOT EXISTS public.notifications (
@@ -167,6 +177,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS pattern_discoveries_insight_key
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_barriers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_diagnostic_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.resources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_resources ENABLE ROW LEVEL SECURITY;
@@ -183,6 +194,10 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can view own barriers" ON public.user_barriers;
 DROP POLICY IF EXISTS "Users can manage own barriers" ON public.user_barriers;
+DROP POLICY IF EXISTS "Users can view own diagnostic profile" ON public.user_diagnostic_profiles;
+DROP POLICY IF EXISTS "Users can insert own diagnostic profile" ON public.user_diagnostic_profiles;
+DROP POLICY IF EXISTS "Users can update own diagnostic profile" ON public.user_diagnostic_profiles;
+DROP POLICY IF EXISTS "Users can delete own diagnostic profile" ON public.user_diagnostic_profiles;
 DROP POLICY IF EXISTS "Anyone can view approved resources" ON public.resources;
 DROP POLICY IF EXISTS "Authenticated users can create resources" ON public.resources;
 DROP POLICY IF EXISTS "Users can update own submitted resources" ON public.resources;
@@ -215,6 +230,19 @@ CREATE POLICY "Users can view own barriers" ON public.user_barriers
 
 CREATE POLICY "Users can manage own barriers" ON public.user_barriers
   FOR ALL USING (auth.uid() = user_id);
+
+-- Diagnostic profiles: explicit owner-only CRUD policies for sensitive data
+CREATE POLICY "Users can view own diagnostic profile" ON public.user_diagnostic_profiles
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own diagnostic profile" ON public.user_diagnostic_profiles
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own diagnostic profile" ON public.user_diagnostic_profiles
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own diagnostic profile" ON public.user_diagnostic_profiles
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- Resources: Everyone can read approved resources, users can create resources
 CREATE POLICY "Anyone can view approved resources" ON public.resources

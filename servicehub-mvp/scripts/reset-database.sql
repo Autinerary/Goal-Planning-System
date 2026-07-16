@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS public.moderation_queue CASCADE;
 DROP TABLE IF EXISTS public.saved_resources CASCADE;
 DROP TABLE IF EXISTS public.ratings CASCADE;
 DROP TABLE IF EXISTS public.resources CASCADE;
+DROP TABLE IF EXISTS public.user_diagnostic_profiles CASCADE;
 DROP TABLE IF EXISTS public.user_barriers CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 

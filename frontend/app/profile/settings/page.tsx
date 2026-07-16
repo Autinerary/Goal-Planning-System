@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route, ShieldCheck } from 'lucide-react'
 import { loadMovement, movementSummary, exportMovement, clearMovement, type RouteVisit } from '@/lib/movement'
 
 type Profile = {
@@ -182,6 +182,12 @@ export default function ProfileSettingsPage() {
           className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           Accessibility →
+        </button>
+        <button
+          onClick={() => router.push('/profile/diagnostic')}
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+        >
+          <ShieldCheck className="w-4 h-4 text-cyan-700" /> Condition &amp; Support Profile
         </button>
 
         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">

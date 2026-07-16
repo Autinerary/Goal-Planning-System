@@ -9,6 +9,8 @@ import {
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 import { AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, savePreferences } from '@/lib/preferences'
+import DiagnosticProfileSection from './DiagnosticProfileSection'
+import { CONDITION_GROUPS, EMPTY_DIAGNOSTIC_PROFILE, type DiagnosticProfile } from '@/lib/diagnostic-profile'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -248,31 +250,10 @@ const lifeStages = [
 ]
 
 const barrierCategories = [
-  {
-    name: 'Neurodivergence',
-    subcategories: [
-      { name: 'Neurodevelopmental', items: ['Autism', 'ADHD', 'AuDHD', 'Tourette Syndrome', 'Intellectual Disability'] },
-      { name: 'Learning Differences', items: ['Dyslexia', 'Dyscalculia', 'Dysgraphia', 'Auditory Processing Disorder'] },
-      { name: 'Sensory Processing', items: ['Sensory Processing Disorder', 'Synesthesia'] },
-      { name: 'Psychiatric Conditions', items: ['OCD', 'Schizophrenia', 'PTSD', 'Anxiety Disorder', 'Depression'] },
-      { name: 'Personality Disorders', items: ['BPD', 'Bipolar Disorder'] },
-      { name: 'Genetic Variations', items: ['Down Syndrome', 'Fragile X Syndrome'] },
-    ]
-  },
-  {
-    name: 'Physical',
-    subcategories: [
-      { name: 'Mobility', items: ['Wheelchair User', 'Limited Mobility', 'Amputation'] },
-      { name: 'Chronic Conditions', items: ['Chronic Illness', 'Chronic Pain', 'Autoimmune Disorder', 'Epilepsy'] },
-    ]
-  },
-  {
-    name: 'Sensory',
-    subcategories: [
-      { name: 'Vision', items: ['Blind', 'Low Vision', 'Color Blind'] },
-      { name: 'Hearing', items: ['Deaf', 'Hard of Hearing'] },
-    ]
-  },
+  ...CONDITION_GROUPS.map((group) => ({
+    name: group.label,
+    subcategories: [{ name: 'Conditions and differences', items: group.conditions.map((condition) => condition.label) }],
+  })),
   {
     name: 'Social & Cultural',
     subcategories: [
@@ -465,6 +446,19 @@ export default function OnboardingPage() {
   const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
   // Free-text custom barriers the user adds per connection (e.g. "public speaking").
   const [customBarrierDraft, setCustomBarrierDraft] = useState<Record<string, string>>({})
+  // Sensitive optional details intentionally stay out of the localStorage
+  // onboarding draft. They are persisted only after explicit consent.
+  const [diagnosticProfile, setDiagnosticProfile] = useState<DiagnosticProfile>(() => ({
+    ...EMPTY_DIAGNOSTIC_PROFILE,
+    conditions: [],
+    supportContext: { ...EMPTY_DIAGNOSTIC_PROFILE.supportContext },
+  }))
+
+  const selectedBarrierTypes = formData.barrierTypes.length > 0
+    ? formData.barrierTypes
+    : formData.barrierConnectionText.trim()
+      ? [formData.barrierConnectionText.trim()]
+      : []
   
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
@@ -572,7 +566,7 @@ export default function OnboardingPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return formData.bodyType !== '' && formData.hairStyle !== '' // Character select — body + hair chosen or skipped
-      case 1: return formData.barrierTypes.length > 0 // Barrier Connections — at least one barrier selected
+      case 1: return selectedBarrierTypes.length > 0 // Barrier Connections — selection or free-text description
       case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
       case 3: { // Goals & Dreams — at least one goal in any category
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
@@ -597,7 +591,7 @@ export default function OnboardingPage() {
   const fetchRecommendations = async () => {
     setIsLoadingRecommendations(true)
     try {
-      const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
+      const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
       
       // Derive role from barrierConnections (first key, or 'self' as fallback)
       const connectionKeys = Object.keys(formData.barrierConnections)
@@ -813,11 +807,27 @@ export default function OnboardingPage() {
       })
       if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
 
+      // Sensitive condition/support details are never included in the local
+      // autosave or agent payload. Save them separately through an authenticated
+      // same-origin route, and only when the user explicitly consents.
+      if (diagnosticProfile.consentToStore) {
+        const selectedLabels = new Set(formData.barrierTypes.map((barrier) => barrier.toLowerCase()))
+        await axios.put('/api/me/diagnostic-profile', {
+          ...diagnosticProfile,
+          conditions: diagnosticProfile.conditions.filter((condition) =>
+            selectedLabels.has(condition.conditionLabel.toLowerCase())
+          ),
+        }, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000,
+        })
+      }
+
       // Send to Goal Planning backend
       const response = await axios.post(`${API_URL}/api/onboarding/`, {
         email: user.email,
         userId: user.id, // Supabase auth UUID — shared with ServiceHub via public.user_barriers
-        barrierTypes: formData.barrierTypes,
+        barrierTypes: selectedBarrierTypes,
         goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
@@ -868,7 +878,7 @@ export default function OnboardingPage() {
       }
 
       // Save the barrier profile so ServiceHub can personalize recommendations
-      const serviceHubBarriers = mapBarriersToServiceHub(formData.barrierTypes)
+      const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
       localStorage.setItem('autinerary_profile', JSON.stringify({
         barriers: serviceHubBarriers,
         goals: formData.goals.filter(g => g.trim()),
@@ -906,7 +916,7 @@ export default function OnboardingPage() {
       
       if (error?.response) {
         // Server responded with error
-        errorMessage = error.response.data?.detail || error.response.data?.message || `Server error: ${error.response.status}`
+        errorMessage = error.response.data?.detail || error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`
       } else if (error?.request) {
         // Request made but no response (network error)
         errorMessage = `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
@@ -1186,6 +1196,32 @@ export default function OnboardingPage() {
                 </button>
               </div>
 
+              <div className="mb-6 flex flex-wrap gap-2">
+                {['No current barriers', 'Prefer not to share'].map((choice) => {
+                  const selected = formData.barrierTypes.length === 1 && formData.barrierTypes[0] === choice
+                  return (
+                    <button
+                      key={choice}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({
+                        ...prev,
+                        barrierTypes: selected ? [] : [choice],
+                        barrierConnections: selected ? {} : { self: [choice] },
+                        role: selected ? '' : 'self_advocate',
+                      }))}
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        selected
+                          ? 'border-cyan-600 bg-cyan-50 text-cyan-800'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-400'
+                      }`}
+                    >
+                      {selected && <Check className="mr-1 inline h-4 w-4" />}
+                      {choice}
+                    </button>
+                  )
+                })}
+              </div>
+
               {/* Mode 1: Free-text */}
               {barrierInputMode === 'text' && (
                 <div className="space-y-4">
@@ -1412,6 +1448,12 @@ export default function OnboardingPage() {
                   )}
                 </div>
               )}
+
+              <DiagnosticProfileSection
+                selectedBarriers={formData.barrierTypes}
+                value={diagnosticProfile}
+                onChange={setDiagnosticProfile}
+              />
             </div>
           )}
 
@@ -1577,7 +1619,7 @@ export default function OnboardingPage() {
 
                       {/* Suggestions based on selected barriers */}
                       {(() => {
-                        const suggestions = getGoalSuggestions(cat.id, formData.barrierTypes)
+                        const suggestions = getGoalSuggestions(cat.id, selectedBarrierTypes)
                           .filter(s => !entries.some(e => e.goal.trim().toLowerCase() === s.toLowerCase()))
                         if (suggestions.length === 0) return null
                         return (
