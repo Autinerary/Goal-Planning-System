@@ -227,7 +227,7 @@ export default function TasksPage() {
                   </div>
 
                   {/* BUNNY MASCOT */}
-                  <div className={`text-8xl bunny-${isPlaying ? 'dancing' : mascotMood}`}>
+                  <div className={`text-8xl pref-gamify-motion bunny-${isPlaying ? 'dancing' : mascotMood}`}>
                     🐰
                   </div>
 

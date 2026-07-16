@@ -113,3 +113,42 @@ export function exportMovement(): void {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+// ── Server sync (cross-device analytics) ──
+
+let syncTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * Push the current movement log to the server (best-effort). Debounced so rapid
+ * navigation coalesces into a single request. No-ops server-side when the user
+ * isn't signed in. Never throws — analytics must not disrupt navigation.
+ */
+export function syncMovement(delayMs = 4000): void {
+  if (typeof window === 'undefined') return
+  if (syncTimer) clearTimeout(syncTimer)
+  syncTimer = setTimeout(() => {
+    const list = loadMovement()
+    if (list.length === 0) return
+    fetch('/api/me/movement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      keepalive: true,
+      body: JSON.stringify({ visits: list, summary: movementSummary(list) }),
+    }).catch(() => {/* offline / signed out — localStorage keeps it */})
+  }, delayMs)
+}
+
+/** Fetch the server-stored movement log (or null). Never throws. */
+export async function fetchServerMovement(): Promise<RouteVisit[] | null> {
+  if (typeof window === 'undefined') return null
+  try {
+    const res = await fetch('/api/me/movement', { cache: 'no-store', credentials: 'include' })
+    if (!res.ok) return null
+    const json = await res.json()
+    const visits = json?.movement?.visits
+    return Array.isArray(visits) ? (visits as RouteVisit[]) : null
+  } catch {
+    return null
+  }
+}

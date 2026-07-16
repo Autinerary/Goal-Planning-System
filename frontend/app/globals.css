@@ -79,6 +79,15 @@ html[data-view-energy="1"] body { --pref-anim-scale: 0.6; }
 html[data-view-energy="2"] body { --pref-anim-scale: 1; }
 html[data-view-energy="3"] body { --pref-anim-scale: 1.3; }
 
+/* Gamification decorations opt in via .pref-gamify. They stay fully visible at
+   energy 2–3, are calmed at energy 1, and hidden at energy 0 (plain). This lets
+   celebratory extras (mascots, confetti, ambient blobs, decorative emojis)
+   adapt to the audience without changing the underlying checklist. */
+html[data-view-energy="0"] .pref-gamify { display: none !important; }
+html[data-view-energy="0"] .pref-gamify-motion { animation: none !important; }
+html[data-view-energy="1"] .pref-gamify { opacity: 0.85; animation-duration: 6s !important; }
+html[data-view-energy="1"] .pref-gamify-motion { animation: none !important; }
+
 /* Custom animations */
 @keyframes spin {
   from {

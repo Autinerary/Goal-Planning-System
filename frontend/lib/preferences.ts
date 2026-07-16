@@ -125,6 +125,31 @@ export const VIEW_ENERGY: Record<ViewPreference, number> = {
   fun: 3,
 }
 
+/**
+ * Compute the *effective* gamification energy (0–3) for a user, adapting the
+ * chosen view preference to the audience. The journey is always a gamified
+ * checklist — this only tunes HOW MUCH visual energy we render so the UI feels
+ * right for who's using it (a calmer experience for seniors / less tech-savvy
+ * users, the full playful treatment for younger, app-fluent users).
+ *
+ * Rules (only ever *cap* the user's own choice — never force more energy than
+ * they asked for):
+ *  - 65+ audience → cap at 1 (pretty). Big celebratory motion can be jarring.
+ *  - 40–65 audience → cap at 2 (exciting).
+ *  - "Not at all" tech-savvy → cap at 1 (keep it simple and legible).
+ *  - "Somewhat" tech-savvy → cap at 2.
+ * The lowest applicable cap wins. If the user picked "plain", it stays plain.
+ */
+export function computeEnergy(prefs: UserPreferences): number {
+  const base = prefs.viewPreference ? VIEW_ENERGY[prefs.viewPreference] : 1
+  let cap = 3
+  if (prefs.ageRange === '65+') cap = Math.min(cap, 1)
+  else if (prefs.ageRange === '40-65') cap = Math.min(cap, 2)
+  if (prefs.techSavvy === 'not_at_all') cap = Math.min(cap, 1)
+  else if (prefs.techSavvy === 'somewhat') cap = Math.min(cap, 2)
+  return Math.min(base, cap)
+}
+
 // ── Persistence ──
 
 export function loadPreferences(): UserPreferences {
@@ -199,7 +224,6 @@ export function applyLayout(prefs: UserPreferences): void {
   root.dataset.widgetSize = prefs.layout.widgetSize
   root.dataset.accent = prefs.layout.accent
   root.dataset.pinwheelSide = prefs.layout.pinwheelSide
-  // Visual energy 0–3 from the view preference; plain = calmest.
-  const energy = prefs.viewPreference ? VIEW_ENERGY[prefs.viewPreference] : 1
-  root.dataset.viewEnergy = String(energy)
+  // Visual energy 0–3, adapted to the audience (age + tech comfort).
+  root.dataset.viewEnergy = String(computeEnergy(prefs))
 }

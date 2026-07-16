@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { recordVisit } from '@/lib/movement'
+import { recordVisit, syncMovement } from '@/lib/movement'
 
 function MovementTrackerInner() {
   const pathname = usePathname()
@@ -13,6 +13,8 @@ function MovementTrackerInner() {
     if (!pathname) return
     const qs = searchParams?.toString()
     recordVisit(qs ? `${pathname}?${qs}` : pathname)
+    // Best-effort, debounced upload for cross-device analytics.
+    syncMovement()
   }, [pathname, searchParams])
 
   return null
