@@ -60,6 +60,23 @@ export const DEFAULT_LAYOUT: LayoutPositions = {
   accent: 'cyan',
 }
 
+// ── Layout option metadata (single source of truth for UI + CSS) ──
+
+export const WIDGET_SIZES: { id: LayoutPositions['widgetSize']; label: string }[] = [
+  { id: 'small', label: 'Small' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'large', label: 'Large' },
+]
+
+/** Accent theme keys with a representative swatch color (for the picker UI). */
+export const ACCENTS: { id: LayoutPositions['accent']; label: string; swatch: string }[] = [
+  { id: 'cyan', label: 'Cyan', swatch: '#06b6d4' },
+  { id: 'purple', label: 'Purple', swatch: '#8b5cf6' },
+  { id: 'emerald', label: 'Emerald', swatch: '#10b981' },
+  { id: 'amber', label: 'Amber', swatch: '#f59e0b' },
+  { id: 'rose', label: 'Rose', swatch: '#f43f5e' },
+]
+
 export const DEFAULT_PREFERENCES: UserPreferences = {
   ageRange: '',
   techSavvy: '',
@@ -168,4 +185,21 @@ export function applyAccessibility(a11y: AccessibilitySettings): void {
   root.dataset.reduceMotion = a11y.reduceMotion ? 'on' : 'off'
   root.dataset.dyslexiaFont = a11y.dyslexiaFont ? 'on' : 'off'
   root.dataset.underlineLinks = a11y.underlineLinks ? 'on' : 'off'
+}
+
+/**
+ * Apply view/layout preferences to the document root as data-attributes.
+ * Global CSS keys off these to scale widgets, tune visual energy, and set the
+ * accent color. Everything stays a gamified checklist — this only changes HOW
+ * MUCH visual energy and which accent we render.
+ */
+export function applyLayout(prefs: UserPreferences): void {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement
+  root.dataset.widgetSize = prefs.layout.widgetSize
+  root.dataset.accent = prefs.layout.accent
+  root.dataset.pinwheelSide = prefs.layout.pinwheelSide
+  // Visual energy 0–3 from the view preference; plain = calmest.
+  const energy = prefs.viewPreference ? VIEW_ENERGY[prefs.viewPreference] : 1
+  root.dataset.viewEnergy = String(energy)
 }

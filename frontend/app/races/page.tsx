@@ -732,7 +732,7 @@ function RacesContent() {
             </div>
             <div className="flex items-center gap-1.5">
               {/* Motivation Pinwheel - position follows the user's saved layout preference */}
-              <div className="relative" style={{ order: prefs.layout.pinwheelSide === 'right' ? 99 : -1 }}>
+              <div className="relative pref-widget" style={{ order: prefs.layout.pinwheelSide === 'right' ? 99 : -1 }}>
                 <button
                   onClick={() => setShowPinwheelPopup(true)}
                   onMouseEnter={() => setPinwheelHover(true)}

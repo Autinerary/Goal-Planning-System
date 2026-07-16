@@ -1,11 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Languages } from 'lucide-react'
+import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Languages, Palette, Maximize } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
 import { useTranslation } from '../../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
-import { DEFAULT_ACCESSIBILITY, type FontScale } from '@/lib/preferences'
+import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
 
 const FONT_SCALES: { id: FontScale; label: string; sample: string }[] = [
   { id: 'default', label: 'Default', sample: 'Aa' },
@@ -69,6 +69,48 @@ export default function AccessibilitySettingsPage() {
               ))}
             </div>
             <p className="text-xs text-slate-400 mt-2">Language now applies across app UI labels and common page text.</p>
+          </div>
+
+          {/* Appearance — widget size & accent color (persist across devices) */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+              <Maximize className="w-4 h-4 text-cyan-600" /> Widget size
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {WIDGET_SIZES.map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => update({ layout: { ...prefs.layout, widgetSize: w.id } })}
+                  className={`px-4 py-3 rounded-xl border-2 text-center transition-all ${
+                    prefs.layout.widgetSize === w.id ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`font-bold ${w.id === 'small' ? 'text-sm' : w.id === 'medium' ? 'text-base' : 'text-lg'} ${prefs.layout.widgetSize === w.id ? 'text-cyan-700' : 'text-slate-700'}`}>Aa</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{w.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+              <Palette className="w-4 h-4 text-cyan-600" /> Accent color
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {ACCENTS.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => update({ layout: { ...prefs.layout, accent: a.id } })}
+                  aria-label={a.label}
+                  aria-pressed={prefs.layout.accent === a.id}
+                  className={`w-11 h-11 rounded-full border-2 transition-all ${
+                    prefs.layout.accent === a.id ? 'border-slate-800 scale-110' : 'border-white shadow'
+                  }`}
+                  style={{ backgroundColor: a.swatch }}
+                  title={a.label}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Text size */}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { loadPreferences, applyAccessibility, type UserPreferences } from '@/lib/preferences'
+import { loadPreferences, applyAccessibility, applyLayout, type UserPreferences } from '@/lib/preferences'
 
 /**
  * Applies the user's accessibility settings to the document on mount and
@@ -10,12 +10,16 @@ import { loadPreferences, applyAccessibility, type UserPreferences } from '@/lib
  */
 export default function AccessibilityProvider() {
   useEffect(() => {
-    applyAccessibility(loadPreferences().accessibility)
+    const apply = (prefs: UserPreferences) => {
+      applyAccessibility(prefs.accessibility)
+      applyLayout(prefs)
+    }
+    apply(loadPreferences())
     const onPrefs = (e: Event) => {
       const prefs = (e as CustomEvent).detail as UserPreferences | undefined
-      applyAccessibility((prefs || loadPreferences()).accessibility)
+      apply(prefs || loadPreferences())
     }
-    const onStorage = () => applyAccessibility(loadPreferences().accessibility)
+    const onStorage = () => apply(loadPreferences())
     window.addEventListener('autinerary:prefs', onPrefs as EventListener)
     window.addEventListener('storage', onStorage)
     return () => {

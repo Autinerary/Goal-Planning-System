@@ -53,6 +53,32 @@ html[data-dyslexia-font="on"] body {
 /* Always underline links for clearer affordance. */
 html[data-underline-links="on"] a { text-decoration: underline; }
 
+/* ── View & layout preferences (driven by data-attributes on <html>) ── */
+/* Accent color — exposed as a CSS variable other rules/components can read. */
+html { --accent-color: #06b6d4; }
+html[data-accent="cyan"]    { --accent-color: #06b6d4; }
+html[data-accent="purple"]  { --accent-color: #8b5cf6; }
+html[data-accent="emerald"] { --accent-color: #10b981; }
+html[data-accent="amber"]   { --accent-color: #f59e0b; }
+html[data-accent="rose"]    { --accent-color: #f43f5e; }
+
+/* Selection + checkbox accents follow the chosen accent color. */
+html input[type="checkbox"] { accent-color: var(--accent-color); }
+
+/* Widget size — scales key interactive widgets proportionally. Components can
+   opt in by using the .pref-widget class. */
+.pref-widget { transform-origin: center; transition: transform 0.15s ease; }
+html[data-widget-size="small"]  .pref-widget { transform: scale(0.9); }
+html[data-widget-size="large"]  .pref-widget { transform: scale(1.12); }
+
+/* View energy — tunes how "lively" decorative motion feels. 0 = plain (calm),
+   3 = fun (full energy). We soften ambient animations at low energy. */
+html[data-view-energy="0"] .pref-energy { animation: none !important; }
+html[data-view-energy="0"] body { --pref-anim-scale: 0; }
+html[data-view-energy="1"] body { --pref-anim-scale: 0.6; }
+html[data-view-energy="2"] body { --pref-anim-scale: 1; }
+html[data-view-energy="3"] body { --pref-anim-scale: 1.3; }
+
 /* Custom animations */
 @keyframes spin {
   from {
