@@ -1,14 +1,14 @@
 """
 Reflection API Routes — Step 6: Journal/Reflection View
 
-This endpoint is the moment the system learns from the user.
+This endpoint can improve the system when the user supplies an explicit outcome.
 
 When a journal entry comes in we now:
   1. Run the full LangGraph adaptation pipeline (reflection_analysis →
      adaptation → optional calendar → synthesis) — the orchestration that
      already existed but the previous in-memory version of this route
      wasn't calling.
-  2. Compute a scalar reward signal from the agent output.
+    2. Compute a reward only from explicit user feedback (never agent output).
   3. Persist the full (state, action, reward) tuple to Supabase
      (`reflections` table) so we have a real labeled corpus growing with use.
   4. Update online learning signals so the NEXT run is better:
@@ -30,13 +30,14 @@ from __future__ import annotations
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, Field
 
 from core.orchestrator import Orchestrator
 from core import learning
+from database.supabase_client import get_supabase
 
 router = APIRouter()
 
@@ -61,6 +62,24 @@ async def _get_orchestrator() -> Orchestrator:
     return _orchestrator
 
 
+def _verified_user_id(authorization: Optional[str]) -> Optional[str]:
+    """Resolve the authenticated Supabase user; never trust a client user id."""
+    if not authorization:
+        return None
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+    client = get_supabase()
+    if client is None:
+        return None
+    try:
+        response = client.auth.get_user(token)
+        user = getattr(response, "user", None)
+        return str(user.id) if user and getattr(user, "id", None) else None
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
@@ -70,6 +89,20 @@ class ReflectionRequest(BaseModel):
     contextId: str
     questions: List[dict]
     freeFormText: Optional[str] = None
+    learningFeedback: Optional["LearningFeedback"] = None
+
+
+class LearningFeedback(BaseModel):
+    """Explicit user outcome required before shared behavior may change."""
+
+    outcome: Literal["helped", "no_change", "made_worse", "not_sure"]
+    completionRate: Optional[float] = None
+    usedToolIds: List[str] = Field(default_factory=list, max_length=50)
+    pathHelpful: Optional[bool] = None
+    calendarHelpful: Optional[bool] = None
+
+
+ReflectionRequest.model_rebuild()
 
 
 class ReflectionResponse(BaseModel):
@@ -85,8 +118,15 @@ class ReflectionResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.post("/", response_model=ReflectionResponse)
-async def create_reflection(request: ReflectionRequest, user_id: str = "user_123"):
+async def create_reflection(
+    request: ReflectionRequest,
+    authorization: Optional[str] = Header(default=None),
+):
     """Create a reflection, trigger adaptation, and close the learning loop."""
+
+    # Anonymous reflections still receive insights but cannot persist or alter
+    # any personal/global learning state.
+    user_id = _verified_user_id(authorization) or "user_123"
 
     orchestrator = await _get_orchestrator()
 
@@ -118,16 +158,20 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
         elif entry.get("agentId") == "adaptation":
             adaptation_response = entry.get("result", {}) or {}
 
-    # 2. Compute the scalar reward signal that drives every learning step.
-    reward = learning.compute_reward_signal(reflection_response)
-
-    # 3. Pull the pattern indicators that fired and grow the global
-    #    correlation table.
-    indicators = learning.extract_indicators(reflection_response)
+    # 2. Shared learning is gated on an explicit user outcome. Agent-inferred
+    # sentiment/patterns still power the response, but never become labels for
+    # future users. `not_sure` is observational and carries no reward.
+    feedback = request.learningFeedback
+    learning_enabled = feedback is not None and feedback.outcome != "not_sure"
+    reward = learning.compute_explicit_reward(feedback.model_dump()) if learning_enabled else 0.0
+    indicators: List[str] = []
 
     # 4. Close the bandit loop for past adaptations and persist the new
     #    reflection record.
-    closed = await learning.close_previous_adaptation_loops(user_id, reward)
+    closed = (
+        await learning.close_previous_adaptation_loops(user_id, reward)
+        if learning_enabled else 0
+    )
     reflection_id = learning.persist_reflection(
         user_id=user_id,
         context_type=request.contextType,
@@ -139,12 +183,14 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
         reward_signal=reward,
         indicators=indicators,
     )
-    await learning.update_learned_patterns(indicators)
+    # Deliberately do not update learned_patterns from reflection-agent output.
 
     # 5. Record each adaptation rule that fired so it can be rewarded by the
     #    NEXT reflection.
     rules_logged = 0
     for adapt in (adaptation_response.get("adaptations", []) or []):
+        if not learning_enabled:
+            break
         rule = adapt.get("type") or adapt.get("rule") or "unknown"
         threshold = adapt.get("threshold_used")
         ok = await learning.record_adaptation_outcome(
@@ -167,37 +213,42 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
     tool_outcomes_recorded = False
     calendar_outcomes_recorded = False
     pattern_feedback_recorded = False
-    latest_ctx = await learning.get_user_latest_context(user_id)
-    if latest_ctx:
+    latest_ctx = await learning.get_user_latest_context(user_id) if learning_enabled else None
+    if latest_ctx and feedback:
         try:
-            results = await asyncio.gather(
-                learning.record_path_outcome(
+            learning_calls = []
+            learning_labels = []
+            if feedback.pathHelpful is not None:
+                learning_calls.append(learning.record_path_outcome(
                     profile_signature=str(latest_ctx.get("profile_signature") or ""),
                     milestone_count=int(latest_ctx.get("milestone_count") or 0),
                     est_days_avg=latest_ctx.get("est_days_avg"),
-                    reward=reward,
-                ),
-                learning.record_tool_outcomes(
-                    tool_ids=list(latest_ctx.get("recommended_tool_ids") or []),
+                    reward=1.0 if feedback.pathHelpful else -1.0,
+                ))
+                learning_labels.append("path")
+            used_tool_ids = [str(tool_id) for tool_id in feedback.usedToolIds if tool_id]
+            if used_tool_ids:
+                learning_calls.append(learning.record_tool_outcomes(
+                    tool_ids=used_tool_ids,
                     barriers=list(latest_ctx.get("barriers") or []),
                     reward=reward,
-                ),
-                learning.record_calendar_outcomes(
+                ))
+                learning_labels.append("tools")
+            if feedback.calendarHelpful is not None:
+                learning_calls.append(learning.record_calendar_outcomes(
                     user_id=user_id,
                     time_buckets=list(latest_ctx.get("scheduled_buckets") or []),
-                    reward=reward,
-                ),
-                learning.record_pattern_user_feedback(
-                    query_user_id=user_id,
-                    retrieved_user_ids=list(latest_ctx.get("retrieved_user_ids") or []),
-                    reward=reward,
-                ),
-                return_exceptions=True,
-            )
-            path_outcome_recorded     = bool(results[0]) is True
-            tool_outcomes_recorded    = bool(results[1]) is True
-            calendar_outcomes_recorded = bool(results[2]) is True
-            pattern_feedback_recorded = bool(results[3]) is True
+                    reward=1.0 if feedback.calendarHelpful else -1.0,
+                ))
+                learning_labels.append("calendar")
+            results = await asyncio.gather(*learning_calls, return_exceptions=True)
+            recorded = {
+                label: result is True
+                for label, result in zip(learning_labels, results)
+            }
+            path_outcome_recorded = recorded.get("path", False)
+            tool_outcomes_recorded = recorded.get("tools", False)
+            calendar_outcomes_recorded = recorded.get("calendar", False)
         except Exception as e:
             print(f"[reflections] universal loop close skipped: {e}")
 
@@ -209,17 +260,18 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
     barriers = list(user_profile.get("barrierTypes", []) or [])
     goals = list(reflection_response.get("goals", []) or [])
     indexed = False
-    try:
-        indexed = await orchestrator.index_user(
-            user_id=user_id,
-            user_profile=user_profile,
-            goals=goals,
-            barriers=barriers,
-            agent_result={"path": pipeline.get("path"), "milestones": []},
-            success_rate=success_rate,
-        )
-    except Exception as e:
-        print(f"[reflections] index_user skipped: {e}")
+    if learning_enabled:
+        try:
+            indexed = await orchestrator.index_user(
+                user_id=user_id,
+                user_profile=user_profile,
+                goals=goals,
+                barriers=barriers,
+                agent_result={"path": pipeline.get("path"), "milestones": []},
+                success_rate=success_rate,
+            )
+        except Exception as e:
+            print(f"[reflections] index_user skipped: {e}")
 
     # 7. Best-effort in-memory mirror so the GET endpoint stays useful in
     #    development without Supabase.
@@ -257,6 +309,7 @@ async def create_reflection(request: ReflectionRequest, user_id: str = "user_123
         adaptations=adaptation_response or None,
         reward=reward,
         learning={
+            "explicit_feedback": learning_enabled,
             "persisted": bool(reflection_id),
             "indicators_logged": len(indicators),
             "previous_adaptations_resolved": closed,

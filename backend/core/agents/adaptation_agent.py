@@ -108,17 +108,11 @@ class AdaptationAgent(BaseAgent):
         
         adaptations = []
 
-        # Adaptive thresholds via the bandit. Falls back to the hardcoded
-        # defaults defined in self.adaptation_rules when there isn't enough
-        # data yet.
-        low_completion_threshold = await learning.get_adaptive_threshold(
-            rule_name='low_completion',
-            default_threshold=self.adaptation_rules['low_completion']['threshold'],
-        )
-        positive_momentum_threshold = await learning.get_adaptive_threshold(
-            rule_name='positive_momentum',
-            default_threshold=self.adaptation_rules['positive_momentum']['threshold'],
-        )
+        # Keep thresholds on curated defaults until feedback identifies the
+        # specific adaptation being evaluated. A broad reflection within a
+        # multi-day window is not reliable causal attribution.
+        low_completion_threshold = self.adaptation_rules['low_completion']['threshold']
+        positive_momentum_threshold = self.adaptation_rules['positive_momentum']['threshold']
 
         # Check for low completion rates
         completion_rate = current_progress.get('completion_rate', 1.0)
@@ -168,27 +162,17 @@ class AdaptationAgent(BaseAgent):
             a.get('requires_calendar_update', False) for a in adaptations
         )
 
-        # LLM-generated overall explanation, augmented with retrieved
-        # success-conditioned few-shot examples (in-context "RLHF" — the
-        # foundation model stays fixed, the prompt gets richer with use).
+        # LLM-generated overall explanation. We deliberately do not inject
+        # prior agent-written adaptations as "success" examples: only direct
+        # user outcomes may influence future behavior.
         explanation = f'Applied {len(adaptations)} adaptations based on reflection analysis'
         if llm.is_enabled() and adaptations:
-            try:
-                examples = await learning.get_success_examples(
-                    barriers=user_barriers,
-                    max_results=3,
-                )
-            except Exception:
-                examples = []
-            examples_block = learning.format_success_examples_for_prompt(examples)
             user_msg = (
                 f"Adaptations: {[a.get('type') for a in adaptations]}\n"
                 f"Completion rate: {current_progress.get('completion_rate', 1.0):.0%}\n"
                 f"Sentiment: {reflection_insights.get('sentiment', {}).get('label', 'neutral')}\n"
                 "Explain why you're making these changes."
             )
-            if examples_block:
-                user_msg = examples_block + "\n\n" + user_msg
             text = await llm.complete_text(
                 system=(
                     "You are a coach explaining plan adaptations to a neurodivergent user. "

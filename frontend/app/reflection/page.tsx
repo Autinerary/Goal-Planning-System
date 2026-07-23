@@ -7,10 +7,12 @@ import axios from 'axios'
 import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
+import { createClient } from '@/lib/supabase/client'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 type Theme = 'dark' | 'light' | 'colorful'
+type LearningOutcome = '' | 'helped' | 'no_change' | 'made_worse' | 'not_sure'
 
 function ReflectionContent() {
   const router = useRouter()
@@ -22,6 +24,8 @@ function ReflectionContent() {
   const [theme, setTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [mode, setMode] = useState<'landing' | 'write'>('landing')
+  const [learningOutcome, setLearningOutcome] = useState<LearningOutcome>('')
+  const [completionPercent, setCompletionPercent] = useState(50)
   const [answers, setAnswers] = useState({
     q1: '',
     q2: '',
@@ -80,6 +84,8 @@ function ReflectionContent() {
   const handleSubmit = async () => {
     setLoading(true)
     try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
       await axios.post(`${API_URL}/api/reflections/`, {
         contextType,
         contextId: contextId || 'default',
@@ -88,7 +94,30 @@ function ReflectionContent() {
           question: q.text,
           answer: answers[q.id as keyof typeof answers] || ''
         })),
-        freeFormText: Object.values(answers).join('\n')
+        freeFormText: Object.values(answers).join('\n'),
+        learningFeedback: learningOutcome ? {
+          outcome: learningOutcome,
+          completionRate: completionPercent / 100,
+          usedToolIds: [],
+          pathHelpful: ['path', 'race', 'milestone', 'task'].includes(contextType)
+            ? learningOutcome === 'helped'
+              ? true
+              : learningOutcome === 'made_worse'
+                ? false
+                : null
+            : null,
+          calendarHelpful: contextType === 'calendar'
+            ? learningOutcome === 'helped'
+              ? true
+              : learningOutcome === 'made_worse'
+                ? false
+                : null
+            : null,
+        } : undefined,
+      }, {
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
       })
       alert('Reflection submitted successfully!')
       router.push('/reflection/history')
@@ -323,6 +352,49 @@ function ReflectionContent() {
               )
             })}
           </div>
+
+          <fieldset className={`mt-6 rounded-xl border-2 p-4 ${theme === 'dark' ? 'border-white/20 bg-white/10' : 'border-slate-200 bg-white/70'}`}>
+            <legend className={`px-2 font-semibold ${currentTheme.text}`}>Did this part of Autinerary help?</legend>
+            <p className={`mb-3 text-sm ${currentTheme.textSecondary}`}>
+              Optional. Only this direct answer can change future agent behavior; your journal text alone is never treated as a quality score.
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { id: 'helped', label: 'Helped' },
+                { id: 'no_change', label: 'No change' },
+                { id: 'made_worse', label: 'Made it worse' },
+                { id: 'not_sure', label: 'Not sure' },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={learningOutcome === option.id}
+                  onClick={() => setLearningOutcome(option.id as LearningOutcome)}
+                  className={`rounded-lg border-2 px-3 py-2 text-sm font-semibold transition-colors ${
+                    learningOutcome === option.id
+                      ? 'border-cyan-600 bg-cyan-50 text-cyan-800'
+                      : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-400'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {learningOutcome && learningOutcome !== 'not_sure' && (
+              <label className={`mt-4 block text-sm font-medium ${currentTheme.text}`}>
+                How much did you complete? <span className="font-bold">{completionPercent}%</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value={completionPercent}
+                  onChange={(event) => setCompletionPercent(Number(event.target.value))}
+                  className="mt-2 block w-full"
+                />
+              </label>
+            )}
+          </fieldset>
 
           {/* More questions indicator */}
           <div className={`text-center my-6 text-sm italic ${currentTheme.textSecondary}`}>

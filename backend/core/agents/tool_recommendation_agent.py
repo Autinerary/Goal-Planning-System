@@ -124,7 +124,7 @@ class ToolRecommendationAgent(BaseAgent):
         # Pull learned per-(tool, barrier) reward scores ONCE for the whole
         # batch — avoids N Supabase round-trips inside the milestone loop.
         learned_scores = await learning.get_tool_outcome_scores(
-            barriers=barriers, min_samples=2,
+            barriers=barriers, min_samples=10,
         )
 
         for milestone in milestones:

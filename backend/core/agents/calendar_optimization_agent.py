@@ -120,7 +120,7 @@ class CalendarOptimizationAgent(BaseAgent):
         # reflections in the past.
         user_id = user_profile.get('id') or user_profile.get('userId')
         learned_prefs = await learning.get_user_calendar_preferences(
-            user_id=user_id, min_samples=2, max_results=5,
+            user_id=user_id, min_samples=10, max_results=5,
         )
         # Materialize a ranked list of preferred buckets for downstream use.
         preferred_buckets = [

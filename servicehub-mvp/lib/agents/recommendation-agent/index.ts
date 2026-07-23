@@ -16,6 +16,21 @@ import type {
   Barrier,
 } from './types'
 
+function isUsefulExplanation(value: unknown): value is string {
+  if (typeof value !== 'string') return false
+  const text = value.replace(/\s+/g, ' ').trim()
+  if (text.length < 12 || text.length > 300) return false
+  const lowered = text.toLowerCase()
+  return ![
+    'as an ai',
+    'i cannot',
+    "i can't",
+    'lorem ipsum',
+    'placeholder',
+    'undefined',
+  ].some((phrase) => lowered.includes(phrase))
+}
+
 /**
  * Agent 1: Recommendation Agent
  * MVP: Rule-based matching (will upgrade to LLM-powered agent post-funding)
@@ -210,7 +225,11 @@ export class RecommendationAgent {
     )
 
     if (data && Array.isArray(data.explanations) && data.explanations.length === top.length) {
-      const llmExplanations = data.explanations.map(String)
+      const llmExplanations = data.explanations.map((explanation, index) =>
+        isUsefulExplanation(explanation)
+          ? explanation.replace(/\s+/g, ' ').trim()
+          : ruleBased(top[index])
+      )
       // Append rule-based for any resources beyond the top batch
       return [...llmExplanations, ...resources.slice(10).map(ruleBased)]
     }

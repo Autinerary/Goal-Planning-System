@@ -21,6 +21,7 @@ from core.agents.adaptation_agent import AdaptationAgent
 from core.agents.calendar_optimization_agent import CalendarOptimizationAgent
 from core.synthesis_engine import SynthesisEngine
 from core import learning
+from core.output_quality import ensure_generation_quality
 
 try:
     langgraph_graph = importlib.import_module("langgraph.graph")
@@ -152,7 +153,13 @@ class Orchestrator:
             similar_patterns=state.get('pattern_response', {}).get('patterns', []),
             memory=state.get('memory', {}),
         )
-        return {"path_response": response}
+        validated, quality_report = ensure_generation_quality(
+            response=response,
+            goals=state.get('goals', []),
+        )
+        if quality_report.get('usedFallback'):
+            print(f"[orchestrator] path quality fallback applied: {quality_report}")
+        return {"path_response": validated}
 
     async def _node_tool_recommendation(self, state: GenerationState) -> Dict[str, Any]:
         response = await self.agents['tool_recommendation'].recommend_tools(

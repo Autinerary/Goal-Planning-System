@@ -169,8 +169,15 @@ class PathPlanningAgent(BaseAgent):
         # achieved higher rewards on shorter (or longer) plans, prune/extend
         # accordingly. This is a bandit pick on milestone_count.
         profile_sig = learning.compute_profile_signature(barriers, goals)
-        best_shape = await learning.get_best_path_shape(profile_sig, min_samples=3)
-        if best_shape and isinstance(best_shape.get("milestone_count"), int):
+        best_shape = await learning.get_best_path_shape(profile_sig, min_samples=20)
+        learned_reward = float((best_shape or {}).get("reward_avg") or 0.0)
+        learned_samples = int((best_shape or {}).get("sample_count") or 0)
+        if (
+            best_shape
+            and learned_samples >= 20
+            and learned_reward >= 0.25
+            and isinstance(best_shape.get("milestone_count"), int)
+        ):
             target = int(best_shape["milestone_count"])
             if 0 < target < len(all_milestones):
                 # Keep the highest-priority milestones in original order. We

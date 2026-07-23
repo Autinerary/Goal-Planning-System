@@ -246,7 +246,7 @@ export async function getToolOutcomeScores(
       .filter((b) => b.length > 0)
     const { data, error } = await client.rpc('get_tool_outcome_scores', {
       barriers_in: cleanedBarriers.length > 0 ? cleanedBarriers : null,
-      min_samples: 2,
+      min_samples: 10,
     })
     if (error) {
       console.warn('[recommendation-memory] getToolOutcomeScores skipped:', error.message)

@@ -237,22 +237,10 @@ class ReflectionAnalysisAgent(BaseAgent):
                     detected_indicators.append(pattern_name)
                     break
 
-        # Pull learned (trigger, outcome) correlations from Supabase and merge
-        # them with the hardcoded set. Empty list when Supabase isn't
-        # configured or there isn't enough data yet — no behavior change in
-        # that case.
-        try:
-            learned_rows = await learning.get_top_learned_patterns(
-                min_observations=5,
-                min_correlation=0.5,
-                max_results=50,
-            )
-        except Exception:
-            learned_rows = []
-        effective_couples = learning.merge_with_hardcoded_couples(
-            learned=learned_rows,
-            hardcoded=self.coupled_events,
-        )
+        # Use only curated couples here. Agent-inferred reflection patterns are
+        # observations, not verified causal facts, and must not condition the
+        # next agent run.
+        effective_couples = self.coupled_events
 
         # Check for coupled event patterns
         for couple_id, couple_data in effective_couples.items():

@@ -1,14 +1,15 @@
 """
 Reflection learning loop.
 
-This module is the bridge between a user submitting a journal entry and the
-system getting measurably better the next time. It is the closest thing we
-have to RLHF that runs at zero per-entry cost:
+This module stores conservative online-learning signals. Shared behavior may
+change only from explicit user outcomes; agent interpretations remain
+observational and are never treated as ground-truth labels.
 
   - We can't fine-tune OpenAI / Anthropic weights for free, so the foundation
     model stays fixed.
-  - Instead, every reflection updates four cheap, persistent learning signals
-    that the agents read on the NEXT call:
+    - Reflections without explicit outcomes are persisted for the user but do
+        not update shared learning signals.
+    - Direct outcomes can update persistent signals that agents read later:
       1. learned_patterns       — online correlation table that replaces the
                                   hardcoded coupled_events dict
       2. pattern_user_feedback  — re-ranking signal for similar-user retrieval
@@ -85,6 +86,35 @@ def compute_reward_signal(reflection_response: Dict[str, Any]) -> float:
     if reward < -1.0:
         reward = -1.0
     return round(reward, 4)
+
+
+def compute_explicit_reward(feedback: Dict[str, Any]) -> float:
+    """Compute reward exclusively from a user's explicit outcome.
+
+    Completion slightly scales confidence in the outcome but cannot reverse
+    its direction. `not_sure` and malformed input remain neutral. This is the
+    only reward suitable for changing shared agent behavior.
+    """
+    outcome = str((feedback or {}).get("outcome") or "not_sure")
+    base = {
+        "helped": 1.0,
+        "no_change": 0.0,
+        "made_worse": -1.0,
+        "not_sure": 0.0,
+    }.get(outcome, 0.0)
+    if base == 0.0:
+        return 0.0
+
+    raw_completion = (feedback or {}).get("completionRate")
+    try:
+        completion = max(0.0, min(1.0, float(raw_completion)))
+    except (TypeError, ValueError):
+        completion = 0.5
+
+    # Explicit outcome supplies direction; completion controls confidence from
+    # 0.75x to 1.0x so a partially tried plan still contributes cautiously.
+    confidence = 0.75 + (0.25 * completion)
+    return round(base * confidence, 4)
 
 
 def extract_indicators(reflection_response: Dict[str, Any]) -> List[str]:
@@ -181,8 +211,8 @@ async def update_learned_patterns(indicators: List[str]) -> bool:
 
 
 async def get_top_learned_patterns(
-    min_observations: int = 5,
-    min_correlation: float = 0.5,
+    min_observations: int = 20,
+    min_correlation: float = 0.65,
     max_results: int = 50,
 ) -> List[Dict[str, Any]]:
     """Returns rows like {trigger, outcome, correlation, observations, recommendation}.
@@ -267,7 +297,7 @@ async def close_previous_adaptation_loops(user_id: Any, new_reward: float) -> in
 async def get_adaptive_threshold(
     rule_name: str,
     default_threshold: float,
-    min_samples: int = 3,
+    min_samples: int = 20,
 ) -> float:
     """Bandit pick: highest-mean-reward threshold for this rule, or default
     if there isn't enough data."""
@@ -419,7 +449,7 @@ def compute_profile_signature(
 
 async def get_best_path_shape(
     profile_signature: str,
-    min_samples: int = 3,
+    min_samples: int = 20,
 ) -> Optional[Dict[str, Any]]:
     """Returns {milestone_count, est_days_avg, reward_avg, sample_count} or
     None if there isn't enough data yet — caller falls back to defaults."""
@@ -471,7 +501,7 @@ async def record_path_outcome(
 
 async def get_tool_outcome_scores(
     barriers: Optional[List[str]],
-    min_samples: int = 2,
+    min_samples: int = 10,
 ) -> Dict[str, Dict[str, Any]]:
     """Returns {tool_id: {'reward_avg': float, 'sample_count': int}}. Empty
     dict if no Supabase / no data. Used by tool_recommendation_agent and
@@ -531,7 +561,7 @@ async def record_tool_outcomes(
 
 async def get_user_calendar_preferences(
     user_id: Any,
-    min_samples: int = 2,
+    min_samples: int = 10,
     max_results: int = 5,
 ) -> List[Dict[str, Any]]:
     """Returns [{'time_bucket': str, 'reward_avg': float, 'sample_count': int}]

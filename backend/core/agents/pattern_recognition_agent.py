@@ -67,9 +67,8 @@ class PatternRecognitionAgent(BaseAgent):
         """
         Find similar users and success patterns.
 
-        When `user_id` is a real UUID, the underlying RPC re-ranks results
-        using this user's past `pattern_user_feedback` signals — closing the
-        retrieval loop with previous reflections.
+        Similarity is based on profile embeddings and barriers. Ambiguous
+        reflection-derived feedback is intentionally excluded from ranking.
         """
         # Generate embedding for user profile
         user_embedding = await self._generate_embedding(
@@ -86,10 +85,8 @@ class PatternRecognitionAgent(BaseAgent):
             query_user_id=user_id,
         )
 
-        # Expose the retrieved user ids on `self` so the orchestrator can
-        # snapshot them on the user's latest context — the reflection route
-        # later reads that snapshot and pushes a reward back into
-        # `pattern_user_feedback`, closing the retrieval loop.
+        # Keep retrieved ids for auditing only. They are not rewarded from a
+        # broad reflection because that would not establish causality.
         self.last_retrieved_user_ids = [
             str(u.get('userId') or u.get('user_id'))
             for u in similar_users
@@ -154,25 +151,14 @@ class PatternRecognitionAgent(BaseAgent):
                     # least one barrier with the query. NULL = no filter.
                     barriers_filter = [str(b) for b in filters['barriers']]
 
-                # The RPC's query_user_id parameter is UUID-typed in Postgres,
-                # so only forward values that parse as a UUID. Anything else
-                # (demo ids, None) is dropped here.
-                normalized_user_id: Optional[str] = None
-                if query_user_id:
-                    try:
-                        import uuid as _uuid
-                        normalized_user_id = str(_uuid.UUID(str(query_user_id)))
-                    except (ValueError, TypeError, AttributeError):
-                        normalized_user_id = None
-
                 rpc_args: Dict[str, Any] = {
                     'query_embedding': embedding,
                     'match_threshold': 0.7,
                     'match_count': top_k,
                     'barriers_filter': barriers_filter,
                 }
-                if normalized_user_id is not None:
-                    rpc_args['query_user_id'] = normalized_user_id
+                # Do not pass query_user_id: the SQL overload can use legacy
+                # reflection-derived feedback, which is not a direct outcome.
 
                 response = self.supabase.rpc(
                     'find_similar_pattern_users',
@@ -193,48 +179,27 @@ class PatternRecognitionAgent(BaseAgent):
             except Exception as e:
                 print(f"[pattern_recognition] pgvector query failed: {e}")
 
-        # Fallback mock results (no Supabase configured or query failed)
-        return [
-            {
-                'user_id': f'user_{i}',
-                'similarity': 0.9 - (i * 0.05),
-                'barriers': filters.get('barriers', []) if filters else [],
-                'success_rate': 0.85,
-                'journey': f'Success story {i}',
-            }
-            for i in range(top_k)
-        ]
+        # No fabricated social proof. Downstream agents already support an
+        # empty pattern set and will use curated/default planning instead.
+        return []
 
     async def _extract_patterns(self, similar_users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract common success patterns."""
-        patterns = [
-            {
-                'pattern_id': 'pattern_1',
-                'description': 'Early accommodation requests lead to better outcomes',
-                'frequency': 0.75,
-                'success_rate': 0.82,
-            },
-            {
-                'pattern_id': 'pattern_2',
-                'description': 'Community support networks critical for minority users',
-                'frequency': 0.68,
-                'success_rate': 0.79,
-            },
-        ]
-        return patterns
+        """Return only patterns actually supported by retrieved outcome data.
+
+        The current vector rows do not contain enough structured observations
+        to calculate frequencies or success rates, so making up aggregate
+        values would be false social proof. Keep this empty until a real
+        aggregation query is available.
+        """
+        return []
 
     async def _identify_models(
         self,
         similar_users: List[Dict[str, Any]],
         goals: List[str],
     ) -> List[str]:
-        """Identify which path models worked for similar users."""
-        models = [
-            'autism_adult_education_model',
-            'adhd_career_development_model',
-            'minority_networking_model',
-        ]
-        return models
+        """Identify path models backed by retrieved outcomes."""
+        return []
 
     async def upsert_user_vector(
         self,

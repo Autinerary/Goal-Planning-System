@@ -78,6 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const body = await request.json()
     const { overall_score, barrier_scores, comment, image_urls } = body
+    const previousRating = await getRatingByUserAndResource(params.id, user.id)
 
     if (!overall_score || overall_score < 1 || overall_score > 5) {
       const error = createAppError('Overall score must be between 1 and 5', 'validation', {
@@ -153,23 +154,27 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // goal-planning recommendation agent read from the same `tool_outcomes`
     // table, so a single rating here improves both products' future
     // suggestions. Best-effort: never blocks the user response.
-    try {
-      const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
-      await recordRatingOutcome(params.id, barrierTypes, overall_score)
-    } catch (err) {
-      console.warn('[ratings] recordRatingOutcome skipped:', err)
+    if (validationResult.decision === 'approve' && !previousRating) {
+      try {
+        const barrierTypes = await resolveBarriers(supabase, user.id, barrier_scores)
+        await recordRatingOutcome(params.id, barrierTypes, overall_score)
+      } catch (err) {
+        console.warn('[ratings] recordRatingOutcome skipped:', err)
+      }
     }
 
     // Fan the same reward out to the four non-recommendation ServiceHub
     // agents (pattern, validation, synthesis, orchestrator). One RPC
     // call hits every in-window decision touching (user, resource).
-    try {
-      const reward = ratingToReward(overall_score)
-      if (reward !== 0) {
-        await attributeReward(user.id, params.id, reward)
+    if (validationResult.decision === 'approve' && !previousRating) {
+      try {
+        const reward = ratingToReward(overall_score)
+        if (reward !== 0) {
+          await attributeReward(user.id, params.id, reward)
+        }
+      } catch (err) {
+        console.warn('[ratings] attributeReward (POST) skipped:', err)
       }
-    } catch (err) {
-      console.warn('[ratings] attributeReward (POST) skipped:', err)
     }
 
     // Update moderation queue with rating ID if flagged
