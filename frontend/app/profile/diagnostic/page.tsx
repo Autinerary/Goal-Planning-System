@@ -129,7 +129,7 @@ export default function DiagnosticProfilePage() {
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Condition &amp; Support Profile</h1>
               <p className="mt-1 text-sm text-slate-600">
-                Review or change private, self-reported details used to personalize support. This is not a diagnostic test or medical record.
+                Review private, self-reported details used to personalize resources and plans. Functional support needs may be processed by Autinerary&apos;s recommendation AI; diagnosis status and medication history are excluded. This is not a diagnostic test or medical record.
               </p>
             </div>
           </div>

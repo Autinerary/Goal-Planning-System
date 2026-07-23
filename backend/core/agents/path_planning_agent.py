@@ -123,6 +123,8 @@ class PathPlanningAgent(BaseAgent):
 
         # Render prior-session memory once so every goal's roadmap can build on it.
         memory_hint = mem.summarize_for_prompt(memory)
+        support_context = user_profile.get('supportContext') or {}
+        support_summary = self._summarize_support_context(support_context)
 
         # Combine barrier models for intersectional planning
         combined_strategies = []
@@ -136,6 +138,15 @@ class PathPlanningAgent(BaseAgent):
                 combined_strategies.extend(model['strategies'])
                 combined_strengths.extend(model['strengths'])
                 combined_accommodations.extend(model['accommodations'])
+
+        # Preserve user-reported strategies and accommodations alongside the
+        # curated barrier models. These are functional preferences, not
+        # diagnostic claims.
+        if support_context.get('strategiesWorked'):
+            combined_strategies.append(str(support_context['strategiesWorked']))
+        for key in ('schoolAccommodations', 'workplaceAccommodations', 'sensoryNeeds'):
+            if support_context.get(key):
+                combined_accommodations.append(str(support_context[key]))
         
         # Generate milestones for all goals in parallel.
         goal_milestone_lists = await asyncio.gather(*[
@@ -146,6 +157,7 @@ class PathPlanningAgent(BaseAgent):
                 strategies=combined_strategies,
                 similar_patterns=similar_patterns or [],
                 memory_hint=memory_hint,
+                support_summary=support_summary,
             )
             for goal_idx, goal in enumerate(goals)
         ])
@@ -176,7 +188,7 @@ class PathPlanningAgent(BaseAgent):
 
         # Helper tricks depend only on the barrier list, so compute once and
         # reuse across every task instead of calling the LLM 80 times.
-        shared_helper_tricks = await self._get_helper_tricks(barriers)
+        shared_helper_tricks = await self._get_helper_tricks(barriers, support_summary)
 
         # Generate tasks and recommended choices for every milestone in
         # parallel — these were the slowest sequential loops (one LLM round
@@ -205,6 +217,27 @@ class PathPlanningAgent(BaseAgent):
             'confidence': 0.85,
             'explanation': f'Generated personalized path with {len(all_milestones)} milestones for {len(goals)} goals, considering {len(barriers)} barrier types'
         }
+
+    @staticmethod
+    def _summarize_support_context(context: Dict[str, Any]) -> str:
+        """Render bounded functional support context for prompts."""
+        if not isinstance(context, dict):
+            return ""
+        values: List[str] = []
+        notes = context.get('conditionSupportNotes')
+        if isinstance(notes, list):
+            values.extend(str(note).strip() for note in notes[:20] if str(note).strip())
+        for key in (
+            'therapyTypes', 'sensoryNeeds', 'strategiesWorked',
+            'strategiesNotWorked', 'schoolAccommodations',
+            'workplaceAccommodations', 'biggestChallenge',
+            'biggestChallengeResponse', 'recentChallenge',
+            'recentChallengeResponse',
+        ):
+            value = context.get(key)
+            if isinstance(value, str) and value.strip():
+                values.append(value.strip())
+        return ' | '.join(values)[:5000]
     
     async def _generate_milestones_for_goal(
         self,
@@ -213,7 +246,8 @@ class PathPlanningAgent(BaseAgent):
         barriers: List[str],
         strategies: List[str],
         similar_patterns: List[Dict[str, Any]],
-        memory_hint: str = ""
+        memory_hint: str = "",
+        support_summary: str = "",
     ) -> List[Dict[str, Any]]:
         """Generate milestones for a specific goal across four life dimensions.
 
@@ -247,6 +281,7 @@ class PathPlanningAgent(BaseAgent):
                 user=(
                     f"Goal: {goal}\n"
                     f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    + (f"Functional support needs and successful accommodations: {support_summary}\n" if support_summary else "")
                     + (f"Prior history:\n{memory_hint}\n" if memory_hint else "")
                     + "Return JSON: {"
                     "\"education\": [\"...\", \"...\", \"...\", \"...\"], "
@@ -295,14 +330,20 @@ class PathPlanningAgent(BaseAgent):
                 order_counter += 1
 
         descriptions = await asyncio.gather(*[
-            self._enrich_description(s['name'], barriers, goal) for s in shells
+            self._enrich_description(s['name'], barriers, goal, support_summary) for s in shells
         ])
         for shell, desc in zip(shells, descriptions):
             shell['description'] = desc
 
         return shells
     
-    async def _enrich_description(self, template: str, barriers: List[str], goal: str) -> str:
+    async def _enrich_description(
+        self,
+        template: str,
+        barriers: List[str],
+        goal: str,
+        support_summary: str = "",
+    ) -> str:
         """Enrich milestone description with barrier-specific details (LLM-backed)."""
         if llm.is_enabled():
             text = await llm.complete_text(
@@ -313,7 +354,8 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 user=(
                     f"Goal: {goal}\nMilestone: {template}\nBarriers: {', '.join(barriers) or 'none'}\n"
-                    "Return only the sentence — no quotes, no preamble."
+                    + (f"Functional support needs and successful accommodations: {support_summary}\n" if support_summary else "")
+                    + "Return only the sentence — no quotes, no preamble."
                 ),
                 temperature=0.6,
                 max_tokens=80,
@@ -371,7 +413,11 @@ class PathPlanningAgent(BaseAgent):
 
         return tasks
     
-    async def _get_helper_tricks(self, barriers: List[str]) -> List[str]:
+    async def _get_helper_tricks(
+        self,
+        barriers: List[str],
+        support_summary: str = "",
+    ) -> List[str]:
         """Get helper tricks based on barriers (LLM-backed with rule fallback)."""
         if llm.is_enabled():
             data = await llm.complete_json(
@@ -381,7 +427,8 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 user=(
                     f"Barriers: {', '.join(barriers) or 'general'}\n"
-                    "Return JSON: {\"tricks\": [\"...\", \"...\", \"...\"]}"
+                    + (f"Functional support needs and strategies that worked: {support_summary}\n" if support_summary else "")
+                    + "Return JSON: {\"tricks\": [\"...\", \"...\", \"...\"]}"
                 ),
                 temperature=0.7,
                 max_tokens=200,

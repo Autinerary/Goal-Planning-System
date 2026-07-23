@@ -10,7 +10,12 @@ import {
 } from 'lucide-react'
 import { AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, savePreferences } from '@/lib/preferences'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
-import { CONDITION_GROUPS, EMPTY_DIAGNOSTIC_PROFILE, type DiagnosticProfile } from '@/lib/diagnostic-profile'
+import {
+  CONDITION_GROUPS,
+  EMPTY_DIAGNOSTIC_PROFILE,
+  toRecommendationSupportContext,
+  type DiagnosticProfile,
+} from '@/lib/diagnostic-profile'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -459,6 +464,7 @@ export default function OnboardingPage() {
     : formData.barrierConnectionText.trim()
       ? [formData.barrierConnectionText.trim()]
       : []
+  const recommendationSupportContext = toRecommendationSupportContext(diagnosticProfile)
   
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
@@ -621,7 +627,8 @@ export default function OnboardingPage() {
         lifeStage: formData.lifeStage,
         goals: goalsToSend.length > 0 ? goalsToSend : ['General wellbeing'],
         culturalNotes: '',
-        additionalNotes: challengesToSend.join('; ')
+        additionalNotes: challengesToSend.join('; '),
+        supportContext: recommendationSupportContext,
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -807,9 +814,9 @@ export default function OnboardingPage() {
       })
       if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
 
-      // Sensitive condition/support details are never included in the local
-      // autosave or agent payload. Save them separately through an authenticated
-      // same-origin route, and only when the user explicitly consents.
+      // The full private profile never enters local autosave or agent payloads.
+      // After consent, it is saved separately; agents receive only the bounded
+      // functional support context built above (no status, subtype, medication).
       if (diagnosticProfile.consentToStore) {
         const selectedLabels = new Set(formData.barrierTypes.map((barrier) => barrier.toLowerCase()))
         await axios.put('/api/me/diagnostic-profile', {
@@ -832,6 +839,7 @@ export default function OnboardingPage() {
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType,
+        supportContext: recommendationSupportContext,
         // View & interaction preferences for intersecting-profile insights
         preferences: {
           ageRange: formData.ageRange,

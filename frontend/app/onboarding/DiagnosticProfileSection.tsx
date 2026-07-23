@@ -228,7 +228,7 @@ export default function DiagnosticProfileSection({
               <LockKeyhole className="h-4 w-4 text-cyan-700" /> Save these optional details privately
             </span>
             <span className="mt-1 block text-xs text-slate-600">
-              Stored in your private account for personalization. Not shared publicly, not used to diagnose you, and removable later. Leave unchecked to continue without saving these details.
+              Stored in your private account and used by Autinerary&apos;s recommendation AI to tailor resources and plans to functional support needs. Diagnosis status and medication history are not sent to AI. Not shared publicly and removable later.
             </span>
           </span>
         </label>

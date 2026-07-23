@@ -4,7 +4,7 @@ Step 0: Questionnaire → Agent Orchestration → Path Generation
 """
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
 import os
@@ -206,6 +206,25 @@ def _load_path_by_user(user_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+class RecommendationSupportContext(BaseModel):
+    """Non-clinical support signals allowed into recommendation agents.
+
+    Diagnosis status, subtype, and medication history are intentionally absent.
+    """
+
+    conditionSupportNotes: List[str] = Field(default_factory=list, max_length=20)
+    therapyTypes: str = Field(default="", max_length=1000)
+    sensoryNeeds: str = Field(default="", max_length=1000)
+    strategiesWorked: str = Field(default="", max_length=1000)
+    strategiesNotWorked: str = Field(default="", max_length=1000)
+    schoolAccommodations: str = Field(default="", max_length=1000)
+    workplaceAccommodations: str = Field(default="", max_length=1000)
+    biggestChallenge: str = Field(default="", max_length=1000)
+    biggestChallengeResponse: str = Field(default="", max_length=1000)
+    recentChallenge: str = Field(default="", max_length=1000)
+    recentChallengeResponse: str = Field(default="", max_length=1000)
+
+
 class OnboardingRequest(BaseModel):
     email: str
     userId: Optional[str] = None  # Supabase auth.users UUID (shared with ServiceHub)
@@ -215,6 +234,7 @@ class OnboardingRequest(BaseModel):
     goals: List[str]
     dreams: List[str] = []
     currentChallenges: List[str] = []
+    supportContext: Optional[RecommendationSupportContext] = None
     # View & interaction preferences (age range, tech savvy, view style). Optional
     # so older clients keep working. Recorded to learn from intersecting profiles.
     preferences: Optional[dict] = None
@@ -317,6 +337,7 @@ async def create_onboarding(request: OnboardingRequest):
             "goals": request.goals,
             "dreams": request.dreams,
             "currentChallenges": request.currentChallenges,
+            "supportContext": request.supportContext.model_dump() if request.supportContext else {},
             "createdAt": datetime.utcnow().isoformat()
         }
 

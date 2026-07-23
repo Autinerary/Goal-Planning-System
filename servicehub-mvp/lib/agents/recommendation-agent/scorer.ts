@@ -54,7 +54,7 @@ export async function scoreResources(
     )
 
     // Generate match reason
-    const matchReason = generateMatchReason(candidate, userBarriers, barrierScore)
+    const matchReason = generateMatchReason(candidate, userBarriers, barrierScore, contextBonus > 0.15)
 
     return {
       ...candidate.resource,
@@ -123,6 +123,7 @@ function calculateContextBonus(candidate: CandidateResource, context: string): n
   const resourceName = candidate.resource.name.toLowerCase()
   const resourceDesc = (candidate.resource.description || '').toLowerCase()
   const resourceCategory = candidate.resource.category.toLowerCase()
+  const searchableResource = `${resourceName} ${resourceDesc} ${resourceCategory}`
 
   let bonus = 0
 
@@ -139,6 +140,20 @@ function calculateContextBonus(candidate: CandidateResource, context: string): n
   if (resourceName.includes(contextLower) || resourceDesc.includes(contextLower)) {
     bonus += 0.3
   }
+
+  // Functional support descriptions are usually sentences rather than one
+  // exact query. Reward meaningful keyword overlap with resource copy while
+  // filtering generic words so private support context changes ranking in a
+  // predictable, bounded way.
+  const stopWords = new Set([
+    'about', 'after', 'again', 'also', 'been', 'being', 'could', 'does', 'from',
+    'have', 'help', 'into', 'more', 'need', 'needs', 'that', 'their', 'there',
+    'these', 'they', 'this', 'tried', 'using', 'what', 'when', 'with', 'would',
+  ])
+  const supportTerms = [...new Set(contextLower.match(/[a-z0-9]+/g) || [])]
+    .filter((term) => term.length >= 4 && !stopWords.has(term))
+  const overlap = supportTerms.filter((term) => searchableResource.includes(term)).length
+  if (overlap > 0) bonus += Math.min(overlap / 4, 0.5)
 
   // Check for keywords
   const keywords = ['new', 'first', 'beginner', 'autism', 'adhd', 'support']
@@ -157,9 +172,14 @@ function calculateContextBonus(candidate: CandidateResource, context: string): n
 function generateMatchReason(
   candidate: CandidateResource,
   userBarriers: Barrier[],
-  barrierScore: number
+  barrierScore: number,
+  supportContextMatched: boolean
 ): string {
   const parts: string[] = []
+
+  if (supportContextMatched) {
+    parts.push('Matches your stated support needs')
+  }
 
   // Similar users count
   if (candidate.similarUsersCount > 0) {

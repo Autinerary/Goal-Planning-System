@@ -34,6 +34,26 @@ export interface DiagnosticProfile {
   supportContext: SupportContext
 }
 
+/**
+ * Functional context that may be sent to recommendation/path agents after
+ * explicit consent. Clinical status, subtypes, and medication history are
+ * deliberately excluded: agents need to know what support helps, not assess
+ * or infer a diagnosis.
+ */
+export interface RecommendationSupportContext {
+  conditionSupportNotes: string[]
+  therapyTypes: string
+  sensoryNeeds: string
+  strategiesWorked: string
+  strategiesNotWorked: string
+  schoolAccommodations: string
+  workplaceAccommodations: string
+  biggestChallenge: string
+  biggestChallengeResponse: string
+  recentChallenge: string
+  recentChallengeResponse: string
+}
+
 export interface ConditionOption {
   id: string
   label: string
@@ -67,6 +87,36 @@ export const EMPTY_DIAGNOSTIC_PROFILE: DiagnosticProfile = {
   consentToStore: false,
   conditions: [],
   supportContext: { ...EMPTY_SUPPORT_CONTEXT },
+}
+
+/** Build the bounded, non-clinical context used to personalize AI output. */
+export function toRecommendationSupportContext(
+  profile: DiagnosticProfile
+): RecommendationSupportContext | undefined {
+  if (!profile.consentToStore) return undefined
+
+  const support = profile.supportContext
+  const context: RecommendationSupportContext = {
+    conditionSupportNotes: profile.conditions
+      .map((condition) => condition.notes.trim().slice(0, 1000))
+      .filter(Boolean)
+      .slice(0, 20),
+    therapyTypes: support.therapyTypes.trim().slice(0, 1000),
+    sensoryNeeds: support.sensoryNeeds.trim().slice(0, 1000),
+    strategiesWorked: support.strategiesWorked.trim().slice(0, 1000),
+    strategiesNotWorked: support.strategiesNotWorked.trim().slice(0, 1000),
+    schoolAccommodations: support.schoolAccommodations.trim().slice(0, 1000),
+    workplaceAccommodations: support.workplaceAccommodations.trim().slice(0, 1000),
+    biggestChallenge: support.biggestChallenge.trim().slice(0, 1000),
+    biggestChallengeResponse: support.biggestChallengeResponse.trim().slice(0, 1000),
+    recentChallenge: support.recentChallenge.trim().slice(0, 1000),
+    recentChallengeResponse: support.recentChallengeResponse.trim().slice(0, 1000),
+  }
+
+  return context.conditionSupportNotes.length > 0 ||
+    Object.entries(context).some(([key, value]) => key !== 'conditionSupportNotes' && Boolean(value))
+    ? context
+    : undefined
 }
 
 const preferNotToSpecify = { id: 'prefer_not_to_specify', label: 'Prefer not to specify' }

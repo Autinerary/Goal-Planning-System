@@ -6,6 +6,10 @@ import { orchestrator } from '@/lib/agents/orchestrator'
 import type { UserRequest } from '@/lib/agents/orchestrator/types'
 import type { Location } from '@/types/database'
 import { geocodeLocation } from '@/lib/geocode'
+import {
+  summarizeSupportContext,
+  type FunctionalSupportContext,
+} from '@/lib/agents/recommendation-agent/support-context'
 
 interface OnboardingData {
   role: string | null
@@ -26,6 +30,7 @@ interface OnboardingData {
   goals: string[]
   culturalNotes: string
   additionalNotes: string
+  supportContext?: FunctionalSupportContext
 }
 
 export async function POST(request: NextRequest) {
@@ -151,6 +156,7 @@ export async function POST(request: NextRequest) {
     let recommendationConfidence = 0
 
     try {
+      const supportSummary = summarizeSupportContext(body.supportContext)
       const userRequest: UserRequest = {
         userId: userId,
         requestType: 'recommendations',
@@ -158,6 +164,7 @@ export async function POST(request: NextRequest) {
           location,
           isNewUser: true,
           needsDeepInsights: true,
+          context: supportSummary,
         },
         barriers,
       }
