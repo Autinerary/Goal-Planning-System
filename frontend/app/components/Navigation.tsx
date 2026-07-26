@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
 import { createClient } from '@/lib/supabase/client'
-import { LogOut, User, ExternalLink, Settings, PlayCircle } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle, Brain, Film } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 
 async function goToServiceHub() {
   const base = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -77,6 +78,26 @@ export default function Navigation() {
               <PlayCircle className="w-4 h-4" />
               <span className="hidden sm:inline">{t('nav.howItWorks')}</span>
             </button>
+
+            <NotificationBell />
+
+            <Link
+              href="/memory"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+              title="Memory — notes to your future self & your best day"
+            >
+              <Brain className="w-4 h-4" />
+              <span className="hidden lg:inline">Memory</span>
+            </Link>
+
+            <Link
+              href="/under-construction?feature=Progress%20Reels"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+              title="Progress Reels — coming soon"
+            >
+              <Film className="w-4 h-4" />
+              <span className="hidden lg:inline">Reels</span>
+            </Link>
 
             <Link
               href="/profile/settings"

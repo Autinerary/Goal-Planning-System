@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote, GitCompare, Save } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
+import StreakBadge from '../components/StreakBadge'
+import FirstRunIntro from '../components/FirstRunIntro'
+import { useDisclosure } from '@/lib/disclosure'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import { saveSnapshot } from '@/lib/pathSnapshots'
 import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
@@ -29,7 +32,11 @@ interface PathData {
 export default function PathView() {
   const router = useRouter()
   const { supabaseUser } = useAuth()
-  
+  const { isSimple, level, setOverride } = useDisclosure()
+  // Reshuffle the motivational message on every visit (new mount = new seed),
+  // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
+  const [quoteSeed] = useState(() => Math.floor(Math.random() * 1000))
+
   const [pathData, setPathData] = useState<PathData | null>(null)
   const [isLoadingPath, setIsLoadingPath] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -157,10 +164,7 @@ export default function PathView() {
         progress: 0,
         category: idx % 2 === 0 ? 'Career' : 'Education',
         color: idx % 2 === 0 ? 'from-cyan-500 to-blue-500' : 'from-purple-500 to-pink-500',
-      })) || [
-        { id: 'race_1', name: 'Graduate University', progress: 45, category: 'Education', color: 'from-purple-500 to-pink-500' },
-        { id: 'race_2', name: 'Get Tech Job', progress: 20, category: 'Career', color: 'from-cyan-500 to-blue-500' },
-      ]
+      })) || []
 
   // ── Real progress ─────────────────────────────────────────────────
   // Replace each race's progress with the % of its milestones the user has
@@ -188,7 +192,7 @@ export default function PathView() {
         'The start is the hardest part — and you\u2019re already here.',
         'You don\u2019t have to be great to start, but you have to start to be great.',
       ]
-      return start[new Date().getDate() % start.length]
+      return start[quoteSeed % start.length]
     }
     if (overallProgress < 40) {
       const early = [
@@ -196,7 +200,7 @@ export default function PathView() {
         'Small steps every day add up to big change.',
         'You\u2019re building momentum — one milestone at a time.',
       ]
-      return early[new Date().getDate() % early.length]
+      return early[quoteSeed % early.length]
     }
     if (overallProgress < 80) {
       const mid = [
@@ -204,31 +208,38 @@ export default function PathView() {
         'Halfway is a milestone worth celebrating. Keep it up!',
         'Consistency is your superpower. Stay the course.',
       ]
-      return mid[new Date().getDate() % mid.length]
+      return mid[quoteSeed % mid.length]
     }
     const near = [
       'The finish line is in sight — finish strong!',
       'You\u2019re so close. Your future self is cheering you on.',
       'Almost there. Every step now counts double.',
     ]
-    return near[new Date().getDate() % near.length]
+    return near[quoteSeed % near.length]
   })()
 
   // Group races by category
   const careerRaces = races.filter((r: any) => r.category === 'Career')
   const educationRaces = races.filter((r: any) => r.category === 'Education')
 
-  const roleModels = [
-    { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer', initials: 'SC' },
-    { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur', initials: 'MJ' },
-  ]
-  const mentors = [
-    { id: 'm1', name: 'James Wilson', role: 'Career Coach', initials: 'JW' },
-    { id: 'm2', name: 'Lisa Park', role: 'Academic Advisor', initials: 'LP' },
-  ]
-  const friendsFam = [
-    { id: 'f1', name: 'Alex Taylor', role: 'Study Buddy', initials: 'AT' },
-  ]
+  // Real connections from /api/connections (Supabase social_connections) —
+  // the same source Pit Stop / Hare World manages. No sample people.
+  const rm0 = { friends: [], mentors: [], rolemodels: [] } as Record<string, any[]>
+  const [connections, setConnections] = useState<Record<string, any[]>>(rm0)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/connections', { credentials: 'include', cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (!cancelled && j?.connections) setConnections(j.connections) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+  const roleModels = connections.rolemodels || []
+  const mentors = connections.mentors || []
+  const friendsFam = connections.friends || []
+  const hasAnyPeople = roleModels.length + mentors.length + friendsFam.length > 0
+  const initialsOf = (name: string) =>
+    (name || '?').split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
 
   // Loading state
   if (isLoadingPath) {
@@ -242,6 +253,8 @@ export default function PathView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-cyan-50/30 p-4 md:p-8">
+      {/* First-run intro (mic + narration + scripted steps); self-gates to once */}
+      <FirstRunIntro />
       <div className="max-w-6xl mx-auto">
 
         {/* Snapshot saved toast */}
@@ -293,13 +306,13 @@ export default function PathView() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            {/* Spirit Animals */}
+            {/* Spirit Animals — a single guide in simple view, fast/slow pair otherwise */}
             <div className="flex -space-x-2">
-              {spiritAnimals.slice(0, 2).map((animal: any, idx: number) => (
+              {spiritAnimals.slice(0, isSimple ? 1 : 2).map((animal: any, idx: number) => (
                 <div
                   key={idx}
                   className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-white shadow-md flex items-center justify-center text-2xl"
-                  title={`${idx === 0 ? 'Fast Day' : 'Slow Day'}: ${animal.type}`}
+                  title={isSimple ? `Your guide: ${animal.type}` : `${idx === 0 ? 'Fast Day' : 'Slow Day'}: ${animal.type}`}
                 >
                   {spiritAnimalEmojis[animal.type] || '🐾'}
                 </div>
@@ -307,8 +320,9 @@ export default function PathView() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <p className="text-sm text-slate-500">Your journey snapshot</p>
+                <StreakBadge />
                 {pathData && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
                     <Sparkles className="w-3 h-3" /> AI-Generated
@@ -318,6 +332,17 @@ export default function PathView() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Simple / Full view toggle (progressive disclosure override) */}
+            <button
+              onClick={() => setOverride(isSimple ? 'full' : 'simple')}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-purple-700 border border-slate-300 rounded-lg hover:bg-white hover:border-purple-300 transition-all"
+              title={isSimple
+                ? 'You’re in Simple view. Show all features.'
+                : `You’re in ${level === 'full' ? 'Full' : 'Standard'} view. Switch to a simpler layout.`}
+            >
+              <Map className="w-4 h-4" />
+              {isSimple ? 'Show more' : 'Simplify'}
+            </button>
             <button
               onClick={() => {
                 const snap = saveSnapshot(`${userName}'s Path — ${new Date().toLocaleDateString()}`, {
@@ -385,10 +410,12 @@ export default function PathView() {
           </div>
         )}
 
-        {/* ── Motivational quote (mood-aware) ── */}
-        <div className="mb-6 bg-gradient-to-r from-purple-50 via-cyan-50 to-purple-50 border border-purple-100 rounded-2xl px-5 py-4 flex items-start gap-3">
-          <Quote className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-slate-700 italic">{motivationalQuote}</p>
+        {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
+        <div className="mb-6 bg-gradient-to-r from-purple-100 via-cyan-100 to-purple-100 border-2 border-purple-200 rounded-2xl px-6 py-5 flex items-center gap-4 shadow-sm">
+          <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
+            <Quote className="w-6 h-6 text-purple-500" />
+          </div>
+          <p className="text-lg md:text-xl font-semibold text-slate-800 leading-snug">{motivationalQuote}</p>
         </div>
 
         {/* ── 2x2 Dashboard Grid ── */}
@@ -419,6 +446,14 @@ export default function PathView() {
                 </div>
               </div>
             </div>
+
+            {/* Empty state — no demo races */}
+            {races.length === 0 && (
+              <div className="text-center py-6">
+                <p className="text-sm text-slate-500 mb-3">No races yet — your goals become races once your path is generated.</p>
+                <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
+              </div>
+            )}
 
             {/* Career Races */}
             {careerRaces.length > 0 && (
@@ -468,71 +503,60 @@ export default function PathView() {
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h2 className="font-bold text-lg text-slate-800 mb-1 flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-500" />
-              Suggested People
+              Your People
             </h2>
             <p className="text-xs text-slate-500 mb-4">
-              AI-suggested role models, mentors &amp; peers to learn from — not people you selected. Manage your own in Pit Stop.
+              Role models, mentors &amp; friends you&apos;ve connected with. Manage them in Pit Stop.
             </p>
 
-            {/* Role Models */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Role Models</p>
-              <div className="flex gap-3">
-                {roleModels.map((rm) => (
-                  <div key={rm.id} className="flex items-center gap-2 bg-purple-50 rounded-lg px-3 py-2 border border-purple-100">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold text-white">
-                      {rm.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-800 leading-tight">{rm.name}</p>
-                      <p className="text-xs text-slate-500">{rm.role}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center text-slate-400 text-sm">...</div>
+            {!hasAnyPeople && (
+              <div className="text-center py-6">
+                <p className="text-sm text-slate-500 mb-3">No connections yet — find role models, mentors, and peers in Hare World.</p>
+                <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">
+                  Meet people →
+                </Link>
               </div>
-            </div>
+            )}
 
-            {/* Mentors */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mentors</p>
-              <div className="flex gap-3">
-                {mentors.map((m) => (
-                  <div key={m.id} className="flex items-center gap-2 bg-cyan-50 rounded-lg px-3 py-2 border border-cyan-100">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center text-xs font-bold text-white">
-                      {m.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-800 leading-tight">{m.name}</p>
-                      <p className="text-xs text-slate-500">{m.role}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center text-slate-400 text-sm">...</div>
+            {([
+              { label: 'Role Models', list: roleModels, chip: 'bg-purple-50 border-purple-100', av: 'from-purple-400 to-pink-400' },
+              { label: 'Mentors', list: mentors, chip: 'bg-cyan-50 border-cyan-100', av: 'from-cyan-400 to-blue-400' },
+              { label: 'Friends / Family', list: friendsFam, chip: 'bg-pink-50 border-pink-100', av: 'from-pink-400 to-rose-400' },
+            ] as const).map(group => group.list.length > 0 && (
+              <div key={group.label} className="mb-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{group.label}</p>
+                <div className="flex gap-3 flex-wrap">
+                  {group.list.slice(0, 4).map((p: any) => {
+                    const inner = (
+                      <>
+                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${group.av} flex items-center justify-center text-xs font-bold text-white`}>
+                          {p.icon && p.icon !== '👤' ? p.icon : initialsOf(p.name)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 leading-tight">{p.name}</p>
+                          <p className="text-xs text-slate-500">{p.role || (p.status === 'pending' ? 'Pending' : '')}</p>
+                        </div>
+                      </>
+                    )
+                    return p.target_user_id ? (
+                      <Link key={p.id} href={`/friend/${p.target_user_id}`} className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${group.chip} hover:shadow-sm transition-all`}>
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div key={p.id} className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${group.chip}`}>
+                        {inner}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            ))}
 
-            {/* Friends/Fam */}
-            <div className="mb-3">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Friends / Family</p>
-              <div className="flex gap-3">
-                {friendsFam.map((f) => (
-                  <div key={f.id} className="flex items-center gap-2 bg-pink-50 rounded-lg px-3 py-2 border border-pink-100">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-xs font-bold text-white">
-                      {f.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-800 leading-tight">{f.name}</p>
-                      <p className="text-xs text-slate-500">{f.role}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Link href="/pit-stop?tab=haveworld&view=people" className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium mt-2 py-2 rounded-lg hover:bg-purple-50 transition-colors">
-              See all people <ChevronRight className="w-4 h-4" />
-            </Link>
+            {hasAnyPeople && (
+              <Link href="/pit-stop?tab=haveworld&view=people" className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium mt-2 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                See all people <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
 
           {/* ── Card 4: Your Resources ── */}

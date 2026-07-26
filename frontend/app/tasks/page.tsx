@@ -23,22 +23,6 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
   • After ready → to the right
 */
 
-const FALLBACK_TASKS = [
-  { id: 't1', name: 'Fill out accommodation form', icon: '🔒' },
-  { id: 't2', name: 'Email disability office', icon: '🔒' },
-  { id: 't3', name: 'Read accommodation guide', icon: '🔒' },
-  { id: 't4', name: 'Set up Tiimo schedule', icon: '🔒' },
-  { id: 't5', name: 'Join study group chat', icon: '🔒' },
-  { id: 't6', name: 'Practice self-advocacy script', icon: '🔒' },
-]
-
-const FALLBACK_GOALS = [
-  { id: 'g1', name: 'Complete 3 accommodation tasks', icon: '🔒' },
-  { id: 'g2', name: 'Use 2 new tools', icon: '🔒' },
-  { id: 'g3', name: 'Break through 1 big barrier', icon: '🔒' },
-  { id: 'g4', name: 'Reflect in journal', icon: '🔒' },
-]
-
 export default function TasksPage() {
   const router = useRouter()
   const { pathPlanning, calendarOptimization, payload } = useAgentPath()
@@ -53,7 +37,8 @@ export default function TasksPage() {
       name: t.name || t.title || 'Task',
       icon: '🔒',
     }))
-  const tasksToRender = todaysTasks.length ? todaysTasks : FALLBACK_TASKS
+  // Real tasks only — no demo fallback. Empty renders an honest CTA below.
+  const tasksToRender = todaysTasks
   // "Today's goals" derived from the user's actual goals + first milestone.
   const profileGoals: string[] = (payload?.userProfile?.goals || []) as string[]
   const firstMilestoneName: string | undefined = pathPlanning?.milestones?.[0]?.name
@@ -63,7 +48,7 @@ export default function TasksPage() {
         ...(firstMilestoneName ? [{ id: 'g_ms', name: `Advance: ${firstMilestoneName}`, icon: '🔒' }] : []),
       ]
     : []
-  const goalsToRender = agentGoals.length ? agentGoals : FALLBACK_GOALS
+  const goalsToRender = agentGoals
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
   const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
@@ -73,7 +58,7 @@ export default function TasksPage() {
 
   const completionCount = completedTasks.size
   const totalTasks = tasksToRender.length
-  const allDone = completionCount === totalTasks
+  const allDone = totalTasks > 0 && completionCount === totalTasks
 
   // Mascot mood from progress
   const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
@@ -128,7 +113,6 @@ export default function TasksPage() {
         @keyframes bunnyHappy{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(3deg)}}
         @keyframes bunnyExcited{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-16px) rotate(-8deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-16px) rotate(8deg)}100%{transform:translateY(0) rotate(0)}}
         @keyframes bunnyCelebrate{0%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-20px) rotate(-15deg) scale(1.1)}50%{transform:translateY(0) rotate(0) scale(1)}75%{transform:translateY(-20px) rotate(15deg) scale(1.1)}100%{transform:translateY(0) rotate(0) scale(1)}}
-        @keyframes striped{0%{background-position:0 0}100%{background-position:40px 0}}
         .bunny-idle{animation:bunnyIdle 2s ease-in-out infinite}
         .bunny-happy{animation:bunnyHappy 1.2s ease-in-out infinite}
         .bunny-excited{animation:bunnyExcited 0.8s ease-in-out infinite}
@@ -173,6 +157,14 @@ export default function TasksPage() {
               <h2 className="text-sm font-bold text-slate-800 mb-0.5">Tasks/</h2>
               <h2 className="text-sm font-bold text-slate-800 mb-3">Hack:</h2>
               <div className="flex-1 space-y-2">
+                {tasksToRender.length === 0 && (
+                  <div className="text-center py-8 px-2">
+                    <p className="text-sm text-slate-500 mb-3">No tasks scheduled yet.</p>
+                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 hover:underline">
+                      Open your Calendar →
+                    </Link>
+                  </div>
+                )}
                 {tasksToRender.map((task: any) => {
                   const done = completedTasks.has(task.id)
                   return (
@@ -199,12 +191,13 @@ export default function TasksPage() {
             <div className="flex flex-col relative">
               {/* Awning / Canopy */}
               <div className="relative">
-                {/* Striped awning */}
+                {/* Striped awning — static. (Was animated with a constantly
+                    scrolling gradient, which read as a glitchy orange-white
+                    moving tab — Odosa's bug.) */}
                 <div
                   className="h-14 rounded-b-[40%]"
                   style={{
                     background: 'repeating-linear-gradient(90deg, #f97316 0px, #f97316 20px, #ffffff 20px, #ffffff 40px)',
-                    animation: 'striped 2s linear infinite',
                   }}
                 />
                 {/* Awning shadow */}
@@ -221,7 +214,7 @@ export default function TasksPage() {
                     <div className="w-40 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
                       <div
                         className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                        style={{ width: `${(completionCount / totalTasks) * 100}%` }}
+                        style={{ width: `${(completionCount / Math.max(totalTasks, 1)) * 100}%` }}
                       />
                     </div>
                   </div>
@@ -268,6 +261,14 @@ export default function TasksPage() {
             <div className="border-l-2 border-slate-200 p-4 flex flex-col">
               <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s Goals:</h2>
               <div className="flex-1 space-y-2">
+                {goalsToRender.length === 0 && (
+                  <div className="text-center py-8 px-2">
+                    <p className="text-sm text-slate-500 mb-3">No goals set yet.</p>
+                    <Link href="/onboarding?step=3" className="text-xs font-semibold text-cyan-600 hover:underline">
+                      Add your goals →
+                    </Link>
+                  </div>
+                )}
                 {goalsToRender.map(goal => {
                   const done = completedGoals.has(goal.id)
                   return (

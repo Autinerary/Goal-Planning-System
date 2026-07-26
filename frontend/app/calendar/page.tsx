@@ -216,6 +216,9 @@ function CalendarContent() {
   const suggestionParam = searchParams.get('suggestion')
   const fromParam = searchParams.get('from')
   const [scenario, setScenario] = useState<'worst' | 'average' | 'best'>('average')
+  // Day / Week / Month period (Odosa). 'day' shows one day; 'week'/'month' show
+  // the full pattern (month adds a note that it repeats weekly).
+  const [period, setPeriod] = useState<'day' | 'week' | 'month'>('week')
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
@@ -227,6 +230,16 @@ function CalendarContent() {
     }
     return []
   })
+  // Real connections for the mentor/role-model comparison (no fake schedules).
+  const [realConnections, setRealConnections] = useState<Record<string, any[]>>({ friends: [], mentors: [], rolemodels: [] })
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/connections', { credentials: 'include', cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (!cancelled && j?.connections) setRealConnections(j.connections) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
   const [showComparison, setShowComparison] = useState(false)
@@ -260,7 +273,7 @@ function CalendarContent() {
   }, [isSignedIn])
 
   // Pull the live calendar-optimization scenarios from the agent payload.
-  const { calendarOptimization } = useAgentPath()
+  const { calendarOptimization, payload } = useAgentPath()
   const agentScenarios = calendarOptimization?.scenarios as
     | { best_case?: any; worst_case?: any; average_case?: any }
     | undefined
@@ -314,7 +327,11 @@ function CalendarContent() {
     }
   }
 
-  const currentData: any = buildAgentScenarioData() || scenarioData[scenario]
+  // Real agent schedule only. Without it, keep the scenario chrome (icon/labels)
+  // but no fake days — the schedule area shows an honest empty state.
+  const agentData = buildAgentScenarioData()
+  const hasAgentSchedule = !!agentData
+  const currentData: any = agentData || { ...scenarioData[scenario], days: [] }
   const ScenarioIcon = currentData.icon
 
   // Check for pending suggestion on mount or when params change
@@ -577,10 +594,12 @@ function CalendarContent() {
                   <label className="block text-sm font-medium text-slate-700">Select Time:</label>
                   <select
                     id="suggestion-time"
-                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800"
+                    size={8}
+                    className="w-full px-4 py-2 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 max-h-56 overflow-y-auto"
                     defaultValue="14:00"
                   >
-                    {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(time => (
+                    {/* Full 24-hour clock, hour by hour, scrollable (Odosa) */}
+                    {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map(time => (
                       <option key={time} value={time} className="bg-white text-slate-800">{time}</option>
                     ))}
                   </select>
@@ -631,7 +650,7 @@ function CalendarContent() {
             <AgentInsightsBanner agent="calendar_optimization" />
           </div>
           <div className="flex items-center gap-3 mb-3">
-            <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 Race 1: Graduate University</div>
+            <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 {payload?.races?.[0]?.name || payload?.userProfile?.goals?.[0] || 'Your first race'}</div>
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: Request Accommodations</div>
           </div>
           {/* Title */}
@@ -769,7 +788,34 @@ function CalendarContent() {
           </button>
         </div>
 
+        {/* Period toggle — Day / Week / Month (Odosa: under the energy options) */}
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <span className="text-sm font-medium text-slate-600 mr-1">Show:</span>
+          {([
+            { id: 'day', label: 'Day' },
+            { id: 'week', label: 'Week' },
+            { id: 'month', label: 'Month' },
+          ] as const).map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setPeriod(p.id)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                period === p.id
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow'
+                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">
+          {period === 'month' && (
+            <div className="mb-6 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+              Showing your weekly pattern — it repeats through the month. Day-by-date scheduling is coming soon.
+            </div>
+          )}
           {/* Scenario Info Banner */}
           <div className={`mb-8 p-5 rounded-xl border-2 backdrop-blur-sm ${
             scenario === 'worst' ? 'bg-red-500/20 border-red-400/30' :
@@ -795,18 +841,25 @@ function CalendarContent() {
             </div>
           </div>
 
-          {/* YOUR CALENDAR — always shown */}
+          {/* YOUR CALENDAR — always shown. Day period shows the first day only;
+              Week/Month show the full pattern. */}
+          {!hasAgentSchedule && (
+            <div className="mb-4 text-center py-8 px-4 border-2 border-dashed border-slate-200 rounded-xl">
+              <p className="text-sm text-slate-500 mb-3">Your schedule appears here once your path is generated.</p>
+              <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
+            </div>
+          )}
           <div>
             {viewType === 'list' ? (
-              <ListView 
-                days={currentData.days} 
+              <ListView
+                days={period === 'day' ? (currentData.days || []).slice(0, 1) : currentData.days}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
               />
             ) : (
-              <TimeBlockView 
-                days={currentData.days}
+              <TimeBlockView
+                days={period === 'day' ? (currentData.days || []).slice(0, 1) : currentData.days}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
@@ -814,56 +867,38 @@ function CalendarContent() {
             )}
           </div>
 
-          {/* COMPARISON — only shown when toggled on */}
+          {/* COMPARISON — real connections only; no fabricated schedules. A linked
+              mentor/role model's actual shared day lives on their friend page. */}
           {showComparison && (
             <div className="mt-8 pt-6 border-t-2 border-purple-200">
               <h3 className="font-bold mb-4 text-lg text-slate-800 flex items-center gap-2">
-                <span className="text-purple-600">👥</span> {comparisonType === 'day' ? 'Their Day' : 'Their Week'}
+                <span className="text-purple-600">👥</span> Compare with your people
               </h3>
-              {comparisonType === 'day' ? (
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
-                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model&apos;s / Mentor&apos;s schedule:</p>
-                  <div className="space-y-3 text-sm">
-                    {[
-                      { time: '8:00', task: 'Morning routine + exercise' },
-                      { time: '9:00', task: 'Deep work session' },
-                      { time: '12:00', task: 'Lunch break' },
-                      { time: '14:00', task: 'Continue project work' },
-                      { time: '16:00', task: 'Review & plan tomorrow' },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 bg-white/60 p-2 rounded-lg">
-                        <span className="text-purple-600 font-mono font-semibold w-16">{item.time}</span>
-                        <span className="text-slate-800">{item.task}</span>
-                      </div>
+              {(() => {
+                const mentorish = [...(realConnections.mentors || []), ...(realConnections.rolemodels || [])]
+                const linked = mentorish.filter((p: any) => p.target_user_id)
+                if (mentorish.length === 0) {
+                  return (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
+                      <p className="text-sm text-slate-600 mb-3">No mentors or role models connected yet — comparisons use your real connections&apos; shared schedules.</p>
+                      <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">Find your people →</Link>
+                    </div>
+                  )
+                }
+                return (
+                  <div className="space-y-2">
+                    {linked.map((p: any) => (
+                      <Link key={p.id} href={`/friend/${p.target_user_id}`} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white/70 border border-purple-200 hover:border-purple-400 hover:shadow-sm transition-all">
+                        <span className="text-sm font-medium text-slate-800">{p.icon && p.icon !== '👤' ? p.icon : '🧑'} {p.name}{p.role ? ` · ${p.role}` : ''}</span>
+                        <span className="text-xs font-semibold text-purple-600">View their schedule →</span>
+                      </Link>
                     ))}
+                    {linked.length === 0 && (
+                      <p className="text-sm text-slate-500">Your saved {mentorish.length === 1 ? 'contact isn\u2019t' : 'contacts aren\u2019t'} linked to app accounts yet, so there&apos;s no shared schedule to show.</p>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-lg p-5 border border-purple-300">
-                  <p className="text-sm text-purple-700 mb-4 font-medium">Role Model&apos;s / Mentor&apos;s weekly schedule:</p>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day) => (
-                      <div key={day} className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-slate-300">
-                        <div className="font-bold mb-2 text-slate-800">{day}</div>
-                        <div className="space-y-1.5 text-slate-700">
-                          {[
-                            { time: '8:00', label: 'Routine' },
-                            { time: '9:00', label: 'Work' },
-                            { time: '12:00', label: 'Break' },
-                            { time: '14:00', label: 'Continue' },
-                            { time: '16:00', label: 'Review' },
-                          ].map((s, i) => (
-                            <div key={i}>
-                              <div className="text-purple-600 font-mono">{s.time}</div>
-                              <div className="text-xs">{s.label}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )
+              })()}
             </div>
           )}
 

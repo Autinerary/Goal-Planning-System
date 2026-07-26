@@ -37,6 +37,13 @@ interface PathTemplate {
   examples: string[]
   /** Onboarding goal seeds for this template. */
   seedGoals: string[]
+  /**
+   * Which onboarding goal category this path steers into (a goalCategories id
+   * in onboarding). Drives where seed goals land and which category is
+   * emphasised, so the flow feels tailored to the chosen path rather than
+   * identical to "start your own path".
+   */
+  focusCategory: string
 }
 
 const PATHS: PathTemplate[] = [
@@ -50,6 +57,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Pre-med prerequisites', 'Research assistant roles', 'Lab / clinical skills', 'Grad-school applications'],
     seedGoals: ['Get into a science/medicine program', 'Build research experience'],
+    focusCategory: 'education',
   },
   {
     key: 'living',
@@ -61,6 +69,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Budgeting & finances', 'Housing & tenancy', 'Meal planning & cooking', 'Daily-living routines'],
     seedGoals: ['Live independently', 'Manage my own budget'],
+    focusCategory: 'other',
   },
   {
     key: 'career',
@@ -72,6 +81,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Resume & interviews', 'Accommodation requests', 'Workplace social norms', 'Career growth'],
     seedGoals: ['Get a fulfilling job', 'Request workplace accommodations'],
+    focusCategory: 'career',
   },
   {
     key: 'education',
@@ -83,6 +93,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Accommodations at school', 'Study strategies', 'Applications & funding', 'Graduation planning'],
     seedGoals: ['Graduate from my program', 'Set up school accommodations'],
+    focusCategory: 'education',
   },
   {
     key: 'health',
@@ -94,6 +105,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Finding the right care', 'Managing appointments', 'Wellness routines', 'Self-advocacy in healthcare'],
     seedGoals: ['Build a wellness routine', 'Find supportive healthcare'],
+    focusCategory: 'health',
   },
   {
     key: 'relationships',
@@ -105,6 +117,7 @@ const PATHS: PathTemplate[] = [
     status: 'live',
     examples: ['Making friends', 'Communication skills', 'Joining communities', 'Navigating family'],
     seedGoals: ['Build a support network', 'Improve my communication'],
+    focusCategory: 'relationships',
   },
   {
     key: 'creative',
@@ -116,6 +129,7 @@ const PATHS: PathTemplate[] = [
     status: 'coming',
     examples: ['Develop a craft', 'Share your work', 'Find creative community', 'Monetize a hobby'],
     seedGoals: ['Grow a creative skill'],
+    focusCategory: 'other',
   },
   {
     key: 'travel',
@@ -127,6 +141,7 @@ const PATHS: PathTemplate[] = [
     status: 'coming',
     examples: ['Sensory-friendly trip planning', 'Public transit confidence', 'Travel checklists', 'Accessible destinations'],
     seedGoals: ['Plan a trip', 'Get comfortable with transit'],
+    focusCategory: 'other',
   },
 ]
 
@@ -150,9 +165,21 @@ export default function PathMarketPage() {
   })
 
   const startPath = (p: PathTemplate) => {
-    // Seed onboarding with this path's goals, then send the user into onboarding.
+    // Seed onboarding with this path's context, then send the user into onboarding.
+    // We carry the focus category and example goals so onboarding can tailor the
+    // flow to the chosen path instead of showing the generic "start your own path"
+    // experience.
     try {
-      localStorage.setItem('autinerary_path_seed', JSON.stringify({ key: p.key, title: p.title, goals: p.seedGoals }))
+      localStorage.setItem(
+        'autinerary_path_seed',
+        JSON.stringify({
+          key: p.key,
+          title: p.title,
+          goals: p.seedGoals,
+          focusCategory: p.focusCategory,
+          suggestions: p.examples,
+        })
+      )
     } catch {
       /* ignore */
     }
@@ -219,11 +246,18 @@ export default function PathMarketPage() {
                   ))}
                 </ul>
                 <button
-                  onClick={() => startPath(p)}
-                  disabled={p.status === 'coming'}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={() =>
+                    p.status === 'coming'
+                      ? router.push(`/under-construction?feature=${encodeURIComponent(p.title)}`)
+                      : startPath(p)
+                  }
+                  className={`w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    p.status === 'coming'
+                      ? 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg'
+                  }`}
                 >
-                  {p.status === 'coming' ? 'Coming soon' : 'Start this path →'}
+                  {p.status === 'coming' ? 'Coming soon →' : 'Start this path →'}
                 </button>
               </div>
             )

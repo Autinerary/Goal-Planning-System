@@ -61,18 +61,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const resourceId: string | undefined = body?.resourceId
+  const rawResourceId: string | undefined = body?.resourceId
+  const name: string = typeof body?.name === 'string' ? body.name.trim() : ''
   const status: string | null = body?.status ?? null
 
-  // Only accept real UUIDs — agent/knowledge-base tools use synthetic ids and
-  // must be ignored so we never write junk rows.
-  const isUuid = typeof resourceId === 'string' &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(resourceId)
-  if (!isUuid) {
-    return NextResponse.json({ error: 'A valid resourceId (uuid) is required' }, { status: 400 })
-  }
   if (status !== null && !['wishlist', 'current', 'past'].includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+  }
+
+  const isUuid = typeof rawResourceId === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawResourceId)
+
+  // Resolve to a REAL ResourceHub resource id. Milestone tools often carry a
+  // synthetic id (or none), which previously meant the save silently no-op'd and
+  // never showed up in ResourceHub (Odosa's bug). We (a) verify a passed UUID
+  // actually exists and (b) otherwise match the tool name to a catalogued
+  // resource — so wishlisting works whenever the tool maps to a real resource.
+  let realId: string | null = null
+  if (isUuid) {
+    const { data } = await supabase.from('resources').select('id').eq('id', rawResourceId).limit(1)
+    if (data && data.length) realId = rawResourceId as string
+  }
+  if (!realId && name) {
+    const { data } = await supabase.from('resources').select('id').ilike('name', name).limit(1)
+    if (data && data.length) realId = data[0].id
+  }
+
+  if (!realId) {
+    // Not a catalogued resource — report honestly so the client can show a note
+    // instead of a fake "wishlisted" state that never persists.
+    return NextResponse.json({ ok: false, reason: 'not_in_resourcehub' })
   }
 
   // Un-save when status is null.
@@ -81,19 +99,19 @@ export async function POST(req: NextRequest) {
       .from('saved_resources')
       .delete()
       .eq('user_id', user.id)
-      .eq('resource_id', resourceId)
+      .eq('resource_id', realId)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ ok: true, removed: true })
+    return NextResponse.json({ ok: true, removed: true, resourceId: realId })
   }
 
   // Upsert the saved row with the chosen status.
   const { error } = await supabase
     .from('saved_resources')
     .upsert(
-      { user_id: user.id, resource_id: resourceId, status },
+      { user_id: user.id, resource_id: realId, status },
       { onConflict: 'user_id,resource_id' }
     )
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ ok: true, status })
+  return NextResponse.json({ ok: true, status, resourceId: realId })
 }

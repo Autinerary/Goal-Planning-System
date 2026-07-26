@@ -4,6 +4,11 @@ import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, BookOpen, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
+import TaskCompanions from '../../components/TaskCompanions'
+import StreakCelebration from '../../components/StreakCelebration'
+import { recordActiveDay, getPendingCelebration, markCelebrated, getStreak } from '@/lib/streak'
+import { notify } from '@/lib/notifications'
+import { useAgentPath } from '../../context/AgentPathContext'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -20,22 +25,6 @@ import { Sparkles, BookOpen, Lock, Unlock, Music, Play, Pause, Upload } from 'lu
   • Mascots will dance/move to beat
   • After ready → Done
 */
-
-const todaysTasks = [
-  { id: 't1', name: 'Fill out accommodation form' },
-  { id: 't2', name: 'Email disability office' },
-  { id: 't3', name: 'Read accommodation guide' },
-  { id: 't4', name: 'Set up Tiimo schedule' },
-  { id: 't5', name: 'Join study group chat' },
-  { id: 't6', name: 'Practice self-advocacy script' },
-]
-
-const todaysGoals = [
-  { id: 'g1', name: 'Complete 3 accommodation tasks' },
-  { id: 'g2', name: 'Use 2 new tools' },
-  { id: 'g3', name: 'Break through 1 big barrier' },
-  { id: 'g4', name: 'Reflect in journal' },
-]
 
 export default function TaskView() {
   return (
@@ -55,6 +44,7 @@ function TaskViewContent() {
   const [musicFile, setMusicFile] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
   const [isDoneDancing, setIsDoneDancing] = useState(false)
+  const [streakCelebration, setStreakCelebration] = useState<number | null>(null)
   const [todaysMotivation, setTodaysMotivation] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('todaysMotivation')
@@ -63,6 +53,15 @@ function TaskViewContent() {
   })
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Real tasks/goals from the agent path (same source as the Tasks list view).
+  // No static demo — an empty list renders an honest empty state below.
+  const { pathPlanning, calendarOptimization, payload } = useAgentPath()
+  const firstDay: any = (payload?.schedule || calendarOptimization?.schedule || [])[0]
+  const agentDayTasks: any[] = firstDay?.tasks || []
+  const todaysTasks = (agentDayTasks.length ? agentDayTasks : (pathPlanning?.tasks || []))
+    .slice(0, 8)
+    .map((t: any, idx: number) => ({ id: t.id || `t${idx + 1}`, name: t.name || t.title || 'Task' }))
 
   // Listen for motivation updates from pinwheel (stored in localStorage by races page)
   useEffect(() => {
@@ -75,7 +74,7 @@ function TaskViewContent() {
 
   // Derive task name from the route param ID
   const taskId = params.id as string
-  const currentTask = todaysTasks.find(t => t.id === taskId)
+  const currentTask = todaysTasks.find((t: any) => t.id === taskId)
   // Prefer an explicit ?name= (passed when opened from the calendar) so the
   // real task title shows even when the id isn't in the local demo list.
   const nameParam = searchParams.get('name')
@@ -83,7 +82,7 @@ function TaskViewContent() {
 
   const completionCount = completedTasks.size
   const totalTasks = todaysTasks.length
-  const allDone = completionCount === totalTasks
+  const allDone = totalTasks > 0 && completionCount === totalTasks
 
   // Mascot mood from progress
   const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
@@ -126,8 +125,26 @@ function TaskViewContent() {
     setCompleted(true)
     setIsDoneDancing(true)
     playCelebrationMusic()
-    // Dance for 4 seconds, then navigate to calendar
-    setTimeout(() => router.push('/calendar'), 4000)
+    // Streak: completing a task marks today active. May bridge a gap with a
+    // freeze and cross a celebration milestone.
+    recordActiveDay()
+    const milestone = getPendingCelebration()
+    if (milestone) {
+      setStreakCelebration(milestone)
+      markCelebrated(milestone)
+      notify({ title: `${milestone}-day streak! 🔥`, body: 'You’re on a roll — keep it going.', icon: '🔥', href: '/path' })
+    } else {
+      const { current } = getStreak()
+      notify({
+        title: 'Task complete! 🎉',
+        body: current > 0 ? `Nice work — you’re on a ${current}-day streak.` : 'Nice work today.',
+        icon: '✅',
+        href: '/path',
+      })
+    }
+    // Dance for a moment, then navigate to calendar. Give the streak
+    // celebration a little longer to be seen when one fires.
+    setTimeout(() => router.push('/calendar'), milestone ? 5200 : 4000)
   }
 
   const playCelebrationMusic = () => {
@@ -200,12 +217,15 @@ function TaskViewContent() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-800 p-4 md:p-8 relative overflow-hidden">
+      {/* Hare + tortoise corner companions — present while you work the task */}
+      <TaskCompanions energized={isDoneDancing} />
+      {/* Streak milestone celebration (fires from handleDone) */}
+      <StreakCelebration milestone={streakCelebration} onDone={() => setStreakCelebration(null)} />
       <style>{`
         @keyframes bunnyIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
         @keyframes bunnyHappy{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(3deg)}}
         @keyframes bunnyExcited{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-16px) rotate(-8deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-16px) rotate(8deg)}100%{transform:translateY(0) rotate(0)}}
         @keyframes bunnyCelebrate{0%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-20px) rotate(-15deg) scale(1.1)}50%{transform:translateY(0) rotate(0) scale(1)}75%{transform:translateY(-20px) rotate(15deg) scale(1.1)}100%{transform:translateY(0) rotate(0) scale(1)}}
-        @keyframes striped{0%{background-position:0 0}100%{background-position:40px 0}}
         @keyframes doneDance{0%{transform:translateY(0) rotate(0) scale(1)}12%{transform:translateY(-30px) rotate(-20deg) scale(1.2)}25%{transform:translateY(0) rotate(0) scale(1)}37%{transform:translateY(-25px) rotate(20deg) scale(1.15)}50%{transform:translateY(0) rotate(0) scale(1)}62%{transform:translateY(-30px) rotate(-15deg) scale(1.2)}75%{transform:translateY(0) rotate(0) scale(1)}87%{transform:translateY(-20px) rotate(15deg) scale(1.1)}100%{transform:translateY(0) rotate(0) scale(1)}}
         @keyframes turtleDance{0%{transform:translateY(0) rotate(0)}20%{transform:translateY(-10px) rotate(8deg)}40%{transform:translateY(0) rotate(-8deg)}60%{transform:translateY(-10px) rotate(8deg)}80%{transform:translateY(0) rotate(-8deg)}100%{transform:translateY(0) rotate(0)}}
         .bunny-idle{animation:bunnyIdle 2s ease-in-out infinite}
@@ -257,7 +277,13 @@ function TaskViewContent() {
               <h2 className="text-sm font-bold text-slate-800 mb-1">Today&apos;s</h2>
               <h2 className="text-sm font-bold text-slate-800 mb-3">Trick/Hack:</h2>
               <div className="flex-1 space-y-2">
-                {todaysTasks.map(task => {
+                {todaysTasks.length === 0 && (
+                  <div className="text-center py-6 px-2">
+                    <p className="text-sm text-slate-500 mb-3">No tasks scheduled yet.</p>
+                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 hover:underline">Open your Calendar →</Link>
+                  </div>
+                )}
+                {todaysTasks.map((task: any) => {
                   const done = completedTasks.has(task.id)
                   return (
                     <button
@@ -291,7 +317,7 @@ function TaskViewContent() {
                     <div className="w-40 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
                       <div
                         className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                        style={{ width: `${(completionCount / totalTasks) * 100}%` }}
+                        style={{ width: `${(completionCount / Math.max(totalTasks, 1)) * 100}%` }}
                       />
                     </div>
                   </div>

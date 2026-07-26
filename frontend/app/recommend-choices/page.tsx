@@ -50,91 +50,9 @@ export default function RecommendChoicesPage() {
     }))
   })
 
-  // Mock data - choices organized by service
-  const mockChoicesByService: Record<string, RecommendedChoice[]> = {
-    'University Accommodations': [
-      {
-        id: 'choice_1',
-        name: 'Early Accommodation Request',
-        description: 'Request accommodations at the start of your program for best results. Works especially well for autistic individuals who benefit from clear structures early on.',
-        service: 'University Accommodations',
-        successRate: 90,
-        attempts: 1000,
-        estimatedTime: 45,
-        bestFor: ['Autism', 'ADHD'],
-        status: 'in_progress',
-        progress: 65
-      },
-      {
-        id: 'choice_2',
-        name: 'Join Study Group',
-        description: 'Find a supportive study group with peers who understand neurodivergent needs.',
-        service: 'University Accommodations',
-        successRate: 89,
-        attempts: 101,
-        estimatedTime: 30,
-        bestFor: ['ADHD', 'First-Gen'],
-        status: 'not_started',
-        progress: 0
-      },
-      {
-        id: 'choice_3',
-        name: 'Find Autism-Friendly Study Environment',
-        description: 'Identify sensory-friendly spaces on campus that support your learning style.',
-        service: 'University Accommodations',
-        successRate: 85,
-        attempts: 250,
-        estimatedTime: 20,
-        bestFor: ['Autism'],
-        status: 'completed',
-        progress: 100
-      },
-    ],
-    'Career Development': [
-      {
-        id: 'choice_4',
-        name: 'Build Portfolio Early',
-        description: 'Start building your portfolio from day one. Showcase projects that demonstrate your unique strengths.',
-        service: 'Career Development',
-        successRate: 88,
-        attempts: 750,
-        estimatedTime: 60,
-        bestFor: ['ADHD', 'Visible Minority'],
-        status: 'in_progress',
-        progress: 40
-      },
-      {
-        id: 'choice_5',
-        name: 'Network with Neurodivergent Professionals',
-        description: 'Connect with professionals who share similar barriers and can provide mentorship.',
-        service: 'Career Development',
-        successRate: 92,
-        attempts: 320,
-        estimatedTime: 90,
-        bestFor: ['Autism', 'ADHD', 'Visible Minority'],
-        status: 'not_started',
-        progress: 0
-      },
-    ],
-    'Mental Health Support': [
-      {
-        id: 'choice_6',
-        name: 'Regular Therapy Sessions',
-        description: 'Schedule consistent therapy sessions to maintain mental wellness throughout your journey.',
-        service: 'Mental Health Support',
-        successRate: 87,
-        attempts: 1200,
-        estimatedTime: 50,
-        bestFor: ['Anxiety', 'Bipolar'],
-        status: 'in_progress',
-        progress: 55
-      },
-    ],
-  }
 
-  const choicesByService: Record<string, RecommendedChoice[]> = Object.keys(agentChoicesByService).length
-    ? agentChoicesByService
-    : mockChoicesByService
+  // Real agent recommendations only — no mock fallback. Empty renders a state.
+  const choicesByService: Record<string, RecommendedChoice[]> = agentChoicesByService
 
   const allChoices = Object.values(choicesByService).flat()
   const services = Object.keys(choicesByService)

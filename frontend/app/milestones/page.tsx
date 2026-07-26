@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink } from 'lucide-react'
+import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
@@ -28,11 +28,20 @@ function extractResourceId(id?: string, url?: string): string | null {
 
 export default function MilestoneView() {
   const router = useRouter()
-  const { pathPlanning, toolRecommendation, patternRecognition, payload } = useAgentPath()
+  const { pathPlanning, toolRecommendation, patternRecognition, payload, loading } = useAgentPath()
   const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
   const [expandedTool, setExpandedTool] = useState<string | null>(null)
+  // Collapsible Tools/Barriers table (Odosa: dropdown to slim the page).
+  const [toolsOpen, setToolsOpen] = useState(true)
   const [showGif, setShowGif] = useState<string | null>(null)
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+  // Note shown when a tool can't be saved to ResourceHub (not catalogued).
+  const [rhNote, setRhNote] = useState<string | null>(null)
+  useEffect(() => {
+    if (!rhNote) return
+    const t = setTimeout(() => setRhNote(null), 4000)
+    return () => clearTimeout(t)
+  }, [rhNote])
 
   // Tool status (Odosa): Wishlist vs Currently Using — mirrors ResourceHub's
   // saved_resources status ('wishlist' | 'current'). Persisted locally and
@@ -82,7 +91,8 @@ export default function MilestoneView() {
 
   // Toggle a tool's ResourceHub status. Best-effort sync to ServiceHub so it
   // shows up in the user's Wishlist / Currently Using lists there too.
-  const setToolStatusFor = (toolId: string, status: 'wishlist' | 'current', resourceId?: string | null) => {
+  const setToolStatusFor = (tool: any, status: 'wishlist' | 'current') => {
+    const toolId = tool.id
     let nextStatus: 'wishlist' | 'current' | null = status
     setToolStatus(prev => {
       const next = { ...prev }
@@ -94,18 +104,31 @@ export default function MilestoneView() {
       }
       return next
     })
-    // Persist server-side via our same-origin route (shared Supabase). Only
-    // fires for real ResourceHub resources; synthetic tool ids are skipped.
-    if (resourceId) {
-      try {
-        fetch('/api/me/resource-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ resourceId, status: nextStatus }),
-        }).catch(() => {})
-      } catch { /* ignore */ }
-    }
+    // Persist to the shared Supabase via our same-origin route. The server
+    // resolves the tool to a REAL ResourceHub resource (by id or name) so the
+    // save actually shows up in ResourceHub. If the tool isn't catalogued, it
+    // tells us so — we revert the optimistic state and show an honest note
+    // rather than pretend it was saved (Odosa: wishlist didn't update).
+    try {
+      fetch('/api/me/resource-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ resourceId: tool.resourceId || null, name: tool.name, url: tool.url, status: nextStatus }),
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res && res.ok === false && res.reason === 'not_in_resourcehub' && nextStatus) {
+            setToolStatus(prev => {
+              const n = { ...prev }
+              delete n[toolId]
+              return n
+            })
+            setRhNote(tool.name)
+          }
+        })
+        .catch(() => {})
+    } catch { /* ignore */ }
   }
 
   const rateBarrier = (barrierId: string, stars: number, resourceId?: string | null) => {
@@ -168,10 +191,7 @@ export default function MilestoneView() {
         id: `race_${idx + 1}`,
         name: g,
         progress: 0,
-      })) || [
-        { id: 'race_1', name: 'Graduate University', progress: 45 },
-        { id: 'race_2', name: 'Get Tech Job', progress: 20 },
-      ]
+      })) || []
   // Override with real progress: % of each race's milestones completed.
   const _pathMilestones: ProgressMilestone[] =
     (payload?.milestones || pathPlanning?.milestones || []) as ProgressMilestone[]
@@ -231,16 +251,8 @@ export default function MilestoneView() {
     return out
   }
   const agentTools = flattenAgentTools()
-  const tools = agentTools.length
-    ? agentTools.slice(0, 8)
-    : [
-        { id: 't1', name: 'Disability Office', type: 'Service', symbol: '🔑', barrier: 'b1', desc: 'Access accommodations', url: '#' },
-        { id: 't2', name: 'Academic Advisor', type: 'Service', symbol: '🔧', barrier: 'b2', desc: 'Plan your path', url: '#' },
-        { id: 't3', name: '"Accommodation Guide" video', type: 'Commentary', symbol: '🏋️', barrier: 'b3', desc: 'Learn the process', url: '#' },
-        { id: 't4', name: 'Tiimo App', type: 'Product', symbol: '👢', barrier: 'b4', desc: 'ADHD-friendly planner', url: '#' },
-        { id: 't5', name: 'Study Group (online)', type: 'Other', symbol: '🛡️', barrier: 'b5', desc: 'Peer accountability', url: '#' },
-        { id: 't6', name: 'Notion Templates', type: 'Product', symbol: '🔨', barrier: 'b3', desc: 'Organize everything', url: '#' },
-      ]
+  // Real agent-recommended tools only — no demo fallback. Empty renders a state.
+  const tools = agentTools.slice(0, 8)
 
   // Real barriers from the user profile (challenges and barrier types).
   const profileBarriers: string[] = [
@@ -255,16 +267,42 @@ export default function MilestoneView() {
         unlocked: idx === 0,
       }))
     : null
-  const barriers = agentBarriers || [
-    { id: 'b1', name: 'Don\'t know where to start', severity: 1, unlocked: true },
-    { id: 'b2', name: 'Overwhelmed by paperwork', severity: 2, unlocked: false },
-    { id: 'b3', name: 'Fear of disclosure', severity: 3, unlocked: false },
-    { id: 'b4', name: 'Time management struggles', severity: 2, unlocked: false },
-    { id: 'b5', name: 'Social anxiety in groups', severity: 3, unlocked: false },
-  ]
+  // Real barriers from the user's profile only — no demo fallback.
+  const barriers = agentBarriers || []
+
+  // No demo data: show honest loading / empty states instead.
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-amber-50 to-amber-100">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+        <p className="text-sm text-slate-500">Loading your milestone…</p>
+      </div>
+    )
+  }
+  if (races.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center bg-gradient-to-b from-amber-50 to-amber-100">
+        <div className="text-5xl">🪧</div>
+        <h1 className="text-xl font-bold text-slate-800">No milestones yet</h1>
+        <p className="text-sm text-slate-500 max-w-sm">
+          Your milestones appear here once your path is generated. Complete onboarding to build one.
+        </p>
+        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+          Go to onboarding →
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100">
+      {/* ResourceHub note — shown when a tool isn't a catalogued resource */}
+      {rhNote && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-sm bg-slate-800 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-start gap-2">
+          <Bookmark className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-300" />
+          <span>“{rhNote}” isn’t in ResourceHub yet, so it can’t be added to your list. It’s noted here only.</span>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3">
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="pattern_recognition" />
@@ -360,13 +398,38 @@ export default function MilestoneView() {
         {/* Summary — moved to just below the progress bar (Odosa) */}
         <div className="mb-4 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
           <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2">📋 Summary</h3>
-          <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || 'Request accommodations for classes.'}</strong></p>
+          <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || races[0]?.name || 'Your current milestone'}</strong></p>
           <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
         </div>
 
         {/* Unified table: Tools to Use | Barriers to Unlock (Odosa: one table) */}
         <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
-          <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Collapsible toggle — lets users slim the page (Odosa: dropdown) */}
+          <button
+            type="button"
+            onClick={() => setToolsOpen(o => !o)}
+            aria-expanded={toolsOpen}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-amber-50 hover:bg-amber-100 border-b border-amber-200 transition-colors"
+          >
+            <span className="font-bold text-amber-900 flex items-center gap-2 text-sm">
+              <Wrench className="w-4 h-4" /> Tools &amp; Barriers
+            </span>
+            <span className="flex items-center gap-2 text-xs text-amber-700">
+              <span>{tools.length} tools · {barriers.length} barriers</span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
+          {toolsOpen && (<>
+          {/* Mobile: a single combined header. The split two-column headers only
+              read correctly when the columns sit side-by-side (md+); on a narrow
+              screen the grid collapses and the two headers would stack away from
+              their cells, so we show one header here instead. */}
+          <div className="md:hidden bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 px-4 py-3">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools &amp; Barriers</h2>
+            <p className="text-amber-50 text-xs">Each tool pairs with a barrier to unlock — rate how effective it was.</p>
+          </div>
+          {/* Desktop: two column headers */}
+          <div className="hidden md:grid md:grid-cols-2">
             {/* Column headers */}
             <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
               <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools to Use</h2>
@@ -388,6 +451,11 @@ export default function MilestoneView() {
           </div>
 
           {/* Rows: pair each tool with a barrier, side by side */}
+          {tools.length === 0 && barriers.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-slate-500">
+              No tools or barriers yet for this milestone — they’ll appear once the AI finishes recommending resources.
+            </div>
+          )}
           <div className="divide-y divide-amber-100">
             {Array.from({ length: Math.max(tools.length, barriers.length) }).map((_, rowIdx) => {
               const tool = tools[rowIdx]
@@ -405,6 +473,11 @@ export default function MilestoneView() {
                 <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2">
                   {/* LEFT: Tool cell */}
                   <div className="p-3 md:border-r border-amber-100">
+                    {tool && (
+                      <div className="md:hidden text-[10px] font-bold uppercase tracking-wide text-amber-600 mb-1.5 flex items-center gap-1">
+                        <Wrench className="w-3 h-3" /> Tool to use
+                      </div>
+                    )}
                     {tool ? (
                       <div className={`rounded-xl border-2 p-3 transition-all ${status ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200'}`}>
                         <button onClick={() => setExpandedTool(expandedTool === tool.id ? null : tool.id)} className="w-full text-left">
@@ -419,13 +492,13 @@ export default function MilestoneView() {
                         {/* Wishlist / Currently Using toggles (Odosa) */}
                         <div className="flex items-center gap-2 mt-2">
                           <button
-                            onClick={() => setToolStatusFor(tool.id, 'wishlist', tool.resourceId)}
+                            onClick={() => setToolStatusFor(tool, 'wishlist')}
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
                           >
                             <Bookmark className="w-3 h-3" /> Wishlist
                           </button>
                           <button
-                            onClick={() => setToolStatusFor(tool.id, 'current', tool.resourceId)}
+                            onClick={() => setToolStatusFor(tool, 'current')}
                             className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
                           >
                             <CheckCircle2 className="w-3 h-3" /> Currently Using
@@ -439,12 +512,17 @@ export default function MilestoneView() {
                         )}
                       </div>
                     ) : (
-                      <div className="h-full min-h-[60px] rounded-xl border-2 border-dashed border-amber-100" />
+                      <div className="hidden md:block h-full min-h-[60px] rounded-xl border-2 border-dashed border-amber-100" />
                     )}
                   </div>
 
                   {/* RIGHT: Barrier cell */}
                   <div className="p-3">
+                    {barrier && (
+                      <div className="md:hidden text-[10px] font-bold uppercase tracking-wide text-red-600 mb-1.5 flex items-center gap-1">
+                        <Shield className="w-3 h-3" /> Barrier to unlock
+                      </div>
+                    )}
                     {barrier ? (
                       <div className={`relative rounded-xl border-2 p-3 transition-all ${isUnlocked ? 'border-green-300 bg-green-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'}`}>
                         <div className="flex items-start gap-3">
@@ -467,7 +545,7 @@ export default function MilestoneView() {
                         </div>
                       </div>
                     ) : (
-                      <div className="h-full min-h-[60px] rounded-xl border-2 border-dashed border-red-100" />
+                      <div className="hidden md:block h-full min-h-[60px] rounded-xl border-2 border-dashed border-red-100" />
                     )}
                   </div>
                 </div>
@@ -482,9 +560,10 @@ export default function MilestoneView() {
               <span>{unlockedBarriers.size}/{barriers.length}</span>
             </div>
             <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all" style={{ width: `${(unlockedBarriers.size / barriers.length) * 100}%` }} />
+              <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all" style={{ width: `${(unlockedBarriers.size / Math.max(barriers.length, 1)) * 100}%` }} />
             </div>
           </div>
+          </>)}
         </div>
 
         {/* View all resources & ResourceHub (Odosa) */}

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { loadPreferences, applyAccessibility, applyLayout, type UserPreferences } from '@/lib/preferences'
+import { recordVisit } from '@/lib/disclosure'
 
 /**
  * Applies the user's accessibility settings to the document on mount and
@@ -15,6 +16,10 @@ export default function AccessibilityProvider() {
       applyLayout(prefs)
     }
     apply(loadPreferences())
+    // Record one visit per calendar day (idempotent) to drive progressive
+    // disclosure (start simple → open up over time). Streak "active" days are
+    // recorded on task completion, not app open (see app/tasks/[id]/page.tsx).
+    recordVisit()
     const onPrefs = (e: Event) => {
       const prefs = (e as CustomEvent).detail as UserPreferences | undefined
       apply(prefs || loadPreferences())

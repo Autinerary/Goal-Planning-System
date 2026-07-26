@@ -14,9 +14,17 @@ import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
  * (e.g. a "How it works" button).
  */
 
+interface DemoFeature {
+  name: string
+  desc: string
+}
+
 interface DemoStep {
   title: string
-  body: string
+  /** A general description of the page/view (shown first). */
+  overview: string
+  /** What the key buttons/features on this view do. */
+  features?: DemoFeature[]
   emoji: string
   route?: string
 }
@@ -25,42 +33,93 @@ const STEPS: DemoStep[] = [
   {
     emoji: '👋',
     title: 'Welcome to Autinerary',
-    body: 'This quick tour shows how to turn your goals into a fun, step-by-step journey. It takes about a minute.',
+    overview:
+      'This quick tour walks you through each screen — first what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime.',
   },
   {
     emoji: '🧭',
-    title: 'Your Path',
-    body: 'The Path is your home base. It shows your races (goals), progress, people, and quick actions.',
+    title: 'Paths View',
+    overview:
+      'This is the Paths View — your home base. It gives a general overview of your progress: your goals (as “races”), a motivational message, your streak, and quick actions.',
+    features: [
+      { name: 'Show more / Simplify', desc: 'Switch between a simple layout and the full set of features.' },
+      { name: 'Compare', desc: 'Compare different saved versions of your path side by side.' },
+      { name: 'Save snapshot', desc: 'Save the current path so you can look back and compare later.' },
+      { name: 'Streak 🔥', desc: 'Shows how many days in a row you’ve completed a task.' },
+    ],
     route: '/path',
   },
   {
     emoji: '🏁',
     title: 'Races & Milestones',
-    body: 'Each goal is a "race". Check off milestones as you complete them — your progress updates in real time.',
+    overview:
+      'This is the Races View. Each goal is a “race”, broken into milestones. It shows how far along each goal is.',
+    features: [
+      { name: 'A race card', desc: 'Tap one to open its milestones and see the next steps.' },
+      { name: 'Motivation Pinwheel', desc: 'Spin it for an encouraging message for the day.' },
+      { name: 'Progress bar', desc: 'Fills in automatically as you check off milestones.' },
+    ],
     route: '/races',
   },
   {
-    emoji: '🛠️',
-    title: 'Pit Stop & Resources',
-    body: 'Find tools, services, and the Resource Roadmap here. Everything is tailored to your Diagnostics profile.',
+    emoji: '🪧',
+    title: 'Milestone View',
+    overview:
+      'This is the Milestone View. It pairs the tools you can use with the barriers you’re unlocking for the current milestone.',
+    features: [
+      { name: 'Tools & Barriers dropdown', desc: 'Collapse or expand the list to keep the page tidy.' },
+      { name: 'Wishlist / Currently Using', desc: 'Save a tool to your ResourceHub list or mark that you’re using it.' },
+      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked — this also clears the barrier.' },
+    ],
+    route: '/milestones',
+  },
+  {
+    emoji: '📅',
+    title: 'Calendar View',
+    overview:
+      'This is the Calendar View — your schedule as a travel guide for each day, built around your energy.',
+    features: [
+      { name: 'List / Time Blocks', desc: 'Switch between a simple list and a time-blocked layout.' },
+      { name: 'Low / Balanced / High energy', desc: 'See a schedule that matches how much energy you have.' },
+      { name: 'Day / Week / Month', desc: 'Change how much of your schedule you see at once.' },
+      { name: 'Compare', desc: 'Line your day up against a role model or mentor’s.' },
+    ],
+    route: '/calendar',
+  },
+  {
+    emoji: '🛒',
+    title: 'Pit Stop',
+    overview:
+      'This is the Pit Stop — your cart of tools and supports. Everything is tailored to your Diagnostics profile.',
+    features: [
+      { name: 'Search', desc: 'Find autism-friendly services, products, and communities.' },
+      { name: 'Add to cart', desc: 'Save what helps to your list; skip the rest.' },
+    ],
     route: '/pit-stop',
   },
   {
     emoji: '📖',
     title: 'Journal & Reflections',
-    body: 'Reflect on your journey. You can even import past journals — and get a monthly Motivation Style report.',
+    overview:
+      'This is the Journal. Reflect on how things are going — you can import past journals and get a monthly Motivation Style report.',
     route: '/reflection',
   },
   {
     emoji: '🎨',
-    title: 'Make it yours',
-    body: 'Personalize the look, move widgets around, and set accessibility options anytime in Settings. Every mode stays a fun checklist.',
+    title: 'Settings & Personalize',
+    overview:
+      'This is Settings. Make the app yours — adjust the look, move widgets, set accessibility options, and manage reminders.',
+    features: [
+      { name: 'View energy', desc: 'Dial how playful vs. calm the interface feels.' },
+      { name: 'Accessibility', desc: 'Larger text, reduced motion, high contrast, and more.' },
+    ],
     route: '/profile/accessibility',
   },
   {
     emoji: '🚀',
     title: 'You’re ready!',
-    body: 'That’s the tour. Start checking off milestones and watch your Dream Land come to life.',
+    overview:
+      'That’s the tour. Start checking off milestones and watch your Dream Land come to life. You can replay this anytime from “How it works”.',
   },
 ]
 
@@ -133,7 +192,19 @@ export default function InteractiveDemo() {
 
         <div className="text-5xl mb-3">{s.emoji}</div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
-        <p className="text-slate-600 text-sm mb-6">{s.body}</p>
+        <p className="text-slate-600 text-sm mb-4">{s.overview}</p>
+
+        {s.features && s.features.length > 0 && (
+          <div className="mb-6 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">What the buttons do</p>
+            {s.features.map((f) => (
+              <div key={f.name} className="flex gap-2 text-sm">
+                <span className="font-semibold text-slate-800 whitespace-nowrap">{f.name}</span>
+                <span className="text-slate-500">— {f.desc}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Progress dots */}
         <div className="flex items-center gap-1.5 mb-5">

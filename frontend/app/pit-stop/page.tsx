@@ -83,38 +83,20 @@ function PitStopContent() {
   const [isUserSearching, setIsUserSearching] = useState(false)
   const [addMode, setAddMode] = useState<'search' | 'manual'>('search')
   
-  // Mock data for features
-  const [rivalNotifications, setRivalNotifications] = useState([
-    { id: 'n1', rival: 'Marcus Johnson', task: 'Completed "Build Portfolio"', time: '2 hours ago' },
-    { id: 'n2', rival: 'Alex Taylor', task: 'Completed "Study Session"', time: '5 hours ago' },
-  ])
-  
-  const [mentorTasks, setMentorTasks] = useState([
-    { id: 'mt1', mentor: 'James Wilson', task: 'Review your progress this week', due: 'Tomorrow', completed: false },
-    { id: 'mt2', mentor: 'Lisa Park', task: 'Practice presentation skills', due: '3 days', completed: false },
-  ])
-  
-  const [supportMessages, setSupportMessages] = useState([
-    { id: 's1', from: 'Sarah Chen', message: 'You\'re doing great! Keep it up! 💪', time: '1 hour ago' },
-    { id: 's2', from: 'Alex Taylor', message: 'Proud of your progress! 🎉', time: '3 hours ago' },
-  ])
+  // Social activity feeds — start empty (no fabricated people/activity). These
+  // populate as real friend activity / mentor suggestions / support messages
+  // arrive; empty lists render honest "nothing yet" states.
+  const [rivalNotifications, setRivalNotifications] = useState<Array<{ id: string; rival: string; task: string; time: string }>>([])
+  const [mentorTasks, setMentorTasks] = useState<Array<{ id: string; mentor: string; task: string; due: string; completed: boolean }>>([])
+  const [supportMessages, setSupportMessages] = useState<Array<{ id: string; from: string; message: string; time: string }>>([])
 
   // Mock data - converted to state so it can be modified.
   // When the user is signed in we replace these with rows from /api/connections.
-  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
-    { id: 'rm1', name: 'Sarah Chen', role: 'Software Engineer', status: 'connected', icon: '👤' },
-    { id: 'rm2', name: 'Marcus Johnson', role: 'Entrepreneur', status: 'pending', icon: '👤' },
-  ])
-
-  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
-    { id: 'm1', name: 'James Wilson', role: 'Career Coach', status: 'connected', icon: '👤' },
-    { id: 'm2', name: 'Lisa Park', role: 'Academic Advisor', status: 'connected', icon: '👤' },
-  ])
-
-  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([
-    { id: 'f1', name: 'Alex Taylor', role: 'Study Buddy', status: 'connected', icon: '👤' },
-    { id: 'f2', name: 'Jordan Smith', role: 'Peer', status: 'connected', icon: '👤' },
-  ])
+  // Real connections only — start empty; /api/connections populates on mount.
+  // Empty lists render honest "no connections yet" states, never sample people.
+  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
+  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
+  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
 
   const [connectionsLoading, setConnectionsLoading] = useState(false)
   const [connectionsError, setConnectionsError] = useState<string | null>(null)
@@ -129,59 +111,20 @@ function PitStopContent() {
     { id: 'mentorship', label: 'Mentorship', icon: '🤝' },
   ]
 
-  // Collab Groups - converted to state so we can track joined groups
-  const [collabGroups, setCollabGroups] = useState([
-    { id: 'g1', name: 'ADHD Study Group', type: 'education', leader: 'You', members: 8, isPublic: true, code: null, joined: false },
-    { id: 'g2', name: 'Parent Support Circle', type: 'parent_child', leader: 'Sarah Chen', members: 12, isPublic: false, code: 'PARENT2024', joined: false },
-    { id: 'g3', name: 'Tech Career Mentors', type: 'work', leader: 'Marcus Johnson', members: 15, isPublic: true, code: null, joined: false },
-    { id: 'g4', name: 'Pre-Med Students', type: 'education', leader: 'Priya Patel', members: 10, isPublic: true, code: null, joined: false },
-  ])
+  // Collab Groups — start empty (no fabricated groups/leaders). Groups the
+  // user creates via the Create Group flow appear here; an empty list renders
+  // an honest "no groups yet" state.
+  const [collabGroups, setCollabGroups] = useState<Array<{ id: string; name: string; type: string; leader: string; members: number; isPublic: boolean; code: string | null; joined: boolean }>>([])
   const [showJoinSuccessModal, setShowJoinSuccessModal] = useState(false)
   const [joinedGroupName, setJoinedGroupName] = useState<string | null>(null)
 
-  // Match Profiles (for swiping)
-  const matchProfiles = [
-    { 
-      id: 'p1', 
-      name: 'Taylor Kim', 
-      dream: 'Build a neurodivergent-friendly workspace',
-      interests: [
-        { name: 'Technology', degree: 5 },
-        { name: 'Accessibility', degree: 5 },
-        { name: 'Design', degree: 4 },
-      ],
-      mutualFriends: ['Alex Taylor'],
-      collabType: 'work'
-    },
-    { 
-      id: 'p2', 
-      name: 'Jordan Lee', 
-      dream: 'Complete university with accommodations',
-      interests: [
-        { name: 'Education', degree: 5 },
-        { name: 'Advocacy', degree: 4 },
-        { name: 'Writing', degree: 3 },
-      ],
-      mutualFriends: ['Jordan Smith'],
-      collabType: 'education'
-    },
-  ]
+  // Match Profiles (for swiping) — no fabricated people. Real match
+  // suggestions require the similarity-matching backend (pattern embeddings);
+  // until that ships, this stays empty and the Matching card says so honestly.
+  const matchProfiles: Array<{ id: string; name: string; dream: string; interests: { name: string; degree: number }[]; mutualFriends: string[]; collabType: string }> = []
 
-  // Enhanced Role Models with metrics
-  const roleModelsWithMetrics = [
-    { 
-      ...roleModels[0], 
-      modelCount: 45, 
-      rating: 4.8,
-      collabType: 'work'
-    },
-    { 
-      ...roleModels[1], 
-      modelCount: 32, 
-      rating: 4.6,
-      collabType: 'mentorship'
-    },
-  ]
+  // Real role models only — no invented metrics (modelCount/rating were fake).
+  const roleModelsWithMetrics = roleModels
 
   const handleToolsRedirect = () => {
     // Pass `from=hare-world` so the ResourceHub navbar can offer a "Back to Hare World" link
@@ -667,7 +610,7 @@ function PitStopContent() {
             <span className="text-4xl">🛒</span>
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Pit Stop</h1>
-              <p className="text-slate-600 text-sm italic">Tool Market · Shed · Shop</p>
+              <p className="text-slate-600 text-sm italic">Your cart of tools &amp; supports — add what helps, skip the rest</p>
             </div>
             <div className="flex gap-1 ml-auto text-2xl">
               <span title="Key">🔑</span><span title="Hammer">🔨</span><span title="Shield">🛡️</span><span title="Boots">👢</span><span title="Wrench">🔧</span>
@@ -1228,7 +1171,10 @@ function PitStopContent() {
                   </p>
                   
                   <div className="space-y-4">
-                    {(selectedCollabType 
+                    {collabGroups.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center py-6">No groups yet — create one below and invite your people.</p>
+                    )}
+                    {(selectedCollabType
                       ? collabGroups.filter(g => g.type === selectedCollabType)
                       : collabGroups
                     ).map((group) => (
@@ -1334,16 +1280,22 @@ function PitStopContent() {
                     </ul>
                   </div>
                   
-                  <button
-                    onClick={() => {
-                      setShowMatchModal(true)
-                      setCurrentMatchIndex(0)
-                    }}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                  >
-                    <Heart className="w-5 h-5" />
-                    Start Matching
-                  </button>
+                  {matchProfiles.length > 0 ? (
+                    <button
+                      onClick={() => {
+                        setShowMatchModal(true)
+                        setCurrentMatchIndex(0)
+                      }}
+                      className="w-full px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      <Heart className="w-5 h-5" />
+                      Start Matching
+                    </button>
+                  ) : (
+                    <div className="w-full px-6 py-4 bg-slate-100 text-slate-500 rounded-xl text-sm text-center border border-slate-200">
+                      Match suggestions are coming soon — for now, search for people directly in the People tab.
+                    </div>
+                  )}
                   
                   {matchedProfiles.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-pink-200">
@@ -1379,34 +1331,23 @@ function PitStopContent() {
                   )}
                 </div>
 
-                {/* Role Models with Metrics */}
+                {/* Role Models — real connections only, no invented metrics */}
                 <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm">
-                  <h3 className="text-lg font-bold mb-4">Role Models (Enhanced)</h3>
-                  <p className="text-xs text-slate-500 mb-4">If a R.M., add: a) Model Count, b) Rating metric</p>
+                  <h3 className="text-lg font-bold mb-4">Role Models</h3>
+                  {roleModelsWithMetrics.length === 0 && (
+                    <p className="text-sm text-slate-500 py-3">No role models yet — search above to find and add one.</p>
+                  )}
                   <div className="space-y-4">
                     {roleModelsWithMetrics.map((rm) => (
                       <div key={rm.id} className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                              {rm.icon}
-                            </div>
-                            <div>
-                              <div className="font-bold">{rm.name}</div>
-                              <div className="text-sm text-slate-600">{rm.role}</div>
-                              <div className="text-xs text-slate-500 mt-1">
-                                Collab Type: {collabTypes.find(t => t.id === rm.collabType)?.label}
-                              </div>
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                            {rm.icon}
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 mb-1">
-                              <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                              <span className="font-bold">{rm.rating}</span>
-                            </div>
-                            <div className="text-xs text-slate-600">
-                              Model Count: <span className="font-bold">{rm.modelCount}</span>
-                            </div>
+                          <div>
+                            <div className="font-bold">{rm.name}</div>
+                            <div className="text-sm text-slate-600">{rm.role}</div>
+                            {rm.status === 'pending' && <div className="text-xs text-amber-600 mt-0.5">Request pending</div>}
                           </div>
                         </div>
                       </div>
@@ -2320,6 +2261,9 @@ function PitStopContent() {
                 </button>
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
+                {mentorTasks.length === 0 && (
+                  <p className="text-slate-500 text-center py-4">No mentor tasks yet — they appear when a connected mentor suggests one.</p>
+                )}
                 {mentorTasks.map((task) => (
                   <div key={task.id} className={`p-3 border rounded-lg ${task.completed ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-start justify-between">
@@ -2363,6 +2307,9 @@ function PitStopContent() {
                 </button>
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
+                {supportMessages.length === 0 && (
+                  <p className="text-slate-500 text-center py-4">No support messages yet — encouragement from your people shows up here.</p>
+                )}
                 {supportMessages.map((msg) => (
                   <div key={msg.id} className="p-3 bg-pink-50 border border-pink-200 rounded-lg">
                     <div className="font-medium text-pink-900">{msg.from}</div>

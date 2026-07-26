@@ -13,6 +13,26 @@
 export type AgeRange = '18-40' | '40-65' | '65+'
 export type TechSavvy = 'not_at_all' | 'somewhat' | 'always'
 export type ViewPreference = 'plain' | 'pretty' | 'exciting' | 'fun'
+export type ReminderChannel = 'email' | 'sms'
+
+/**
+ * Daily goal-reminder opt-in. This is the storage/consent groundwork only — the
+ * actual send pipeline (scheduler + email/SMS provider) is a separate workstream.
+ * Persisted to profiles.preferences.reminders (cross-device) via onboarding submit
+ * and mirrored to localStorage for instant UX.
+ */
+export interface ReminderPreferences {
+  /** Whether the user opted in to daily goal reminders. */
+  enabled: boolean
+  /** Delivery channel. */
+  channel: ReminderChannel
+  /** Email address or phone number, depending on channel. */
+  contact: string
+  /** Preferred local send time as "HH:MM" (24h). */
+  time: string
+  /** Explicit consent to be contacted at `contact`. Required to enable. */
+  consent: boolean
+}
 
 export interface LayoutPositions {
   /** Which side the Races pinwheel/spinner sits on. */
@@ -32,6 +52,8 @@ export interface UserPreferences {
   accessibility: AccessibilitySettings
   /** UI language code (BCP-47-ish, e.g. "en", "es", "fr"). */
   language: string
+  /** Daily goal-reminder opt-in (storage/consent only; delivery not yet wired). */
+  reminders: ReminderPreferences
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }
@@ -60,6 +82,22 @@ export const DEFAULT_LAYOUT: LayoutPositions = {
   accent: 'cyan',
 }
 
+export const DEFAULT_REMINDERS: ReminderPreferences = {
+  enabled: false,
+  channel: 'email',
+  contact: '',
+  time: '09:00',
+  consent: false,
+}
+
+/** Preset send times for the reminder opt-in (value is "HH:MM", 24h). */
+export const REMINDER_TIMES: { id: string; label: string }[] = [
+  { id: '09:00', label: 'Morning · 9:00 AM' },
+  { id: '12:00', label: 'Midday · 12:00 PM' },
+  { id: '18:00', label: 'Evening · 6:00 PM' },
+  { id: '21:00', label: 'Night · 9:00 PM' },
+]
+
 // ── Layout option metadata (single source of truth for UI + CSS) ──
 
 export const WIDGET_SIZES: { id: LayoutPositions['widgetSize']; label: string }[] = [
@@ -84,6 +122,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   layout: { ...DEFAULT_LAYOUT },
   accessibility: { ...DEFAULT_ACCESSIBILITY },
   language: 'en',
+  reminders: { ...DEFAULT_REMINDERS },
 }
 
 const LS_KEY = 'autinerary_preferences'
@@ -163,6 +202,7 @@ export function loadPreferences(): UserPreferences {
       ...parsed,
       layout: { ...DEFAULT_LAYOUT, ...(parsed.layout || {}) },
       accessibility: { ...DEFAULT_ACCESSIBILITY, ...(parsed.accessibility || {}) },
+      reminders: { ...DEFAULT_REMINDERS, ...(parsed.reminders || {}) },
     }
   } catch {
     return { ...DEFAULT_PREFERENCES }
@@ -176,6 +216,7 @@ export function savePreferences(prefs: Partial<UserPreferences>): UserPreference
     ...prefs,
     layout: { ...current.layout, ...(prefs.layout || {}) },
     accessibility: { ...current.accessibility, ...(prefs.accessibility || {}) },
+    reminders: { ...current.reminders, ...(prefs.reminders || {}) },
     updatedAt: new Date().toISOString(),
   }
   try {

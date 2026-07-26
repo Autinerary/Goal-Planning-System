@@ -8,7 +8,11 @@ import {
   User, Check, ChevronRight, ChevronLeft, Loader2,
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
-import { AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, savePreferences } from '@/lib/preferences'
+import {
+  AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, REMINDER_TIMES, DEFAULT_REMINDERS,
+  savePreferences, type ReminderPreferences,
+} from '@/lib/preferences'
+import { isSimpleView } from '@/lib/disclosure'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -437,6 +441,8 @@ export default function OnboardingPage() {
     ageRange: '' as string,
     techSavvy: '' as string,
     viewPreference: '' as string,
+    // Daily goal-reminder opt-in (storage/consent groundwork; delivery not yet wired)
+    reminders: { ...DEFAULT_REMINDERS } as ReminderPreferences,
     // Profile customization
     dreamSelf: '',
     // Alternate Persona (optional) — a named alter-ego for the Dream Self
@@ -447,6 +453,21 @@ export default function OnboardingPage() {
     spiritAnimalMode: 'fastSlow' as 'general' | 'fastSlow' | 'weekly',
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
+
+  // Active Path Market context (null when the user started their own path).
+  // Drives the pathway banner and the tailored goal suggestions so a chosen
+  // path doesn't feel identical to the generic onboarding.
+  const [pathSeed, setPathSeed] = useState<
+    { key: string; title: string; focusCategory: string; suggestions: string[] } | null
+  >(null)
+  // True when we prefilled stable answers (barriers/location/etc.) from a prior
+  // completed onboarding so a returning user doesn't re-enter everything.
+  const [carriedOver, setCarriedOver] = useState(false)
+  // Simple view starts new users with just one spirit animal (Eliyana: "cut the
+  // fast/slow day spirit animals for simple view"). Set after mount to avoid a
+  // hydration mismatch. `showAdvancedModes` lets them opt into fast/slow/weekly.
+  const [simpleView, setSimpleView] = useState(false)
+  const [showAdvancedModes, setShowAdvancedModes] = useState(false)
 
   const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
   // Free-text custom barriers the user adds per connection (e.g. "public speaking").
@@ -473,23 +494,41 @@ export default function OnboardingPage() {
 
   // ─── Autosave: persist progress to localStorage so it survives page reloads ───
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
+  // Stable answers from the last completed onboarding, reused to prefill when a
+  // returning user starts another path (see the carry-over block on mount).
+  const CARRYOVER_KEY = 'autinerary_onboarding_carryover'
 
   // Restore saved draft on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(AUTOSAVE_KEY)
+      let restoredDraft = false
       if (saved) {
         const { step, data } = JSON.parse(saved)
         if (data && typeof step === 'number') {
           setFormData(prev => ({ ...prev, ...data }))
           setCurrentStep(step)
+          restoredDraft = true
         }
       }
-      // Path Market seed — if the user picked a path template, pre-fill its
-      // goals into the "other" category so they start with a head-start.
+
+      // Path Market seed — if the user picked a path template, capture its
+      // context (for the banner + tailored suggestions) and pre-fill its goals
+      // into that path's focus category so onboarding feels tailored, not
+      // identical to "start your own path". Kept in localStorage until submit so
+      // it survives a reload; the clobber guard below prevents re-seeding.
       const seedRaw = localStorage.getItem('autinerary_path_seed')
       if (seedRaw) {
         const seed = JSON.parse(seedRaw)
+        const focusCategory: string = seed?.focusCategory || 'other'
+        if (seed?.key) {
+          setPathSeed({
+            key: seed.key,
+            title: seed.title || 'Your path',
+            focusCategory,
+            suggestions: Array.isArray(seed.suggestions) ? seed.suggestions : [],
+          })
+        }
         if (seed?.goals?.length) {
           setFormData(prev => {
             const existing = prev.goalsByCategory || {}
@@ -497,12 +536,39 @@ export default function OnboardingPage() {
             return {
               ...prev,
               goalsByCategory: {
-                other: seed.goals.map((g: string) => ({ goal: g, dreams: '', obstacles: '' })),
+                [focusCategory]: seed.goals.map((g: string) => ({ goal: g, dreams: '', obstacles: '' })),
               },
             }
           })
         }
-        localStorage.removeItem('autinerary_path_seed')
+      }
+
+      // Carry-over — a returning user starting another path shouldn't re-enter
+      // stable answers. If there's no in-progress draft, prefill barriers,
+      // location, life stage, motivation and view preferences from the snapshot
+      // saved at their last completed onboarding. Goals are intentionally left
+      // blank so they're fresh for the new path.
+      if (!restoredDraft) {
+        const carryRaw = localStorage.getItem(CARRYOVER_KEY)
+        if (carryRaw) {
+          const c = JSON.parse(carryRaw)
+          if (c && typeof c === 'object') {
+            setFormData(prev => ({
+              ...prev,
+              barrierTypes: Array.isArray(c.barrierTypes) ? c.barrierTypes : prev.barrierTypes,
+              location: c.location && typeof c.location === 'object' ? c.location : prev.location,
+              lifeStage: c.lifeStage || prev.lifeStage,
+              motivationType: c.motivationType || prev.motivationType,
+              motivationTypes: Array.isArray(c.motivationTypes) ? c.motivationTypes : prev.motivationTypes,
+              ageRange: c.ageRange || prev.ageRange,
+              techSavvy: c.techSavvy || prev.techSavvy,
+              viewPreference: c.viewPreference || prev.viewPreference,
+            }))
+            if ((Array.isArray(c.barrierTypes) && c.barrierTypes.length > 0) || c.location?.city) {
+              setCarriedOver(true)
+            }
+          }
+        }
       }
     } catch {
       // corrupt data — ignore
@@ -524,9 +590,12 @@ export default function OnboardingPage() {
     return () => clearTimeout(timer)
   }, [currentStep, formData])
 
-  // Clear autosave on successful submission
+  // Clear autosave + consumed path seed on successful submission
   const clearAutosave = () => {
-    try { localStorage.removeItem(AUTOSAVE_KEY) } catch {}
+    try {
+      localStorage.removeItem(AUTOSAVE_KEY)
+      localStorage.removeItem('autinerary_path_seed')
+    } catch {}
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -536,6 +605,21 @@ export default function OnboardingPage() {
       router.push('/signup')
     }
   }, [user, authLoading, router])
+
+  // Progressive disclosure: brand-new users start in simple view. Read once
+  // after mount (SSR-safe — avoids a hydration mismatch).
+  useEffect(() => {
+    setSimpleView(isSimpleView())
+  }, [])
+
+  // While simple view is on and advanced modes aren't expanded, keep the
+  // spirit-animal mode at the single "general" guide (cut fast/slow + weekly).
+  useEffect(() => {
+    if (simpleView && !showAdvancedModes && formData.spiritAnimalMode !== 'general') {
+      setSpiritAnimalMode('general')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [simpleView, showAdvancedModes])
 
   const handleBarrierToggle = (barrier: string) => {
     setFormData(prev => ({
@@ -781,6 +865,10 @@ export default function OnboardingPage() {
     }))
   }
 
+  const updateReminders = (patch: Partial<ReminderPreferences>) => {
+    setFormData(prev => ({ ...prev, reminders: { ...prev.reminders, ...patch } }))
+  }
+
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
@@ -792,12 +880,22 @@ export default function OnboardingPage() {
     
     setIsSubmitting(true)
     try {
+      // Only persist a reminder opt-in that's actually complete (enabled +
+      // explicit consent + a contact). Otherwise store it disabled so we never
+      // record a half-opted-in reminder we couldn't honor.
+      const r = formData.reminders
+      const remindersToSave: ReminderPreferences =
+        r.enabled && r.consent && r.contact.trim()
+          ? { ...r, contact: r.contact.trim() }
+          : { ...DEFAULT_REMINDERS }
+
       // Record view/interaction preferences (age, tech savvy, view style) so the
       // rest of the app can adapt and we can learn from intersecting profiles.
       savePreferences({
         ageRange: (formData.ageRange || '') as any,
         techSavvy: (formData.techSavvy || '') as any,
         viewPreference: (formData.viewPreference || '') as any,
+        reminders: remindersToSave,
       })
 
       // Flatten categorized goals into flat arrays for backend compat
@@ -847,6 +945,9 @@ export default function OnboardingPage() {
           viewPreference: formData.viewPreference,
           spiritAnimalMode: formData.spiritAnimalMode,
           spiritAnimals: formData.spiritAnimals,
+          // Reminder opt-in — lands on profiles.preferences.reminders for a
+          // future scheduler to read. Delivery pipeline not yet wired.
+          reminders: remindersToSave,
         }
       }, {
         headers: {
@@ -903,6 +1004,21 @@ export default function OnboardingPage() {
           viewPreference: formData.viewPreference,
         },
       }))
+
+      // Snapshot stable answers so a returning user starting another path can
+      // skip re-entering them (goals stay per-path, so they're excluded).
+      try {
+        localStorage.setItem(CARRYOVER_KEY, JSON.stringify({
+          barrierTypes: selectedBarrierTypes,
+          location: formData.location,
+          lifeStage: formData.lifeStage,
+          motivationType: formData.motivationType,
+          motivationTypes: formData.motivationTypes,
+          ageRange: formData.ageRange,
+          techSavvy: formData.techSavvy,
+          viewPreference: formData.viewPreference,
+        }))
+      } catch {}
 
       await completeOnboarding(response.data.pathId)
       clearAutosave()
@@ -962,14 +1078,17 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-900 p-4 md:p-8 relative overflow-hidden">
-      {/* Cloudy Background */}
+      {/* Cloudy Background — static, soft gradients. Previously each cloud ran a
+          continuous `animate-pulse` (5 stacked blur-2xl/3xl layers repainting
+          nonstop), which caused scroll jank on lower-end machines. The look is
+          preserved without the per-frame repaint cost. */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Clouds */}
-        <div className="absolute top-10 left-10 w-64 h-32 bg-white/40 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute top-32 right-20 w-80 h-40 bg-white/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-72 h-36 bg-white/35 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
-        <div className="absolute top-1/3 right-1/3 w-56 h-28 bg-white/40 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4.5s', animationDelay: '0.5s' }} />
-        <div className="absolute bottom-1/4 right-10 w-96 h-44 bg-white/30 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5.5s', animationDelay: '1.5s' }} />
+        <div className="absolute top-10 left-10 w-64 h-32 bg-white/40 rounded-full blur-2xl" />
+        <div className="absolute top-32 right-20 w-80 h-40 bg-white/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-1/4 w-72 h-36 bg-white/35 rounded-full blur-2xl" />
+        <div className="absolute top-1/3 right-1/3 w-56 h-28 bg-white/40 rounded-full blur-2xl" />
+        <div className="absolute bottom-1/4 right-10 w-96 h-44 bg-white/30 rounded-full blur-3xl" />
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: bunnyStyles }} />
@@ -980,6 +1099,23 @@ export default function OnboardingPage() {
             Welcome{user?.name ? `, ${user.name}` : ''}! 👋
           </h1>
           <p className="text-slate-600 text-lg">Let's build your personalized path to success</p>
+
+          {/* Pathway banner — shows this onboarding is tailored to the chosen
+              Path Market template, not the generic "start your own path" flow. */}
+          {pathSeed && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-medium">
+              <Sparkles className="w-4 h-4" />
+              Tailored for your <span className="font-semibold">{pathSeed.title}</span> path
+            </div>
+          )}
+
+          {/* Carry-over note — reassures returning users we kept their info. */}
+          {carriedOver && (
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+              <Check className="w-4 h-4" />
+              Welcome back — we kept your barriers and location. Just set goals for this path.
+            </div>
+          )}
         </div>
 
         {/* Animated Bunny Progress Path */}
@@ -1214,7 +1350,7 @@ export default function OnboardingPage() {
                       onClick={() => setFormData((prev) => ({
                         ...prev,
                         barrierTypes: selected ? [] : [choice],
-                        barrierConnections: selected ? {} : { self: [choice] },
+                        barrierConnections: selected ? ({} as Record<string, string[]>) : { self: [choice] },
                         role: selected ? '' : 'self_advocate',
                       }))}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -1625,6 +1761,48 @@ export default function OnboardingPage() {
                         <span>{cat.emoji}</span> {cat.label}
                       </h3>
 
+                      {/* Suggestions tailored to the chosen Path Market path —
+                          only on that path's focus category. */}
+                      {(() => {
+                        if (!pathSeed || pathSeed.focusCategory !== cat.id) return null
+                        const pathSuggestions = pathSeed.suggestions
+                          .filter(s => !entries.some(e => e.goal.trim().toLowerCase() === s.toLowerCase()))
+                        if (pathSuggestions.length === 0) return null
+                        return (
+                          <div className="mb-3">
+                            <p className="text-xs text-cyan-600 mb-2 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
+                              Ideas for your {pathSeed.title} path
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {pathSuggestions.map((sug) => (
+                                <button
+                                  key={sug}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => {
+                                      const updated = { ...prev.goalsByCategory }
+                                      const list = [...(updated[cat.id] || [])]
+                                      const emptyIdx = list.findIndex(e => !e.goal.trim())
+                                      if (emptyIdx >= 0) {
+                                        list[emptyIdx] = { ...list[emptyIdx], goal: sug }
+                                      } else {
+                                        list.push({ goal: sug, dreams: '', obstacles: '' })
+                                      }
+                                      updated[cat.id] = list
+                                      return { ...prev, goalsByCategory: updated }
+                                    })
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 transition-all"
+                                >
+                                  + {sug}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
+
                       {/* Suggestions based on selected barriers */}
                       {(() => {
                         const suggestions = getGoalSuggestions(cat.id, selectedBarrierTypes)
@@ -1995,14 +2173,20 @@ export default function OnboardingPage() {
           {/* Step 6: Spirit Animals */}
           {currentStep === 6 && (() => {
             const slotCount = spiritAnimalSlotCount(formData.spiritAnimalMode)
+            // In simple view we hide the fast/slow + per-day modes behind a
+            // "More options" toggle so new users just pick one guide.
+            const modesCollapsed = simpleView && !showAdvancedModes
+            const visibleModes = modesCollapsed
+              ? spiritAnimalModes.filter(m => m.id === 'general')
+              : spiritAnimalModes
             return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
-              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you. Pick how many you&apos;d like.</p>
+              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you.{modesCollapsed ? ' Keeping it simple with one guide — you can add more anytime.' : " Pick how many you'd like."}</p>
 
-              {/* Mode selector (Odosa's 3 options) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                {spiritAnimalModes.map((m) => (
+              {/* Mode selector (Odosa's 3 options; simplified in simple view) */}
+              <div className={`grid grid-cols-1 gap-3 mb-4 ${modesCollapsed ? '' : 'sm:grid-cols-3'}`}>
+                {visibleModes.map((m) => (
                   <button
                     key={m.id}
                     type="button"
@@ -2020,6 +2204,19 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Simple-view expander: reveal fast/slow + per-day guides on demand */}
+              {simpleView && (
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedModes(v => !v)}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium mb-4"
+                >
+                  {showAdvancedModes
+                    ? '← Keep it simple (one guide)'
+                    : 'Want fast/slow or a guide per day? Show more options →'}
+                </button>
+              )}
 
               {/* Fast vs slow day explainer (answers Eliyana's question) */}
               {formData.spiritAnimalMode === 'fastSlow' && (
@@ -2164,9 +2361,13 @@ export default function OnboardingPage() {
 
               {/* Tech Savvyness */}
               <div className="mb-6">
-                <label className="block font-semibold text-slate-800 mb-2">
+                <label className="block font-semibold text-slate-800 mb-1">
                   How often do you use apps?
                 </label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Why we ask: this tunes how much detail the interface shows — if apps
+                  aren&apos;t your thing, we keep screens simpler. It&apos;s never shared.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {TECH_SAVVY.map((o) => (
                     <button
@@ -2208,6 +2409,135 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               </div>
+              {/* Daily goal reminders (opt-in) */}
+              <div className="mt-6 border-t border-slate-200 pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <label htmlFor="reminders-toggle" className="block font-semibold text-slate-800">
+                      Daily goal reminders
+                    </label>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Get a gentle nudge about your goals for the day. Optional, and you can turn it
+                      off anytime in Settings.
+                    </p>
+                  </div>
+                  <button
+                    id="reminders-toggle"
+                    type="button"
+                    role="switch"
+                    aria-checked={formData.reminders.enabled}
+                    onClick={() => updateReminders({
+                      enabled: !formData.reminders.enabled,
+                      // Prefill email contact when turning on with the email channel.
+                      contact: !formData.reminders.enabled && formData.reminders.channel === 'email' && !formData.reminders.contact
+                        ? (user?.email || '')
+                        : formData.reminders.contact,
+                    })}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                      formData.reminders.enabled ? 'bg-cyan-500' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        formData.reminders.enabled ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {formData.reminders.enabled && (
+                  <div className="mt-4 space-y-4">
+                    {/* Channel */}
+                    <div>
+                      <span className="block text-sm font-medium text-slate-700 mb-2">How should we reach you?</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        {([
+                          { id: 'email', label: 'Email' },
+                          { id: 'sms', label: 'Text message' },
+                        ] as const).map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => updateReminders({
+                              channel: c.id,
+                              // Swap in the email as a sensible default when switching to email.
+                              contact: c.id === 'email' && !formData.reminders.contact ? (user?.email || '') : (c.id === 'sms' ? '' : formData.reminders.contact),
+                            })}
+                            className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                              formData.reminders.channel === c.id
+                                ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                                : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                            }`}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Contact */}
+                    <div>
+                      <label htmlFor="reminder-contact" className="block text-sm font-medium text-slate-700 mb-1">
+                        {formData.reminders.channel === 'email' ? 'Email address' : 'Phone number'}
+                      </label>
+                      <input
+                        id="reminder-contact"
+                        type={formData.reminders.channel === 'email' ? 'email' : 'tel'}
+                        value={formData.reminders.contact}
+                        onChange={(e) => updateReminders({ contact: e.target.value })}
+                        placeholder={formData.reminders.channel === 'email' ? 'you@example.com' : '+1 555 123 4567'}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
+                    </div>
+
+                    {/* Time */}
+                    <div>
+                      <span className="block text-sm font-medium text-slate-700 mb-2">When?</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {REMINDER_TIMES.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => updateReminders({ time: t.id })}
+                            className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                              formData.reminders.time === t.id
+                                ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
+                                : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Consent */}
+                    <label className="flex items-start gap-2 text-xs text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.reminders.consent}
+                        onChange={(e) => updateReminders({ consent: e.target.checked })}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                      />
+                      <span>
+                        I agree to receive daily goal reminders at the contact above. I can turn these
+                        off anytime.
+                      </span>
+                    </label>
+
+                    {formData.reminders.consent && !formData.reminders.contact.trim() && (
+                      <p className="text-xs text-amber-600">Add a {formData.reminders.channel === 'email' ? 'email' : 'phone number'} so we know where to send reminders.</p>
+                    )}
+
+                    {/* Honest note: we store the preference now; delivery isn't live yet. */}
+                    <p className="text-[11px] text-slate-400 italic">
+                      We&apos;ll save this to your profile now. Reminder delivery is rolling out soon —
+                      we won&apos;t message you until it&apos;s switched on.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <p className="text-xs text-slate-400 mt-4">
                 You can fine-tune placement, size, and colors later in Settings and on each screen.
               </p>

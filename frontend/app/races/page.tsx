@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
@@ -18,7 +18,7 @@ import { usePreferences } from '../context/usePreferences'
 */
 
 function RacesContent() {
-  const { payload, pathPlanning, toolRecommendation } = useAgentPath()
+  const { payload, pathPlanning, toolRecommendation, loading } = useAgentPath()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { prefs, updateLayout } = usePreferences()
@@ -180,105 +180,16 @@ function RacesContent() {
     })
   }
 
-  /* ═══ MOCK DATA FOR OTHER PEOPLE'S RACE TRACKS ═══ */
-  const comparePeople = {
-    rolemodel: {
-      name: 'Sarah Chen',
-      avatar: '👩‍🔬',
-      relation: 'Role Model',
-      dreamSelf: 'Tenured Professor & Research Lead',
-      races: [
-        { id: 'rm1', name: 'Get PhD in CS', progress: 85, milestone: 'Defend Dissertation' },
-        { id: 'rm2', name: 'Publish 5 Papers', progress: 100, milestone: 'Complete!' },
-        { id: 'rm3', name: 'Secure Faculty Position', progress: 60, milestone: 'Campus Interviews' },
-      ],
-      stats: [
-        { name: 'Mentality', value: 9, max: 10 },
-        { name: 'Happiness', value: 8, max: 10 },
-        { name: 'Fear', value: 2, max: 10 },
-        { name: 'Creativity', value: 9, max: 10 },
-      ],
-      milestones: [
-        { name: 'Defend Dissertation', dist: 'Current', status: 'active' as const },
-        { name: 'Submit Final Paper', dist: '1 step', status: 'upcoming' as const },
-        { name: 'Faculty Interviews', dist: '3 steps', status: 'upcoming' as const },
-        { name: 'Secure Grant Funding', dist: '5 steps', status: 'upcoming' as const },
-        { name: 'Start Lab', dist: '8 steps', status: 'far' as const },
-        { name: 'Get Tenure', dist: '15 steps', status: 'far' as const },
-      ],
-      completedSteps: [
-        'Published 5 peer-reviewed papers',
-        'Completed coursework with 4.0 GPA',
-        'Won Best Paper Award',
-        'TA\'d 3 semesters',
-        'Passed qualifying exams',
-      ],
-      models: ['Autism', 'Woman in STEM', 'Immigrant'],
-    },
-    friend: {
-      name: 'Marcus Williams',
-      avatar: '👨‍🎨',
-      relation: 'Friend-val',
-      dreamSelf: 'Full-Stack Developer & Indie Game Creator',
-      races: [
-        { id: 'f1', name: 'Land Tech Job', progress: 55, milestone: 'Technical Interviews' },
-        { id: 'f2', name: 'Ship Indie Game', progress: 30, milestone: 'Build Demo' },
-      ],
-      stats: [
-        { name: 'Mentality', value: 6, max: 10 },
-        { name: 'Happiness', value: 7, max: 10 },
-        { name: 'Fear', value: 5, max: 10 },
-        { name: 'Creativity', value: 8, max: 10 },
-      ],
-      milestones: [
-        { name: 'Technical Interviews', dist: 'Current', status: 'active' as const },
-        { name: 'Accept Offer', dist: '2 steps', status: 'upcoming' as const },
-        { name: 'Ship Game Demo', dist: '5 steps', status: 'far' as const },
-      ],
-      completedSteps: [
-        'Built portfolio website',
-        'Completed 3 coding bootcamp projects',
-        'Got 2 referrals',
-      ],
-      models: ['ADHD', 'First-Gen', 'Visible Minority'],
-    },
-    mentor: {
-      name: 'Dr. James Park',
-      avatar: '👨‍💼',
-      relation: 'Mentor',
-      dreamSelf: 'VP of Engineering & Community Leader',
-      races: [
-        { id: 'm1', name: 'VP of Engineering', progress: 92, milestone: 'Board Presentation' },
-        { id: 'm2', name: 'Launch Mentorship Nonprofit', progress: 70, milestone: 'Secure 501(c)(3)' },
-        { id: 'm3', name: 'Write Technical Book', progress: 45, milestone: 'Finish Draft' },
-        { id: 'm4', name: 'Build Dream Home', progress: 20, milestone: 'Find Land' },
-      ],
-      stats: [
-        { name: 'Mentality', value: 9, max: 10 },
-        { name: 'Happiness', value: 9, max: 10 },
-        { name: 'Fear', value: 1, max: 10 },
-        { name: 'Creativity', value: 7, max: 10 },
-      ],
-      milestones: [
-        { name: 'Board Presentation', dist: 'Current', status: 'active' as const },
-        { name: 'Get VP Title', dist: '1 step', status: 'upcoming' as const },
-        { name: 'Secure 501(c)(3)', dist: '3 steps', status: 'upcoming' as const },
-        { name: 'Finish Book Draft', dist: '6 steps', status: 'upcoming' as const },
-        { name: 'Publish Book', dist: '8 steps', status: 'far' as const },
-        { name: 'Open Community Center', dist: '12 steps', status: 'far' as const },
-        { name: 'Retire & Advise', dist: '20 steps', status: 'far' as const },
-      ],
-      completedSteps: [
-        'Promoted to Senior Director',
-        'Led 50-person engineering org',
-        'Mentored 20+ engineers',
-        'Spoke at 5 conferences',
-        'Drafted nonprofit charter',
-        'Published 3 blog posts',
-      ],
-      models: ['ADHD', 'Dyslexia', 'Immigrant'],
-    },
-  } as const
+  /* ═══ REAL CONNECTIONS for the compare picker (no mock people) ═══ */
+  const [realConnections, setRealConnections] = useState<Record<string, any[]>>({ friends: [], mentors: [], rolemodels: [] })
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/connections', { credentials: 'include', cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (!cancelled && j?.connections) setRealConnections(j.connections) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     if (showRocketEntry) {
@@ -367,10 +278,7 @@ function RacesContent() {
         progress: 0,
         milestone: firstMilestoneName || 'Getting started',
         models: userBarrierLabels,
-      })) || [
-        { id: 'r1', name: 'Graduate University', progress: 45, milestone: 'Request Accommodations', models: ['Autism', 'ADHD', 'First-Gen'] },
-        { id: 'r2', name: 'Get Tech Job', progress: 20, milestone: 'Build Portfolio', models: ['ADHD', 'Visible Minority'] },
-      ]
+      })) || []
   // The UI hard-references races[0] and races[1]. Pad with a placeholder when
   // the user only declared a single goal so we never crash.
   const races = rawRaces.length >= 2
@@ -488,8 +396,36 @@ function RacesContent() {
     if (isWheelSpinning) return
     setIsWheelSpinning(true)
     setWheelRotation(prev => prev + 1080 + Math.random() * 720)
-    setTimeout(() => { const m = motivations[Math.floor(Math.random() * motivations.length)]; setTodaysMotivation(m); try { localStorage.setItem('todaysMotivation', m) } catch {}; setIsWheelSpinning(false) }, 2000)
+    setTimeout(() => {
+      const m = motivations[Math.floor(Math.random() * motivations.length)]
+      setTodaysMotivation(m)
+      try {
+        localStorage.setItem('todaysMotivation', m)
+        localStorage.setItem('todaysMotivationDate', new Date().toDateString())
+      } catch {}
+      setIsWheelSpinning(false)
+    }, 2000)
   }
+
+  // Motivation is picked ONCE at the start of each day and stays put (Eliyana:
+  // the wheel generating a fresh quote every visit got repetitive). Spinning is
+  // still available to change it on purpose.
+  useEffect(() => {
+    try {
+      const today = new Date().toDateString()
+      const savedDate = localStorage.getItem('todaysMotivationDate')
+      const saved = localStorage.getItem('todaysMotivation')
+      if (savedDate === today && saved) {
+        setTodaysMotivation(saved)
+      } else {
+        const m = motivations[Math.floor(Math.random() * motivations.length)]
+        setTodaysMotivation(m)
+        localStorage.setItem('todaysMotivation', m)
+        localStorage.setItem('todaysMotivationDate', today)
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const day = isDayTheme
   const roadCol = day ? 'bg-slate-200/70' : 'bg-indigo-900/50'
@@ -682,6 +618,30 @@ function RacesContent() {
     )
   }
 
+  // No demo data: honest loading / empty states instead of fake races.
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+        <p className="text-sm text-slate-500">Loading your races…</p>
+      </div>
+    )
+  }
+  if (rawRaces.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="text-5xl">🏁</div>
+        <h1 className="text-xl font-bold text-slate-800">No races yet</h1>
+        <p className="text-sm text-slate-500 max-w-sm">
+          Your goals become races once your path is generated. Complete onboarding to build one.
+        </p>
+        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+          Go to onboarding →
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <>
       {/* ═══ ROCKET ENTRY ═══ */}
@@ -763,221 +723,61 @@ function RacesContent() {
           </div>
         </header>
 
-        {/* ═══ COMPARISON: SIDE-BY-SIDE RACE TRACK VIEWS ═══ */}
+        {/* ═══ COMPARISON — real connections only. Picking a person opens their
+            real shared view (/friend/[id]); no fabricated races or stats. ═══ */}
         {comparisonView && (comparisonView === 'rolemodel' || comparisonView === 'friend' || comparisonView === 'mentor') && (() => {
-          const person = comparePeople[comparisonView]
+          const catMap: Record<string, { key: string; label: string }> = {
+            rolemodel: { key: 'rolemodels', label: 'Role Model' },
+            mentor: { key: 'mentors', label: 'Mentor' },
+            friend: { key: 'friends', label: 'Friend' },
+          }
+          const cat = catMap[comparisonView]
+          const people = realConnections[cat.key] || []
+          const linked = people.filter((p: any) => p.target_user_id)
+          const unlinked = people.filter((p: any) => !p.target_user_id)
           return (
-            <div className="relative z-30 max-w-6xl mx-auto px-3 pt-3 pb-6">
-              {/* Close bar */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Eye className={`w-4 h-4 ${sub}`} />
-                  <span className={`text-sm font-bold ${txt}`}>Comparing: You vs {person.name} ({person.relation})</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>Read-only</span>
-                </div>
-                <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:opacity-60 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* ═══ YOUR TRACK (left) ═══ */}
-                <div className={`${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/60 border-indigo-700'} border rounded-2xl p-4 backdrop-blur-sm`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">🧑‍🚀</span>
-                    <div>
-                      <div className={`font-bold text-sm ${txt}`}>You</div>
-                      <div className={`text-[10px] ${sub}`}>Your Dream Land</div>
-                    </div>
+            <div className="relative z-30 max-w-3xl mx-auto px-3 pt-3 pb-6">
+              <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/90 border-indigo-800'} border-2 rounded-2xl p-5 shadow-xl`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Eye className={`w-4 h-4 ${sub}`} />
+                    <span className={`text-sm font-bold ${txt}`}>Compare with a {cat.label}</span>
                   </div>
-
-                  {/* Dream Self */}
-                  <div className={`text-center p-3 rounded-xl mb-3 ${day ? 'bg-gradient-to-b from-purple-50 to-sky-50 border-purple-200' : 'bg-gradient-to-b from-purple-900/30 to-indigo-900/30 border-purple-700'} border`}>
-                    <div className="text-2xl mb-1">✨</div>
-                    <div className={`font-bold text-xs ${txt}`}>Dream Self</div>
-                    <div className={`text-[9px] ${sub}`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
-                  </div>
-
-                  {/* Your Stats */}
-                  <div className={`${pill} border rounded-xl p-3 mb-3`}>
-                    <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
-                    {stats.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2 mb-1.5">
-                        <span className={`text-[10px] ${sub} w-16`}>{s.name}</span>
-                        <div className={`flex-1 h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
-                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
-                        </div>
-                        <span className={`text-[9px] font-bold ${txt}`}>{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Your Races */}
-                  <div className={`${pill} border rounded-xl p-3 mb-3`}>
-                    <div className={`font-bold text-xs mb-2 ${txt}`}>🏁 Races</div>
-                    {races.map(r => (
-                      <div key={r.id} className="mb-2 last:mb-0">
-                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
-                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden mt-1`}>
-                          <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full" style={{ width: `${r.progress}%` }} />
-                        </div>
-                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
-                      </div>
-                    ))}
-                    <div className="flex gap-1 flex-wrap mt-2">
-                      {races[0].models.map((m: any) => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-sky-100 text-sky-700' : 'bg-indigo-800 text-indigo-300'}`}>{m}</span>)}
-                    </div>
-                  </div>
-
-                  {/* Your Milestones */}
-                  <div className="space-y-2 mb-3">
-                    <div className={`font-bold text-xs ${txt}`}>🪧 Milestones</div>
-                    {milestones.map((m, i) => (
-                      <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${m.status === 'active' ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600'}` : m.status === 'upcoming' ? `${day ? 'bg-amber-50/50 border-amber-200' : 'bg-amber-950/20 border-amber-800'}` : `${day ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/30 border-slate-700'} opacity-50`}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${m.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : m.status === 'upcoming' ? `${day ? 'bg-amber-200' : 'bg-amber-900'}` : `${day ? 'bg-slate-200' : 'bg-slate-800'}`}`}>
-                          {m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}
-                        </div>
-                        <div>
-                          <div className={`text-[10px] font-bold ${txt}`}>{m.name}</div>
-                          <div className={`text-[8px] ${sub}`}>{m.dist}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Your Completed Steps */}
-                  <div className={`${pill} border rounded-xl p-3`}>
-                    <div className={`font-bold text-xs mb-1.5 ${txt}`}>✅ Completed</div>
-                    {previousSteps.map(s => (
-                      <div key={s.id} className="flex items-center gap-1.5 mb-1">
-                        <div className="w-3 h-3 rounded-full bg-sky-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[6px]">✓</span></div>
-                        <span className={`text-[9px] ${sub}`}>{s.name}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:opacity-60 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
                 </div>
 
-                {/* ═══ THEIR TRACK (right) ═══ */}
-                <div className={`${day ? 'bg-gradient-to-b from-emerald-50/80 to-white/70 border-emerald-200' : 'bg-gradient-to-b from-emerald-950/40 to-indigo-950/60 border-emerald-800'} border rounded-2xl p-4 backdrop-blur-sm relative`}>
-                  {/* Read-only badge */}
-                  <div className={`absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${day ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-900/60 text-emerald-300'}`}>
-                    <Eye className="w-3 h-3" /> View Only
+                {people.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">👥</div>
+                    <p className={`text-sm mb-4 ${sub}`}>You haven&apos;t connected with a {cat.label.toLowerCase()} yet. Comparisons use your real connections&apos; shared paths.</p>
+                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+                      Find a {cat.label.toLowerCase()} in Hare World →
+                    </Link>
                   </div>
+                )}
 
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">{person.avatar}</span>
-                    <div>
-                      <div className={`font-bold text-sm ${txt}`}>{person.name}</div>
-                      <div className={`text-[10px] ${sub}`}>{person.relation}</div>
-                    </div>
-                  </div>
-
-                  {/* Their Dream Self */}
-                  <div className={`text-center p-3 rounded-xl mb-3 ${day ? 'bg-gradient-to-b from-emerald-50 to-teal-50 border-emerald-200' : 'bg-gradient-to-b from-emerald-900/30 to-teal-900/30 border-emerald-700'} border`}>
-                    <div className="text-2xl mb-1">✨</div>
-                    <div className={`font-bold text-xs ${txt}`}>{person.dreamSelf}</div>
-                    <div className={`text-[9px] ${sub}`}>Their Dream Self</div>
-                  </div>
-
-                  {/* Their Stats */}
-                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
-                    <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
-                    {person.stats.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2 mb-1.5">
-                        <span className={`text-[10px] ${sub} w-16`}>{s.name}</span>
-                        <div className={`flex-1 h-1.5 ${day ? 'bg-emerald-100' : 'bg-emerald-900/40'} rounded-full overflow-hidden`}>
-                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-emerald-400' : 'bg-teal-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
-                        </div>
-                        <span className={`text-[9px] font-bold ${txt}`}>{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Their Races */}
-                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
-                    <div className={`font-bold text-xs mb-2 ${txt}`}>🏁 Races</div>
-                    {person.races.map(r => (
-                      <div key={r.id} className="mb-2 last:mb-0">
-                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
-                        <div className={`h-1.5 ${day ? 'bg-emerald-100' : 'bg-emerald-900/40'} rounded-full overflow-hidden mt-1`}>
-                          <div className={`h-full rounded-full ${r.progress === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`} style={{ width: `${r.progress}%` }} />
-                        </div>
-                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
-                      </div>
-                    ))}
-                    <div className="flex gap-1 flex-wrap mt-2">
-                      {person.models.map(m => <span key={m} className={`text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-900/40 text-emerald-300'}`}>{m}</span>)}
-                    </div>
-                  </div>
-
-                  {/* Their Milestones */}
+                {linked.length > 0 && (
                   <div className="space-y-2 mb-3">
-                    <div className={`font-bold text-xs ${txt}`}>🪧 Milestones</div>
-                    {person.milestones.map((m, i) => (
-                      <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${m.status === 'active' ? `${day ? 'bg-emerald-50 border-emerald-400' : 'bg-emerald-900/40 border-emerald-600'}` : m.status === 'upcoming' ? `${day ? 'bg-emerald-50/50 border-emerald-200' : 'bg-emerald-950/20 border-emerald-800'}` : `${day ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/30 border-slate-700'} opacity-50`}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${m.status === 'active' ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white' : m.status === 'upcoming' ? `${day ? 'bg-emerald-200' : 'bg-emerald-900'}` : `${day ? 'bg-slate-200' : 'bg-slate-800'}`}`}>
-                          {m.status === 'active' ? '📍' : m.status === 'upcoming' ? '🪧' : '🏁'}
-                        </div>
-                        <div>
-                          <div className={`text-[10px] font-bold ${txt}`}>{m.name}</div>
-                          <div className={`text-[8px] ${sub}`}>{m.dist}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Their Completed Steps */}
-                  <div className={`${day ? 'bg-white/60 border-emerald-100' : 'bg-indigo-900/40 border-emerald-800'} border rounded-xl p-3 mb-3`}>
-                    <div className={`font-bold text-xs mb-1.5 ${txt}`}>✅ Completed ({person.completedSteps.length})</div>
-                    {person.completedSteps.map((s, i) => (
-                      <div key={i} className="flex items-center gap-1.5 mb-1">
-                        <div className="w-3 h-3 rounded-full bg-emerald-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[6px]">✓</span></div>
-                        <span className={`text-[9px] ${sub}`}>{s}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Suggestion box */}
-                  <div className={`${day ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'} border rounded-xl p-3`}>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <MessageSquare className={`w-3.5 h-3.5 ${day ? 'text-purple-500' : 'text-purple-400'}`} />
-                      <span className={`font-bold text-xs ${day ? 'text-purple-700' : 'text-purple-300'}`}>Send a Suggestion</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={suggestionText}
-                        onChange={e => setSuggestionText(e.target.value)}
-                        placeholder="e.g. Try the Pomodoro technique!"
-                        className={`flex-1 px-2.5 py-1.5 rounded-lg text-[10px] border ${day ? 'bg-white border-purple-200 text-slate-800 placeholder:text-slate-400' : 'bg-indigo-950 border-purple-700 text-white placeholder:text-indigo-400'} focus:outline-none focus:ring-1 focus:ring-purple-400`}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && suggestionText.trim()) {
-                            setSentSuggestions(prev => [...prev, { to: person.name, text: suggestionText.trim() }])
-                            setSuggestionText('')
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => {
-                          if (suggestionText.trim()) {
-                            setSentSuggestions(prev => [...prev, { to: person.name, text: suggestionText.trim() }])
-                            setSuggestionText('')
-                          }
-                        }}
-                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'}`}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    {sentSuggestions.filter(s => s.to === person.name).length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {sentSuggestions.filter(s => s.to === person.name).map((s, i) => (
-                          <div key={i} className={`text-[9px] px-2 py-1 rounded-lg ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-800/40 text-purple-300'}`}>
-                            💬 You suggested: &ldquo;{s.text}&rdquo;
+                    {linked.map((p: any) => (
+                      <Link key={p.id} href={`/friend/${p.target_user_id}`} className={`flex items-center justify-between gap-3 p-3 rounded-xl border-2 transition-all hover:shadow-md ${day ? 'bg-slate-50 border-slate-200 hover:border-purple-300' : 'bg-indigo-900/40 border-indigo-800 hover:border-purple-500'}`}>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{p.icon && p.icon !== '👤' ? p.icon : '🧑'}</span>
+                          <div>
+                            <div className={`text-sm font-bold ${txt}`}>{p.name}</div>
+                            {p.role && <div className={`text-xs ${sub}`}>{p.role}</div>}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                        <span className="text-xs font-semibold text-purple-500">View their journey →</span>
+                      </Link>
+                    ))}
                   </div>
-                </div>
+                )}
+
+                {unlinked.length > 0 && (
+                  <p className={`text-xs ${sub}`}>
+                    {unlinked.map((p: any) => p.name).join(', ')} {unlinked.length === 1 ? 'is' : 'are'} saved as {unlinked.length === 1 ? 'a contact' : 'contacts'} without a linked account — comparisons need a connected app user.
+                  </p>
+                )}
               </div>
             </div>
           )
