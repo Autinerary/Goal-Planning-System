@@ -156,9 +156,16 @@ class PatternRecognitionAgent(BaseAgent):
                     'match_threshold': 0.7,
                     'match_count': top_k,
                     'barriers_filter': barriers_filter,
+                    # ALWAYS pass query_user_id (None → SQL NULL). Two overloads
+                    # of find_similar_pattern_users exist in the DB (4-arg legacy
+                    # + 5-arg), and omitting the param makes the call ambiguous —
+                    # PostgREST rejects it with PGRST203 and the agent silently
+                    # fell back to 0 patterns on EVERY run. Passing all five
+                    # params resolves to the 5-arg version, whose NULL branch
+                    # behaves exactly like the legacy function; a real user id
+                    # additionally excludes the user from their own matches.
+                    'query_user_id': query_user_id,
                 }
-                # Do not pass query_user_id: the SQL overload can use legacy
-                # reflection-derived feedback, which is not a direct outcome.
 
                 response = self.supabase.rpc(
                     'find_similar_pattern_users',

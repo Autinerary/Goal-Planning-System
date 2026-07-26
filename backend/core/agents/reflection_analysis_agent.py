@@ -340,37 +340,66 @@ class ReflectionAnalysisAgent(BaseAgent):
         patterns: List[Dict[str, Any]],
         concerns: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Extract actionable insights"""
-        
+        """Extract actionable insights.
+
+        LLM path reads the actual reflection text so what_works /
+        what_doesnt_work reflect what the user really said; the keyword rules
+        below are the deterministic fallback.
+        """
+
         insights = {
             'what_works': [],
             'what_doesnt_work': [],
             'recommendations': [],
             'celebration_worthy': []
         }
-        
+
+        if llm.is_enabled() and text.strip():
+            data = await llm.complete_json(
+                system=(
+                    "You are a compassionate neurodiversity coach analysing a personal "
+                    "reflection. Extract SPECIFIC insights grounded in what the person "
+                    "actually wrote — never invent events. Each item is one short sentence. "
+                    "Empty lists are fine when the text gives no evidence."
+                ),
+                user=(
+                    f"Reflection:\n{text[:2500]}\n\n"
+                    'Return JSON: {"what_works": ["..."], "what_doesnt_work": ["..."], '
+                    '"recommendations": ["..."], "celebration_worthy": ["..."]}'
+                ),
+                temperature=0.4,
+                max_tokens=400,
+            )
+            if isinstance(data, dict):
+                for key in insights:
+                    vals = data.get(key)
+                    if isinstance(vals, list):
+                        insights[key] = [str(v).strip()[:200] for v in vals if str(v).strip()][:4]
+
+        # Keyword fallback only fills categories the LLM left empty (or when
+        # the LLM is unavailable), so deterministic rules still guarantee output.
+
         # What's working (from positive indicators)
         positive_words = sentiment.get('key_words', {}).get('positive', [])
-        if 'accomplished' in positive_words or 'completed' in positive_words or 'achieved' in positive_words:
-            insights['what_works'].append('Task completion strategies are working well')
-            insights['celebration_worthy'].append('You completed something - celebrate this win!')
-        
-        if 'focused' in positive_words:
-            insights['what_works'].append('Focus strategies are effective')
-        
-        if 'progress' in positive_words or 'better' in positive_words:
-            insights['what_works'].append('You\'re making progress - keep going!')
-            insights['celebration_worthy'].append('Progress detected - you\'re moving forward!')
-        
+        if not insights['what_works']:
+            if 'accomplished' in positive_words or 'completed' in positive_words or 'achieved' in positive_words:
+                insights['what_works'].append('Task completion strategies are working well')
+                insights['celebration_worthy'].append('You completed something - celebrate this win!')
+            if 'focused' in positive_words:
+                insights['what_works'].append('Focus strategies are effective')
+            if 'progress' in positive_words or 'better' in positive_words:
+                insights['what_works'].append('You\'re making progress - keep going!')
+                insights['celebration_worthy'].append('Progress detected - you\'re moving forward!')
+
         # What's not working
         negative_words = sentiment.get('key_words', {}).get('negative', [])
-        if 'overwhelmed' in negative_words:
-            insights['what_doesnt_work'].append('Current workload may be too high')
-            insights['recommendations'].append('Consider breaking tasks into smaller pieces')
-        
-        if 'frustrated' in negative_words:
-            insights['what_doesnt_work'].append('Something is causing frustration')
-            insights['recommendations'].append('Identify the specific frustration source and address it')
+        if not insights['what_doesnt_work']:
+            if 'overwhelmed' in negative_words:
+                insights['what_doesnt_work'].append('Current workload may be too high')
+                insights['recommendations'].append('Consider breaking tasks into smaller pieces')
+            if 'frustrated' in negative_words:
+                insights['what_doesnt_work'].append('Something is causing frustration')
+                insights['recommendations'].append('Identify the specific frustration source and address it')
         
         # Add pattern-based recommendations
         for pattern in patterns:

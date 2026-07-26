@@ -385,7 +385,12 @@ class PathPlanningAgent(BaseAgent):
         barriers: List[str],
         helper_tricks: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
-        """Generate tasks for a milestone"""
+        """Generate tasks for a milestone.
+
+        LLM path produces specific, natural task names (not formulaic
+        "Research and gather information: X" scaffolds); the template list is
+        the deterministic fallback when the LLM is unavailable or returns junk.
+        """
 
         task_templates = [
             ("Research and gather information", 30),
@@ -399,24 +404,65 @@ class PathPlanningAgent(BaseAgent):
         # hit the LLM 5× per milestone for identical input.
         tricks = helper_tricks if helper_tricks is not None else await self._get_helper_tricks(barriers)
 
+        # LLM: 5 small sequential tasks with concrete, action-first names.
+        llm_tasks: Optional[List[Dict[str, Any]]] = None
+        if llm.is_enabled():
+            data = await llm.complete_json(
+                system=(
+                    "You are a neurodiversity-informed planning coach. Break a milestone "
+                    "into 5 small sequential tasks. Each task name is a specific imperative "
+                    "action of at most 9 words (e.g. 'Email the disability office for the form'), "
+                    "NEVER generic phases like 'Research and gather information' or 'Create action plan'. "
+                    "Each description is one concrete sentence. minutes is 10-30."
+                ),
+                user=(
+                    f"Milestone: {milestone.get('name')}\n"
+                    f"Goal: {milestone.get('goal', '')}\n"
+                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    'Return JSON: {"tasks": [{"name": "...", "description": "...", "minutes": 20}]}'
+                ),
+                temperature=0.6,
+                max_tokens=500,
+            )
+            if isinstance(data, dict) and isinstance(data.get('tasks'), list):
+                cleaned = [
+                    t for t in data['tasks']
+                    if isinstance(t, dict) and str(t.get('name') or '').strip()
+                ][:5]
+                if len(cleaned) >= 3:
+                    llm_tasks = cleaned
+
         tasks = []
-        for i, (task_name, duration) in enumerate(task_templates):
+        count = len(llm_tasks) if llm_tasks else len(task_templates)
+        for i in range(count):
+            if llm_tasks:
+                raw = llm_tasks[i]
+                name = str(raw.get('name')).strip()[:120]
+                description = str(raw.get('description') or f"One concrete step toward {milestone.get('name')}.").strip()[:300]
+                try:
+                    duration = max(5, min(45, int(raw.get('minutes') or 20)))
+                except (TypeError, ValueError):
+                    duration = 20
+            else:
+                task_name, duration = task_templates[i]
+                name = f"{task_name}: {milestone['name']}"
+                description = f"Part {i+1} of completing {milestone['name']}"
+
             # Adjust for ADHD - shorter tasks
             if 'adhd' in [b.lower() for b in barriers]:
                 duration = min(duration, 20)
 
-            task = {
+            tasks.append({
                 'id': f'task_{milestone["id"]}_{i}',
                 'milestoneId': milestone['id'],
-                'name': f"{task_name}: {milestone['name']}",
-                'description': f"Part {i+1} of completing {milestone['name']}",
+                'name': name,
+                'description': description,
                 'status': 'pending',
                 'estimatedDuration': duration,
-                'difficulty': ['easy', 'medium', 'medium', 'easy', 'easy'][i],
+                'difficulty': ['easy', 'medium', 'medium', 'easy', 'easy'][i % 5],
                 'priority': 'high' if i == 0 else 'medium',
                 'helperTricks': tricks,
-            }
-            tasks.append(task)
+            })
 
         return tasks
     

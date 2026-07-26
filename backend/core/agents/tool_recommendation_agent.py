@@ -273,6 +273,12 @@ class ToolRecommendationAgent(BaseAgent):
         Returns an empty list on any failure so the agent gracefully falls back
         to the local knowledge base.
         """
+        # Circuit breaker: once the hub is unreachable, skip further calls for
+        # this run (this method is called per-milestone — without the breaker a
+        # down hub logs dozens of identical warnings and adds latency).
+        if getattr(self, '_servicehub_down', False):
+            return []
+
         params: Dict[str, Any] = {
             "pageSize": limit,
             "sort": "popular",
@@ -289,7 +295,9 @@ class ToolRecommendationAgent(BaseAgent):
                     return []
                 data = resp.json()
         except Exception as e:
-            print(f"[tool_recommendation] ServiceHub unreachable: {e}")
+            if not getattr(self, '_servicehub_down', False):
+                self._servicehub_down = True
+                print(f"[tool_recommendation] ServiceHub unreachable — using local knowledge base for this run: {e}")
             return []
 
         # ServiceHub returns { resources: [...] } or { data: [...] } depending on endpoint

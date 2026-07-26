@@ -31,33 +31,42 @@ def _clean_text(value: Any, *, minimum: int, maximum: int) -> str:
     return text[:maximum].rstrip()
 
 
+_FALLBACK_STAGES = (
+    ("Clarify the next outcome", "Define a concrete result and the support needed to reach it."),
+    ("Prepare a workable environment", "Set up tools, accommodations, and a realistic starting routine."),
+    ("Take one measurable step", "Complete a small action that creates visible progress toward the goal."),
+    ("Review and adjust the plan", "Use the result of the first step to keep, change, or simplify the approach."),
+)
+
+
+def _fallback_for_goal(raw_goal: str, goal_index: int) -> List[Dict[str, Any]]:
+    """Stable template milestones for ONE goal (keeps its real raceId/index)."""
+    goal = _clean_text(raw_goal, minimum=2, maximum=160) or "General wellbeing"
+    milestones: List[Dict[str, Any]] = []
+    for stage_index, (name, description) in enumerate(_FALLBACK_STAGES):
+        milestones.append({
+            "id": f"milestone_quality_{goal_index}_{stage_index}",
+            "raceId": f"race_{goal_index}",
+            "name": name,
+            "description": f"{description} Goal: {goal}",
+            "order": stage_index,
+            "status": "in_progress" if stage_index == 0 else "not_started",
+            "estimatedDays": 7,
+            "goal": goal,
+            "dimension": "general",
+            "dimensionLabel": "General",
+            "category": "other",
+            "barrierAware": True,
+            "strategies": [],
+            "recommendedChoices": [],
+        })
+    return milestones
+
+
 def _fallback_milestones(goals: List[str]) -> List[Dict[str, Any]]:
-    stages = (
-        ("Clarify the next outcome", "Define a concrete result and the support needed to reach it."),
-        ("Prepare a workable environment", "Set up tools, accommodations, and a realistic starting routine."),
-        ("Take one measurable step", "Complete a small action that creates visible progress toward the goal."),
-        ("Review and adjust the plan", "Use the result of the first step to keep, change, or simplify the approach."),
-    )
     milestones: List[Dict[str, Any]] = []
     for goal_index, raw_goal in enumerate(goals or ["General wellbeing"]):
-        goal = _clean_text(raw_goal, minimum=2, maximum=160) or "General wellbeing"
-        for stage_index, (name, description) in enumerate(stages):
-            milestones.append({
-                "id": f"milestone_quality_{goal_index}_{stage_index}",
-                "raceId": f"race_{goal_index}",
-                "name": name,
-                "description": f"{description} Goal: {goal}",
-                "order": stage_index,
-                "status": "in_progress" if stage_index == 0 else "not_started",
-                "estimatedDays": 7,
-                "goal": goal,
-                "dimension": "general",
-                "dimensionLabel": "General",
-                "category": "other",
-                "barrierAware": True,
-                "strategies": [],
-                "recommendedChoices": [],
-            })
+        milestones.extend(_fallback_for_goal(raw_goal, goal_index))
     return milestones
 
 
@@ -88,12 +97,19 @@ def ensure_generation_quality(
     raw_milestones = source.get("milestones")
     milestones: List[Dict[str, Any]] = []
     seen_ids = set()
-    seen_names = set()
+    # Dedupe names PER GOAL (raceId/goal scope), not globally. Different goals
+    # legitimately produce same-named milestones across the shared life
+    # dimensions (health, relationships, …); a global dedupe silently deleted
+    # every later goal's overlapping milestones — leaving goals 2..n with
+    # empty races.
+    seen_names_by_race: Dict[str, set] = {}
 
     for index, raw in enumerate(raw_milestones if isinstance(raw_milestones, list) else []):
         if not isinstance(raw, dict):
             continue
         name = _clean_text(raw.get("name"), minimum=3, maximum=100)
+        race_key = str(raw.get("raceId") or _clean_text(raw.get("goal"), minimum=1, maximum=160) or "race_0")
+        seen_names = seen_names_by_race.setdefault(race_key, set())
         if not name or name.lower() in seen_names:
             continue
         milestone_id = _clean_text(raw.get("id"), minimum=3, maximum=120) or f"milestone_repaired_{index}"
@@ -117,10 +133,27 @@ def ensure_generation_quality(
         seen_ids.add(milestone_id)
         seen_names.add(name.lower())
 
-    minimum_expected = max(4, 4 * max(1, len(goals)))
-    used_fallback = len(milestones) < minimum_expected
-    if used_fallback:
+    # Per-goal backfill: any goal that ended up with ZERO milestones gets its
+    # stable template stages — without nuking the real milestones other goals
+    # produced (the old behaviour replaced everything wholesale).
+    def _norm(value: Any) -> str:
+        return re.sub(r"\s+", " ", str(value or "")).strip().lower()
+
+    goals_backfilled: List[str] = []
+    for goal_index, goal in enumerate(goals or []):
+        race_id = f"race_{goal_index}"
+        has_milestone = any(
+            m.get("raceId") == race_id or _norm(m.get("goal")) == _norm(goal)
+            for m in milestones
+        )
+        if not has_milestone:
+            milestones.extend(_fallback_for_goal(goal, goal_index))
+            goals_backfilled.append(goal)
+
+    used_fallback = bool(goals_backfilled)
+    if not milestones:
         milestones = _fallback_milestones(goals)
+        used_fallback = True
 
     milestone_ids = {milestone["id"] for milestone in milestones}
     raw_tasks = source.get("tasks")
@@ -140,7 +173,15 @@ def ensure_generation_quality(
         })
         tasks.append(repaired)
 
-    if not tasks or not milestone_ids.issubset({task.get("milestoneId") for task in tasks}):
+    # Pad tasks per milestone instead of replacing the whole list: milestones
+    # without any task get one starter task; real tasks are never discarded.
+    covered = {task.get("milestoneId") for task in tasks}
+    tasks_padded = 0
+    for milestone in milestones:
+        if milestone["id"] not in covered:
+            tasks.extend(_fallback_tasks([milestone]))
+            tasks_padded += 1
+    if not tasks:
         tasks = _fallback_tasks(milestones)
         used_fallback = True
 
@@ -153,6 +194,8 @@ def ensure_generation_quality(
         "usedFallback": used_fallback,
         "milestoneCount": len(milestones),
         "taskCount": len(tasks),
+        "goalsBackfilled": goals_backfilled,
+        "tasksPadded": tasks_padded,
     }
     cleaned["qualityReport"] = report
     return cleaned, report

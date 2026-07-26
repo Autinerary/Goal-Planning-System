@@ -210,7 +210,10 @@ class Orchestrator:
             },
         ]
 
-        synthesized = await self.synthesis_engine.synthesize(agent_responses)
+        synthesized = await self.synthesis_engine.synthesize(
+            agent_responses,
+            goals=state.get('goals') or [],
+        )
 
         final = {
             'path': synthesized.get('path'),
