@@ -119,14 +119,19 @@ export default function FilterSidebar({
         </div>
       </div>
 
-      {/* Systematic Barrier Filter (Accordion) */}
+      {/* Norms — barrier categories + conditions merged (Odosa). The
+          "Neurodivergence" barrier is dropped; it's covered by the
+          "Neurodevelopmental Conditions" group below. */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Barriers</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Norms</h3>
         <div className="space-y-1 border border-gray-200 rounded-lg overflow-hidden">
           {barriersLoading ? (
-            <p className="px-4 py-3 text-sm text-gray-500">Loading barriers...</p>
-          ) : barrierCategories.length > 0 ? (
-            barrierCategories.map((barrierCategory) => {
+            <p className="px-4 py-3 text-sm text-gray-500">Loading norms...</p>
+          ) : (
+            <>
+            {barrierCategories
+              .filter((bc) => !/neurodiverg/i.test(bc.category) && !/neurodiverg/i.test(bc.label))
+              .map((barrierCategory) => {
               const isExpanded = expandedBarrierCategory === barrierCategory.category
               return (
                 <div key={barrierCategory.category} className="border-b border-gray-200 last:border-b-0">
@@ -163,15 +168,13 @@ export default function FilterSidebar({
                   )}
                 </div>
               )
-            })
-          ) : (
-            <p className="px-4 py-3 text-sm text-gray-500">No barriers available. Complete onboarding to add barriers.</p>
+            })}
+            {/* Conditions taxonomy, merged into the same "Norms" box */}
+            <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} />
+            </>
           )}
         </div>
       </div>
-
-      {/* Conditions (static taxonomy with sub-options) */}
-      <ConditionsFilter selected={selectedConditions} onChange={onConditionsChange} />
 
       {/* Service Ratings (chip style) */}
       <RatingChipsFilter selectedStars={ratingStars} onChange={onRatingStarsChange} />

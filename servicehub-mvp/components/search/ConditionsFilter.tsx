@@ -13,9 +13,12 @@ import {
 interface ConditionsFilterProps {
   selected: string[] // tokens, e.g. ['autism:level_2', 'adhd']
   onChange: (next: string[]) => void
+  /** When true, render just the accordion rows (no header/border) so it can be
+   *  merged into another section — e.g. the combined "Norms" filter. */
+  embedded?: boolean
 }
 
-export default function ConditionsFilter({ selected, onChange }: ConditionsFilterProps) {
+export default function ConditionsFilter({ selected, onChange, embedded = false }: ConditionsFilterProps) {
   // Which top-level group + nested group is currently expanded (one at a time
   // for top-level; nested groups can be independently expanded).
   const [expandedTop, setExpandedTop] = useState<string | null>(null)
@@ -133,6 +136,11 @@ export default function ConditionsFilter({ selected, onChange }: ConditionsFilte
         )}
       </div>
     )
+  }
+
+  // Embedded: just the accordion rows, to slot into another section's box.
+  if (embedded) {
+    return <>{CONDITION_GROUPS.map((group) => renderGroup(group))}</>
   }
 
   return (
