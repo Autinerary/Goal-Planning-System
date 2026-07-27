@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 /**
  * Interactive demo / tutorial.
@@ -127,11 +128,14 @@ const SEEN_KEY = 'autinerary_demo_seen_v1'
 
 export default function InteractiveDemo() {
   const router = useRouter()
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    // Auto-start once for brand-new users.
+    // Auto-start once for brand-new users — but only when signed in and onboarded
+    // (the tour walks real, logged-in screens; it shouldn't pop over login/signup).
+    if (!user || !user.hasCompletedOnboarding) return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.
@@ -141,7 +145,7 @@ export default function InteractiveDemo() {
     } catch {
       /* ignore */
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     const start = () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -10,43 +10,62 @@ const SH = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').
  * Single funnel for every Goal Planning → ServiceHub navigation.
  *
  * All GP links point here (same-origin, so plain <a> works). We read the
- * signed-in user's Supabase session and forward the tokens to ServiceHub's
- * server-side `/auth/handoff`, which establishes the session before the page
- * renders — so the user lands on ServiceHub already signed in. If GP has no
- * session, we just open ServiceHub anonymously.
+ * signed-in user's Supabase session and forward the tokens ON THE DESTINATION
+ * URL. ServiceHub's ProfileSync (root layout, already deployed) reads them and
+ * establishes the session, then strips them from the URL — so the user lands on
+ * the real ServiceHub page signed in.
+ *
+ * We deliberately redirect to the REAL destination (not a dedicated handoff
+ * route) so navigation never depends on a not-yet-deployed route: the page
+ * always exists, and worst case the user simply lands signed-out.
  */
 function Redirector() {
   const params = useSearchParams()
+  const [manualHref, setManualHref] = useState(SH)
 
   useEffect(() => {
     const raw = params.get('next') || '/'
     const next = raw.startsWith('/') ? raw : `/${raw}`
+    const plain = `${SH}${next}`
+    let navigated = false
+
+    const go = (url: string) => {
+      if (navigated) return
+      navigated = true
+      setManualHref(url)
+      window.location.replace(url)
+    }
 
     ;(async () => {
-      let target = `${SH}${next}`
       try {
         const supabase = createClient()
         const {
           data: { session },
         } = await supabase.auth.getSession()
         if (session?.access_token) {
-          const hp = new URLSearchParams({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token ?? '',
-            next,
-          })
-          target = `${SH}/auth/handoff?${hp.toString()}`
+          const url = new URL(plain)
+          url.searchParams.set('access_token', session.access_token)
+          url.searchParams.set('refresh_token', session.refresh_token ?? '')
+          go(url.toString())
+          return
         }
       } catch {
-        // fall through to the plain ServiceHub URL (anonymous)
+        // fall through to anonymous
       }
-      window.location.replace(target)
+      go(plain)
     })()
+
+    // Safety net: never get stuck on this page if the session read stalls.
+    const t = setTimeout(() => go(plain), 2500)
+    return () => clearTimeout(t)
   }, [params])
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-slate-500">
-      Opening ResourceHub…
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-slate-500">
+      <p>Opening ResourceHub…</p>
+      <a href={manualHref} className="text-cyan-600 hover:underline text-sm">
+        Click here if you’re not redirected
+      </a>
     </div>
   )
 }
