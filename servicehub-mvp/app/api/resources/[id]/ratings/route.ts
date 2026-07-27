@@ -136,6 +136,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     }
 
+    // Snapshot the rater's OWN diagnostics (barrier_type -> severity 1-5) so the
+    // nested breakdown can group area ratings by diagnostic feature + level,
+    // without cross-user profile reads (RLS-safe: the rater reads their own).
+    const rater_diagnostics: Record<string, number> = {}
+    try {
+      const { data: myBarriers } = await supabase
+        .from('user_barriers')
+        .select('barrier_type, severity')
+        .eq('user_id', user.id)
+      for (const b of myBarriers || []) {
+        const type = String((b as any).barrier_type || '').trim().toLowerCase()
+        const sev = Number((b as any).severity)
+        if (type) rater_diagnostics[type] = sev >= 1 && sev <= 5 ? Math.round(sev) : 3
+      }
+    } catch {
+      /* non-fatal — rating still saves without diagnostics */
+    }
+
     // Create or update rating (only if approved or flagged for review)
     const rating = await createOrUpdateRating({
       resource_id: params.id,
@@ -143,6 +161,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       overall_score,
       barrier_scores,
       comment: comment?.trim() || undefined,
+      rater_diagnostics,
     })
 
     if (!rating) {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Star, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react'
+import type { DiagnosticBreakdown } from '@/lib/supabase/queries'
 import {
   BarChart,
   Bar,
@@ -20,17 +21,35 @@ interface RatingsBreakdownProps {
   ratingCount: number
   ratingDistribution: { [key: number]: number }
   barrierScores: { [barrier: string]: { average: number; count: number } }
+  diagnosticBreakdown?: DiagnosticBreakdown[]
 }
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'] // Red to Green
+
+// Friendly labels for diagnostic features (rater's barrier_type).
+const FEATURE_LABELS: { [k: string]: string } = {
+  autism: 'Autism',
+  adhd: 'ADHD',
+  ocd: 'OCD',
+  bipolar: 'Bipolar',
+  anxiety: 'Anxiety',
+  sensory_deaf: 'Deaf / Hard of Hearing',
+  sensory_blind: 'Blind / Low Vision',
+  physical_wheelchair: 'Wheelchair User',
+  physical_mobility: 'Mobility',
+  intellectual: 'Intellectual Disability',
+}
+const featureLabel = (f: string) => FEATURE_LABELS[f] || f.charAt(0).toUpperCase() + f.slice(1).replace(/_/g, ' ')
 
 export default function RatingsBreakdown({
   averageRating,
   ratingCount,
   ratingDistribution,
   barrierScores,
+  diagnosticBreakdown = [],
 }: RatingsBreakdownProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [openFeature, setOpenFeature] = useState<string | null>(null)
   // Prepare rating distribution data for bar chart
   const distributionData = [
     { rating: '5', count: ratingDistribution[5] || 0, label: '5 stars' },
@@ -59,6 +78,28 @@ export default function RatingsBreakdown({
   const getQualityName = (barrier: string): string => {
     return qualityNameMap[barrier.toLowerCase()] || barrier.charAt(0).toUpperCase() + barrier.slice(1).replace(/_/g, ' ')
   }
+
+  // Compact list of area ratings (Sensory Friendliness: ★ 4.5 (2)), reused for
+  // the "all levels" and per-level rows of the nested breakdown.
+  const areaRows = (entries: [string, { average: number; count: number }][]) => {
+    if (entries.length === 0) return <div className="text-xs text-gray-400">No area ratings yet.</div>
+    return (
+      <div className="space-y-0.5">
+        {entries.map(([area, s]) => (
+          <div key={area} className="flex items-center justify-between text-sm py-0.5">
+            <span className="text-gray-700">{getQualityName(area)}</span>
+            <span className="flex items-center gap-1.5 text-gray-900">
+              <Star className="w-3.5 h-3.5 text-yellow-400 fill-current" aria-hidden="true" />
+              <span className="font-semibold">{s.average.toFixed(1)}</span>
+              <span className="text-xs text-gray-400">({s.count})</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  const sortedAreas = (a: { [k: string]: { average: number; count: number } }) =>
+    Object.entries(a).sort((x, y) => y[1].count - x[1].count)
 
   // Prepare barrier scores data
   const barrierData = Object.entries(barrierScores)
@@ -145,6 +186,56 @@ export default function RatingsBreakdown({
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Nested breakdown by diagnostic feature + severity level (Odosa) */}
+          {diagnosticBreakdown.length > 0 && (
+            <section>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">By norm &amp; level</h3>
+              <p className="text-xs text-gray-500 mb-4">
+                How each area is rated by people who share a given norm — overall and by severity level.
+              </p>
+              <div className="space-y-2">
+                {diagnosticBreakdown.map((d) => {
+                  const isOpen = openFeature === d.feature
+                  return (
+                    <div key={d.feature} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setOpenFeature(isOpen ? null : d.feature)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-left"
+                        aria-expanded={isOpen}
+                      >
+                        <span className="text-sm font-semibold text-gray-900">{featureLabel(d.feature)}</span>
+                        <span className="flex items-center gap-2 text-xs text-gray-500">
+                          {d.count} {d.count === 1 ? 'rater' : 'raters'}
+                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="px-4 py-3 space-y-4">
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                              All levels
+                            </div>
+                            {areaRows(sortedAreas(d.areas))}
+                          </div>
+                          {d.levels
+                            .filter((l) => l.level >= 1)
+                            .map((l) => (
+                              <div key={l.level}>
+                                <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                                  Level {l.level} · {l.count} {l.count === 1 ? 'rater' : 'raters'}
+                                </div>
+                                {areaRows(sortedAreas(l.areas))}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </section>
           )}

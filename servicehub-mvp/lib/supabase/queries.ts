@@ -242,11 +242,22 @@ export async function updateResource(resourceId: string, updates: Partial<Resour
 /**
  * Get resource with aggregated rating data and statistics
  */
+export type AreaAverages = { [area: string]: { average: number; count: number } }
+
+/** Nested Rating Breakdown: area ratings grouped by rater diagnostic + level. */
+export interface DiagnosticBreakdown {
+  feature: string // rater diagnostic (barrier_type), e.g. 'autism'
+  count: number // ratings from raters with this feature
+  areas: AreaAverages // area averages across all levels of this feature
+  levels: Array<{ level: number; count: number; areas: AreaAverages }> // severity 1-5
+}
+
 export interface ResourceDetail extends Resource {
   averageRating: number
   ratingCount: number
   ratingDistribution: { [key: number]: number } // { 5: 10, 4: 5, ... }
   barrierScores: { [barrier: string]: { average: number; count: number } }
+  diagnosticBreakdown?: DiagnosticBreakdown[]
   userRating?: Rating | null // Current user's rating if logged in
   isSaved?: boolean // Whether current user has saved this resource
   recommendedByAutismCommunity?: boolean // If highly rated by users with autism barriers
@@ -315,6 +326,53 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     }
   }
 
+  // Nested breakdown (Odosa): area ratings grouped by the RATER's diagnostic
+  // feature + severity level (from rater_diagnostics denormalized on each
+  // rating). Each area (sensory, mobility…) appears both under a feature/level
+  // and in the general barrierAverages above.
+  const featureAgg: Record<string, {
+    count: number
+    areas: Record<string, { sum: number; count: number }>
+    levels: Record<number, { count: number; areas: Record<string, { sum: number; count: number }> }>
+  }> = {}
+  if (ratings) {
+    for (const rating of ratings) {
+      const diags = ((rating as any).rater_diagnostics || {}) as Record<string, unknown>
+      const scores = (rating.barrier_scores || {}) as BarrierScores
+      const dims = Object.entries(scores).filter(([, s]) => typeof s === 'number') as [string, number][]
+      for (const [feature, rawSev] of Object.entries(diags)) {
+        const sev = typeof rawSev === 'number' ? Math.max(1, Math.min(5, Math.round(rawSev))) : 0
+        const f = (featureAgg[feature] ||= { count: 0, areas: {}, levels: {} })
+        f.count += 1
+        const lvl = (f.levels[sev] ||= { count: 0, areas: {} })
+        lvl.count += 1
+        for (const [dim, score] of dims) {
+          ;(f.areas[dim] ||= { sum: 0, count: 0 })
+          f.areas[dim].sum += score
+          f.areas[dim].count += 1
+          ;(lvl.areas[dim] ||= { sum: 0, count: 0 })
+          lvl.areas[dim].sum += score
+          lvl.areas[dim].count += 1
+        }
+      }
+    }
+  }
+  const toAvg = (m: Record<string, { sum: number; count: number }>) => {
+    const out: Record<string, { average: number; count: number }> = {}
+    for (const [k, v] of Object.entries(m)) out[k] = { average: v.count ? v.sum / v.count : 0, count: v.count }
+    return out
+  }
+  const diagnosticBreakdown = Object.entries(featureAgg)
+    .map(([feature, f]) => ({
+      feature,
+      count: f.count,
+      areas: toAvg(f.areas),
+      levels: Object.entries(f.levels)
+        .map(([lvl, l]) => ({ level: Number(lvl), count: l.count, areas: toAvg(l.areas) }))
+        .sort((a, b) => a.level - b.level),
+    }))
+    .sort((a, b) => b.count - a.count)
+
   // Get user's rating if logged in
   let userRating: Rating | null = null
   if (userId) {
@@ -367,6 +425,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     ratingCount,
     ratingDistribution,
     barrierScores: barrierAverages,
+    diagnosticBreakdown,
     userRating: userRating || undefined,
     isSaved,
     recommendedByAutismCommunity,
@@ -458,6 +517,8 @@ export async function createOrUpdateRating(rating: {
   overall_score: number
   barrier_scores?: BarrierScores
   comment?: string
+  /** Rater's own diagnostics { barrier_type: severity 1-5 } — for the nested breakdown. */
+  rater_diagnostics?: Record<string, number>
 }): Promise<Rating | null> {
   const supabase = createClient()
   // Check if rating exists
