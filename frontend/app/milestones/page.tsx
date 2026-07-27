@@ -27,6 +27,27 @@ function extractResourceId(id?: string, url?: string): string | null {
   return null
 }
 
+/**
+ * 1–2 short bullets on how a tool helps with a category (Odosa). Prefers
+ * agent-provided points; otherwise derives them from the tool description +
+ * category so existing paths still read well.
+ */
+function deriveHelpBullets(tool: any, categoryName: string): string[] {
+  const desc = String(tool?.desc || '').trim()
+  const bullets = desc
+    .split(/(?<=[.;])\s+/)
+    .map((s: string) => s.trim().replace(/[.;]+$/, ''))
+    .filter(Boolean)
+    .slice(0, 2)
+  if (bullets.length === 0) {
+    bullets.push(`A recommended ${String(tool?.type || 'tool').toLowerCase()} for this milestone`)
+  }
+  if (bullets.length === 1) {
+    bullets.push(`Chosen to support your ${categoryName || 'needs'} on this step`)
+  }
+  return bullets.slice(0, 2)
+}
+
 export default function MilestoneView() {
   const router = useRouter()
   const { pathPlanning, toolRecommendation, patternRecognition, payload, loading } = useAgentPath()
@@ -403,7 +424,7 @@ export default function MilestoneView() {
           <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
         </div>
 
-        {/* Unified table: Tools to Use | Barriers to Unlock (Odosa: one table) */}
+        {/* Tools to Use — each tool shows what it helps with (Odosa redesign) */}
         <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
           {/* Collapsible toggle — lets users slim the page (Odosa: dropdown) */}
           <button
@@ -413,33 +434,18 @@ export default function MilestoneView() {
             className="w-full flex items-center justify-between px-4 py-2.5 bg-amber-50 hover:bg-amber-100 border-b border-amber-200 transition-colors"
           >
             <span className="font-bold text-amber-900 flex items-center gap-2 text-sm">
-              <Wrench className="w-4 h-4" /> Tools &amp; Barriers
+              <Wrench className="w-4 h-4" /> Tools to Use
             </span>
             <span className="flex items-center gap-2 text-xs text-amber-700">
-              <span>{tools.length} tools · {barriers.length} barriers</span>
+              <span>{tools.length} {tools.length === 1 ? 'tool' : 'tools'}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
             </span>
           </button>
           {toolsOpen && (<>
-          {/* Mobile: a single combined header. The split two-column headers only
-              read correctly when the columns sit side-by-side (md+); on a narrow
-              screen the grid collapses and the two headers would stack away from
-              their cells, so we show one header here instead. */}
-          <div className="md:hidden bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 px-4 py-3">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools &amp; Barriers</h2>
-            <p className="text-amber-50 text-xs">Each tool pairs with a barrier to unlock — rate how effective it was.</p>
-          </div>
-          {/* Desktop: two column headers */}
-          <div className="hidden md:grid md:grid-cols-2">
-            {/* Column headers */}
-            <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools to Use</h2>
-              <p className="text-amber-100 text-xs">Add to your ResourceHub list</p>
-            </div>
-            <div className="bg-gradient-to-r from-red-400 to-rose-500 px-4 py-3 border-l border-white/30">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2"><Shield className="w-5 h-5" /> Barriers to Unlock</h2>
-              <p className="text-red-100 text-xs">Rate how effective the tool was</p>
-            </div>
+          {/* Single full-width header */}
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools to Use</h2>
+            <p className="text-amber-100 text-xs">Each tool shows what it helps with — add the ones that fit and rate how well they work.</p>
           </div>
 
           {/* Tool symbol legend (spans both columns) */}
@@ -451,113 +457,95 @@ export default function MilestoneView() {
             ))}
           </div>
 
-          {/* Rows: pair each tool with a barrier, side by side */}
-          {tools.length === 0 && barriers.length === 0 && (
+          {/* Full-width tool cards — each shows what it helps with (Odosa) */}
+          {tools.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-slate-500">
-              No tools or barriers yet for this milestone — they’ll appear once the AI finishes recommending resources.
+              No tools yet for this milestone — they’ll appear once the AI finishes recommending resources.
             </div>
           )}
           <div className="divide-y divide-amber-100">
-            {Array.from({ length: Math.max(tools.length, barriers.length) }).map((_, rowIdx) => {
-              const tool = tools[rowIdx]
-              const barrier = barriers[rowIdx]
-              // Prefer local (just-clicked) state, else the server value keyed
-              // by the tool's real resource UUID.
-              const status = tool
-                ? (toolStatus[tool.id] || (tool.resourceId ? serverStatusByResource[tool.resourceId] : undefined))
-                : undefined
-              const isUnlocked = barrier ? unlockedBarriers.has(barrier.id) : false
-              const rating = barrier
-                ? (barrierRatings[barrier.id] || (tool?.resourceId ? serverRatingByResource[tool.resourceId] : 0) || 0)
-                : 0
+            {tools.map((tool: any) => {
+              const status = toolStatus[tool.id] || (tool.resourceId ? serverStatusByResource[tool.resourceId] : undefined)
+              const rating = barrierRatings[tool.barrier] || (tool.resourceId ? serverRatingByResource[tool.resourceId] : 0) || 0
+              const category = barriers.find((b: any) => b.id === tool.barrier)
+              const categoryName = category?.name || 'General support'
+              // Agent-provided per-category help, else a client-derived fallback.
+              const helpGroups: { category: string; points: string[] }[] =
+                Array.isArray(tool.helpsWith) && tool.helpsWith.length
+                  ? tool.helpsWith.map((h: any) => ({
+                      category: String(h.category || categoryName),
+                      points: (Array.isArray(h.points) ? h.points : []).map((x: any) => String(x)).filter(Boolean).slice(0, 2),
+                    }))
+                  : [{ category: categoryName, points: deriveHelpBullets(tool, categoryName) }]
               return (
-                <div key={rowIdx} className="grid grid-cols-1 md:grid-cols-2">
-                  {/* LEFT: Tool cell */}
-                  <div className="p-3 md:border-r border-amber-100">
-                    {tool && (
-                      <div className="md:hidden text-[10px] font-bold uppercase tracking-wide text-amber-600 mb-1.5 flex items-center gap-1">
-                        <Wrench className="w-3 h-3" /> Tool to use
+                <div key={tool.id} className="p-4">
+                  <div className={`rounded-xl border-2 p-4 transition-all ${status ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200'}`}>
+                    {/* Tool header */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{tool.symbol}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-800">{tool.name}</div>
+                        <div className="text-xs text-slate-500">{tool.type}</div>
                       </div>
-                    )}
-                    {tool ? (
-                      <div className={`rounded-xl border-2 p-3 transition-all ${status ? 'bg-green-50 border-green-300' : 'bg-white border-amber-200'}`}>
-                        <button onClick={() => setExpandedTool(expandedTool === tool.id ? null : tool.id)} className="w-full text-left">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{tool.symbol}</span>
-                            <div className="flex-1">
-                              <div className="font-bold text-sm text-slate-800">{tool.name}</div>
-                              <div className="text-xs text-slate-500">{tool.type} · {tool.desc}</div>
-                            </div>
-                          </div>
-                        </button>
-                        {/* Wishlist / Currently Using toggles (Odosa) */}
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => setToolStatusFor(tool, 'wishlist')}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
-                          >
-                            <Bookmark className="w-3 h-3" /> Wishlist
-                          </button>
-                          <button
-                            onClick={() => setToolStatusFor(tool, 'current')}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
-                          >
-                            <CheckCircle2 className="w-3 h-3" /> Currently Using
-                          </button>
-                        </div>
-                        {expandedTool === tool.id && (
-                          <div className="mt-2 pt-2 border-t border-amber-100 text-xs text-slate-600">
-                            <p>→ Targets barrier: <strong>{barriers.find(b => b.id === tool.barrier)?.name}</strong></p>
-                            <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline mt-1 block">Open resource →</a>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="hidden md:block h-full min-h-[60px] rounded-xl border-2 border-dashed border-amber-100" />
-                    )}
-                  </div>
+                    </div>
 
-                  {/* RIGHT: Barrier cell */}
-                  <div className="p-3">
-                    {barrier && (
-                      <div className="md:hidden text-[10px] font-bold uppercase tracking-wide text-red-600 mb-1.5 flex items-center gap-1">
-                        <Shield className="w-3 h-3" /> Barrier to unlock
-                      </div>
-                    )}
-                    {barrier ? (
-                      <div className={`relative rounded-xl border-2 p-3 transition-all ${isUnlocked ? 'border-green-300 bg-green-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'}`}>
-                        <div className="flex items-start gap-3">
-                          <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${isUnlocked ? 'bg-green-200' : 'bg-red-200'}`}>
-                            {isUnlocked ? <Unlock className="w-4 h-4 text-green-600" /> : <Lock className="w-4 h-4 text-red-600" />}
-                          </div>
-                          <div className="flex-1">
-                            <div className={`font-bold text-sm ${isUnlocked ? 'text-green-700' : 'text-red-800'}`}>{barrier.name}</div>
-                            <div className="text-[9px] text-slate-500 mt-0.5">Severity: {'🔥'.repeat(barrier.severity)}{isUnlocked && <span className="text-green-600 font-bold ml-1">CLEARED!</span>}</div>
-                            {/* 5-star Effectiveness rating (replaces "Use Tool") */}
-                            <div className="flex items-center gap-1 mt-2">
-                              <span className="text-[10px] font-semibold text-slate-500 mr-1">Effectiveness:</span>
-                              {[1, 2, 3, 4, 5].map(star => (
-                                <button key={star} onClick={() => rateBarrier(barrier.id, star, tool?.resourceId)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
-                                  <Star className={`w-4 h-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
-                                </button>
+                    {/* What this helps with */}
+                    <div className="mt-3 rounded-lg bg-amber-50/70 border border-amber-100 p-3">
+                      <div className="text-xs font-bold uppercase tracking-wide text-amber-700 mb-2">What this helps with</div>
+                      <div className="space-y-2.5">
+                        {helpGroups.map((g, gi) => (
+                          <div key={gi}>
+                            <div className="text-sm font-semibold text-slate-800">Category: {g.category}</div>
+                            <ul className="mt-1 space-y-0.5">
+                              {g.points.map((pt, pi) => (
+                                <li key={pi} className="text-xs text-slate-600 flex gap-1.5">
+                                  <span className="text-amber-500 flex-shrink-0">•</span><span>{pt}</span>
+                                </li>
                               ))}
-                            </div>
+                            </ul>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="hidden md:block h-full min-h-[60px] rounded-xl border-2 border-dashed border-red-100" />
-                    )}
+                    </div>
+
+                    {/* Wishlist / Currently Using + open */}
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <button
+                        onClick={() => setToolStatusFor(tool, 'wishlist')}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
+                      >
+                        <Bookmark className="w-3 h-3" /> Wishlist
+                      </button>
+                      <button
+                        onClick={() => setToolStatusFor(tool, 'current')}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" /> Currently Using
+                      </button>
+                      <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-sky-600 hover:underline inline-flex items-center gap-1">
+                        Open <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+
+                    {/* Effectiveness rating (kept; severity removed per Odosa) */}
+                    <div className="flex items-center gap-1 mt-3 pt-3 border-t border-amber-100">
+                      <span className="text-[11px] font-semibold text-slate-500 mr-1">How well did it help?</span>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button key={star} onClick={() => rateBarrier(tool.barrier, star, tool.resourceId)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
+                          <Star className={`w-4 h-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )
             })}
           </div>
 
-          {/* Unlock progress (spans both columns) */}
+          {/* Progress — categories your rated tools address */}
           <div className="px-4 py-3 bg-amber-50/60 border-t border-amber-200">
             <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-              <span>Barriers Cleared</span>
+              <span>Categories addressed</span>
               <span>{unlockedBarriers.size}/{barriers.length}</span>
             </div>
             <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
