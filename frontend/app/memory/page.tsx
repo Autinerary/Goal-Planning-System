@@ -34,60 +34,20 @@ export default function MemoryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <Link href="/path" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4">
-          <ArrowLeft className="w-4 h-4" /> Back to my Path
+        <Link href="/reflection" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back to Journal
         </Link>
 
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="w-6 h-6 text-purple-500" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Memory</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Quick Note to Self</h1>
         </div>
-        <p className="text-slate-600 mb-6">
-          Notes to your future self, and the pattern of when you show up — so you know what to aim for.
+        <p className="text-slate-600 mb-2">
+          Leave a note for your future self — an encouragement to keep going, or a nudge to do better.
         </p>
-
-        {/* Typical pattern & best day */}
-        <div className="mb-8 rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-cyan-500" /> Typical pattern &amp; best day
-          </h2>
-
-          {stats.totalActive === 0 ? (
-            <p className="text-sm text-slate-500">
-              Complete a task to start building your pattern. Your most active day will show up here.
-            </p>
-          ) : (
-            <>
-              <div className="flex items-end justify-between gap-2 h-28 mb-2">
-                {stats.counts.map((c, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-                    <div
-                      className={`w-full rounded-t-md ${i === stats.bestDayIndex ? 'bg-gradient-to-t from-cyan-500 to-purple-500' : 'bg-slate-200'}`}
-                      style={{ height: `${(c / maxCount) * 100}%`, minHeight: c > 0 ? '6px' : '0' }}
-                      title={`${WEEKDAYS[i]}: ${c} active day${c === 1 ? '' : 's'}`}
-                    />
-                    <span className="text-[10px] text-slate-500 mt-1">{WEEKDAYS_SHORT[i]}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm mt-3">
-                {bestDay && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                    <CalendarDays className="w-4 h-4" /> Best day: <strong>{bestDay}</strong>
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
-                  <Flame className="w-4 h-4" /> {streak.current}-day streak · best {streak.longest}
-                </span>
-              </div>
-              {bestDay && (
-                <p className="text-xs text-slate-500 mt-3">
-                  You show up most on <strong>{bestDay}</strong>s — a good day to tackle something bigger.
-                </p>
-              )}
-            </>
-          )}
-        </div>
+        <p className="text-xs text-slate-500 mb-6 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 inline-block">
+          💡 Your latest note shows up on your <strong>Path</strong> when you come back, so future-you actually sees it.
+        </p>
 
         {/* Messages to future self */}
         <div className="rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
@@ -164,6 +124,49 @@ export default function MemoryPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Typical pattern & best day */}
+        <div className="mb-8 rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-cyan-500" /> Typical pattern &amp; best day
+          </h2>
+
+          {stats.totalActive === 0 ? (
+            <p className="text-sm text-slate-500">
+              Complete a task to start building your pattern. Your most active day will show up here.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-end justify-between gap-2 h-28 mb-2">
+                {stats.counts.map((c, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                    <div
+                      className={`w-full rounded-t-md ${i === stats.bestDayIndex ? 'bg-gradient-to-t from-cyan-500 to-purple-500' : 'bg-slate-200'}`}
+                      style={{ height: `${(c / maxCount) * 100}%`, minHeight: c > 0 ? '6px' : '0' }}
+                      title={`${WEEKDAYS[i]}: ${c} active day${c === 1 ? '' : 's'}`}
+                    />
+                    <span className="text-[10px] text-slate-500 mt-1">{WEEKDAYS_SHORT[i]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm mt-3">
+                {bestDay && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                    <CalendarDays className="w-4 h-4" /> Best day: <strong>{bestDay}</strong>
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 border border-orange-200">
+                  <Flame className="w-4 h-4" /> {streak.current}-day streak · best {streak.longest}
+                </span>
+              </div>
+              {bestDay && (
+                <p className="text-xs text-slate-500 mt-3">
+                  You show up most on <strong>{bestDay}</strong>s — a good day to tackle something bigger.
+                </p>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

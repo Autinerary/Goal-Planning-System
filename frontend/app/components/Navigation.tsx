@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
-import { LogOut, User, ExternalLink, Settings, PlayCircle, Brain, Film, Users } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle, Film, Users } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import { goHubHref } from '@/lib/serviceHub'
 
@@ -65,14 +65,7 @@ export default function Navigation() {
 
             <NotificationBell />
 
-            <Link
-              href="/memory"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
-              title="Memory — notes to your future self & your best day"
-            >
-              <Brain className="w-4 h-4" />
-              <span className="hidden lg:inline">Memory</span>
-            </Link>
+            {/* "Memory" moved into the Journal as "Quick Note to Self" (Odosa). */}
 
             {/* Family — supervise children (hidden for managed child accounts) */}
             {!supabaseUser?.user_metadata?.managed_by_guardian && (
