@@ -31,7 +31,7 @@ export async function GET(
   const { data: post, error } = await client
     .from('community_posts')
     .select(
-      'id, author_id, title, body_markdown, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
+      'id, author_id, title, body_markdown, unlocking_moment, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
     )
     .eq('id', postId)
     .maybeSingle();
@@ -88,6 +88,7 @@ export async function GET(
     title: post.title,
     excerpt: markdownExcerpt(post.body_markdown, 220),
     body_markdown: post.body_markdown,
+    unlocking_moment: post.unlocking_moment ?? null,
     image_urls: post.image_urls ?? [],
     author: authorMap.get(post.author_id) ?? {
       user_id: post.author_id,

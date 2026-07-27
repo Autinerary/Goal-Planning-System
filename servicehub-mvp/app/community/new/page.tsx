@@ -21,6 +21,7 @@ export default function NewPostPage() {
   })()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [unlockingMoment, setUnlockingMoment] = useState('')
   const [barrierInput, setBarrierInput] = useState('')
   const [barriers, setBarriers] = useState<string[]>([])
   const [categoryInput, setCategoryInput] = useState('')
@@ -49,6 +50,7 @@ export default function NewPostPage() {
         body: JSON.stringify({
           title: title.trim(),
           body_markdown: body.trim(),
+          unlocking_moment: unlockingMoment.trim(),
           barrier_tags: barriers,
           category_tags: categories,
           image_urls: imageUrls,
@@ -136,11 +138,30 @@ export default function NewPostPage() {
         </p>
       </div>
 
+      {/* Unlocking moment — the key sentence that turned the story around (Odosa) */}
       <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-900">Barrier tags</label>
+        <label className="block text-sm font-medium text-gray-900 flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-amber-500" /> Unlocking moment
+        </label>
         <p className="text-xs text-gray-500">
-          What kind of barrier is this? e.g. <code>anxiety</code>, <code>paperwork</code>,{' '}
-          <code>job-search</code>. Press Enter to add.
+          The key sentence that turned things around — the one thing that unlocked it for you. This gets highlighted at the top of your story.
+        </p>
+        <textarea
+          value={unlockingMoment}
+          onChange={(e) => setUnlockingMoment(e.target.value.slice(0, 280))}
+          maxLength={280}
+          placeholder='e.g. "Once I asked for written instructions instead of verbal, everything clicked."'
+          className="w-full rounded-xl border border-amber-200 bg-amber-50/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          rows={2}
+        />
+        <p className="text-xs text-gray-400 text-right">{unlockingMoment.length} / 280 (optional)</p>
+      </div>
+
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-900">Norms</label>
+        <p className="text-xs text-gray-500">
+          Which of your norms does this relate to? e.g. <code>anxiety</code>, <code>adhd</code>,{' '}
+          <code>first-gen</code>. Press Enter to add.
         </p>
         <div className="flex flex-wrap gap-1.5 items-center rounded-xl border border-gray-300 px-2 py-1.5 focus-within:ring-2 focus-within:ring-blue-500">
           {barriers.map((t) => (

@@ -105,7 +105,7 @@ function FeedInner() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tidbits</h1>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            Ask, share, and learn from people facing the same barriers. Always pseudonymous.
+            Ask, share, and learn from people who share your norms. Always pseudonymous.
           </p>
         </div>
         <Link
@@ -136,7 +136,7 @@ function FeedInner() {
           onChange={(e) => setBarrier(e.target.value.toLowerCase())}
           onBlur={() => setQuery({ barrier })}
           onKeyDown={(e) => e.key === 'Enter' && setQuery({ barrier })}
-          placeholder="Filter by barrier tag"
+          placeholder="Filter by norm"
           className="sm:w-56 px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -206,6 +206,12 @@ function FeedInner() {
                     <p className="text-sm text-emerald-700 mb-1 line-clamp-2">
                       <Sparkles className="inline w-3.5 h-3.5 mr-1" />
                       <span className="font-medium">Solved insight:</span> {p.solved_key_insight}
+                    </p>
+                  )}
+                  {p.unlocking_moment && (
+                    <p className="text-sm text-amber-800 mb-1 line-clamp-2 italic">
+                      <Sparkles className="inline w-3.5 h-3.5 mr-1 text-amber-500" />
+                      “{p.unlocking_moment}”
                     </p>
                   )}
                   <p className="text-sm text-gray-600 line-clamp-2">{p.excerpt}</p>

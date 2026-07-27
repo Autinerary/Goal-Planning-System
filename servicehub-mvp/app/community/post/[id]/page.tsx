@@ -8,6 +8,7 @@ import {
   Lock,
   ShieldAlert,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react'
 import type { CommunityPostDetail, CommunityAnswerNode } from '@/types/community'
 import VoteButton from '@/components/community/VoteButton'
@@ -169,6 +170,15 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             disabled={post.is_locked}
           />
           <div className="flex-1 min-w-0">
+            {/* Unlocking moment — the author's highlighted key sentence (Odosa) */}
+            {post.unlocking_moment && (
+              <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 mb-4">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-1 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Unlocking moment
+                </div>
+                <p className="text-sm text-amber-900 font-medium italic">“{post.unlocking_moment}”</p>
+              </div>
+            )}
             <Markdown source={post.body_markdown} />
             {post.image_urls.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">

@@ -92,6 +92,8 @@ export interface CommunityPostSummary {
   id: string;
   title: string;
   excerpt: string;
+  /** Author-highlighted key sentence / unlocking moment (optional). */
+  unlocking_moment?: string | null;
   author: CommunityAuthorBadge;
   barrier_tags: string[];
   category_tags: string[];
@@ -115,6 +117,8 @@ export interface CommunityPostSummary {
  */
 export interface CommunityPostDetail extends CommunityPostSummary {
   body_markdown: string;
+  /** Author-highlighted key sentence / unlocking moment (optional). */
+  unlocking_moment: string | null;
   image_urls: string[];
   answers: CommunityAnswerNode[];
   viewer_can_edit: boolean;
