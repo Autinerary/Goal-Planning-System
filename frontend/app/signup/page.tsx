@@ -5,17 +5,23 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, UserPlus, Loader2, Check } from 'lucide-react'
+import { computeAge, isAdult, MIN_SIGNUP_AGE } from '@/lib/age'
 
 export default function SignupPage() {
   const router = useRouter()
   const { signup, isLoading } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [dob, setDob] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Under-18 flagged live once a full DOB is entered.
+  const dobAge = dob ? computeAge(dob) : null
+  const underAge = dobAge !== null && dobAge < MIN_SIGNUP_AGE
 
   const passwordRequirements = [
     { test: (p: string) => p.length >= 8, label: 'At least 8 characters' },
@@ -40,8 +46,18 @@ export default function SignupPage() {
       return
     }
 
+    // 18+ gate (also enforced server-side).
+    if (!dob) {
+      setError('Please enter your date of birth.')
+      return
+    }
+    if (!isAdult(dob)) {
+      setError('You must be 18 or older to create your own account.')
+      return
+    }
+
     setIsSubmitting(true)
-    const result = await signup(email.trim().toLowerCase(), password, name)
+    const result = await signup(email.trim().toLowerCase(), password, name, dob)
     
     if (result.success) {
       router.push('/onboarding')
@@ -99,6 +115,33 @@ export default function SignupPage() {
                 required
               />
             </div>
+
+            {/* Date of birth (18+ gate) */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Date of birth
+              </label>
+              <input
+                type="date"
+                value={dob}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                required
+              />
+              <p className="text-xs text-slate-500 mt-1">You must be 18 or older to create your own account.</p>
+            </div>
+
+            {/* Under-18 explainer */}
+            {underAge && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                <p className="font-semibold mb-0.5">Under 18?</p>
+                <p>
+                  You can’t create your own account yet — but a parent or guardian with an account can add you and
+                  set things up for you. Ask them to sign up, then add you from their <strong>Family</strong> page.
+                </p>
+              </div>
+            )}
 
             {/* Email */}
             <div>

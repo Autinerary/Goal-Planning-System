@@ -17,7 +17,7 @@ interface AuthContextType {
   supabaseUser: SupabaseUser | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
-  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>
+  signup: (email: string, password: string, name: string, dateOfBirth?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   completeOnboarding: (pathId: string) => Promise<void>
 }
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoading, pathname, router])
 
-  const signup = useCallback(async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
+  const signup = useCallback(async (email: string, password: string, name: string, dateOfBirth?: string): Promise<{ success: boolean; error?: string }> => {
     if (!supabase) return { success: false, error: 'Auth not available' }
 
     try {
@@ -130,10 +130,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, password, name }),
+        body: JSON.stringify({ email: normalizedEmail, password, name, dateOfBirth }),
       })
       const body = await res.json()
-      if (!res.ok) return { success: false, error: body.error || 'Signup failed' }
+      // Prefer the friendly `message` (e.g. the under-18 explanation) over `error`.
+      if (!res.ok) return { success: false, error: body.message || body.error || 'Signup failed' }
 
       // Now sign in to get a real session
       const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })

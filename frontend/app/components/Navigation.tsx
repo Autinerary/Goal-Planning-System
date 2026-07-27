@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
-import { LogOut, User, ExternalLink, Settings, PlayCircle, Brain, Film } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle, Brain, Film, Users } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import { goHubHref } from '@/lib/serviceHub'
 
@@ -17,7 +17,7 @@ function goToServiceHub() {
 const hideNavRoutes = ['/', '/login', '/signup', '/onboarding']
 
 export default function Navigation() {
-  const { user, logout, isLoading } = useAuth()
+  const { user, supabaseUser, logout, isLoading } = useAuth()
   const { t } = useTranslation()
   const pathname = usePathname()
 
@@ -73,6 +73,18 @@ export default function Navigation() {
               <Brain className="w-4 h-4" />
               <span className="hidden lg:inline">Memory</span>
             </Link>
+
+            {/* Family — supervise children (hidden for managed child accounts) */}
+            {!supabaseUser?.user_metadata?.managed_by_guardian && (
+              <Link
+                href="/family"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+                title="Family — add & supervise children"
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden lg:inline">Family</span>
+              </Link>
+            )}
 
             <Link
               href="/under-construction?feature=Progress%20Reels"
