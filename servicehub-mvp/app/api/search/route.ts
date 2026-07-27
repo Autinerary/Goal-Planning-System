@@ -7,6 +7,7 @@ import {
 } from '@/lib/supabase/queries'
 import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
+import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -58,6 +59,9 @@ export async function GET(request: NextRequest) {
       : undefined
     const conditions = searchParams.get('conditions')
       ? searchParams.get('conditions')!.split(',').filter(Boolean)
+      : undefined
+    const lifeAreas = searchParams.get('lifeAreas')
+      ? searchParams.get('lifeAreas')!.split(',').filter(Boolean)
       : undefined
     const ratingStars = searchParams.get('ratingStars')
       ? searchParams
@@ -116,6 +120,7 @@ export async function GET(request: NextRequest) {
       categories,
       barriers,
       conditions,
+      lifeAreas,
       ratingStars,
       minRating,
       minPrice,
@@ -184,9 +189,25 @@ export async function GET(request: NextRequest) {
         .eq('status', 'approved')
         .limit(pageSize)
 
+      // Apply the best-effort Life-area keyword filter to semantic results too,
+      // so a query + life-area combination stays consistent with keyword search.
+      let filteredSemantic = semanticResources || []
+      if (lifeAreas && lifeAreas.length > 0) {
+        const keywords = lifeAreaKeywords(lifeAreas)
+        if (keywords.length > 0) {
+          filteredSemantic = filteredSemantic.filter((r: any) => {
+            const tags = Array.isArray(r.tags) ? r.tags.join(' ') : ''
+            const cats = Array.isArray(r.category_tags) ? r.category_tags.join(' ') : ''
+            const haystack =
+              `${r.name || ''} ${r.description || ''} ${r.category || ''} ${tags} ${cats}`.toLowerCase()
+            return keywords.some((k) => haystack.includes(k))
+          })
+        }
+      }
+
       // Merge results
       const combinedResults = [
-        ...(semanticResources || []).map((r) => {
+        ...filteredSemantic.map((r) => {
           const semanticMatch = semanticResults.find((s: any) => (s.resource_id || s.id) === r.id)
           return { ...r, similarity: semanticMatch?.similarity || 0 }
         }),

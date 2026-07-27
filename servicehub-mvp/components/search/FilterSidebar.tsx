@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import ConditionsFilter from './ConditionsFilter'
 import CostFilter from './CostFilter'
 import RatingChipsFilter from './RatingChipsFilter'
+import { LIFE_AREAS } from '@/lib/search/lifeAreas'
 
 interface BarrierCategory {
   category: string
@@ -16,6 +17,7 @@ interface FilterSidebarProps {
   categories: string[]
   barriers: string[]
   conditions: string[]
+  lifeAreas: string[]
   minRating?: number
   ratingStars: number[]
   minPrice?: number
@@ -23,6 +25,7 @@ interface FilterSidebarProps {
   maxDistance?: number
   onCategoryToggle: (category: string) => void
   onBarrierToggle: (barrier: string) => void
+  onLifeAreaToggle: (area: string) => void
   onConditionsChange: (next: string[]) => void
   onMinRatingChange: (rating: number | undefined) => void
   onRatingStarsChange: (next: number[]) => void
@@ -35,6 +38,7 @@ export default function FilterSidebar({
   categories: selectedCategories,
   barriers: selectedBarriers,
   conditions: selectedConditions,
+  lifeAreas: selectedLifeAreas,
   minRating,
   ratingStars,
   minPrice,
@@ -42,6 +46,7 @@ export default function FilterSidebar({
   maxDistance,
   onCategoryToggle,
   onBarrierToggle,
+  onLifeAreaToggle,
   onConditionsChange,
   onMinRatingChange,
   onRatingStarsChange,
@@ -173,6 +178,32 @@ export default function FilterSidebar({
             <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} />
             </>
           )}
+        </div>
+      </div>
+
+      {/* Life area — folded-in Resource Roadmap domains (Odosa). Filters
+          resources by life domain. Matching is best-effort, so some domains
+          may return few results until resources are tagged. */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Life area</h3>
+        <p className="text-xs text-gray-500 mb-3">
+          Filter by life domain (from the Resource Roadmap).
+        </p>
+        <div className="space-y-2">
+          {LIFE_AREAS.map((area) => (
+            <label
+              key={area.id}
+              className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+            >
+              <input
+                type="checkbox"
+                checked={selectedLifeAreas.includes(area.id)}
+                onChange={() => onLifeAreaToggle(area.id)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="ml-2 text-sm text-gray-700">{area.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 

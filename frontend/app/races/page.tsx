@@ -471,12 +471,11 @@ function RacesContent() {
       { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
       { emoji: '🏪', name: 'ResourceHub', desc: 'Curated services & support', href: hub,                                     ext: true  },
       { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/pit-stop?tab=haveworld&view=people',   ext: false },
-      { emoji: '�️', name: 'Roadmap',     desc: 'Upcoming resources',        href: '/resource-roadmap',                     ext: false },
-      { emoji: '�💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community?from=hare-world&context=races`, ext: true  },
+      { emoji: '💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community?from=hare-world&context=races`, ext: true  },
     ]
     return (
       <div className="w-full max-w-3xl px-2 my-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {shops.map(s => {
             const inner = (
               <>

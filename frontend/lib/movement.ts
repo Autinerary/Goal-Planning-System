@@ -37,7 +37,6 @@ const LABELS: { test: RegExp; label: string }[] = [
   { test: /^\/stats/, label: 'Stats' },
   { test: /^\/tools/, label: 'Tools' },
   { test: /^\/ideal-self/, label: 'Ideal Self' },
-  { test: /^\/resource-roadmap/, label: 'Resource Roadmap' },
   { test: /^\/recommend-choices/, label: 'Recommend Choices' },
   { test: /^\/compare/, label: 'Compare' },
   { test: /^\/friend/, label: 'Friend' },

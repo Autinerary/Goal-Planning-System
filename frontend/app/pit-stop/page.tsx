@@ -646,29 +646,27 @@ function PitStopContent() {
         {/* Tools Tab - Redirects to ServiceHub */}
         {activeTab === 'tools' && (
           <div className="space-y-4">
-            {/* Resource Roadmap CTA — upcoming resource types (Phase 3 seeding) */}
-            <Link href="/resource-roadmap" className="block group">
+            {/* Browse resources by life area — the former Resource Roadmap
+                domains, now a filter in ResourceHub Search. */}
+            <a href={goHubHref('/search')} target="_blank" rel="noopener noreferrer" className="block group">
               <div className="rounded-2xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Sparkles className="w-5 h-5 text-cyan-600" aria-hidden="true" />
-                      <span className="px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-xs font-semibold uppercase tracking-wide">
-                        Coming soon
-                      </span>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900">Resource Roadmap</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Browse resources by life area</h3>
                     <p className="text-sm text-slate-600 mt-1">
-                      New resource areas we&apos;re building — insurance &amp; legacy planning, workplace
-                      fit, independent living, after-school activities, and Tidbits.
+                      Filter resources by life domain — insurance &amp; legacy planning, workplace
+                      fit, independent living, and after-school activities — in ResourceHub Search.
                     </p>
                   </div>
                   <span className="hidden sm:block text-xs font-medium text-cyan-700 group-hover:underline whitespace-nowrap">
-                    View roadmap →
+                    Open search →
                   </span>
                 </div>
               </div>
-            </Link>
+            </a>
 
             {/* Agent-recommended pit-stop tools (from tool_recommendation agent) */}
             {(() => {

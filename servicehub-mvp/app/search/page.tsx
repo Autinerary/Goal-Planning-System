@@ -71,6 +71,7 @@ function SearchResults() {
   const categories = searchParams.get('categories')?.split(',').filter(Boolean) || []
   const barriers = searchParams.get('barriers')?.split(',').filter(Boolean) || []
   const conditions = searchParams.get('conditions')?.split(',').filter(Boolean) || []
+  const lifeAreas = searchParams.get('lifeAreas')?.split(',').filter(Boolean) || []
   const ratingStarsRaw = searchParams.get('ratingStars')?.split(',').filter(Boolean) || []
   const ratingStars = ratingStarsRaw.map((s) => Number(s)).filter((n) => !Number.isNaN(n))
   const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined
@@ -122,6 +123,7 @@ function SearchResults() {
           categories: categories.join(','),
           barriers: barriers.join(','),
           conditions: conditions.join(','),
+          lifeAreas: lifeAreas.join(','),
           ratingStars: ratingStars.join(','),
           minRating: minRating?.toString() || '',
           minPrice: minPrice?.toString() || '',
@@ -163,6 +165,7 @@ function SearchResults() {
     categories.join(','),
     barriers.join(','),
     conditions.join(','),
+    lifeAreas.join(','),
     ratingStars.join(','),
     minRating,
     minPrice,
@@ -197,6 +200,16 @@ function SearchResults() {
       updateSearchParams({ barriers: newBarriers })
     },
     [barriers, updateSearchParams]
+  )
+
+  const handleLifeAreaToggle = useCallback(
+    (area: string) => {
+      const newAreas = lifeAreas.includes(area)
+        ? lifeAreas.filter((a) => a !== area)
+        : [...lifeAreas, area]
+      updateSearchParams({ lifeAreas: newAreas })
+    },
+    [lifeAreas, updateSearchParams]
   )
 
   const handleConditionsChange = useCallback(
@@ -258,6 +271,7 @@ function SearchResults() {
       categories: undefined,
       barriers: undefined,
       conditions: undefined,
+      lifeAreas: undefined,
       ratingStars: undefined,
       minRating: undefined,
       minPrice: undefined,
@@ -271,6 +285,7 @@ function SearchResults() {
     categories.length > 0 ||
     barriers.length > 0 ||
     conditions.length > 0 ||
+    lifeAreas.length > 0 ||
     ratingStars.length > 0 ||
     minRating !== undefined ||
     minPrice !== undefined ||
@@ -302,6 +317,7 @@ function SearchResults() {
                   categories={categories}
                   barriers={barriers}
                   conditions={conditions}
+                  lifeAreas={lifeAreas}
                   minRating={minRating}
                   ratingStars={ratingStars}
                   minPrice={minPrice}
@@ -309,6 +325,7 @@ function SearchResults() {
                   maxDistance={maxDistance}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
+                  onLifeAreaToggle={handleLifeAreaToggle}
                   onConditionsChange={handleConditionsChange}
                   onMinRatingChange={handleMinRatingChange}
                   onRatingStarsChange={handleRatingStarsChange}
@@ -539,6 +556,7 @@ function SearchResults() {
                   categories={categories}
                   barriers={barriers}
                   conditions={conditions}
+                  lifeAreas={lifeAreas}
                   minRating={minRating}
                   ratingStars={ratingStars}
                   minPrice={minPrice}
@@ -546,6 +564,7 @@ function SearchResults() {
                   maxDistance={maxDistance}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
+                  onLifeAreaToggle={handleLifeAreaToggle}
                   onConditionsChange={handleConditionsChange}
                   onMinRatingChange={handleMinRatingChange}
                   onRatingStarsChange={handleRatingStarsChange}

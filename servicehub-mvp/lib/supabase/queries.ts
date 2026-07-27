@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
+import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 
 type SupabaseLike = SupabaseClient<any, any, any>
 
@@ -762,6 +763,12 @@ export interface SearchFilters {
    * tags + the keys of any rating's barrier_scores object.
    */
   conditions?: string[]
+  /**
+   * Life-area domain tokens (e.g. 'workplace', 'society', 'afterschool',
+   * 'legacy') from the folded-in Resource Roadmap. Matched best-effort against
+   * resource text/tags — see lib/search/lifeAreas.ts.
+   */
+  lifeAreas?: string[]
   minRating?: number // Minimum star rating (1-5)
   /**
    * One or more "X+ stars" buckets. If multiple are set (e.g. [4, 5]) the
@@ -970,6 +977,25 @@ export async function searchResources(
       return false
     })
     resourceIds = resources.map((r) => r.id)
+  }
+
+  // Filter by Life area (folded-in Resource Roadmap domains). Best-effort:
+  // a resource matches if its name/description/category/tags text contains any
+  // keyword for the selected areas. Not-yet-tagged domains may match nothing.
+  if (filters.lifeAreas && filters.lifeAreas.length > 0) {
+    const keywords = lifeAreaKeywords(filters.lifeAreas)
+    if (keywords.length > 0) {
+      resources = resources.filter((r) => {
+        const tags = Array.isArray((r as any).tags) ? (r as any).tags.join(' ') : ''
+        const cats = Array.isArray((r as any).category_tags)
+          ? (r as any).category_tags.join(' ')
+          : ''
+        const haystack =
+          `${r.name || ''} ${r.description || ''} ${r.category || ''} ${tags} ${cats}`.toLowerCase()
+        return keywords.some((k) => haystack.includes(k))
+      })
+      resourceIds = resources.map((r) => r.id)
+    }
   }
 
   // Resolve effective minimum rating: explicit minRating wins, else the
