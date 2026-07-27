@@ -48,12 +48,12 @@ export default function RatingsBreakdown({
     communication: 'Communication',
     wait_time: 'Wait Times',
     affordability: 'Affordability',
-    autism: 'Autism Support',
-    adhd: 'ADHD Support',
-    sensory: 'Sensory Support',
-    mobility: 'Mobility Access',
-    cognitive: 'Cognitive Support',
-    social: 'Social Support',
+    autism: 'Autism Friendliness',
+    adhd: 'ADHD Friendliness',
+    sensory: 'Sensory Friendliness',
+    mobility: 'Mobility Friendliness',
+    cognitive: 'Cognitive Friendliness',
+    social: 'Social Friendliness',
   }
 
   const getQualityName = (barrier: string): string => {

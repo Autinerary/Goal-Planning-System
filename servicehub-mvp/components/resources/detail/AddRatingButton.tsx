@@ -23,7 +23,7 @@ export default function AddRatingButton({ resourceId, onRatingAdded }: AddRating
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
       >
         <Plus className="w-4 h-4" aria-hidden="true" />
         Add Your Rating
