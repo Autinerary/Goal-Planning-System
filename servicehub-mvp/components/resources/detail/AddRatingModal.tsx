@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Star } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 import { formatErrorForUser } from '@/lib/errors/handler'
@@ -27,6 +27,20 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  // The rater's own diagnostics — shown so they see how their rating is filed.
+  const [diagnostics, setDiagnostics] = useState<{ type: string; severity: number }[]>([])
+  useEffect(() => {
+    fetch('/api/me/diagnostics', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (Array.isArray(j?.diagnostics)) setDiagnostics(j.diagnostics) })
+      .catch(() => {})
+  }, [])
+  const featureLabel = (f: string) =>
+    ({ autism: 'Autism', adhd: 'ADHD', ocd: 'OCD', bipolar: 'Bipolar', anxiety: 'Anxiety',
+       sensory_deaf: 'Deaf / HoH', sensory_blind: 'Blind / Low Vision',
+       physical_wheelchair: 'Wheelchair User', physical_mobility: 'Mobility',
+       intellectual: 'Intellectual Disability' } as Record<string, string>)[f]
+    || f.charAt(0).toUpperCase() + f.slice(1).replace(/_/g, ' ')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,6 +107,20 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* How this rating gets categorized (norm · level) */}
+          {diagnostics.length > 0 && (
+            <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
+              <div className="text-xs font-medium text-blue-800 mb-1">You're rating as:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {diagnostics.map((d) => (
+                  <span key={d.type} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-blue-700 border border-blue-200">
+                    {featureLabel(d.type)} · Level {d.severity}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[11px] text-blue-700/80 mt-1">Your rating helps others who share these norms, broken down by level.</p>
+            </div>
+          )}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
               {error}
