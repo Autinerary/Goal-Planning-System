@@ -102,7 +102,7 @@ function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: num
 // Step components
 const steps = [
   { id: 'character', title: 'Character Select', icon: User },
-  { id: 'barrierConnections', title: 'Systemic Barriers', icon: AlertCircle },
+  { id: 'barrierConnections', title: 'Your Norms', icon: AlertCircle },
   { id: 'location', title: 'Location', icon: User },
   { id: 'goalsAndDreams', title: 'Goals & Dreams', icon: Target },
   { id: 'motivation', title: 'Motivation Style', icon: Zap },
@@ -1312,8 +1312,8 @@ export default function OnboardingPage() {
           {/* Step 1: Role */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Systemic Barriers</h2>
-              <p className="text-slate-600 mb-2">Tell us about the systemic barriers you face — either describe them in your own words, or select manually below.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Norms</h2>
+              <p className="text-slate-600 mb-2">Tell us about your norms — the systemic realities you navigate — either describe them in your own words, or select manually below.</p>
               <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves — the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
 
               {/* Mode toggle */}
@@ -2588,7 +2588,7 @@ export default function OnboardingPage() {
                     <div className="text-7xl mb-4" style={{ animation: 'rocketFloat 2.5s ease-in-out infinite' }}>🚀</div>
                     <h3 className="text-2xl font-bold text-white mb-2">☁️ Welcome to Dream Land!</h3>
                     <p className="text-sky-100 text-sm max-w-sm mb-6">
-                      Our AI agents are analyzing the systemic barriers you face, your goals, and your location to find the best matches. Hang tight while we build your Dream Land.
+                      Our AI agents are analyzing your norms, your goals, and your location to find the best matches. Hang tight while we build your Dream Land.
                     </p>
                     <div className="space-y-2 w-full max-w-sm text-left">
                       <div className="flex items-center gap-3 text-sm text-sky-100">
