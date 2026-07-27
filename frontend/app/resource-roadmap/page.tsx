@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
+import { goHubHref } from '@/lib/serviceHub'
 
 /**
  * Resource Roadmap — a placeholder screen for resource *types* we are seeding
@@ -119,7 +120,7 @@ const CATEGORIES: Category[] = [
       'Ask for help anonymously',
       'Accepted-solution insights',
     ],
-    href: `${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=resource-roadmap`,
+    href: goHubHref('/community?from=hare-world&context=resource-roadmap'),
     external: true,
   },
 ]
@@ -211,7 +212,7 @@ export default function ResourceRoadmapPage() {
             Autinerary once approved.
           </p>
           <a
-            href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/resources/new?from=hare-world`}
+            href={goHubHref('/resources/new?from=hare-world')}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:shadow-lg transition-all"

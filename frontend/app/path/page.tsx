@@ -11,6 +11,7 @@ import FirstRunIntro from '../components/FirstRunIntro'
 import { useDisclosure } from '@/lib/disclosure'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import { saveSnapshot } from '@/lib/pathSnapshots'
+import { goHubHref } from '@/lib/serviceHub'
 import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -577,7 +578,7 @@ export default function PathView() {
             </div>
 
             <a
-              href={SERVICE_HUB_URL}
+              href={goHubHref('/')}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1 text-sm text-cyan-600 hover:text-cyan-700 font-medium py-2 rounded-lg hover:bg-cyan-50 transition-colors"
@@ -606,7 +607,7 @@ export default function PathView() {
             Journal
           </Link>
           <a
-            href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=path`}
+            href={goHubHref('/community?from=hare-world&context=path')}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"

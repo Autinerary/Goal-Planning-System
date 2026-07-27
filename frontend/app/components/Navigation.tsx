@@ -4,30 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
-import { createClient } from '@/lib/supabase/client'
 import { LogOut, User, ExternalLink, Settings, PlayCircle, Brain, Film } from 'lucide-react'
 import NotificationBell from './NotificationBell'
+import { goHubHref } from '@/lib/serviceHub'
 
-async function goToServiceHub() {
-  const base = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
-  const params = new URLSearchParams()
-
-  const profile = localStorage.getItem('autinerary_profile')
-  if (profile) params.set('profile', profile)
-
-  try {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.access_token) {
-      params.set('access_token', session.access_token)
-      params.set('refresh_token', session.refresh_token ?? '')
-    }
-  } catch {
-    // no session
-  }
-
-  const qs = params.toString()
-  window.location.href = qs ? `${base}?${qs}` : base
+function goToServiceHub() {
+  // Route through /go/servicehub, which forwards the session so the user lands
+  // on ServiceHub signed in (see lib/serviceHub.ts).
+  window.location.href = goHubHref('/')
 }
 
 const hideNavRoutes = ['/', '/login', '/signup', '/onboarding']

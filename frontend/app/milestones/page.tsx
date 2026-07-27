@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import { goHubHref } from '@/lib/serviceHub'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 
@@ -307,7 +308,7 @@ export default function MilestoneView() {
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="pattern_recognition" />
         <a
-          href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=milestones`}
+          href={goHubHref('/community?from=hare-world&context=milestones')}
           target="_blank"
           rel="noopener noreferrer"
           className="block group"
@@ -569,7 +570,7 @@ export default function MilestoneView() {
         {/* View all resources & ResourceHub (Odosa) */}
         <div className="mt-4 flex justify-center">
           <a
-            href={SERVICE_HUB_URL}
+            href={goHubHref('/')}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"

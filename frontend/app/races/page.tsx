@@ -8,6 +8,7 @@ import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { computeRaceProgress } from '@/lib/raceProgress'
+import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 
 /*
@@ -465,7 +466,7 @@ function RacesContent() {
 
   /* Storefront navigation row — Toolbox · ResourceHub · Hare World · Tidbits */
   const StorefrontRow = () => {
-    const hub = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
+    const hub = goHubHref('/')
     const shops: { emoji: string; name: string; desc: string; href: string; ext: boolean }[] = [
       { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
       { emoji: '🏪', name: 'ResourceHub', desc: 'Curated services & support', href: hub,                                     ext: true  },
@@ -939,7 +940,7 @@ function RacesContent() {
                 <div className={`${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
                   <h4 className={`font-bold text-xs mb-1 ${txt}`}>🏪 ResourceHub</h4>
                   <p className={`text-[10px] ${sub} mb-2 flex-1`}>Curated tools, services &amp; support matched to the barriers you face and your goals.</p>
-                  <a href={process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to ResourceHub →</a>
+                  <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to ResourceHub →</a>
                 </div>
                 <div className={`${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
                   <h4 className={`font-bold text-xs mb-1 ${txt}`}>🐰 Hare World</h4>
@@ -1608,7 +1609,7 @@ function RacesContent() {
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
-                    <a href={process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
+                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
               </div>

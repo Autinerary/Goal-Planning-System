@@ -9,6 +9,7 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import { goHubHref } from '@/lib/serviceHub'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -127,9 +128,8 @@ function PitStopContent() {
   const roleModelsWithMetrics = roleModels
 
   const handleToolsRedirect = () => {
-    // Pass `from=hare-world` so the ResourceHub navbar can offer a "Back to Hare World" link
-    const sep = SERVICE_HUB_URL.includes('?') ? '&' : '?'
-    const target = `${SERVICE_HUB_URL}${sep}from=hare-world`
+    // Route through /go/servicehub so the session is forwarded (lands signed in).
+    const target = goHubHref('/?from=hare-world')
     try {
       // Try replace first, fallback to href
       if (window.location.replace) {
@@ -723,7 +723,7 @@ function PitStopContent() {
                   Go to Resource Hub →
                 </button>
                 <a
-                  href={`${SERVICE_HUB_URL}${SERVICE_HUB_URL.includes('?') ? '&' : '?'}from=hare-world`}
+                  href={goHubHref('/?from=hare-world')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-cyan-600 hover:text-cyan-700 hover:underline"
@@ -741,7 +741,7 @@ function PitStopContent() {
           <div className="space-y-6">
             {/* Tidbits Community CTA */}
             <a
-              href={`${SERVICE_HUB_URL.replace(/\/$/, '')}/community?from=hare-world&context=pit-stop`}
+              href={goHubHref('/community?from=hare-world&context=pit-stop')}
               target="_blank"
               rel="noopener noreferrer"
               className="block group"
