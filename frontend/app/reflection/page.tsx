@@ -393,18 +393,26 @@ function ReflectionContent() {
               ))}
             </div>
             {learningOutcome && learningOutcome !== 'not_sure' && (
-              <label className={`mt-4 block text-sm font-medium ${currentTheme.text}`}>
-                How much did you complete? <span className="font-bold">{completionPercent}%</span>
+              <div className="mt-4">
+                <div className={`text-sm font-medium ${currentTheme.text} mb-2`}>
+                  How much did you complete? <span className="font-bold text-cyan-700">{completionPercent}%</span>
+                </div>
                 <input
                   type="range"
-                  min="0"
-                  max="100"
-                  step="10"
+                  min={0}
+                  max={100}
+                  step={10}
                   value={completionPercent}
+                  aria-label="How much did you complete?"
                   onChange={(event) => setCompletionPercent(Number(event.target.value))}
-                  className="mt-2 block w-full"
+                  onInput={(event) => setCompletionPercent(Number((event.target as HTMLInputElement).value))}
+                  className="block w-full h-2 rounded-full appearance-none cursor-pointer accent-cyan-600"
+                  style={{ background: `linear-gradient(to right, #0891b2 ${completionPercent}%, #e2e8f0 ${completionPercent}%)` }}
                 />
-              </label>
+                <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                  <span>0%</span><span>100%</span>
+                </div>
+              </div>
             )}
           </fieldset>
 
