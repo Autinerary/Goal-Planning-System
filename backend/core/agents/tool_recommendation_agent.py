@@ -15,6 +15,7 @@ table is read by the ServiceHub scorer, so the loop is shared across
 products. See backend/core/learning.py and 2026_universal_agent_learning.sql.
 """
 
+import json
 import os
 from typing import List, Dict, Any, Optional
 
@@ -141,6 +142,29 @@ class ToolRecommendationAgent(BaseAgent):
         # Get pit stop tools (general quick-access tools)
         pit_stop_tools = await self._get_pit_stop_tools(barriers)
 
+        # Per-category "how it helps" bullets (Odosa). ONE batched LLM call over
+        # the unique tools, matched back onto every recommendation instance by
+        # name. The milestone view renders tool.helpsWith directly.
+        if llm.is_enabled() and barriers:
+            pit_flat = [t for arr in (pit_stop_tools or {}).values() for t in (arr or [])]
+            unique: Dict[str, Dict[str, Any]] = {}
+            for t in all_tools + pit_flat:
+                nm = (t.get('name') or '').strip()
+                if nm and nm not in unique:
+                    unique[nm] = t
+                if len(unique) >= 24:
+                    break
+            if unique:
+                try:
+                    help_map = await self._generate_helps_with(list(unique.values()), barriers)
+                    for arr in list(recommendations.values()) + list((pit_stop_tools or {}).values()):
+                        for t in (arr or []):
+                            hw = help_map.get((t.get('name') or '').strip())
+                            if hw:
+                                t['helpsWith'] = hw
+                except Exception as e:
+                    print(f"[tool_recommendation] helpsWith generation skipped: {e}")
+
         explanation = f'Found {len(all_tools)} relevant tools across {len(milestones)} milestones'
         if llm.is_enabled() and all_tools:
             sample_names = [t.get('name', '') for t in all_tools[:5]]
@@ -167,7 +191,70 @@ class ToolRecommendationAgent(BaseAgent):
             'confidence': 0.78,
             'explanation': explanation
         }
-    
+
+    async def _generate_helps_with(
+        self,
+        tools: List[Dict[str, Any]],
+        barriers: List[str],
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """One batched LLM pass mapping tools → the user's barrier categories.
+
+        Returns {tool_name: [{category, points:[1-2 bullets]}]}, where category
+        is drawn verbatim from `barriers` and points are grounded in the tool's
+        description (no invented features). Empty dict on any failure.
+        """
+        tool_lines = [
+            {
+                'name': t.get('name'),
+                'type': t.get('type'),
+                'description': (t.get('description') or '')[:160],
+            }
+            for t in tools
+            if t.get('name')
+        ]
+        if not tool_lines:
+            return {}
+
+        data = await llm.complete_json(
+            system=(
+                "You match assistive tools to a user's barrier categories and explain the help. "
+                "For each tool, pick the 1-2 MOST relevant categories from the provided barrier "
+                "list (use the barrier text verbatim as `category`), and write 1-2 short bullet "
+                "points (max 12 words each) on how THAT tool specifically helps with THAT "
+                "category. Ground every point in the tool's description; never invent features."
+            ),
+            user=(
+                f"Barrier categories: {json.dumps(barriers)}\n"
+                f"Tools: {json.dumps(tool_lines)}\n"
+                'Return JSON: {"tools": [{"name": "...", "helpsWith": '
+                '[{"category": "...", "points": ["...", "..."]}]}]}'
+            ),
+            temperature=0.4,
+            max_tokens=2000,
+        )
+
+        out: Dict[str, List[Dict[str, Any]]] = {}
+        if not isinstance(data, dict):
+            return out
+        for t in (data.get('tools') or []):
+            if not isinstance(t, dict):
+                continue
+            name = str(t.get('name') or '').strip()
+            groups = t.get('helpsWith')
+            if not name or not isinstance(groups, list):
+                continue
+            cleaned: List[Dict[str, Any]] = []
+            for g in groups[:2]:
+                if not isinstance(g, dict):
+                    continue
+                cat = str(g.get('category') or '').strip()
+                pts = [str(p).strip() for p in (g.get('points') or []) if str(p).strip()][:2]
+                if cat and pts:
+                    cleaned.append({'category': cat, 'points': pts})
+            if cleaned:
+                out[name] = cleaned
+        return out
+
     async def _find_relevant_tools(
         self,
         milestone: Dict[str, Any],
