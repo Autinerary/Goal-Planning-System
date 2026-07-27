@@ -697,6 +697,23 @@ function PitStopContent() {
                               <li key={t.id} className="text-sm">
                                 <a href={resolveToolLink(t.url, t.name).href} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
                                 {t.description && <div className="text-xs text-slate-600 line-clamp-2">{t.description}</div>}
+                                {/* What this helps with (agent-generated, when present) */}
+                                {Array.isArray(t.helpsWith) && t.helpsWith.length > 0 && (
+                                  <div className="mt-1.5 space-y-1">
+                                    {t.helpsWith.slice(0, 2).map((g: any, gi: number) => (
+                                      <div key={gi}>
+                                        <div className="text-[11px] font-semibold text-slate-700">Category: {g.category}</div>
+                                        <ul className="mt-0.5 space-y-0.5">
+                                          {(g.points || []).slice(0, 2).map((p: string, pi: number) => (
+                                            <li key={pi} className="text-[11px] text-slate-500 flex gap-1">
+                                              <span className="text-purple-400 flex-shrink-0">•</span><span>{p}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </li>
                             ))}
                           </ul>
