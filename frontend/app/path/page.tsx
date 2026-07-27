@@ -81,13 +81,32 @@ export default function PathView() {
     }
   }, [supabaseUser?.id])
 
-  // Fetch AI-generated path on mount
+  // Fetch AI-generated path on mount.
   useEffect(() => {
     const fetchPath = async () => {
       const pathId = supabaseUser?.user_metadata?.path_id
       const userId = supabaseUser?.id
 
       try {
+        // 1. Same-origin Supabase route FIRST. This is always reachable (part
+        //    of the Next.js app) and holds the path the backend already wrote,
+        //    so the Path renders even when FastAPI is asleep/down (Render free
+        //    tier sleeps) or not running locally — matching AgentPathContext.
+        try {
+          const meRes = await fetch('/api/me/path', { cache: 'no-store', credentials: 'include' })
+          if (meRes.ok) {
+            const json = await meRes.json()
+            if (json?.payload) {
+              setPathData(json.payload)
+              return
+            }
+          }
+        } catch {
+          /* fall through to FastAPI */
+        }
+
+        // 2. FastAPI fallback (local dev with the backend up, or a path not yet
+        //    mirrored into Supabase).
         let response: Response | null = null
         if (pathId) {
           response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)
@@ -97,13 +116,13 @@ export default function PathView() {
         }
 
         if (response && response.ok) {
-          const data = await response.json()
-          setPathData(data)
-        } else if (response) {
-          setLoadError('Could not load your path. Using default view.')
+          setPathData(await response.json())
         }
+        // No path anywhere yet → leave pathData null; the view shows honest
+        // empty states rather than a scary "backend down" banner.
       } catch (err) {
-        setLoadError('Backend not available. Showing demo path.')
+        // Only reached if BOTH Supabase and FastAPI are unreachable.
+        setLoadError('Could not load your path — check your connection.')
       } finally {
         setIsLoadingPath(false)
       }
