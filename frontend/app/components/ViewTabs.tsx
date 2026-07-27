@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Flag, Milestone, CalendarDays, CheckSquare } from 'lucide-react'
+import { Map, Flag, Milestone, CalendarDays, CheckSquare, GitCompare } from 'lucide-react'
 
 /**
  * ViewTabs — the "Tabs flow" navigation across the five main screens.
@@ -21,7 +21,8 @@ const TABS = [
 ] as const
 
 // Routes where the flow bar should appear. /tasks/<id> also counts as "Task".
-const FLOW_PREFIXES = ['/path', '/races', '/milestones', '/calendar', '/tasks']
+// /paths/compare is included so the bar (and the Compare toggle) show there too.
+const FLOW_PREFIXES = ['/path', '/races', '/milestones', '/calendar', '/tasks', '/paths/compare']
 
 export default function ViewTabs() {
   const pathname = usePathname()
@@ -61,6 +62,21 @@ export default function ViewTabs() {
               </div>
             )
           })}
+
+          {/* Compare — its own toggle, separated from the linear flow (Odosa) */}
+          <span className="mx-1 h-4 w-px bg-slate-300 flex-shrink-0" aria-hidden="true" />
+          <Link
+            href="/paths/compare"
+            aria-current={pathname.startsWith('/paths/compare') ? 'page' : undefined}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+              pathname.startsWith('/paths/compare')
+                ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow'
+                : 'text-slate-500 hover:bg-white/70'
+            }`}
+          >
+            <GitCompare className="w-3.5 h-3.5" />
+            <span>Compare</span>
+          </Link>
         </nav>
       </div>
     </div>

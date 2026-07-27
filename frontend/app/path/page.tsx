@@ -607,8 +607,12 @@ export default function PathView() {
           </div>
         </div>
 
-        {/* ── Quick Actions Row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {/* ── Quick Links ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+          <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" /> Quick Links
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link href="/races" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Target className="w-4 h-4 text-cyan-500" />
             Races
@@ -642,6 +646,7 @@ export default function PathView() {
             <Sparkles className="w-4 h-4 text-purple-500" />
             Path Market
           </Link>
+          </div>
         </div>
 
         {/* ── Unlock Multi-Path Management ── */}
