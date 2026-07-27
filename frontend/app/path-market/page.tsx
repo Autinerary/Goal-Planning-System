@@ -17,7 +17,12 @@ import {
   Sparkles,
   Clock,
   User,
+  Plus,
+  X,
+  Loader2,
+  Send,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 /**
  * Path Market — 3 layers (Odosa):
@@ -33,16 +38,22 @@ import {
 
 type Status = 'live' | 'coming'
 
+type ModelStatus = Status | 'pending'
+
 interface PathModel {
   key: string
   /** Unique model name (e.g. "Foundations" or "Model Madhu"). */
   name: string
   /** Who contributed this model (a real person), when applicable. */
-  contributor?: string
+  contributor?: string | null
   /** Short description of how this path model differs from others. */
   description: string
   seedGoals: string[]
-  status: Status
+  status: ModelStatus
+  /** Set for user-submitted community models. */
+  community?: boolean
+  isOwn?: boolean
+  id?: string
 }
 
 interface LifeCategory {
@@ -170,15 +181,66 @@ const CATEGORIES: LifeCategory[] = [
   },
 ]
 
-const STATUS_META: Record<Status, { label: string; cls: string }> = {
+const STATUS_META: Record<ModelStatus, { label: string; cls: string }> = {
   live: { label: 'Available', cls: 'bg-emerald-100 text-emerald-700' },
   coming: { label: 'Coming soon', cls: 'bg-slate-100 text-slate-600' },
+  pending: { label: 'Pending review', cls: 'bg-amber-100 text-amber-700' },
 }
 
 export default function PathMarketPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [norms, setNorms] = useState<string[]>([])
+
+  // Layer 3: community-submitted models, grouped by category_key.
+  const [community, setCommunity] = useState<Record<string, PathModel[]>>({})
+  const loadCommunity = () => {
+    fetch('/api/path-models', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j?.byCategory) setCommunity(j.byCategory) })
+      .catch(() => {})
+  }
+  useEffect(() => { loadCommunity() }, [])
+
+  // Submit-a-model modal.
+  const [showSubmit, setShowSubmit] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitDone, setSubmitDone] = useState(false)
+  const [form, setForm] = useState({ categoryKey: 'med-sci', name: '', contributor: '', description: '', goalsText: '' })
+
+  const submitModel = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitError('')
+    const seedGoals = form.goalsText.split(/\n|,/).map((g) => g.trim()).filter(Boolean)
+    if (!form.name.trim() || form.description.trim().length < 10 || seedGoals.length === 0) {
+      setSubmitError('Add a name, a short description (10+ chars), and at least one goal.')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/path-models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          categoryKey: form.categoryKey,
+          name: form.name.trim(),
+          contributor: form.contributor.trim() || (user?.name || null),
+          description: form.description.trim(),
+          seedGoals,
+        }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setSubmitError(j.error || 'Could not submit.'); return }
+      setSubmitDone(true)
+      setForm({ categoryKey: form.categoryKey, name: '', contributor: '', description: '', goalsText: '' })
+      loadCommunity()
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   // Layer 1: the user's Norms (their systemic realities), if onboarding captured
   // them. Read from the locally cached profile; empty pre-onboarding.
@@ -194,7 +256,9 @@ export default function PathMarketPage() {
   }, [])
 
   const q = query.trim().toLowerCase()
-  const filtered = CATEGORIES.map((c) => {
+  // Merge seed models with approved (+ own pending) community models per category.
+  const merged = CATEGORIES.map((c) => ({ ...c, models: [...c.models, ...(community[c.key] || [])] }))
+  const filtered = merged.map((c) => {
     if (!q) return c
     const catMatch =
       c.title.toLowerCase().includes(q) ||
@@ -248,6 +312,12 @@ export default function PathMarketPage() {
             Pick a <strong>life category</strong>, then a <strong>path model</strong> to start from. Starting a model
             pre-fills your goals — you can always customize during onboarding.
           </p>
+          <button
+            onClick={() => { setShowSubmit(true); setSubmitDone(false); setSubmitError('') }}
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-cyan-200 text-cyan-700 text-sm font-semibold hover:border-cyan-400 transition-all"
+          >
+            <Plus className="w-4 h-4" /> Share your path model
+          </button>
         </div>
 
         {/* Layer 1: Your Norms */}
@@ -352,6 +422,75 @@ export default function PathMarketPage() {
           </div>
         )}
       </div>
+
+      {/* Share-a-model modal */}
+      {showSubmit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowSubmit(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-lg text-slate-900 flex items-center gap-2"><Plus className="w-5 h-5 text-cyan-500" /> Share your path model</h2>
+              <button onClick={() => setShowSubmit(false)} className="text-slate-400 hover:text-slate-600" aria-label="Close"><X className="w-5 h-5" /></button>
+            </div>
+
+            {submitDone ? (
+              <div className="text-center py-6">
+                <div className="text-4xl mb-2">🎉</div>
+                <p className="font-semibold text-slate-800">Thanks for sharing!</p>
+                <p className="text-sm text-slate-500 mt-1">Your model is <strong>pending review</strong>. You’ll see it in its category with a “Pending review” badge until it’s approved for everyone.</p>
+                <button onClick={() => setShowSubmit(false)} className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold">Done</button>
+              </div>
+            ) : (
+              <form onSubmit={submitModel} className="space-y-3">
+                <p className="text-xs text-slate-500">Share how you navigated a life area so others can start from your path. {!user && <span className="text-amber-600 font-medium">You’ll need to sign in.</span>}</p>
+                {submitError && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{submitError}</p>}
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Life category</label>
+                  <select
+                    value={form.categoryKey}
+                    onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
+                    className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  >
+                    {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.title}</option>)}
+                  </select>
+                </div>
+                <input
+                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  placeholder="Model name (e.g. Model Madhu)"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+                <input
+                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  placeholder="Your name / credit (optional)"
+                  value={form.contributor}
+                  onChange={(e) => setForm({ ...form, contributor: e.target.value })}
+                />
+                <textarea
+                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  rows={2}
+                  placeholder="Short description — how does this path differ? (10–280 chars)"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+                <textarea
+                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  rows={2}
+                  placeholder="Starting goals — one per line (e.g. Get into a research program)"
+                  value={form.goalsText}
+                  onChange={(e) => setForm({ ...form, goalsText: e.target.value })}
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Submit model
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
