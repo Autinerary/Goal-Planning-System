@@ -12,7 +12,6 @@ import { useDisclosure } from '@/lib/disclosure'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import { saveSnapshot } from '@/lib/pathSnapshots'
 import { goHubHref } from '@/lib/serviceHub'
-import { useFutureNotes } from '@/lib/memory'
 import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -38,8 +37,6 @@ export default function PathView() {
   // Reshuffle the motivational message on every visit (new mount = new seed),
   // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
   const [quoteSeed] = useState(() => Math.floor(Math.random() * 1000))
-  // Latest "Quick Note to Self" — surfaced here so future-you actually sees it.
-  const futureNotes = useFutureNotes()
 
   const [pathData, setPathData] = useState<PathData | null>(null)
   const [isLoadingPath, setIsLoadingPath] = useState(true)
@@ -440,20 +437,6 @@ export default function PathView() {
           </div>
           <p className="text-lg md:text-xl font-semibold text-slate-800 leading-snug">{motivationalQuote}</p>
         </div>
-
-        {/* ── Latest Quick Note to Self (from the Journal) ── */}
-        {futureNotes.length > 0 && (
-          <div className="mb-6 rounded-2xl border-2 border-emerald-200 bg-emerald-50/60 px-5 py-4 flex items-start gap-3 shadow-sm">
-            <span className="text-2xl flex-shrink-0" aria-hidden="true">{futureNotes[0].tone === 'encourage' ? '💚' : '💪'}</span>
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-700 mb-0.5">Note to your future self</p>
-              <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">{futureNotes[0].text}</p>
-              <Link href="/memory" className="text-xs font-semibold text-emerald-600 hover:underline mt-1 inline-block">
-                Add or view notes →
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* ── 2x2 Dashboard Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

@@ -65,8 +65,6 @@ export default function Navigation() {
 
             <NotificationBell />
 
-            {/* "Memory" moved into the Journal as "Quick Note to Self" (Odosa). */}
-
             {/* Family — supervise children (hidden for managed child accounts) */}
             {!supabaseUser?.user_metadata?.managed_by_guardian && (
               <Link

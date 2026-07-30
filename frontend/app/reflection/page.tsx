@@ -236,7 +236,7 @@ function ReflectionContent() {
               <p className={`${currentTheme.textSecondary} mt-1`}>What would you like to do?</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 onClick={() => setMode('write')}
                 className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
@@ -257,18 +257,6 @@ function ReflectionContent() {
                 </div>
                 <span className="font-bold text-slate-800 text-lg">All Entries</span>
                 <span className="text-sm text-slate-500">Read your past journal entries</span>
-              </Link>
-
-              {/* Quick Note to Self (moved here from the navbar — Odosa) */}
-              <Link
-                href="/memory"
-                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
-              >
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-md">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-bold text-slate-800 text-lg">Quick Note to Self</span>
-                <span className="text-sm text-slate-500">Leave a note your future self will see on your Path</span>
               </Link>
             </div>
           </div>
