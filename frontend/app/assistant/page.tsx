@@ -76,6 +76,7 @@ export default function AssistantPage() {
   const [messages, setMessages] = useState<Msg[]>([INTRO])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [warmingUp, setWarmingUp] = useState(false)
   const [context, setContext] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -91,6 +92,9 @@ export default function AssistantPage() {
     setMessages(next)
     setInput('')
     setSending(true)
+    // The backend sleeps when idle; if a reply is slow, reassure the user it's
+    // waking up rather than broken.
+    const warmTimer = setTimeout(() => setWarmingUp(true), 7000)
     try {
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
@@ -107,6 +111,8 @@ export default function AssistantPage() {
     } catch {
       setMessages((m) => [...m, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     } finally {
+      clearTimeout(warmTimer)
+      setWarmingUp(false)
       setSending(false)
     }
   }
@@ -150,8 +156,11 @@ export default function AssistantPage() {
 
           {sending && (
             <div className="flex justify-start">
-              <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+              <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                {warmingUp && (
+                  <span className="text-xs text-slate-500">Waking the assistant up — this first reply can take up to a minute…</span>
+                )}
               </div>
             </div>
           )}

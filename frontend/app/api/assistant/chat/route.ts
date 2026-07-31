@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages, context: typeof body.context === 'string' ? body.context : '' }),
-      // Don't hang the UI forever if the backend is cold-starting on Render.
-      signal: AbortSignal.timeout(45000),
+      // Render free tier sleeps when idle; the first request can take ~40s+ to
+      // wake the service, so allow generous headroom before giving up.
+      signal: AbortSignal.timeout(75000),
     })
 
     if (!res.ok) {
