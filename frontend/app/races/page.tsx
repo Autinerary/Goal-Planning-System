@@ -45,6 +45,8 @@ function RacesContent() {
   const [activeDimension, setActiveDimension] = useState('education')
   const [activeDimRace, setActiveDimRace] = useState<string | null>(null)
   const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
+  // "Choose your next path" prompts the user has dismissed (by completed step id).
+  const [dismissedBranches, setDismissedBranches] = useState<Set<string>>(new Set())
   const [layoutMode, setLayoutMode] = useState<'track' | 'list'>('list')
   const [trackShape, setTrackShape] = useState<'one' | 'separate'>('one')
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
@@ -1419,7 +1421,7 @@ function RacesContent() {
                           </div>
 
                           {/* ── Branching: 3 options after a completed milestone ── */}
-                          {justCompletedMilestone && (
+                          {justCompletedMilestone && !dismissedBranches.has(step.id) && (
                             <div className={`ml-2 mb-3 p-3 rounded-xl border ${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/20 border-purple-700'}`}>
                               <div className={`text-[10px] font-bold mb-2 ${txt}`}>🔀 Choose your next path:</div>
                               <div className="space-y-1.5">
@@ -1428,7 +1430,26 @@ function RacesContent() {
                                   { id: 'opt-b', label: 'Explore alternative approach', desc: 'Try a different strategy', icon: '🔄' },
                                   { id: 'opt-c', label: 'Skip to next milestone', desc: 'Jump ahead if ready', icon: '⏩' },
                                 ].map(opt => (
-                                  <button key={opt.id} className={`w-full flex items-start gap-2 p-2 rounded-lg border text-left transition-all hover:shadow-sm hover:scale-[1.01] ${day ? 'bg-white border-slate-200 hover:border-purple-300' : 'bg-indigo-950/40 border-indigo-700 hover:border-purple-500'}`}>
+                                  <button
+                                    key={opt.id}
+                                    onClick={() => {
+                                      const nextId = arr[i + 1]?.id
+                                      if (opt.id === 'opt-c' && nextId) {
+                                        // Skip ahead: complete the next milestone (this
+                                        // prompt then hides itself as it's no longer "just
+                                        // completed").
+                                        toggleMilestoneComplete(nextId)
+                                      } else if (opt.id === 'opt-b') {
+                                        // Explore alternatives: open the Milestone view,
+                                        // where the tools / strategies live.
+                                        router.push('/milestones')
+                                      } else {
+                                        // Continue on current path: acknowledge & dismiss.
+                                        setDismissedBranches(prev => new Set(prev).add(step.id))
+                                      }
+                                    }}
+                                    className={`w-full flex items-start gap-2 p-2 rounded-lg border text-left transition-all hover:shadow-sm hover:scale-[1.01] ${day ? 'bg-white border-slate-200 hover:border-purple-300' : 'bg-indigo-950/40 border-indigo-700 hover:border-purple-500'}`}
+                                  >
                                     <span className="text-sm mt-0.5">{opt.icon}</span>
                                     <div>
                                       <div className={`text-[10px] font-bold ${txt}`}>{opt.label}</div>
