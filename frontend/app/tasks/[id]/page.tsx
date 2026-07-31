@@ -9,6 +9,7 @@ import StreakCelebration from '../../components/StreakCelebration'
 import { recordActiveDay, getPendingCelebration, markCelebrated, getStreak } from '@/lib/streak'
 import { notify } from '@/lib/notifications'
 import { useAgentPath } from '../../context/AgentPathContext'
+import { playTaskCompleteSound } from '../../../lib/taskSound'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -90,7 +91,7 @@ function TaskViewContent() {
   const toggleTask = (id: string) => {
     setCompletedTasks(prev => {
       const s = new Set(prev)
-      if (s.has(id)) s.delete(id); else s.add(id)
+      if (s.has(id)) { s.delete(id) } else { s.add(id); playTaskCompleteSound() }
       return s
     })
   }

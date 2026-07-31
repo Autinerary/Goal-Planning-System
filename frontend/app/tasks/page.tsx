@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles, Check, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { playTaskCompleteSound } from '../../lib/taskSound'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -66,7 +67,7 @@ export default function TasksPage() {
   const toggleTask = (id: string) => {
     setCompletedTasks(prev => {
       const s = new Set(prev)
-      if (s.has(id)) s.delete(id); else s.add(id)
+      if (s.has(id)) { s.delete(id) } else { s.add(id); playTaskCompleteSound() }
       return s
     })
   }

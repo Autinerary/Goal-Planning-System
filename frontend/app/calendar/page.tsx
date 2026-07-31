@@ -8,6 +8,8 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
+import { fetchCompletedMilestoneIds, type ProgressMilestone } from '../../lib/raceProgress'
+import { playTaskCompleteSound } from '../../lib/taskSound'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -244,6 +246,19 @@ function CalendarContent() {
   const [pendingSuggestion, setPendingSuggestion] = useState<{suggestion: string, from: string} | null>(null)
   const [showComparison, setShowComparison] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
+  const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
+
+  // Real "current milestone" — first incomplete milestone in agent order
+  // (Odosa: header badge was hardcoded and never updated).
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    ;(async () => {
+      const ids = await fetchCompletedMilestoneIds()
+      if (!cancelled) setCompletedMilestoneIds(ids)
+    })()
+    return () => { cancelled = true }
+  }, [isSignedIn])
 
   // When signed in, replace the localStorage-seeded state with whatever Supabase has.
   useEffect(() => {
@@ -273,10 +288,19 @@ function CalendarContent() {
   }, [isSignedIn])
 
   // Pull the live calendar-optimization scenarios from the agent payload.
-  const { calendarOptimization, payload } = useAgentPath()
+  const { calendarOptimization, pathPlanning, payload } = useAgentPath()
   const agentScenarios = calendarOptimization?.scenarios as
     | { best_case?: any; worst_case?: any; average_case?: any }
     | undefined
+
+  // Real "current milestone" — first milestone (in agent order) not yet
+  // completed. Falls back to the race name, then a generic label, so the
+  // header badge always reflects actual progress instead of a fixed string.
+  const currentMilestoneName = (() => {
+    const milestones = (payload?.milestones || pathPlanning?.milestones || []) as ProgressMilestone[]
+    const next = milestones.find((m: any) => !completedMilestoneIds.has(m.id))
+    return (next as any)?.name || (next as any)?.title || payload?.races?.[0]?.name || 'Getting started'
+  })()
 
   const scenarioKeyMap = { worst: 'worst_case', average: 'average_case', best: 'best_case' } as const
   const agentScenario = agentScenarios?.[scenarioKeyMap[scenario]]
@@ -368,6 +392,8 @@ function CalendarContent() {
         newSet.delete(taskId)
       } else {
         newSet.add(taskId)
+        // Liam: satisfying "bubble wrap pop" feedback when a task is checked off.
+        playTaskCompleteSound()
       }
       return newSet
     })
@@ -651,7 +677,7 @@ function CalendarContent() {
           </div>
           <div className="flex items-center gap-3 mb-3">
             <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 {payload?.races?.[0]?.name || payload?.userProfile?.goals?.[0] || 'Your first race'}</div>
-            <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: Request Accommodations</div>
+            <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: {currentMilestoneName}</div>
           </div>
           {/* Title */}
           <div className="bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm">
