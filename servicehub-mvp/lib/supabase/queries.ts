@@ -630,12 +630,15 @@ export async function saveResource(
   const supabase = createClient()
   const { data, error } = await supabase
     .from('saved_resources')
-    .upsert({
-      user_id: userId,
-      resource_id: resourceId,
-      notes,
-      status,
-    })
+    .upsert(
+      {
+        user_id: userId,
+        resource_id: resourceId,
+        notes,
+        status,
+      },
+      { onConflict: 'user_id,resource_id' }
+    )
     .select()
     .single()
 
