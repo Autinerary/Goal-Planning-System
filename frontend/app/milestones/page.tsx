@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
+import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2, Users, MessageCircle } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import { goHubHref } from '@/lib/serviceHub'
@@ -329,34 +329,47 @@ export default function MilestoneView() {
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3">
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="pattern_recognition" />
-        <a
-          href={goHubHref('/community?from=hare-world&context=milestones')}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block group"
-        >
-          <div className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-4 shadow-sm transition-all hover:shadow-md hover:border-emerald-400">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wide">
-                      Tidbits
-                    </span>
-                    <span className="text-sm font-bold text-slate-800">Stuck on a barrier?</span>
-                  </div>
-                  <p className="text-xs text-slate-600">Ask the community — read insights from people who&apos;ve overcome the same blockers.</p>
-                </div>
-              </div>
-              <span className="hidden sm:block text-xs font-semibold text-emerald-700 group-hover:underline whitespace-nowrap">
-                Open Tidbits →
-              </span>
+        {/* Stuck? — three ways to get help (Odosa): make a Tidbit, ask a
+            mentor/role model, or ask the assistant. */}
+        <div className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-slate-800">Stuck on a barrier?</span>
+              <p className="text-xs text-slate-600">Get help three ways — from the community, a role model, or the assistant.</p>
             </div>
           </div>
-        </a>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* 1 — Make a Tidbit (opens the community composer in ResourceHub) */}
+            <a
+              href={goHubHref('/community/new?from=milestones')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white border border-emerald-200 hover:border-emerald-400 hover:shadow-sm transition-all"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" aria-hidden="true" />
+              <span className="text-xs font-semibold text-slate-800">Make a Tidbit</span>
+            </a>
+            {/* 2 — Ask a mentor / role model (Hare World) */}
+            <Link
+              href="/pit-stop?tab=haveworld&view=people"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white border border-purple-200 hover:border-purple-400 hover:shadow-sm transition-all"
+            >
+              <Users className="w-4 h-4 text-purple-600 flex-shrink-0" aria-hidden="true" />
+              <span className="text-xs font-semibold text-slate-800">Ask a mentor / role model</span>
+            </Link>
+            {/* 3 — Ask the assistant (chatbot — not built yet) */}
+            <Link
+              href="/under-construction?feature=AI%20Assistant"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white border border-sky-200 hover:border-sky-400 hover:shadow-sm transition-all"
+            >
+              <MessageCircle className="w-4 h-4 text-sky-600 flex-shrink-0" aria-hidden="true" />
+              <span className="text-xs font-semibold text-slate-800">Ask the assistant</span>
+            </Link>
+          </div>
+        </div>
       </div>
       {/* Wooden signpost header */}
       <div className="relative">
