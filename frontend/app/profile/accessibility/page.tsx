@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Languages, Palette, Maximize } from 'lucide-react'
+import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Languages, Palette, Maximize, Volume2 } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
 import { useTranslation } from '../../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
@@ -31,6 +31,7 @@ export default function AccessibilitySettingsPage() {
     { key: 'reduceMotion', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
     { key: 'dyslexiaFont', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
     { key: 'underlineLinks', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
+    { key: 'soundEffects', label: 'Task completion sound', desc: 'Play a soft "pop" when you check off a task.', icon: Volume2 },
   ]
 
   return (

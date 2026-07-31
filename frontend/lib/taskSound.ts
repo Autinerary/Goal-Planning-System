@@ -3,6 +3,8 @@
 // ship an audio file. Respects the user's reduced-motion/sound preference and
 // is a no-op on the server or in browsers without AudioContext support.
 
+import { loadPreferences } from '@/lib/preferences'
+
 let sharedContext: AudioContext | null = null
 
 function getContext(): AudioContext | null {
@@ -13,15 +15,19 @@ function getContext(): AudioContext | null {
   return sharedContext
 }
 
-/** True when the user has opted out of sound feedback (stored in localStorage). */
+/**
+ * True when the user wants task sounds. Sourced from the accessibility
+ * preferences (`soundEffects`), and also suppressed when they've asked to
+ * reduce motion — so the toggle in Settings → Accessibility controls it.
+ */
 export function isTaskSoundEnabled(): boolean {
   if (typeof window === 'undefined') return true
-  return localStorage.getItem('taskSoundEnabled') !== 'false'
-}
-
-export function setTaskSoundEnabled(enabled: boolean) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem('taskSoundEnabled', enabled ? 'true' : 'false')
+  try {
+    const a = loadPreferences().accessibility
+    return !!a.soundEffects && !a.reduceMotion
+  } catch {
+    return true
+  }
 }
 
 /** Plays a quick, gentle "pop" — like popping a bubble wrap bubble. */

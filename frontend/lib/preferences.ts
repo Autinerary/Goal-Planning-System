@@ -66,6 +66,8 @@ export interface AccessibilitySettings {
   reduceMotion: boolean
   dyslexiaFont: boolean
   underlineLinks: boolean
+  /** Play a short "pop" when a task is completed (Liam). Default on. */
+  soundEffects: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -74,6 +76,7 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   reduceMotion: false,
   dyslexiaFont: false,
   underlineLinks: false,
+  soundEffects: true,
 }
 
 export const DEFAULT_LAYOUT: LayoutPositions = {
