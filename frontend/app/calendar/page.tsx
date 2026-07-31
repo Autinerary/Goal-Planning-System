@@ -358,6 +358,16 @@ function CalendarContent() {
   const currentData: any = agentData || { ...scenarioData[scenario], days: [] }
   const ScenarioIcon = currentData.icon
 
+  // Day period anchors to TODAY's weekday (Odosa: "doesn't update to current
+  // day"). Fall back to the first day if today's weekday isn't in the pattern.
+  const _todayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()]
+  const _allDays: any[] = currentData.days || []
+  const _dayModeDays = (() => {
+    const today = _allDays.find((d: any) => d.name === _todayName)
+    return today ? [today] : _allDays.slice(0, 1)
+  })()
+  const displayDays = period === 'day' ? _dayModeDays : _allDays
+
   // Check for pending suggestion on mount or when params change
   useEffect(() => {
     if (suggestionParam && fromParam) {
@@ -878,14 +888,14 @@ function CalendarContent() {
           <div>
             {viewType === 'list' ? (
               <ListView
-                days={period === 'day' ? (currentData.days || []).slice(0, 1) : currentData.days}
+                days={displayDays}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
               />
             ) : (
               <TimeBlockView
-                days={period === 'day' ? (currentData.days || []).slice(0, 1) : currentData.days}
+                days={displayDays}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
@@ -953,7 +963,10 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
 }) {
   const router = useRouter()
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
-  const visibleDays = days.slice(currentDayIndex, currentDayIndex + 2)
+  // Clamp so switching period (e.g. Week → Day) can't leave a stale index that
+  // slices past the end and renders a blank view.
+  const safeIndex = Math.min(currentDayIndex, Math.max(0, days.length - 1))
+  const visibleDays = days.slice(safeIndex, safeIndex + 2)
 
   const getTasksForDay = (dayName: string) => {
     const dayData = days.find(d => d.name === dayName)
@@ -1019,26 +1032,29 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
         ))}
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-center items-center gap-4 mt-6">
-        <button 
-          onClick={() => setCurrentDayIndex(Math.max(0, currentDayIndex - 1))}
-          disabled={currentDayIndex === 0}
-          className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <span className="py-2 text-sm text-slate-700 font-medium">
-          Days {currentDayIndex + 1}-{Math.min(currentDayIndex + 2, days.length)} of {days.length}
-        </span>
-        <button 
-          onClick={() => setCurrentDayIndex(Math.min(days.length - 2, currentDayIndex + 1))}
-          disabled={currentDayIndex >= days.length - 2}
-          className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Navigation — only meaningful when paginating multiple days (Week/Month).
+          Hidden for Day view and empty schedules so it can't show "Days 1-0 of 0". */}
+      {days.length > 2 && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentDayIndex(Math.max(0, safeIndex - 1))}
+            disabled={safeIndex === 0}
+            className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="py-2 text-sm text-slate-700 font-medium">
+            Days {safeIndex + 1}-{Math.min(safeIndex + 2, days.length)} of {days.length}
+          </span>
+          <button
+            onClick={() => setCurrentDayIndex(Math.min(days.length - 2, safeIndex + 1))}
+            disabled={safeIndex >= days.length - 2}
+            className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
