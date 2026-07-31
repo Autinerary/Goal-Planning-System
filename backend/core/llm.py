@@ -121,6 +121,30 @@ async def complete_text(
         return None
 
 
+async def complete_chat(
+    messages: list,
+    temperature: float = 0.7,
+    max_tokens: int = 700,
+) -> Optional[str]:
+    """Multi-turn chat completion. `messages` is a list of
+    {"role": "system"|"user"|"assistant", "content": str}. Returns the reply
+    text, or None on failure / no backend (used by the assistant chatbot)."""
+    client = await get_client()
+    if client is None:
+        return None
+    try:
+        resp = await client.chat.completions.create(
+            model=_active_model(),
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"   ⚠️  LLM chat call failed: {e}")
+        return None
+
+
 async def complete_json(
     system: str,
     user: str,

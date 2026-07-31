@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react'
+import { useAgentPath } from '../context/AgentPathContext'
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -22,35 +23,63 @@ const STARTERS = [
   'I feel overwhelmed — where do I start?',
 ]
 
-/** Build a short context string from the locally cached onboarding profile. */
-function readContext(): string {
-  if (typeof window === 'undefined') return ''
+/** Read the locally cached onboarding profile (fallback context source). */
+function readProfile(): any {
+  if (typeof window === 'undefined') return null
   try {
     const raw = localStorage.getItem('autinerary_profile')
-    if (!raw) return ''
-    const p = JSON.parse(raw)
-    const parts: string[] = []
-    const goals = (p.goals || []).filter((g: any) => typeof g === 'string' && g.trim())
-    const norms = (p.barriers || p.barrierTypes || []).filter((b: any) => typeof b === 'string' && b.trim())
-    if (goals.length) parts.push(`Goals: ${goals.slice(0, 6).join('; ')}`)
-    if (norms.length) parts.push(`Norms they navigate: ${norms.slice(0, 10).join(', ')}`)
-    if (p.lifeStage) parts.push(`Life stage: ${p.lifeStage}`)
-    if (p.role) parts.push(`Role: ${p.role}`)
-    return parts.join('\n')
+    return raw ? JSON.parse(raw) : null
   } catch {
-    return ''
+    return null
   }
+}
+
+/**
+ * Build the context summary sent to the assistant. Prefers the live agent
+ * payload (goals, current + upcoming milestones, tool recommendations) so the
+ * assistant sees the full path; falls back to the cached onboarding profile.
+ */
+function buildContext(payload: any): string {
+  const parts: string[] = []
+  const profile = readProfile()
+  const up = payload?.userProfile || {}
+
+  const goals = [...(up.goals || []), ...(profile?.goals || [])].filter((g: any) => typeof g === 'string' && g.trim())
+  const dreams = (up.dreams || []).filter((d: any) => typeof d === 'string' && d.trim())
+  const obstacles = (up.currentChallenges || []).filter((o: any) => typeof o === 'string' && o.trim())
+  const norms = [...(up.barrierTypes || []), ...(profile?.barriers || [])].filter((b: any) => typeof b === 'string' && b.trim())
+
+  if (goals.length) parts.push(`Goals: ${Array.from(new Set(goals)).slice(0, 8).join('; ')}`)
+  if (dreams.length) parts.push(`Dreams: ${dreams.slice(0, 5).join('; ')}`)
+  if (obstacles.length) parts.push(`Obstacles they flagged: ${obstacles.slice(0, 6).join('; ')}`)
+  if (norms.length) parts.push(`Norms they navigate: ${Array.from(new Set(norms)).slice(0, 12).join(', ')}`)
+
+  // Current + upcoming milestones from the agent path, if present.
+  const milestones = Array.isArray(payload?.milestones) ? payload.milestones : []
+  if (milestones.length) {
+    const names = milestones
+      .map((m: any) => (typeof m?.name === 'string' ? m.name : typeof m?.title === 'string' ? m.title : null))
+      .filter(Boolean)
+      .slice(0, 8)
+    if (names.length) parts.push(`Milestones on their path: ${names.join('; ')}`)
+  }
+
+  if (profile?.lifeStage) parts.push(`Life stage: ${profile.lifeStage}`)
+  if (profile?.role) parts.push(`Role: ${profile.role}`)
+
+  return parts.join('\n')
 }
 
 export default function AssistantPage() {
   const router = useRouter()
+  const { payload } = useAgentPath()
   const [messages, setMessages] = useState<Msg[]>([INTRO])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [context, setContext] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => setContext(readContext()), [])
+  useEffect(() => setContext(buildContext(payload)), [payload])
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, sending])
