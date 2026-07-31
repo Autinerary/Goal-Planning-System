@@ -8,15 +8,15 @@ export const maxDuration = 60
 /**
  * GET /api/cron/reminders — daily email reminders.
  *
- * Meant to be hit by an hourly Vercel Cron (see vercel.json). Vercel sends
- * `Authorization: Bearer <CRON_SECRET>`; we require it when CRON_SECRET is set.
+ * Meant to be hit once a day by Vercel Cron (see vercel.json). Vercel's
+ * Hobby plan only allows crons to run once per day, so this fires at a
+ * single fixed UTC hour rather than matching each user's chosen hour.
+ * Vercel sends `Authorization: Bearer <CRON_SECRET>`; we require it when
+ * CRON_SECRET is set.
  *
  * Reads profiles whose preferences.reminders is enabled+consented with
- * channel=email, and emails those whose chosen hour matches this run. NO-OPS
- * until RESEND_API_KEY is set, so it's safe to schedule immediately.
- *
- * Limitation: reminder times have no timezone, so we match on the UTC hour.
- * Per-user timezone handling is a follow-up.
+ * channel=email, and emails all of them on this daily run. NO-OPS until
+ * RESEND_API_KEY is set, so it's safe to schedule immediately.
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -30,7 +30,6 @@ export async function GET(req: NextRequest) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin
-  const currentHour = new Date().getUTCHours()
 
   const admin = createAdminClient()
   const { data: rows, error } = await admin
@@ -49,10 +48,6 @@ export async function GET(req: NextRequest) {
     if (!rem?.enabled || !rem?.consent || rem?.channel !== 'email') continue
     const to = (rem.contact as string) || (row.email as string)
     if (!to) continue
-
-    // Match the chosen hour (HH:MM) against this run's UTC hour.
-    const hour = parseInt(String(rem.time || '09:00').split(':')[0], 10)
-    if (isNaN(hour) || hour !== currentHour) continue
 
     considered++
     const name = (row.preferences as any)?.name || null
