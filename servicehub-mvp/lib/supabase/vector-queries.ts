@@ -36,13 +36,18 @@ export async function upsertUserEmbedding(
   const supabase = client ?? createClient()
   const { data, error } = await supabase
     .from('user_embeddings')
-    .upsert({
-      user_id: userId,
-      embedding: embedding && embedding.length > 0 ? embedding : null,
-      barrier_embedding:
-        barrierEmbedding && barrierEmbedding.length > 0 ? barrierEmbedding : null,
-      updated_at: new Date().toISOString(),
-    })
+    .upsert(
+      {
+        user_id: userId,
+        embedding: embedding && embedding.length > 0 ? embedding : null,
+        barrier_embedding:
+          barrierEmbedding && barrierEmbedding.length > 0 ? barrierEmbedding : null,
+        updated_at: new Date().toISOString(),
+      },
+      // user_id is UNIQUE (not the PK) — conflict on it so re-generating an
+      // embedding UPDATES the row instead of failing the insert.
+      { onConflict: 'user_id' }
+    )
     .select()
     .single()
 
@@ -164,15 +169,20 @@ export async function upsertResourceEmbedding(
   const supabase = client ?? createClient()
   const { data, error } = await supabase
     .from('resource_embeddings')
-    .upsert({
-      resource_id: resourceId,
-      embedding: embedding && embedding.length > 0 ? embedding : null,
-      description_embedding:
-        descriptionEmbedding && descriptionEmbedding.length > 0
-          ? descriptionEmbedding
-          : null,
-      updated_at: new Date().toISOString(),
-    })
+    .upsert(
+      {
+        resource_id: resourceId,
+        embedding: embedding && embedding.length > 0 ? embedding : null,
+        description_embedding:
+          descriptionEmbedding && descriptionEmbedding.length > 0
+            ? descriptionEmbedding
+            : null,
+        updated_at: new Date().toISOString(),
+      },
+      // resource_id is UNIQUE (not the PK) — conflict on it so re-generating an
+      // embedding UPDATES the row instead of failing the insert.
+      { onConflict: 'resource_id' }
+    )
     .select()
     .single()
 
