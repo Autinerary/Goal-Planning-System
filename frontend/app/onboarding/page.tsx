@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
@@ -13,6 +13,7 @@ import {
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
+import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -331,72 +332,27 @@ const bunnyStyles = `
 `
 
 // ── Character-select avatar ───────────────────────────────────────────────
-// Renders a simple face with the chosen hairstyle so people can actually see
-// what they're picking (video-game-style character select) instead of a
-// generic emoji. Used both in the hairstyle tiles and the live preview.
-function HairShape({ id, color }: { id: string; color: string }) {
-  switch (id) {
-    case 'buzz':
-      return <path d="M26 46 A24 24 0 0 1 74 46 L71 41 A22 22 0 0 0 29 41 Z" fill={color} opacity="0.85" />
-    case 'short_straight':
-      return <path d="M24 50 Q24 25 50 25 Q76 25 76 50 L76 43 Q50 33 24 43 Z" fill={color} />
-    case 'short_curly':
-      return (
-        <g fill={color}>
-          {[29, 40, 50, 60, 71].map((x, i) => <circle key={i} cx={x} cy="31" r="9" />)}
-          <path d="M25 44 Q50 32 75 44 L75 37 Q50 28 25 37 Z" />
-        </g>
-      )
-    case 'long_straight':
-      return (
-        <g fill={color}>
-          <path d="M22 54 Q22 25 50 25 Q78 25 78 54 L78 44 Q50 33 22 44 Z" />
-          <rect x="19" y="44" width="8" height="44" rx="4" />
-          <rect x="73" y="44" width="8" height="44" rx="4" />
-        </g>
-      )
-    case 'long_curly':
-      return (
-        <g fill={color}>
-          <path d="M22 52 Q22 25 50 25 Q78 25 78 52 L78 44 Q50 31 22 44 Z" />
-          <path d="M22 46 Q12 60 22 72 Q14 82 24 90 L31 85 Q23 70 29 54 Z" />
-          <path d="M78 46 Q88 60 78 72 Q86 82 76 90 L69 85 Q77 70 71 54 Z" />
-        </g>
-      )
-    case 'braids':
-      return (
-        <g fill={color}>
-          <path d="M25 50 Q25 25 50 25 Q75 25 75 50 L75 42 Q50 31 25 42 Z" />
-          {[0, 1, 2, 3].map(i => <circle key={`l${i}`} cx="24" cy={50 + i * 10} r="5.5" />)}
-          {[0, 1, 2, 3].map(i => <circle key={`r${i}`} cx="76" cy={50 + i * 10} r="5.5" />)}
-        </g>
-      )
-    default:
-      return null
-  }
-}
-
-function CharacterAvatar({ hairStyle = '', bodyType = '', size = 96 }: { hairStyle?: string; bodyType?: string; size?: number }) {
-  const skin = '#f2c79b'
-  const hair = '#6b4a2b'
-  const showHair = Boolean(hairStyle) && hairStyle !== 'none' && hairStyle !== 'skip'
-  const bodyW = bodyType === 'short' ? 34 : 40
-  const bodyH = bodyType === 'tall' ? 36 : bodyType === 'short' ? 22 : 28
+// Code-generated character avatar (DiceBear "avataaars", inline SVG) so people
+// can actually see what they're picking — a video-game-style character select.
+// Replaces the old hand-drawn SVG, which looked "wonky" (Odosa/Eliyana). Only
+// the user's choices (hairstyle, hair colour, skin tone) vary; see lib/avatar.
+function CharacterAvatar({
+  hairStyle = '',
+  hairColor,
+  skinColor,
+  size = 96,
+}: { hairStyle?: string; hairColor?: string; skinColor?: string; size?: number }) {
+  const svg = useMemo(
+    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, size }),
+    [hairStyle, hairColor, skinColor, size]
+  )
   return (
-    <svg viewBox="0 0 100 130" width={size} height={size * 1.3} role="img" aria-label="Character preview">
-      {/* Shoulders / body */}
-      <rect x={50 - bodyW / 2} y={130 - bodyH} width={bodyW} height={bodyH} rx="9" fill="#cbd5e1" />
-      {/* Neck */}
-      <rect x="44" y="74" width="12" height="18" fill={skin} />
-      {/* Head */}
-      <circle cx="50" cy="50" r="26" fill={skin} stroke="#e0a97c" strokeWidth="1.5" />
-      {/* Eyes + smile */}
-      <circle cx="42" cy="50" r="2.6" fill="#334155" />
-      <circle cx="58" cy="50" r="2.6" fill="#334155" />
-      <path d="M42 60 Q50 66 58 60" fill="none" stroke="#b45f4d" strokeWidth="2" strokeLinecap="round" />
-      {/* Hair on top */}
-      {showHair && <HairShape id={hairStyle} color={hair} />}
-    </svg>
+    <div
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label="Character preview"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   )
 }
 
@@ -414,6 +370,8 @@ export default function OnboardingPage() {
     characterType: 'avatar' as string, // always avatar now (spirit animal selection at end)
     bodyType: '' as string,
     hairStyle: '' as string,
+    hairColor: DEFAULT_HAIR_COLOR as string,
+    skinColor: DEFAULT_SKIN_TONE as string,
     cloudTheme: 'daydream' as string,
     // Barrier Connections (combined role + barriers)
     role: '' as string, // kept for backward compat with backend
@@ -1267,7 +1225,7 @@ export default function OnboardingPage() {
                             : 'border-slate-200 hover:border-cyan-400 text-slate-600'
                         }`}
                       >
-                        <CharacterAvatar hairStyle={hs.id} size={46} />
+                        <CharacterAvatar hairStyle={hs.id} hairColor={formData.hairColor} skinColor={formData.skinColor} size={46} />
                         <span className="text-xs text-center">{hs.label}</span>
                         {formData.hairStyle === hs.id && (
                           <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
@@ -1291,12 +1249,52 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
+                {/* Hair colour */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Colour</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {HAIR_COLORS.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setFormData(prev => ({ ...prev, hairColor: c.id }))}
+                        title={c.label}
+                        aria-label={c.label}
+                        aria-pressed={formData.hairColor === c.id}
+                        className={`w-8 h-8 rounded-full border-2 transition-all ${
+                          formData.hairColor === c.id ? 'border-cyan-500 ring-2 ring-cyan-300 scale-110' : 'border-slate-300 hover:border-cyan-400'
+                        }`}
+                        style={{ backgroundColor: `#${c.id}` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skin tone */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Skin Tone</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {SKIN_TONES.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setFormData(prev => ({ ...prev, skinColor: c.id }))}
+                        title={c.label}
+                        aria-label={c.label}
+                        aria-pressed={formData.skinColor === c.id}
+                        className={`w-8 h-8 rounded-full border-2 transition-all ${
+                          formData.skinColor === c.id ? 'border-cyan-500 ring-2 ring-cyan-300 scale-110' : 'border-slate-300 hover:border-cyan-400'
+                        }`}
+                        style={{ backgroundColor: `#${c.id}` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
                 {/* Live Character Preview */}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
                     <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
-                      <CharacterAvatar hairStyle={formData.hairStyle} bodyType={formData.bodyType} size={120} />
+                      <CharacterAvatar hairStyle={formData.hairStyle} hairColor={formData.hairColor} skinColor={formData.skinColor} size={120} />
                       <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
                         {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
                         {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
