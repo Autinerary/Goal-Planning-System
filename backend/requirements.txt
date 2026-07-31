@@ -21,3 +21,6 @@ python-multipart>=0.0.9
 # LangGraph - state-machine multi-agent orchestration (primary)
 langgraph>=0.2.0
 langchain-core>=0.3.0
+# AutoGen - alternate orchestrator (core/autogen_orchestrator.py), opt-in via
+# USE_AUTOGEN=true (defaults to false; LangGraph above is what runs otherwise).
+pyautogen>=0.2,<0.3
