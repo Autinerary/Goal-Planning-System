@@ -214,6 +214,12 @@ function FeedInner() {
                       “{p.unlocking_moment}”
                     </p>
                   )}
+                  {p.what_didnt_work && (
+                    <p className="text-sm text-rose-800 mb-1 line-clamp-2 italic">
+                      <Sparkles className="inline w-3.5 h-3.5 mr-1 text-rose-500" />
+                      Didn&apos;t work: “{p.what_didnt_work}”
+                    </p>
+                  )}
                   <p className="text-sm text-gray-600 line-clamp-2">{p.excerpt}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     {p.barrier_tags.slice(0, 4).map((t) => (

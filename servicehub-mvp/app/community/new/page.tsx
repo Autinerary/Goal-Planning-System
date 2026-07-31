@@ -22,6 +22,7 @@ export default function NewPostPage() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [unlockingMoment, setUnlockingMoment] = useState('')
+  const [whatDidntWork, setWhatDidntWork] = useState('')
   const [barrierInput, setBarrierInput] = useState('')
   const [barriers, setBarriers] = useState<string[]>([])
   const [categoryInput, setCategoryInput] = useState('')
@@ -51,6 +52,7 @@ export default function NewPostPage() {
           title: title.trim(),
           body_markdown: body.trim(),
           unlocking_moment: unlockingMoment.trim(),
+          what_didnt_work: whatDidntWork.trim(),
           barrier_tags: barriers,
           category_tags: categories,
           image_urls: imageUrls,
@@ -155,6 +157,25 @@ export default function NewPostPage() {
           rows={2}
         />
         <p className="text-xs text-gray-400 text-right">{unlockingMoment.length} / 280 (optional)</p>
+      </div>
+
+      {/* What didn't work — dead ends so readers can skip them (Odosa) */}
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-900 flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-rose-500" /> What didn&apos;t work
+        </label>
+        <p className="text-xs text-gray-500">
+          Things you tried that didn&apos;t help — so readers can skip the dead ends. This gets highlighted alongside your story.
+        </p>
+        <textarea
+          value={whatDidntWork}
+          onChange={(e) => setWhatDidntWork(e.target.value.slice(0, 280))}
+          maxLength={280}
+          placeholder='e.g. "Generic time-management apps just added more noise for me."'
+          className="w-full rounded-xl border border-rose-200 bg-rose-50/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+          rows={2}
+        />
+        <p className="text-xs text-gray-400 text-right">{whatDidntWork.length} / 280 (optional)</p>
       </div>
 
       <div className="space-y-1">

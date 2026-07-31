@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
   let query = client
     .from('community_posts')
     .select(
-      'id, author_id, title, body_markdown, unlocking_moment, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
+      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
     )
     .eq('is_deleted', false);
 
@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
     title: r.title,
     excerpt: markdownExcerpt(r.body_markdown, 220),
     unlocking_moment: r.unlocking_moment ?? null,
+    what_didnt_work: r.what_didnt_work ?? null,
     author: authorMap.get(r.author_id) ?? {
       user_id: r.author_id,
       pseudonym: 'former_member',
@@ -120,6 +121,7 @@ interface CreatePostBody {
   category_tags?: string[];
   image_urls?: string[];
   unlocking_moment?: string;
+  what_didnt_work?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -154,6 +156,8 @@ export async function POST(request: NextRequest) {
     .slice(0, 6);
   // Author-highlighted key sentence / unlocking moment (optional).
   const unlocking_moment = (body.unlocking_moment ?? '').trim().slice(0, 280) || null;
+  // Author-highlighted things that did NOT work (optional).
+  const what_didnt_work = (body.what_didnt_work ?? '').trim().slice(0, 280) || null;
 
   if (title.length < 8 || title.length > 250) {
     return NextResponse.json({ error: 'Title must be 8-250 characters' }, { status: 400 });
@@ -194,6 +198,7 @@ export async function POST(request: NextRequest) {
       category_tags,
       image_urls,
       unlocking_moment,
+      what_didnt_work,
     })
     .select('id')
     .single();
