@@ -78,9 +78,9 @@ export default function Navigation() {
             )}
 
             <Link
-              href="/under-construction?feature=Progress%20Reels"
+              href="/reels"
               className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
-              title="Progress Reels — coming soon"
+              title="Progress Reels"
             >
               <Film className="w-4 h-4" />
               <span className="hidden lg:inline">Reels</span>
