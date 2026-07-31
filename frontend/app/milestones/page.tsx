@@ -360,9 +360,9 @@ export default function MilestoneView() {
               <Users className="w-4 h-4 text-purple-600 flex-shrink-0" aria-hidden="true" />
               <span className="text-xs font-semibold text-slate-800">Ask a mentor / role model</span>
             </Link>
-            {/* 3 — Ask the assistant (chatbot — not built yet) */}
+            {/* 3 — Ask the assistant (AI chatbot) */}
             <Link
-              href="/under-construction?feature=AI%20Assistant"
+              href="/assistant"
               className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white border border-sky-200 hover:border-sky-400 hover:shadow-sm transition-all"
             >
               <MessageCircle className="w-4 h-4 text-sky-600 flex-shrink-0" aria-hidden="true" />
