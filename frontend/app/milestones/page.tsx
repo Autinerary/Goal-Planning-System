@@ -54,7 +54,8 @@ export default function MilestoneView() {
   const [unlockedBarriers, setUnlockedBarriers] = useState<Set<string>>(new Set(['b1']))
   const [expandedTool, setExpandedTool] = useState<string | null>(null)
   // Collapsible Tools/Barriers table (Odosa: dropdown to slim the page).
-  const [toolsOpen, setToolsOpen] = useState(true)
+  // Starts CLOSED so the page reads slim by default (Odosa follow-up).
+  const [toolsOpen, setToolsOpen] = useState(false)
   const [showGif, setShowGif] = useState<string | null>(null)
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(new Set())
   // Note shown when a tool can't be saved to ResourceHub (not catalogued).
