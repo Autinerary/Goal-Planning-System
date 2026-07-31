@@ -69,117 +69,47 @@ interface LifeCategory {
   models: PathModel[]
 }
 
-/** One general starter model per category (real, community-maintained). */
-function starter(key: string, description: string, seedGoals: string[], status: Status): PathModel {
-  return { key: `${key}-foundations`, name: 'Foundations', description, seedGoals, status }
+/** Lucide icon NAME (stored in the DB) -> component. Fallback: Sparkles. */
+const ICON_MAP: Record<string, typeof Stethoscope> = {
+  Stethoscope, Home, Briefcase, GraduationCap, HeartPulse, Users, Palette, Plane, Sparkles,
 }
 
-const CATEGORIES: LifeCategory[] = [
-  {
-    key: 'med-sci',
-    title: 'Medicine & Science',
-    blurb: 'Pursue a path in healthcare, research, or the sciences with accommodations built in.',
-    icon: Stethoscope,
-    tint: 'from-sky-50 to-white border-sky-200',
-    iconTint: 'bg-sky-100 text-sky-600',
-    focusCategory: 'education',
-    examples: ['Pre-med prerequisites', 'Research assistant roles', 'Lab / clinical skills', 'Grad-school applications'],
+/** Shape of a category row from GET /api/path-categories (DB-backed, Odosa). */
+interface CategoryDTO {
+  key: string
+  title: string
+  blurb: string
+  icon: string
+  tint: string
+  iconTint: string
+  focusCategory: string
+  examples: string[]
+  foundations: { description: string; seedGoals: string[]; status: Status }
+}
+
+/** Build a renderable LifeCategory from a DB row: resolve the icon name to a
+ *  component and turn `foundations` into the general starter model. */
+function toLifeCategory(dto: CategoryDTO): LifeCategory {
+  return {
+    key: dto.key,
+    title: dto.title,
+    blurb: dto.blurb,
+    icon: ICON_MAP[dto.icon] || Sparkles,
+    tint: dto.tint,
+    iconTint: dto.iconTint,
+    focusCategory: dto.focusCategory,
+    examples: dto.examples,
     models: [
-      starter('med-sci', 'The general route into science/medicine — prerequisites, research, and applications.', ['Get into a science/medicine program', 'Build research experience'], 'live'),
+      {
+        key: `${dto.key}-foundations`,
+        name: 'Foundations',
+        description: dto.foundations.description,
+        seedGoals: dto.foundations.seedGoals,
+        status: dto.foundations.status,
+      },
     ],
-  },
-  {
-    key: 'living',
-    title: 'Independent Living',
-    blurb: 'Build the skills and supports to live on your own terms — home, money, and daily routines.',
-    icon: Home,
-    tint: 'from-emerald-50 to-white border-emerald-200',
-    iconTint: 'bg-emerald-100 text-emerald-600',
-    focusCategory: 'other',
-    examples: ['Budgeting & finances', 'Housing & tenancy', 'Meal planning & cooking', 'Daily-living routines'],
-    models: [
-      starter('living', 'A grounded start on money, housing, and daily routines for living independently.', ['Live independently', 'Manage my own budget'], 'live'),
-    ],
-  },
-  {
-    key: 'career',
-    title: 'Career & Workplace',
-    blurb: 'Land and thrive in a job that fits you — including disclosure and accommodations.',
-    icon: Briefcase,
-    tint: 'from-amber-50 to-white border-amber-200',
-    iconTint: 'bg-amber-100 text-amber-600',
-    focusCategory: 'career',
-    examples: ['Resume & interviews', 'Accommodation requests', 'Workplace social norms', 'Career growth'],
-    models: [
-      starter('career', 'Find work that fits, request accommodations, and grow — the general path.', ['Get a fulfilling job', 'Request workplace accommodations'], 'live'),
-    ],
-  },
-  {
-    key: 'education',
-    title: 'Education',
-    blurb: 'Navigate school, college, or trade programs with the right supports at each step.',
-    icon: GraduationCap,
-    tint: 'from-indigo-50 to-white border-indigo-200',
-    iconTint: 'bg-indigo-100 text-indigo-600',
-    focusCategory: 'education',
-    examples: ['Accommodations at school', 'Study strategies', 'Applications & funding', 'Graduation planning'],
-    models: [
-      starter('education', 'Get set up with accommodations and study supports through to graduation.', ['Graduate from my program', 'Set up school accommodations'], 'live'),
-    ],
-  },
-  {
-    key: 'health',
-    title: 'Health & Wellness',
-    blurb: 'Support your physical and mental health with routines, care, and self-advocacy.',
-    icon: HeartPulse,
-    tint: 'from-rose-50 to-white border-rose-200',
-    iconTint: 'bg-rose-100 text-rose-600',
-    focusCategory: 'health',
-    examples: ['Finding the right care', 'Managing appointments', 'Wellness routines', 'Self-advocacy in healthcare'],
-    models: [
-      starter('health', 'Build wellness routines and find care that works — the general path.', ['Build a wellness routine', 'Find supportive healthcare'], 'live'),
-    ],
-  },
-  {
-    key: 'relationships',
-    title: 'Relationships & Community',
-    blurb: 'Build and keep meaningful connections — friends, family, and community.',
-    icon: Users,
-    tint: 'from-purple-50 to-white border-purple-200',
-    iconTint: 'bg-purple-100 text-purple-600',
-    focusCategory: 'relationships',
-    examples: ['Making friends', 'Communication skills', 'Joining communities', 'Navigating family'],
-    models: [
-      starter('relationships', 'Grow a support network and communication skills at your own pace.', ['Build a support network', 'Improve my communication'], 'live'),
-    ],
-  },
-  {
-    key: 'creative',
-    title: 'Creative & Hobbies',
-    blurb: 'Turn interests into skills or income — art, music, making, and more.',
-    icon: Palette,
-    tint: 'from-fuchsia-50 to-white border-fuchsia-200',
-    iconTint: 'bg-fuchsia-100 text-fuchsia-600',
-    focusCategory: 'other',
-    examples: ['Develop a craft', 'Share your work', 'Find creative community', 'Monetize a hobby'],
-    models: [
-      starter('creative', 'Grow a creative skill and share it — the general path.', ['Grow a creative skill'], 'coming'),
-    ],
-  },
-  {
-    key: 'travel',
-    title: 'Travel & Independence',
-    blurb: 'Plan sensory-aware travel and build confidence getting around.',
-    icon: Plane,
-    tint: 'from-cyan-50 to-white border-cyan-200',
-    iconTint: 'bg-cyan-100 text-cyan-600',
-    focusCategory: 'other',
-    examples: ['Sensory-friendly trip planning', 'Public transit confidence', 'Travel checklists', 'Accessible destinations'],
-    models: [
-      starter('travel', 'Plan sensory-aware travel and build transit confidence.', ['Plan a trip', 'Get comfortable with transit'], 'coming'),
-    ],
-  },
-]
+  }
+}
 
 const STATUS_META: Record<ModelStatus, { label: string; cls: string }> = {
   live: { label: 'Available', cls: 'bg-emerald-100 text-emerald-700' },
@@ -203,12 +133,32 @@ export default function PathMarketPage() {
   }
   useEffect(() => { loadCommunity() }, [])
 
+  // Life categories — DB-backed (Odosa: not hardcoded). Fetched from
+  // /api/path-categories and mapped to renderable LifeCategory objects.
+  const [categories, setCategories] = useState<LifeCategory[]>([])
+  const [catsLoading, setCatsLoading] = useState(true)
+  useEffect(() => {
+    fetch('/api/path-categories', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (Array.isArray(j?.categories)) setCategories(j.categories.map(toLifeCategory))
+      })
+      .catch(() => {})
+      .finally(() => setCatsLoading(false))
+  }, [])
+
   // Submit-a-model modal.
   const [showSubmit, setShowSubmit] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitDone, setSubmitDone] = useState(false)
-  const [form, setForm] = useState({ categoryKey: 'med-sci', name: '', contributor: '', description: '', goalsText: '' })
+  const [form, setForm] = useState({ categoryKey: '', name: '', contributor: '', description: '', goalsText: '' })
+  // Default the submit-modal category to the first one once categories load.
+  useEffect(() => {
+    if (!form.categoryKey && categories.length > 0) {
+      setForm((f) => ({ ...f, categoryKey: categories[0].key }))
+    }
+  }, [categories, form.categoryKey])
 
   const submitModel = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -257,7 +207,7 @@ export default function PathMarketPage() {
 
   const q = query.trim().toLowerCase()
   // Merge seed models with approved (+ own pending) community models per category.
-  const merged = CATEGORIES.map((c) => ({ ...c, models: [...c.models, ...(community[c.key] || [])] }))
+  const merged = categories.map((c) => ({ ...c, models: [...c.models, ...(community[c.key] || [])] }))
   const filtered = merged.map((c) => {
     if (!q) return c
     const catMatch =
@@ -348,6 +298,12 @@ export default function PathMarketPage() {
           />
         </div>
 
+        {catsLoading && (
+          <div className="flex justify-center py-12 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        )}
+
         {/* Layer 2: Life Categories, each containing Layer 3: Models */}
         <div className="space-y-4">
           {filtered.map((c) => {
@@ -415,10 +371,16 @@ export default function PathMarketPage() {
           })}
         </div>
 
-        {filtered.length === 0 && (
+        {!catsLoading && filtered.length === 0 && (
           <div className="text-center py-12 text-slate-500 text-sm">
-            No categories or models match “{query}”. Try a different search, or{' '}
-            <Link href="/onboarding" className="text-cyan-600 hover:underline">start from scratch</Link>.
+            {categories.length === 0 ? (
+              <>No path categories yet.</>
+            ) : (
+              <>
+                No categories or models match “{query}”. Try a different search, or{' '}
+                <Link href="/onboarding" className="text-cyan-600 hover:underline">start from scratch</Link>.
+              </>
+            )}
           </div>
         )}
       </div>
@@ -450,7 +412,7 @@ export default function PathMarketPage() {
                     onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
                     className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                   >
-                    {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.title}</option>)}
+                    {categories.map((c) => <option key={c.key} value={c.key}>{c.title}</option>)}
                   </select>
                 </div>
                 <input

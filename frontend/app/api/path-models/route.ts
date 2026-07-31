@@ -11,10 +11,6 @@ import { createServerSupabase } from '@/lib/supabase/server'
  * RLS on public.path_models enforces the read/insert rules; we just shape data.
  */
 
-const KNOWN_CATEGORIES = new Set([
-  'med-sci', 'living', 'career', 'education', 'health', 'relationships', 'creative', 'travel',
-])
-
 export async function GET(_req: NextRequest) {
   const supabase = createServerSupabase()
   const {
@@ -75,7 +71,14 @@ export async function POST(req: NextRequest) {
     ? body.seedGoals.map((g: any) => String(g).trim()).filter(Boolean).slice(0, 6)
     : []
 
-  if (!KNOWN_CATEGORIES.has(categoryKey)) {
+  // Validate against the DB-backed categories (not a hardcoded set) so this
+  // stays correct as categories are added/edited in path_categories.
+  const { data: cat } = await supabase
+    .from('path_categories')
+    .select('key')
+    .eq('key', categoryKey)
+    .maybeSingle()
+  if (!cat) {
     return NextResponse.json({ error: 'Pick a valid life category.' }, { status: 400 })
   }
   if (name.length < 2 || name.length > 60) {
