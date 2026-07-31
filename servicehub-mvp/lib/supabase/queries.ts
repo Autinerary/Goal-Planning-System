@@ -539,13 +539,25 @@ export async function createOrUpdateRating(rating: {
       return null
     }
 
-    // Add to moderation queue if comment was added/updated
+    // Add to moderation queue if comment was added/updated. moderation_queue
+    // has no composite unique key, so an upsert here always inserted anyway —
+    // use insert() so the code honestly reflects that. Guard against piling up
+    // duplicate pending rows when a comment is edited repeatedly.
     if (rating.comment) {
-      await supabase.from('moderation_queue').upsert({
-        item_type: 'rating',
-        item_id: data.id,
-        status: 'pending',
-      })
+      const { data: existing } = await supabase
+        .from('moderation_queue')
+        .select('id')
+        .eq('item_type', 'rating')
+        .eq('item_id', data.id)
+        .eq('status', 'pending')
+        .limit(1)
+      if (!existing || existing.length === 0) {
+        await supabase.from('moderation_queue').insert({
+          item_type: 'rating',
+          item_id: data.id,
+          status: 'pending',
+        })
+      }
     }
 
     return data
