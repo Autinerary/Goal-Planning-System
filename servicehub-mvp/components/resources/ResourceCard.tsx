@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Resource } from '@/types/database'
 import BarrierBadge from './BarrierBadge'
 import { MapPin, Star, Users } from 'lucide-react'
+import { imageOrPlaceholder } from '@/lib/images/placeholder'
 
 interface ResourceCardProps {
   resource: Resource
@@ -26,6 +27,9 @@ export default function ResourceCard({
 }: ResourceCardProps) {
   const location = resource.location as any
   const city = location?.city || 'Location not specified'
+  // Services get images too (Odosa). Falls back to a generated placeholder so
+  // the layout reads correctly before a real photo is uploaded.
+  const imageSrc = imageOrPlaceholder((resource as any).image_url, resource.name, resource.category)
 
   if (variant === 'list') {
     return (
@@ -35,6 +39,12 @@ export default function ResourceCard({
         aria-label={`View ${resource.name}`}
       >
         <div className="p-6 flex flex-col sm:flex-row gap-6">
+          {/* Thumbnail */}
+          <div className="sm:w-40 sm:h-40 w-full aspect-[16/9] sm:aspect-auto flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageSrc} alt={resource.name} className="w-full h-full object-cover" loading="lazy" />
+          </div>
+
           {/* Left side - Main content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4 mb-2">
@@ -103,9 +113,20 @@ export default function ResourceCard({
   return (
     <Link
       href={`/resources/${resource.id}`}
-      className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden group"
       aria-label={`View ${resource.name}`}
     >
+      {/* Image banner */}
+      <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageSrc}
+          alt={resource.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+      </div>
+
       <div className="p-6">
         {/* Category Badge */}
         <div className="mb-2">

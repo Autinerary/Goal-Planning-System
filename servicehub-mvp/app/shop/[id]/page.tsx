@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Star, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Star } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ProductPurchasePanel from '@/components/shop/ProductPurchasePanel'
 import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
+import { imageOrPlaceholder } from '@/lib/images/placeholder'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,13 +35,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Images */}
           <div>
-            <div className="aspect-square rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center">
-              {product.image_urls[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.image_urls[0]} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <ShoppingBag className="w-16 h-16 text-gray-300" aria-hidden="true" />
-              )}
+            <div className="aspect-square rounded-2xl bg-white border border-gray-200 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageOrPlaceholder(product.image_urls[0], product.name, product.category)}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             {product.image_urls.length > 1 && (
               <div className="mt-3 flex gap-2 overflow-x-auto">
