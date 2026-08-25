@@ -193,6 +193,7 @@ export async function POST(request: NextRequest) {
         name: r.name,
         description: r.description,
         category: r.category,
+        price: typeof r.price === 'number' ? r.price : null,
         location: r.location,
         averageRating: r.averageRating || 0,
         ratingCount: r.ratingCount || 0,

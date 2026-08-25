@@ -662,7 +662,9 @@ export default function OnboardingPage() {
         ? flattenedChallenges
         : formData.currentChallenges.filter(c => c.trim())
       
-      const serviceHubResponse = await axios.post(`${SERVICE_HUB_URL}/api/onboarding/complete`, {
+      // Same-origin proxy — a direct cross-origin POST to ServiceHub was blocked
+      // by CORS preflight, which is why this step never worked (Odosa).
+      const serviceHubResponse = await axios.post('/api/recommendations', {
         role: derivedRole,
         location: formData.location,
         barriers: serviceHubBarriers,
@@ -2550,8 +2552,9 @@ export default function OnboardingPage() {
                 <h2 className="text-2xl font-bold text-slate-800">AI-Recommended Services</h2>
               </div>
               <p className="text-slate-600 mb-4">
-                Based on your profile, we&apos;ve found resources that may help you achieve your goals. 
-                Save any that interest you to access them later in ResourceHub.
+                Based on your profile, we&apos;ve found resources that may help you achieve your goals.
+                Free and lower-cost options are listed first. Save any that interest you to access
+                them later in ResourceHub.
               </p>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
@@ -2641,6 +2644,17 @@ export default function OnboardingPage() {
                                   {resource.category}
                                 </span>
                               )}
+                              {/* Cost up front (Chi): free options are surfaced
+                                  first and labelled, so you know before clicking. */}
+                              {resource.price === 0 ? (
+                                <span className="px-2 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded">
+                                  Free
+                                </span>
+                              ) : typeof resource.price === 'number' ? (
+                                <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded">
+                                  ${resource.price}
+                                </span>
+                              ) : null}
                             </div>
                             <p className="text-sm text-slate-600 mb-2 line-clamp-2">
                               {resource.description}
