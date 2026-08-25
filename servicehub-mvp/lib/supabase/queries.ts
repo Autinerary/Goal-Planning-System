@@ -253,12 +253,23 @@ export interface DiagnosticBreakdown {
   levels: Array<{ level: number; count: number; areas: AreaAverages }> // severity 1-5
 }
 
+/** Rating group: how one organisation's members rate a resource (Odosa). */
+export interface OrgBreakdown {
+  orgId: string
+  name: string
+  slug: string
+  count: number
+  average: number
+  areas: AreaAverages
+}
+
 export interface ResourceDetail extends Resource {
   averageRating: number
   ratingCount: number
   ratingDistribution: { [key: number]: number } // { 5: 10, 4: 5, ... }
   barrierScores: { [barrier: string]: { average: number; count: number } }
   diagnosticBreakdown?: DiagnosticBreakdown[]
+  orgBreakdown?: OrgBreakdown[]
   userRating?: Rating | null // Current user's rating if logged in
   isSaved?: boolean // Whether current user has saved this resource
   recommendedByAutismCommunity?: boolean // If highly rated by users with autism barriers
@@ -374,6 +385,56 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     }))
     .sort((a, b) => b.count - a.count)
 
+  // Rating groups (Odosa): the same shape, grouped by the rater's ORGANISATION
+  // instead of their diagnostic — "how this org's members rate this resource".
+  // Org ids are snapshotted on each rating (rater_org_ids), so no cross-user
+  // membership reads are needed. Only admin-verified orgs are surfaced, so an
+  // unverified org can't present itself as a trusted rating group.
+  const orgAgg: Record<string, { sum: number; count: number; areas: Record<string, { sum: number; count: number }> }> = {}
+  if (ratings) {
+    for (const rating of ratings) {
+      const orgIds: string[] = Array.isArray((rating as any).rater_org_ids)
+        ? (rating as any).rater_org_ids.filter((x: any) => typeof x === 'string' && x)
+        : []
+      if (orgIds.length === 0) continue
+      const scores = (rating.barrier_scores || {}) as BarrierScores
+      const dims = Object.entries(scores).filter(([, sc]) => typeof sc === 'number') as [string, number][]
+      for (const orgId of orgIds) {
+        const o = (orgAgg[orgId] ||= { sum: 0, count: 0, areas: {} })
+        o.sum += rating.overall_score
+        o.count += 1
+        for (const [dim, score] of dims) {
+          ;(o.areas[dim] ||= { sum: 0, count: 0 })
+          o.areas[dim].sum += score
+          o.areas[dim].count += 1
+        }
+      }
+    }
+  }
+
+  let orgBreakdown: OrgBreakdown[] = []
+  const orgIdList = Object.keys(orgAgg)
+  if (orgIdList.length > 0) {
+    const { data: orgRows } = await supabase
+      .from('organizations')
+      .select('id, name, slug, is_verified')
+      .in('id', orgIdList)
+      .eq('is_verified', true)
+    orgBreakdown = (orgRows || [])
+      .map((o: any) => {
+        const agg = orgAgg[o.id]
+        return {
+          orgId: o.id,
+          name: o.name,
+          slug: o.slug,
+          count: agg.count,
+          average: agg.count ? agg.sum / agg.count : 0,
+          areas: toAvg(agg.areas),
+        }
+      })
+      .sort((a, b) => b.count - a.count)
+  }
+
   // Get user's rating if logged in
   let userRating: Rating | null = null
   if (userId) {
@@ -427,6 +488,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     ratingDistribution,
     barrierScores: barrierAverages,
     diagnosticBreakdown,
+    orgBreakdown,
     userRating: userRating || undefined,
     isSaved,
     recommendedByAutismCommunity,
@@ -520,6 +582,8 @@ export async function createOrUpdateRating(rating: {
   comment?: string
   /** Rater's own diagnostics { barrier_type: severity 1-5 } — for the nested breakdown. */
   rater_diagnostics?: Record<string, number>
+  /** Orgs the rater belonged to at rating time — powers per-organisation groups. */
+  rater_org_ids?: string[]
 }): Promise<Rating | null> {
   const supabase = createClient()
   // Check if rating exists

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Star, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react'
-import type { DiagnosticBreakdown } from '@/lib/supabase/queries'
+import type { DiagnosticBreakdown, OrgBreakdown } from '@/lib/supabase/queries'
 import {
   BarChart,
   Bar,
@@ -22,6 +22,7 @@ interface RatingsBreakdownProps {
   ratingDistribution: { [key: number]: number }
   barrierScores: { [barrier: string]: { average: number; count: number } }
   diagnosticBreakdown?: DiagnosticBreakdown[]
+  orgBreakdown?: OrgBreakdown[]
 }
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'] // Red to Green
@@ -47,9 +48,11 @@ export default function RatingsBreakdown({
   ratingDistribution,
   barrierScores,
   diagnosticBreakdown = [],
+  orgBreakdown = [],
 }: RatingsBreakdownProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [openFeature, setOpenFeature] = useState<string | null>(null)
+  const [openOrg, setOpenOrg] = useState<string | null>(null)
   // Prepare rating distribution data for bar chart
   const distributionData = [
     { rating: '5', count: ratingDistribution[5] || 0, label: '5 stars' },
@@ -237,6 +240,62 @@ export default function RatingsBreakdown({
                                 {areaRows(sortedAreas(l.areas))}
                               </div>
                             ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Rating groups — how each organisation's members rate this (Odosa).
+              Only admin-verified organisations appear. */}
+          {orgBreakdown.length > 0 && (
+            <section>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">By organisation</h3>
+              <p className="text-xs text-gray-500 mb-4">
+                How members of community organisations rate this resource — people often trust
+                their own community&apos;s experience most.
+              </p>
+              <div className="space-y-2">
+                {orgBreakdown.map((o) => {
+                  const isOpen = openOrg === o.orgId
+                  return (
+                    <div key={o.orgId} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setOpenOrg(isOpen ? null : o.orgId)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                        aria-expanded={isOpen}
+                      >
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900">{o.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {o.count} {o.count === 1 ? 'rating' : 'ratings'} from members
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+                            {o.average.toFixed(1)}
+                          </span>
+                          {isOpen ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" aria-hidden="true" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" aria-hidden="true" />
+                          )}
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="px-4 pb-3 bg-gray-50">
+                          {Object.keys(o.areas).length === 0 ? (
+                            <p className="text-xs text-gray-500 py-2">
+                              No area-level ratings from this organisation yet.
+                            </p>
+                          ) : (
+                            areaRows(sortedAreas(o.areas))
+                          )}
                         </div>
                       )}
                     </div>

@@ -191,6 +191,7 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
               ratingDistribution={resource.ratingDistribution}
               barrierScores={resource.barrierScores}
               diagnosticBreakdown={resource.diagnosticBreakdown}
+              orgBreakdown={resource.orgBreakdown}
             />
 
             <CommunityReviews resourceId={resourceId} userId={user?.id} />

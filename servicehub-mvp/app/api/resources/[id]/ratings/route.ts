@@ -154,6 +154,22 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       /* non-fatal — rating still saves without diagnostics */
     }
 
+    // Snapshot which organisations the rater belongs to, so ratings can be
+    // grouped per organisation later without cross-user membership reads
+    // (RLS-safe: the rater reads their own memberships).
+    let rater_org_ids: string[] = []
+    try {
+      const { data: myOrgs } = await supabase
+        .from('organization_members')
+        .select('org_id')
+        .eq('user_id', user.id)
+      rater_org_ids = (myOrgs || [])
+        .map((o: any) => String(o.org_id || ''))
+        .filter(Boolean)
+    } catch {
+      /* non-fatal — rating still saves without org grouping */
+    }
+
     // Create or update rating (only if approved or flagged for review)
     const rating = await createOrUpdateRating({
       resource_id: params.id,
@@ -162,6 +178,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       barrier_scores,
       comment: comment?.trim() || undefined,
       rater_diagnostics,
+      rater_org_ids,
     })
 
     if (!rating) {
