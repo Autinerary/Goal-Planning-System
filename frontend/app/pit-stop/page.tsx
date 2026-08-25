@@ -49,7 +49,7 @@ function PitStopContent() {
   const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [actionType, setActionType] = useState<'add' | 'remove' | null>(null)
   const [showCodeModal, setShowCodeModal] = useState(false)
-  const [selectedGroupForJoin, setSelectedGroupForJoin] = useState<{ id: string; name: string; code: string } | null>(null)
+  const [selectedGroupForJoin, setSelectedGroupForJoin] = useState<{ id: string; name: string; code: string | null } | null>(null)
   const [codeInput, setCodeInput] = useState('')
   const [matchedProfiles, setMatchedProfiles] = useState<Array<{ id: string; name: string; dream: string }>>([])
   const [showMatchSuccess, setShowMatchSuccess] = useState(false)
@@ -115,7 +115,96 @@ function PitStopContent() {
   // Collab Groups — start empty (no fabricated groups/leaders). Groups the
   // user creates via the Create Group flow appear here; an empty list renders
   // an honest "no groups yet" state.
-  const [collabGroups, setCollabGroups] = useState<Array<{ id: string; name: string; type: string; leader: string; members: number; isPublic: boolean; code: string | null; joined: boolean }>>([])
+  // Collab groups are DB-backed (they used to live only in local state and
+  // vanished on refresh, and the Create modal created nothing).
+  const [collabGroups, setCollabGroups] = useState<Array<{ id: string; name: string; type: string; rules?: string | null; isLeader: boolean; members: number; isPublic: boolean; code: string | null; joined: boolean }>>([])
+  const [collabLoading, setCollabLoading] = useState(true)
+  const [collabError, setCollabError] = useState('')
+  const [joinCodeInput, setJoinCodeInput] = useState('')
+  const [groupForm, setGroupForm] = useState({ name: '', type: '', isPublic: true, rules: '' })
+  const [creatingGroup, setCreatingGroup] = useState(false)
+
+  const loadCollabGroups = () => {
+    fetch('/api/collab-groups', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (Array.isArray(j?.groups)) setCollabGroups(j.groups) })
+      .catch(() => {})
+      .finally(() => setCollabLoading(false))
+  }
+  useEffect(() => { loadCollabGroups() }, [])
+
+  const createCollabGroup = async () => {
+    setCollabError('')
+    if (groupForm.name.trim().length < 2) { setCollabError('Give the group a name.'); return }
+    setCreatingGroup(true)
+    try {
+      const res = await fetch('/api/collab-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: groupForm.name.trim(),
+          type: groupForm.type || collabTypes[0].id,
+          isPublic: groupForm.isPublic,
+          rules: groupForm.rules.trim(),
+        }),
+      })
+      const j = await res.json().catch(() => null)
+      if (!res.ok) { setCollabError(j?.error || 'Could not create the group.'); return }
+      setCollabGroups((prev) => [j.group, ...prev])
+      setShowGroupModal(false)
+      setGroupForm({ name: '', type: '', isPublic: true, rules: '' })
+    } finally {
+      setCreatingGroup(false)
+    }
+  }
+
+  /** Validate a private group's code SERVER-side. The old modal compared it in
+   *  the browser, which meant every private code was shipped to every client. */
+  const submitJoinCode = async (code: string, onDone?: () => void) => {
+    setCollabError('')
+    const trimmed = code.trim()
+    if (!trimmed) return
+    const res = await fetch('/api/collab-groups/membership', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ joinCode: trimmed }),
+    })
+    const j = await res.json().catch(() => null)
+    if (!res.ok) { alert(j?.error || 'Invalid code. Please try again.'); return }
+    loadCollabGroups()
+    onDone?.()
+  }
+
+  const joinByCode = async () => {
+    setCollabError('')
+    const code = joinCodeInput.trim()
+    if (!code) return
+    const res = await fetch('/api/collab-groups/membership', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ joinCode: code }),
+    })
+    const j = await res.json().catch(() => null)
+    if (!res.ok) { setCollabError(j?.error || 'Could not join.'); return }
+    setJoinCodeInput('')
+    loadCollabGroups()
+  }
+
+  const toggleGroupMembership = async (group: { id: string; joined: boolean; isPublic: boolean }) => {
+    setCollabError('')
+    const res = await fetch('/api/collab-groups/membership', {
+      method: group.joined ? 'DELETE' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ groupId: group.id }),
+    })
+    const j = await res.json().catch(() => null)
+    if (!res.ok) { setCollabError(j?.error || 'Could not update membership.'); return }
+    loadCollabGroups()
+  }
   const [showJoinSuccessModal, setShowJoinSuccessModal] = useState(false)
   const [joinedGroupName, setJoinedGroupName] = useState<string | null>(null)
 
@@ -1185,9 +1274,33 @@ function PitStopContent() {
                     Like Mentor Groups but w/o mentor. Search if public & get via code if private.
                   </p>
                   
+                  {/* Join a private group by code */}
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      value={joinCodeInput}
+                      onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => { if (e.key === 'Enter') joinByCode() }}
+                      placeholder="Have a code? Enter it to join a private group"
+                      className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-mono tracking-wider focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      onClick={joinByCode}
+                      disabled={!joinCodeInput.trim()}
+                      className="px-4 py-2 rounded-lg border-2 border-indigo-200 text-indigo-700 text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50"
+                    >
+                      Join
+                    </button>
+                  </div>
+                  {collabError && (
+                    <p className="text-sm text-red-600 mb-3">{collabError}</p>
+                  )}
+
                   <div className="space-y-4">
-                    {collabGroups.length === 0 && (
-                      <p className="text-sm text-slate-500 text-center py-6">No groups yet — create one below and invite your people.</p>
+                    {collabLoading && (
+                      <p className="text-sm text-slate-500 text-center py-6">Loading groups…</p>
+                    )}
+                    {!collabLoading && collabGroups.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center py-6">No groups yet — create one above and invite your people.</p>
                     )}
                     {(selectedCollabType
                       ? collabGroups.filter(g => g.type === selectedCollabType)
@@ -1198,7 +1311,7 @@ function PitStopContent() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h4 className="font-bold text-lg">{group.name}</h4>
-                              {group.leader === 'You' && (
+                              {group.isLeader && (
                                 <Crown className="w-5 h-5 text-amber-500" />
                               )}
                             </div>
@@ -1224,7 +1337,7 @@ function PitStopContent() {
                                 {collabTypes.find(t => t.id === group.type)?.label}
                               </span>
                             </div>
-                            {group.leader === 'You' && (
+                            {group.isLeader && (
                               <p className="text-xs text-amber-600 font-medium">You are the group leader - you set rules</p>
                             )}
                             {!group.isPublic && group.code && (
@@ -1236,26 +1349,20 @@ function PitStopContent() {
                           </div>
                           <button 
                             onClick={() => {
+                              // Real join/leave — persisted server-side.
                               if (group.joined) {
-                                // Already joined - could show leave option
-                                if (confirm(`Leave ${group.name}?`)) {
-                                  setCollabGroups(prev => prev.map(g => 
-                                    g.id === group.id ? { ...g, joined: false, members: g.members - 1 } : g
-                                  ))
-                                }
+                                if (confirm(`Leave ${group.name}?`)) toggleGroupMembership(group)
                               } else if (group.isPublic) {
-                                // Join public group
-                                setCollabGroups(prev => prev.map(g => 
-                                  g.id === group.id ? { ...g, joined: true, members: g.members + 1 } : g
-                                ))
-                                setJoinedGroupName(group.name)
-                                setShowJoinSuccessModal(true)
-                                setTimeout(() => {
-                                  setShowJoinSuccessModal(false)
-                                  setJoinedGroupName(null)
-                                }, 2000)
-                              } else if (group.code) {
-                                // For private groups, show code input modal
+                                toggleGroupMembership(group).then(() => {
+                                  setJoinedGroupName(group.name)
+                                  setShowJoinSuccessModal(true)
+                                  setTimeout(() => {
+                                    setShowJoinSuccessModal(false)
+                                    setJoinedGroupName(null)
+                                  }, 2000)
+                                })
+                              } else {
+                                // Private: joining needs the code.
                                 setSelectedGroupForJoin({ id: group.id, name: group.name, code: group.code })
                                 setShowCodeModal(true)
                                 setCodeInput('')
@@ -1731,13 +1838,21 @@ function PitStopContent() {
                   <label className="block text-sm font-medium mb-2">Group Name:</label>
                   <input
                     type="text"
+                    value={groupForm.name}
+                    onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
                     placeholder="Enter group name"
+                    maxLength={80}
+                    autoFocus
                     className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Collab Type:</label>
-                  <select className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500">
+                  <select
+                    value={groupForm.type || collabTypes[0].id}
+                    onChange={(e) => setGroupForm({ ...groupForm, type: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                  >
                     {collabTypes.map((type) => (
                       <option key={type.id} value={type.id}>{type.label}</option>
                     ))}
@@ -1747,11 +1862,21 @@ function PitStopContent() {
                   <label className="block text-sm font-medium mb-2">Visibility:</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="visibility" value="public" defaultChecked />
+                      <input
+                        type="radio"
+                        name="visibility"
+                        checked={groupForm.isPublic}
+                        onChange={() => setGroupForm({ ...groupForm, isPublic: true })}
+                      />
                       <span>Public (searchable)</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="visibility" value="private" />
+                      <input
+                        type="radio"
+                        name="visibility"
+                        checked={!groupForm.isPublic}
+                        onChange={() => setGroupForm({ ...groupForm, isPublic: false })}
+                      />
                       <span>Private (code required)</span>
                     </label>
                   </div>
@@ -1759,11 +1884,16 @@ function PitStopContent() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Group Rules:</label>
                   <textarea
+                    value={groupForm.rules}
+                    onChange={(e) => setGroupForm({ ...groupForm, rules: e.target.value })}
                     placeholder="Set rules (e.g., If groups can see others' data)"
                     className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 h-24"
                   />
                   <p className="text-xs text-slate-500 mt-1">As group leader, you set the rules</p>
                 </div>
+                {collabError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{collabError}</p>
+                )}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowGroupModal(false)}
@@ -1772,10 +1902,11 @@ function PitStopContent() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => setShowGroupModal(false)}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    onClick={createCollabGroup}
+                    disabled={creatingGroup || groupForm.name.trim().length < 2}
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
                   >
-                    Create Group
+                    {creatingGroup ? 'Creating…' : 'Create Group'}
                   </button>
                 </div>
               </div>
@@ -2010,15 +2141,11 @@ function PitStopContent() {
                     className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider bg-white text-slate-900 placeholder-slate-400"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        if (codeInput === selectedGroupForJoin.code) {
+                        submitJoinCode(codeInput, () => {
                           setShowCodeModal(false)
                           setSelectedGroupForJoin(null)
                           setCodeInput('')
-                          alert(`Successfully joined ${selectedGroupForJoin.name}!`)
-                        } else {
-                          alert('Invalid code. Please try again.')
-                          setCodeInput('')
-                        }
+                        })
                       }
                     }}
                     autoFocus
@@ -2037,24 +2164,18 @@ function PitStopContent() {
                   </button>
                   <button
                     onClick={() => {
-                      if (codeInput === selectedGroupForJoin.code) {
-                        // Update the group to show as joined
-                        setCollabGroups(prev => prev.map(g => 
-                          g.id === selectedGroupForJoin.id ? { ...g, joined: true, members: g.members + 1 } : g
-                        ))
+                      const name = selectedGroupForJoin.name
+                      submitJoinCode(codeInput, () => {
                         setShowCodeModal(false)
-                        setJoinedGroupName(selectedGroupForJoin.name)
-                        setShowJoinSuccessModal(true)
                         setSelectedGroupForJoin(null)
                         setCodeInput('')
+                        setJoinedGroupName(name)
+                        setShowJoinSuccessModal(true)
                         setTimeout(() => {
                           setShowJoinSuccessModal(false)
                           setJoinedGroupName(null)
                         }, 2000)
-                      } else {
-                        alert('Invalid code. Please try again.')
-                        setCodeInput('')
-                      }
+                      })
                     }}
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
                   >

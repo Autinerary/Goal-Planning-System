@@ -17,7 +17,7 @@ file covers both.
 `DROP POLICY IF EXISTS` before each `CREATE POLICY`), and the whole file is
 wrapped in one transaction — if anything fails, nothing is applied.
 
-It bundles 16 migrations in dependency order:
+It bundles 17 migrations in dependency order:
 
 | # | Migration | Unlocks |
 |---|-----------|---------|
@@ -27,7 +27,8 @@ It bundles 16 migrations in dependency order:
 | 04 | path_models | Path Market community models |
 | 05 | path_categories | **Path Market categories** (page is empty without this) |
 | 06 | family_accounts | **18+ gate + parent→child supervision** |
-| 07 | servicehub_agent_learning | ResourceHub agent learning |
+| 07 | collab_groups | **Hare World collab groups** (create/join/leave) |
+| 08 | servicehub_agent_learning | ResourceHub agent learning |
 | 08 | community_tidbits | Tidbits community (posts/answers/votes) |
 | 09 | post_unlocking_moment | "Unlocking moment" highlight |
 | 10 | post_what_didnt_work | **"What didn't work" highlight** |
