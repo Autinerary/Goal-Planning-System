@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: AuthError | null; session?: Session }>
+  signUp: (email: string, password: string, fullName?: string, dateOfBirth?: string) => Promise<{ error: AuthError | null; session?: Session }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
@@ -91,14 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signUp(
     email: string,
     password: string,
-    fullName?: string
+    fullName?: string,
+    dateOfBirth?: string
   ): Promise<{ error: AuthError | null; session?: Session }> {
     try {
       const normalizedEmail = email.trim().toLowerCase()
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, password, fullName }),
+        body: JSON.stringify({ email: normalizedEmail, password, fullName, dateOfBirth }),
       })
       const body = await res.json()
       if (!res.ok) {
@@ -109,7 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (signInErr) return { error: signInErr }
 
-      router.push('/')
+      // New accounts go straight into onboarding, mirroring Goal Planning
+      // (Odosa) — previously they landed on the home page and never saw it.
+      router.push('/onboarding')
       router.refresh()
       return { error: null, session: data.session ?? undefined }
     } catch (err: any) {

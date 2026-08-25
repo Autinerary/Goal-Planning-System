@@ -8,7 +8,7 @@ import RoleSelector from '@/components/onboarding/RoleSelector'
 import BarrierSelector, { SelectedBarrier } from '@/components/onboarding/BarrierSelector'
 import IntersectionalityBadge from '@/components/onboarding/IntersectionalityBadge'
 
-const steps = ['Welcome', 'Location', 'Barriers', 'Impact', 'Context']
+const steps = ['Welcome', 'Location', 'Norms', 'Impact', 'Context']
 
 interface OnboardingData {
   role: string | null
@@ -247,23 +247,46 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 3: Barrier Selection */}
+            {/* Step 3: Norms — the heart of the product, so make the filters
+                visually unmistakable rather than just another form step (Odosa). */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Systematic Barrier Identification
+              <div className="space-y-5">
+                <div className="text-center">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wide mb-3">
+                    ★ The heart of ResourceHub
+                  </span>
+                  <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+                    Choose your Norms
                   </h2>
-                  <p className="text-gray-600">
-                    Select all that apply to you. This is the <strong>core innovation</strong> of
-                    ResourceHub - we find resources rated by people with similar barriers.
+                  <p className="text-gray-600 max-w-xl mx-auto">
+                    These are the systemic realities you navigate. Everything else keys off
+                    them — we surface resources <strong>rated by people who share your norms</strong>,
+                    so what you see is filtered for you, not for the average person.
                   </p>
                 </div>
 
-                <BarrierSelector
-                  selectedBarriers={formData.barriers}
-                  onBarriersChange={(barriers) => setFormData({ ...formData, barriers })}
-                />
+                {/* Highlighted container so the selector reads as the main event */}
+                <div className="rounded-2xl border-2 border-blue-300 bg-gradient-to-b from-blue-50/70 to-white p-4 sm:p-5 shadow-md ring-4 ring-blue-100">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <p className="text-sm font-semibold text-blue-900">
+                      Select every norm that applies to you
+                    </p>
+                    <span className="text-xs font-bold text-blue-700 bg-white border border-blue-200 rounded-full px-2.5 py-1 whitespace-nowrap">
+                      {formData.barriers.length} selected
+                    </span>
+                  </div>
+
+                  <BarrierSelector
+                    selectedBarriers={formData.barriers}
+                    onBarriersChange={(barriers) => setFormData({ ...formData, barriers })}
+                  />
+
+                  {formData.barriers.length === 0 && (
+                    <p className="mt-3 text-xs text-blue-800/80">
+                      Pick at least one to continue — you can always change these later in your profile.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 

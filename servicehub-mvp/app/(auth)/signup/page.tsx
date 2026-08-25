@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { computeAge, MIN_SIGNUP_AGE } from '@/lib/age'
 import type { AuthError } from '@supabase/supabase-js'
 
 export default function SignupPage() {
@@ -11,6 +12,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -33,18 +35,32 @@ export default function SignupPage() {
       return
     }
 
+    // 18+ gate, matching Goal Planning (Odosa).
+    const age = computeAge(dateOfBirth)
+    if (age === null) {
+      setError('Please enter your date of birth.')
+      return
+    }
+    if (age < MIN_SIGNUP_AGE) {
+      setError(
+        'You must be 18 or older to create your own account. Ask a parent or guardian to add you from their account.'
+      )
+      return
+    }
+
     setLoading(true)
 
     const normalizedEmail = email.trim().toLowerCase()
-    const { error, session } = await signUp(normalizedEmail, password, fullName || undefined)
+    const { error, session } = await signUp(normalizedEmail, password, fullName || undefined, dateOfBirth)
 
     if (error) {
       setError(getErrorMessage(error))
       setLoading(false)
     } else if (session) {
-      // Account created and signed in (e.g. email confirmation disabled in Supabase)
+      // Account created and signed in (e.g. email confirmation disabled in Supabase).
+      // Send them through onboarding like Goal Planning does (Odosa).
       setLoading(false)
-      router.push('/')
+      router.push('/onboarding')
       router.refresh()
     } else {
       setSuccess(true)
@@ -179,6 +195,28 @@ export default function SignupPage() {
                 aria-label="Full name"
                 disabled={loading}
               />
+            </div>
+
+            {/* 18+ gate — matches Goal Planning (Odosa) */}
+            <div>
+              <label htmlFor="date-of-birth" className="block text-sm font-medium text-gray-700">
+                Date of birth
+              </label>
+              <input
+                id="date-of-birth"
+                name="dateOfBirth"
+                type="date"
+                required
+                max={new Date().toISOString().slice(0, 10)}
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                aria-label="Date of birth"
+                disabled={loading}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                You must be 18 or older. Under 18? A parent or guardian can add you from their account.
+              </p>
             </div>
 
             <div>
