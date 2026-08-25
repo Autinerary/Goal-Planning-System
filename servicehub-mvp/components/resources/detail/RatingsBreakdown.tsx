@@ -194,8 +194,14 @@ export default function RatingsBreakdown({
           {diagnosticBreakdown.length > 0 && (
             <section>
               <h3 className="text-lg font-medium text-gray-900 mb-1">By norm &amp; level</h3>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-gray-500 mb-1">
                 How each area is rated by people who share a given norm — overall and by severity level.
+              </p>
+              {/* Say plainly where these norms come from, rather than implying
+                  clinical verification we don't do (Odosa). */}
+              <p className="text-[11px] text-gray-400 mb-4">
+                Norms are self-identified. We don&apos;t ask for diagnosis paperwork — assessment is
+                costly and hard to access, and self-identification is valid here.
               </p>
               <div className="space-y-2">
                 {diagnosticBreakdown.map((d) => {

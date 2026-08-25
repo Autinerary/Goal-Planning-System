@@ -5,6 +5,7 @@ import { X, Star } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 import { formatErrorForUser } from '@/lib/errors/handler'
 import type { BarrierScores } from '@/types/database'
+import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
 
 interface AddRatingModalProps {
   resourceId: string
@@ -28,11 +29,19 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   // The rater's own diagnostics — shown so they see how their rating is filed.
-  const [diagnostics, setDiagnostics] = useState<{ type: string; severity: number }[]>([])
+  const [diagnostics, setDiagnostics] = useState<{ type: string; severity: number; method?: VerificationMethod }[]>([])
+  const [trust, setTrust] = useState<RaterTrust | null>(null)
   useEffect(() => {
-    fetch('/api/me/diagnostics', { cache: 'no-store', credentials: 'include' })
+    // One call covers both: norms (with how each is verified) and the rater's
+    // behaviour-derived trust tier. No medical data involved.
+    fetch('/api/me/trust', { cache: 'no-store', credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (Array.isArray(j?.diagnostics)) setDiagnostics(j.diagnostics) })
+      .then((j) => {
+        if (Array.isArray(j?.norms)) {
+          setDiagnostics(j.norms.map((n: any) => ({ type: n.type, severity: n.severity, method: n.method })))
+        }
+        if (j?.trust) setTrust(j.trust)
+      })
       .catch(() => {})
   }, [])
   const featureLabel = (f: string) =>
@@ -119,6 +128,32 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
                 ))}
               </div>
               <p className="text-[11px] text-blue-700/80 mt-1">Your rating helps others who share these norms, broken down by level.</p>
+
+              {/* How norms are verified + this rater's earned trust (Odosa).
+                  We never collect diagnosis documents — see lib/trust. */}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {(() => {
+                  const method: VerificationMethod = diagnostics[0]?.method || 'self'
+                  const vm = VERIFICATION_META[method]
+                  return (
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`}
+                      title={vm.description}
+                    >
+                      {vm.label}
+                    </span>
+                  )
+                })()}
+                {trust && (
+                  <span
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TRUST_META[trust.tier].className}`}
+                    title={TRUST_META[trust.tier].description}
+                  >
+                    {TRUST_META[trust.tier].label}
+                    {trust.ratingsCount > 0 ? ` · ${trust.ratingsCount} ratings` : ''}
+                  </span>
+                )}
+              </div>
             </div>
           )}
           {error && (
