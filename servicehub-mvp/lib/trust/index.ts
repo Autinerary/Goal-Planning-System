@@ -6,7 +6,7 @@
  * default and labelled as such; credibility is earned from real behaviour.
  */
 
-export type VerificationMethod = 'self' | 'peer' | 'professional'
+export type VerificationMethod = 'self' | 'peer' | 'organization' | 'professional'
 export type TrustTier = 'new' | 'contributing' | 'trusted' | 'established'
 
 export interface RaterTrust {
@@ -57,6 +57,12 @@ export const VERIFICATION_META: Record<
     label: 'Peer-vouched',
     description: 'Other members who share this norm have vouched for this person.',
     className: 'bg-sky-50 text-sky-700 border-sky-200',
+  },
+  organization: {
+    label: 'Organisation-verified',
+    description:
+      'A leader at a verified community organisation vouched for this person. We store which organisation and when — never a diagnosis or document.',
+    className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   },
   professional: {
     label: 'Professionally verified',
