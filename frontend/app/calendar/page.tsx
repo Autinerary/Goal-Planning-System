@@ -224,6 +224,7 @@ function CalendarContent() {
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
+  const [showAddTask, setShowAddTask] = useState(false)
   const [addedTasks, setAddedTasks] = useState<Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>>(() => {
     // Load from localStorage on mount (will be overwritten from Supabase below if signed in)
     if (typeof window !== 'undefined') {
@@ -409,6 +410,46 @@ function CalendarContent() {
     })
   }
 
+  /**
+   * Add a task the user typed themselves (Chi: "can we add the ability to add
+   * tasks to the calendar?"). Same persistence path as suggestions —
+   * localStorage always, plus Supabase when signed in.
+   */
+  const addTaskToCalendar = (task: {
+    name: string
+    day: string
+    time: string
+    duration: string
+    priority: string
+  }) => {
+    const taskId = `user_${Date.now()}`
+    const newTask = { id: taskId, ...task, from: 'You' }
+
+    const updated = [...addedTasks, newTask]
+    setAddedTasks(updated)
+    try {
+      localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
+    } catch { /* quota — server copy below still applies */ }
+
+    if (isSignedIn) {
+      fetch('/api/me/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          client_id: taskId,
+          day: task.day,
+          time: task.time,
+          name: task.name,
+          duration: task.duration,
+          priority: task.priority,
+          source: 'You',
+          scenario,
+        }),
+      }).catch(() => {/* silent — localStorage still has it */})
+    }
+  }
+
   const addSuggestionToCalendar = (suggestion: string, from: string, selectedDay: string, selectedTime: string) => {
     // Generate task ID
     const taskId = `suggestion_${Date.now()}`
@@ -586,6 +627,92 @@ function CalendarContent() {
       </div>
       <div className="relative z-10">
         {/* Suggestion Modal */}
+        {/* Add-your-own-task modal (Chi) */}
+        {showAddTask && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowAddTask(false)}>
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-slate-800 mb-4">Add a task</h3>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const f = new FormData(e.currentTarget as HTMLFormElement)
+                  const name = String(f.get('name') || '').trim()
+                  if (!name) return
+                  addTaskToCalendar({
+                    name,
+                    day: String(f.get('day') || 'Monday'),
+                    time: String(f.get('time') || '09:00'),
+                    duration: String(f.get('duration') || '30 min'),
+                    priority: String(f.get('priority') || 'medium'),
+                  })
+                  playTaskCompleteSound()
+                  setShowAddTask(false)
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Task</label>
+                  <input
+                    name="name"
+                    autoFocus
+                    required
+                    maxLength={120}
+                    placeholder="e.g. Call the pharmacy"
+                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Day</label>
+                    <select name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                      {(_allDays.length ? _allDays : [{ name: 'Monday' }]).map((d: any) => (
+                        <option key={d.name} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Time</label>
+                    <select name="time" defaultValue="09:00" size={1} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                      {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Duration</label>
+                    <select name="duration" defaultValue="30 min" className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                      {['15 min', '30 min', '45 min', '1 hr', '1.5 hr', '2 hr'].map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+                    <select name="priority" defaultValue="medium" className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                      {['essential', 'high', 'medium', 'low'].map((pr) => (
+                        <option key={pr} value={pr} className="capitalize">{pr}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+                    Cancel
+                  </button>
+                  <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90">
+                    Add task
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {showSuggestionModal && pendingSuggestion && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white/95 backdrop-blur-sm border-2 border-slate-300 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
@@ -844,6 +971,13 @@ function CalendarContent() {
               {p.label}
             </button>
           ))}
+          {/* Add your own task (Chi) */}
+          <button
+            onClick={() => setShowAddTask(true)}
+            className="ml-auto px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:opacity-90 transition-all"
+          >
+            + Add task
+          </button>
         </div>
 
         <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">

@@ -123,19 +123,42 @@ table {
   color: #1e1b4b;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling.
+   The thumb used to be white at 40% opacity on a transparent track. Almost
+   every page here sits on a light background (slate-50 / white), so the
+   scrollbar was effectively invisible — you could wheel/touch scroll but
+   couldn't see or grab the bar (Chibugo, on a non-touch laptop).
+   A mid-slate thumb reads clearly on light AND dark surfaces, and the wider
+   track makes it easier to grab. */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
+  height: 12px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(100, 116, 139, 0.08);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 4px;
+  background: rgba(71, 85, 105, 0.55);
+  border-radius: 6px;
+  /* Inset the thumb so it reads as a rounded pill inside the track. */
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(51, 65, 85, 0.8);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox — does not support ::-webkit-scrollbar. */
+* {
+  scrollbar-color: rgba(71, 85, 105, 0.55) rgba(100, 116, 139, 0.08);
+}
+/* Keep the opt-out class working: it must win over the * rule above. */
+.no-scrollbar {
+  scrollbar-color: auto;
 }
 
 /* Hide scrollbar (used by the ViewTabs flow bar) */

@@ -14,6 +14,7 @@ import {
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
 import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
+import { playPageTurnSound } from '@/lib/taskSound'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -836,6 +837,8 @@ export default function OnboardingPage() {
   }
 
   const handleSubmit = async () => {
+    // Paper/page-turn cue so the submission clearly registered (Liam).
+    playPageTurnSound()
     if (!user) return
     
     setIsSubmitting(true)

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
 import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette } from 'lucide-react'
+import { playPageTurnSound } from '@/lib/taskSound'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { createClient } from '@/lib/supabase/client'
@@ -82,6 +83,8 @@ function ReflectionContent() {
   const currentTheme = themeConfigs[theme]
 
   const handleSubmit = async () => {
+    // Paper/page-turn cue so the entry clearly registered (Liam).
+    playPageTurnSound()
     setLoading(true)
     try {
       const supabase = createClient()
