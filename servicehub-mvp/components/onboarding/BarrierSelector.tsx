@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { NORM_GROUPS } from '@/lib/norms/taxonomy'
 import IntersectionalityBadge from './IntersectionalityBadge'
 
 export interface BarrierOption {
@@ -20,47 +21,11 @@ interface BarrierSelectorProps {
   onBarriersChange: (barriers: SelectedBarrier[]) => void
 }
 
-const barrierCategories = {
-  neurodivergence: {
-    label: 'Neurodivergence',
-    barriers: [
-      { id: 'autism', label: 'Autism Spectrum' },
-      { id: 'adhd', label: 'ADHD' },
-      { id: 'ocd', label: 'OCD' },
-      { id: 'bipolar', label: 'Bipolar Disorder' },
-      { id: 'neurodivergence_other', label: 'Other (specify)' },
-    ],
-  },
-  disability: {
-    label: 'Non-Neurodivergent Disabilities',
-    barriers: [
-      { id: 'sensory_deaf', label: 'Deaf or Hard of Hearing' },
-      { id: 'sensory_blind', label: 'Blind or Low Vision' },
-      { id: 'physical_wheelchair', label: 'Wheelchair User' },
-      { id: 'physical_mobility', label: 'Mobility Challenges' },
-      { id: 'intellectual', label: 'Intellectual Disabilities' },
-      { id: 'disability_other', label: 'Other (specify)' },
-    ],
-  },
-  identity: {
-    label: 'Identity & Background',
-    barriers: [
-      { id: 'race_visible_minority', label: 'Race/Visible Minority' },
-      { id: 'ethnicity', label: 'Ethnicity' },
-      { id: 'language', label: 'Primary Language' },
-      { id: 'gender', label: 'Gender Identity' },
-      { id: 'lgbtq', label: 'LGBTQ+' },
-      { id: 'socioeconomic', label: 'Socioeconomic Considerations' },
-    ],
-  },
-  health: {
-    label: 'Health',
-    barriers: [
-      { id: 'chronic_health', label: 'Chronic Health Conditions' },
-      { id: 'mental_health', label: 'Mental Health Considerations' },
-    ],
-  },
-}
+// Canonical taxonomy lives in lib/norms/taxonomy.ts so the search filter and
+// this selector are categorized identically (Odosa).
+const barrierCategories = Object.fromEntries(
+  NORM_GROUPS.map((g) => [g.key, { label: g.label, barriers: g.norms }])
+) as Record<string, { label: string; barriers: { id: string; label: string }[] }>
 
 export default function BarrierSelector({ selectedBarriers, onBarriersChange }: BarrierSelectorProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>('neurodivergence')

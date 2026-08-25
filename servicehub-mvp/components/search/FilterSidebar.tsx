@@ -6,12 +6,7 @@ import ConditionsFilter from './ConditionsFilter'
 import CostFilter from './CostFilter'
 import RatingChipsFilter from './RatingChipsFilter'
 import { LIFE_AREAS } from '@/lib/search/lifeAreas'
-
-interface BarrierCategory {
-  category: string
-  label: string
-  barriers: { id: string; label: string }[]
-}
+import { FILTER_NORM_GROUPS } from '@/lib/norms/taxonomy'
 
 interface FilterSidebarProps {
   categories: string[]
@@ -55,8 +50,6 @@ export default function FilterSidebar({
   onClearFilters,
 }: FilterSidebarProps) {
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
-  const [barrierCategories, setBarrierCategories] = useState<BarrierCategory[]>([])
-  const [barriersLoading, setBarriersLoading] = useState(true)
   const [expandedBarrierCategory, setExpandedBarrierCategory] = useState<string | null>(null)
 
   useEffect(() => {
@@ -66,30 +59,6 @@ export default function FilterSidebar({
       .catch((err) => {
         console.error('Error fetching categories:', err)
         setAvailableCategories([])
-      })
-
-    setBarriersLoading(true)
-    fetch('/api/search/barriers')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-        return res.json()
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setBarrierCategories(data)
-        } else {
-          console.error('Barriers API returned non-array:', data)
-          setBarrierCategories([])
-        }
-      })
-      .catch((err) => {
-        console.error('Error fetching barriers:', err)
-        setBarrierCategories([])
-      })
-      .finally(() => {
-        setBarriersLoading(false)
       })
   }, [])
 
@@ -101,7 +70,7 @@ export default function FilterSidebar({
     <div className="space-y-6">
       {/* Categories */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Category</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Resource Type</h3>
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {availableCategories.length > 0 ? (
             availableCategories.map((category) => (
@@ -130,12 +99,11 @@ export default function FilterSidebar({
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Norms</h3>
         <div className="space-y-1 border border-gray-200 rounded-lg overflow-hidden">
-          {barriersLoading ? (
-            <p className="px-4 py-3 text-sm text-gray-500">Loading norms...</p>
-          ) : (
-            <>
-            {barrierCategories
-              .filter((bc) => !/neurodiverg/i.test(bc.category) && !/neurodiverg/i.test(bc.label))
+          {FILTER_NORM_GROUPS.map((g) => ({
+              category: g.key,
+              label: g.label,
+              barriers: g.norms,
+            }))
               .map((barrierCategory) => {
               const isExpanded = expandedBarrierCategory === barrierCategory.category
               return (
@@ -174,10 +142,8 @@ export default function FilterSidebar({
                 </div>
               )
             })}
-            {/* Conditions taxonomy, merged into the same "Norms" box */}
-            <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} />
-            </>
-          )}
+          {/* Conditions taxonomy, merged into the same "Norms" box */}
+          <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} />
         </div>
       </div>
 
@@ -185,7 +151,7 @@ export default function FilterSidebar({
           resources by life domain. Matching is best-effort, so some domains
           may return few results until resources are tagged. */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">Life area</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Life Category</h3>
         <p className="text-xs text-gray-500 mb-3">
           Filter by life domain (from the Resource Roadmap).
         </p>
@@ -215,7 +181,7 @@ export default function FilterSidebar({
 
       {/* Rating Filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Minimum Rating</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Minimum Overall Rating</h3>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((rating) => (
             <label
@@ -252,7 +218,7 @@ export default function FilterSidebar({
 
       {/* Distance Filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Near me (Maximum Distance)</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Distance From You</h3>
         <div className="space-y-2">
           {[5, 10, 25, 50, 100].map((distance) => (
             <label

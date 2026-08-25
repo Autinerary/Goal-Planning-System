@@ -61,7 +61,7 @@ export default function CostFilter({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">Cost</h3>
+        <h3 className="text-sm font-semibold text-gray-900">Cost Per Service</h3>
         {(min !== undefined || max !== undefined) && (
           <button
             type="button"

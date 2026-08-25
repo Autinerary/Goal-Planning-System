@@ -37,7 +37,7 @@ export default function RatingChipsFilter({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Service Ratings</h3>
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Community Star Rating</h3>
       <div className="flex flex-wrap gap-2">
         {options.map((value) => {
           const active = selectedStars.includes(value)
