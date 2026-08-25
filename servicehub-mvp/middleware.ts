@@ -60,7 +60,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/signup', '/auth/callback', '/api/']
+  // '/verify' is the professional-attestation page: the clinician has no
+  // account, so it must stay reachable signed-out (it's useless without a
+  // valid one-time token anyway).
+  const publicRoutes = ['/login', '/signup', '/auth/callback', '/api/', '/verify/']
   const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   // The home page and search are publicly accessible

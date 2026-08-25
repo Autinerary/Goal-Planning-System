@@ -2017,7 +2017,161 @@ ALTER TABLE public.ratings
 
 
 -- ==========================================================================
--- STEP 12 — servicehub-mvp/scripts/2026_shop_products.sql
+-- STEP 12 — servicehub-mvp/scripts/2026_rater_trust.sql
+-- ==========================================================================
+
+-- ============================================================================
+-- Rater trust & norm verification (Odosa).
+--
+-- Goal: make the norm-level rating breakdown ("rated by people with Autism
+-- Level 3") trustworthy, WITHOUT collecting medical records.
+--
+-- Deliberately NOT storing diagnosis documents. Doing so would make us a
+-- custodian of health information (PHIPA / PIPEDA / HIPAA / GDPR special
+-- category) and would exclude self-diagnosed and undiagnosed people — who are
+-- disproportionately the users this product exists to serve.
+--
+-- Instead:
+--   1. Every norm carries an explicit verification_method, defaulting to
+--      'self' (self-identified). This is shown honestly in the UI.
+--   2. Trust is earned from real behaviour — rating volume, helpfulness,
+--      community karma — computed by rater_trust() below.
+--
+-- Forward-compatible: professional attestation (phase 2) simply sets
+-- verification_method='professional' + verified_at + verifier_type. Only that
+-- metadata is ever stored — never the document, never diagnosis details.
+--
+-- Idempotent. Run once against the shared Supabase project.
+-- ============================================================================
+
+ALTER TABLE public.user_barriers
+  ADD COLUMN IF NOT EXISTS verification_method TEXT NOT NULL DEFAULT 'self'
+    CHECK (verification_method IN ('self', 'peer', 'professional')),
+  ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ,
+  -- e.g. 'clinician', 'support_worker', 'educator'. Never the person's name,
+  -- never the diagnosis, never the document.
+  ADD COLUMN IF NOT EXISTS verifier_type TEXT;
+
+CREATE INDEX IF NOT EXISTS user_barriers_verification_idx
+  ON public.user_barriers (user_id, verification_method);
+
+-- ---- Rater trust ------------------------------------------------------------
+-- A rater's trust tier, derived entirely from behaviour we already record.
+--   ratings_count  — how many resources they've rated
+--   helpful_total  — total "helpful" marks their ratings received
+--   karma          — community reputation (0 when they never opted in)
+--
+-- tier: 'new' | 'contributing' | 'trusted' | 'established'
+CREATE OR REPLACE FUNCTION public.rater_trust(p_user_id UUID)
+RETURNS TABLE (
+  ratings_count INTEGER,
+  helpful_total INTEGER,
+  karma         INTEGER,
+  tier          TEXT
+)
+LANGUAGE sql
+STABLE
+AS $$
+  WITH r AS (
+    SELECT
+      COUNT(*)::INT                        AS ratings_count,
+      COALESCE(SUM(helpful_count), 0)::INT AS helpful_total
+    FROM public.ratings
+    WHERE user_id = p_user_id
+  ),
+  k AS (
+    SELECT COALESCE(
+      (SELECT cp.karma FROM public.community_profiles cp WHERE cp.user_id = p_user_id),
+      0
+    )::INT AS karma
+  )
+  SELECT
+    r.ratings_count,
+    r.helpful_total,
+    k.karma,
+    CASE
+      WHEN r.ratings_count >= 15 AND r.helpful_total >= 20 THEN 'established'
+      WHEN r.ratings_count >= 5  AND r.helpful_total >= 5  THEN 'trusted'
+      WHEN r.ratings_count >= 1                            THEN 'contributing'
+      ELSE 'new'
+    END AS tier
+  FROM r, k;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.rater_trust(UUID) TO authenticated, service_role;
+
+COMMENT ON FUNCTION public.rater_trust(UUID) IS
+  'Behaviour-derived rater trust tier. No medical data involved.';
+
+
+-- ==========================================================================
+-- STEP 13 — servicehub-mvp/scripts/2026_professional_verification.sql
+-- ==========================================================================
+
+-- ============================================================================
+-- Professional attestation — phase 2 of norm verification (Odosa).
+--
+-- A clinician / support worker confirms a person's norm via a ONE-TIME LINK.
+--
+-- WHAT WE STORE:  verification_method='professional', verified_at, verifier_type
+-- WHAT WE NEVER STORE: the diagnosis, any document, any file upload, the
+--   verifier's name or credentials, or free-text clinical notes.
+-- There is deliberately no upload path anywhere in this feature, so we never
+-- become a custodian of health records (PHIPA / PIPEDA / HIPAA / GDPR).
+--
+-- Security model:
+--   * The link contains a 32-byte random token. Only its SHA-256 hash is
+--     stored, so a database leak cannot be used to forge a verification.
+--   * Single use — completing a request marks it 'completed'.
+--   * Expires (default 14 days).
+--   * The verifier needs no account; the page is public but useless without
+--     the token, and tokens are not enumerable.
+--
+-- Idempotent. Run once. Requires 2026_rater_trust.sql (verification_method).
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.norm_verification_requests (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- Which norm is being attested (matches user_barriers.barrier_type).
+  barrier_type  TEXT NOT NULL,
+  -- SHA-256 of the one-time token. The raw token is shown to the user once
+  -- and never persisted.
+  token_hash    TEXT NOT NULL UNIQUE,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending', 'completed', 'expired', 'revoked')),
+  -- Set on completion. A ROLE only — never a name, licence number, or notes.
+  verifier_type TEXT CHECK (
+    verifier_type IS NULL
+    OR verifier_type IN ('clinician', 'support_worker', 'educator')
+  ),
+  completed_at  TIMESTAMPTZ,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS norm_verification_user_idx
+  ON public.norm_verification_requests (user_id, status);
+
+ALTER TABLE public.norm_verification_requests ENABLE ROW LEVEL SECURITY;
+
+-- The requester can see and revoke their own requests. Token lookup and
+-- completion go through the service-role API (which bypasses RLS), so the
+-- public verifier page never needs a policy here.
+DROP POLICY IF EXISTS norm_verification_own_select ON public.norm_verification_requests;
+CREATE POLICY norm_verification_own_select ON public.norm_verification_requests
+  FOR SELECT USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS norm_verification_own_update ON public.norm_verification_requests;
+CREATE POLICY norm_verification_own_update ON public.norm_verification_requests
+  FOR UPDATE USING (user_id = auth.uid());
+
+COMMENT ON TABLE public.norm_verification_requests IS
+  'One-time professional attestation links. Stores only a hashed token and a verifier ROLE — never documents, diagnoses, or verifier identities.';
+
+
+-- ==========================================================================
+-- STEP 14 — servicehub-mvp/scripts/2026_shop_products.sql
 -- ==========================================================================
 
 -- ============================================================================

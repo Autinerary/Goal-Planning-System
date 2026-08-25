@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
+import NormVerification from '@/components/trust/NormVerification'
 
 export default function ProfilePage() {
   const { user, loading } = useAuth()
@@ -42,7 +43,7 @@ export default function ProfilePage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile</h2>
             
             <div className="space-y-4">
@@ -67,6 +68,11 @@ export default function ProfilePage() {
                 <p className="mt-1 text-xs text-gray-500 font-mono">{user.id}</p>
               </div>
             </div>
+          </div>
+
+          {/* Norms, trust tier, and optional professional attestation */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <NormVerification />
           </div>
         </div>
       </main>
