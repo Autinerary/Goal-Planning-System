@@ -151,6 +151,40 @@ export default function RecommendationResult({
               </div>
             </div>
 
+            {/* Why this was recommended (Odosa). Reasons are derived from real
+                signals on the resource — nothing is shown unless we have it. */}
+            {(() => {
+              const reasons: string[] = []
+              const similar = Number(resource.similarUsersCount) || 0
+              const similarAvg = Number(resource.averageRatingFromSimilarUsers) || 0
+              if (similar > 0) {
+                reasons.push(
+                  `Based on ${similar} ${similar === 1 ? 'person' : 'people'} who matched your Diagnostics profile` +
+                    (similarAvg > 0 ? ` — they rated it ${similarAvg.toFixed(1)}★` : '')
+                )
+              }
+              // The agent's own stated reason, when it produced one.
+              const agentReason =
+                typeof resource.matchReason === 'string' ? resource.matchReason.trim() : ''
+              if (agentReason) reasons.push(agentReason)
+              if (reasons.length === 0) return null
+              return (
+                <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">
+                    Why this was recommended
+                  </div>
+                  <ul className="space-y-0.5">
+                    {reasons.map((r, i) => (
+                      <li key={i} className="text-[11px] text-blue-900 flex gap-1.5">
+                        <span className="text-blue-400 flex-shrink-0">•</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })()}
+
             {/* Agent Explanation */}
             {showExplanations && explanations && explanations[index] && (
               <AgentExplanation

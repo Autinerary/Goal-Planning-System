@@ -9,6 +9,8 @@ import RecommendationResult from '@/components/agents/RecommendationResult'
 import { orchestrator } from '@/lib/agents/orchestrator'
 import { getUserBarriers, getProfile, getResources, getRatingsByResource, getResourceCategories } from '@/lib/supabase/queries'
 import type { UserRequest } from '@/lib/agents/orchestrator/types'
+import { CONDITION_GROUPS } from '@/lib/search/conditions'
+import { LIFE_AREAS } from '@/lib/search/lifeAreas'
 import { 
   getPopularResources, 
   getMostUsefulResources, 
@@ -860,6 +862,49 @@ export default async function Home() {
                     </Link>
                   )
                 })}
+              </div>
+            </div>
+
+            {/* Browse by Norms — derived from the real conditions taxonomy so
+                every chip links to a filter that actually exists (Odosa). */}
+            <div className="max-w-4xl mx-auto mt-8">
+              <p className="text-center text-white/80 mb-5 text-sm font-medium uppercase tracking-wide">
+                Browse by Norms
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {CONDITION_GROUPS.flatMap((g: any) => [
+                  ...(g.conditions || []),
+                  ...((g.groups || []).flatMap((sg: any) => sg.conditions || [])),
+                ])
+                  .slice(0, 10)
+                  .map((c: any) => (
+                    <Link
+                      key={c.id}
+                      href={`/search?conditions=${encodeURIComponent(c.id)}`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
+              </div>
+            </div>
+
+            {/* Browse by Life Categories — the folded-in Resource Roadmap
+                domains, linking to the lifeAreas search filter (Odosa). */}
+            <div className="max-w-4xl mx-auto mt-8">
+              <p className="text-center text-white/80 mb-5 text-sm font-medium uppercase tracking-wide">
+                Browse by Life Categories
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {LIFE_AREAS.map((area) => (
+                  <Link
+                    key={area.id}
+                    href={`/search?lifeAreas=${encodeURIComponent(area.id)}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
+                  >
+                    {area.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
