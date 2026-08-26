@@ -4,6 +4,13 @@ import { useState } from 'react'
 import Markdown from './Markdown'
 import ImageUploader from './ImageUploader'
 
+/**
+ * Mirrors the DB CHECK in 2026_community_tidbits.sql
+ * (body_markdown length BETWEEN 10 AND 30000). Kept as a constant so the
+ * disabled-state and the hint can never drift apart.
+ */
+const MIN_ANSWER_LENGTH = 10
+
 interface AnswerComposerProps {
   postId: string
   parentId?: string | null
@@ -29,6 +36,10 @@ export default function AnswerComposer({
   const [preview, setPreview] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // How many characters short of postable we are. Drives the hint below so the
+  // button is never dead without saying why.
+  const shortBy = MIN_ANSWER_LENGTH - body.trim().length
 
   const submit = async () => {
     setError(null)
@@ -81,6 +92,13 @@ export default function AnswerComposer({
         >
           {preview ? 'Edit' : 'Preview'}
         </button>
+        {shortBy > 0 && (
+          <p className="text-xs text-gray-500" aria-live="polite">
+            {body.trim().length === 0
+              ? `Write at least ${MIN_ANSWER_LENGTH} characters to post.`
+              : `${shortBy} more character${shortBy === 1 ? '' : 's'} to post.`}
+          </p>
+        )}
         <div className="flex items-center gap-2">
           {onCancel && (
             <button
@@ -95,7 +113,7 @@ export default function AnswerComposer({
           <button
             type="button"
             className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            disabled={busy || body.trim().length < 10}
+            disabled={busy || shortBy > 0}
             onClick={submit}
           >
             {busy ? 'Posting…' : parentId ? 'Reply' : 'Post answer'}

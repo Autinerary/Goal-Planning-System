@@ -70,8 +70,35 @@ export default function NewPostPage() {
     }
   }
 
-  const canSubmit =
-    title.trim().length >= 8 && title.trim().length <= 250 && body.trim().length >= 20
+  // Mirrors the DB CHECKs in 2026_community_tidbits.sql: title 8-250,
+  // body_markdown 20-30000. Kept here so the button state and the hint that
+  // explains it can never drift apart.
+  const MIN_TITLE = 8
+  const MAX_TITLE = 250
+  const MIN_BODY = 20
+
+  // Everything still standing between the user and a publishable question.
+  // Rendered next to the button so it is never disabled without saying why.
+  const blockers: string[] = []
+  if (title.trim().length < MIN_TITLE) {
+    blockers.push(
+      title.trim().length === 0
+        ? `a title (at least ${MIN_TITLE} characters)`
+        : `${MIN_TITLE - title.trim().length} more character${MIN_TITLE - title.trim().length === 1 ? '' : 's'} in the title`
+    )
+  }
+  if (title.trim().length > MAX_TITLE) {
+    blockers.push(`a title under ${MAX_TITLE} characters`)
+  }
+  if (body.trim().length < MIN_BODY) {
+    blockers.push(
+      body.trim().length === 0
+        ? `a description (at least ${MIN_BODY} characters)`
+        : `${MIN_BODY - body.trim().length} more character${MIN_BODY - body.trim().length === 1 ? '' : 's'} in the description`
+    )
+  }
+
+  const canSubmit = blockers.length === 0
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -280,6 +307,12 @@ export default function NewPostPage() {
       </div>
 
       {error && <p className="text-sm text-rose-600">{error}</p>}
+
+      {!canSubmit && (
+        <p className="text-sm text-gray-500 text-right" aria-live="polite">
+          Still needed: {blockers.join(' and ')}.
+        </p>
+      )}
 
       <div className="flex justify-end gap-2 pt-2">
         <Link
