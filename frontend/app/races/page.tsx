@@ -446,7 +446,17 @@ function RacesContent() {
   // single continuous road ("one") or parallel dimension tracks ("separate").
   const showContinuousTrack = layoutMode === 'track' && trackShape === 'one'
   const showSeparateTrack = layoutMode === 'track' && trackShape === 'separate'
-  const showChecklist = layoutMode === 'list' || showContinuousTrack
+  // Odosa: Checklist View lives in List View ONLY. Track View gets the race
+  // track instead, so the two modes actually differ below the shared top.
+  const showChecklist = layoutMode === 'list'
+
+  // ── Race-track stops (Odosa) ────────────────────────────────────────
+  // Five dots on the path. The "active" milestone is the one that carries
+  // "You are here", and it also decides which grid row the Pit Stop and
+  // Current Goals panels sit in, so they flank the path beside it.
+  const trackStops = milestones.slice(0, 5)
+  const _activeStop = trackStops.findIndex((m: any) => m.status === 'active')
+  const currentStopIdx = _activeStop >= 0 ? _activeStop : 0
 
   const css = `
     @keyframes rocketFly{0%{transform:translateY(100vh) rotate(-15deg) scale(.5);opacity:0}30%{opacity:1;transform:translateY(30vh) rotate(-5deg) scale(1)}60%{transform:translateY(-10vh) rotate(5deg) scale(1.1)}100%{transform:translateY(-120vh) rotate(0) scale(.3);opacity:0}}
@@ -906,9 +916,11 @@ function RacesContent() {
           )}
 
           {/* ═══════════════════
-              LIST VIEW — Stats + ResourceHub + Hare World (streamlined top)
+              SHARED TOP (1 of 2) — Stats + ResourceHub + Hare World.
+              Odosa: "the track view AND list view should BOTH have the Stats
+              and ResourceHub & Hare World options that only the list view
+              currently has." Ungated, and first in the order for both views.
              ═══════════════════ */}
-          {layoutMode === 'list' && (
             <div className="w-full max-w-2xl px-2 pt-5 space-y-3">
               {/* Stats (moved to the top) */}
               {gamifiedMode ? (
@@ -950,14 +962,15 @@ function RacesContent() {
                 </div>
               </div>
             </div>
-          )}
 
           {/* ═══════════════════
-              TRACK VIEW — Dream Self + full road (Track View only)
-             ═══════════════════ */}
-          {showContinuousTrack && (<>
-          {/* ═══════════════════
-              DREAM SELF (top)
+              SHARED TOP (2 of 2) — Dream Self, hovering figure through
+              "See more" ONLY. Odosa: both views get this, second.
+              The Stats / goals grid / "Add another goal" / "Today's
+              Motivation" that used to sit under it in Track View are
+              deleted — the block above already covers stats, and the race
+              track below covers the goal. Anything view-specific comes
+              AFTER this point.
              ═══════════════════ */}
           <div className="pt-8 flex flex-col items-center">
             <div className="relative dg rounded-full p-4 mb-1">
@@ -984,92 +997,6 @@ function RacesContent() {
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
             <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>✨ See more →</Link>
           </div>
-
-          {/* ─── ROAD: fan out from Dream Self into 5 paths ─── */}
-          <FanOut count={5} />
-
-          {/* ─── Goals + Stats layout ─── */}
-          <div className="w-full flex gap-4 px-2 max-w-2xl">
-            {/* LEFT: Stats (sticky, only if gamified) */}
-            {gamifiedMode && (
-              <div className="hidden md:block flex-shrink-0 w-40">
-                <div className="sticky top-16">
-                  <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
-                    <div className={`font-bold text-xs mb-2 ${txt} flex items-center gap-1`}>✨ Stats</div>
-                    {stats.map((s, i) => (
-                      <div key={i} className="mb-2 last:mb-0">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className={`text-[10px] ${sub}`}>{s.name}</span>
-                          <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
-                        </div>
-                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
-                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                    <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* CENTER: All goals */}
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2">
-              {races.filter((r: any) => r.id !== 'r_placeholder').map((r: any) => (
-                <div key={r.id} className={`${pill} border rounded-lg p-3 shadow-sm text-center`}>
-                  <div className="text-lg">🎯</div>
-                  <div className={`font-bold text-xs ${txt} mt-1`}>{r.name}</div>
-                  <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full mt-2 overflow-hidden`}>
-                    <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full" style={{ width: `${r.progress}%` }} />
-                  </div>
-                  <div className={`text-[10px] ${sub} mt-1`}>{r.progress}%</div>
-                </div>
-              ))}
-              {/* Add another goal button */}
-              <button
-                onClick={() => router.push('/onboarding?step=3')}
-                className={`${pill} border-2 border-dashed rounded-lg p-3 shadow-sm text-center hover:opacity-80 transition-all cursor-pointer flex flex-col items-center justify-center gap-1`}
-              >
-                <div className="text-lg">➕</div>
-                <div className={`font-bold text-xs ${txt}`}>Add another goal</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile stats (inline, only if gamified) */}
-          {gamifiedMode && (
-            <div className="md:hidden w-full px-2 mt-3 max-w-2xl">
-              <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
-                <div className={`font-bold text-xs mb-2 ${txt}`}>✨ Stats</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {stats.map((s, i) => (
-                    <div key={i}>
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className={`text-[10px] ${sub}`}>{s.name}</span>
-                        <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
-                      </div>
-                      <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
-                        <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} mt-2 hover:underline`}>Hide stats</button>
-              </div>
-            </div>
-          )}
-
-          {/* Today's Motivation (from pinwheel) */}
-          {todaysMotivation && (
-            <div className={`mt-3 px-4 py-2 rounded-xl border text-center max-w-sm ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}>
-              <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Today&apos;s Motivation</div>
-              <div className={`text-sm italic ${txt}`}>&ldquo;{todaysMotivation}&rdquo;</div>
-            </div>
-          )}
-
-          {/* ─── ROAD: 5 paths converge back to character ─── */}
-          <FanIn count={5} />
-          </>)}
 
           {/* ═══════════════════════════════════════════════════
               CHECKLIST VIEW — One dimension at a time
@@ -1362,10 +1289,43 @@ function RacesContent() {
                         >
                           {sr.name}
                           <span className={`ml-1 text-[8px] ${day ? 'text-slate-400' : 'text-indigo-500'}`}>{sr.steps.length} steps</span>
+                          {/* Liam: a bar per path reads faster than counting check marks. */}
+                          {(() => {
+                            const srDone = sr.steps.filter(st => completedMilestoneIds.has(st.id)).length
+                            const srPct = sr.steps.length ? Math.round((srDone / sr.steps.length) * 100) : 0
+                            return (
+                              <div className={`h-1 rounded-full overflow-hidden mt-1 ${day ? 'bg-slate-200' : 'bg-indigo-900'}`}>
+                                <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${srPct}%` }} />
+                              </div>
+                            )
+                          })()}
                         </button>
                       ))}
                     </div>
                   )}
+
+                  {/* Progress for the path on screen (Liam). Check marks alone
+                      made it hard to see how far along a path you actually are. */}
+                  {(() => {
+                    const shown = activeSubRace ? activeSubRace.steps : combinedSteps
+                    const doneCount = shown.filter(st => completedMilestoneIds.has(st.id)).length
+                    const pct = shown.length ? Math.round((doneCount / shown.length) * 100) : 0
+                    return (
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-[10px] font-bold ${txt}`}>
+                            {activeSubRace ? activeSubRace.name : 'All steps'} progress
+                          </span>
+                          <span className={`text-[10px] font-bold ${txt}`}>
+                            {doneCount}/{shown.length} · {pct}%
+                          </span>
+                        </div>
+                        <div className={`h-2 rounded-full overflow-hidden ${day ? 'bg-slate-200' : 'bg-indigo-900'}`}>
+                          <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })()}
 
                   {/* Steps list */}
                   <div className="relative pl-5">
@@ -1503,13 +1463,7 @@ function RacesContent() {
              ═══════════════════════════════════════════════════ */}
           {showSeparateTrack && (
             <div className="w-full pt-6">
-              {/* Compact Dream Self header */}
-              <div className="flex flex-col items-center mb-2">
-                <div className="text-4xl bn">🧑‍🚀</div>
-                <div className={`text-base font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
-                <div className={`text-[10px] ${sub}`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
-                <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>✨ See more →</Link>
-              </div>
+              {/* Dream Self renders once in the shared top block above. */}
               <FanOut count={5} />
               <div className={`text-center mb-3 text-[10px] ${sub}`}>Each life dimension runs as its own parallel track</div>
 
@@ -1594,9 +1548,18 @@ function RacesContent() {
               {[1, 2, 3].map(i => <div key={i} className={`rounded-full blur-sm cf ${day ? 'bg-white/50' : 'bg-indigo-300/10'}`} style={{ width: `${36 + i * 10}px`, height: `${14 + i * 4}px`, animationDelay: `${i * 1.2}s` }} />)}
             </div>
 
-            <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center px-2">
-              {/* LEFT: Pit Stop Shop (opens ServiceHub) */}
-              <div className="flex justify-end">
+            {/* ═══ THE RACE TRACK — five milestone dots on one path (Odosa) ═══
+                One dot is the current milestone and carries "YOU ARE HERE";
+                every dot is tappable ("Tap to view"). The Pit Stop Shop flanks
+                the path on the left and the current-goal panel on the right —
+                both are placed in the CURRENT dot's grid row, so they sit
+                beside the path centred on where you actually are, rather than
+                floating at the top of the page. */}
+            <div className="grid gap-x-3 px-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+
+              {/* LEFT: Pit Stop Shop, in the current dot's row */}
+              <div className="flex justify-end items-center" style={{ gridColumn: 1, gridRow: currentStopIdx + 1 }}>
+                <div className="w-full max-w-[180px]">
                 <div className={`relative w-full max-w-[180px] ${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
                   {/* Awning top */}
                   <div className={`aw relative -mt-1 mx-[-2px] h-6 rounded-t-lg overflow-hidden ${day ? 'bg-gradient-to-b from-red-500 to-red-600' : 'bg-gradient-to-b from-purple-600 to-purple-800'}`}>
@@ -1632,72 +1595,75 @@ function RacesContent() {
                     <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
-              </div>
-
-              {/* CENTRE: Character + Signboard */}
-              <div className="flex flex-col items-center px-2">
-                <div className="relative">
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-14 h-5 rounded-full blur-md ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
-                  <div className="bn text-5xl">🧑‍🚀</div>
                 </div>
-                <div className={`text-[10px] font-semibold mt-1 ${sub}`}>📍 You are here</div>
-                {/* Signboard for current milestone */}
-                <button onClick={() => router.push('/milestones')} className="mt-3 relative group">
-                  {/* Post */}
-                  <div className={`absolute left-1/2 -translate-x-1/2 -bottom-4 w-2 h-6 ${day ? 'bg-amber-700' : 'bg-amber-900'} rounded-sm`} />
-                  {/* Board */}
-                  <div className={`sw relative px-4 py-2 rounded-lg shadow-lg border-2 ${day ? 'bg-amber-100 border-amber-600 text-amber-900' : 'bg-amber-900/80 border-amber-600 text-amber-100'}`} style={{ transformOrigin: 'top center' }}>
-                    {/* Nails */}
-                    <div className={`absolute top-1 left-1.5 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-500' : 'bg-amber-400'}`} />
-                    <div className={`absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full ${day ? 'bg-amber-500' : 'bg-amber-400'}`} />
-                    <div className="text-[9px] font-bold uppercase tracking-wider">🪧 Current Milestone</div>
-                    <div className={`text-[10px] font-bold mt-0.5 ${day ? 'text-amber-800' : 'text-amber-200'}`}>{milestones[0].name}</div>
-                    <div className="text-[8px] opacity-70 mt-0.5 group-hover:underline">Tap to view →</div>
-                  </div>
-                </button>
-                <div className="h-4" />{/* spacer for post */}
               </div>
 
-              {/* RIGHT: Hare World box */}
-              <div className="flex justify-start">
-                <div className={`relative w-full max-w-[180px] ${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
-                  {/* Awning top */}
-                  <div className={`aw relative -mt-1 mx-[-2px] h-6 rounded-t-lg overflow-hidden ${day ? 'bg-gradient-to-b from-purple-500 to-purple-600' : 'bg-gradient-to-b from-indigo-600 to-indigo-800'}`}>
-                    <div className="absolute inset-0 flex">
-                      {Array.from({ length: 7 }, (_, i) => (
-                        <div key={i} className={`flex-1 ${i % 2 === 0 ? 'bg-white/20' : ''}`} />
+              {/* CENTRE: the path — one grid row per stop, so the flanking
+                  panels can line up with whichever dot is current. */}
+              {trackStops.map((stop: any, i: number) => {
+                const isCurrent = i === currentStopIdx
+                const isDone = i < currentStopIdx
+                return (
+                  <div key={stop.id} className="flex flex-col items-center" style={{ gridColumn: 2, gridRow: i + 1 }}>
+                    {/* Road segment joining this dot to the one above it. */}
+                    {i > 0 && (
+                      <div className={`w-9 h-7 relative ${day ? 'bg-slate-300' : 'bg-indigo-800'}`}>
+                        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-white/70" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, currentColor 0 6px, transparent 6px 12px)' }} />
+                      </div>
+                    )}
+                    <button onClick={() => router.push('/milestones')} className="group flex items-center gap-2 py-1">
+                      <span
+                        className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${
+                          isCurrent
+                            ? 'bg-amber-400 border-amber-500 ring-4 ring-amber-200'
+                            : isDone
+                            ? 'bg-sky-400 border-sky-500'
+                            : day ? 'bg-white border-slate-300' : 'bg-indigo-950 border-indigo-600'
+                        }`}
+                      />
+                      <div className={`text-left rounded-lg border px-3 py-2 shadow-sm min-w-[190px] transition-all group-hover:shadow-md ${isCurrent ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600') : pill}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[9px] font-semibold ${sub}`}>{isCurrent ? '📍' : isDone ? '✓' : '🏁'} Step {i + 1}</span>
+                          {isCurrent && (
+                            <span className="text-[9px] font-bold uppercase tracking-wide text-amber-600">You are here</span>
+                          )}
+                        </div>
+                        <div className={`text-xs font-bold mt-0.5 ${txt}`}>{stop.name}</div>
+                        <div className={`text-[9px] mt-0.5 opacity-70 group-hover:underline ${sub}`}>Tap to view →</div>
+                      </div>
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* RIGHT: current goals + per-path progress, in the current dot's
+                  row. The progress bars are Liam's ask — the check marks alone
+                  made it hard to read how far along a path you actually are. */}
+              <div className="flex justify-start items-center" style={{ gridColumn: 3, gridRow: currentStopIdx + 1 }}>
+                <div className={`w-full max-w-[190px] ${pill} border-2 rounded-xl shadow-md p-2.5`}>
+                  <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Current Goals</h4>
+                  <div className="space-y-2">
+                    {races.filter((r: any) => r.id !== 'r_placeholder').slice(0, 3).map((r: any) => (
+                      <div key={r.id}>
+                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
+                        <div className={`h-1.5 rounded-full overflow-hidden mt-0.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'}`}>
+                          <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${r.progress}%` }} />
+                        </div>
+                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[10px] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:opacity-80 ${txt}`}>➕ Add another goal</button>
+                  {userBarrierLabels.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {userBarrierLabels.slice(0, 5).map((b: string) => (
+                        <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded ${day ? 'bg-sky-100 text-sky-700' : 'bg-sky-900/50 text-sky-300'}`}>{b}</span>
                       ))}
                     </div>
-                    <div className={`absolute bottom-0 left-0 right-0 h-2 ${day ? 'bg-purple-700' : 'bg-indigo-900'}`} style={{ clipPath: 'polygon(0% 0%, 7% 100%, 14% 0%, 21% 100%, 28% 0%, 35% 100%, 42% 0%, 50% 100%, 57% 0%, 64% 100%, 71% 0%, 78% 100%, 85% 0%, 92% 100%, 100% 0%)' }} />
-                  </div>
-                  <div className="p-2.5">
-                    <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🐰 Hare World</h4>
-                    <div className="space-y-1.5">
-                      <div>
-                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Role Models</div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-900/50 text-purple-300'}`}>Sarah C.</span>
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-purple-100 text-purple-700' : 'bg-purple-900/50 text-purple-300'}`}>Marcus J.</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Mentors</div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-900/50 text-cyan-300'}`}>James W.</span>
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-900/50 text-cyan-300'}`}>Lisa P.</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className={`text-[9px] font-bold uppercase tracking-wider ${sub} mb-0.5`}>Friends / Family</div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${day ? 'bg-pink-100 text-pink-700' : 'bg-pink-900/50 text-pink-300'}`}>Alex T.</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Link href="/pit-stop?tab=haveworld&view=people" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-400 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🐰 See All People →</Link>
-                  </div>
+                  )}
                 </div>
               </div>
+
             </div>
           </div>
 
