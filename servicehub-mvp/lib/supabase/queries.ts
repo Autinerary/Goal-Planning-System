@@ -94,6 +94,8 @@ export async function addUserBarrier(barrier: {
   notes?: string
   /** How this person relates to the norm — drives rating weight (Odosa). */
   relationship?: string
+  /** TRUE only when explicitly chosen; undeclared shows no badge. */
+  relationship_declared?: boolean
 }): Promise<UserBarrier | null> {
   const supabase = createClient()
   const { data, error } = await supabase

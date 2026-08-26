@@ -147,14 +147,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     try {
       const { data: myBarriers } = await supabase
         .from('user_barriers')
-        .select('barrier_type, severity, relationship')
+        .select('barrier_type, severity, relationship, relationship_declared')
         .eq('user_id', user.id)
       for (const b of myBarriers || []) {
         const type = String((b as any).barrier_type || '').trim().toLowerCase()
         const sev = Number((b as any).severity)
         if (type) {
           rater_diagnostics[type] = sev >= 1 && sev <= 5 ? Math.round(sev) : 3
-          rater_relationships[type] = String((b as any).relationship || 'lived')
+          // Only declared relationships are recorded — an undeclared rater is
+          // weighted as lived (safe) but never badged as such.
+          if ((b as any).relationship_declared) {
+            rater_relationships[type] = String((b as any).relationship || 'lived')
+          }
         }
       }
     } catch {

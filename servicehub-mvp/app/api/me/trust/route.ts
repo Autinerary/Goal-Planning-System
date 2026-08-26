@@ -19,7 +19,7 @@ export async function GET() {
 
   const empty = {
     trust: { ratingsCount: 0, helpfulTotal: 0, karma: 0, tier: 'new' as TrustTier },
-    norms: [] as { type: string; severity: number; method: VerificationMethod }[],
+    norms: [] as { type: string; severity: number; method: VerificationMethod; relationship: string; relationshipDeclared: boolean }[],
   }
   if (!user) return NextResponse.json(empty)
 
@@ -27,7 +27,7 @@ export async function GET() {
     supabase.rpc('rater_trust', { p_user_id: user.id }),
     supabase
       .from('user_barriers')
-      .select('barrier_type, severity, verification_method')
+      .select('barrier_type, severity, verification_method, relationship, relationship_declared')
       .eq('user_id', user.id),
   ])
 
@@ -45,6 +45,9 @@ export async function GET() {
       severity:
         typeof b.severity === 'number' ? Math.max(1, Math.min(5, Math.round(b.severity))) : 3,
       method: (b.verification_method as VerificationMethod) || 'self',
+      relationship: String(b.relationship || 'lived'),
+      // FALSE means we never asked — the UI prompts instead of assuming.
+      relationshipDeclared: !!b.relationship_declared,
     }))
     .filter((n) => n.type)
 

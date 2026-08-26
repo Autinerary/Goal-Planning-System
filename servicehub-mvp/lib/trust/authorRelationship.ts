@@ -18,8 +18,11 @@ export async function authorRelationshipSnapshot(userId: string): Promise<{
     const admin = createAdminClient()
     const { data } = await admin
       .from('user_barriers')
-      .select('barrier_type, relationship')
+      .select('barrier_type, relationship, relationship_declared')
       .eq('user_id', userId)
+      // Only DECLARED relationships count — we never credit someone with a
+      // claim they didn't make, and undeclared safely falls back to weight 1.0.
+      .eq('relationship_declared', true)
 
     const relationships: Record<string, string> = {}
     for (const b of data || []) {

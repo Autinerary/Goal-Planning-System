@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import { ShieldCheck, Copy, Check, Loader2 } from 'lucide-react'
 import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
+import { RELATIONSHIP_META, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
 
 interface Norm {
   type: string
   severity: number
   method: VerificationMethod
+  relationship: string
+  relationshipDeclared: boolean
 }
 
 const NORM_LABELS: Record<string, string> = {
@@ -45,6 +48,32 @@ export default function NormVerification() {
       .finally(() => setLoading(false))
   }
   useEffect(load, [])
+
+  const declareRelationship = async (barrierType: string, relationship: Relationship) => {
+    setError('')
+    // Optimistic — this is a small, reversible choice; no reason to make people wait.
+    setNorms((prev) =>
+      prev.map((n) =>
+        n.type === barrierType ? { ...n, relationship, relationshipDeclared: true } : n
+      )
+    )
+    try {
+      const res = await fetch('/api/me/relationship', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ barrierType, relationship }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => null)
+        setError(j?.error || 'Could not save that.')
+        load()
+      }
+    } catch {
+      setError('Could not save that.')
+      load()
+    }
+  }
 
   const requestLink = async (barrierType: string) => {
     setBusy(barrierType); setError(''); setCopied(false)
@@ -93,6 +122,16 @@ export default function NormVerification() {
         via a one-time link. We record only that it happened, the date, and their role.
       </p>
 
+      {norms.some((n) => !n.relationshipDeclared) && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <p className="text-xs text-amber-900">
+            <strong>Tell us how you relate to your norms.</strong> Ratings and Tidbits answers are
+            weighted by closeness — lived experience counts most. Until you choose, we show no
+            label and treat your input as lived experience.
+          </p>
+        </div>
+      )}
+
       {norms.length === 0 ? (
         <p className="text-sm text-gray-500">No norms on your profile yet.</p>
       ) : (
@@ -101,11 +140,42 @@ export default function NormVerification() {
             const vm = VERIFICATION_META[n.method] || VERIFICATION_META.self
             return (
               <li key={n.type} className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-gray-900">{normLabel(n.type)}</div>
                   <span className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`} title={vm.description}>
                     {vm.label}
                   </span>
+
+                  {/* How do you relate to this norm? Drives how ratings and
+                      Tidbits answers are weighted — so we ask rather than assume. */}
+                  <div className="mt-2">
+                    {!n.relationshipDeclared && (
+                      <p className="text-[11px] text-amber-700 mb-1">
+                        How do you relate to this norm?
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5">
+                      {RELATIONSHIP_ORDER.map((r) => {
+                        const rm = RELATIONSHIP_META[r]
+                        const active = n.relationshipDeclared && n.relationship === r
+                        return (
+                          <button
+                            key={r}
+                            onClick={() => declareRelationship(n.type, r)}
+                            title={rm.description}
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                              active
+                                ? rm.className
+                                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
+                            }`}
+                            aria-pressed={active}
+                          >
+                            {rm.short}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
                 {n.method !== 'professional' && (
                   <button

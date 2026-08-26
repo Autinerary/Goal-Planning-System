@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
             relationship: relationshipFromConnection(
               (barrier as any).connectionType || body.role
             ),
+            // Picking a connection type in onboarding IS a declaration.
+            relationship_declared: !!((barrier as any).connectionType || body.role),
           })
         )
       )
