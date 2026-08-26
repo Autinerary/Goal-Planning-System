@@ -50,7 +50,13 @@ export default function FilterSidebar({
   onClearFilters,
 }: FilterSidebarProps) {
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
-  const [expandedBarrierCategory, setExpandedBarrierCategory] = useState<string | null>(null)
+  // Odosa: "they are working; they're just not showing up like the other ones."
+  // These groups were the ONLY filters hidden behind a collapsed, single-open
+  // accordion — every other section in this sidebar renders its options flat and
+  // always visible. We track what's COLLAPSED rather than what's expanded, so
+  // the default (empty set) shows every group open, and groups toggle
+  // independently instead of closing each other.
+  const [collapsedNormGroups, setCollapsedNormGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetch('/api/search/categories')
@@ -63,7 +69,12 @@ export default function FilterSidebar({
   }, [])
 
   const toggleBarrierCategory = (category: string) => {
-    setExpandedBarrierCategory(expandedBarrierCategory === category ? null : category)
+    setCollapsedNormGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(category)) next.delete(category)
+      else next.add(category)
+      return next
+    })
   }
 
   return (
@@ -105,7 +116,12 @@ export default function FilterSidebar({
               barriers: g.norms,
             }))
               .map((barrierCategory) => {
-              const isExpanded = expandedBarrierCategory === barrierCategory.category
+              const isExpanded = !collapsedNormGroups.has(barrierCategory.category)
+              // Surfaced on the header so a collapsed group still advertises
+              // that it is filtering the results.
+              const selectedCount = barrierCategory.barriers.filter((b) =>
+                selectedBarriers.includes(b.id)
+              ).length
               return (
                 <div key={barrierCategory.category} className="border-b border-gray-200 last:border-b-0">
                   <button
@@ -114,7 +130,14 @@ export default function FilterSidebar({
                     className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset transition-colors"
                     aria-expanded={isExpanded}
                   >
-                    <span className="text-sm font-medium text-gray-900">{barrierCategory.label}</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {barrierCategory.label}
+                      {selectedCount > 0 && (
+                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-xs font-semibold">
+                          {selectedCount}
+                        </span>
+                      )}
+                    </span>
                     {isExpanded ? (
                       <ChevronUp className="w-4 h-4 text-gray-500" aria-hidden="true" />
                     ) : (
