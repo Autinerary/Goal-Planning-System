@@ -247,17 +247,14 @@ function RacesContent() {
           ? { id: 'cX', name: _currentRecs[3].name || 'Choice X, Last', success: Math.round(((_currentRecs[3].relevanceScore || 0.1)) * 100), attempts: _currentRecs[3].reviews || 102 }
           : { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
       ]
+    : isSignedIn
+    ? []                       // signed in, no recommendations yet — show none
     : [
         { id: 'c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
         { id: 'c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
         { id: 'see', name: '(See more)', success: null as any, attempts: null as any },
         { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
       ]
-  const previousSteps = [
-    { id: 's1', name: 'Completed: Research accommodations' },
-    { id: 's2', name: 'Completed: Initial assessment' },
-    { id: 's3', name: 'Completed: Set up profile' },
-  ]
   // Real agent-derived races (fallback to mock if no path data yet)
   const userBarrierLabels: string[] = [
     ...((payload?.userProfile?.barrierTypes || []) as string[]),
@@ -306,6 +303,8 @@ function RacesContent() {
   })
   const shopItems = _agentShop.length
     ? _agentShop
+    : isSignedIn
+    ? []                       // signed in, agents produced no shop items yet
     : [
         { emoji: '🍎', name: 'Energy Apple', cost: '5 coins' },
         { emoji: '☕', name: 'Focus Brew', cost: '8 coins' },
@@ -341,6 +340,12 @@ function RacesContent() {
         goal: m.goal || '',
         raceId: m.raceId || '',
       }))
+    : isSignedIn
+    // Signed in with no generated path: show NOTHING rather than a borrowed
+    // plan. The mock below is a signed-out demo only — it used to render for
+    // real accounts too, which is how testers ended up reviewing invented
+    // milestones and reporting on them as if they were their own.
+    ? []
     : [
         { id: 'm0', name: 'Request Accommodations', dist: 'Current', status: 'active' as const, dimension: '', dimensionLabel: '', goal: '' },
         { id: 'm1', name: 'Complete Semester 1', dist: '2 steps', status: 'upcoming' as const, dimension: '', dimensionLabel: '', goal: '' },
@@ -356,6 +361,21 @@ function RacesContent() {
     const p = computeRaceProgress(r, milestones, completedMilestoneIds)
     if (p !== null) r.progress = p
   })
+
+  // Steps the user has ACTUALLY ticked off. This used to be three fixed
+  // literals ("Completed: Research accommodations", …) with no guard at all, so
+  // every account — brand new ones included — was shown the same invented
+  // history. Signed-out visitors get a short sample so the page still reads as
+  // a demo; signed-in users only ever see their own completions.
+  const previousSteps = isSignedIn
+    ? milestones
+        .filter((m: any) => completedMilestoneIds.has(m.id))
+        .map((m: any) => ({ id: m.id, name: `Completed: ${m.name}` }))
+    : [
+        { id: 'demo-s1', name: 'Completed: Research accommodations' },
+        { id: 'demo-s2', name: 'Completed: Initial assessment' },
+        { id: 'demo-s3', name: 'Completed: Set up profile' },
+      ]
 
   // ── Real goal wiring ──────────────────────────────────────────────
   // Each agent milestone carries { dimension, goal }. A single goal is
@@ -1006,102 +1026,50 @@ function RacesContent() {
              ═══════════════════════════════════════════════════ */}
           {showChecklist && (() => {
             const dimOrder = dimMeta
-            // Sub-races per dimension: each dimension can have multiple races
-            const dimSubRaces: Record<string, Array<{ id: string; name: string; steps: Array<{ id: string; name: string; status: 'active' | 'upcoming' | 'far'; isGeneric?: boolean }> }>> = {
-              education: [
-                { id: 'edu-academic', name: 'Academic Progress', steps: [
-                  { id: 'ea1', name: 'Set up a structured study schedule', status: 'active' },
-                  { id: 'ea2', name: 'Use noise-canceling headphones for focus', status: 'upcoming' },
-                  { id: 'ea3', name: 'Join a study group for support', status: 'upcoming' },
-                  { id: 'ea4', name: 'Access campus resources for disabilities', status: 'upcoming' },
-                  { id: 'ea5', name: 'Research tech programs with flexibility', status: 'upcoming' },
-                  { id: 'ea6', name: 'Review and adjust your study schedule', status: 'far' },
-                  { id: 'ea7', name: 'Utilize sensory-friendly study environments', status: 'far' },
-                  { id: 'ea8', name: 'Complete semester final exams', status: 'far', isGeneric: true },
-                ]},
-                { id: 'edu-skills', name: 'Skill Building', steps: [
-                  { id: 'es1', name: 'Identify top 3 skills to develop', status: 'active' },
-                  { id: 'es2', name: 'Enroll in an online course', status: 'upcoming' },
-                  { id: 'es3', name: 'Practice skills daily for 30 min', status: 'upcoming' },
-                  { id: 'es4', name: 'Build a project showcasing new skills', status: 'upcoming' },
-                  { id: 'es5', name: 'Get feedback from peers or mentors', status: 'far' },
-                  { id: 'es6', name: 'Earn a certification', status: 'far', isGeneric: true },
-                ]},
-              ],
-              workplace: [
-                { id: 'work-job', name: 'Job Search', steps: [
-                  { id: 'wj1', name: 'Seek flexible job options for students', status: 'active' },
-                  { id: 'wj2', name: 'Communicate needs with employer early', status: 'upcoming' },
-                  { id: 'wj3', name: 'Find a mentor for guidance and support', status: 'upcoming' },
-                  { id: 'wj4', name: 'Explore internships related to your field', status: 'upcoming' },
-                  { id: 'wj5', name: 'Update resume with clear achievements', status: 'upcoming' },
-                  { id: 'wj6', name: 'Practice interview skills in low-pressure settings', status: 'far' },
-                  { id: 'wj7', name: 'Seek out inclusive companies', status: 'far' },
-                  { id: 'wj8', name: 'Accept an offer', status: 'far', isGeneric: true },
-                ]},
-                { id: 'work-career', name: 'Career Advancement', steps: [
-                  { id: 'wc1', name: 'Set 6-month career goals', status: 'active' },
-                  { id: 'wc2', name: 'Seek mentorship at work', status: 'upcoming' },
-                  { id: 'wc3', name: 'Take on a stretch project', status: 'upcoming' },
-                  { id: 'wc4', name: 'Build professional network', status: 'upcoming' },
-                  { id: 'wc5', name: 'Request performance review', status: 'far', isGeneric: true },
-                ]},
-              ],
-              relationships: [
-                { id: 'rel-social', name: 'Social Connections', steps: [
-                  { id: 'rs1', name: 'Connect with classmates through online forums', status: 'active' },
-                  { id: 'rs2', name: 'Join cultural or minority student groups', status: 'upcoming' },
-                  { id: 'rs3', name: 'Schedule regular check-ins with friends', status: 'upcoming' },
-                  { id: 'rs4', name: 'Share your experiences for mutual support', status: 'upcoming' },
-                  { id: 'rs5', name: 'Join support groups for tech job seekers', status: 'far' },
-                  { id: 'rs6', name: 'Connect with peers in tech education', status: 'far' },
-                  { id: 'rs7', name: 'Discuss job goals with family and friends', status: 'far', isGeneric: true },
-                ]},
-                { id: 'rel-support', name: 'Support Network', steps: [
-                  { id: 'rn1', name: 'Identify your core support people', status: 'active' },
-                  { id: 'rn2', name: 'Ask for help when you need it', status: 'upcoming' },
-                  { id: 'rn3', name: 'Attend a community event monthly', status: 'upcoming' },
-                  { id: 'rn4', name: 'Find an accountability partner', status: 'far', isGeneric: true },
-                ]},
-              ],
-              health: [
-                { id: 'health-mental', name: 'Mental Wellness', steps: [
-                  { id: 'hm1', name: 'Practice mindfulness to manage stress', status: 'active' },
-                  { id: 'hm2', name: 'Seek counseling for emotional guidance', status: 'upcoming' },
-                  { id: 'hm3', name: 'Establish a self-care routine for stress', status: 'upcoming' },
-                  { id: 'hm4', name: 'Practice mindfulness for focus improvement', status: 'upcoming' },
-                  { id: 'hm5', name: 'Journal weekly about mental state', status: 'far', isGeneric: true },
-                ]},
-                { id: 'health-physical', name: 'Physical Wellness', steps: [
-                  { id: 'hp1', name: 'Maintain a balanced diet for energy', status: 'active' },
-                  { id: 'hp2', name: 'Establish a consistent sleep routine', status: 'upcoming' },
-                  { id: 'hp3', name: 'Explore sensory-friendly workspaces', status: 'upcoming' },
-                  { id: 'hp4', name: 'Exercise 3x per week', status: 'upcoming' },
-                  { id: 'hp5', name: 'Schedule annual health check-up', status: 'far', isGeneric: true },
-                ]},
-              ],
-              barrier: [
-                { id: 'barrier-main', name: 'Barrier Support', steps: recommendedChoices
-                  .filter(ch => ch.id !== 'see')
-                  .map((ch, idx) => ({
-                    id: ch.id,
-                    name: ch.name,
-                    status: (idx === 0 ? 'active' : idx < 3 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far',
-                  })),
-                },
-              ],
-            }
-            // Also populate from agent milestones if they have dimension data
-            milestones.forEach(m => {
-              const k = ((m as any).dimension || '').toLowerCase()
+            // Sub-races per dimension, built from the user's REAL milestones.
+            //
+            // This block used to be ~57 hardcoded steps ("Set up a structured
+            // study schedule", "Use noise-canceling headphones for focus", …) with
+            // the agent milestones PUSHED ONTO the end of them. That meant a
+            // signed-in user saw the mock plan first and their own plan beneath
+            // it — the mock never got displaced, so testers were reading and
+            // reporting on invented steps. The mock is gone. Lanes are grouped
+            // from real milestones by dimension, and a dimension with nothing in
+            // it now says so rather than inventing content.
+            type SubStep = { id: string; name: string; status: 'active' | 'upcoming' | 'far'; isGeneric?: boolean }
+            type SubRace = { id: string; name: string; steps: SubStep[] }
+            const dimSubRaces: Record<string, SubRace[]> = {}
+
+            milestones.forEach((m: any) => {
+              const k = String(m.dimension || '').toLowerCase()
               const norm = k === 'career' ? 'workplace' : k
-              if (norm && dimSubRaces[norm] && dimSubRaces[norm].length > 0) {
-                const lane = dimSubRaces[norm][0]
-                if (!lane.steps.find(s => s.id === (m as any).id)) {
-                  lane.steps.push({ id: (m as any).id || `agent-${lane.steps.length}`, name: m.name, status: m.status })
-                }
+              if (!norm) return
+              // Lanes come from the agent's own grouping (the milestone's goal).
+              // Milestones with no goal share a single lane for the dimension.
+              const laneName = m.goal || 'Your plan'
+              const laneId = `${norm}-${laneName.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}`
+              if (!dimSubRaces[norm]) dimSubRaces[norm] = []
+              let lane = dimSubRaces[norm].find(l => l.id === laneId)
+              if (!lane) {
+                lane = { id: laneId, name: laneName, steps: [] }
+                dimSubRaces[norm].push(lane)
+              }
+              if (!lane.steps.find(s => s.id === m.id)) {
+                lane.steps.push({ id: m.id, name: m.name, status: m.status })
               }
             })
+
+            // Barrier lane is generated from the live recommendations, not a list.
+            const barrierSteps: SubStep[] = recommendedChoices
+              .filter(ch => ch.id !== 'see')
+              .map((ch, idx) => ({
+                id: ch.id,
+                name: ch.name,
+                status: (idx === 0 ? 'active' : idx < 3 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far',
+              }))
+            if (barrierSteps.length > 0) {
+              dimSubRaces.barrier = [{ id: 'barrier-main', name: 'Barrier Support', steps: barrierSteps }]
+            }
 
             const activeDim = dimOrder.find(d => d.key === activeDimension) || dimOrder[0]
             const subRaces = dimSubRaces[activeDim.key] || []
@@ -1304,12 +1272,32 @@ function RacesContent() {
                     </div>
                   )}
 
+                  {/* Nothing to show for this dimension. Says so, rather than
+                      falling back to invented steps the way this page used to. */}
+                  {displaySteps.length === 0 && (
+                    <div className={`rounded-xl border-2 border-dashed p-5 text-center ${day ? 'border-slate-300 bg-white/50' : 'border-indigo-700 bg-indigo-950/30'}`}>
+                      <div className="text-2xl mb-1">🗺️</div>
+                      <div className={`text-xs font-bold ${txt}`}>No steps here yet</div>
+                      <p className={`text-[10px] mt-1 ${sub}`}>
+                        Your plan hasn&apos;t produced any {activeDim.label} steps yet. Add a goal in
+                        this area and the agents will build the path.
+                      </p>
+                      <button
+                        onClick={() => router.push('/onboarding?step=3')}
+                        className={`mt-3 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r ${accent} text-white shadow hover:scale-105 transition-all`}
+                      >
+                        ➕ Add a goal
+                      </button>
+                    </div>
+                  )}
+
                   {/* Progress for the path on screen (Liam). Check marks alone
                       made it hard to see how far along a path you actually are. */}
                   {(() => {
                     const shown = activeSubRace ? activeSubRace.steps : combinedSteps
+                    if (shown.length === 0) return null
                     const doneCount = shown.filter(st => completedMilestoneIds.has(st.id)).length
-                    const pct = shown.length ? Math.round((doneCount / shown.length) * 100) : 0
+                    const pct = Math.round((doneCount / shown.length) * 100)
                     return (
                       <div className="mb-3">
                         <div className="flex items-center justify-between mb-1">
@@ -1548,6 +1536,27 @@ function RacesContent() {
               {[1, 2, 3].map(i => <div key={i} className={`rounded-full blur-sm cf ${day ? 'bg-white/50' : 'bg-indigo-300/10'}`} style={{ width: `${36 + i * 10}px`, height: `${14 + i * 4}px`, animationDelay: `${i * 1.2}s` }} />)}
             </div>
 
+            {/* No generated path yet. This space used to be filled with mock
+                milestones, which hid the fact that onboarding hadn't produced
+                anything. Say it plainly and point at the fix instead. */}
+            {trackStops.length === 0 && (
+              <div className="flex justify-center px-2">
+                <div className={`max-w-sm w-full text-center rounded-2xl border-2 border-dashed p-6 ${day ? 'border-slate-300 bg-white/60' : 'border-indigo-700 bg-indigo-950/40'}`}>
+                  <div className="text-3xl mb-2">🏁</div>
+                  <div className={`text-sm font-bold ${txt}`}>Your track hasn&apos;t been built yet</div>
+                  <p className={`text-xs mt-1 ${sub}`}>
+                    Finish onboarding and the agents will lay out your milestones here.
+                  </p>
+                  <button
+                    onClick={() => router.push('/onboarding')}
+                    className={`mt-4 text-xs font-bold px-4 py-2 rounded-xl bg-gradient-to-r ${accent} text-white shadow hover:scale-105 transition-all`}
+                  >
+                    Build my path →
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* ═══ THE RACE TRACK — five milestone dots on one path (Odosa) ═══
                 One dot is the current milestone and carries "YOU ARE HERE";
                 every dot is tappable ("Tap to view"). The Pit Stop Shop flanks
@@ -1555,6 +1564,7 @@ function RacesContent() {
                 both are placed in the CURRENT dot's grid row, so they sit
                 beside the path centred on where you actually are, rather than
                 floating at the top of the page. */}
+            {trackStops.length > 0 && (
             <div className="grid gap-x-3 px-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
 
               {/* LEFT: Pit Stop Shop, in the current dot's row */}
@@ -1573,6 +1583,9 @@ function RacesContent() {
                   <div className="p-2.5">
                     <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏪 Pit Stop Shop</h4>
                     <div className="space-y-1">
+                      {shopItems.length === 0 && (
+                        <p className={`text-[9px] ${sub} py-1`}>No items yet — they appear as your agents recommend tools.</p>
+                      )}
                       {shopItems.slice(0, expandShop ? shopItems.length : 3).map((item, i) => (
                         <button key={i} className={`w-full flex items-center gap-1.5 p-1 rounded-lg text-left transition-all hover:scale-[1.02] ${day ? 'bg-white/60 hover:bg-white/90' : 'bg-indigo-800/40 hover:bg-indigo-700/50'}`}>
                           <span className="text-base">{item.emoji}</span>
@@ -1665,6 +1678,7 @@ function RacesContent() {
               </div>
 
             </div>
+            )}
           </div>
 
 
