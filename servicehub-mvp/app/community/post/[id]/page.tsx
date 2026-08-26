@@ -1,5 +1,6 @@
 'use client'
 
+import RelationshipBadge from '@/components/community/RelationshipBadge'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -155,6 +156,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           >
             {post.author.pseudonym}
           </Link>
+          <RelationshipBadge relationship={post.author_relationship} />
           <span>{post.author.karma} karma</span>
           <BadgeList badges={post.author.top_badges} max={3} />
           <span className="ml-auto text-xs text-gray-400">

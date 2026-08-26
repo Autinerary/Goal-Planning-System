@@ -4,6 +4,7 @@
  *   POST — create a new post (requires opted-in community profile)
  */
 
+import { authorRelationshipSnapshot, primaryRelationship } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getCommunityServiceClient,
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
   let query = client
     .from('community_posts')
     .select(
-      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
+      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
     )
     .eq('is_deleted', false);
 
@@ -86,6 +87,7 @@ export async function GET(request: NextRequest) {
     excerpt: markdownExcerpt(r.body_markdown, 220),
     unlocking_moment: r.unlocking_moment ?? null,
     what_didnt_work: r.what_didnt_work ?? null,
+    author_relationship: primaryRelationship(r.author_relationships),
     author: authorMap.get(r.author_id) ?? {
       user_id: r.author_id,
       pseudonym: 'former_member',
@@ -188,6 +190,9 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Whose experience is this? (Odosa) Snapshotted at write time, like ratings.
+  const authorRel = await authorRelationshipSnapshot(viewer.user_id)
+
   const { data: post, error } = await client
     .from('community_posts')
     .insert({
@@ -199,6 +204,8 @@ export async function POST(request: NextRequest) {
       image_urls,
       unlocking_moment,
       what_didnt_work,
+      author_relationships: authorRel.relationships,
+      author_weight: authorRel.weight,
     })
     .select('id')
     .single();

@@ -96,6 +96,8 @@ export interface CommunityPostSummary {
   unlocking_moment?: string | null;
   /** Author-highlighted things that did NOT work (optional). */
   what_didnt_work?: string | null;
+  /** The author's closest relationship to their norms (Odosa). */
+  author_relationship?: string | null;
   author: CommunityAuthorBadge;
   barrier_tags: string[];
   category_tags: string[];
@@ -178,6 +180,9 @@ export interface CommunityAnswerNode {
   created_at: string;
   updated_at: string;
   viewer_vote: -1 | 0 | 1;
+  /** The author's closest relationship to their norms; ranks answers (Odosa). */
+  author_relationship?: string | null;
+  author_weight?: number;
   viewer_can_edit: boolean;
   viewer_can_delete: boolean;
   children: CommunityAnswerNode[];

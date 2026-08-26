@@ -6,6 +6,7 @@
  * components can reuse it without re-implementing.
  */
 
+import { primaryRelationship } from '@/lib/trust/authorRelationship'
 import type {
   CommunityAnswerNode,
   CommunityAuthorBadge,
@@ -25,6 +26,8 @@ interface AnswerRowLite {
   accepted_at: string | null;
   created_at: string;
   updated_at: string;
+  author_relationships?: Record<string, string> | null;
+  author_weight?: number | null;
 }
 
 /**
@@ -70,6 +73,9 @@ export function buildAnswerTree(
       created_at: r.created_at,
       updated_at: r.updated_at,
       viewer_vote: votes.get(r.id) ?? 0,
+      // Whose experience this is (Odosa) — shown as a badge and used to rank.
+      author_relationship: primaryRelationship(r.author_relationships),
+      author_weight: typeof r.author_weight === 'number' ? r.author_weight : 1,
       viewer_can_edit: !!viewerId && viewerId === r.author_id,
       viewer_can_delete: !!viewerId && (viewerId === r.author_id || isAdmin),
       children: [],
@@ -85,8 +91,14 @@ export function buildAnswerTree(
     }
   }
 
+  // Accepted first, then proximity to the norm (lived experience above ally),
+  // then community score. Weighting only orders answers — nothing is hidden,
+  // and an ally answer the community upvotes still climbs (Odosa).
   const sort = (a: CommunityAnswerNode, b: CommunityAnswerNode) => {
     if (a.is_accepted !== b.is_accepted) return a.is_accepted ? -1 : 1;
+    const aw = a.author_weight ?? 1;
+    const bw = b.author_weight ?? 1;
+    if (aw !== bw) return bw - aw;
     if (a.score !== b.score) return b.score - a.score;
     return a.created_at < b.created_at ? -1 : 1;
   };

@@ -1,5 +1,6 @@
 'use client'
 
+import RelationshipBadge from '@/components/community/RelationshipBadge'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -232,6 +233,7 @@ function FeedInner() {
                     ))}
                     <span className="ml-auto flex items-center gap-2">
                       <span className="font-medium text-gray-700">{p.author.pseudonym}</span>
+                      <RelationshipBadge relationship={p.author_relationship} />
                       <BadgeList badges={p.author.top_badges} max={1} />
                       <span aria-hidden="true">·</span>
                       <span>{new Date(p.last_activity_at).toLocaleDateString()}</span>

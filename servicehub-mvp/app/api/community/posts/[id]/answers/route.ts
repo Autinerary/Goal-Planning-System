@@ -7,6 +7,7 @@
  * post itself.
  */
 
+import { authorRelationshipSnapshot } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getCommunityServiceClient,
@@ -88,6 +89,8 @@ export async function POST(
     }
   }
 
+  const authorRel = await authorRelationshipSnapshot(viewer.user_id)
+
   const { data: answer, error } = await client
     .from('community_answers')
     .insert({
@@ -96,6 +99,8 @@ export async function POST(
       author_id: viewer.user_id,
       body_markdown: markdown,
       image_urls: imageUrls,
+      author_relationships: authorRel.relationships,
+      author_weight: authorRel.weight,
     })
     .select('id')
     .single();

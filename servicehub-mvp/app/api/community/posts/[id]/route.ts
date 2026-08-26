@@ -5,6 +5,7 @@
  *   DELETE — soft-delete (author or admin)
  */
 
+import { primaryRelationship } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getCommunityServiceClient,
@@ -31,7 +32,7 @@ export async function GET(
   const { data: post, error } = await client
     .from('community_posts')
     .select(
-      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
+      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
     )
     .eq('id', postId)
     .maybeSingle();
@@ -57,7 +58,7 @@ export async function GET(
   const { data: answers } = await client
     .from('community_answers')
     .select(
-      'id, post_id, parent_id, author_id, body_markdown, image_urls, upvotes, downvotes, score, is_accepted, accepted_at, created_at, updated_at'
+      'id, post_id, parent_id, author_id, body_markdown, image_urls, upvotes, downvotes, score, is_accepted, accepted_at, created_at, updated_at, author_relationships, author_weight'
     )
     .eq('post_id', postId)
     .eq('is_deleted', false);
@@ -90,6 +91,7 @@ export async function GET(
     body_markdown: post.body_markdown,
     unlocking_moment: post.unlocking_moment ?? null,
     what_didnt_work: post.what_didnt_work ?? null,
+    author_relationship: primaryRelationship(post.author_relationships),
     image_urls: post.image_urls ?? [],
     author: authorMap.get(post.author_id) ?? {
       user_id: post.author_id,

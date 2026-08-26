@@ -1,5 +1,6 @@
 'use client'
 
+import RelationshipBadge from '@/components/community/RelationshipBadge'
 import { useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, Reply } from 'lucide-react'
@@ -61,6 +62,7 @@ export default function ThreadedAnswer({
             >
               {answer.author.pseudonym}
             </Link>
+            <RelationshipBadge relationship={answer.author_relationship} />
             <span aria-hidden="true">·</span>
             <span className="text-xs">{answer.author.karma} karma</span>
             <BadgeList badges={answer.author.top_badges} max={2} />
