@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles, Check, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import TaskCompanions from '../components/TaskCompanions'
 import { playTaskCompleteSound } from '../../lib/taskSound'
 
 /*
@@ -105,6 +106,9 @@ export default function TasksPage() {
 
   return (
     <div className="min-h-screen bg-white/20 backdrop-blur-sm relative overflow-hidden">
+      {/* Draggable corner companions (Eliyana). Park them wherever they don't
+          compete with the task you're actually doing. */}
+      <TaskCompanions energized={mascotMood === 'celebrating'} />
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3 relative z-10">
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="calendar_optimization" />
