@@ -30,11 +30,15 @@ export default function ResourceCard({
   // Services get images too (Odosa). Falls back to a generated placeholder so
   // the layout reads correctly before a real photo is uploaded.
   const imageSrc = imageOrPlaceholder((resource as any).image_url, resource.name, resource.category)
+  // Shop items appear in general search too; they live under /shop (Odosa).
+  const isProduct = (resource as any).kind === 'product'
+  const href = isProduct ? `/shop/${resource.id}` : `/resources/${resource.id}`
+  const price = (resource as any).price
 
   if (variant === 'list') {
     return (
       <Link
-        href={`/resources/${resource.id}`}
+        href={href}
         className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         aria-label={`View ${resource.name}`}
       >
@@ -84,13 +88,15 @@ export default function ResourceCard({
                 </>
               )}
 
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
-                <span className="truncate">{city}</span>
-                {distance !== undefined && (
-                  <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
-                )}
-              </div>
+              {!isProduct && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
+                  <span className="truncate">{city}</span>
+                  {distance !== undefined && (
+                    <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Barrier Badges */}
@@ -112,7 +118,7 @@ export default function ResourceCard({
 
   return (
     <Link
-      href={`/resources/${resource.id}`}
+      href={href}
       className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden group"
       aria-label={`View ${resource.name}`}
     >
@@ -129,10 +135,20 @@ export default function ResourceCard({
 
       <div className="p-6">
         {/* Category Badge */}
-        <div className="mb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             {resource.category}
           </span>
+          {isProduct && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+              Shop
+            </span>
+          )}
+          {isProduct && typeof price === 'number' && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+              {price === 0 ? 'Free' : `$${price}`}
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -165,14 +181,16 @@ export default function ResourceCard({
           </div>
         )}
 
-        {/* Location */}
-        <div className="flex items-center text-sm text-gray-600 mb-4">
-          <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
-          <span className="truncate">{city}</span>
-          {distance !== undefined && (
-            <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
-          )}
-        </div>
+        {/* Location — products have no address, so don't claim one. */}
+        {!isProduct && (
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
+            <span className="truncate">{city}</span>
+            {distance !== undefined && (
+              <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
+            )}
+          </div>
+        )}
 
         {/* Barrier Badges */}
         {showBadges && barriers.length > 0 && (

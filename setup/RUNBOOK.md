@@ -44,6 +44,29 @@ It bundles 17 migrations in dependency order:
 
 ---
 
+## 1b. Optional: demo products
+
+Want to see the Shop and search results populated (like the seeded demo
+services)? Run this **after** the migrations:
+
+```
+servicehub-mvp/scripts/2026_seed_demo_products.sql
+```
+
+16 sample products (earplugs, weighted blanket, fidget set, books, timers…).
+No image files needed — the app generates a placeholder from each name.
+
+They're all tagged `seller = 'Demo Seller'`, so removing them is one line:
+
+```sql
+DELETE FROM public.products WHERE seller = 'Demo Seller';
+```
+
+> Note: `/api/seed` (used for demo services) is blocked when
+> `NODE_ENV=production`, so it can't seed the deployed app. This SQL can.
+
+---
+
 ## 2. Environment variables
 
 ### Frontend — Vercel project `goal-planning-app`

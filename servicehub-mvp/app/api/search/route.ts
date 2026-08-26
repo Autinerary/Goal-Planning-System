@@ -8,6 +8,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
+import { searchProducts } from '@/lib/search/products'
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -224,8 +225,27 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // No semantic results, return keyword results
-    return NextResponse.json(keywordResult)
+    // Shop items appear in general results too (Odosa). Skipped when a
+    // norm/condition/life-area filter is active — those are service-specific
+    // and the product catalog has no such tagging, so including products would
+    // silently ignore the filter the user set.
+    const normFilterActive =
+      (barriers && barriers.length > 0) ||
+      (conditions && conditions.length > 0) ||
+      (lifeAreas && lifeAreas.length > 0)
+
+    let products: any[] = []
+    if (!normFilterActive) {
+      products = await searchProducts({ query, categories, minPrice, maxPrice })
+    }
+
+    // No semantic results, return keyword results (+ any matching products).
+    return NextResponse.json({
+      ...keywordResult,
+      results: [...keywordResult.results, ...products],
+      total: (keywordResult.total || 0) + products.length,
+      productCount: products.length,
+    })
   } catch (error) {
     console.error('Error in search API:', error)
     return NextResponse.json(
