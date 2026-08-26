@@ -17,7 +17,7 @@ file covers both.
 `DROP POLICY IF EXISTS` before each `CREATE POLICY`), and the whole file is
 wrapped in one transaction — if anything fails, nothing is applied.
 
-It bundles 17 migrations in dependency order:
+It bundles 18 migrations in dependency order:
 
 | # | Migration | Unlocks |
 |---|-----------|---------|
@@ -35,9 +35,10 @@ It bundles 17 migrations in dependency order:
 | 11 | rating_diagnostics | Nested rating breakdown by norm + level |
 | 12 | rater_trust | **Rater trust tiers + norm verification_method** |
 | 13 | organizations | **Orgs + leader vouching** (partnership trust layer) |
-| 14 | rating_groups | **Per-organisation rating breakdown** |
-| 15 | professional_verification | **One-time clinician attestation links** |
-| 16 | shop_products | **Shop** (products, cart, orders, returns, reviews) |
+| 14 | relationship_weighting | **Rating weight by lived experience / family / professional / ally** |
+| 15 | rating_groups | **Per-organisation rating breakdown** |
+| 16 | professional_verification | **One-time clinician attestation links** |
+| 17 | shop_products | **Shop** (products, cart, orders, returns, reviews) |
 
 > Steps 09–16 `ALTER` tables created in steps 08 and in the base schema, which
 > is why the order matters. Don't reorder.

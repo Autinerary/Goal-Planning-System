@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
+import { weightFor, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
 
 type SupabaseLike = SupabaseClient<any, any, any>
 
@@ -91,6 +92,8 @@ export async function addUserBarrier(barrier: {
   barrier_type: string
   severity?: number
   notes?: string
+  /** How this person relates to the norm — drives rating weight (Odosa). */
+  relationship?: string
 }): Promise<UserBarrier | null> {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -253,6 +256,14 @@ export interface DiagnosticBreakdown {
   levels: Array<{ level: number; count: number; areas: AreaAverages }> // severity 1-5
 }
 
+/** How a resource's ratings break down by the rater's relationship to the norm.
+ *  Shown openly so readers can judge the mix themselves (Odosa). */
+export interface RelationshipMix {
+  relationship: Relationship
+  count: number
+  average: number
+}
+
 /** Rating group: how one organisation's members rate a resource (Odosa). */
 export interface OrgBreakdown {
   orgId: string
@@ -270,6 +281,8 @@ export interface ResourceDetail extends Resource {
   barrierScores: { [barrier: string]: { average: number; count: number } }
   diagnosticBreakdown?: DiagnosticBreakdown[]
   orgBreakdown?: OrgBreakdown[]
+  relationshipMix?: RelationshipMix[]
+  weightedRating?: number
   userRating?: Rating | null // Current user's rating if logged in
   isSaved?: boolean // Whether current user has saved this resource
   recommendedByAutismCommunity?: boolean // If highly rated by users with autism barriers
@@ -435,6 +448,39 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
       .sort((a, b) => b.count - a.count)
   }
 
+  // Relationship weighting (Odosa). We can't verify identity — documents are
+  // forgeable and demanding proof would exclude undiagnosed people — so instead
+  // every rating carries the rater's declared relationship to the norm, and we
+  // weight by proximity: lived experience > family > professional > ally.
+  // Nobody is excluded; the mix is just surfaced honestly.
+  const relAgg: Record<string, { sum: number; count: number }> = {}
+  let weightedSum = 0
+  let weightTotal = 0
+  if (ratings) {
+    for (const rating of ratings) {
+      const rels = ((rating as any).rater_relationships || {}) as Record<string, string>
+      const values = Object.values(rels).filter((r) => typeof r === 'string')
+      // A rater's strongest tie to any norm decides the weight — someone with
+      // lived experience of one norm isn't demoted for also being an ally to
+      // another.
+      const best = values.length
+        ? values.reduce((a, b) => (weightFor(b) > weightFor(a) ? b : a))
+        : 'lived'
+      const w = weightFor(best)
+      weightedSum += rating.overall_score * w
+      weightTotal += w
+      const bucket = (relAgg[best] ||= { sum: 0, count: 0 })
+      bucket.sum += rating.overall_score
+      bucket.count += 1
+    }
+  }
+  const weightedRating = weightTotal > 0 ? weightedSum / weightTotal : 0
+  const relationshipMix: RelationshipMix[] = RELATIONSHIP_ORDER.filter((r) => relAgg[r]).map((r) => ({
+    relationship: r,
+    count: relAgg[r].count,
+    average: relAgg[r].count ? relAgg[r].sum / relAgg[r].count : 0,
+  }))
+
   // Get user's rating if logged in
   let userRating: Rating | null = null
   if (userId) {
@@ -489,6 +535,8 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     barrierScores: barrierAverages,
     diagnosticBreakdown,
     orgBreakdown,
+    relationshipMix,
+    weightedRating,
     userRating: userRating || undefined,
     isSaved,
     recommendedByAutismCommunity,
@@ -584,6 +632,8 @@ export async function createOrUpdateRating(rating: {
   rater_diagnostics?: Record<string, number>
   /** Orgs the rater belonged to at rating time — powers per-organisation groups. */
   rater_org_ids?: string[]
+  /** { barrier_type: relationship } for the rater — powers weighted averages. */
+  rater_relationships?: Record<string, string>
 }): Promise<Rating | null> {
   const supabase = createClient()
   // Check if rating exists

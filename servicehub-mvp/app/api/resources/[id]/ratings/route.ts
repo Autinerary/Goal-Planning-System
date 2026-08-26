@@ -140,15 +140,22 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // nested breakdown can group area ratings by diagnostic feature + level,
     // without cross-user profile reads (RLS-safe: the rater reads their own).
     const rater_diagnostics: Record<string, number> = {}
+    // Whose experience is this? (Odosa) Captured per norm so ratings can be
+    // weighted by proximity — lived experience over ally — without ever
+    // needing to verify identity.
+    const rater_relationships: Record<string, string> = {}
     try {
       const { data: myBarriers } = await supabase
         .from('user_barriers')
-        .select('barrier_type, severity')
+        .select('barrier_type, severity, relationship')
         .eq('user_id', user.id)
       for (const b of myBarriers || []) {
         const type = String((b as any).barrier_type || '').trim().toLowerCase()
         const sev = Number((b as any).severity)
-        if (type) rater_diagnostics[type] = sev >= 1 && sev <= 5 ? Math.round(sev) : 3
+        if (type) {
+          rater_diagnostics[type] = sev >= 1 && sev <= 5 ? Math.round(sev) : 3
+          rater_relationships[type] = String((b as any).relationship || 'lived')
+        }
       }
     } catch {
       /* non-fatal — rating still saves without diagnostics */
@@ -178,6 +185,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       barrier_scores,
       comment: comment?.trim() || undefined,
       rater_diagnostics,
+      rater_relationships,
       rater_org_ids,
     })
 

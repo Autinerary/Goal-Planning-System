@@ -1,3 +1,4 @@
+import { relationshipFromConnection } from '@/lib/trust/relationship'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { updateProfile, addUserBarrier } from '@/lib/supabase/queries'
@@ -127,6 +128,14 @@ export async function POST(request: NextRequest) {
             barrier_type: barrier.id,
             severity: barrier.severity,
             notes: barrier.notes,
+            // Whose experience this is (Odosa). Goal Planning onboarding already
+            // asks (connectionTypes: self / parent / educator / ally …) but used
+            // to discard the per-norm answer — it drives rating weight now.
+            // `role` is the connectionType Goal Planning derives (self / parent /
+            // educator / ally …); a per-barrier override wins when present.
+            relationship: relationshipFromConnection(
+              (barrier as any).connectionType || body.role
+            ),
           })
         )
       )

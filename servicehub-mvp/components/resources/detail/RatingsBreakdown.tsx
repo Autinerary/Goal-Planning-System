@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Star, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react'
-import type { DiagnosticBreakdown, OrgBreakdown } from '@/lib/supabase/queries'
+import type { DiagnosticBreakdown, OrgBreakdown, RelationshipMix } from '@/lib/supabase/queries'
+import { RELATIONSHIP_META, RELATIONSHIP_WEIGHT } from '@/lib/trust/relationship'
 import {
   BarChart,
   Bar,
@@ -23,6 +24,8 @@ interface RatingsBreakdownProps {
   barrierScores: { [barrier: string]: { average: number; count: number } }
   diagnosticBreakdown?: DiagnosticBreakdown[]
   orgBreakdown?: OrgBreakdown[]
+  relationshipMix?: RelationshipMix[]
+  weightedRating?: number
 }
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'] // Red to Green
@@ -49,6 +52,8 @@ export default function RatingsBreakdown({
   barrierScores,
   diagnosticBreakdown = [],
   orgBreakdown = [],
+  relationshipMix = [],
+  weightedRating,
 }: RatingsBreakdownProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [openFeature, setOpenFeature] = useState<string | null>(null)
@@ -246,6 +251,54 @@ export default function RatingsBreakdown({
                   )
                 })}
               </div>
+            </section>
+          )}
+
+          {/* Who is rating this — relationship mix (Odosa). Shown openly rather
+              than hidden behind a single number, so readers can judge for
+              themselves. We never verify identity; relationship is declared. */}
+          {relationshipMix.length > 0 && (
+            <section>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">Who rated this</h3>
+              <p className="text-xs text-gray-500 mb-4">
+                Ratings are weighted by how close the rater is to the norm — lived experience counts
+                most, then family, then professionals, then allies. Everyone can rate; the mix is
+                shown so you can weigh it yourself.
+              </p>
+              <div className="space-y-2">
+                {relationshipMix.map((r) => {
+                  const meta = RELATIONSHIP_META[r.relationship]
+                  return (
+                    <div
+                      key={r.relationship}
+                      className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2"
+                    >
+                      <div className="min-w-0 flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.className}`}
+                          title={meta.description}
+                        >
+                          {meta.label}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {r.count} {r.count === 1 ? 'rating' : 'ratings'} · weight{' '}
+                          {RELATIONSHIP_WEIGHT[r.relationship].toFixed(2)}
+                        </span>
+                      </div>
+                      <span className="flex items-center gap-1 text-sm font-semibold text-gray-900 flex-shrink-0">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+                        {r.average.toFixed(1)}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              {typeof weightedRating === 'number' && weightedRating > 0 && (
+                <p className="text-xs text-gray-600 mt-3">
+                  Weighted overall: <strong>{weightedRating.toFixed(1)}</strong> (vs{' '}
+                  {averageRating.toFixed(1)} unweighted)
+                </p>
+              )}
             </section>
           )}
 
