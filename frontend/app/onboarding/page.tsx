@@ -916,7 +916,12 @@ export default function OnboardingPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 180000, // 3 min — multi-agent OpenAI orchestration can take 40–90s
+        // 6 min. Measured against production: a single generation takes ~55s,
+        // but FIVE concurrent generations take ~160s each — Render's CPU is the
+        // bottleneck, not OpenAI. At the old 180s ceiling the sixth simultaneous
+        // user timed out and was told "cannot connect to server", about a
+        // backend that was healthy and still working on their path.
+        timeout: 360000,
       })
 
       // Save saved resources to ServiceHub if user is authenticated
