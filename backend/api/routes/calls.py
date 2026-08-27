@@ -15,16 +15,13 @@ load_dotenv()
 
 router = APIRouter(prefix="/api/calls", tags=["calls"])
 
+from database.direct_db import (
+    get_db_connection,
+    DirectDbUnavailable,
+    UNAVAILABLE_DETAIL,
+)
+
 # Database connection
-def get_db_connection():
-    conn = psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        database=os.getenv("DB_NAME", "goal_planning"),
-        user=os.getenv("DB_USER", os.getenv("USER", "aayushbhan")),  # Use current system user as default
-        password=os.getenv("DB_PASSWORD", ""),  # Empty password for local dev
-        port=os.getenv("DB_PORT", "5432")
-    )
-    return conn
 
 class CallCreate(BaseModel):
     receiver_id: str
@@ -96,8 +93,12 @@ async def start_call(call: CallCreate, user_id: str = Query(default="demo_user")
             "notes": result['notes'],
             "created_at": result['created_at'].isoformat()
         }
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 @router.post("/{call_id}/end", response_model=CallResponse)
 async def end_call(call_id: str, user_id: str = Query(default="demo_user")):
@@ -149,8 +150,12 @@ async def end_call(call_id: str, user_id: str = Query(default="demo_user")):
             "notes": result['notes'],
             "created_at": result['created_at'].isoformat()
         }
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 @router.get("/history", response_model=List[CallResponse])
 async def get_call_history(user_id: str = Query(default="demo_user")):
@@ -189,5 +194,9 @@ async def get_call_history(user_id: str = Query(default="demo_user")):
             "notes": call['notes'],
             "created_at": call['created_at'].isoformat()
         } for call in calls]
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")

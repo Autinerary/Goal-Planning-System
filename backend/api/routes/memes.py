@@ -5,15 +5,14 @@ import psycopg2
 import os
 from datetime import datetime
 
+from database.direct_db import (
+    get_db_connection,
+    DirectDbUnavailable,
+    UNAVAILABLE_DETAIL,
+)
+
 router = APIRouter()
 
-# Database connection helper
-def get_db_connection():
-    database_url = os.getenv(
-        "DATABASE_URL",
-        f"postgresql://{os.getenv('USER', 'aayushbhan')}:password@localhost:5432/goal_planning"
-    )
-    return psycopg2.connect(database_url)
 
 # Pydantic models
 class MemeCreate(BaseModel):
@@ -81,10 +80,15 @@ async def share_meme(
             "message": "Meme shared successfully!",
             "created_at": created_at.isoformat()
         }
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault: 503 tells the caller
+        # (and any monitor) that this is expected-to-be-fixed, and the
+        # message names the missing variable without leaking the host.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
         if conn:
             conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
     finally:
         if conn:
             cursor.close()
@@ -158,7 +162,7 @@ async def get_meme_feed(
         
         return memes
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
     finally:
         if conn:
             cursor.close()
@@ -223,10 +227,15 @@ async def like_meme(
         conn.commit()
         
         return {"message": f"Meme {action} successfully", "action": action}
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault: 503 tells the caller
+        # (and any monitor) that this is expected-to-be-fixed, and the
+        # message names the missing variable without leaking the host.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
         if conn:
             conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error")
     finally:
         if conn:
             cursor.close()

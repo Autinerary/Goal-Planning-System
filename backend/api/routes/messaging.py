@@ -15,16 +15,13 @@ load_dotenv()
 
 router = APIRouter(prefix="/api/messaging", tags=["messaging"])
 
+from database.direct_db import (
+    get_db_connection,
+    DirectDbUnavailable,
+    UNAVAILABLE_DETAIL,
+)
+
 # Database connection
-def get_db_connection():
-    conn = psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        database=os.getenv("DB_NAME", "goal_planning"),
-        user=os.getenv("DB_USER", os.getenv("USER", "aayushbhan")),  # Use current system user as default
-        password=os.getenv("DB_PASSWORD", ""),  # Empty password for local dev
-        port=os.getenv("DB_PORT", "5432")
-    )
-    return conn
 
 class MessageCreate(BaseModel):
     receiver_id: str
@@ -80,8 +77,12 @@ async def send_message(message: MessageCreate, user_id: str = Query(default="dem
             "created_at": result['created_at'].isoformat(),
             "read_at": result['read_at'].isoformat() if result['read_at'] else None
         }
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 @router.get("/conversations", response_model=List[dict])
 async def get_conversations(user_id: str = Query(default="demo_user")):
@@ -122,8 +123,12 @@ async def get_conversations(user_id: str = Query(default="demo_user")):
         conn.close()
         
         return [dict(conv) for conv in conversations]
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
 
 @router.get("/conversation/{other_user_id}", response_model=List[MessageResponse])
 async def get_conversation(other_user_id: str, user_id: str = Query(default="demo_user")):
@@ -164,5 +169,9 @@ async def get_conversation(other_user_id: str, user_id: str = Query(default="dem
             "created_at": msg['created_at'].isoformat(),
             "read_at": msg['read_at'].isoformat() if msg['read_at'] else None
         } for msg in messages]
+    except DirectDbUnavailable:
+        # Configuration fault, not a server fault.
+        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        print(f"[{__name__}] {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
