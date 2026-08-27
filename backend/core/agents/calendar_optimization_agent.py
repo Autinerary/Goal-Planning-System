@@ -136,7 +136,14 @@ class CalendarOptimizationAgent(BaseAgent):
         # buckets come first. Each day's bucket key is `type_energyLevel`.
         if preferred_buckets:
             def _bucket_rank(day: Dict[str, Any]) -> int:
-                key = f"{day.get('type','balanced')}_{day.get('energy_level','medium')}"
+                # The day already carries a ready-made time_bucket. This used
+                # to rebuild one from day['energy_level'], but the dict emits
+                # 'energyLevel' (camelCase) — so the lookup silently fell back
+                # to 'medium' for every day and the learned re-ranking below
+                # could never actually change the order.
+                key = day.get('time_bucket') or (
+                    f"{day.get('type', 'balanced')}_{day.get('energyLevel', 'medium')}"
+                )
                 try:
                     return preferred_buckets.index(key)
                 except ValueError:
@@ -183,15 +190,21 @@ class CalendarOptimizationAgent(BaseAgent):
             if text:
                 explanation = text
 
-        # Derived from how well the schedule actually came out: what share of
-        # the tasks found a slot, lifted when we had this user's own learned
-        # time-of-day preferences rather than the cold-start defaults.
-        placed = sum(len(d.get('tasks', []) or []) for d in (scheduled_days or []))
-        total = placed + len(remaining_tasks or [])
-        if total:
-            coverage = placed / total
+        # Derived from whether the schedule came out WELL-FORMED, not from how
+        # much of the backlog it consumed.
+        #
+        # The previous version divided placed tasks by every task the path
+        # planner produced. Measured on a real run that read 30/80 = 0.28,
+        # which looked like failure but was the agent behaving correctly: it
+        # plans one week, and 80 tasks across 16 milestones is several weeks of
+        # work. Rewarding backlog exhaustion would push it to cram everything
+        # in — the opposite of what this product is for.
+        days = scheduled_days or []
+        if days:
+            days_with_work = sum(1 for d in days if (d.get('tasks') or []))
+            fill = days_with_work / len(days)
             personalised = 1.0 if preferred_buckets else 0.75
-            confidence = round(min(coverage * personalised, 1.0), 2)
+            confidence = round(min(fill * personalised, 1.0), 2)
         else:
             confidence = 0.0
 

@@ -77,10 +77,15 @@ class PatternRecognitionAgent(BaseAgent):
             barriers=barriers,
         )
 
+        # Bound in one place: the confidence below divides by this, and a
+        # denominator that drifts from what we actually requested would make
+        # the number quietly wrong.
+        requested = 10
+
         # Search for similar users in the vector database
         similar_users = await self._vector_search(
             embedding=user_embedding,
-            top_k=10,
+            top_k=requested,
             filters={'barriers': barriers},
             query_user_id=user_id,
         )
@@ -99,14 +104,21 @@ class PatternRecognitionAgent(BaseAgent):
         # Identify models that worked
         models = await self._identify_models(similar_users, goals)
 
-        # Derived from retrieval quality: how many comparable users we actually
-        # found and how close they were. With nobody to compare against — a
-        # brand new install, or an empty embeddings table — this is 0, not 0.8.
+        # Confidence here is about RETRIEVAL, and the only trustworthy signal is
+        # how many comparable users we found.
+        #
+        # The RPC's "similarity" cannot carry it: that field is a ranking score,
+        # not a cosine value — it adds a success-rate bias and a personalisation
+        # term, so every row comes back at ~1.016 (measured). Averaging it
+        # saturates at 1.0 no matter how good or bad the matches are, which is
+        # worse than useless because it looks like certainty.
+        #
+        # What IS meaningful: the RPC only returns rows already past
+        # match_threshold, so the count reflects how many genuinely comparable
+        # people exist. Six matches out of ten requested is real information;
+        # zero means nobody to learn from, which must read as 0.0.
         if similar_users:
-            sims = [u.get('similarity') or 0 for u in similar_users if isinstance(u, dict)]
-            mean_sim = sum(sims) / len(sims) if sims else 0.0
-            coverage = min(len(similar_users) / 5.0, 1.0)
-            confidence = round(min(mean_sim * coverage, 1.0), 2)
+            confidence = round(min(len(similar_users) / float(requested), 1.0), 2)
         else:
             confidence = 0.0
 
