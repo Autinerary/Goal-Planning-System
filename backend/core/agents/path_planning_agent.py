@@ -200,9 +200,19 @@ class PathPlanningAgent(BaseAgent):
         # Generate tasks and recommended choices for every milestone in
         # parallel — these were the slowest sequential loops (one LLM round
         # trip per milestone, ~16 each) and the calls are independent.
+        # Tasks were the single biggest cost: 16 of 38 LLM calls and 36.6s of
+        # the 70s of LLM time in a profiled run. Batched into chunks; the
+        # per-milestone method stays as the fallback for anything a batch
+        # does not return.
+        batched_tasks = await self._generate_tasks_batch(
+            all_milestones, barriers, helper_tricks=shared_helper_tricks,
+        )
         task_lists, choices_lists = await asyncio.gather(
             asyncio.gather(*[
-                self._generate_tasks_for_milestone(m, barriers, helper_tricks=shared_helper_tricks) for m in all_milestones
+                self._resolve_tasks_for_milestone(
+                    m, barriers, batched_tasks, helper_tricks=shared_helper_tricks,
+                )
+                for m in all_milestones
             ]),
             asyncio.gather(*[
                 self._generate_recommended_choices(milestone=m, barriers=barriers, strengths=combined_strengths)
@@ -368,14 +378,78 @@ class PathPlanningAgent(BaseAgent):
                 f"{', '.join(templated_dims)} — these milestones are generic, not generated"
             )
 
-        descriptions = await asyncio.gather(*[
-            self._enrich_description(s['name'], barriers, goal, support_summary) for s in shells
-        ])
-        for shell, desc in zip(shells, descriptions):
-            shell['description'] = desc
+        # ONE call for all descriptions instead of one per milestone. Profiling
+        # a single generation showed 16 of 38 LLM calls came from this loop.
+        # Call count is what limits concurrency here: the work is network-bound,
+        # so N users each opening 38 sockets saturates the box long before CPU
+        # does. Batching cuts the per-user fan-out, which is what makes more
+        # simultaneous users possible.
+        descriptions = await self._enrich_descriptions_batch(
+            [s['name'] for s in shells], barriers, goal, support_summary,
+        )
+        for shell in shells:
+            shell['description'] = descriptions.get(
+                shell['name'], f"{shell['name']} - tailored for {goal}",
+            )
 
         return shells
     
+    async def _enrich_descriptions_batch(
+        self,
+        names: List[str],
+        barriers: List[str],
+        goal: str,
+        support_summary: str = "",
+        chunk_size: int = 10,
+    ) -> Dict[str, str]:
+        """Describe many milestones in as few LLM calls as possible.
+
+        Chunked rather than one giant call: a single request for 30 milestones
+        risks truncation, and a truncated JSON body loses every description in
+        it. Anything a chunk fails to return simply falls back to the caller's
+        default, so a partial response degrades per-milestone instead of
+        failing the whole plan.
+        """
+        out: Dict[str, str] = {}
+        if not llm.is_enabled() or not names:
+            return out
+
+        # Chunks run concurrently. Batching alone made things WORSE in testing —
+        # it cut 38 calls to 11 but ran them in a sequential loop, so wall-clock
+        # went 25s -> 64s. Fewer calls AND parallel is the combination that wins.
+        async def _one_chunk(i: int) -> None:
+            chunk = names[i:i + chunk_size]
+            listing = "\n".join(f"{j}. {n}" for j, n in enumerate(chunk))
+            try:
+                data = await llm.complete_json(
+                    system=(
+                        "You are a neurodiversity-aware life coach. For EACH numbered "
+                        "milestone write ONE warm, concrete sentence (max 35 words) "
+                        "describing it, tailored to the user's barriers. "
+                        'Return JSON: {"descriptions": {"0": "...", "1": "..."}}'
+                    ),
+                    user=(
+                        f"Goal: {goal}\n"
+                        f"Barriers: {', '.join(barriers) or 'none'}\n"
+                        f"{('Support context: ' + support_summary) if support_summary else ''}\n"
+                        f"Milestones:\n{listing}"
+                    ),
+                    temperature=0.6,
+                    max_tokens=180 * len(chunk),
+                )
+                mapping = (data or {}).get('descriptions') or {}
+                for j, name in enumerate(chunk):
+                    val = mapping.get(str(j)) or mapping.get(j)
+                    if isinstance(val, str) and val.strip():
+                        out[name] = val.strip()
+            except Exception as e:
+                print(f"[path_planning] description batch {i // chunk_size} failed: {e}")
+
+        await asyncio.gather(*[
+            _one_chunk(i) for i in range(0, len(names), chunk_size)
+        ])
+        return out
+
     async def _enrich_description(
         self,
         template: str,
@@ -411,11 +485,89 @@ class PathPlanningAgent(BaseAgent):
             description += ". Connecting with culturally relevant resources and networks."
         return description
     
+    async def _generate_tasks_batch(
+        self,
+        milestones: List[Dict[str, Any]],
+        barriers: List[str],
+        helper_tricks: Optional[List[str]] = None,
+        chunk_size: int = 3,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Generate tasks for many milestones per LLM call, keyed by milestone id.
+
+        Chunk size is smaller than for descriptions because each milestone
+        yields five tasks with their own name, description and duration — the
+        response is roughly five times larger per item.
+        """
+        out: Dict[str, List[Dict[str, Any]]] = {}
+        if not llm.is_enabled() or not milestones:
+            return out
+
+        async def _one_chunk(i: int) -> None:
+            chunk = milestones[i:i + chunk_size]
+            listing = "\n".join(
+                f"{j}. [{m.get('id')}] {m.get('name')} (goal: {m.get('goal', '')})"
+                for j, m in enumerate(chunk)
+            )
+            try:
+                data = await llm.complete_json(
+                    system=(
+                        "You are a neurodiversity-informed planning coach. For EACH numbered "
+                        "milestone, break it into 5 small sequential tasks. Each task name is a "
+                        "specific imperative action of at most 9 words (e.g. 'Email the disability "
+                        "office for the form'), NEVER generic phases like 'Research and gather "
+                        "information'. Each description is one concrete sentence. minutes is 10-30. "
+                        'Return JSON: {"milestones": {"0": {"tasks": [{"name": "...", '
+                        '"description": "...", "minutes": 20}]}}}'
+                    ),
+                    user=(
+                        f"Barriers: {', '.join(barriers) or 'none'}\n"
+                        f"Milestones:\n{listing}"
+                    ),
+                    temperature=0.6,
+                    max_tokens=520 * len(chunk),
+                )
+                mapping = (data or {}).get('milestones') or {}
+                for j, m in enumerate(chunk):
+                    entry = mapping.get(str(j)) or mapping.get(j) or {}
+                    raw = entry.get('tasks') if isinstance(entry, dict) else None
+                    if not isinstance(raw, list):
+                        continue
+                    cleaned = [
+                        t for t in raw
+                        if isinstance(t, dict) and str(t.get('name') or '').strip()
+                    ][:5]
+                    # Same 3-task floor the single-milestone path applies: a
+                    # thin batch answer falls through to the fallback rather
+                    # than handing the user a stub plan.
+                    if len(cleaned) >= 3:
+                        out[str(m.get('id'))] = cleaned
+            except Exception as e:
+                print(f"[path_planning] task batch {i // chunk_size} failed: {e}")
+
+        await asyncio.gather(*[
+            _one_chunk(i) for i in range(0, len(milestones), chunk_size)
+        ])
+        return out
+
+    async def _resolve_tasks_for_milestone(
+        self,
+        milestone: Dict[str, Any],
+        barriers: List[str],
+        batched: Dict[str, List[Dict[str, Any]]],
+        helper_tricks: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Use the batched tasks when present, otherwise fall back to a single call."""
+        pre = batched.get(str(milestone.get('id')))
+        return await self._generate_tasks_for_milestone(
+            milestone, barriers, helper_tricks=helper_tricks, pregenerated=pre,
+        )
+
     async def _generate_tasks_for_milestone(
         self,
         milestone: Dict[str, Any],
         barriers: List[str],
         helper_tricks: Optional[List[str]] = None,
+        pregenerated: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Dict[str, Any]]:
         """Generate tasks for a milestone.
 
@@ -437,8 +589,8 @@ class PathPlanningAgent(BaseAgent):
         tricks = helper_tricks if helper_tricks is not None else await self._get_helper_tricks(barriers)
 
         # LLM: 5 small sequential tasks with concrete, action-first names.
-        llm_tasks: Optional[List[Dict[str, Any]]] = None
-        if llm.is_enabled():
+        llm_tasks: Optional[List[Dict[str, Any]]] = pregenerated or None
+        if llm_tasks is None and llm.is_enabled():
             data = await llm.complete_json(
                 system=(
                     "You are a neurodiversity-informed planning coach. Break a milestone "
