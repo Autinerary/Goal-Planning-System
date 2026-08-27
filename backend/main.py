@@ -14,6 +14,29 @@ from database.connection import init_db
 
 load_dotenv()
 
+def _cors_origins() -> list:
+    """Browser origins allowed to call this API.
+
+    Local dev origins are always included, and CORS_ORIGINS is merged on top
+    rather than replacing them. Previously CORS_ORIGINS overrode the defaults
+    entirely, so setting it to the production domain silently locked out
+    localhost — the request reaches the server, the browser discards the
+    response, and the app reports "cannot connect to server" about a backend
+    that is healthy.
+    """
+    defaults = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
+    configured = [
+        o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()
+    ]
+    # dict.fromkeys keeps order and drops duplicates.
+    return list(dict.fromkeys(defaults + configured))
+
+
 # Choose orchestrator based on environment
 USE_AUTOGEN = os.getenv("USE_AUTOGEN", "false").lower() == "true"
 
@@ -45,7 +68,12 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001").split(","),
+    allow_origins=_cors_origins(),
+    # Vercel gives every preview deployment its own hostname, so an explicit
+    # allow-list can never cover them. Scope the pattern to OUR two projects
+    # rather than all of *.vercel.app, which would let any Vercel app call
+    # this API with credentials attached.
+    allow_origin_regex=r"https://(goal-planning-app|servicehub-six|servicehub-mvp)[a-z0-9\-]*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
