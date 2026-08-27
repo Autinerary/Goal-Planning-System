@@ -20,10 +20,18 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
+  // A user can hold SEVERAL rows here — the backend's _save_path is multi-path
+  // aware and marks one is_active. `.maybeSingle()` on its own throws PGRST116
+  // the moment a second row exists, which 500s this route and leaves the app
+  // showing "No races yet" to someone whose path is sitting in the table.
+  // Take the active row, newest first, and ask for exactly one.
   const { data, error } = await supabase
     .from('user_paths')
     .select('path_id, payload, updated_at')
     .eq('user_id', user.id)
+    .order('is_active', { ascending: false })
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   if (error) {

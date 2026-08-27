@@ -55,10 +55,14 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
       .select('id, display_name, avatar_emoji, dream, email')
       .eq('id', friendId)
       .maybeSingle(),
+    // Same multi-row hazard as /api/me/path: pick the active path, newest first.
     supabase
       .from('user_paths')
       .select('path_id, payload, updated_at')
       .eq('user_id', friendId)
+      .order('is_active', { ascending: false })
+      .order('updated_at', { ascending: false })
+      .limit(1)
       .maybeSingle(),
     supabase
       .from('calendar_tasks')

@@ -32,7 +32,11 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   if (!link) return NextResponse.json({ error: 'Not your dependent' }, { status: 403 })
 
   const [{ data: pathRow }, { data: progressRows }, { data: childRes }] = await Promise.all([
-    admin.from('user_paths').select('payload, updated_at').eq('user_id', childId).maybeSingle(),
+    // Same multi-row hazard as /api/me/path: pick the active path, newest first.
+    admin.from('user_paths').select('payload, updated_at').eq('user_id', childId)
+      .order('is_active', { ascending: false })
+      .order('updated_at', { ascending: false })
+      .limit(1).maybeSingle(),
     admin.from('race_progress').select('milestone_id, kind').eq('user_id', childId),
     admin.auth.admin.getUserById(childId),
   ])
