@@ -73,7 +73,16 @@ app.add_middleware(
     # allow-list can never cover them. Scope the pattern to OUR two projects
     # rather than all of *.vercel.app, which would let any Vercel app call
     # this API with credentials attached.
-    allow_origin_regex=r"https://(goal-planning-app|servicehub-six|servicehub-mvp)[a-z0-9\-]*\.vercel\.app",
+    # Two patterns an explicit list can never cover:
+    #   * Vercel gives every preview deployment its own hostname.
+    #   * Next.js walks to the next free port (3002, 3003 …) when 3000 is busy,
+    #     so pinning two dev ports still locks out a developer at random.
+    # Scoped to our own project names — a bare *.vercel.app would let any
+    # Vercel app call this API with credentials attached.
+    allow_origin_regex=(
+        r"https://(goal-planning-app|servicehub-six|servicehub-mvp)[a-z0-9\-]*\.vercel\.app"
+        r"|http://(localhost|127\.0\.0\.1):\d+"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
