@@ -367,6 +367,9 @@ export default function OnboardingPage() {
   // frozen — people refresh, abandon the request, and report it as broken.
   // Count the seconds and say what is happening instead.
   const [elapsed, setElapsed] = useState(0)
+  // Stage reported by the job itself. Preferred over the elapsed-time guess
+  // below, which is only a stand-in for when the server cannot tell us.
+  const [generationStage, setGenerationStage] = useState<string>('')
   useEffect(() => {
     if (!isSubmitting) { setElapsed(0); return }
     const t = setInterval(() => setElapsed((e) => e + 1), 1000)
@@ -901,8 +904,19 @@ export default function OnboardingPage() {
         })
       }
 
-      // Send to Goal Planning backend
-      const response = await axios.post(`${API_URL}/api/onboarding/`, {
+      // Send to Goal Planning backend.
+      //
+      // Async first: POST /jobs returns in milliseconds and the pipeline runs
+      // server-side, so a slow generation no longer occupies an HTTP
+      // connection for its whole duration. That is what caps how many people
+      // can onboard at once — measured at ~55s alone and ~160s at five
+      // concurrent, against a client that has to guess a timeout covering the
+      // worst case. Polling also survives a reload, which the blocking call
+      // never did.
+      //
+      // Falls back to the blocking endpoint when the job store is unavailable
+      // (503), so this cannot make onboarding worse than it already was.
+      const onboardingBody = {
         email: user.email,
         userId: user.id, // Supabase auth UUID — shared with ServiceHub via public.user_barriers
         barrierTypes: selectedBarrierTypes,
@@ -911,28 +925,57 @@ export default function OnboardingPage() {
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType,
         supportContext: recommendationSupportContext,
-        // View & interaction preferences for intersecting-profile insights
         preferences: {
           ageRange: formData.ageRange,
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
           spiritAnimalMode: formData.spiritAnimalMode,
           spiritAnimals: formData.spiritAnimals,
-          // Reminder opt-in — lands on profiles.preferences.reminders for a
-          // future scheduler to read. Delivery pipeline not yet wired.
           reminders: remindersToSave,
-        }
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
         },
-        // 6 min. Measured against production: a single generation takes ~55s,
-        // but FIVE concurrent generations take ~160s each — Render's CPU is the
-        // bottleneck, not OpenAI. At the old 180s ceiling the sixth simultaneous
-        // user timed out and was told "cannot connect to server", about a
-        // backend that was healthy and still working on their path.
-        timeout: 360000,
-      })
+      }
+
+      let response: { data: { pathId?: string } }
+
+      const enqueued = await axios
+        .post(`${API_URL}/api/onboarding/jobs`, onboardingBody, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 20000,
+          validateStatus: (status) => status === 202 || status === 503,
+        })
+        .catch(() => null)
+
+      if (enqueued && enqueued.status === 202 && enqueued.data?.jobId) {
+        const jobId = enqueued.data.jobId as string
+        // Remembered so a refresh mid-generation can rejoin the same job
+        // instead of starting a second one.
+        try { localStorage.setItem('autinerary_generation_job', jobId) } catch {}
+
+        // Poll every 3s. Generous ceiling: this is a bound on a stuck job, not
+        // an expectation of how long the work takes.
+        const deadline = Date.now() + 8 * 60 * 1000
+        let pathId: string | undefined
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 3000))
+          const poll = await axios
+            .get(`${API_URL}/api/onboarding/jobs/${jobId}`, { timeout: 15000 })
+            .catch(() => null)
+          if (!poll) continue // a dropped poll is not a failed job
+          const { status, stage, pathId: donePathId, error: jobError } = poll.data || {}
+          if (stage) setGenerationStage(stage)
+          if (status === 'succeeded' && donePathId) { pathId = donePathId; break }
+          if (status === 'failed') throw new Error(jobError || 'Path generation failed')
+        }
+        try { localStorage.removeItem('autinerary_generation_job') } catch {}
+        if (!pathId) throw new Error('Path generation is taking longer than expected. Please try again.')
+        response = { data: { pathId } }
+      } else {
+        // Blocking path — job store unavailable or the enqueue never landed.
+        response = await axios.post(`${API_URL}/api/onboarding/`, onboardingBody, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 360000,
+        })
+      }
 
       // Save saved resources to ServiceHub if user is authenticated
       // Since both apps use Supabase Auth, try to save directly
@@ -1044,12 +1087,13 @@ export default function OnboardingPage() {
   // Stages follow the real agent order in the backend pipeline. The last one is
   // open-ended rather than promising a finish — over-promising here is worse
   // than a longer wait.
-  const generationStage =
+  const localStage =
     elapsed < 12 ? 'Reading your answers…'
     : elapsed < 30 ? 'Finding people with a similar profile…'
     : elapsed < 55 ? 'Mapping out your milestones…'
     : elapsed < 80 ? 'Matching resources to your goals…'
     : 'Laying out your schedule — nearly there…'
+  const displayStage = generationStage || localStage
 
   const progressPercentage = (currentStep / (steps.length - 1)) * 100
   
@@ -2789,7 +2833,7 @@ export default function OnboardingPage() {
                 pipeline, and a bar that stalls at 80% is worse than a clock. */}
             {isSubmitting && (
               <div className="mt-4 text-center" role="status" aria-live="polite">
-                <p className="text-sm font-medium text-slate-700">{generationStage}</p>
+                <p className="text-sm font-medium text-slate-700">{displayStage}</p>
                 <p className="text-xs text-slate-500 mt-1">
                   {elapsed}s elapsed · usually about a minute, longer if others are starting at the same time
                 </p>

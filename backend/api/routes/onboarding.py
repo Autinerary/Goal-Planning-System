@@ -3,6 +3,8 @@ Onboarding API Routes
 Step 0: Questionnaire → Agent Orchestration → Path Generation
 """
 
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -14,8 +16,14 @@ from datetime import datetime
 from database.supabase_client import get_supabase
 from core import memory as mem
 from core.guardrails import validate_all_inputs
+from core import jobs
 
 router = APIRouter()
+
+# asyncio holds only weak references to tasks, so a detached generation can be
+# garbage-collected mid-run. Keeping a strong reference until completion is
+# what stops that.
+_BACKGROUND_TASKS: set = set()
 
 SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
 
@@ -302,6 +310,107 @@ class OnboardingResponse(BaseModel):
     message: str
 
 
+async def _generate_path_for(
+    request: "OnboardingRequest",
+    job_id: Optional[str] = None,
+) -> str:
+    """Run the full pipeline and persist the path. Returns the path id.
+
+    Shared by the synchronous endpoint and the async job worker so the two
+    can never drift — the only difference is who waits for it.
+    """
+    def _stage(label: str) -> None:
+        if job_id:
+            jobs.set_stage(job_id, label)
+
+    user_id = request.userId or f"user_{uuid.uuid4().hex[:8]}"
+    path_id = f"path_{uuid.uuid4().hex[:8]}"
+
+    # --- INPUT GUARDRAILS ---
+    is_valid, rejection = validate_all_inputs(
+        goals=request.goals,
+        barriers=request.barrierTypes,
+        dreams=request.dreams,
+        challenges=request.currentChallenges,
+    )
+    if not is_valid:
+        raise HTTPException(status_code=422, detail=rejection)
+
+    # Sync barriers to the shared Supabase table so ServiceHub picks them up
+    _persist_barriers_to_supabase(user_id, request.email, request.barrierTypes)
+    # Record view/interaction preferences for intersecting-profile insights
+    _persist_preferences_to_supabase(user_id, request.email, request.preferences)
+
+    # Build user profile from onboarding data
+    user_profile = {
+        "id": user_id,
+        "email": request.email,
+        "demographics": request.demographics or {},
+        "barrierTypes": request.barrierTypes,
+        "motivationType": request.motivationType,
+        "goals": request.goals,
+        "dreams": request.dreams,
+        "currentChallenges": request.currentChallenges,
+        "supportContext": request.supportContext.model_dump() if request.supportContext else {},
+        "createdAt": datetime.utcnow().isoformat()
+    }
+
+    # --- AGENT ORCHESTRATION ---
+    # Import and invoke the multi-agent orchestrator
+    from core.orchestrator import Orchestrator
+
+    _stage("Starting the agents")
+    orchestrator = Orchestrator()
+    await orchestrator.initialize()
+
+    # Load this user's cross-session memory so agents build on past plans
+    user_memory = mem.load_user_memory(user_id)
+
+    # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
+    _stage("Mapping out your milestones")
+    agent_result = await orchestrator.generate_path(
+        user_profile=user_profile,
+        goals=request.goals,
+        barriers=request.barrierTypes,
+        memory=user_memory,
+        user_id=user_id,
+    )
+
+    # Index this user in the vector DB so future users get matched to them
+    _stage("Matching resources to your goals")
+    await orchestrator.index_user(
+        user_id=user_id,
+        user_profile=user_profile,
+        goals=request.goals,
+        barriers=request.barrierTypes,
+        agent_result=agent_result,
+    )
+
+    await orchestrator.cleanup()
+
+    # Append this run to the user's persistent agent memory
+    mem.record_run(
+        user_id=user_id,
+        kind="generation",
+        user_profile=user_profile,
+        goals=request.goals,
+        barriers=request.barrierTypes,
+        agent_result=agent_result,
+    )
+
+    # Store the generated path (cache + Supabase user_paths)
+    payload = {
+        "id": path_id,
+        "userId": user_id,
+        "userProfile": user_profile,
+        "generatedAt": datetime.utcnow().isoformat(),
+        **agent_result,
+    }
+    _stage("Saving your path")
+    _save_path(path_id, user_id, payload)
+    return path_id
+
+
 @router.post("/", response_model=OnboardingResponse)
 async def create_onboarding(request: OnboardingRequest):
     """
@@ -309,96 +418,111 @@ async def create_onboarding(request: OnboardingRequest):
     This is the main entry point that connects onboarding → multi-agent system → path.
     """
     try:
-        user_id = request.userId or f"user_{uuid.uuid4().hex[:8]}"
-        path_id = f"path_{uuid.uuid4().hex[:8]}"
-
-        # --- INPUT GUARDRAILS ---
-        is_valid, rejection = validate_all_inputs(
-            goals=request.goals,
-            barriers=request.barrierTypes,
-            dreams=request.dreams,
-            challenges=request.currentChallenges,
-        )
-        if not is_valid:
-            raise HTTPException(status_code=422, detail=rejection)
-
-        # Sync barriers to the shared Supabase table so ServiceHub picks them up
-        _persist_barriers_to_supabase(user_id, request.email, request.barrierTypes)
-        # Record view/interaction preferences for intersecting-profile insights
-        _persist_preferences_to_supabase(user_id, request.email, request.preferences)
-
-        # Build user profile from onboarding data
-        user_profile = {
-            "id": user_id,
-            "email": request.email,
-            "demographics": request.demographics or {},
-            "barrierTypes": request.barrierTypes,
-            "motivationType": request.motivationType,
-            "goals": request.goals,
-            "dreams": request.dreams,
-            "currentChallenges": request.currentChallenges,
-            "supportContext": request.supportContext.model_dump() if request.supportContext else {},
-            "createdAt": datetime.utcnow().isoformat()
-        }
-
-        # --- AGENT ORCHESTRATION ---
-        # Import and invoke the multi-agent orchestrator
-        from core.orchestrator import Orchestrator
-
-        orchestrator = Orchestrator()
-        await orchestrator.initialize()
-
-        # Load this user's cross-session memory so agents build on past plans
-        user_memory = mem.load_user_memory(user_id)
-
-        # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
-        agent_result = await orchestrator.generate_path(
-            user_profile=user_profile,
-            goals=request.goals,
-            barriers=request.barrierTypes,
-            memory=user_memory,
-            user_id=user_id,
-        )
-
-        # Index this user in the vector DB so future users get matched to them
-        await orchestrator.index_user(
-            user_id=user_id,
-            user_profile=user_profile,
-            goals=request.goals,
-            barriers=request.barrierTypes,
-            agent_result=agent_result,
-        )
-
-        await orchestrator.cleanup()
-
-        # Append this run to the user's persistent agent memory
-        mem.record_run(
-            user_id=user_id,
-            kind="generation",
-            user_profile=user_profile,
-            goals=request.goals,
-            barriers=request.barrierTypes,
-            agent_result=agent_result,
-        )
-
-        # Store the generated path (cache + Supabase user_paths)
-        payload = {
-            "id": path_id,
-            "userId": user_id,
-            "userProfile": user_profile,
-            "generatedAt": datetime.utcnow().isoformat(),
-            **agent_result,
-        }
-        _save_path(path_id, user_id, payload)
-
+        path_id = await _generate_path_for(request)
         return OnboardingResponse(
-            userId=user_id,
+            userId=request.userId or "",
             pathId=path_id,
-            message="Path generated by AI agents successfully"
+            message="Path generated by AI agents successfully",
         )
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Agent orchestration failed: {str(e)}")
+
+
+class JobAccepted(BaseModel):
+    jobId: str
+    userId: str
+    status: str
+
+
+class JobStatus(BaseModel):
+    jobId: str
+    status: str
+    stage: Optional[str] = None
+    pathId: Optional[str] = None
+    error: Optional[str] = None
+
+
+async def _run_job(job_id: str, request: "OnboardingRequest") -> None:
+    """Background worker. Never raises — a job failure is data, not a crash."""
+    jobs.mark_running(job_id)
+    try:
+        path_id = await _generate_path_for(request, job_id=job_id)
+        jobs.mark_succeeded(job_id, path_id)
+    except HTTPException as e:
+        # Guardrail rejections carry a message meant for the user.
+        jobs.mark_failed(job_id, str(e.detail))
+    except Exception as e:
+        # Full detail to the logs, a usable sentence to the client.
+        print(f"[jobs] job {job_id} failed: {type(e).__name__}: {e}")
+        jobs.mark_failed(job_id, "Path generation failed. Please try again.")
+
+
+@router.post("/jobs", response_model=JobAccepted, status_code=202)
+async def enqueue_onboarding(request: OnboardingRequest):
+    """Start a generation and return immediately.
+
+    The synchronous endpoint still works and is unchanged, but it holds a
+    connection for the length of the run — ~55s alone, ~160s at five
+    concurrent — which is what caps how many people can onboard at once. Here
+    the request returns in milliseconds and the work continues server-side, so
+    concurrency is bounded by what the box can process rather than by how long
+    a browser is willing to wait. A client that reloads or drops off can find
+    its job again instead of losing the work.
+    """
+    if not jobs.enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="Job store unavailable. Use POST /api/onboarding/ instead.",
+        )
+
+    user_id = request.userId or f"user_{uuid.uuid4().hex[:8]}"
+
+    # Opportunistic cleanup: a restart mid-run would otherwise leave a job
+    # 'running' forever with a spinner and nothing behind it.
+    jobs.reap_stale()
+
+    job_id = jobs.create(user_id, request.model_dump())
+    if not job_id:
+        raise HTTPException(status_code=503, detail="Could not queue the job")
+
+    # Detached so the response is not waiting on it. Held in a module-level set
+    # because asyncio only keeps a weak reference to tasks — without this the
+    # garbage collector can cancel a running generation mid-flight.
+    task = asyncio.create_task(_run_job(job_id, request))
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+
+    return JobAccepted(jobId=job_id, userId=user_id, status="queued")
+
+
+@router.get("/jobs/{job_id}", response_model=JobStatus)
+async def get_job(job_id: str):
+    """Poll a generation. Terminal states carry either pathId or error."""
+    row = jobs.get(job_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return JobStatus(
+        jobId=str(row.get("id")),
+        status=row.get("status") or "queued",
+        stage=row.get("stage"),
+        pathId=row.get("path_id"),
+        error=row.get("error"),
+    )
+
+
+@router.get("/jobs/latest/{user_id}", response_model=Optional[JobStatus])
+async def get_latest_job(user_id: str):
+    """The user's most recent job — how a reloaded page reattaches to its work."""
+    row = jobs.latest_for_user(user_id)
+    if not row:
+        return None
+    return JobStatus(
+        jobId=str(row.get("id")),
+        status=row.get("status") or "queued",
+        stage=row.get("stage"),
+        pathId=row.get("path_id"),
+        error=row.get("error"),
+    )
 
 
 class UpdateOnboardingRequest(BaseModel):
