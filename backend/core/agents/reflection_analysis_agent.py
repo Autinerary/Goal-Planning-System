@@ -18,6 +18,13 @@ from core import llm, learning
 import re
 
 class ReflectionAnalysisAgent(BaseAgent):
+    # Evidence bar a learned (trigger, outcome) pair must clear before it is
+    # allowed to influence detection. Deliberately high: these are observed
+    # correlations across users, not verified causal facts, and the cost of a
+    # false one is bad advice given confidently.
+    LEARNED_MIN_OBSERVATIONS = 20
+    LEARNED_MIN_CORRELATION = 0.65
+
     """Analyzes reflections to detect patterns and insights"""
     
     def __init__(self):
@@ -240,11 +247,18 @@ class ReflectionAnalysisAgent(BaseAgent):
         """Detect patterns in the reflection.
 
         Sources of (trigger, outcome) couples:
-          1. self.coupled_events       — hardcoded prior (this file)
-          2. learned_patterns (Supabase) — online correlation table grown
-                                           from every past reflection
-        Learned entries are merged in on every call so behavior strictly
-        improves as the table grows.
+          1. self.coupled_events        — curated prior, always available
+          2. learned_patterns (Supabase) — online correlation table grown from
+                                           every past reflection, merged in
+                                           ONLY above a strong evidence bar
+
+        The evidence bar is the point. A single agent observation is not a
+        causal fact, and letting one condition the next run would let the
+        system learn from its own guesses. A pair must clear
+        LEARNED_MIN_OBSERVATIONS independent reflections and
+        LEARNED_MIN_CORRELATION before it is allowed to influence anything,
+        and a curated couple always wins a collision — so the prior can be
+        extended by evidence but never overwritten by it.
         """
         detected_patterns = []
         detected_indicators = []
@@ -256,10 +270,50 @@ class ReflectionAnalysisAgent(BaseAgent):
                     detected_indicators.append(pattern_name)
                     break
 
-        # Use only curated couples here. Agent-inferred reflection patterns are
-        # observations, not verified causal facts, and must not condition the
-        # next agent run.
-        effective_couples = self.coupled_events
+        # Merge learned couples over the curated prior, gated on evidence.
+        # `learned_patterns` was previously write-only: every reflection wrote
+        # co-occurrence stats that nothing ever read back.
+        effective_couples = dict(self.coupled_events)
+        try:
+            learned = await learning.get_top_learned_patterns(
+                min_observations=self.LEARNED_MIN_OBSERVATIONS,
+                min_correlation=self.LEARNED_MIN_CORRELATION,
+                max_results=25,
+            )
+        except Exception as e:
+            print(f"[reflection_analysis] learned patterns unavailable: {e}")
+            learned = []
+
+        curated_pairs = {
+            (c['trigger'], c['outcome']) for c in self.coupled_events.values()
+        }
+        merged = 0
+        for row in learned:
+            trig, outc = row.get('trigger'), row.get('outcome')
+            if not trig or not outc:
+                continue
+            # A curated couple is never overwritten by a learned one.
+            if (trig, outc) in curated_pairs:
+                continue
+            obs = int(row.get('observations') or 0)
+            effective_couples[f'learned_{trig}_{outc}'] = {
+                'trigger': trig,
+                'outcome': outc,
+                'correlation': float(row.get('correlation') or 0.0),
+                'description': (
+                    f'Across {obs} reflections, {trig.replace("_", " ")} has tended to '
+                    f'precede {outc.replace("_", " ")}'
+                ),
+                'recommendation': row.get('recommendation')
+                or f'Watch for {outc.replace("_", " ")} after {trig.replace("_", " ")}',
+                # Provenance, so nothing downstream mistakes an observed
+                # correlation for a curated one.
+                'source': 'learned',
+                'observations': obs,
+            }
+            merged += 1
+        if merged:
+            print(f"[reflection_analysis] merged {merged} learned couple(s) above the evidence bar")
 
         # Check for coupled event patterns
         for couple_id, couple_data in effective_couples.items():
@@ -275,7 +329,9 @@ class ReflectionAnalysisAgent(BaseAgent):
                     'correlation': couple_data['correlation'],
                     'description': couple_data['description'],
                     'recommendation': couple_data['recommendation'],
-                    'affects_schedule': True
+                    'affects_schedule': True,
+                    'source': couple_data.get('source', 'curated'),
+                    'observations': couple_data.get('observations'),
                 })
         
         # Check for standalone patterns
