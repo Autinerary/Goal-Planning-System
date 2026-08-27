@@ -1,31 +1,26 @@
-"""
-Messaging API routes for moderated communication
-"""
-from fastapi import APIRouter, HTTPException, Depends, Query
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
-import uuid
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
-from dotenv import load_dotenv
+"""Direct messages between connected users.
 
-load_dotenv()
+Ported off raw psycopg2 for the same reason as memes and calls: it opened its
+own Postgres connection with a localhost fallback, so every request 500'd in
+production. Uses the shared Supabase client now.
+"""
+
+from datetime import datetime, timezone
+from typing import List, Optional
+from uuid import UUID, uuid4
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+
+from database.supabase_client import get_supabase
 
 router = APIRouter(prefix="/api/messaging", tags=["messaging"])
 
-from database.direct_db import (
-    get_db_connection,
-    DirectDbUnavailable,
-    UNAVAILABLE_DETAIL,
-)
-
-# Database connection
 
 class MessageCreate(BaseModel):
     receiver_id: str
     content: str
+
 
 class MessageResponse(BaseModel):
     id: str
@@ -37,141 +32,128 @@ class MessageResponse(BaseModel):
     created_at: str
     read_at: Optional[str] = None
 
-@router.post("/send", response_model=MessageResponse)
-async def send_message(message: MessageCreate, user_id: str = Query(default="demo_user")):
-    """Send a moderated message"""
+
+def _client():
+    sb = get_supabase()
+    if sb is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Messaging is temporarily unavailable. If you are the "
+                   "operator, check the Supabase configuration.",
+        )
+    return sb
+
+
+def _uuid(value: str, field: str) -> str:
+    """A real user id or a 400 — never a phantom account.
+
+    Replaces get_or_create_user(), which created a row for any string it was
+    handed, including the frontend's 'demo_user' fallback.
+    """
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get or create user UUIDs
-        cur.execute("SELECT get_or_create_user(%s) as sender_uuid", (user_id,))
-        sender_result = cur.fetchone()
-        sender_uuid = sender_result['sender_uuid'] if sender_result else str(uuid.uuid4())
-        
-        cur.execute("SELECT get_or_create_user(%s) as receiver_uuid", (message.receiver_id,))
-        receiver_result = cur.fetchone()
-        receiver_uuid = receiver_result['receiver_uuid'] if receiver_result else str(uuid.uuid4())
-        
-        message_id = str(uuid.uuid4())
-        now = datetime.now()
-        
-        cur.execute("""
-            INSERT INTO messages (id, sender_id, receiver_id, content, is_moderated, moderation_status, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, sender_id, receiver_id, content, is_moderated, moderation_status, created_at, read_at
-        """, (message_id, sender_uuid, receiver_uuid, message.content, True, 'pending', now))
-        
-        result = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        return {
-            "id": str(result['id']),
-            "sender_id": result['sender_id'],
-            "receiver_id": result['receiver_id'],
-            "content": result['content'],
-            "is_moderated": result['is_moderated'],
-            "moderation_status": result['moderation_status'],
-            "created_at": result['created_at'].isoformat(),
-            "read_at": result['read_at'].isoformat() if result['read_at'] else None
-        }
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        return str(UUID(str(value)))
+    except (ValueError, AttributeError, TypeError):
+        raise HTTPException(status_code=400, detail=f"{field} must be a valid user id")
+
+
+def _shape(row: dict) -> dict:
+    return {
+        "id": str(row["id"]),
+        "sender_id": str(row["sender_id"]),
+        "receiver_id": str(row["receiver_id"]),
+        "content": row["content"],
+        "is_moderated": bool(row.get("is_moderated")),
+        "moderation_status": row.get("moderation_status") or "pending",
+        "created_at": str(row.get("created_at")),
+        "read_at": str(row["read_at"]) if row.get("read_at") else None,
+    }
+
+
+@router.post("/send", response_model=MessageResponse)
+async def send_message(message: MessageCreate, user_id: str = Query(...)):
+    """Send a message. Held at moderation_status='pending' until reviewed."""
+    sb = _client()
+    sender = _uuid(user_id, "user_id")
+    receiver = _uuid(message.receiver_id, "receiver_id")
+
+    body = (message.content or "").strip()
+    if not body:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    if len(body) > 5000:
+        raise HTTPException(status_code=400, detail="Message is too long (max 5000 characters)")
+
+    try:
+        res = sb.table("messages").insert({
+            "id": str(uuid4()),
+            "sender_id": sender,
+            "receiver_id": receiver,
+            "content": body,
+            "is_moderated": True,
+            "moderation_status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }).select("*").execute()
+        row = (res.data or [None])[0]
+        if not row:
+            raise HTTPException(status_code=500, detail="Could not send the message")
+        return _shape(row)
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[messaging] send failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not send the message")
+
 
 @router.get("/conversations", response_model=List[dict])
-async def get_conversations(user_id: str = Query(default="demo_user")):
-    """Get all conversations for a user"""
+async def get_conversations(user_id: str = Query(...)):
+    """Everyone this user has exchanged messages with, most recent first."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get user UUID
-        cur.execute("SELECT get_or_create_user(%s) as user_uuid", (user_id,))
-        user_result = cur.fetchone()
-        user_uuid = user_result['user_uuid'] if user_result else str(uuid.uuid4())
-        
-        cur.execute("""
-            SELECT DISTINCT 
-                CASE 
-                    WHEN sender_id = %s THEN receiver_id 
-                    ELSE sender_id 
-                END as other_user_id,
-                u.email as other_user_email
-            FROM messages m
-            LEFT JOIN users u ON u.id = CASE 
-                WHEN m.sender_id = %s THEN m.receiver_id 
-                ELSE m.sender_id 
-            END
-            WHERE (sender_id = %s OR receiver_id = %s) 
-            AND deleted_at IS NULL
-            ORDER BY (
-                SELECT MAX(created_at) 
-                FROM messages m2 
-                WHERE (m2.sender_id = m.sender_id AND m2.receiver_id = m.receiver_id)
-                   OR (m2.sender_id = m.receiver_id AND m2.receiver_id = m.sender_id)
-            ) DESC
-        """, (user_uuid, user_uuid, user_uuid, user_uuid))
-        
-        conversations = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        return [dict(conv) for conv in conversations]
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        sent = sb.table("messages").select("receiver_id, created_at") \
+                 .eq("sender_id", uid).is_("deleted_at", "null").execute()
+        got = sb.table("messages").select("sender_id, created_at") \
+                .eq("receiver_id", uid).is_("deleted_at", "null").execute()
+
+        latest: dict = {}
+        for r in (sent.data or []):
+            other = str(r["receiver_id"])
+            latest[other] = max(latest.get(other, ""), str(r.get("created_at") or ""))
+        for r in (got.data or []):
+            other = str(r["sender_id"])
+            latest[other] = max(latest.get(other, ""), str(r.get("created_at") or ""))
+
+        return [
+            {"other_user_id": uid_, "last_message_at": ts}
+            for uid_, ts in sorted(latest.items(), key=lambda kv: kv[1], reverse=True)
+        ]
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[messaging] conversations failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load conversations")
+
 
 @router.get("/conversation/{other_user_id}", response_model=List[MessageResponse])
-async def get_conversation(other_user_id: str, user_id: str = Query(default="demo_user")):
-    """Get messages in a conversation"""
+async def get_conversation(other_user_id: str, user_id: str = Query(...)):
+    """Approved messages between two people, oldest first."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
+    other = _uuid(other_user_id, "other_user_id")
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get user UUIDs
-        cur.execute("SELECT get_or_create_user(%s) as user_uuid", (user_id,))
-        user_result = cur.fetchone()
-        user_uuid = user_result['user_uuid'] if user_result else str(uuid.uuid4())
-        
-        cur.execute("SELECT get_or_create_user(%s) as other_uuid", (other_user_id,))
-        other_result = cur.fetchone()
-        other_uuid = other_result['other_uuid'] if other_result else str(uuid.uuid4())
-        
-        cur.execute("""
-            SELECT id, sender_id, receiver_id, content, is_moderated, moderation_status, created_at, read_at
-            FROM messages
-            WHERE ((sender_id = %s AND receiver_id = %s) OR (sender_id = %s AND receiver_id = %s))
-            AND deleted_at IS NULL
-            AND moderation_status = 'approved'
-            ORDER BY created_at ASC
-        """, (user_uuid, other_uuid, other_uuid, user_uuid))
-        
-        messages = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        return [{
-            "id": str(msg['id']),
-            "sender_id": msg['sender_id'],
-            "receiver_id": msg['receiver_id'],
-            "content": msg['content'],
-            "is_moderated": msg['is_moderated'],
-            "moderation_status": msg['moderation_status'],
-            "created_at": msg['created_at'].isoformat(),
-            "read_at": msg['read_at'].isoformat() if msg['read_at'] else None
-        } for msg in messages]
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        # Two directed queries rather than one OR: PostgREST's or() with
+        # multiple and() groups is easy to get subtly wrong, and a mistake here
+        # would leak someone else's messages.
+        a = (sb.table("messages").select("*")
+             .eq("sender_id", uid).eq("receiver_id", other)
+             .eq("moderation_status", "approved").is_("deleted_at", "null").execute())
+        b = (sb.table("messages").select("*")
+             .eq("sender_id", other).eq("receiver_id", uid)
+             .eq("moderation_status", "approved").is_("deleted_at", "null").execute())
+        rows = (a.data or []) + (b.data or [])
+        rows.sort(key=lambda r: str(r.get("created_at") or ""))
+        return [_shape(r) for r in rows]
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[messaging] conversation failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load the conversation")

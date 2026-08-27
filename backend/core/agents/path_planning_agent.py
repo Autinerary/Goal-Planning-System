@@ -136,7 +136,14 @@ class PathPlanningAgent(BaseAgent):
         combined_strategies = []
         combined_strengths = []
         combined_accommodations = []
-        
+
+        # The curated models cover 5 norms. Onboarding offers 19, so a deaf,
+        # blind, wheelchair-using, low-income or LGBTQ+ user previously got an
+        # empty set — no strategies, no strengths, no accommodations — from
+        # exactly the tool meant to adapt to them. Rather than hand-writing 14
+        # more dictionaries, anything the curated set does not cover is
+        # generated for that specific norm.
+        uncovered = []
         for barrier in barriers:
             barrier_key = barrier.lower().replace(' ', '_')
             if barrier_key in self.barrier_models:
@@ -144,6 +151,14 @@ class PathPlanningAgent(BaseAgent):
                 combined_strategies.extend(model['strategies'])
                 combined_strengths.extend(model['strengths'])
                 combined_accommodations.extend(model['accommodations'])
+            else:
+                uncovered.append(barrier)
+
+        if uncovered:
+            generated = await self._generate_barrier_model(uncovered)
+            combined_strategies.extend(generated.get('strategies', []))
+            combined_strengths.extend(generated.get('strengths', []))
+            combined_accommodations.extend(generated.get('accommodations', []))
 
         # Preserve user-reported strategies and accommodations alongside the
         # curated barrier models. These are functional preferences, not
@@ -415,6 +430,53 @@ class PathPlanningAgent(BaseAgent):
 
         return shells
     
+    async def _generate_barrier_model(
+        self,
+        barriers: List[str],
+    ) -> Dict[str, List[str]]:
+        """Produce strategies / strengths / accommodations for norms we have no
+        curated model for.
+
+        One call covering every uncovered norm at once. Strengths are asked for
+        explicitly and framed as real capabilities rather than consolations —
+        a deficit-only description of someone's norm is precisely the framing
+        this product exists to push back on.
+
+        Returns empty lists when the LLM is unavailable. An empty set is honest;
+        borrowing another norm's advice would not be.
+        """
+        empty = {'strategies': [], 'strengths': [], 'accommodations': []}
+        if not llm.is_enabled() or not barriers:
+            return empty
+
+        try:
+            data = await llm.complete_json(
+                system=(
+                    "You advise on accessibility and inclusion. For the listed "
+                    "norms, give practical planning inputs. strategies = concrete "
+                    "approaches that help. strengths = genuine capabilities "
+                    "commonly associated with this experience, never platitudes. "
+                    "accommodations = specific adjustments to ask for. Use short "
+                    "snake_case phrases. 3-4 items per list. "
+                    'Return JSON: {"strategies": [], "strengths": [], "accommodations": []}'
+                ),
+                user=f"Norms: {', '.join(barriers)}",
+                temperature=0.4,
+                max_tokens=400,
+            )
+            if not isinstance(data, dict):
+                return empty
+            out = {}
+            for key in ('strategies', 'strengths', 'accommodations'):
+                vals = data.get(key)
+                out[key] = [
+                    str(v).strip() for v in vals if str(v).strip()
+                ][:6] if isinstance(vals, list) else []
+            return out
+        except Exception as e:
+            print(f"[path_planning] barrier model generation skipped: {e}")
+            return empty
+
     async def _enrich_descriptions_batch(
         self,
         names: List[str],

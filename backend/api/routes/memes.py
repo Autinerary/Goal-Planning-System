@@ -1,25 +1,31 @@
+"""Meme sharing between connected users.
+
+Ported off raw psycopg2. This route (with messaging and calls) was the only
+part of the backend still opening its own Postgres connection, with a
+localhost fallback baked in — which meant every request 500'd in production
+while the rest of the app talked happily to Supabase. It now uses the same
+client as everything else, so it needs no DATABASE_URL and cannot drift from
+the database the rest of the product uses.
+"""
+
+from datetime import datetime, timezone
+from typing import List, Optional
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from typing import Optional, List
-import psycopg2
-import os
-from datetime import datetime
 
-from database.direct_db import (
-    get_db_connection,
-    DirectDbUnavailable,
-    UNAVAILABLE_DETAIL,
-)
+from database.supabase_client import get_supabase
 
 router = APIRouter()
 
 
-# Pydantic models
 class MemeCreate(BaseModel):
-    content_type: str = "emoji"  # emoji, image, text
+    content_type: str = "emoji"          # emoji, image, text
     content: str
     caption: Optional[str] = None
-    shared_with: Optional[List[str]] = []  # List of user IDs to share with (empty = all connections)
+    shared_with: Optional[List[str]] = []  # empty = all connections
+
 
 class MemeResponse(BaseModel):
     id: str
@@ -32,211 +38,135 @@ class MemeResponse(BaseModel):
     created_at: str
     liked_by_user: bool = False
 
-class MemeLike(BaseModel):
-    meme_id: str
+
+def _client():
+    sb = get_supabase()
+    if sb is None:
+        raise HTTPException(
+            status_code=503,
+            detail="This feature is temporarily unavailable. If you are the "
+                   "operator, check the Supabase configuration.",
+        )
+    return sb
+
+
+def _uuid(value: str, field: str) -> str:
+    """Reject anything that is not a real user id.
+
+    The old code called a get_or_create_user() SQL function, which minted a
+    user row for whatever string arrived — including the frontend's
+    'demo_user' fallback and any typo. That quietly filled the table with
+    phantom accounts. A bad id is now a 400 the caller can act on.
+    """
+    try:
+        return str(UUID(str(value)))
+    except (ValueError, AttributeError, TypeError):
+        raise HTTPException(status_code=400, detail=f"{field} must be a valid user id")
+
 
 @router.post("/share")
-async def share_meme(
-    meme: MemeCreate,
-    user_id: str = Query(..., description="User ID")
-):
-    """Share a meme with connections"""
-    conn = None
+async def share_meme(meme: MemeCreate, user_id: str = Query(..., description="User ID")):
+    """Share a meme with your connections."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get or create user
-        cursor.execute("""
-            SELECT get_or_create_user(%s) as user_uuid
-        """, (user_id,))
-        result = cursor.fetchone()
-        user_uuid = result[0] if result else None
-        
-        if not user_uuid:
-            raise HTTPException(status_code=400, detail="Invalid user ID")
-        
-        # Insert meme
-        cursor.execute("""
-            INSERT INTO memes (user_id, content_type, content, caption, shared_with)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id, created_at
-        """, (
-            user_uuid,
-            meme.content_type,
-            meme.content,
-            meme.caption,
-            meme.shared_with if meme.shared_with else []
-        ))
-        
-        result = cursor.fetchone()
-        meme_id = result[0]
-        created_at = result[1]
-        
-        conn.commit()
-        
+        res = sb.table("memes").insert({
+            "user_id": uid,
+            "content_type": meme.content_type,
+            "content": meme.content,
+            "caption": meme.caption,
+            "shared_with": meme.shared_with or [],
+            "likes": 0,
+        }).select("*").execute()
+        row = (res.data or [None])[0]
+        if not row:
+            raise HTTPException(status_code=500, detail="Could not share the meme")
         return {
-            "id": str(meme_id),
-            "message": "Meme shared successfully!",
-            "created_at": created_at.isoformat()
+            "id": str(row["id"]),
+            "user_id": str(row["user_id"]),
+            "content_type": row["content_type"],
+            "content": row["content"],
+            "caption": row.get("caption"),
+            "shared_with": row.get("shared_with") or [],
+            "likes": row.get("likes") or 0,
+            "created_at": str(row.get("created_at")),
+            "liked_by_user": False,
         }
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault: 503 tells the caller
-        # (and any monitor) that this is expected-to-be-fixed, and the
-        # message names the missing variable without leaking the host.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+    except HTTPException:
+        raise
     except Exception as e:
-        if conn:
-            conn.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        print(f"[memes] share failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not share the meme")
+
 
 @router.get("/feed")
-async def get_meme_feed(
-    user_id: str = Query(..., description="User ID"),
-    limit: int = Query(20, ge=1, le=100)
-):
-    """Get meme feed from connections"""
-    conn = None
+async def get_meme_feed(user_id: str = Query(..., description="User ID"), limit: int = 50):
+    """Memes from the people you're connected to, plus your own."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get or create user
-        cursor.execute("""
-            SELECT get_or_create_user(%s) as user_uuid
-        """, (user_id,))
-        result = cursor.fetchone()
-        user_uuid = result[0] if result else None
-        
-        if not user_uuid:
-            raise HTTPException(status_code=400, detail="Invalid user ID")
-        
-        # Get memes from connections (or public memes if shared_with is empty)
-        cursor.execute("""
-            SELECT 
-                m.id,
-                m.user_id,
-                m.content_type,
-                m.content,
-                m.caption,
-                m.shared_with,
-                m.likes,
-                m.created_at,
-                CASE WHEN ml.user_id IS NOT NULL THEN true ELSE false END as liked_by_user
-            FROM memes m
-            LEFT JOIN meme_likes ml ON m.id = ml.meme_id AND ml.user_id = %s
-            WHERE 
-                m.user_id IN (
-                    SELECT connected_user_id 
-                    FROM connections 
-                    WHERE user_id = %s AND status = 'accepted'
-                    UNION
-                    SELECT user_id 
-                    FROM connections 
-                    WHERE connected_user_id = %s AND status = 'accepted'
-                )
-                OR m.user_id = %s
-                OR array_length(m.shared_with, 1) IS NULL
-                OR %s = ANY(m.shared_with)
-            ORDER BY m.created_at DESC
-            LIMIT %s
-        """, (user_uuid, user_uuid, user_uuid, user_uuid, user_uuid, limit))
-        
-        memes = []
-        for row in cursor.fetchall():
-            memes.append({
-                "id": str(row[0]),
-                "user_id": str(row[1]),
-                "content_type": row[2],
-                "content": row[3],
-                "caption": row[4],
-                "shared_with": row[5] if row[5] else [],
-                "likes": row[6],
-                "created_at": row[7].isoformat() if row[7] else None,
-                "liked_by_user": row[8]
-            })
-        
-        return memes
+        conns = sb.table("connections").select("connected_user_id").eq("user_id", uid).execute()
+        author_ids = [c["connected_user_id"] for c in (conns.data or []) if c.get("connected_user_id")]
+        author_ids.append(uid)  # your own memes appear in your feed
+
+        res = (sb.table("memes").select("*")
+               .in_("user_id", author_ids)
+               .order("created_at", desc=True)
+               .limit(max(1, min(limit, 200)))
+               .execute())
+        memes = res.data or []
+        if not memes:
+            return []
+
+        # One query for the viewer's likes rather than one per meme.
+        liked = sb.table("meme_likes").select("meme_id").eq("user_id", uid) \
+                  .in_("meme_id", [m["id"] for m in memes]).execute()
+        liked_ids = {l["meme_id"] for l in (liked.data or [])}
+
+        return [{
+            "id": str(m["id"]),
+            "user_id": str(m["user_id"]),
+            "content_type": m["content_type"],
+            "content": m["content"],
+            "caption": m.get("caption"),
+            "shared_with": m.get("shared_with") or [],
+            "likes": m.get("likes") or 0,
+            "created_at": str(m.get("created_at")),
+            "liked_by_user": m["id"] in liked_ids,
+        } for m in memes]
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Database error")
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        print(f"[memes] feed failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load the feed")
+
 
 @router.post("/like")
-async def like_meme(
-    user_id: str = Query(..., description="User ID"),
-    meme_id: str = Query(..., description="Meme ID")
-):
-    """Like or unlike a meme"""
-    conn = None
+async def toggle_like(meme_id: str = Query(...), user_id: str = Query(...)):
+    """Like or unlike a meme. Idempotent per (user, meme)."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
+    mid = _uuid(meme_id, "meme_id")
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Get or create user
-        cursor.execute("""
-            SELECT get_or_create_user(%s) as user_uuid
-        """, (user_id,))
-        result = cursor.fetchone()
-        user_uuid = result[0] if result else None
-        
-        if not user_uuid:
-            raise HTTPException(status_code=400, detail="Invalid user ID")
-        
-        # Check if already liked
-        cursor.execute("""
-            SELECT id FROM meme_likes 
-            WHERE meme_id = %s AND user_id = %s
-        """, (meme_id, user_uuid))
-        
-        existing = cursor.fetchone()
-        
-        if existing:
-            # Unlike
-            cursor.execute("""
-                DELETE FROM meme_likes 
-                WHERE meme_id = %s AND user_id = %s
-            """, (meme_id, user_uuid))
-            
-            cursor.execute("""
-                UPDATE memes SET likes = GREATEST(0, likes - 1)
-                WHERE id = %s
-            """, (meme_id,))
-            
-            action = "unliked"
+        existing = sb.table("meme_likes").select("id").eq("meme_id", mid).eq("user_id", uid).execute()
+        current = sb.table("memes").select("likes").eq("id", mid).limit(1).execute()
+        if not (current.data or []):
+            raise HTTPException(status_code=404, detail="Meme not found")
+        likes = (current.data[0].get("likes") or 0)
+
+        if existing.data:
+            sb.table("meme_likes").delete().eq("meme_id", mid).eq("user_id", uid).execute()
+            likes = max(0, likes - 1)
+            liked = False
         else:
-            # Like
-            cursor.execute("""
-                INSERT INTO meme_likes (meme_id, user_id)
-                VALUES (%s, %s)
-            """, (meme_id, user_uuid))
-            
-            cursor.execute("""
-                UPDATE memes SET likes = likes + 1
-                WHERE id = %s
-            """, (meme_id,))
-            
-            action = "liked"
-        
-        conn.commit()
-        
-        return {"message": f"Meme {action} successfully", "action": action}
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault: 503 tells the caller
-        # (and any monitor) that this is expected-to-be-fixed, and the
-        # message names the missing variable without leaking the host.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+            sb.table("meme_likes").insert({"meme_id": mid, "user_id": uid}).execute()
+            likes += 1
+            liked = True
+
+        sb.table("memes").update({"likes": likes}).eq("id", mid).execute()
+        return {"meme_id": mid, "likes": likes, "liked_by_user": liked}
+    except HTTPException:
+        raise
     except Exception as e:
-        if conn:
-            conn.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        print(f"[memes] like failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not update the like")

@@ -1,27 +1,21 @@
+"""Video call scheduling and history.
+
+Ported off raw psycopg2 for the same reason as memes and messaging: it opened
+its own Postgres connection with a localhost fallback, so every request 500'd
+in production. Uses the shared Supabase client now.
 """
-Video calls API routes for mentor calls and streams
-"""
+
+from datetime import datetime, timezone
+from typing import List, Optional
+from uuid import UUID, uuid4
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
-import uuid
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from database.supabase_client import get_supabase
 
 router = APIRouter(prefix="/api/calls", tags=["calls"])
 
-from database.direct_db import (
-    get_db_connection,
-    DirectDbUnavailable,
-    UNAVAILABLE_DETAIL,
-)
-
-# Database connection
 
 class CallCreate(BaseModel):
     receiver_id: str
@@ -29,9 +23,11 @@ class CallCreate(BaseModel):
     scheduled_at: Optional[str] = None
     notes: Optional[str] = None
 
+
 class CallUpdate(BaseModel):
     status: str
     notes: Optional[str] = None
+
 
 class CallResponse(BaseModel):
     id: str
@@ -46,157 +42,134 @@ class CallResponse(BaseModel):
     notes: Optional[str] = None
     created_at: str
 
-@router.post("/start", response_model=CallResponse)
-async def start_call(call: CallCreate, user_id: str = Query(default="demo_user")):
-    """Start or schedule a video call"""
+
+def _client():
+    sb = get_supabase()
+    if sb is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Calls are temporarily unavailable. If you are the "
+                   "operator, check the Supabase configuration.",
+        )
+    return sb
+
+
+def _uuid(value: str, field: str) -> str:
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get or create user UUIDs
-        cur.execute("SELECT get_or_create_user(%s) as caller_uuid", (user_id,))
-        caller_result = cur.fetchone()
-        caller_uuid = caller_result['caller_uuid'] if caller_result else str(uuid.uuid4())
-        
-        cur.execute("SELECT get_or_create_user(%s) as receiver_uuid", (call.receiver_id,))
-        receiver_result = cur.fetchone()
-        receiver_uuid = receiver_result['receiver_uuid'] if receiver_result else str(uuid.uuid4())
-        
-        call_id = str(uuid.uuid4())
-        now = datetime.now()
-        scheduled_time = datetime.fromisoformat(call.scheduled_at.replace('Z', '+00:00')) if call.scheduled_at else now
-        
-        status = 'scheduled' if call.scheduled_at and scheduled_time > now else 'in_progress'
-        started_at = now if status == 'in_progress' else None
-        
-        cur.execute("""
-            INSERT INTO video_calls (id, caller_id, receiver_id, call_type, status, scheduled_at, started_at, notes, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, caller_id, receiver_id, call_type, status, scheduled_at, started_at, ended_at, duration, notes, created_at
-        """, (call_id, caller_uuid, receiver_uuid, call.call_type, status, scheduled_time, started_at, call.notes, now))
-        
-        result = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        return {
-            "id": str(result['id']),
-            "caller_id": result['caller_id'],
-            "receiver_id": result['receiver_id'],
-            "call_type": result['call_type'],
-            "status": result['status'],
-            "scheduled_at": result['scheduled_at'].isoformat() if result['scheduled_at'] else None,
-            "started_at": result['started_at'].isoformat() if result['started_at'] else None,
-            "ended_at": result['ended_at'].isoformat() if result['ended_at'] else None,
-            "duration": result['duration'],
-            "notes": result['notes'],
-            "created_at": result['created_at'].isoformat()
+        return str(UUID(str(value)))
+    except (ValueError, AttributeError, TypeError):
+        raise HTTPException(status_code=400, detail=f"{field} must be a valid user id")
+
+
+def _parse(ts) -> Optional[datetime]:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _shape(row: dict) -> dict:
+    # duration is computed, not stored — video_calls has no duration_seconds
+    # column, and the old SQL selected one that does not exist.
+    started, ended = _parse(row.get("started_at")), _parse(row.get("ended_at"))
+    duration = int((ended - started).total_seconds()) if started and ended and ended > started else None
+    return {
+        "id": str(row["id"]),
+        "caller_id": str(row["caller_id"]),
+        "receiver_id": str(row["receiver_id"]),
+        "call_type": row.get("call_type") or "mentor",
+        "status": row.get("status") or "scheduled",
+        "scheduled_at": str(row["scheduled_at"]) if row.get("scheduled_at") else None,
+        "started_at": str(row["started_at"]) if row.get("started_at") else None,
+        "ended_at": str(row["ended_at"]) if row.get("ended_at") else None,
+        "duration": duration,
+        "notes": row.get("notes"),
+        "created_at": str(row.get("created_at")),
+    }
+
+
+@router.post("/start", response_model=CallResponse)
+async def start_call(call: CallCreate, user_id: str = Query(...)):
+    """Start (or schedule) a call."""
+    sb = _client()
+    caller = _uuid(user_id, "user_id")
+    receiver = _uuid(call.receiver_id, "receiver_id")
+    if caller == receiver:
+        raise HTTPException(status_code=400, detail="You cannot call yourself")
+
+    now = datetime.now(timezone.utc).isoformat()
+    scheduled = call.scheduled_at or None
+    try:
+        payload = {
+            "id": str(uuid4()),
+            "caller_id": caller,
+            "receiver_id": receiver,
+            "call_type": call.call_type,
+            # A call with a future scheduled_at is booked, not live.
+            "status": "scheduled" if scheduled else "in_progress",
+            "scheduled_at": scheduled,
+            "started_at": None if scheduled else now,
+            "created_at": now,
         }
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        if call.notes:
+            payload["notes"] = call.notes
+        res = sb.table("video_calls").insert(payload).select("*").execute()
+        row = (res.data or [None])[0]
+        if not row:
+            raise HTTPException(status_code=500, detail="Could not start the call")
+        return _shape(row)
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[calls] start failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not start the call")
+
 
 @router.post("/{call_id}/end", response_model=CallResponse)
-async def end_call(call_id: str, user_id: str = Query(default="demo_user")):
-    """End a video call and record duration"""
+async def end_call(call_id: str, user_id: str = Query(...)):
+    """End a call. Only a participant may end it."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
+    cid = _uuid(call_id, "call_id")
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get user UUID
-        cur.execute("SELECT get_or_create_user(%s) as user_uuid", (user_id,))
-        user_result = cur.fetchone()
-        user_uuid = user_result['user_uuid'] if user_result else str(uuid.uuid4())
-        
-        # Get call start time
-        cur.execute("""
-            SELECT started_at FROM video_calls WHERE id = %s AND caller_id = %s
-        """, (call_id, user_uuid))
-        
-        call_data = cur.fetchone()
-        if not call_data:
+        found = sb.table("video_calls").select("*").eq("id", cid).limit(1).execute()
+        row = (found.data or [None])[0]
+        if not row:
             raise HTTPException(status_code=404, detail="Call not found")
-        
-        now = datetime.now()
-        started_at = call_data['started_at'] or now
-        duration = int((now - started_at).total_seconds())
-        
-        cur.execute("""
-            UPDATE video_calls 
-            SET status = 'completed', ended_at = %s, duration = %s
-            WHERE id = %s AND caller_id = %s
-            RETURNING id, caller_id, receiver_id, call_type, status, scheduled_at, started_at, ended_at, duration, notes, created_at
-        """, (now, duration, call_id, user_uuid))
-        
-        result = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        return {
-            "id": str(result['id']),
-            "caller_id": result['caller_id'],
-            "receiver_id": result['receiver_id'],
-            "call_type": result['call_type'],
-            "status": result['status'],
-            "scheduled_at": result['scheduled_at'].isoformat() if result['scheduled_at'] else None,
-            "started_at": result['started_at'].isoformat() if result['started_at'] else None,
-            "ended_at": result['ended_at'].isoformat() if result['ended_at'] else None,
-            "duration": result['duration'],
-            "notes": result['notes'],
-            "created_at": result['created_at'].isoformat()
-        }
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        # The old query matched on caller_id only, so a receiver could not end
+        # their own call. Either participant can.
+        if uid not in (str(row["caller_id"]), str(row["receiver_id"])):
+            raise HTTPException(status_code=403, detail="You are not part of this call")
+
+        res = (sb.table("video_calls")
+               .update({"status": "completed", "ended_at": datetime.now(timezone.utc).isoformat()})
+               .eq("id", cid).select("*").execute())
+        return _shape((res.data or [row])[0])
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[calls] end failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not end the call")
+
 
 @router.get("/history", response_model=List[CallResponse])
-async def get_call_history(user_id: str = Query(default="demo_user")):
-    """Get call history for a user"""
+async def get_call_history(user_id: str = Query(...), limit: int = 50):
+    """Calls this user took part in, either side, most recent first."""
+    sb = _client()
+    uid = _uuid(user_id, "user_id")
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get user UUID
-        cur.execute("SELECT get_or_create_user(%s) as user_uuid", (user_id,))
-        user_result = cur.fetchone()
-        user_uuid = user_result['user_uuid'] if user_result else str(uuid.uuid4())
-        
-        cur.execute("""
-            SELECT id, caller_id, receiver_id, call_type, status, scheduled_at, started_at, ended_at, duration, notes, created_at
-            FROM video_calls
-            WHERE caller_id = %s OR receiver_id = %s
-            ORDER BY created_at DESC
-            LIMIT 50
-        """, (user_uuid, user_uuid))
-        
-        calls = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        return [{
-            "id": str(call['id']),
-            "caller_id": call['caller_id'],
-            "receiver_id": call['receiver_id'],
-            "call_type": call['call_type'],
-            "status": call['status'],
-            "scheduled_at": call['scheduled_at'].isoformat() if call['scheduled_at'] else None,
-            "started_at": call['started_at'].isoformat() if call['started_at'] else None,
-            "ended_at": call['ended_at'].isoformat() if call['ended_at'] else None,
-            "duration": call['duration'],
-            "notes": call['notes'],
-            "created_at": call['created_at'].isoformat()
-        } for call in calls]
-    except DirectDbUnavailable:
-        # Configuration fault, not a server fault.
-        raise HTTPException(status_code=503, detail=UNAVAILABLE_DETAIL)
+        cap = max(1, min(limit, 200))
+        outgoing = sb.table("video_calls").select("*").eq("caller_id", uid) \
+                     .order("created_at", desc=True).limit(cap).execute()
+        incoming = sb.table("video_calls").select("*").eq("receiver_id", uid) \
+                     .order("created_at", desc=True).limit(cap).execute()
+        rows = (outgoing.data or []) + (incoming.data or [])
+        rows.sort(key=lambda r: str(r.get("created_at") or ""), reverse=True)
+        return [_shape(r) for r in rows[:cap]]
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"[{__name__}] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Database error")
+        print(f"[calls] history failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Could not load call history")

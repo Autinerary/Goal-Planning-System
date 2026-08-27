@@ -9,7 +9,13 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
-from api.routes import auth, onboarding, paths, races, milestones, tasks, calendar, reflections, tools, messaging, calls, memes, memory, assistant
+# races / milestones / tasks / calendar / tools were stub routers: every
+# handler returned a hardcoded literal ("Race 1", "Graduate University",
+# "Task 1") under a `# In production: Query database` comment, and nothing
+# in either frontend ever called them. Unregistered rather than left serving
+# fabricated data on a public API — the real equivalents live under
+# /api/onboarding/* and read from user_paths.
+from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant
 from database.connection import init_db
 
 load_dotenv()
@@ -97,12 +103,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(onboarding.router, prefix="/api/onboarding", tags=["onboarding"])
 app.include_router(paths.router, prefix="/api/paths", tags=["paths"])
-app.include_router(races.router, prefix="/api/races", tags=["races"])
-app.include_router(milestones.router, prefix="/api/milestones", tags=["milestones"])
-app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
-app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
 app.include_router(reflections.router, prefix="/api/reflections", tags=["reflections"])
-app.include_router(tools.router, prefix="/api/tools", tags=["tools"])
 app.include_router(messaging.router, tags=["messaging"])
 app.include_router(calls.router, tags=["calls"])
 app.include_router(memes.router, prefix="/api/memes", tags=["memes"])
