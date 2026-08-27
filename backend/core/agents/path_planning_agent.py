@@ -215,13 +215,23 @@ class PathPlanningAgent(BaseAgent):
         for m, choices in zip(all_milestones, choices_lists):
             m['recommendedChoices'] = choices
         
+        # Confidence is derived, not declared. It was a flat 0.85 whether the
+        # plan was written for this user or lifted wholesale from the template
+        # list. It now reports the share of milestone names actually generated
+        # for them — a fully templated plan scores low, and honestly.
+        if all_milestones:
+            generated = sum(1 for m in all_milestones if m.get('nameSource') == 'generated')
+            confidence = round(0.35 + 0.6 * (generated / len(all_milestones)), 2)
+        else:
+            confidence = 0.0
+
         return {
             'milestones': all_milestones,
             'tasks': all_tasks,
             'strategies': list(set(combined_strategies)),
             'strengths': list(set(combined_strengths)),
             'accommodations': list(set(combined_accommodations)),
-            'confidence': 0.85,
+            'confidence': confidence,
             'explanation': f'Generated personalized path with {len(all_milestones)} milestones for {len(goals)} goals, considering {len(barriers)} barrier types'
         }
 
@@ -315,15 +325,28 @@ class PathPlanningAgent(BaseAgent):
 
         # First collect the milestone shells with their template names so we
         # can fire all description-enrichment LLM calls in parallel.
+        #
+        # Provenance: every milestone records whether its NAME was generated
+        # for this user or taken from the per-area template list. Previously
+        # the two were indistinguishable downstream, so a template plan — the
+        # same one every user in that life area receives — was presented as a
+        # personalised one with nothing marking the difference.
         shells: List[Dict[str, Any]] = []
         order_counter = 0
+        templated_dims: List[str] = []
         for dim_key, dim_label, _focus in dimensions:
-            names = per_dim_names.get(dim_key) or fallback_map[dim_key][:4]
+            generated = per_dim_names.get(dim_key)
+            names = generated or fallback_map[dim_key][:4]
+            if not generated:
+                templated_dims.append(dim_key)
             for i, template in enumerate(names):
                 shells.append({
                     'id': f'milestone_g{goal_idx}_{dim_key}_{i}',
                     'raceId': f'race_{goal_idx}',
                     'name': template,
+                    # 'generated' = written for this user; 'template' = generic
+                    # starting point shared by everyone in this life area.
+                    'nameSource': 'generated' if generated else 'template',
                     'order': order_counter,
                     'status': 'not_started' if order_counter > 0 else 'in_progress',
                     'barrierAware': True,
@@ -335,6 +358,15 @@ class PathPlanningAgent(BaseAgent):
                     'category': dim_key if dim_key != 'workplace' else 'career',
                 })
                 order_counter += 1
+
+        # Make the degradation visible in logs. Silent template substitution is
+        # how a generic plan reaches a user looking personalised.
+        if templated_dims:
+            reason = "LLM disabled" if not llm.is_enabled() else "LLM returned no usable names"
+            print(
+                f"[path_planning] TEMPLATE FALLBACK ({reason}) for "
+                f"{', '.join(templated_dims)} — these milestones are generic, not generated"
+            )
 
         descriptions = await asyncio.gather(*[
             self._enrich_description(s['name'], barriers, goal, support_summary) for s in shells

@@ -197,7 +197,10 @@ class AdaptationAgent(BaseAgent):
             'updated_path': await self._generate_updated_path(adaptations),
             'updated_races': await self._generate_updated_races(adaptations),
             'needs_calendar_update': needs_calendar_update,
-            'confidence': 0.78,
+            # Derived from how much actually changed. No adaptations fired
+            # means we had nothing to act on — which is a real answer, and
+            # different from the 0.78 this used to report regardless.
+            'confidence': round(min(0.4 + 0.15 * len(adaptations), 1.0), 2) if adaptations else 0.0,
             'explanation': explanation
         }
     

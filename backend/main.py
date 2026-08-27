@@ -78,8 +78,35 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    """Health + CAPABILITY.
+
+    `status: healthy` used to mean only "the agents constructed", which is true
+    whether or not a model is reachable. Without an LLM every agent silently
+    falls back to templates, so the check now reports what the agents can
+    actually do — otherwise there is no way to tell from outside the server
+    whether the product is generating plans or serving canned ones.
+    """
+    from core import llm
+    from database.supabase_client import get_supabase
+
+    llm_on = llm.is_enabled()
+    catalogue = get_supabase() is not None
+
+    if llm_on and catalogue:
+        capability, note = "full", "Generating plans and ranking real resources."
+    elif llm_on:
+        capability, note = "degraded", "LLM live, but no resource catalogue — tool recommendations will be empty."
+    elif catalogue:
+        capability, note = "degraded", "No LLM: milestones fall back to templates and tools rank on ratings only."
+    else:
+        capability, note = "templates_only", "No LLM and no catalogue — output is template text, not generated."
+
     return {
         "status": "healthy",
+        "capability": capability,
+        "note": note,
+        "llm_enabled": llm_on,
+        "resource_catalogue": catalogue,
         "orchestrator_type": "AutoGen" if USE_AUTOGEN else "LangGraph",
         "orchestrator": await orchestrator.health_check()
     }

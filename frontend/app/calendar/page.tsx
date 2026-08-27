@@ -341,7 +341,11 @@ function CalendarContent() {
         name: weekday(d.date),
         theme: agentScenario.name || scenarioData[scenario].days[0]?.theme || '',
         typeOfDay: d.type || 'Focus Day',
-        motivation: scenarioData[scenario].days[0]?.motivation || '',
+        // Was `scenarioData[scenario].days[0]?.motivation` unconditionally —
+        // it never consulted the agent at all, so every day of every week
+        // showed the same mock line ("Just showing up counts"). Use what the
+        // agent produced for THIS day; show nothing rather than a stand-in.
+        motivation: (d as any).motivation || agentScenario.motivation || '',
         tasks,
       }
     })

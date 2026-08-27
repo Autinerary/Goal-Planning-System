@@ -99,11 +99,22 @@ class PatternRecognitionAgent(BaseAgent):
         # Identify models that worked
         models = await self._identify_models(similar_users, goals)
 
+        # Derived from retrieval quality: how many comparable users we actually
+        # found and how close they were. With nobody to compare against — a
+        # brand new install, or an empty embeddings table — this is 0, not 0.8.
+        if similar_users:
+            sims = [u.get('similarity') or 0 for u in similar_users if isinstance(u, dict)]
+            mean_sim = sum(sims) / len(sims) if sims else 0.0
+            coverage = min(len(similar_users) / 5.0, 1.0)
+            confidence = round(min(mean_sim * coverage, 1.0), 2)
+        else:
+            confidence = 0.0
+
         return {
             'similar_users': similar_users,
             'patterns': patterns,
             'models': models,
-            'confidence': 0.8,
+            'confidence': confidence,
             'explanation': f'Found {len(similar_users)} similar users with {len(patterns)} success patterns',
             'retrieved_user_ids': self.last_retrieved_user_ids,
         }

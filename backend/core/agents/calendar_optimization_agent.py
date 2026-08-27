@@ -183,12 +183,24 @@ class CalendarOptimizationAgent(BaseAgent):
             if text:
                 explanation = text
 
+        # Derived from how well the schedule actually came out: what share of
+        # the tasks found a slot, lifted when we had this user's own learned
+        # time-of-day preferences rather than the cold-start defaults.
+        placed = sum(len(d.get('tasks', []) or []) for d in (scheduled_days or []))
+        total = placed + len(remaining_tasks or [])
+        if total:
+            coverage = placed / total
+            personalised = 1.0 if preferred_buckets else 0.75
+            confidence = round(min(coverage * personalised, 1.0), 2)
+        else:
+            confidence = 0.0
+
         return {
             'schedule': scheduled_days,
             'scenarios': scenarios,
             'rules_applied': rules,
             'unscheduled_tasks': remaining_tasks,
-            'confidence': 0.82,
+            'confidence': confidence,
             'explanation': explanation
         }
     

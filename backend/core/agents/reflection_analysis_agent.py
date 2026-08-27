@@ -132,10 +132,29 @@ class ReflectionAnalysisAgent(BaseAgent):
             'insights': insights,
             'progress': progress,
             'user_profile': reflection_data.get('user_profile', {}),
-            'confidence': 0.82,
+            # Derived from how much there was to work with. A one-word journal
+            # entry cannot support the same confidence as a paragraph, and the
+            # flat 0.82 claimed it could.
+            'confidence': self._analysis_confidence(text, patterns),
             'explanation': f'Analyzed reflection: {sentiment["label"]} sentiment with {len(patterns)} patterns detected'
         }
     
+    @staticmethod
+    def _analysis_confidence(text: str, patterns: List[Any]) -> float:
+        """How much evidence backed this analysis.
+
+        Two real signals: the length of what the user wrote, and how many
+        patterns we could detect in it. Empty text scores 0 rather than
+        implying we read something.
+        """
+        words = len((text or '').split())
+        if words == 0:
+            return 0.0
+        # ~60 words is where a reflection carries enough for a solid read.
+        depth = min(words / 60.0, 1.0)
+        signal = min(len(patterns or []) / 3.0, 1.0)
+        return round(min(0.3 + 0.5 * depth + 0.2 * signal, 1.0), 2)
+
     def _extract_text(self, reflection_data: Dict[str, Any]) -> str:
         """Extract all text content from reflection"""
         text_parts = []
