@@ -7,255 +7,12 @@ import { ChevronLeft, ExternalLink, Star, Filter, Search } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import { goHubHref } from '@/lib/serviceHub'
 
 // Mock tools data organized by category
-const toolsDatabase = {
-  services: [
-    {
-      id: 's1',
-      name: 'CADDAC',
-      description: 'Centre for ADHD Awareness Canada - Resources, support, and advocacy for ADHD',
-      url: 'https://caddac.ca',
-      rating: 4.8,
-      reviews: 156,
-      barriers: ['adhd'],
-      tags: ['support', 'education', 'advocacy'],
-      highlight: 'Free resources and workshops',
-    },
-    {
-      id: 's2',
-      name: 'Autism Canada',
-      description: 'National voice for the autism community - Programs, research, and support',
-      url: 'https://autismcanada.org',
-      rating: 4.7,
-      reviews: 203,
-      barriers: ['autism'],
-      tags: ['support', 'research', 'community'],
-      highlight: 'Employment programs available',
-    },
-    {
-      id: 's3',
-      name: 'ASAN',
-      description: 'Autistic Self Advocacy Network - Run by and for autistic people',
-      url: 'https://autisticadvocacy.org',
-      rating: 4.9,
-      reviews: 312,
-      barriers: ['autism'],
-      tags: ['advocacy', 'community', 'policy'],
-      highlight: 'Autistic-led organization',
-    },
-    {
-      id: 's4',
-      name: 'Focusmate',
-      description: 'Virtual coworking sessions with accountability partners worldwide',
-      url: 'https://focusmate.com',
-      rating: 4.6,
-      reviews: 1250,
-      barriers: ['adhd', 'autism'],
-      tags: ['productivity', 'accountability', 'body-doubling'],
-      highlight: 'Body doubling - proven for ADHD',
-    },
-    {
-      id: 's5',
-      name: 'BetterHelp',
-      description: 'Online therapy platform with specialists in neurodivergence',
-      url: 'https://betterhelp.com',
-      rating: 4.3,
-      reviews: 5420,
-      barriers: ['adhd', 'autism', 'ocd', 'anxiety'],
-      tags: ['therapy', 'mental-health', 'online'],
-      highlight: 'Neurodivergent-friendly therapists available',
-    },
-    {
-      id: 's6',
-      name: 'Understood.org',
-      description: 'Resources for learning and thinking differences',
-      url: 'https://understood.org',
-      rating: 4.7,
-      reviews: 890,
-      barriers: ['adhd', 'dyslexia', 'learning-differences'],
-      tags: ['education', 'parenting', 'resources'],
-      highlight: 'Free tools and expert advice',
-    },
-  ],
-  commentaries: [
-    {
-      id: 'c1',
-      name: 'How to ADHD',
-      description: 'YouTube channel with practical ADHD strategies and community support',
-      url: 'https://youtube.com/howtoadhd',
-      rating: 4.9,
-      reviews: 2100,
-      barriers: ['adhd'],
-      tags: ['video', 'education', 'community'],
-      highlight: '2M+ subscribers - highly relatable',
-    },
-    {
-      id: 'c2',
-      name: 'Neuroclastic',
-      description: 'Publication by autistic writers - authentic autistic perspectives',
-      url: 'https://neuroclastic.com',
-      rating: 4.8,
-      reviews: 540,
-      barriers: ['autism'],
-      tags: ['articles', 'perspectives', 'advocacy'],
-      highlight: 'Actually autistic writers',
-    },
-    {
-      id: 'c3',
-      name: 'ADHD Alien',
-      description: 'Comics and illustrations explaining ADHD experiences',
-      url: 'https://adhd-alien.com',
-      rating: 4.9,
-      reviews: 890,
-      barriers: ['adhd'],
-      tags: ['comics', 'relatable', 'education'],
-      highlight: 'Visual explanations - great for sharing',
-    },
-    {
-      id: 'c4',
-      name: 'The Mighty',
-      description: 'Real stories from people living with disabilities and chronic illness',
-      url: 'https://themighty.com',
-      rating: 4.5,
-      reviews: 1200,
-      barriers: ['adhd', 'autism', 'chronic-illness', 'mental-health'],
-      tags: ['stories', 'community', 'support'],
-      highlight: 'Diverse lived experiences',
-    },
-    {
-      id: 'c5',
-      name: 'Wrong Planet',
-      description: 'Community and forums for autism spectrum - one of the oldest autism communities',
-      url: 'https://wrongplanet.net',
-      rating: 4.4,
-      reviews: 670,
-      barriers: ['autism', 'aspergers'],
-      tags: ['forum', 'community', 'discussion'],
-      highlight: 'Long-running autism community',
-    },
-  ],
-  products: [
-    {
-      id: 'p1',
-      name: 'Tiimo',
-      description: 'Visual daily planner app designed for ADHD and autism',
-      url: 'https://tiimo.dk',
-      rating: 4.7,
-      reviews: 3200,
-      barriers: ['adhd', 'autism'],
-      tags: ['app', 'scheduling', 'visual'],
-      highlight: 'Made by neurodivergent team',
-      price: '$5.99/month',
-    },
-    {
-      id: 'p2',
-      name: 'Forest App',
-      description: 'Stay focused by growing virtual trees - gamified focus timer',
-      url: 'https://forestapp.cc',
-      rating: 4.6,
-      reviews: 12000,
-      barriers: ['adhd'],
-      tags: ['app', 'focus', 'gamification'],
-      highlight: 'Plants real trees!',
-      price: '$4.99 one-time',
-    },
-    {
-      id: 'p3',
-      name: 'Time Timer',
-      description: 'Visual timer showing time as a disappearing red disk',
-      url: 'https://timetimer.com',
-      rating: 4.8,
-      reviews: 4500,
-      barriers: ['adhd', 'autism'],
-      tags: ['physical', 'timer', 'visual'],
-      highlight: 'Recommended by therapists',
-      price: '$30-50',
-    },
-    {
-      id: 'p4',
-      name: 'Loop Earplugs',
-      description: 'Discreet noise-reducing earplugs for sensory overwhelm',
-      url: 'https://loopearplugs.com',
-      rating: 4.5,
-      reviews: 8900,
-      barriers: ['autism', 'adhd', 'sensory'],
-      tags: ['physical', 'sensory', 'noise-reduction'],
-      highlight: 'Stylish & effective',
-      price: '$25-35',
-    },
-    {
-      id: 'p5',
-      name: 'Notion',
-      description: 'All-in-one workspace - highly customizable for different brains',
-      url: 'https://notion.so',
-      rating: 4.7,
-      reviews: 25000,
-      barriers: ['adhd', 'autism'],
-      tags: ['app', 'organization', 'notes'],
-      highlight: 'Free for personal use',
-      price: 'Free / $10/month',
-    },
-    {
-      id: 'p6',
-      name: 'Weighted Blanket',
-      description: 'Deep pressure stimulation for anxiety and sensory needs',
-      url: '#',
-      rating: 4.6,
-      reviews: 15000,
-      barriers: ['autism', 'anxiety', 'sensory'],
-      tags: ['physical', 'sensory', 'sleep'],
-      highlight: 'Improves sleep quality',
-      price: '$50-150',
-    },
-  ],
-  '(tool x)': [
-    {
-      id: 'x1',
-      name: 'r/ADHD',
-      description: 'Reddit community for ADHD support and discussion',
-      url: 'https://reddit.com/r/adhd',
-      rating: 4.5,
-      reviews: 1500000,
-      barriers: ['adhd'],
-      tags: ['community', 'forum', 'support'],
-      highlight: '1.5M+ members',
-    },
-    {
-      id: 'x2',
-      name: 'Actually Autistic Discord',
-      description: 'Discord server run by autistic adults for autistic adults',
-      url: '#',
-      rating: 4.7,
-      reviews: 2300,
-      barriers: ['autism'],
-      tags: ['community', 'chat', 'support'],
-      highlight: 'Real-time support',
-    },
-    {
-      id: 'x3',
-      name: 'Disability Twitter/X',
-      description: 'Community hashtags: #ActuallyAutistic #ADHDTwitter',
-      url: 'https://twitter.com',
-      rating: 4.3,
-      reviews: 5000,
-      barriers: ['adhd', 'autism', 'disability'],
-      tags: ['social-media', 'community', 'advocacy'],
-      highlight: 'Breaking news & advocacy',
-    },
-    {
-      id: 'x4',
-      name: 'Meetup.com - ND Groups',
-      description: 'Local meetup groups for neurodivergent individuals',
-      url: 'https://meetup.com',
-      rating: 4.4,
-      reviews: 890,
-      barriers: ['adhd', 'autism'],
-      tags: ['in-person', 'community', 'local'],
-      highlight: 'Find local ND community',
-    },
-  ],
-}
+// The hardcoded tool catalogue that used to live here has been removed.
+// Tools now come from the Tool Recommendation Agent, which reads
+// ServiceHub's real `resources` table. Nothing is padded in locally.
 
 const barrierColors: Record<string, string> = {
   adhd: 'bg-orange-100 text-orange-700',
@@ -308,21 +65,28 @@ function ToolsContent() {
     const arr = (pit as any)[cat] || []
     agentByCategory[cat] = arr.map(agentBucketToTool)
   })
+  // Agent tools ONLY. This used to spread the whole hardcoded `toolsDatabase`
+  // onto the end of each category — a merge, not a fallback — so the mock
+  // catalogue (CADDAC, Autism Canada, ASAN, Focusmate) appeared on every load
+  // no matter what the agents returned. The agent now sources these from
+  // ServiceHub's real resources table, so there is nothing to pad them with.
   const mergedToolsByCategory: Record<string, Tool[]> = {
-    services: [...(agentByCategory.services || []), ...toolsDatabase.services as Tool[]],
-    commentaries: [...(agentByCategory.commentaries || []), ...toolsDatabase.commentaries as Tool[]],
-    products: [...(agentByCategory.products || []), ...((toolsDatabase as any).products || []) as Tool[]],
-    other: [...(agentByCategory.other || []), ...((toolsDatabase as any).other || []) as Tool[]],
+    services: agentByCategory.services || [],
+    commentaries: agentByCategory.commentaries || [],
+    products: agentByCategory.products || [],
+    other: agentByCategory.other || [],
   }
 
+  const CATEGORY_KEYS = ['services', 'commentaries', 'products', 'other'] as const
+
   useEffect(() => {
-    if (typeParam && toolsDatabase[typeParam as keyof typeof toolsDatabase]) {
+    if (typeParam && (CATEGORY_KEYS as readonly string[]).includes(typeParam)) {
       setActiveCategory(typeParam)
     }
   }, [typeParam])
 
-  const categories = Object.keys(toolsDatabase)
-  const currentTools = (mergedToolsByCategory[activeCategory] || (toolsDatabase[activeCategory as keyof typeof toolsDatabase] || [])) as Tool[]
+  const categories = CATEGORY_KEYS as unknown as string[]
+  const currentTools = (mergedToolsByCategory[activeCategory] || []) as Tool[]
 
   // Filter tools
   const filteredTools = currentTools.filter((tool: Tool) => {
@@ -365,7 +129,7 @@ function ToolsContent() {
           >
             {cat === '(tool x)' ? 'Communities' : cat}
             <span className="ml-2 text-sm opacity-70">
-              ({(mergedToolsByCategory[cat] || toolsDatabase[cat as keyof typeof toolsDatabase] || []).length})
+              ({(mergedToolsByCategory[cat] || []).length})
             </span>
           </button>
         ))}
@@ -477,13 +241,35 @@ function ToolsContent() {
 
       {filteredTools.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          <p>No tools found matching your search.</p>
-          <button 
-            onClick={() => { setSearchQuery(''); setSelectedBarrier(null); }}
-            className="mt-2 text-blue-600 hover:underline"
-          >
-            Clear filters
-          </button>
+          {currentTools.length === 0 ? (
+            /* Nothing from the agent at all — distinct from "your filters
+               excluded everything", and previously masked by the mock
+               catalogue that was appended to every category. */
+            <>
+              <p className="font-medium text-gray-700">No {activeCategory} recommended yet.</p>
+              <p className="mt-1 text-sm">
+                These come from ResourceHub as your agents match resources to your goals.
+              </p>
+              <a
+                href={goHubHref('/')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-3 text-blue-600 hover:underline font-medium"
+              >
+                Browse ResourceHub →
+              </a>
+            </>
+          ) : (
+            <>
+              <p>No tools found matching your search.</p>
+              <button
+                onClick={() => { setSearchQuery(''); setSelectedBarrier(null); }}
+                className="mt-2 text-blue-600 hover:underline"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
         </div>
       )}
 

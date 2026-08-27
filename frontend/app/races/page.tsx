@@ -233,27 +233,29 @@ function RacesContent() {
   const _agentMs: any[] = (pathPlanning?.milestones || []) as any[]
   const _currentMsId: string | undefined = _agentMs[0]?.id
   const _currentRecs: any[] = _currentMsId ? ((toolRecommendation?.recommendations || {})[_currentMsId] || []) : []
-  const _agentChoices = _currentRecs.slice(0, 3).map((t: any, i: number) => ({
+  // Rating and review count come straight from the agent, which reads them
+  // from ServiceHub's `ratings` table. Both are NULL for an unrated resource.
+  // They used to default to `t.reviews || 100 + i * 25` — and because the
+  // backend never set `reviews`, that produced 100 / 125 / 150 by array index
+  // and presented it as social proof.
+  const _agentChoices = _currentRecs.slice(0, 4).map((t: any, i: number) => ({
     id: `c${i + 1}`,
-    name: t.name || `Recommended Choice ${i + 1}`,
-    success: Math.round((t.relevanceScore || 0.85) * 100),
-    attempts: t.reviews || 100 + i * 25,
+    name: t.name || 'Recommended resource',
+    rating: typeof t.rating === 'number' ? t.rating : null,
+    reviews: typeof t.reviews === 'number' ? t.reviews : 0,
   }))
   const recommendedChoices = _agentChoices.length
     ? [
         ..._agentChoices,
-        { id: 'see', name: '(See more)', success: null as any, attempts: null as any },
-        _currentRecs[3]
-          ? { id: 'cX', name: _currentRecs[3].name || 'Choice X, Last', success: Math.round(((_currentRecs[3].relevanceScore || 0.1)) * 100), attempts: _currentRecs[3].reviews || 102 }
-          : { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
+        { id: 'see', name: '(See more)', rating: null as number | null, reviews: 0 },
       ]
     : isSignedIn
     ? []                       // signed in, no recommendations yet — show none
     : [
-        { id: 'c1', name: 'Recommended Choice 1', success: 90, attempts: 1000 },
-        { id: 'c2', name: 'Recommended Choice 2', success: 89, attempts: 101 },
-        { id: 'see', name: '(See more)', success: null as any, attempts: null as any },
-        { id: 'cX', name: 'Choice X, Last', success: 10, attempts: 102 },
+        // Signed-out demo only.
+        { id: 'c1', name: 'Recommended Choice 1', rating: 4.5 as number | null, reviews: 12 },
+        { id: 'c2', name: 'Recommended Choice 2', rating: 4.2 as number | null, reviews: 8 },
+        { id: 'see', name: '(See more)', rating: null as number | null, reviews: 0 },
       ]
   // Real agent-derived races (fallback to mock if no path data yet)
   const userBarrierLabels: string[] = [

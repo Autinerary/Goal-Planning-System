@@ -12,8 +12,11 @@ interface RecommendedChoice {
   name: string
   description: string
   service: string
-  successRate: number
-  attempts: number
+  // Real community figures from ServiceHub's `ratings` table, via the agent.
+  // `rating` is null and `reviews` is 0 for a resource nobody has rated —
+  // rendered as "Not yet rated" rather than an invented number.
+  rating: number | null
+  reviews: number
   estimatedTime?: number
   bestFor?: string[]
   status?: 'not_started' | 'in_progress' | 'completed'
@@ -41,8 +44,8 @@ export default function RecommendChoicesPage() {
       name: t.name || 'Recommended action',
       description: t.description || `Recommended for: ${serviceName}`,
       service: serviceName,
-      successRate: Math.round((t.relevanceScore || 0.85) * 100),
-      attempts: t.reviews || 100 + idx * 25,
+      rating: typeof t.rating === 'number' ? t.rating : null,
+      reviews: typeof t.reviews === 'number' ? t.reviews : 0,
       estimatedTime: t.estimatedTime || 30,
       bestFor: userBarriers.slice(0, 3),
       status: 'not_started' as const,
@@ -64,9 +67,10 @@ export default function RecommendChoicesPage() {
   const sortedChoices = [...filteredChoices].sort((a, b) => {
     switch (sortBy) {
       case 'success':
-        return b.successRate - a.successRate
+        // Unrated resources sort last rather than being given a stand-in score.
+        return (b.rating ?? -1) - (a.rating ?? -1)
       case 'attempts':
-        return b.attempts - a.attempts
+        return b.reviews - a.reviews
       case 'name':
         return a.name.localeCompare(b.name)
       default:
@@ -159,8 +163,8 @@ export default function RecommendChoicesPage() {
                 onChange={(e) => setSortBy(e.target.value as 'success' | 'attempts' | 'name')}
                 className="px-3 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
               >
-                <option value="success">Success Rate</option>
-                <option value="attempts">Most Attempts</option>
+                <option value="success">Highest Rated</option>
+                <option value="attempts">Most Reviewed</option>
                 <option value="name">Name</option>
               </select>
             </div>
@@ -194,7 +198,7 @@ export default function RecommendChoicesPage() {
                 </h2>
                 <div className="space-y-4">
                   {choicesByService[service]
-                    .sort((a, b) => b.successRate - a.successRate)
+                    .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
                     .map((choice) => (
                       <ChoiceCard key={choice.id} choice={choice} />
                     ))}
@@ -233,16 +237,28 @@ export default function RecommendChoicesPage() {
             
             {/* Stats */}
             <div className="flex flex-wrap items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="font-semibold text-slate-700">{choice.successRate}%</span>
-                <span className="text-slate-500">success rate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold text-slate-700">{choice.attempts.toLocaleString()}</span>
-                <span className="text-slate-500">attempts</span>
-              </div>
+              {choice.rating !== null && choice.reviews > 0 ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    <span className="font-semibold text-slate-700">{choice.rating.toFixed(1)}</span>
+                    <span className="text-slate-500">out of 5</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                    <span className="font-semibold text-slate-700">{choice.reviews.toLocaleString()}</span>
+                    <span className="text-slate-500">{choice.reviews === 1 ? 'review' : 'reviews'}</span>
+                  </div>
+                </>
+              ) : (
+                /* Nobody has rated this yet. Saying so is the honest option —
+                   this slot used to show a number synthesised from the array
+                   index, which read as social proof that did not exist. */
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-500">Not yet rated</span>
+                </div>
+              )}
               {choice.estimatedTime && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-purple-600" />

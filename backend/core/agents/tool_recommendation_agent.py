@@ -2,10 +2,16 @@
 Agent 3: Tool Recommendation Agent
 Connects users with the right resources at the right time.
 
-Primary source: ServiceHub MVP (`GET /api/search?barriers=...`) — community
-curated, rated resources.
-Fallback: curated in-memory knowledge base (used when ServiceHub is
-unreachable or returns no matches).
+Source of truth: ServiceHub's `resources` table in the shared Supabase
+project — the same rows the ResourceHub app shows. Read directly (not over
+HTTP) so ratings come from the real `ratings` table and a resource added in
+ResourceHub is recommendable here immediately.
+
+There is deliberately NO local catalogue. This agent used to carry ~30
+hardcoded tools with invented ratings (4.7/4.8/4.9) that were merged into
+every result and, because relevance was scored off that rating, systematically
+outranked the real resources. If Supabase is unreachable the agent now returns
+nothing rather than inventing tools.
 
 Learning: every reflection feeds a reward back into `tool_outcomes` keyed by
 (tool_id, barrier). On the next recommendation we add the learned mean
@@ -19,9 +25,8 @@ import json
 import os
 from typing import List, Dict, Any, Optional
 
-import httpx
-
 from core.agents.base_agent import BaseAgent
+from database.supabase_client import get_supabase
 from core.config import Config
 from core import llm, learning
 import random
@@ -33,77 +38,28 @@ class ToolRecommendationAgent(BaseAgent):
     
     def __init__(self):
         super().__init__('tool_recommendation', 'Tool Recommendation Agent')
-        self.knowledge_base = {}
+        self.supabase = None
+        self._resource_pool = None
+        self._barrier_fit = None
     
     async def initialize(self):
-        """Initialize knowledge base (simulation mode)"""
-        
-        # Curated knowledge base of tools by barrier type
-        self.knowledge_base = {
-            'services': {
-                'autism': [
-                    {'id': 'svc_autism_1', 'name': 'Autism Canada Support Services', 'description': 'National support network with local chapters', 'url': 'https://autismcanada.org', 'rating': 4.7, 'type': 'service'},
-                    {'id': 'svc_autism_2', 'name': 'ASAN - Autistic Self Advocacy Network', 'description': 'By and for autistic people - resources and community', 'url': 'https://autisticadvocacy.org', 'rating': 4.8, 'type': 'service'},
-                    {'id': 'svc_autism_3', 'name': 'Disability Services Office', 'description': 'University/college accommodation support', 'url': '#', 'rating': 4.5, 'type': 'service'},
-                ],
-                'adhd': [
-                    {'id': 'svc_adhd_1', 'name': 'CADDAC - Centre for ADHD Awareness', 'description': 'Canadian ADHD resource center', 'url': 'https://caddac.ca', 'rating': 4.6, 'type': 'service'},
-                    {'id': 'svc_adhd_2', 'name': 'CHADD', 'description': 'Children and Adults with ADHD support', 'url': 'https://chadd.org', 'rating': 4.7, 'type': 'service'},
-                    {'id': 'svc_adhd_3', 'name': 'Focusmate', 'description': 'Virtual coworking and body doubling', 'url': 'https://focusmate.com', 'rating': 4.8, 'type': 'service'},
-                ],
-                'visible_minority': [
-                    {'id': 'svc_minority_1', 'name': 'Black Professionals Network', 'description': 'Career networking for Black professionals', 'url': '#', 'rating': 4.7, 'type': 'service'},
-                    {'id': 'svc_minority_2', 'name': 'Immigrant Services Association', 'description': 'Support for newcomers and immigrants', 'url': '#', 'rating': 4.5, 'type': 'service'},
-                ],
-                'general': [
-                    {'id': 'svc_gen_1', 'name': 'BetterHelp', 'description': 'Online therapy and counseling', 'url': 'https://betterhelp.com', 'rating': 4.4, 'type': 'service'},
-                    {'id': 'svc_gen_2', 'name': 'Career Counseling Services', 'description': 'Professional career guidance', 'url': '#', 'rating': 4.3, 'type': 'service'},
-                ]
-            },
-            'products': {
-                'adhd': [
-                    {'id': 'prod_adhd_1', 'name': 'Tiimo App', 'description': 'Visual daily planner designed for ADHD/Autism', 'url': 'https://tiimo.dk', 'rating': 4.7, 'type': 'product'},
-                    {'id': 'prod_adhd_2', 'name': 'Forest App', 'description': 'Focus timer with gamification', 'url': 'https://forestapp.cc', 'rating': 4.6, 'type': 'product'},
-                    {'id': 'prod_adhd_3', 'name': 'Notion', 'description': 'Flexible workspace for organization', 'url': 'https://notion.so', 'rating': 4.8, 'type': 'product'},
-                    {'id': 'prod_adhd_4', 'name': 'Time Timer', 'description': 'Visual countdown timer', 'url': 'https://timetimer.com', 'rating': 4.5, 'type': 'product'},
-                ],
-                'autism': [
-                    {'id': 'prod_autism_1', 'name': 'Noise-canceling headphones', 'description': 'Essential for sensory management', 'url': '#', 'rating': 4.9, 'type': 'product'},
-                    {'id': 'prod_autism_2', 'name': 'Routinery App', 'description': 'Routine builder with visual cues', 'url': '#', 'rating': 4.5, 'type': 'product'},
-                    {'id': 'prod_autism_3', 'name': 'Sensory toolkit', 'description': 'Fidgets, stim toys, sensory items', 'url': '#', 'rating': 4.6, 'type': 'product'},
-                ],
-                'general': [
-                    {'id': 'prod_gen_1', 'name': 'Todoist', 'description': 'Task management app', 'url': 'https://todoist.com', 'rating': 4.6, 'type': 'product'},
-                    {'id': 'prod_gen_2', 'name': 'Calm App', 'description': 'Meditation and relaxation', 'url': 'https://calm.com', 'rating': 4.7, 'type': 'product'},
-                ]
-            },
-            'commentaries': {
-                'adhd': [
-                    {'id': 'comm_adhd_1', 'name': 'How to ADHD (YouTube)', 'description': 'Evidence-based ADHD strategies with Jessica McCabe', 'url': 'https://youtube.com/howtoadhd', 'rating': 4.9, 'type': 'commentary'},
-                    {'id': 'comm_adhd_2', 'name': 'ADHD Alien Comics', 'description': 'Relatable comics explaining ADHD experiences', 'url': 'https://adhd-alien.com', 'rating': 4.8, 'type': 'commentary'},
-                    {'id': 'comm_adhd_3', 'name': 'r/ADHD Community', 'description': 'Supportive Reddit community sharing tips', 'url': 'https://reddit.com/r/adhd', 'rating': 4.5, 'type': 'commentary'},
-                ],
-                'autism': [
-                    {'id': 'comm_autism_1', 'name': 'Actually Autistic Community', 'description': 'Lived experience perspectives', 'url': '#', 'rating': 4.7, 'type': 'commentary'},
-                    {'id': 'comm_autism_2', 'name': 'Neuroclastic', 'description': 'Neurodiversity-affirming articles', 'url': 'https://neuroclastic.com', 'rating': 4.8, 'type': 'commentary'},
-                    {'id': 'comm_autism_3', 'name': 'The Aspergian', 'description': 'Autistic perspectives and advice', 'url': '#', 'rating': 4.6, 'type': 'commentary'},
-                ],
-                'general': [
-                    {'id': 'comm_gen_1', 'name': 'TED Talks on Neurodiversity', 'description': 'Inspiring talks from neurodivergent speakers', 'url': 'https://ted.com', 'rating': 4.7, 'type': 'commentary'},
-                ]
-            },
-            'other': {
-                'general': [
-                    {'id': 'other_1', 'name': 'Accommodation Letter Template', 'description': 'Template for requesting workplace/school accommodations', 'url': '#', 'rating': 4.4, 'type': 'other'},
-                    {'id': 'other_2', 'name': 'Self-Advocacy Script', 'description': 'Scripts for difficult conversations about needs', 'url': '#', 'rating': 4.5, 'type': 'other'},
-                    {'id': 'other_3', 'name': 'Spoon Theory Guide', 'description': 'Energy management framework', 'url': '#', 'rating': 4.6, 'type': 'other'},
-                ]
-            }
-        }
-        
+        """Connect to the shared Supabase project.
+
+        There is no local tool catalogue any more. Every tool this agent can
+        recommend is a row in ServiceHub's `resources` table — the same table
+        the ResourceHub app reads and writes — so a resource added there is
+        immediately recommendable here, and nothing is invented.
+        """
+        self.supabase = get_supabase()
+        # Per-run caches, reset at the top of each recommend_tools() call.
+        self._resource_pool = None
+        self._barrier_fit = None
+
         self.initialized = True
-        mode = "with OpenAI + curated knowledge base" if llm.is_enabled() else "with curated knowledge base"
-        print(f"   ✓ {self.agent_name} initialized {mode}")
+        source = "ServiceHub resources" if self.supabase else "NO SOURCE (Supabase unavailable)"
+        rank = "LLM-ranked" if llm.is_enabled() else "rating-ranked"
+        print(f"   ✓ {self.agent_name} initialized — {source}, {rank}")
+
     
     async def cleanup(self):
         """Cleanup resources"""
@@ -118,7 +74,14 @@ class ToolRecommendationAgent(BaseAgent):
         **kwargs
     ) -> Dict[str, Any]:
         """Recommend tools for each milestone"""
-        
+
+        # Fresh pool + fresh barrier-fit scores per run. The agent instance is
+        # reused across requests, and both caches are user-specific — the fit
+        # scores are keyed to THIS user's barriers, and the pool must pick up
+        # resources added to ResourceHub since the last run.
+        self._resource_pool = None
+        self._barrier_fit = None
+
         recommendations = {}
         all_tools = []
 
@@ -184,11 +147,24 @@ class ToolRecommendationAgent(BaseAgent):
             if text:
                 explanation = text
 
+        # Confidence is derived, not declared. It used to be a flat 0.78
+        # regardless of whether we found anything. It now reflects how much
+        # real evidence is behind these picks: the mean relevance of what we
+        # actually returned, damped by how much of it carries community
+        # ratings. No catalogue → no recommendations → zero confidence.
+        if all_tools:
+            mean_relevance = sum(t.get('relevanceScore', 0) for t in all_tools) / len(all_tools)
+            rated = sum(1 for t in all_tools if (t.get('reviews') or 0) > 0)
+            evidence = 0.6 + 0.4 * (rated / len(all_tools))
+            confidence = round(min(mean_relevance * evidence, 1.0), 2)
+        else:
+            confidence = 0.0
+
         return {
             'recommendations': recommendations,
             'pit_stop_tools': pit_stop_tools,
             'total_tools': len(all_tools),
-            'confidence': 0.78,
+            'confidence': confidence,
             'explanation': explanation
         }
 
@@ -262,64 +238,171 @@ class ToolRecommendationAgent(BaseAgent):
         user_profile: dict,
         learned_scores: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> List[Dict[str, Any]]:
-        """Find relevant tools for a milestone.
+        """Rank the real ServiceHub resource pool for one milestone.
 
-        Tries ServiceHub first (real community resources), then falls back to
-        the local curated knowledge base for any gaps. Learned per-(tool,
-        barrier) reward scores are blended in to re-rank tools that have
-        actually helped people with these barriers.
+        Every candidate is a real row. Ranking blends three real signals:
+        the LLM's fit score for the user's barriers, the resource's actual
+        community rating, and the learned reward from `tool_outcomes`. When
+        the pool is empty this returns [] — it never substitutes invented
+        tools to fill the space.
         """
-        tools: List[Dict[str, Any]] = []
         scores = learned_scores or {}
+        pool = await self._fetch_resource_pool()
+        if not pool:
+            return []
 
-        # 1. Pull live resources from ServiceHub matching the user's barriers
-        servicehub_tools = await self._fetch_servicehub_resources(
-            barriers=barriers,
-            query=milestone.get('name'),
-            limit=6,
-        )
-        for t in servicehub_tools:
-            base = self._calculate_relevance(t, milestone, barriers)
+        fit = await self._barrier_fit_scores(pool, barriers)
+
+        ranked: List[Dict[str, Any]] = []
+        for tool in pool:
+            t = tool.copy()
+            base = self._calculate_relevance(t, milestone, barriers, fit)
             t['relevanceScore'] = self._blend_learned_score(base, t.get('id'), scores)
-            tools.append(t)
+            ranked.append(t)
 
-        # 2. Always include knowledge-base tools as a backup / supplement
-        barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
+        ranked.sort(key=lambda x: x.get('relevanceScore', 0), reverse=True)
+        return ranked[:6]
 
-        # Gather tools from each category
-        for category in ['services', 'products', 'commentaries', 'other']:
-            category_tools = self.knowledge_base.get(category, {})
+    async def _fetch_resource_pool(self) -> List[Dict[str, Any]]:
+        """Load approved ServiceHub resources with their REAL rating figures.
 
-            # Get barrier-specific tools
-            for key in barrier_keys:
-                if key in category_tools:
-                    for tool in category_tools[key]:
-                        tool_copy = tool.copy()
-                        base = self._calculate_relevance(tool, milestone, barriers)
-                        tool_copy['relevanceScore'] = self._blend_learned_score(
-                            base, tool_copy.get('id'), scores,
-                        )
-                        tools.append(tool_copy)
+        `rating` is the mean of actual community ratings and `reviews` is how
+        many there are. An unrated resource gets rating=None / reviews=0 —
+        never a placeholder number, so the UI can say "not yet rated" instead
+        of implying social proof that does not exist.
 
-            # Add general tools
-            for tool in category_tools.get('general', []):
-                tool_copy = tool.copy()
-                base = self._calculate_relevance(tool, milestone, barriers) * 0.8
-                tool_copy['relevanceScore'] = self._blend_learned_score(
-                    base, tool_copy.get('id'), scores,
-                )
-                tools.append(tool_copy)
+        Cached for the run; one query for resources, one for ratings.
+        """
+        if self._resource_pool is not None:
+            return self._resource_pool
 
-        # Sort by relevance and deduplicate
-        tools = sorted(tools, key=lambda x: x.get('relevanceScore', 0), reverse=True)
-        seen = set()
-        unique_tools = []
-        for tool in tools:
-            if tool['id'] not in seen:
-                seen.add(tool['id'])
-                unique_tools.append(tool)
+        if self.supabase is None:
+            self.supabase = get_supabase()
+        if self.supabase is None:
+            print("[tool_recommendation] Supabase unavailable — recommending nothing this run")
+            self._resource_pool = []
+            return []
 
-        return unique_tools[:6]
+        try:
+            res = (
+                self.supabase.table('resources')
+                .select('id, name, description, category, contact_info, image_url, price')
+                .eq('status', 'approved')
+                .limit(500)
+                .execute()
+            )
+            rows = res.data or []
+        except Exception as e:
+            print(f"[tool_recommendation] resources query failed — recommending nothing: {e}")
+            self._resource_pool = []
+            return []
+
+        # Real ratings, aggregated per resource.
+        agg: Dict[str, Dict[str, float]] = {}
+        try:
+            rat = self.supabase.table('ratings').select('resource_id, overall_score').execute()
+            for r in (rat.data or []):
+                rid = r.get('resource_id')
+                score = r.get('overall_score')
+                if not rid or score is None:
+                    continue
+                a = agg.setdefault(rid, {'sum': 0.0, 'count': 0.0})
+                a['sum'] += float(score)
+                a['count'] += 1
+        except Exception as e:
+            # Ratings are a ranking signal, not a requirement. Missing them
+            # means unrated resources, not fabricated ones.
+            print(f"[tool_recommendation] ratings query failed, continuing unrated: {e}")
+
+        pool: List[Dict[str, Any]] = []
+        for r in rows:
+            rid = r.get('id')
+            a = agg.get(rid)
+            contact = r.get('contact_info') or {}
+            pool.append({
+                'id': f"sh_{rid}",
+                'resourceId': rid,
+                'name': r.get('name') or 'Resource',
+                'description': r.get('description') or '',
+                'url': contact.get('website') or f"{SERVICE_HUB_URL}/resources/{rid}",
+                'imageUrl': r.get('image_url'),
+                'price': r.get('price'),
+                # REAL figures, or honest absence.
+                'rating': round(a['sum'] / a['count'], 2) if a and a['count'] else None,
+                'reviews': int(a['count']) if a else 0,
+                'category': r.get('category') or 'other',
+                'type': self._tool_type_for(r.get('category')),
+                'source': 'servicehub',
+            })
+
+        self._resource_pool = pool
+        print(f"[tool_recommendation] pool: {len(pool)} approved ServiceHub resources")
+        return pool
+
+    @staticmethod
+    def _tool_type_for(category: Optional[str]) -> str:
+        """Map a ServiceHub resource category onto the four buckets the UI groups by."""
+        c = (category or '').lower()
+        if c in ('app', 'store'):
+            return 'product'
+        if c in ('book', 'workshop'):
+            return 'commentary'
+        if c in ('therapist', 'school', 'doctor', 'support_group', 'organization', 'park', 'recreation'):
+            return 'service'
+        return 'other'
+
+    async def _barrier_fit_scores(
+        self,
+        pool: List[Dict[str, Any]],
+        barriers: List[str],
+    ) -> Dict[str, float]:
+        """Ask the LLM how well each real resource fits the user's barriers.
+
+        One batched call per run, scoring resources that already exist. The
+        LLM ranks; it never invents a resource. Without a key (or on failure)
+        every resource scores neutral and ranking falls back to real ratings
+        plus learned rewards.
+        """
+        if self._barrier_fit is not None:
+            return self._barrier_fit
+
+        neutral = {t['id']: 0.5 for t in pool}
+        if not llm.is_enabled() or not barriers or not pool:
+            self._barrier_fit = neutral
+            return neutral
+
+        # Cap the batch so the prompt stays affordable on a large catalogue.
+        subset = pool[:60]
+        listing = "\n".join(
+            f"{i}. {t['name']} — {(t['description'] or '')[:110]}"
+            for i, t in enumerate(subset)
+        )
+        try:
+            raw = await llm.complete_text(
+                system=(
+                    "You rate how useful each listed resource is for a person facing "
+                    "specific barriers. Return ONLY a JSON object mapping the item NUMBER "
+                    "to a score from 0.0 (irrelevant) to 1.0 (highly relevant). No prose."
+                ),
+                user=f"Barriers: {', '.join(barriers)}\n\nResources:\n{listing}",
+                temperature=0.2,
+                max_tokens=900,
+            )
+            parsed = json.loads((raw or '').strip().removeprefix('```json').removeprefix('```').removesuffix('```'))
+            out = dict(neutral)
+            for k, v in parsed.items():
+                try:
+                    idx = int(k)
+                    if 0 <= idx < len(subset):
+                        out[subset[idx]['id']] = max(0.0, min(1.0, float(v)))
+                except (ValueError, TypeError):
+                    continue
+            self._barrier_fit = out
+            return out
+        except Exception as e:
+            print(f"[tool_recommendation] barrier-fit scoring skipped, ranking on ratings: {e}")
+            self._barrier_fit = neutral
+            return neutral
 
     def _blend_learned_score(
         self,
@@ -349,156 +432,110 @@ class ToolRecommendationAgent(BaseAgent):
         learned_norm = max(0.0, min(1.0, (raw + 1.0) / 2.0))
         return 0.7 * base_score + 0.3 * learned_norm
 
-    async def _fetch_servicehub_resources(
-        self,
-        barriers: List[str],
-        query: Optional[str] = None,
-        limit: int = 6,
-    ) -> List[Dict[str, Any]]:
-        """Fetch approved resources from ServiceHub matching the user's barriers.
-
-        Returns an empty list on any failure so the agent gracefully falls back
-        to the local knowledge base.
-        """
-        # Circuit breaker: once the hub is unreachable, skip further calls for
-        # this run (this method is called per-milestone — without the breaker a
-        # down hub logs dozens of identical warnings and adds latency).
-        if getattr(self, '_servicehub_down', False):
-            return []
-
-        params: Dict[str, Any] = {
-            "pageSize": limit,
-            "sort": "popular",
-        }
-        if barriers:
-            params["barriers"] = ",".join(b.lower().replace(' ', '_') for b in barriers)
-        if query:
-            params["q"] = query
-
-        try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
-                resp = await client.get(f"{SERVICE_HUB_URL}/api/search", params=params)
-                if resp.status_code != 200:
-                    return []
-                data = resp.json()
-        except Exception as e:
-            if not getattr(self, '_servicehub_down', False):
-                self._servicehub_down = True
-                print(f"[tool_recommendation] ServiceHub unreachable — using local knowledge base for this run: {e}")
-            return []
-
-        # ServiceHub returns { resources: [...] } or { data: [...] } depending on endpoint
-        items = data.get("resources") or data.get("data") or data.get("results") or []
-        normalized: List[Dict[str, Any]] = []
-        for r in items:
-            normalized.append({
-                "id": f"sh_{r.get('id')}",
-                # Real ServiceHub `resources` UUID so the frontend can call the
-                # save / status / ratings APIs (the `id` above is prefixed).
-                "resourceId": r.get("id"),
-                "name": r.get("name") or r.get("title") or "Resource",
-                "description": r.get("description") or "",
-                "url": (r.get("contact_info") or {}).get("website")
-                       or f"{SERVICE_HUB_URL}/resources/{r.get('id')}",
-                "rating": r.get("average_rating") or r.get("rating") or 4.0,
-                "type": r.get("category") or "service",
-                "source": "servicehub",
-            })
-        return normalized
-    
     def _calculate_relevance(
         self,
         tool: Dict[str, Any],
         milestone: Dict[str, Any],
-        barriers: List[str]
+        barriers: List[str],
+        fit: Optional[Dict[str, float]] = None,
     ) -> float:
-        """Calculate relevance score for a tool"""
-        score = tool.get('rating', 3.0) / 5.0
-        
-        # Boost if tool name/description matches milestone
+        """Score one real resource against one milestone.
+
+        Weighted from signals that all exist: the LLM's barrier-fit score, the
+        resource's actual community rating, and word overlap with the
+        milestone. An unrated resource contributes nothing from the rating
+        term rather than defaulting to a middling score — previously
+        `tool.get('rating', 3.0)` gave unrated resources a free 0.6, which is
+        how hardcoded tools carrying invented 4.7s beat real ones.
+        """
+        # Barrier fit (LLM), neutral 0.5 when unscored.
+        score = 0.55 * (fit or {}).get(tool.get('id'), 0.5)
+
+        # Real community rating, only when the resource actually has one.
+        rating = tool.get('rating')
+        reviews = tool.get('reviews') or 0
+        if rating is not None and reviews > 0:
+            # Confidence-weighted: a 5.0 from one person counts for less than
+            # a 4.5 from twenty.
+            confidence = min(reviews / 10.0, 1.0)
+            score += 0.30 * (float(rating) / 5.0) * confidence
+
+        # Word overlap with what this milestone is actually about.
         milestone_text = f"{milestone.get('name', '')} {milestone.get('description', '')}".lower()
         tool_text = f"{tool.get('name', '')} {tool.get('description', '')}".lower()
-        
-        # Simple keyword matching
-        keywords = ['support', 'help', 'resource', 'community', 'accommodation', 'strategy']
-        for keyword in keywords:
-            if keyword in milestone_text and keyword in tool_text:
-                score += 0.1
-        
+        m_words = {w for w in milestone_text.split() if len(w) > 4}
+        t_words = {w for w in tool_text.split() if len(w) > 4}
+        if m_words and t_words:
+            overlap = len(m_words & t_words) / len(m_words)
+            score += 0.15 * min(overlap * 2, 1.0)
+
         return min(score, 1.0)
     
     async def _get_pit_stop_tools(self, barriers: List[str]) -> Dict[str, List[Dict[str, Any]]]:
-        """Get categorized pit stop tools for quick access"""
-        
-        pit_stop = {
-            'services': [],
-            'commentaries': [],
-            'products': [],
-            'other': []
+        """Quick-access shelf, grouped from the same real resource pool.
+
+        This is what fills the Pit Stop Shop on the race track. Empty groups
+        stay empty — the shop shows what ResourceHub actually holds.
+        """
+        pit_stop: Dict[str, List[Dict[str, Any]]] = {
+            'services': [], 'commentaries': [], 'products': [], 'other': [],
         }
-        
-        barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
-        
-        for category in pit_stop.keys():
-            category_tools = self.knowledge_base.get(category, {})
-            
-            # Get barrier-specific tools
-            for key in barrier_keys:
-                if key in category_tools:
-                    pit_stop[category].extend(category_tools[key][:2])
-            
-            # Add general tools
-            pit_stop[category].extend(category_tools.get('general', [])[:2])
-            
-            # Deduplicate
-            seen = set()
-            unique = []
-            for tool in pit_stop[category]:
-                if tool['id'] not in seen:
-                    seen.add(tool['id'])
-                    unique.append(tool)
-            pit_stop[category] = unique[:4]
-        
+        pool = await self._fetch_resource_pool()
+        if not pool:
+            return pit_stop
+
+        fit = await self._barrier_fit_scores(pool, barriers)
+        # Best-fitting first, so the shelf reflects this user's barriers.
+        ordered = sorted(pool, key=lambda t: fit.get(t.get('id'), 0.5), reverse=True)
+
+        bucket = {'service': 'services', 'commentary': 'commentaries',
+                  'product': 'products', 'other': 'other'}
+        for t in ordered:
+            group = bucket.get(t.get('type'), 'other')
+            if len(pit_stop[group]) < 4:
+                pit_stop[group].append(t)
         return pit_stop
-    
+
     async def search_tools(
         self,
         query: str,
         barriers: List[str],
         tool_type: str = 'all'
     ) -> List[Dict[str, Any]]:
-        """Search for tools (Magic Searchbar)"""
-        
+        """Search the real resource pool (Magic Searchbar).
+
+        Matches against actual ServiceHub rows. Ranking uses the real rating
+        where one exists; an unrated resource is ranked on text match alone
+        rather than being handed a default score.
+        """
+        pool = await self._fetch_resource_pool()
+        if not pool:
+            return []
+
+        q = (query or '').lower().strip()
+        if not q:
+            return []
+
+        wanted = None
+        if tool_type != 'all':
+            wanted = {'services': 'service', 'products': 'product',
+                      'commentaries': 'commentary', 'other': 'other'}.get(tool_type, tool_type)
+
         results = []
-        query_lower = query.lower()
-        barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
-        
-        categories = [tool_type] if tool_type != 'all' else ['services', 'products', 'commentaries', 'other']
-        
-        for category in categories:
-            if category not in self.knowledge_base:
+        for tool in pool:
+            if wanted and tool.get('type') != wanted:
                 continue
-                
-            category_tools = self.knowledge_base[category]
-            
-            # Search in barrier-specific and general tools
-            search_pools = [category_tools.get(key, []) for key in barrier_keys]
-            search_pools.append(category_tools.get('general', []))
-            
-            for pool in search_pools:
-                for tool in pool:
-                    tool_text = f"{tool.get('name', '')} {tool.get('description', '')}".lower()
-                    if query_lower in tool_text:
-                        tool_copy = tool.copy()
-                        tool_copy['searchScore'] = tool_text.count(query_lower) * 0.3 + tool.get('rating', 3) / 5
-                        results.append(tool_copy)
-        
-        # Deduplicate and sort
-        seen = set()
-        unique_results = []
-        for tool in sorted(results, key=lambda x: x.get('searchScore', 0), reverse=True):
-            if tool['id'] not in seen:
-                seen.add(tool['id'])
-                unique_results.append(tool)
-        
-        return unique_results[:10]
+            text = f"{tool.get('name', '')} {tool.get('description', '')}".lower()
+            hits = text.count(q)
+            if not hits:
+                continue
+            t = tool.copy()
+            score = hits * 0.3
+            rating, reviews = tool.get('rating'), tool.get('reviews') or 0
+            if rating is not None and reviews > 0:
+                score += (float(rating) / 5.0) * min(reviews / 10.0, 1.0)
+            t['searchScore'] = score
+            results.append(t)
+
+        results.sort(key=lambda x: x.get('searchScore', 0), reverse=True)
+        return results[:10]
