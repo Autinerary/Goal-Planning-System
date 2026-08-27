@@ -52,6 +52,12 @@ def _fallback_for_goal(raw_goal: str, goal_index: int) -> List[Dict[str, Any]]:
             "order": stage_index,
             "status": "in_progress" if stage_index == 0 else "not_started",
             "estimatedDays": 7,
+            # Provenance, matching path_planning_agent. These four stages are
+            # the same for every goal and every user; without the marker they
+            # are indistinguishable downstream from a plan written for this
+            # person, which is exactly how generic content got presented as
+            # personalised before.
+            "nameSource": "template",
             "goal": goal,
             "dimension": "general",
             "dimensionLabel": "General",

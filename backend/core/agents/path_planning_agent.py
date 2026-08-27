@@ -17,7 +17,6 @@ from core.config import Config
 from core import llm, learning
 from core import memory as mem
 import asyncio
-import random
 
 class PathPlanningAgent(BaseAgent):
     """Generates step-by-step paths based on goals and barriers"""
@@ -46,7 +45,11 @@ class PathPlanningAgent(BaseAgent):
                 'strengths': ['thoroughness', 'organization', 'attention_to_quality', 'persistence'],
                 'accommodations': ['flexible_deadlines', 'check_in_systems', 'stress_management_tools']
             },
-            'visible_minority': {
+            # Onboarding emits 'race_visible_minority' (see the norms
+            # taxonomy), so the old 'visible_minority' key never matched and
+            # this entire model was dead. Aliased below rather than renamed so
+            # any older payload still resolves.
+            'race_visible_minority': {
                 'strategies': ['network_building', 'cultural_resources', 'advocacy_skills', 'mentorship'],
                 'strengths': ['cultural_competence', 'resilience', 'adaptability', 'diverse_perspective'],
                 'accommodations': ['inclusive_environments', 'cultural_support_groups', 'bias_awareness']
@@ -102,6 +105,9 @@ class PathPlanningAgent(BaseAgent):
             ]
         }
         
+        # Back-compat alias for payloads written before the key was corrected.
+        self.barrier_models['visible_minority'] = self.barrier_models['race_visible_minority']
+
         self.initialized = True
         mode = "with OpenAI" if llm.is_enabled() else "(simulation mode)"
         print(f"   ✓ {self.agent_name} initialized {mode}")
@@ -224,6 +230,10 @@ class PathPlanningAgent(BaseAgent):
             all_tasks.extend(tlist)
         for m, choices in zip(all_milestones, choices_lists):
             m['recommendedChoices'] = choices
+
+        # Now that tasks exist, replace the placeholder estimate with one
+        # derived from this milestone's ACTUAL work.
+        self._apply_task_derived_estimates(all_milestones, task_lists)
         
         # Confidence is derived, not declared. It was a flat 0.85 whether the
         # plan was written for this user or lifted wholesale from the template
@@ -360,8 +370,19 @@ class PathPlanningAgent(BaseAgent):
                     'order': order_counter,
                     'status': 'not_started' if order_counter > 0 else 'in_progress',
                     'barrierAware': True,
-                    'strategies': random.sample(strategies, min(2, len(strategies))) if strategies else [],
-                    'estimatedDays': random.randint(7, 30),
+                    # Deterministic slice, not random.sample. A random draw
+                    # made the same profile produce different strategies on
+                    # every run, which is indefensible in something presented
+                    # as tailored advice — and untestable.
+                    'strategies': strategies[:2] if strategies else [],
+                    # Placeholder until tasks exist. This used to be
+                    # random.randint(7, 30) — a dice roll presented as an
+                    # estimate, and worse, averaged into est_days_avg and
+                    # written to path_planning_outcomes, so the path-shape
+                    # learner was training on noise. Replaced with a real
+                    # figure derived from the milestone's own tasks once they
+                    # are generated (see _apply_task_derived_estimates).
+                    'estimatedDays': 7,
                     'goal': goal,
                     'dimension': dim_key,
                     'dimensionLabel': dim_label,
@@ -485,6 +506,45 @@ class PathPlanningAgent(BaseAgent):
             description += ". Connecting with culturally relevant resources and networks."
         return description
     
+    @staticmethod
+    def _apply_task_derived_estimates(
+        milestones: List[Dict[str, Any]],
+        task_lists: List[List[Dict[str, Any]]],
+    ) -> None:
+        """Set estimatedDays from the milestone's own tasks.
+
+        Each task carries its own `minutes`, so the honest estimate is the work
+        it actually contains, spread over a realistic pace. We assume ~45 min of
+        focused effort per day rather than a full working day — this product is
+        built for people with limited executive-function budget, and an estimate
+        that assumes eight productive hours is not just wrong, it sets up a
+        failure the user will read as their own.
+
+        Bounded to 1-60 days so one malformed task cannot produce a milestone
+        that claims to take a year.
+        """
+        MINUTES_PER_DAY = 45.0
+        for milestone, tasks in zip(milestones, task_lists or []):
+            total = 0.0
+            for t in tasks or []:
+                # The built task stores its length as 'estimatedDuration'; the
+                # LLM's raw JSON calls it 'minutes'. Read both so this keeps
+                # working whichever shape it is handed — checking only the LLM
+                # key is what made the first version silently no-op and leave
+                # the placeholder in place.
+                raw = (
+                    t.get('estimatedDuration')
+                    if t.get('estimatedDuration') is not None
+                    else t.get('minutes', t.get('duration'))
+                )
+                try:
+                    total += float(raw or 0)
+                except (TypeError, ValueError):
+                    continue
+            if total <= 0:
+                continue  # keep the placeholder rather than invent a smaller lie
+            milestone['estimatedDays'] = max(1, min(60, round(total / MINUTES_PER_DAY)))
+
     async def _generate_tasks_batch(
         self,
         milestones: List[Dict[str, Any]],
@@ -706,7 +766,8 @@ class PathPlanningAgent(BaseAgent):
                 "You've got this!"
             ]
         
-        return random.sample(tricks, min(3, len(tricks)))
+        # Deterministic: same barriers in, same tricks out.
+        return tricks[:3]
     
     async def _generate_recommended_choices(
         self,
