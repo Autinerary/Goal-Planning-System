@@ -80,7 +80,12 @@ app.add_middleware(
     # Scoped to our own project names — a bare *.vercel.app would let any
     # Vercel app call this API with credentials attached.
     allow_origin_regex=(
-        r"https://(goal-planning-app|servicehub-six|servicehub-mvp)[a-z0-9\-]*\.vercel\.app"
+        # Match on the PROJECT prefix, not the production hostname. A Vercel
+        # preview is <project>-<hash>-<team>.vercel.app, so the deployment for
+        # "goal-planning-app" is served from goal-planning-<hash>-<team> —
+        # the literal "app" never appears, and a pattern built around the
+        # production hostname rejects every preview it was meant to allow.
+        r"https://(goal-planning|servicehub)[a-z0-9\-]*\.vercel\.app"
         r"|http://(localhost|127\.0\.0\.1):\d+"
     ),
     allow_credentials=True,
