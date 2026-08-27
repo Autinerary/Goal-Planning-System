@@ -339,7 +339,10 @@ function CalendarContent() {
       })
       return {
         name: weekday(d.date),
-        theme: agentScenario.name || scenarioData[scenario].days[0]?.theme || '',
+        // Per-day theme from the agent. The old fallback reached into the
+        // mock's FIRST day and stamped that one theme across the whole week —
+        // the same defect that was in `motivation` directly below.
+        theme: (d as any).theme || agentScenario.name || '',
         typeOfDay: d.type || 'Focus Day',
         // Was `scenarioData[scenario].days[0]?.motivation` unconditionally —
         // it never consulted the agent at all, so every day of every week

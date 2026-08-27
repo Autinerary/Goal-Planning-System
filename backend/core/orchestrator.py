@@ -183,30 +183,34 @@ class Orchestrator:
         return {"calendar_response": response}
 
     async def _node_generation_synthesis(self, state: GenerationState) -> Dict[str, Any]:
+        # Every agent now derives its own confidence, so the only way these
+        # defaults fire is when an agent produced NO response at all. The old
+        # defaults (0.8 / 0.85 / 0.75) reported solid confidence for an agent
+        # that had not run — exactly backwards. Absent means 0.0.
         agent_responses = [
             {
                 'agentId': 'pattern_recognition',
                 'agentName': 'Pattern Recognition Agent',
                 'result': state.get('pattern_response', {}),
-                'confidence': state.get('pattern_response', {}).get('confidence', 0.8),
+                'confidence': state.get('pattern_response', {}).get('confidence', 0.0),
             },
             {
                 'agentId': 'path_planning',
                 'agentName': 'Path Planning Agent',
                 'result': state.get('path_response', {}),
-                'confidence': state.get('path_response', {}).get('confidence', 0.85),
+                'confidence': state.get('path_response', {}).get('confidence', 0.0),
             },
             {
                 'agentId': 'tool_recommendation',
                 'agentName': 'Tool Recommendation Agent',
                 'result': state.get('tool_response', {}),
-                'confidence': state.get('tool_response', {}).get('confidence', 0.75),
+                'confidence': state.get('tool_response', {}).get('confidence', 0.0),
             },
             {
                 'agentId': 'calendar_optimization',
                 'agentName': 'Calendar Optimization Agent',
                 'result': state.get('calendar_response', {}),
-                'confidence': state.get('calendar_response', {}).get('confidence', 0.8),
+                'confidence': state.get('calendar_response', {}).get('confidence', 0.0),
             },
         ]
 
@@ -363,13 +367,13 @@ class Orchestrator:
                     'agentId': 'reflection_analysis',
                     'agentName': 'Reflection Analysis Agent',
                     'result': reflection,
-                    'confidence': reflection.get('confidence', 0.8),
+                    'confidence': reflection.get('confidence', 0.0),
                 },
                 {
                     'agentId': 'adaptation',
                     'agentName': 'Adaptation Agent',
                     'result': adaptation,
-                    'confidence': adaptation.get('confidence', 0.75),
+                    'confidence': adaptation.get('confidence', 0.0),
                 },
             ],
         }
