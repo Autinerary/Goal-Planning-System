@@ -362,6 +362,16 @@ export default function OnboardingPage() {
   const { user, completeOnboarding, isLoading: authLoading } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Path generation takes ~55s alone and ~90s when a few people submit at once
+  // (both measured against production). A static spinner for that long reads as
+  // frozen — people refresh, abandon the request, and report it as broken.
+  // Count the seconds and say what is happening instead.
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!isSubmitting) { setElapsed(0); return }
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(t)
+  }, [isSubmitting])
   
   // Rocket ship launch animation state
   const [showRocketTransition, setShowRocketTransition] = useState(false)
@@ -1030,6 +1040,16 @@ export default function OnboardingPage() {
       </div>
     )
   }
+
+  // Stages follow the real agent order in the backend pipeline. The last one is
+  // open-ended rather than promising a finish — over-promising here is worse
+  // than a longer wait.
+  const generationStage =
+    elapsed < 12 ? 'Reading your answers…'
+    : elapsed < 30 ? 'Finding people with a similar profile…'
+    : elapsed < 55 ? 'Mapping out your milestones…'
+    : elapsed < 80 ? 'Matching resources to your goals…'
+    : 'Laying out your schedule — nearly there…'
 
   const progressPercentage = (currentStep / (steps.length - 1)) * 100
   
@@ -2764,6 +2784,20 @@ export default function OnboardingPage() {
                 </button>
               )}
             </div>
+
+            {/* Honest waiting state. No progress bar — we cannot see inside the
+                pipeline, and a bar that stalls at 80% is worse than a clock. */}
+            {isSubmitting && (
+              <div className="mt-4 text-center" role="status" aria-live="polite">
+                <p className="text-sm font-medium text-slate-700">{generationStage}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {elapsed}s elapsed · usually about a minute, longer if others are starting at the same time
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Please keep this tab open — refreshing starts it over.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
