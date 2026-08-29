@@ -9,6 +9,9 @@ import ProductReviewForm from '@/components/shop/ProductReviewForm'
 import RatingsBreakdown from '@/components/resources/detail/RatingsBreakdown'
 import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMatchBanner'
 import { buildProductBreakdown, matchForProfile } from '@/lib/shop/breakdown'
+import { buildProductPatterns } from '@/lib/shop/patterns'
+import PatternInsight from '@/components/agents/PatternInsight'
+import { Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
@@ -46,6 +49,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
     myReview = reviews.find((r: any) => r.user_id === user.id)?.rating
   }
   const profileMatch = matchForProfile(reviews, viewerNorms)
+
+  // Pattern insights, derived from the reviews themselves rather than the
+  // service-side pattern agent, which only knows about resources/ratings.
+  const patterns = buildProductPatterns(reviews, product.name)
 
   const sensory = SENSORY_LABELS.filter((s) => product.sensory_details?.[s.key])
 
@@ -151,6 +158,20 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               diagnosticBreakdown={breakdown.diagnosticBreakdown}
               weightedRating={breakdown.weightedRating}
             />
+          )}
+
+          {patterns.length > 0 && (
+            <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-blue-600" aria-hidden="true" />
+                <h3 className="text-lg font-semibold text-gray-900">Pattern Insights</h3>
+              </div>
+              <div className="space-y-3">
+                {patterns.map((p, i) => (
+                  <PatternInsight key={p.id || `${p.type}-${i}`} pattern={p} variant="default" />
+                ))}
+              </div>
+            </section>
           )}
 
           <section className="rounded-xl border border-gray-200 bg-white p-4">
