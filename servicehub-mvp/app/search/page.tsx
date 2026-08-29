@@ -61,6 +61,10 @@ function SearchResults() {
 
   const [results, setResults] = useState<SearchResult[]>([])
   const [total, setTotal] = useState(0)
+  // The API already reports how many of the results are shop items; the UI
+  // was discarding it. Without it, filtering to a Shop category shows a
+  // count with no hint that every row is a product, not a service.
+  const [productCount, setProductCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<{ message: string; type?: string } | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -143,6 +147,7 @@ function SearchResults() {
         const data = await response.json()
         setResults(data.results || [])
         setTotal(data.total || 0)
+        setProductCount(data.productCount || 0)
         setError(null)
       } catch (error) {
         console.error('Error fetching search results:', error)
@@ -154,6 +159,7 @@ function SearchResults() {
         })
         setResults([])
         setTotal(0)
+        setProductCount(0)
       } finally {
         setLoading(false)
       }
@@ -377,6 +383,18 @@ function SearchResults() {
                             <>
                               Showing {(page - 1) * RESULT_COUNT_PER_PAGE + 1}-
                               {Math.min(page * RESULT_COUNT_PER_PAGE, total)} of {total} results
+                              {/* Say what the mix is. Selecting a Shop category
+                                  returns only products — no resource has the
+                                  category "books" — and a bare count made that
+                                  look like the service search had failed. */}
+                              {productCount > 0 && (
+                                <span className="text-gray-500">
+                                  {' '}
+                                  ({total - productCount === 0
+                                    ? `all ${productCount === 1 ? 'a shop item' : 'shop items'}`
+                                    : `${total - productCount} ${total - productCount === 1 ? 'service' : 'services'}, ${productCount} shop ${productCount === 1 ? 'item' : 'items'}`})
+                                </span>
+                              )}
                             </>
                           ) : (
                             'No results found'

@@ -178,6 +178,26 @@ export async function GET(request: NextRequest) {
     // Option 2: Traditional keyword search
     const keywordResult = await searchResources(filters, sort, page, pageSize)
 
+    // Resolve shop items ONCE, above both return paths.
+    //
+    // Normally skipped when a norm/condition/life-area filter is active — the
+    // product catalog has no such tagging, so including products would silently
+    // ignore the filter the user set. But shop categories now live in the
+    // Resource Type list, so an explicit shop tick is a direct request for
+    // products and outranks a filter the catalog cannot honour.
+    const normFilterActive =
+      (barriers && barriers.length > 0) ||
+      (conditions && conditions.length > 0) ||
+      (lifeAreas && lifeAreas.length > 0)
+    const shopCategorySelected =
+      Array.isArray(categories) &&
+      categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))
+
+    let products: any[] = []
+    if (!normFilterActive || shopCategorySelected) {
+      products = await searchProducts({ query, categories, minPrice, maxPrice })
+    }
+
     // Combine results: semantic results first (higher relevance), then keyword
     if (semanticResults.length > 0) {
       // Remove duplicates (prioritize semantic results)
@@ -219,36 +239,18 @@ export async function GET(request: NextRequest) {
         ...uniqueKeywordResults,
       ].slice(0, pageSize)
 
+      // Products belong here as much as in the keyword path. This branch used
+      // to return before products were resolved, so searching text AND ticking
+      // a Shop category returned no products at all.
       return NextResponse.json({
-        results: combinedResults,
-        total: combinedResults.length,
+        results: [...combinedResults, ...products],
+        total: combinedResults.length + products.length,
         page,
         pageSize,
         semanticCount: semanticResults.length,
         keywordCount: uniqueKeywordResults.length,
+        productCount: products.length,
       })
-    }
-
-    // Shop items appear in general results too (Odosa). Normally skipped when a
-    // norm/condition/life-area filter is active — those are service-specific
-    // and the product catalog has no such tagging, so including products would
-    // silently ignore the filter the user set.
-    const normFilterActive =
-      (barriers && barriers.length > 0) ||
-      (conditions && conditions.length > 0) ||
-      (lifeAreas && lifeAreas.length > 0)
-
-    // ...unless the user explicitly ticked a SHOP category. Shop categories are
-    // now part of the Resource Type filter, so "Books + Autism" is a reasonable
-    // thing to select — and returning nothing for it would read as broken.
-    // An explicit product request outranks a filter the catalog cannot honour.
-    const shopCategorySelected =
-      Array.isArray(categories) &&
-      categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))
-
-    let products: any[] = []
-    if (!normFilterActive || shopCategorySelected) {
-      products = await searchProducts({ query, categories, minPrice, maxPrice })
     }
 
     // No semantic results, return keyword results (+ any matching products).
