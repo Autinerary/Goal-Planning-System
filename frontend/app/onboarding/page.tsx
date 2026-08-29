@@ -14,9 +14,7 @@ import {
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
 import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
-import AvatarCreator from '@/app/components/AvatarCreator'
 import UserAvatar from '@/app/components/UserAvatar'
-import { isConfigured as rpmConfigured } from '@/lib/readyPlayerMe'
 import { playPageTurnSound } from '@/lib/taskSound'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
@@ -363,9 +361,6 @@ function CharacterAvatar({
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, completeOnboarding, isLoading: authLoading } = useAuth()
-  // The 3D creator is opt-in: a 560px iframe should not be the first
-  // thing that loads at the highest-drop-off step in onboarding.
-  const [showCreator, setShowCreator] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Path generation takes ~55s alone and ~90s when a few people submit at once
@@ -390,7 +385,6 @@ export default function OnboardingPage() {
     characterType: 'avatar' as string, // always avatar now (spirit animal selection at end)
     bodyType: '' as string,
     hairStyle: '' as string,
-    avatarGlbUrl: '' as string,
     hairColor: DEFAULT_HAIR_COLOR as string,
     skinColor: DEFAULT_SKIN_TONE as string,
     cloudTheme: 'daydream' as string,
@@ -542,7 +536,6 @@ export default function OnboardingPage() {
               ageRange: c.ageRange || prev.ageRange,
               techSavvy: c.techSavvy || prev.techSavvy,
               viewPreference: c.viewPreference || prev.viewPreference,
-              avatarGlbUrl: c.avatarGlbUrl || prev.avatarGlbUrl,
               bodyType: c.bodyType || prev.bodyType,
               hairStyle: c.hairStyle || prev.hairStyle,
               hairColor: c.hairColor || prev.hairColor,
@@ -639,8 +632,7 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     switch (currentStep) {
-      // Character select — either a 3D character, or body + hair chosen/skipped.
-      case 0: return formData.avatarGlbUrl !== '' || (formData.bodyType !== '' && formData.hairStyle !== '')
+      case 0: return formData.bodyType !== '' && formData.hairStyle !== '' // Character select — body + hair chosen or skipped
       case 1: return selectedBarrierTypes.length > 0 // Barrier Connections — selection or free-text description
       case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
       case 3: { // Goals & Dreams — at least one goal in any category
@@ -1028,7 +1020,6 @@ export default function OnboardingPage() {
         // collected, rendered, and dropped on submit. Anything that shows an
         // avatar later had nothing to read.
         avatar: {
-          glbUrl: formData.avatarGlbUrl,
           bodyType: formData.bodyType,
           hairStyle: formData.hairStyle,
           hairColor: formData.hairColor,
@@ -1056,7 +1047,6 @@ export default function OnboardingPage() {
           barrierTypes: selectedBarrierTypes,
           // Your character is a stable answer — a returning user should not
           // have to rebuild it for every new path.
-          avatarGlbUrl: formData.avatarGlbUrl,
           bodyType: formData.bodyType,
           hairStyle: formData.hairStyle,
           hairColor: formData.hairColor,
@@ -1283,51 +1273,6 @@ export default function OnboardingPage() {
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character ✨</h2>
               <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land.</p>
 
-              {/* 3D creator (Ready Player Me). Only when a subdomain is
-                  configured — otherwise the vector picker below is the whole
-                  step, exactly as before. */}
-              {rpmConfigured() && showCreator && (
-                <div className="mb-6">
-                  <AvatarCreator
-                    height={560}
-                    onExported={(url) => {
-                      setFormData(prev => ({ ...prev, avatarGlbUrl: url }))
-                      setShowCreator(false)
-                    }}
-                    onCancel={() => setShowCreator(false)}
-                  />
-                </div>
-              )}
-
-              {rpmConfigured() && !showCreator && (
-                <div className="mb-6 flex items-center gap-4 rounded-2xl border-2 border-slate-200 bg-white/70 p-4">
-                  <UserAvatar
-                    glbUrl={formData.avatarGlbUrl}
-                    hairStyle={formData.hairStyle}
-                    hairColor={formData.hairColor}
-                    skinColor={formData.skinColor}
-                    size={72}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-800">
-                      {formData.avatarGlbUrl ? 'Your 3D character is ready' : 'Want a full 3D character?'}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formData.avatarGlbUrl
-                        ? 'You can redo it any time, or keep customising below.'
-                        : 'Hair, face, skin and outfit — or skip it and use the quick picker below.'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowCreator(true)}
-                    className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
-                  >
-                    {formData.avatarGlbUrl ? 'Redo' : 'Build in 3D'}
-                  </button>
-                </div>
-              )}
-
               {/* Avatar Customization */}
               <div className="space-y-6">
                 {/* Body Type */}
@@ -1443,7 +1388,7 @@ export default function OnboardingPage() {
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
                     <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
-                      <UserAvatar glbUrl={formData.avatarGlbUrl} hairStyle={formData.hairStyle} hairColor={formData.hairColor} skinColor={formData.skinColor} size={120} />
+                      <UserAvatar hairStyle={formData.hairStyle} hairColor={formData.hairColor} skinColor={formData.skinColor} size={120} />
                       <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
                         {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
                         {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}

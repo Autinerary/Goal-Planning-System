@@ -1,13 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { buildAvatarSvg } from '@/lib/avatar'
-import { portraitUrl } from '@/lib/readyPlayerMe'
 
 interface UserAvatarProps {
-  /** Ready Player Me .glb URL, when the user built a 3D character. */
-  glbUrl?: string | null
-  /** Vector-avatar fallback inputs (also used if the render service fails). */
   hairStyle?: string
   hairColor?: string
   skinColor?: string
@@ -18,45 +14,21 @@ interface UserAvatarProps {
 /**
  * One avatar for the whole app.
  *
- * Prefers the Ready Player Me server-rendered portrait; falls back to the
- * DiceBear vector avatar when there is no 3D character OR when the render
- * request fails. RPM is a third party, so "their CDN is down" must not mean
- * "the user has no face".
+ * Deliberately renders from a local npm package (DiceBear) rather than a
+ * hosted avatar service: Ready Player Me was integrated here and shut down,
+ * taking every avatar with it. Nothing about this component can go offline.
  */
 export default function UserAvatar({
-  glbUrl,
   hairStyle = '',
   hairColor,
   skinColor,
   size = 96,
   className = '',
 }: UserAvatarProps) {
-  const [renderFailed, setRenderFailed] = useState(false)
-
-  const png = useMemo(
-    () => (renderFailed ? null : portraitUrl(glbUrl, { size: Math.max(size * 2, 256) })),
-    [glbUrl, size, renderFailed]
-  )
-
   const svg = useMemo(
     () => buildAvatarSvg({ hairStyle, hairColor, skinColor, size }),
     [hairStyle, hairColor, skinColor, size]
   )
-
-  if (png) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={png}
-        alt="Your character"
-        width={size}
-        height={size}
-        onError={() => setRenderFailed(true)}
-        className={`object-contain ${className}`}
-        style={{ width: size, height: size }}
-      />
-    )
-  }
 
   return (
     <div
