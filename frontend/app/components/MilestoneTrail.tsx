@@ -108,6 +108,29 @@ export default function MilestoneTrail({
 
   const doneCount = milestones.filter((m) => completedIds.has(m.id)).length
 
+  // Where you actually are: the first milestone you have NOT finished.
+  //
+  // The caller used to pass an index derived from the backend's `status`
+  // flag, which is always 0 — so the "you are here" pin sat on step 1 even
+  // after it was ticked off. Real completion is the only honest source.
+  const firstUnfinished = milestones.findIndex((m) => !completedIds.has(m.id))
+  const activeIndex = firstUnfinished === -1 ? n - 1 : firstUnfinished
+
+  // What you can open. Everything up to the end of your CURRENT zone, so you
+  // can move around the region you are in without being able to skip ahead to
+  // one you have not reached. Locking to exactly one step would make a
+  // 144-milestone path a wall of padlocks, which is discouraging rather than
+  // motivating — and this product exists to reduce that feeling.
+  const activeZoneKey = (milestones[activeIndex]?.dimension || 'default').toLowerCase()
+  const lastOfActiveZone = (() => {
+    let last = activeIndex
+    for (let i = activeIndex; i < n; i++) {
+      if ((milestones[i].dimension || 'default').toLowerCase() !== activeZoneKey) break
+      last = i
+    }
+    return last
+  })()
+
   if (n === 0) return null
 
   // The trail: a single smooth path through every node, top to bottom.
@@ -234,21 +257,33 @@ export default function MilestoneTrail({
         {nodes.map(({ m, i, x, y }) => {
           const z = zoneFor(m.dimension)
           const done = completedIds.has(m.id)
-          const current = i === currentIndex
-          const locked = !done && i > currentIndex
+          // Only the first UNFINISHED step is "here" — a completed node must
+          // never carry the pin, which is what it was doing.
+          const current = i === activeIndex && !done
+          const locked = !done && i > lastOfActiveZone
 
           return (
             <button
               key={m.id}
               type="button"
-              onClick={() => onSelect(m)}
+              // Locked steps are shown but not openable. They were clickable,
+              // so you could jump to work you had not reached yet — which made
+              // the padlock decorative.
+              disabled={locked}
+              onClick={() => !locked && onSelect(m)}
               aria-current={current ? 'step' : undefined}
-              aria-label={`Step ${i + 1}: ${m.name}${done ? ' (done)' : current ? ' (you are here)' : locked ? ' (locked)' : ''}`}
-              className="absolute z-10 -translate-x-1/2 -translate-y-1/2 group focus:outline-none focus-visible:ring-4 focus-visible:ring-white rounded-full"
+              aria-disabled={locked}
+              title={locked ? 'Finish your current area to unlock this' : m.name}
+              aria-label={`Step ${i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked — finish your current area first)' : ''}`}
+              className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 group rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-white ${
+                locked ? 'cursor-not-allowed' : 'cursor-pointer'
+              }`}
               style={{ left: `${x}%`, top: y }}
             >
               <span
-                className="relative grid place-items-center w-[56px] h-[56px] rounded-full transition-transform group-hover:scale-110 group-active:scale-95"
+                className={`relative grid place-items-center w-[56px] h-[56px] rounded-full transition-transform ${
+                  locked ? 'opacity-90' : 'group-hover:scale-110 group-active:scale-95'
+                }`}
                 style={{
                   background: done
                     ? 'linear-gradient(160deg,#34d399,#059669)'
@@ -266,7 +301,14 @@ export default function MilestoneTrail({
                   aria-hidden="true"
                 />
                 {done ? (
-                  <Check className="w-6 h-6 text-white drop-shadow" aria-hidden="true" />
+                  <>
+                    <Check className="w-6 h-6 text-white drop-shadow" aria-hidden="true" />
+                    {/* Keep the number visible on finished steps — otherwise a
+                        run of green ticks loses all sense of where you are. */}
+                    <span className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-full bg-white text-[10px] font-black text-emerald-700 shadow tabular-nums">
+                      {i + 1}
+                    </span>
+                  </>
                 ) : locked ? (
                   <Lock className="w-5 h-5 text-white/90" aria-hidden="true" />
                 ) : (

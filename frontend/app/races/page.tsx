@@ -1525,10 +1525,11 @@ function RacesContent() {
                 <MilestoneTrail
                   milestones={milestones as any}
                   completedIds={completedMilestoneIds}
-                  currentIndex={milestones.findIndex((m: any) => m.status === 'active') >= 0
-                    ? milestones.findIndex((m: any) => m.status === 'active')
-                    : 0}
-                  onSelect={() => router.push('/milestones')}
+                  currentIndex={0 /* superseded: the trail derives it from completedIds */}
+                  // Open THAT milestone, not the list. Every node used to
+                  // push to /milestones, so all 144 of them led to the same
+                  // screen — which is why they looked identical.
+                  onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
                   day={day}
                 />
               )}
