@@ -4,6 +4,12 @@ import { ArrowLeft, Star } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ProductPurchasePanel from '@/components/shop/ProductPurchasePanel'
+import WhereToGetIt from '@/components/shop/WhereToGetIt'
+import ProductReviewForm from '@/components/shop/ProductReviewForm'
+import RatingsBreakdown from '@/components/resources/detail/RatingsBreakdown'
+import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMatchBanner'
+import { buildProductBreakdown, matchForProfile } from '@/lib/shop/breakdown'
+import { createClient } from '@/lib/supabase/server'
 import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
@@ -21,6 +27,25 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   const product = await getProduct(params.id)
   if (!product) notFound()
   const reviews = await getProductReviews(product.id)
+
+  // Same depth as the service side (Odosa), computed from the snapshots stored
+  // on each review — no cross-user profile reads, which RLS would block.
+  const breakdown = buildProductBreakdown(reviews)
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // "Based on those who matched your Diagnostics profile" — needs the viewer's
+  // own norms, which they are always allowed to read.
+  let viewerNorms: string[] = []
+  let myReview: number | undefined
+  if (user) {
+    const { data: myBarriers } = await supabase
+      .from('user_barriers').select('barrier_type').eq('user_id', user.id)
+    viewerNorms = (myBarriers || []).map((b: any) => String(b.barrier_type || '')).filter(Boolean)
+    myReview = reviews.find((r: any) => r.user_id === user.id)?.rating
+  }
+  const profileMatch = matchForProfile(reviews, viewerNorms)
 
   const sensory = SENSORY_LABELS.filter((s) => product.sensory_details?.[s.key])
 
@@ -73,7 +98,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </div>
 
             <div className="mt-5">
+              {/* Variations + quantity still matter for deciding WHICH one to
+                  go buy, so the selectors stay; only the cart button is gone. */}
               <ProductPurchasePanel product={product} />
+            </div>
+
+            <div className="mt-6">
+              <WhereToGetIt product={product} />
             </div>
 
             {product.description && (
@@ -85,7 +116,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
             {sensory.length > 0 && (
               <div className="mt-6">
-                <h2 className="text-sm font-semibold text-gray-900 mb-2">Sensory Details</h2>
+                {/* Odosa: named "Vendor" so it is clear this came from the seller, not
+                    from people who actually used it — the reviews below are that. */}
+                <h2 className="text-sm font-semibold text-gray-900 mb-2">Vendor Sensory Details</h2>
                 <dl className="divide-y divide-gray-100 rounded-lg border border-gray-200">
                   {sensory.map((s) => (
                     <div key={s.key} className="flex items-center justify-between px-3 py-2 text-sm">
@@ -99,11 +132,46 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           </div>
         </div>
 
-        {/* Reviews */}
-        <section className="mt-10">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Reviews</h2>
+        {/* Ratings, insights and reviews — the same treatment services get */}
+        <div className="mt-10 space-y-8">
+          {profileMatch && (
+            <DiagnosticsMatchBanner
+              profileLabels={profileMatch.labels}
+              similarUserCount={profileMatch.count}
+              averageRating={profileMatch.avg}
+            />
+          )}
+
+          {breakdown.ratingCount > 0 && (
+            <RatingsBreakdown
+              averageRating={breakdown.averageRating}
+              ratingCount={breakdown.ratingCount}
+              ratingDistribution={breakdown.distribution}
+              barrierScores={breakdown.barrierScores}
+              diagnosticBreakdown={breakdown.diagnosticBreakdown}
+              weightedRating={breakdown.weightedRating}
+            />
+          )}
+
+          <section className="rounded-xl border border-gray-200 bg-white p-4">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">
+              {myReview ? 'Your review' : 'Rate this product'}
+            </h2>
+            <ProductReviewForm
+              productId={product.id}
+              signedIn={!!user}
+              existingRating={myReview}
+            />
+          </section>
+        </div>
+
+        {/* Community reviews */}
+        <section className="mt-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Community reviews</h2>
           {reviews.length === 0 ? (
-            <p className="text-sm text-gray-500">No reviews yet.</p>
+            <p className="text-sm text-gray-500">
+              No reviews yet — be the first to say how this worked for you.
+            </p>
           ) : (
             <div className="space-y-3">
               {reviews.map((r) => (
