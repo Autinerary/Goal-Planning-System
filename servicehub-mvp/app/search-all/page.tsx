@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import { universalSearch, type UniversalResult, type ResultKind } from '@/lib/search/universal'
 import { formatPrice } from '@/types/shop'
+import { FILTER_NORM_GROUPS } from '@/lib/norms/taxonomy'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,32 @@ const SECTIONS: {
     icon: Sparkles, accent: 'text-emerald-600', browseHref: '/community', browseLabel: 'Browse Tidbits',
   },
 ]
+
+/** Norms shared by services and posts. Drawn from the same taxonomy the rest
+ *  of the app uses, trimmed to the ones broad enough to be worth a one-click
+ *  chip — the full tree lives on the type-specific tabs. */
+const COMMON_NORMS = FILTER_NORM_GROUPS.flatMap((g) => g.norms).slice(0, 8)
+
+function buildHref(opts: {
+  q: string
+  kinds: ResultKind[]
+  norms: string[]
+  sort: string
+}): string {
+  const p = new URLSearchParams()
+  if (opts.q) p.set('q', opts.q)
+  if (opts.kinds.length) p.set('kinds', opts.kinds.join(','))
+  if (opts.norms.length) p.set('norms', opts.norms.join(','))
+  if (opts.sort && opts.sort !== 'relevance') p.set('sort', opts.sort)
+  return `/search-all?${p.toString()}`
+}
+
+const chip = (active: boolean) =>
+  `px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+    active
+      ? 'bg-blue-600 text-white border-blue-600'
+      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+  }`
 
 function ResultRow({ r }: { r: UniversalResult }) {
   return (
@@ -90,10 +117,19 @@ function ResultRow({ r }: { r: UniversalResult }) {
 export default async function SearchAllPage({
   searchParams,
 }: {
-  searchParams: { q?: string }
+  searchParams: { q?: string; kinds?: string; norms?: string; sort?: string }
 }) {
   const q = (searchParams.q || '').trim()
-  const results = q ? await universalSearch(q) : { services: [], products: [], posts: [], total: 0 }
+  const parseList = (v?: string) =>
+    (v || '').split(',').map((x) => x.trim()).filter(Boolean)
+
+  const kinds = parseList(searchParams.kinds) as ResultKind[]
+  const norms = parseList(searchParams.norms)
+  const sort = (searchParams.sort as 'relevance' | 'rating' | 'newest') || 'relevance'
+
+  const results = q
+    ? await universalSearch(q, { kinds, norms, sort })
+    : { services: [], products: [], posts: [], total: 0 }
   const byKind: Record<ResultKind, UniversalResult[]> = {
     service: results.services,
     product: results.products,
@@ -124,6 +160,11 @@ export default async function SearchAllPage({
               className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          {/* Carry the current filters through a new query so searching again
+              does not silently reset them. */}
+          {kinds.length > 0 && <input type="hidden" name="kinds" value={kinds.join(',')} />}
+          {norms.length > 0 && <input type="hidden" name="norms" value={norms.join(',')} />}
+          {sort !== 'relevance' && <input type="hidden" name="sort" value={sort} />}
           <button
             type="submit"
             className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
@@ -131,6 +172,80 @@ export default async function SearchAllPage({
             Search
           </button>
         </form>
+
+        {q && (
+          <div className="mt-4 space-y-3">
+            {/* Type filter. Links rather than client state, so every filtered
+                view has its own URL and can be shared or bookmarked. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Show</span>
+              <Link
+                href={buildHref({ q, kinds: [], norms, sort })}
+                className={chip(kinds.length === 0)}
+              >
+                Everything
+              </Link>
+              {SECTIONS.map((sec) => {
+                const only = kinds.length === 1 && kinds[0] === sec.kind
+                const Icon = sec.icon
+                return (
+                  <Link
+                    key={sec.kind}
+                    href={buildHref({ q, kinds: only ? [] : [sec.kind], norms, sort })}
+                    className={`${chip(only)} inline-flex items-center gap-1.5`}
+                  >
+                    <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                    {sec.label}
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Norms. Services and posts carry norm tags; shop items do not, so
+                they are excluded while this is active rather than being returned
+                with the filter silently ignored. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Norms</span>
+              {COMMON_NORMS.map((n) => {
+                const on = norms.includes(n.id)
+                return (
+                  <Link
+                    key={n.id}
+                    href={buildHref({
+                      q,
+                      kinds,
+                      norms: on ? norms.filter((x) => x !== n.id) : [...norms, n.id],
+                      sort,
+                    })}
+                    className={chip(on)}
+                  >
+                    {n.label}
+                  </Link>
+                )
+              })}
+              {norms.length > 0 && (
+                <Link href={buildHref({ q, kinds, norms: [], sort })} className="text-xs text-blue-600 hover:underline ml-1">
+                  Clear norms
+                </Link>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Sort</span>
+              {(['relevance', 'rating', 'newest'] as const).map((sv) => (
+                <Link key={sv} href={buildHref({ q, kinds, norms, sort: sv })} className={`${chip(sort === sv)} capitalize`}>
+                  {sv}
+                </Link>
+              ))}
+            </div>
+
+            {norms.length > 0 && (
+              <p className="text-xs text-gray-500">
+                Shop items are hidden while a norm filter is on — products aren&apos;t tagged by norm.
+              </p>
+            )}
+          </div>
+        )}
 
         {!q ? (
           <div className="mt-10 text-center text-gray-500">
@@ -141,8 +256,18 @@ export default async function SearchAllPage({
           <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
             <p className="font-semibold text-gray-900">No matches for &ldquo;{q}&rdquo;</p>
             <p className="text-sm text-gray-600 mt-1">
-              Nothing in services, the shop, or Tidbits matched. Try a shorter or more general word.
+              {kinds.length > 0 || norms.length > 0
+                ? 'Nothing matched with these filters on. Widening them is usually the fix.'
+                : 'Nothing in services, the shop, or Tidbits matched. Try a shorter or more general word.'}
             </p>
+            {(kinds.length > 0 || norms.length > 0) && (
+              <Link
+                href={buildHref({ q, kinds: [], norms: [], sort })}
+                className="inline-block mt-3 px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Clear all filters
+              </Link>
+            )}
           </div>
         ) : (
           <div className="mt-6 space-y-8">

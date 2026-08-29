@@ -43,12 +43,30 @@ export interface UniversalResults {
 
 const EMPTY: UniversalResults = { services: [], products: [], posts: [], total: 0 }
 
+export interface UniversalFilters {
+  /** Which types to include. Empty or absent means all three. */
+  kinds?: ResultKind[]
+  /** Norm tags. Applies to services and posts; products carry no norm data. */
+  norms?: string[]
+  /** How to order within each section. */
+  sort?: 'relevance' | 'rating' | 'newest'
+}
+
 export async function universalSearch(
   query: string,
+  filters: UniversalFilters = {},
   perKind = 12
 ): Promise<UniversalResults> {
   const term = (query || '').trim()
   if (!term) return EMPTY
+
+  const wanted = (k: ResultKind) =>
+    !filters.kinds || filters.kinds.length === 0 || filters.kinds.includes(k)
+  const norms = (filters.norms || []).filter(Boolean)
+  // Products have no norm tagging at all. Rather than returning them anyway
+  // and silently ignoring the filter, they are excluded while a norm filter is
+  // active — and the page says so, so it does not look like a broken query.
+  const normFilterActive = norms.length > 0
 
   const supabase = createClient()
   const like = `%${term}%`
@@ -70,25 +88,36 @@ export async function universalSearch(
 
   const [services, products, posts] = await Promise.all([
     safe(async () => {
-      const { data } = await supabase
+      if (!wanted('service')) return []
+      let q = supabase
         .from('resources')
         .select('id, name, description, category, location')
         .eq('status', 'approved')
         .or(`name.ilike.${like},description.ilike.${like}`)
-        .limit(perKind)
+      if (filters.sort === 'newest') q = q.order('created_at', { ascending: false })
+      const { data } = await q.limit(perKind)
       return data || []
     }, [] as any[]),
 
-    safe(async () => (await searchProducts({ query: term })).slice(0, perKind), [] as any[]),
+    safe(async () => {
+      if (!wanted('product') || normFilterActive) return []
+      return (await searchProducts({ query: term })).slice(0, perKind)
+    }, [] as any[]),
 
     safe(async () => {
-      const { data } = await supabase
+      if (!wanted('post')) return []
+      let q = supabase
         .from('community_posts')
-        .select('id, title, body_markdown, answer_count, accepted_answer_id, barrier_tags')
+        .select('id, title, body_markdown, answer_count, accepted_answer_id, barrier_tags, score, created_at')
         .eq('is_deleted', false)
         .or(`title.ilike.${like},body_markdown.ilike.${like}`)
-        .order('last_activity_at', { ascending: false })
-        .limit(perKind)
+      // overlaps, not contains: several norms should widen the result set,
+      // not demand a post carry all of them.
+      if (normFilterActive) q = q.overlaps('barrier_tags', norms)
+      q = filters.sort === 'newest'
+        ? q.order('created_at', { ascending: false })
+        : q.order('last_activity_at', { ascending: false })
+      const { data } = await q.limit(perKind)
       return data || []
     }, [] as any[]),
   ])
@@ -156,6 +185,15 @@ export async function universalSearch(
     answerCount: p.answer_count ?? 0,
     isSolved: p.accepted_answer_id != null,
   }))
+
+  // Sort within each section. Rating order is applied after the fact because
+  // a service's rating is an aggregate of another table, not a column.
+  if (filters.sort === 'rating') {
+    const byRating = (a: UniversalResult, b: UniversalResult) =>
+      (b.rating ?? -1) - (a.rating ?? -1)
+    serviceResults.sort(byRating)
+    productResults.sort(byRating)
+  }
 
   return {
     services: serviceResults,
