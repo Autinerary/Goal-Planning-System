@@ -31,6 +31,30 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
   // The rater's own diagnostics — shown so they see how their rating is filed.
   const [diagnostics, setDiagnostics] = useState<{ type: string; severity: number; method?: VerificationMethod }[]>([])
   const [trust, setTrust] = useState<RaterTrust | null>(null)
+  // Odosa: "you can add & rate a resource more than once". The database has
+  // always enforced one rating per (resource, user) — but this modal never
+  // checked, so it always said "Add", always POSTed, and the server quietly
+  // turned that into an update. Load the existing rating so the UI tells the
+  // truth about what pressing the button will do.
+  const [existingRating, setExistingRating] = useState<any>(null)
+  useEffect(() => {
+    fetch(`/api/resources/${resourceId}/ratings`, { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        const prev = j?.existingRating
+        if (!prev) return
+        setExistingRating(prev)
+        // Prefill, so editing starts from what they actually said last time
+        // rather than from a blank form.
+        if (typeof prev.overall_score === 'number') setOverallRating(prev.overall_score)
+        if (prev.barrier_scores && typeof prev.barrier_scores === 'object') {
+          setBarrierScores(prev.barrier_scores)
+        }
+        if (typeof prev.comment === 'string') setComment(prev.comment)
+      })
+      .catch(() => {})
+  }, [resourceId])
+
   useEffect(() => {
     // One call covers both: norms (with how each is verified) and the rater's
     // behaviour-derived trust tier. No medical data involved.
@@ -64,7 +88,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
 
     try {
       const response = await fetch(`/api/resources/${resourceId}/ratings`, {
-        method: 'POST',
+        method: existingRating ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           overall_score: overallRating,
@@ -84,8 +108,8 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
       const result = await response.json()
       showToast.success(
         result.validation?.decision === 'flag_for_review'
-          ? 'Rating submitted and is pending review'
-          : 'Rating submitted successfully!'
+          ? (existingRating ? 'Rating updated and is pending review' : 'Rating submitted and is pending review')
+          : (existingRating ? 'Rating updated successfully!' : 'Rating submitted successfully!')
       )
       onRatingAdded()
     } catch (error: any) {
@@ -105,7 +129,9 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-semibold text-gray-900">Add Your Rating</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {existingRating ? 'Edit Your Rating' : 'Add Your Rating'}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
@@ -264,7 +290,9 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
               disabled={submitting || overallRating === 0}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Submitting...' : 'Submit Rating'}
+              {submitting
+                ? (existingRating ? 'Updating…' : 'Submitting…')
+                : (existingRating ? 'Update Rating' : 'Submit Rating')}
             </button>
           </div>
         </form>

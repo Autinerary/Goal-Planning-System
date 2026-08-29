@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { Star, Plus, ShoppingBag } from 'lucide-react'
+import { Star, Plus, ShoppingBag, LayoutGrid } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/server'
 import { listProducts, listProductCategories } from '@/lib/shop/queries'
 import { formatPrice, type Product } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
+import { SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
 
 export const dynamic = 'force-dynamic'
 
@@ -134,30 +135,44 @@ export default async function ShopPage({
           </div>
         )}
 
-        {/* Category chips */}
-        {categories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Link
-              href={isPreview ? '/shop?preview=1' : '/shop'}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                !category ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              All
-            </Link>
-            {categories.map((c) => (
+        {/* Category chips — icon on the left of each, matching the navbar
+            (Odosa). Every known category shows even when nothing is filed under
+            it yet, so "Apps & Programs" is discoverable before the first app is
+            added; a category present in the data but not in our list still
+            renders, with a neutral icon. */}
+        {(() => {
+          const known = SHOP_CATEGORIES.map((c) => c.id)
+          const shown = [...known, ...categories.filter((c) => !known.includes(c))]
+          return (
+            <div className="flex flex-wrap gap-2 mb-6">
               <Link
-                key={c}
-                href={`/shop?category=${encodeURIComponent(c)}${isPreview ? '&preview=1' : ''}`}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border capitalize transition-colors ${
-                  category === c ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                href={isPreview ? '/shop?preview=1' : '/shop'}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  !category ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {c}
+                <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden="true" />
+                All
               </Link>
-            ))}
-          </div>
-        )}
+              {shown.map((c) => {
+                const meta = shopCategory(c)
+                const Icon = meta.icon
+                return (
+                  <Link
+                    key={c}
+                    href={`/shop?category=${encodeURIComponent(c)}${isPreview ? '&preview=1' : ''}`}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      category === c ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    {meta.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )
+        })()}
 
         {products.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-16 px-4 text-center">

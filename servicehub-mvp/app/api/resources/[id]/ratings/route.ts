@@ -38,6 +38,26 @@ async function resolveBarriers(
   }
 }
 
+/**
+ * GET /api/resources/[id]/ratings — the CALLER's own rating, if they have one.
+ *
+ * Odosa: "you can add & rate a resource more than once". At the database level
+ * you cannot — ratings has UNIQUE(resource_id, user_id) and it is enforced.
+ * But the Add Rating modal never checked, so it always said "Add Your Rating",
+ * always POSTed, and createOrUpdateRating quietly turned that into an update.
+ * You appeared to rate twice and were told it was submitted both times.
+ *
+ * This lets the modal know, so it can prefill and say it is editing.
+ */
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ existingRating: null })
+
+  const existing = await getRatingByUserAndResource(params.id, user.id)
+  return NextResponse.json({ existingRating: existing || null })
+}
+
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const supabase = createClient()

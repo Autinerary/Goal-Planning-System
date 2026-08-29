@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 
 // Fix Leaflet default icon issue with Next.js
@@ -35,16 +35,70 @@ interface LocationMapProps {
   name: string
 }
 
+/**
+ * Map for a resource's location.
+ *
+ * Odosa: "map image is broken in mobile & laptop view". Leaflet measures its
+ * container once at init and lays tiles out against that measurement. Here the
+ * container is a dynamic import inside a responsive column, so the map
+ * frequently initialised before the layout had settled — it then painted tiles
+ * for a size the container no longer had, leaving the rest grey. Nothing about
+ * the map data was wrong, which is why it looked broken rather than empty.
+ *
+ * invalidateSize() re-measures and repaints. Called once after mount, and again
+ * whenever the container actually changes size, which covers rotation, a
+ * sidebar opening, and the browser being resized.
+ */
 export default function LocationMap({ lat, lng, name }: LocationMapProps) {
-  // Leaflet CSS is loaded in globals.css
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<any>(null)
+  // Guards against the map ever being handed NaN, which renders a grey box
+  // with no error at all.
+  const [valid] = useState(() => Number.isFinite(lat) && Number.isFinite(lng))
+
+  useEffect(() => {
+    if (!valid) return
+    const el = wrapperRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+
+    const resize = () => mapRef.current?.invalidateSize?.()
+    // Two frames out: one for layout, one for the tile layer to attach.
+    const t = setTimeout(resize, 250)
+    const ro = new ResizeObserver(resize)
+    ro.observe(el)
+    window.addEventListener('orientationchange', resize)
+
+    return () => {
+      clearTimeout(t)
+      ro.disconnect()
+      window.removeEventListener('orientationchange', resize)
+    }
+  }, [valid])
+
+  if (!valid) {
+    return (
+      <div className="w-full h-64 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+        Location coordinates aren&apos;t available for this resource.
+      </div>
+    )
+  }
 
   return (
-    <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200">
+    <div
+      ref={wrapperRef}
+      className="w-full h-64 sm:h-72 rounded-lg overflow-hidden border border-gray-200"
+    >
       <MapContainer
         center={[lat, lng]}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
+        // Re-measure as soon as the instance exists, before the observer
+        // has had a chance to fire.
+        ref={(instance: any) => {
+          mapRef.current = instance
+          if (instance) setTimeout(() => instance.invalidateSize?.(), 0)
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

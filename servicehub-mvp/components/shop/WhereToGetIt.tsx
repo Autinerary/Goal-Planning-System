@@ -2,6 +2,7 @@
 
 import { ExternalLink } from 'lucide-react'
 import type { Product } from '@/types/shop'
+import { isAppCategory } from '@/lib/shop/categories'
 
 /**
  * "Where you can get it" (Odosa) — replaces Add to Cart.
@@ -31,8 +32,37 @@ const RETAILERS: Retailer[] = [
   { name: 'Cheapco',    search: (q) => `https://www.google.com/search?q=${q}+cheapco`,    note: 'Usually lowest price' },
 ]
 
+/**
+ * Apps are not shipped, so a delivery-oriented retailer list is nonsense for
+ * them (Odosa: add "Banana App Store", "SumSing App Store", "MacroHard store"
+ * and give each app one of the three).
+ */
+const APP_STORES: Retailer[] = [
+  { name: 'Banana App Store',  search: (q) => `https://www.google.com/search?q=${q}+app`, note: 'For Banana devices' },
+  { name: 'SumSing App Store', search: (q) => `https://www.google.com/search?q=${q}+app`, note: 'For SumSing devices' },
+  { name: 'MacroHard Store',   search: (q) => `https://www.google.com/search?q=${q}+app`, note: 'For desktop and tablet' },
+]
+
+/**
+ * Pick a store for an app.
+ *
+ * "Randomly" but STABLY: a hash of the product id, not Math.random(). A random
+ * draw would hand the same app a different store on every render and on every
+ * server/client pass — a hydration mismatch, and a listing that contradicts
+ * itself between visits.
+ */
+function storeForProduct(id: string): Retailer {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return APP_STORES[h % APP_STORES.length]
+}
+
 export default function WhereToGetIt({ product }: { product: Product }) {
   const q = encodeURIComponent(product.name)
+  const isApp = isAppCategory(product.category)
+  // One store per app, the same one every time; physical goods list every
+  // retailer, since you can genuinely choose between them.
+  const options = isApp ? [storeForProduct(product.id)] : RETAILERS
 
   return (
     <section aria-labelledby="where-to-get-it" className="space-y-3">
@@ -41,12 +71,14 @@ export default function WhereToGetIt({ product }: { product: Product }) {
           Where you can get it
         </h2>
         <p className="text-xs text-gray-500 mt-0.5">
-          Example sellers while real retailer links are being added — each one searches for this item.
+          {isApp
+            ? 'Example store while real download links are being added.'
+            : 'Example sellers while real retailer links are being added — each one searches for this item.'}
         </p>
       </div>
 
       <ul className="space-y-2">
-        {RETAILERS.map((r) => (
+        {options.map((r) => (
           <li key={r.name}>
             <a
               href={r.search(q)}
