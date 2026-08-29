@@ -131,7 +131,7 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
                 role="menuitem"
                 onClick={() => setIsMenuOpen(false)}
               >
-                My Resources
+                Resource Manager
               </Link>
               
               <Link

@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
-import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag } from 'lucide-react'
+import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 function NavbarInner() {
@@ -66,13 +66,24 @@ function NavbarInner() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Odosa: a Search tab covering ALL resource types, with the
+                type-specific tabs kept alongside it. "Search" used to mean
+                services only, which is why it was renamed to Services. */}
             <Link
-              href="/search"
+              href="/search-all"
               className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
-              aria-label="Search resources"
+              aria-label="Search everything"
             >
               <Search className="w-4 h-4 mr-2" aria-hidden="true" />
               Search
+            </Link>
+            <Link
+              href="/search"
+              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+              aria-label="Services"
+            >
+              <Handshake className="w-4 h-4 mr-2" aria-hidden="true" />
+              Services
             </Link>
             <Link
               href="/shop"
@@ -93,16 +104,19 @@ function NavbarInner() {
             {user && (
               <Link
                 href="/my-resources"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                aria-label="Resource Manager"
               >
-                My Resources
+                <FolderKanban className="w-4 h-4 mr-2" aria-hidden="true" />
+                Resource Manager
               </Link>
             )}
             {user && (
               <Link
                 href="/resources/new"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
               >
+                <PlusCircle className="w-4 h-4 mr-2" aria-hidden="true" />
                 Recommend
               </Link>
             )}

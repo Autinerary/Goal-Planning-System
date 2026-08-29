@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles } from 'lucide-react'
+import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles, Handshake, FolderKanban } from 'lucide-react'
 import { useAuth } from '@/lib/auth/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
@@ -206,6 +206,21 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
               </Link>
 
               <Link
+                href="/search-all"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  pathname === '/search-all'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={onClose}
+              >
+                <Search className="w-5 h-5" aria-hidden="true" />
+                Search
+              </Link>
+
+              {/* Services is the renamed old Search — kept as its own entry so
+                  the mobile menu offers the same set as the desktop navbar. */}
+              <Link
                 href="/search"
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   pathname === '/search'
@@ -214,8 +229,8 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
                 }`}
                 onClick={onClose}
               >
-                <Search className="w-5 h-5" aria-hidden="true" />
-                Search
+                <Handshake className="w-5 h-5" aria-hidden="true" />
+                Services
               </Link>
 
               <Link
@@ -243,7 +258,7 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
                     onClick={onClose}
                   >
                     <Star className="w-5 h-5" aria-hidden="true" />
-                    My Resources
+                    Resource Manager
                   </Link>
 
                   <Link
