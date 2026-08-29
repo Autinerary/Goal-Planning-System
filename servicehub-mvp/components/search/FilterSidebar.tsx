@@ -7,6 +7,7 @@ import CostFilter from './CostFilter'
 import RatingChipsFilter from './RatingChipsFilter'
 import { LIFE_AREAS } from '@/lib/search/lifeAreas'
 import { FILTER_NORM_GROUPS } from '@/lib/norms/taxonomy'
+import { SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
 
 interface FilterSidebarProps {
   categories: string[]
@@ -79,10 +80,21 @@ export default function FilterSidebar({
 
   return (
     <div className="space-y-6">
-      {/* Categories */}
+      {/* Resource Type — services/places AND shop categories (Odosa: "add the
+          filters from Shop to the Resource Type filter list"). Shop items
+          already appear in general results, so without these you could see a
+          product in the list but had no way to filter for one.
+
+          Grouped rather than merged into a flat list: "Books" sitting between
+          "Therapist" and "School" with no distinction reads as a mistake. The
+          shop rows carry their icons so they match the Shop page. */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Resource Type</h3>
+
         <div className="space-y-2 max-h-64 overflow-y-auto">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 px-2">
+            Services &amp; Places
+          </p>
           {availableCategories.length > 0 ? (
             availableCategories.map((category) => (
               <label
@@ -99,8 +111,32 @@ export default function FilterSidebar({
               </label>
             ))
           ) : (
-            <p className="text-sm text-gray-500">Loading categories...</p>
+            <p className="text-sm text-gray-500 px-2">Loading categories...</p>
           )}
+        </div>
+
+        <div className="space-y-2 max-h-64 overflow-y-auto mt-3 pt-3 border-t border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 px-2">
+            Shop
+          </p>
+          {SHOP_CATEGORIES.map((c) => {
+            const Icon = shopCategory(c.id).icon
+            return (
+              <label
+                key={c.id}
+                className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(c.id)}
+                  onChange={() => onCategoryToggle(c.id)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <Icon className="w-4 h-4 ml-2 shrink-0 text-gray-400" aria-hidden="true" />
+                <span className="ml-2 text-sm text-gray-700">{c.label}</span>
+              </label>
+            )
+          })}
         </div>
       </div>
 

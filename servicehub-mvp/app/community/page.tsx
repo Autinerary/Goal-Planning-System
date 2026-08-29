@@ -170,7 +170,8 @@ function FeedInner() {
               that only applies to a place you visit (cost, distance, rating,
               resource type). A post has no price and no address. */}
           <aside className="hidden lg:block lg:w-64 shrink-0">
-            <div className="sticky top-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            {/* Same self-scrolling behaviour as the search sidebar. */}
+            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               {filterPanel}
             </div>
           </aside>

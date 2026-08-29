@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { searchProducts } from '@/lib/search/products'
+import { SHOP_CATEGORIES } from '@/lib/shop/categories'
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -45,6 +46,9 @@ function parseSortParam(raw: string | null): SortOption | SortRule[] {
   }
   return rules.length > 0 ? rules : 'relevance'
 }
+
+// Cheap membership test for "did the user ask for products?".
+const SHOP_CATEGORY_IDS = new Set(SHOP_CATEGORIES.map((c) => c.id))
 
 export async function GET(request: NextRequest) {
   try {
@@ -225,7 +229,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Shop items appear in general results too (Odosa). Skipped when a
+    // Shop items appear in general results too (Odosa). Normally skipped when a
     // norm/condition/life-area filter is active — those are service-specific
     // and the product catalog has no such tagging, so including products would
     // silently ignore the filter the user set.
@@ -234,8 +238,16 @@ export async function GET(request: NextRequest) {
       (conditions && conditions.length > 0) ||
       (lifeAreas && lifeAreas.length > 0)
 
+    // ...unless the user explicitly ticked a SHOP category. Shop categories are
+    // now part of the Resource Type filter, so "Books + Autism" is a reasonable
+    // thing to select — and returning nothing for it would read as broken.
+    // An explicit product request outranks a filter the catalog cannot honour.
+    const shopCategorySelected =
+      Array.isArray(categories) &&
+      categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))
+
     let products: any[] = []
-    if (!normFilterActive) {
+    if (!normFilterActive || shopCategorySelected) {
       products = await searchProducts({ query, categories, minPrice, maxPrice })
     }
 

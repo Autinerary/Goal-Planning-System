@@ -310,7 +310,13 @@ function SearchResults() {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Filter Sidebar (Desktop) */}
             <aside className="hidden lg:block lg:w-64">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-6">
+              {/* Odosa: the filter list must scroll on its OWN. It was sticky but
+                  unbounded, so a list taller than the viewport could only be
+                  reached by scrolling past every result first — with 1000 results
+                  the bottom filters were effectively unreachable. Capping the
+                  height to the viewport and scrolling inside fixes that; the
+                  inner sections keep their own scrollbars. */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto overscroll-contain">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
 
                 <FilterSidebar
