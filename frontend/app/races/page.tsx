@@ -10,6 +10,7 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { computeRaceProgress } from '@/lib/raceProgress'
 import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
+import MilestoneTrail from '../components/MilestoneTrail'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -48,7 +49,10 @@ function RacesContent() {
   // "Choose your next path" prompts the user has dismissed (by completed step id).
   const [dismissedBranches, setDismissedBranches] = useState<Set<string>>(new Set())
   const [layoutMode, setLayoutMode] = useState<'track' | 'list'>('list')
-  const [trackShape, setTrackShape] = useState<'one' | 'separate'>('one')
+  // 'trail' is the level-map view — the whole path as a set of zones you
+  // move through, rather than the five-stop road. Default, because seeing
+  // progress spatially is the point of the race framing in the first place.
+  const [trackShape, setTrackShape] = useState<'trail' | 'one' | 'separate'>('trail')
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       try { const s = localStorage.getItem('completedMilestoneIds'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
@@ -466,6 +470,7 @@ function RacesContent() {
 
   // View gating: List shows the streamlined top + checklist. Track can be a
   // single continuous road ("one") or parallel dimension tracks ("separate").
+  const showTrail = layoutMode === 'track' && trackShape === 'trail'
   const showContinuousTrack = layoutMode === 'track' && trackShape === 'one'
   const showSeparateTrack = layoutMode === 'track' && trackShape === 'separate'
   // Odosa: Checklist View lives in List View ONLY. Track View gets the race
@@ -931,6 +936,7 @@ function RacesContent() {
           {layoutMode === 'track' && (
             <div className="pt-2 w-full flex justify-center">
               <div className={`inline-flex rounded-full border overflow-hidden text-[11px] font-bold ${day ? 'border-slate-200 bg-white/60' : 'border-indigo-700 bg-indigo-950/50'}`}>
+                <button onClick={() => setTrackShape('trail')} className={`px-3 py-1 transition-all ${trackShape === 'trail' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🗺️ Trail Map</button>
                 <button onClick={() => setTrackShape('one')} className={`px-3 py-1 transition-all ${trackShape === 'one' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🛣️ As One</button>
                 <button onClick={() => setTrackShape('separate')} className={`px-3 py-1 transition-all ${trackShape === 'separate' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🏁 Separate Races</button>
               </div>
@@ -1451,6 +1457,29 @@ function RacesContent() {
               fanning out from the Dream Self and converging at the
               shared start line.  (Track View · "Separate" shape)
              ═══════════════════════════════════════════════════ */}
+          {/* Trail Map — the whole path as zones (gamified level-map view). */}
+          {showTrail && (
+            <div className="w-full px-2 pt-4 pb-10">
+              {milestones.length === 0 ? (
+                <div className={`max-w-md mx-auto text-center rounded-2xl border-2 border-dashed p-6 ${day ? 'border-slate-300 bg-white/60' : 'border-indigo-700 bg-indigo-950/40'}`}>
+                  <div className="text-3xl mb-2">🗺️</div>
+                  <div className={`text-sm font-bold ${txt}`}>No trail yet</div>
+                  <p className={`text-xs mt-1 ${sub}`}>Finish onboarding and your milestones become the map.</p>
+                </div>
+              ) : (
+                <MilestoneTrail
+                  milestones={milestones as any}
+                  completedIds={completedMilestoneIds}
+                  currentIndex={milestones.findIndex((m: any) => m.status === 'active') >= 0
+                    ? milestones.findIndex((m: any) => m.status === 'active')
+                    : 0}
+                  onSelect={() => router.push('/milestones')}
+                  day={day}
+                />
+              )}
+            </div>
+          )}
+
           {showSeparateTrack && (
             <div className="w-full pt-6">
               {/* Dream Self renders once in the shared top block above. */}
