@@ -42,6 +42,22 @@ html[data-reduce-motion="on"] *::after {
   scroll-behavior: auto !important;
 }
 
+/* Honour the OS setting too, not just the in-app toggle.
+   Someone who has already told their device they want less motion should not
+   have to find a second switch inside the app — and this matters more here
+   than in most products, given who it is built for. The app toggle above
+   still works for anyone whose OS setting is off but who wants it here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Dyslexia-friendly font stack. */
 html[data-dyslexia-font="on"],
 html[data-dyslexia-font="on"] body {

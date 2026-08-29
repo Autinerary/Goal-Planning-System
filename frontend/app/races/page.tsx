@@ -11,6 +11,7 @@ import { computeRaceProgress } from '@/lib/raceProgress'
 import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
+import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
 
 /*
   DREAM LAND — One continuous race-track roadmap.
@@ -699,8 +700,40 @@ function RacesContent() {
       )}
 
       {/* ═══ PAGE ═══ */}
-      <div className={`min-h-screen ${day ? 'bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50' : 'bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950'} relative overflow-x-hidden transition-colors duration-700`}>
+      {/* A painted ground rather than a flat wash — the game panels sat on a
+          plain gradient and read as pasted on. Layered radial washes give the
+          page depth to sit against, and the rolling hills at the foot give it
+          a horizon. Still pure CSS/SVG, so it costs nothing to load. */}
+      <div
+        className={`min-h-screen ${day ? '' : 'bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950'} relative overflow-x-hidden transition-colors duration-700`}
+        style={
+          day
+            ? {
+                backgroundImage: [
+                  'radial-gradient(1200px 420px at 12% -8%, rgba(255,236,190,.85), transparent 70%)',
+                  'radial-gradient(900px 380px at 88% 4%, rgba(190,226,255,.85), transparent 70%)',
+                  'radial-gradient(1000px 500px at 50% 100%, rgba(198,240,214,.75), transparent 70%)',
+                  'linear-gradient(180deg,#bfe3ff 0%,#ddf0ff 42%,#fdf3dd 100%)',
+                ].join(','),
+              }
+            : undefined
+        }
+      >
         <style>{css}</style>
+
+        {/* Rolling hills, fixed to the bottom — gives the page a horizon so the
+            panels read as standing in a place rather than floating on a fill. */}
+        {day && (
+          <svg
+            className="fixed bottom-0 left-0 w-full h-[38vh] pointer-events-none z-0"
+            viewBox="0 0 100 40"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path d="M0,28 C18,20 30,32 46,26 C62,20 76,30 100,23 L100,40 L0,40 Z" fill="rgba(134,205,161,.35)" />
+            <path d="M0,33 C22,26 38,36 56,31 C74,26 86,35 100,30 L100,40 L0,40 Z" fill="rgba(106,186,140,.40)" />
+          </svg>
+        )}
 
         {/* Atmospheric background */}
         <div className="fixed inset-0 pointer-events-none z-0">
@@ -926,20 +959,28 @@ function RacesContent() {
               TRACK / LIST toggle — centered, below the main nav
              ═══════════════════ */}
           <div className="pt-4 w-full flex justify-center">
-            <div className={`inline-flex rounded-full border overflow-hidden text-xs font-bold shadow-sm ${day ? 'border-slate-200 bg-white/70' : 'border-indigo-700 bg-indigo-950/60'}`}>
-              <button onClick={() => setLayoutMode('track')} className={`px-4 py-1.5 transition-all ${layoutMode === 'track' ? `bg-gradient-to-r ${accent} text-white` : `${sub} hover:opacity-70`}`}>🏁 Track View</button>
-              <button onClick={() => setLayoutMode('list')} className={`px-4 py-1.5 transition-all ${layoutMode === 'list' ? `bg-gradient-to-r ${accent} text-white` : `${sub} hover:opacity-70`}`}>📋 List View</button>
-            </div>
+            <GameTabs
+              value={layoutMode}
+              onChange={(v) => setLayoutMode(v)}
+              options={[
+                { id: 'track' as const, label: 'Track View', icon: '🏁' },
+                { id: 'list' as const, label: 'List View', icon: '📋' },
+              ]}
+            />
           </div>
 
           {/* Track shape sub-toggle — As One vs Separate parallel tracks */}
           {layoutMode === 'track' && (
             <div className="pt-2 w-full flex justify-center">
-              <div className={`inline-flex rounded-full border overflow-hidden text-[11px] font-bold ${day ? 'border-slate-200 bg-white/60' : 'border-indigo-700 bg-indigo-950/50'}`}>
-                <button onClick={() => setTrackShape('trail')} className={`px-3 py-1 transition-all ${trackShape === 'trail' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🗺️ Trail Map</button>
-                <button onClick={() => setTrackShape('one')} className={`px-3 py-1 transition-all ${trackShape === 'one' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🛣️ As One</button>
-                <button onClick={() => setTrackShape('separate')} className={`px-3 py-1 transition-all ${trackShape === 'separate' ? (day ? 'bg-slate-800 text-white' : 'bg-indigo-600 text-white') : `${sub} hover:opacity-70`}`}>🏁 Separate Races</button>
-              </div>
+              <GameTabs
+                value={trackShape}
+                onChange={(v) => setTrackShape(v)}
+                options={[
+                  { id: 'trail' as const, label: 'Trail Map', icon: '🗺️' },
+                  { id: 'one' as const, label: 'As One', icon: '🛣️' },
+                  { id: 'separate' as const, label: 'Separate', icon: '🏁' },
+                ]}
+              />
             </div>
           )}
 
@@ -952,42 +993,56 @@ function RacesContent() {
             <div className="w-full max-w-2xl px-2 pt-5 space-y-3">
               {/* Stats (moved to the top) */}
               {gamifiedMode ? (
-                <div className={`${pill} border rounded-xl p-3 shadow-sm`}>
-                  <div className={`font-bold text-xs mb-2 ${txt} flex items-center gap-1`}>✨ Stats</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {stats.map((s, i) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className={`text-[10px] ${sub}`}>{s.name}</span>
-                          <span className={`text-[10px] font-bold ${txt}`}>{s.value} XP</span>
-                        </div>
-                        <div className={`h-1.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'} rounded-full overflow-hidden`}>
-                          <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
-                        </div>
-                      </div>
+                <GamePanel tone="parchment" className="px-4 pt-6 pb-4">
+                  <GameBanner tone="violet">✨ Your Stats</GameBanner>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {stats.map((st, i) => (
+                      <GameMeter
+                        key={i}
+                        label={st.name}
+                        value={st.value}
+                        max={st.max}
+                        tone={
+                          ['linear-gradient(180deg,#a78bfa,#7c3aed)',
+                           'linear-gradient(180deg,#fbbf24,#f59e0b)',
+                           'linear-gradient(180deg,#38bdf8,#0284c7)',
+                           'linear-gradient(180deg,#34d399,#059669)'][i % 4]
+                        }
+                      />
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 mt-2">
-                    <button onClick={() => setGamifiedMode(false)} className={`text-[8px] ${sub} hover:underline`}>Hide stats</button>
-                    <Link href="/stats" className={`text-[8px] font-bold ${day ? 'text-emerald-600' : 'text-emerald-300'} hover:underline`}>See full breakdown →</Link>
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <GameButton size="sm" tone="slate" onClick={() => setGamifiedMode(false)}>Hide</GameButton>
+                    <GameButton size="sm" tone="emerald" href="/stats">Full breakdown →</GameButton>
                   </div>
-                </div>
+                </GamePanel>
               ) : (
-                <button onClick={() => setGamifiedMode(true)} className={`text-[10px] ${sub} hover:underline`}>Show stats</button>
+                <div className="flex justify-center">
+                  <GameButton size="sm" tone="slate" onClick={() => setGamifiedMode(true)}>✨ Show stats</GameButton>
+                </div>
               )}
 
               {/* ResourceHub + Hare World (moved up) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className={`${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
-                  <h4 className={`font-bold text-xs mb-1 ${txt}`}>🏪 ResourceHub</h4>
-                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Curated tools, services &amp; support matched to the barriers you face and your goals.</p>
-                  <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to ResourceHub →</a>
-                </div>
-                <div className={`${day ? 'bg-purple-50/90 border-purple-300' : 'bg-indigo-900/70 border-purple-600'} border-2 rounded-xl shadow-md p-3 flex flex-col`}>
-                  <h4 className={`font-bold text-xs mb-1 ${txt}`}>🐰 Hare World</h4>
-                  <p className={`text-[10px] ${sub} mb-2 flex-1`}>Your role models, mentors &amp; people — see who&apos;s ahead and learn from them.</p>
-                  <Link href="/pit-stop?tab=haveworld&view=people" className={`block text-center text-[10px] font-bold px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-purple-400 to-pink-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>Go to Hare World →</Link>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <GamePanel tone="parchment" className="px-4 pt-6 pb-4 flex flex-col">
+                  <GameBanner tone="amber">🏪 ResourceHub</GameBanner>
+                  <p className="text-[11px] font-medium text-amber-900/80 mb-3 flex-1 text-center">
+                    Curated tools, services &amp; support matched to the barriers you face and your goals.
+                  </p>
+                  <GameButton tone="amber" size="sm" href={goHubHref('/')} className="w-full">
+                    Enter →
+                  </GameButton>
+                </GamePanel>
+
+                <GamePanel tone="rose" className="px-4 pt-6 pb-4 flex flex-col">
+                  <GameBanner tone="violet">🐰 Hare World</GameBanner>
+                  <p className="text-[11px] font-medium text-rose-900/80 mb-3 flex-1 text-center">
+                    Your role models, mentors &amp; people — see who&apos;s ahead and learn from them.
+                  </p>
+                  <GameButton tone="violet" size="sm" href="/pit-stop?tab=haveworld&view=people" className="w-full">
+                    Enter →
+                  </GameButton>
+                </GamePanel>
               </div>
             </div>
 
