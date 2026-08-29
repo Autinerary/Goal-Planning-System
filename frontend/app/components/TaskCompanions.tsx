@@ -72,7 +72,13 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
     const rect = el.getBoundingClientRect()
     grabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
     setDrag({ x: rect.left, y: rect.top })
-    el.setPointerCapture(e.pointerId)
+    // Capture on the element RECEIVING the events — the grip button — not on
+    // the outer wrapper. Capturing the wrong element was the whole bug
+    // (Odosa: "the drag is broken; works on hover instead of drag & drop"):
+    // without capture the button stopped seeing the pointer as soon as it moved
+    // off, so pointerup never fired, `drag` stayed set, and from then on merely
+    // hovering the grip moved the widget.
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -86,7 +92,11 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
   const onPointerUp = (e: React.PointerEvent) => {
     if (!drag) return
     const el = ref.current
-    el?.releasePointerCapture(e.pointerId)
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* already released, or never captured — nothing to undo */
+    }
     const rect = el?.getBoundingClientRect()
     // Snap to whichever corner the widget's centre ended up closest to.
     const cx = (rect?.left ?? 0) + (rect?.width ?? 0) / 2
@@ -95,6 +105,37 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
     const horizontal = cx < window.innerWidth / 2 ? 'left' : 'right'
     park(`${vertical}-${horizontal}` as Corner)
   }
+
+  // Safety net. Pointer capture should make this unnecessary, but a lost
+  // pointerup (a context menu, a dropped touch, the tab losing focus) would
+  // otherwise strand `drag` and leave the widget following the cursor forever —
+  // which is precisely how "drag" turned into "hover" before.
+  useEffect(() => {
+    if (!drag) return
+    const end = () => {
+      // Snap rather than just clearing: dropping the drag alone would send the
+      // widget back to the corner it started in, which reads as the drag being
+      // rejected. Use the same nearest-corner rule as a normal release.
+      const rect = ref.current?.getBoundingClientRect()
+      if (rect) {
+        const vertical = rect.top + rect.height / 2 < window.innerHeight / 2 ? 'top' : 'bottom'
+        const horizontal = rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right'
+        park(`${vertical}-${horizontal}` as Corner)
+      } else {
+        setDrag(null)
+      }
+    }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    window.addEventListener('blur', end)
+    return () => {
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+      window.removeEventListener('blur', end)
+    }
+    // `park` is stable enough for this: it only closes over setState setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag])
 
   // Arrow keys hop between corners, so this is reachable without a pointer.
   const onKeyDown = (e: React.KeyboardEvent) => {
