@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import Markdown from '@/components/community/Markdown'
 import ImageUploader from '@/components/community/ImageUploader'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import Breadcrumbs from '@/components/layout/Breadcrumbs'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -101,7 +104,18 @@ export default function NewPostPage() {
   const canSubmit = blockers.length === 0
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    /* Chrome so this is not a dead end (Odosa) — every community page needs a
+       way back to ResourceHub, not just the feed. */
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <Breadcrumbs
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Tidbits', href: '/community' },
+          { label: 'Ask a question', href: '/community/new' },
+        ]}
+      />
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
       <Link
         href={`/community${contextQuery}`}
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
@@ -330,6 +344,8 @@ export default function NewPostPage() {
           {submitting ? 'Publishing…' : 'Publish question'}
         </button>
       </div>
+      </main>
+      <Footer />
     </div>
   )
 }

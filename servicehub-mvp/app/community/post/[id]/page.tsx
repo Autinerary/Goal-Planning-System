@@ -20,6 +20,9 @@ import ThreadedAnswer from '@/components/community/ThreadedAnswer'
 import AnswerComposer from '@/components/community/AnswerComposer'
 import AcceptSolutionModal from '@/components/community/AcceptSolutionModal'
 import ReportButton from '@/components/community/ReportButton'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import Breadcrumbs from '@/components/layout/Breadcrumbs'
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -110,7 +113,18 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   if (!post) return null
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    /* Chrome so this is not a dead end (Odosa) — every community page needs a
+       way back to ResourceHub, not just the feed. */
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <Breadcrumbs
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Tidbits', href: '/community' },
+          { label: 'Post', href: '/community/post' },
+        ]}
+      />
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
       <Link
         href={`/community${contextQuery}`}
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
@@ -271,6 +285,8 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         onSubmit={onAccept}
         answerExcerpt={acceptTarget?.body_markdown.slice(0, 200)}
       />
+      </main>
+      <Footer />
     </div>
   )
 }

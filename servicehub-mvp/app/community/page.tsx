@@ -15,6 +15,10 @@ import {
 } from 'lucide-react'
 import type { CommunityPostSummary, FeedSort } from '@/types/community'
 import BadgeList from '@/components/community/BadgeList'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import Breadcrumbs from '@/components/layout/Breadcrumbs'
+import TidbitsFilterSidebar from '@/components/community/TidbitsFilterSidebar'
 
 interface FeedResponse {
   posts: CommunityPostSummary[]
@@ -39,7 +43,15 @@ function FeedInner() {
   const context = searchParams?.get('context') ?? ''
 
   const [q, setQ] = useState(initialQ)
-  const [barrier, setBarrier] = useState(initialBarrier)
+  // Multi-select now (Odosa: same filter list as ResourceHub). The URL still
+  // carries a comma-separated `barrier`, so existing single-value links from
+  // Goal Planning keep working.
+  const [barriers, setBarriers] = useState<string[]>(
+    initialBarrier ? initialBarrier.split(',').filter(Boolean) : []
+  )
+  const [conditions, setConditions] = useState<string[]>([])
+  const [lifeAreas, setLifeAreas] = useState<string[]>([])
+  const [showFilters, setShowFilters] = useState(false)
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +91,12 @@ function FeedInner() {
     const params = new URLSearchParams()
     params.set('sort', sort)
     if (q) params.set('q', q)
-    if (barrier) params.set('barrier', barrier)
+    // Conditions are norm tokens too ('autism:level_2'); send the base norm so
+    // a level selection still narrows the feed rather than matching nothing.
+    const normTokens = [...barriers, ...conditions.map((c) => c.split(':')[0])]
+    const uniqueNorms = Array.from(new Set(normTokens.filter(Boolean)))
+    if (uniqueNorms.length) params.set('barrier', uniqueNorms.join(','))
+    if (lifeAreas.length) params.set('category', lifeAreas.join(','))
     fetch(`/api/community/posts?${params.toString()}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`Load failed (${res.status})`)
@@ -95,11 +112,41 @@ function FeedInner() {
     return () => {
       cancelled = true
     }
-  }, [sort, q, barrier])
+  }, [sort, q, barriers, conditions, lifeAreas])
+
+  const activeFilterCount = barriers.length + conditions.length + lifeAreas.length
+
+  const toggleIn = (list: string[], value: string) =>
+    list.includes(value) ? list.filter((x) => x !== value) : [...list, value]
+
+  const clearFilters = () => {
+    setBarriers([])
+    setConditions([])
+    setLifeAreas([])
+  }
+
+  const filterPanel = (
+    <TidbitsFilterSidebar
+      barriers={barriers}
+      conditions={conditions}
+      lifeAreas={lifeAreas}
+      onBarrierToggle={(b) => setBarriers((cur) => toggleIn(cur, b))}
+      onConditionsChange={setConditions}
+      onLifeAreaToggle={(a) => setLifeAreas((cur) => toggleIn(cur, a))}
+      onClear={clearFilters}
+    />
+  )
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+    /* Odosa: "Tabs above from ResourceHub are completely missing; how will a
+       user get back to ResourceHub from here?" — Tidbits rendered no Navbar,
+       so it was a dead end. Same chrome and same sidebar layout as search, so
+       the two read as one product rather than two apps. */
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Tidbits', href: '/community' }]} />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-emerald-600" />
@@ -116,8 +163,19 @@ function FeedInner() {
           <Plus className="w-4 h-4" />
           Ask a question
         </Link>
-      </div>
+        </div>
 
+        <div className="flex gap-8">
+          {/* Filters — same taxonomy as ResourceHub search, minus everything
+              that only applies to a place you visit (cost, distance, rating,
+              resource type). A post has no price and no address. */}
+          <aside className="hidden lg:block lg:w-64 shrink-0">
+            <div className="sticky top-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              {filterPanel}
+            </div>
+          </aside>
+
+          <div className="flex-1 min-w-0">
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -131,15 +189,18 @@ function FeedInner() {
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <input
-          type="text"
-          value={barrier}
-          onChange={(e) => setBarrier(e.target.value.toLowerCase())}
-          onBlur={() => setQuery({ barrier })}
-          onKeyDown={(e) => e.key === 'Enter' && setQuery({ barrier })}
-          placeholder="Filter by norm"
-          className="sm:w-56 px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-xs font-semibold">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
       </div>
 
       <nav className="flex flex-wrap gap-1 mb-4 border-b border-gray-200">
@@ -160,11 +221,53 @@ function FeedInner() {
         ))}
       </nav>
 
+      {/* Mobile filter drawer — the sidebar is hidden under lg */}
+      {showFilters && (
+        <div className="lg:hidden mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          {filterPanel}
+        </div>
+      )}
+
       {loading && <p className="text-sm text-gray-500">Loading…</p>}
       {error && <p className="text-sm text-rose-600">{error}</p>}
       {!loading && !error && posts.length === 0 && (
-        <div className="text-center py-12 text-gray-500 text-sm">
-          No posts yet. Be the first to ask something — or share what worked for you.
+        /* Odosa: "honestly the whole thing is empty". It genuinely is — there
+           are no posts yet — so rather than a bare line, say what this is for
+           and give people the two things they can actually do from here. */
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
+          <MessageCircleQuestion className="w-8 h-8 mx-auto text-gray-300 mb-3" aria-hidden="true" />
+          <h2 className="text-base font-semibold text-gray-900">
+            {activeFilterCount > 0 || q ? 'Nothing matches those filters yet' : 'No tidbits yet'}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1 max-w-md mx-auto">
+            {activeFilterCount > 0 || q
+              ? 'Try widening your filters — the community is still small, so narrow searches often come up empty.'
+              : 'Tidbits is where people work through the things a resource listing never tells you. Ask what you are stuck on, or share what finally worked.'}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {(activeFilterCount > 0 || q) && (
+              <button
+                type="button"
+                onClick={() => { clearFilters(); setQ(''); setQuery({ q: '' }) }}
+                className="px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Clear filters
+              </button>
+            )}
+            <Link
+              href={withOriginContext('/community/new')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              Ask a question
+            </Link>
+            <Link
+              href="/search"
+              className="px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Browse ResourceHub
+            </Link>
+          </div>
         </div>
       )}
 
@@ -244,7 +347,11 @@ function FeedInner() {
             </Link>
           </li>
         ))}
-      </ul>
+        </ul>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

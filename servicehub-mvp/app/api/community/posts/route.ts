@@ -37,8 +37,15 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const sort = parseSort(url.searchParams.get('sort'));
   const q = url.searchParams.get('q')?.trim() || null;
-  const barrier = url.searchParams.get('barrier')?.trim() || null;
-  const category = url.searchParams.get('category')?.trim() || null;
+  // Accept comma-separated lists so the filter sidebar can multi-select.
+  // Single values still work — the old `?barrier=autism` links are unchanged.
+  const parseList = (v: string | null): string[] =>
+    (v || '')
+      .split(',')
+      .map((x) => x.trim().toLowerCase())
+      .filter(Boolean);
+  const barriers = parseList(url.searchParams.get('barrier'));
+  const categories = parseList(url.searchParams.get('category'));
   const author = url.searchParams.get('author')?.trim() || null;
   const pageRaw = parseInt(url.searchParams.get('page') ?? '1', 10);
   const sizeRaw = parseInt(url.searchParams.get('page_size') ?? '20', 10);
@@ -53,8 +60,10 @@ export async function GET(request: NextRequest) {
     )
     .eq('is_deleted', false);
 
-  if (barrier) query = query.contains('barrier_tags', [barrier]);
-  if (category) query = query.contains('category_tags', [category]);
+  // overlaps, not contains: selecting three norms should widen the results
+  // (posts matching ANY of them), not demand a post carry all three.
+  if (barriers.length) query = query.overlaps('barrier_tags', barriers);
+  if (categories.length) query = query.overlaps('category_tags', categories);
   if (author) query = query.eq('author_id', author);
   if (q) query = query.or(`title.ilike.%${q}%,body_markdown.ilike.%${q}%`);
   if (sort === 'unanswered') query = query.eq('answer_count', 0);
