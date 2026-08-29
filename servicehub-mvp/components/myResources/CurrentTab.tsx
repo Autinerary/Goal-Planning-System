@@ -5,6 +5,7 @@ import { Star, Trash2, Calendar, Plus } from 'lucide-react'
 import Link from 'next/link'
 import ResourceCard from '@/components/resources/ResourceCard'
 import ResourceNote from './ResourceNote'
+import CategoryFilter, { type ResourceGroup, groupForCategory } from './CategoryFilter'
 import EmptyState from '@/components/feedback/EmptyState'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import { showToast } from '@/lib/toast'
@@ -28,6 +29,9 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
   const [loading, setLoading] = useState(true)
   const [sort, setSort] = useState<SortOption>('date')
   const [categoryFilter, setCategoryFilter] = useState<FilterOption>(null)
+  // Layer 1 of the filter (Odosa). Held separately from categoryFilter so the
+  // API contract is unchanged — the server still only ever receives a category.
+  const [group, setGroup] = useState<ResourceGroup>('all')
   const [categories, setCategories] = useState<string[]>([])
 
   useEffect(() => {
@@ -168,35 +172,13 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
     <div className="space-y-6">
       {/* Filters and Sort */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          {categories.length > 0 && (
-            <>
-              <button
-                onClick={() => setCategoryFilter(null)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  categoryFilter === null
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                All Categories
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors capitalize ${
-                    categoryFilter === category
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </>
-          )}
-        </div>
+        <CategoryFilter
+          categories={categories}
+          group={group}
+          category={categoryFilter}
+          onGroupChange={setGroup}
+          onCategoryChange={setCategoryFilter}
+        />
 
         <select
           value={sort}
@@ -211,7 +193,16 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
 
       {/* Resources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resources.map((savedResource) => {
+        {resources
+          .filter((sr) => {
+            // Layer 1 is applied here rather than server-side: the saved
+            // resources endpoint takes a single category, and adding a
+            // group param would mean changing a contract four tabs share.
+            if (group === 'all') return true
+            const cat = (sr.resource?.category as string) || ''
+            return groupForCategory(cat) === group
+          })
+          .map((savedResource) => {
           const resource = savedResource.resource
           return (
             <div key={savedResource.id} className="relative">
