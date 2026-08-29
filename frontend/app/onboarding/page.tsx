@@ -13,19 +13,8 @@ import {
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
-import dynamic from 'next/dynamic'
 import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
-// three.js touches window and is ~600KB — never SSR it, never ship it
-// in the initial bundle for pages that show no character.
-const Character3D = dynamic(() => import('@/app/components/Character3D'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full rounded-2xl bg-gradient-to-b from-blue-100 to-fuchsia-100 grid place-items-center" style={{ height: 340 }}>
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
-    </div>
-  ),
-})
 import { playPageTurnSound } from '@/lib/taskSound'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
@@ -1399,16 +1388,7 @@ export default function OnboardingPage() {
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
                     <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
-                      <div className="w-full max-w-[380px]">
-                        <Character3D
-                          bodyType={formData.bodyType}
-                          hairStyle={formData.hairStyle}
-                          hairColor={formData.hairColor}
-                          skinColor={formData.skinColor}
-                          height={340}
-                        />
-                        <p className="mt-2 text-center text-xs text-slate-500">Drag to turn your character around</p>
-                      </div>
+                      <UserAvatar hairStyle={formData.hairStyle} hairColor={formData.hairColor} skinColor={formData.skinColor} size={120} />
                       <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
                         {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
                         {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
