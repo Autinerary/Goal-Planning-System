@@ -14,7 +14,7 @@ import { playTaskCompleteSound } from '../../../lib/taskSound'
 /*
   TASK VIEW — matches whiteboard sketch:
   ┌──────────┬─────────────────────┬──────────┐
-  │ Today's  │   ┌─── awning ───┐  │ Today's  │
+  │ Today's  │   │  stage area  │  │ Today's  │
   │ Tasks/   │   │  stage area  │  │ Goals:   │
   │ Hack:    │   │              │  │          │
   │ - task 🔒│   │              │  │ - goal 🔒│
@@ -271,7 +271,8 @@ function TaskViewContent() {
           </div>
 
           {/* === Three-column layout: Tasks | Stage | Goals === */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_1fr] min-h-[400px]">
+          {/* Three EQUAL columns, matching the task list view (Odosa). */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 min-h-[400px]">
 
             {/* LEFT PANEL — Today's Tasks / Hack: */}
             <div className="border-r-0 md:border-r-2 border-b-2 md:border-b-0 border-slate-200 p-4 flex flex-col">

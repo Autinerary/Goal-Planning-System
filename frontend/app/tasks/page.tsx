@@ -12,7 +12,7 @@ import { playTaskCompleteSound } from '../../lib/taskSound'
 /*
   TASK VIEW — matches whiteboard sketch:
   ┌──────────┬─────────────────────┬──────────┐
-  │ Today's  │   ┌─── awning ───┐  │ Today's  │
+  │ Today's  │   │  stage area  │  │ Today's  │
   │ Tasks/   │   │  stage area  │  │ Goals:   │
   │ Hack:    │   │              │  │          │
   │ - task 🔒│   │              │  │ - goal 🔒│
@@ -154,7 +154,12 @@ export default function TasksPage() {
         <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl shadow-2xl overflow-hidden">
 
           {/* === Three-column layout: Tasks | Stage | Goals === */}
-          <div className="grid grid-cols-[1fr_1.4fr_1fr] min-h-[480px]">
+          {/* Three EQUAL columns (Odosa: "make all 3 sections even, instead of
+              how Today's Tasks/Hack takes up most of the space"). The centre
+              column was 1.4fr; on a narrow screen that plus the side columns
+              squeezed the task text into a sliver. Stacks on mobile, where
+              three columns cannot be even in any useful sense. */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 min-h-[480px]">
 
             {/* LEFT PANEL — Today's Tasks / Hack: */}
             <div className="border-r-2 border-slate-200 p-4 flex flex-col">
@@ -192,22 +197,12 @@ export default function TasksPage() {
               </div>
             </div>
 
-            {/* CENTER — Awning / Stage / Bunny */}
+            {/* CENTER — Stage / Bunny */}
             <div className="flex flex-col relative">
-              {/* Awning / Canopy */}
-              <div className="relative">
-                {/* Striped awning — static. (Was animated with a constantly
-                    scrolling gradient, which read as a glitchy orange-white
-                    moving tab — Odosa's bug.) */}
-                <div
-                  className="h-14 rounded-b-[40%]"
-                  style={{
-                    background: 'repeating-linear-gradient(90deg, #f97316 0px, #f97316 20px, #ffffff 20px, #ffffff 40px)',
-                  }}
-                />
-                {/* Awning shadow */}
-                <div className="h-3 bg-gradient-to-b from-black/10 to-transparent" />
-              </div>
+              {/* The striped orange-and-white awning that used to sit here is
+                  gone (Odosa). It was decoration that read as a rendering
+                  glitch, and on a narrow screen it ate the vertical space the
+                  mascot and progress actually need. */}
 
               {/* Stage area */}
               <div className="flex-1 flex flex-col items-center justify-center px-6">
