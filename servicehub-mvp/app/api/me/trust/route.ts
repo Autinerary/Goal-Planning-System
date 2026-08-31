@@ -18,18 +18,28 @@ export async function GET() {
   } = await supabase.auth.getUser()
 
   const empty = {
+    userId: null as string | null,
     trust: { ratingsCount: 0, helpfulTotal: 0, karma: 0, tier: 'new' as TrustTier },
-    norms: [] as { type: string; severity: number; method: VerificationMethod; relationship: string; relationshipDeclared: boolean }[],
+    norms: [] as { type: string; severity: number; method: VerificationMethod; relationship: string; relationshipDeclared: boolean; peerVouches: number }[],
   }
   if (!user) return NextResponse.json(empty)
 
-  const [{ data: trustRows }, { data: normRows }] = await Promise.all([
+  const [{ data: trustRows }, { data: normRows }, { data: vouchRows }] = await Promise.all([
     supabase.rpc('rater_trust', { p_user_id: user.id }),
     supabase
       .from('user_barriers')
       .select('barrier_type, severity, verification_method, relationship, relationship_declared')
       .eq('user_id', user.id),
+    // How many peers have vouched for each norm, so the UI can show progress
+    // towards the badge rather than a threshold the user cannot see.
+    supabase.from('peer_vouches').select('barrier_type').eq('vouchee_id', user.id),
   ])
+
+  const vouchCounts = new Map<string, number>()
+  for (const v of (vouchRows || []) as any[]) {
+    const k = String(v.barrier_type || '').trim().toLowerCase()
+    vouchCounts.set(k, (vouchCounts.get(k) || 0) + 1)
+  }
 
   const row: any = Array.isArray(trustRows) ? trustRows[0] : trustRows
   const trust: RaterTrust = {
@@ -48,8 +58,10 @@ export async function GET() {
       relationship: String(b.relationship || 'lived'),
       // FALSE means we never asked — the UI prompts instead of assuming.
       relationshipDeclared: !!b.relationship_declared,
+      peerVouches: 0,
     }))
     .filter((n) => n.type)
+    .map((n) => ({ ...n, peerVouches: vouchCounts.get(n.type) || 0 }))
 
-  return NextResponse.json({ trust, norms })
+  return NextResponse.json({ userId: user.id, trust, norms })
 }

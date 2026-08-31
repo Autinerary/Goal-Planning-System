@@ -11,6 +11,7 @@ interface Norm {
   method: VerificationMethod
   relationship: string
   relationshipDeclared: boolean
+  peerVouches?: number
 }
 
 const NORM_LABELS: Record<string, string> = {
@@ -30,6 +31,8 @@ const normLabel = (t: string) =>
  */
 export default function NormVerification() {
   const [norms, setNorms] = useState<Norm[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
+  const [peerLink, setPeerLink] = useState<{ url: string; forNorm: string } | null>(null)
   const [trust, setTrust] = useState<RaterTrust | null>(null)
   const [loading, setLoading] = useState(true)
   const [link, setLink] = useState<{ url: string; forNorm: string } | null>(null)
@@ -43,6 +46,7 @@ export default function NormVerification() {
       .then((j) => {
         if (Array.isArray(j?.norms)) setNorms(j.norms)
         if (j?.trust) setTrust(j.trust)
+        if (j?.userId) setUserId(j.userId)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -177,15 +181,41 @@ export default function NormVerification() {
                     </div>
                   </div>
                 </div>
-                {n.method !== 'professional' && (
-                  <button
-                    onClick={() => requestLink(n.type)}
-                    disabled={busy === n.type}
-                    className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-                  >
-                    {busy === n.type ? 'Creating…' : 'Get verification link'}
-                  </button>
-                )}
+                <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
+                  {n.method !== 'professional' && (
+                    <button
+                      onClick={() => requestLink(n.type)}
+                      disabled={busy === n.type}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                    >
+                      {busy === n.type ? 'Creating…' : 'Get verification link'}
+                    </button>
+                  )}
+                  {/* Peers can confirm a norm too. Only offered for lived
+                      experience — an ally has nothing to be vouched for here. */}
+                  {n.relationship === 'lived' &&
+                    !['professional', 'organization'].includes(n.method) && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setPeerLink({
+                              url: `${window.location.origin}/vouch?user=${encodeURIComponent(userId || '')}&norm=${encodeURIComponent(n.type)}`,
+                              forNorm: n.type,
+                            })
+                          }
+                          disabled={!userId}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-sky-300 text-sky-700 hover:bg-sky-50 disabled:opacity-50"
+                        >
+                          Ask a peer
+                        </button>
+                        {typeof n.peerVouches === 'number' && n.peerVouches > 0 && n.method !== 'peer' && (
+                          <span className="text-[10px] text-gray-500">
+                            {n.peerVouches} of 2 vouches
+                          </span>
+                        )}
+                      </>
+                    )}
+                </div>
               </li>
             )
           })}
@@ -193,6 +223,36 @@ export default function NormVerification() {
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {peerLink && (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3">
+          <p className="text-xs text-sky-900 mb-2">
+            Send this to someone who shares <strong>{normLabel(peerLink.forNorm)}</strong> and
+            knows you. Two peers need to confirm before the badge appears. They must have
+            lived experience of it themselves — the link won&apos;t work otherwise.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              readOnly
+              value={peerLink.url}
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-sky-300 bg-white text-gray-700"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(peerLink.url).then(
+                  () => { setCopied(true); setTimeout(() => setCopied(false), 2000) },
+                  () => {}
+                )
+              }}
+              className="flex-shrink-0 p-1.5 rounded-lg border border-sky-300 text-sky-700 hover:bg-white"
+              aria-label="Copy peer vouch link"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      )}
 
       {link && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
