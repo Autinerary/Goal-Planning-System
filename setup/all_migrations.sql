@@ -2918,5 +2918,51 @@ CREATE POLICY product_reviews_write ON public.product_reviews
 COMMENT ON COLUMN public.product_reviews.rater_diagnostics IS
   'Snapshot of { barrier_type: severity } for the reviewer at review time. Powers the diagnostics breakdown without cross-user reads.';
 
+-- =============================================================================
+-- STEP 24 — servicehub-mvp/scripts/2026_peer_vouches.sql
+-- =============================================================================
+-- Peer vouching. verification_method='peer' has existed in the CHECK constraint
+-- and had a full UI badge ("Other members who share this norm have vouched for
+-- this person") since STEP 20, but nothing ever wrote it — so the badge could
+-- never appear. This is the ledger that makes it real.
+--
+-- Why a ledger rather than a flag: a single vouch is weak, and the vouch must
+-- be revocable and auditable. We need to count DISTINCT vouchers per norm, and
+-- know who they were, to resist two accounts vouching for each other.
+--
+-- Deliberately stores no diagnosis, no document and no free text — the same
+-- rule as organisation vouching. Only WHO vouched, for WHOM, on WHICH norm.
+CREATE TABLE IF NOT EXISTS public.peer_vouches (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  voucher_id   UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  vouchee_id   UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  barrier_type TEXT NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- One vouch per person per norm. Re-vouching must not inflate the count.
+  CONSTRAINT peer_vouches_unique UNIQUE (voucher_id, vouchee_id, barrier_type),
+  -- Self-vouching would make the whole mechanism meaningless.
+  CONSTRAINT peer_vouches_not_self CHECK (voucher_id <> vouchee_id)
+);
+
+CREATE INDEX IF NOT EXISTS peer_vouches_vouchee_idx
+  ON public.peer_vouches (vouchee_id, barrier_type);
+CREATE INDEX IF NOT EXISTS peer_vouches_voucher_idx
+  ON public.peer_vouches (voucher_id);
+
+ALTER TABLE public.peer_vouches ENABLE ROW LEVEL SECURITY;
+
+-- Anyone signed in can see that a vouch exists (the badge is public), but only
+-- the voucher can create or withdraw their own.
+DROP POLICY IF EXISTS peer_vouches_read ON public.peer_vouches;
+CREATE POLICY peer_vouches_read ON public.peer_vouches
+  FOR SELECT USING (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS peer_vouches_write ON public.peer_vouches;
+CREATE POLICY peer_vouches_write ON public.peer_vouches
+  FOR ALL USING (voucher_id = auth.uid()) WITH CHECK (voucher_id = auth.uid());
+
+COMMENT ON TABLE public.peer_vouches IS
+  'Members with lived experience of a norm vouching that another member shares it. No diagnosis, no documents — only who, for whom, on which norm.';
+
 
 COMMIT;
