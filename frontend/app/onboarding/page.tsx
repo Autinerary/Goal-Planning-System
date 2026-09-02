@@ -124,7 +124,8 @@ const goalCategories = [
   { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
   { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
   { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
-  { id: 'barrier', label: 'Barrier-Specific', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
+  // Odosa: never show the word "barrier". The id stays for data matching.
+  { id: 'barrier', label: 'Norms', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
   { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
 ]
 

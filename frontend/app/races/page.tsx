@@ -11,6 +11,7 @@ import { computeRaceProgress } from '@/lib/raceProgress'
 import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
+import LaneTrail from '../components/LaneTrail'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
 
 /*
@@ -401,11 +402,13 @@ function RacesContent() {
   // Shared dimension metadata — single source of truth for the checklist
   // tabs and the "Separate" parallel-tracks view.
   const dimMeta = [
-    { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' },
-    { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' },
-    { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' },
-    { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' },
-    { key: 'barrier',       label: 'Barrier-Specific',   emoji: '🛡️', goal: 'Navigate barriers with support',       tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800' },
+    { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' , accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065' },
+    { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' , accent: '#d97706', node: '#7c2d12', nodeDark: '#431407' },
+    { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' , accent: '#db2777', node: '#831843', nodeDark: '#500724' },
+    { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' , accent: '#059669', node: '#064e3b', nodeDark: '#022c22' },
+    // Odosa: the word "barrier" must never appear in the UI. The KEY stays
+    // 'barrier' because agent output and stored rows are matched on it.
+    { key: 'barrier',       label: 'Norms',              emoji: '🛡️', goal: 'Navigate norms with support',          tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800', accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065' },
   ]
 
   // Real agent-derived schedule (fallback to mock if no path data yet)
@@ -1562,27 +1565,18 @@ function RacesContent() {
                       <div className={`h-1.5 ${day ? 'bg-white/70' : 'bg-indigo-900/60'} rounded-full overflow-hidden mb-2`}>
                         <div className={`h-full rounded-full bg-gradient-to-r ${accent}`} style={{ width: `${pct}%` }} />
                       </div>
-                      <div className="relative pl-4">
-                        <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
-                        {steps.map((step, i) => {
-                          const isCompleted = completedMilestoneIds.has(step.id)
-                          return (
-                            <button
-                              key={step.id}
-                              onClick={() => toggleMilestoneComplete(step.id)}
-                              className={`relative w-full text-left mb-1.5 p-1.5 rounded-lg border transition-all ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : step.status === 'active' ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}
-                            >
-                              <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
-                              <div className="flex items-center gap-1 mb-0.5">
-                                <span className="text-[8px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
-                                <span className={`text-[7px] font-mono ${sub}`}>Step {i + 1}</span>
-                                {step.status === 'active' && !isCompleted && <span className="text-[7px] font-bold text-amber-500 ml-auto">HERE</span>}
-                              </div>
-                              <div className={`text-[9px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
-                            </button>
-                          )
-                        })}
-                      </div>
+                      {/* Same level-map language as the Trail Map view.
+                          "Separate" was flat cards, so one path looked like a
+                          game in one view and a spreadsheet in another. */}
+                      <LaneTrail
+                        steps={steps.map((st) => ({ id: st.id, name: st.name }))}
+                        completedIds={completedMilestoneIds}
+                        accent={dim.accent}
+                        node={dim.node}
+                        nodeDark={dim.nodeDark}
+                        day={day}
+                        onSelect={(st) => router.push(`/milestones/${st.id}`)}
+                      />
                     </div>
                   )
                 })}
