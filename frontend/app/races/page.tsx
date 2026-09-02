@@ -11,7 +11,7 @@ import { computeRaceProgress } from '@/lib/raceProgress'
 import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
-import LaneTrail from '../components/LaneTrail'
+import LaneWorld from '../components/LaneWorld'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
 
 /*
@@ -402,13 +402,13 @@ function RacesContent() {
   // Shared dimension metadata — single source of truth for the checklist
   // tabs and the "Separate" parallel-tracks view.
   const dimMeta = [
-    { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' , accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065' },
-    { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' , accent: '#d97706', node: '#7c2d12', nodeDark: '#431407' },
-    { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' , accent: '#db2777', node: '#831843', nodeDark: '#500724' },
-    { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' , accent: '#059669', node: '#064e3b', nodeDark: '#022c22' },
+    { key: 'education',     label: 'Education',          emoji: '🎓', goal: 'Graduate & build a strong foundation', tint: 'from-sky-50 to-white border-sky-200',         tintDark: 'from-sky-900/40 to-indigo-950/60 border-sky-800' , accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065', band: '#e6d9fb', ground: '#cbb6ee' },
+    { key: 'workplace',     label: 'Workplace',          emoji: '💼', goal: 'Land a fulfilling, flexible job',      tint: 'from-amber-50 to-white border-amber-200',     tintDark: 'from-amber-900/40 to-indigo-950/60 border-amber-800' , accent: '#d97706', node: '#7c2d12', nodeDark: '#431407', band: '#fbe6c4', ground: '#eecfa0' },
+    { key: 'relationships', label: 'Relationships',      emoji: '🤝', goal: 'Build a supportive circle',            tint: 'from-pink-50 to-white border-pink-200',       tintDark: 'from-pink-900/40 to-indigo-950/60 border-pink-800' , accent: '#db2777', node: '#831843', nodeDark: '#500724', band: '#fbd3e3', ground: '#f2b3cd' },
+    { key: 'health',        label: 'Health & Lifestyle', emoji: '🌱', goal: 'Feel balanced & energized',           tint: 'from-emerald-50 to-white border-emerald-200', tintDark: 'from-emerald-900/40 to-indigo-950/60 border-emerald-800' , accent: '#059669', node: '#064e3b', nodeDark: '#022c22', band: '#c9eede', ground: '#a3ddc5' },
     // Odosa: the word "barrier" must never appear in the UI. The KEY stays
     // 'barrier' because agent output and stored rows are matched on it.
-    { key: 'barrier',       label: 'Norms',              emoji: '🛡️', goal: 'Navigate norms with support',          tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800', accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065' },
+    { key: 'barrier',       label: 'Norms',              emoji: '🛡️', goal: 'Navigate norms with support',          tint: 'from-violet-50 to-white border-violet-200',   tintDark: 'from-violet-900/40 to-indigo-950/60 border-violet-800', accent: '#7c3aed', node: '#4c1d95', nodeDark: '#2e1065', band: '#e6d9fb', ground: '#cbb6ee' },
   ]
 
   // Real agent-derived schedule (fallback to mock if no path data yet)
@@ -1549,42 +1549,34 @@ function RacesContent() {
               <FanOut count={5} />
               <div className={`text-center mb-3 text-[10px] ${sub}`}>Each life dimension runs as its own parallel track</div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {dimMeta.map(dim => {
+              {/* One painted world, five territories. Previously a grid of
+                  white cards with headers and progress bars — which kept it a
+                  dashboard with round buttons in it. A level map has no cards:
+                  the world is the background and the tracks run through it. */}
+              <LaneWorld
+                completedIds={completedMilestoneIds}
+                day={day}
+                onSelect={(_k, st) => router.push(`/milestones/${st.id}`)}
+                lanes={dimMeta.map(dim => {
                   const dimMs = milestones.filter((m: any) => _normDim(m.dimension) === dim.key)
-                  const steps: { id: string; name: string; status: 'active' | 'upcoming' | 'far' }[] = dimMs.length
-                    ? dimMs.map((m: any) => ({ id: m.id, name: m.name, status: m.status }))
+                  const steps = dimMs.length
+                    ? dimMs.map((m: any) => ({ id: m.id, name: m.name }))
                     : dim.key === 'barrier'
-                      ? recommendedChoices.filter(c => c.id !== 'see').map((c, idx) => ({ id: c.id, name: c.name, status: (idx === 0 ? 'active' : idx < 2 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far' }))
-                      : [{ id: `${dim.key}-ph`, name: 'Getting started', status: 'active' as const }]
-                  const done = steps.filter(s => completedMilestoneIds.has(s.id)).length
-                  const pct = Math.round((done / steps.length) * 100)
-                  return (
-                    <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm`}>
-                      <div className={`flex items-center gap-1.5 font-bold text-[11px] mb-1 ${txt}`}>
-                        <span className="text-base">{dim.emoji}</span>
-                        <span className="uppercase tracking-wider truncate">{dim.label}</span>
-                      </div>
-                      <div className={`text-[9px] font-bold mb-1.5 ${txt} leading-snug`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
-                      <div className={`h-1.5 ${day ? 'bg-white/70' : 'bg-indigo-900/60'} rounded-full overflow-hidden mb-2`}>
-                        <div className={`h-full rounded-full bg-gradient-to-r ${accent}`} style={{ width: `${pct}%` }} />
-                      </div>
-                      {/* Same level-map language as the Trail Map view.
-                          "Separate" was flat cards, so one path looked like a
-                          game in one view and a spreadsheet in another. */}
-                      <LaneTrail
-                        steps={steps.map((st) => ({ id: st.id, name: st.name }))}
-                        completedIds={completedMilestoneIds}
-                        accent={dim.accent}
-                        node={dim.node}
-                        nodeDark={dim.nodeDark}
-                        day={day}
-                        onSelect={(st) => router.push(`/milestones/${st.id}`)}
-                      />
-                    </div>
-                  )
+                      ? recommendedChoices.filter(c => c.id !== 'see').map(c => ({ id: c.id, name: c.name }))
+                      : [{ id: `${dim.key}-ph`, name: 'Getting started' }]
+                  return {
+                    key: dim.key,
+                    label: dim.label,
+                    emoji: dim.emoji,
+                    accent: dim.accent,
+                    node: dim.node,
+                    nodeDark: dim.nodeDark,
+                    band: dim.band,
+                    ground: dim.ground,
+                    steps,
+                  }
                 })}
-              </div>
+              />
 
               <FanIn count={5} />
               {/* Shared finish line */}
