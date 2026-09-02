@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2 } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2, Check, Lock } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
@@ -486,8 +486,12 @@ function RacesContent() {
   // "You are here", and it also decides which grid row the Pit Stop and
   // Current Goals panels sit in, so they flank the path beside it.
   const trackStops = milestones.slice(0, 5)
-  const _activeStop = trackStops.findIndex((m: any) => m.status === 'active')
-  const currentStopIdx = _activeStop >= 0 ? _activeStop : 0
+  // Where you actually are: the first stop you have NOT finished. This used to
+  // read the backend `status` flag, which is always index 0, and "done" was
+  // derived from array position rather than from what you had ticked off — so
+  // a completed stop further along still rendered as pending.
+  const _firstUnfinishedStop = trackStops.findIndex((m: any) => !completedMilestoneIds.has(m.id))
+  const currentStopIdx = _firstUnfinishedStop === -1 ? Math.max(trackStops.length - 1, 0) : _firstUnfinishedStop
 
   const css = `
     @keyframes rocketFly{0%{transform:translateY(100vh) rotate(-15deg) scale(.5);opacity:0}30%{opacity:1;transform:translateY(30vh) rotate(-5deg) scale(1)}60%{transform:translateY(-10vh) rotate(5deg) scale(1.1)}100%{transform:translateY(-120vh) rotate(0) scale(.3);opacity:0}}
@@ -1695,8 +1699,9 @@ function RacesContent() {
               {/* CENTRE: the path — one grid row per stop, so the flanking
                   panels can line up with whichever dot is current. */}
               {trackStops.map((stop: any, i: number) => {
-                const isCurrent = i === currentStopIdx
-                const isDone = i < currentStopIdx
+                const isDone = completedMilestoneIds.has(stop.id)
+                const isCurrent = i === currentStopIdx && !isDone
+                const isLocked = !isDone && i > currentStopIdx
                 return (
                   <div key={stop.id} className="flex flex-col items-center" style={{ gridColumn: 2, gridRow: i + 1 }}>
                     {/* Road segment joining this dot to the one above it. */}
@@ -1705,25 +1710,61 @@ function RacesContent() {
                         <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-white/70" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, currentColor 0 6px, transparent 6px 12px)' }} />
                       </div>
                     )}
-                    <button onClick={() => router.push('/milestones')} className="group flex items-center gap-2 py-1">
+                    <button
+                      type="button"
+                      // Every stop pushed to /milestones, so all five led to
+                      // the same screen. Open the one that was clicked.
+                      disabled={isLocked}
+                      onClick={() => !isLocked && router.push(`/milestones/${stop.id}`)}
+                      title={isLocked ? 'Finish the step before this one first' : stop.name}
+                      className={`group flex items-center gap-2 py-1 ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {/* Same node language as the Trail Map, so a stop reads
+                          the same way whichever view you are in. */}
                       <span
-                        className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${
-                          isCurrent
-                            ? 'bg-amber-400 border-amber-500 ring-4 ring-amber-200'
-                            : isDone
-                            ? 'bg-sky-400 border-sky-500'
-                            : day ? 'bg-white border-slate-300' : 'bg-indigo-950 border-indigo-600'
+                        className={`relative grid place-items-center w-9 h-9 rounded-full flex-shrink-0 transition-transform ${
+                          isLocked ? '' : 'group-hover:scale-110 group-active:scale-95'
                         }`}
-                      />
-                      <div className={`text-left rounded-lg border px-3 py-2 shadow-sm min-w-[190px] transition-all group-hover:shadow-md ${isCurrent ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600') : pill}`}>
+                        style={{
+                          background: isDone
+                            ? 'linear-gradient(160deg,#34d399,#059669)'
+                            : isLocked
+                            ? 'linear-gradient(160deg,#cbd5e1,#94a3b8)'
+                            : 'linear-gradient(160deg,#4c1d95,#2e1065)',
+                          boxShadow: isCurrent
+                            ? '0 4px 0 #2e1065, 0 7px 12px rgba(0,0,0,.3), 0 0 0 4px rgba(255,255,255,.92)'
+                            : '0 3px 0 rgba(0,0,0,.26), 0 5px 9px rgba(0,0,0,.22)',
+                        }}
+                      >
+                        <span
+                          className="absolute inset-x-1.5 top-1 h-2.5 rounded-full"
+                          style={{ background: 'linear-gradient(180deg,rgba(255,255,255,.45),transparent)' }}
+                          aria-hidden="true"
+                        />
+                        {isDone ? (
+                          <Check className="w-4 h-4 text-white drop-shadow" aria-hidden="true" />
+                        ) : isLocked ? (
+                          <Lock className="w-3.5 h-3.5 text-white/90" aria-hidden="true" />
+                        ) : (
+                          <span className="text-[11px] font-black text-white tabular-nums" style={{ textShadow: '0 1px 0 rgba(0,0,0,.45)' }}>
+                            {i + 1}
+                          </span>
+                        )}
+                        {isCurrent && (
+                          <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-base animate-bounce" aria-hidden="true">📍</span>
+                        )}
+                      </span>
+                      <div className={`text-left rounded-lg border px-3 py-2 shadow-sm min-w-[190px] transition-all group-hover:shadow-md ${isCurrent ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600') : isLocked ? (day ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-indigo-950/30 border-indigo-800 opacity-70') : pill}`}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`text-[9px] font-semibold ${sub}`}>{isCurrent ? '📍' : isDone ? '✓' : '🏁'} Step {i + 1}</span>
+                          <span className={`text-[9px] font-semibold ${sub}`}>{isCurrent ? '📍' : isDone ? '✓' : isLocked ? '🔒' : '🏁'} Step {i + 1}</span>
                           {isCurrent && (
                             <span className="text-[9px] font-bold uppercase tracking-wide text-amber-600">You are here</span>
                           )}
                         </div>
-                        <div className={`text-xs font-bold mt-0.5 ${txt}`}>{stop.name}</div>
-                        <div className={`text-[9px] mt-0.5 opacity-70 group-hover:underline ${sub}`}>Tap to view →</div>
+                        <div className={`text-xs font-bold mt-0.5 ${isDone ? 'line-through opacity-60' : ''} ${txt}`}>{stop.name}</div>
+                        <div className={`text-[9px] mt-0.5 opacity-70 ${isLocked ? '' : 'group-hover:underline'} ${sub}`}>
+                          {isLocked ? 'Locked' : 'Tap to view →'}
+                        </div>
                       </div>
                     </button>
                   </div>
