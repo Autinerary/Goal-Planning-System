@@ -42,21 +42,23 @@ export default function IdealSelfPage() {
   const hasInfluences = roleModels.length + mentors.length + friends.length > 0
 
   // Stats from the real life-stats loader (signed-in only).
-  const [stats, setStats] = useState<Stat[]>([
-    { name: 'Mentality', value: 5, max: 10 },
-    { name: 'Happiness', value: 5, max: 10 },
-    { name: 'Focus', value: 5, max: 10 },
-    { name: 'Energy', value: 5, max: 10 },
-  ])
+  //
+  // These used to initialise at 5/10 across the board. That is a made-up
+  // number rendered exactly like a measured one — a signed-out user, or
+  // anyone whose fetch failed, saw four filled bars implying we had scored
+  // them. Null means "not loaded"; the UI shows empty bars and says so.
+  const [stats, setStats] = useState<Stat[] | null>(null)
+  const [statsFailed, setStatsFailed] = useState(false)
   useEffect(() => {
     if (!isSignedIn) return
     let cancelled = false
     ;(async () => {
       try {
         const res = await fetch('/api/me/life-stats', { cache: 'no-store', credentials: 'include' })
-        if (!res.ok) return
+        if (!res.ok) { if (!cancelled) setStatsFailed(true); return }
         const j = await res.json()
-        if (cancelled || !j?.stats) return
+        if (cancelled) return
+        if (!j?.stats) { setStatsFailed(true); return }
         setStats([
           { name: 'Mentality', value: j.stats.mentality.value, max: 10 },
           { name: 'Happiness', value: j.stats.happiness.value, max: 10 },
@@ -64,11 +66,14 @@ export default function IdealSelfPage() {
           { name: 'Energy', value: j.stats.energy.value, max: 10 },
         ])
       } catch {
-        /* keep defaults */
+        if (!cancelled) setStatsFailed(true)
       }
     })()
     return () => { cancelled = true }
   }, [isSignedIn])
+
+  // Names only, so the card keeps its shape while the real values load.
+  const STAT_NAMES = ['Mentality', 'Happiness', 'Focus', 'Energy']
 
   // Portrait state.
   const [portrait, setPortrait] = useState<Portrait | null>(null)
@@ -311,19 +316,29 @@ export default function IdealSelfPage() {
               <h3 className="font-bold text-slate-800">Stats</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {stats.map((s, i) => (
+              {(stats || STAT_NAMES.map(name => ({ name, value: null as number | null, max: 10 }))).map((s, i) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-slate-500">{s.name}</span>
-                    <span className="text-xs font-bold text-slate-800">{s.value} XP</span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {s.value === null ? <span className="text-slate-300">—</span> : `${s.value} XP`}
+                    </span>
                   </div>
                   <div className="h-2 bg-sky-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                    {s.value !== null && (
+                      <div className={`h-full rounded-full ${s.value >= 7 ? 'bg-sky-400' : 'bg-indigo-400'}`} style={{ width: `${(s.value / s.max) * 100}%` }} />
+                    )}
                   </div>
                 </div>
               ))}
             </div>
-            {!isSignedIn && <div className="mt-3 text-[11px] text-slate-400">Sign in to see your live stats.</div>}
+            {!isSignedIn ? (
+              <div className="mt-3 text-[11px] text-slate-400">Sign in to see your live stats.</div>
+            ) : statsFailed ? (
+              <div className="mt-3 text-[11px] text-slate-400">Couldn&apos;t load your stats just now.</div>
+            ) : !stats ? (
+              <div className="mt-3 text-[11px] text-slate-400">Loading your stats…</div>
+            ) : null}
           </div>
         </div>
 
