@@ -39,7 +39,7 @@ interface LaneWorldProps {
   day?: boolean
 }
 
-const STEP = 128
+const STEP = 152
 const PAD_TOP = 96
 
 export default function LaneWorld({ lanes, completedIds, onSelect, day = true }: LaneWorldProps) {
@@ -51,7 +51,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
 
   // Five territories need room to stay legible. Below this the plaques and
   // banners collide, which is what pushed the world off the side of the page.
-  const minWidth = lanes.length * 150
+  const minWidth = lanes.length * 210
 
   return (
     <div className="w-full overflow-x-auto overflow-y-hidden rounded-[28px]">
@@ -222,7 +222,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
               style={{ left: `${cx}%`, top: 26 }}
             >
               <span
-                className="inline-flex items-center gap-1 max-w-[130px] rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white truncate"
+                className="inline-flex items-center gap-1 max-w-[190px] rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white truncate"
                 style={{ background: lane.node, boxShadow: `0 3px 0 ${lane.nodeDark}, 0 6px 12px rgba(0,0,0,.28)` }}
               >
                 <span className="text-xs">{lane.emoji}</span>
@@ -287,7 +287,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   {/* Name on a small wooden plaque, the way a level map labels
                       a stage — not a paragraph of body text. */}
                   <span
-                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[112px] max-w-[92%] rounded-md px-1.5 py-1 text-center text-[9px] font-bold leading-tight line-clamp-2 shadow-md ${
+                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[168px] rounded-md px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
                       done
                         ? 'bg-emerald-50/95 text-emerald-800 line-through decoration-emerald-600/50'
                         : locked

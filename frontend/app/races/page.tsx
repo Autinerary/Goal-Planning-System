@@ -1645,7 +1645,7 @@ function RacesContent() {
             <div className="grid gap-x-3 px-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
 
               {/* LEFT: Pit Stop Shop, in the current dot's row */}
-              <div className="flex justify-end items-center" style={{ gridColumn: 1, gridRow: currentStopIdx + 1 }}>
+              <div className="flex justify-end items-start pt-10" style={{ gridColumn: 1, gridRow: 1 }}>
                 <div className="w-full max-w-[180px]">
                 <div className={`relative w-full max-w-[180px] ${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
                   {/* Awning top */}
@@ -1688,85 +1688,31 @@ function RacesContent() {
                 </div>
               </div>
 
-              {/* CENTRE: the path — one grid row per stop, so the flanking
-                  panels can line up with whichever dot is current. */}
-              {trackStops.map((stop: any, i: number) => {
-                const isDone = completedMilestoneIds.has(stop.id)
-                const isCurrent = i === currentStopIdx && !isDone
-                const isLocked = !isDone && i > currentStopIdx
-                return (
-                  <div key={stop.id} className="flex flex-col items-center" style={{ gridColumn: 2, gridRow: i + 1 }}>
-                    {/* Road segment joining this dot to the one above it. */}
-                    {i > 0 && (
-                      <div className={`w-9 h-7 relative ${day ? 'bg-slate-300' : 'bg-indigo-800'}`}>
-                        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-white/70" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, currentColor 0 6px, transparent 6px 12px)' }} />
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      // Every stop pushed to /milestones, so all five led to
-                      // the same screen. Open the one that was clicked.
-                      disabled={isLocked}
-                      onClick={() => !isLocked && router.push(`/milestones/${stop.id}`)}
-                      title={isLocked ? 'Finish the step before this one first' : stop.name}
-                      className={`group flex items-center gap-2 py-1 ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      {/* Same node language as the Trail Map, so a stop reads
-                          the same way whichever view you are in. */}
-                      <span
-                        className={`relative grid place-items-center w-9 h-9 rounded-full flex-shrink-0 transition-transform ${
-                          isLocked ? '' : 'group-hover:scale-110 group-active:scale-95'
-                        }`}
-                        style={{
-                          background: isDone
-                            ? 'linear-gradient(160deg,#34d399,#059669)'
-                            : isLocked
-                            ? 'linear-gradient(160deg,#cbd5e1,#94a3b8)'
-                            : 'linear-gradient(160deg,#4c1d95,#2e1065)',
-                          boxShadow: isCurrent
-                            ? '0 4px 0 #2e1065, 0 7px 12px rgba(0,0,0,.3), 0 0 0 4px rgba(255,255,255,.92)'
-                            : '0 3px 0 rgba(0,0,0,.26), 0 5px 9px rgba(0,0,0,.22)',
-                        }}
-                      >
-                        <span
-                          className="absolute inset-x-1.5 top-1 h-2.5 rounded-full"
-                          style={{ background: 'linear-gradient(180deg,rgba(255,255,255,.45),transparent)' }}
-                          aria-hidden="true"
-                        />
-                        {isDone ? (
-                          <Check className="w-4 h-4 text-white drop-shadow" aria-hidden="true" />
-                        ) : isLocked ? (
-                          <Lock className="w-3.5 h-3.5 text-white/90" aria-hidden="true" />
-                        ) : (
-                          <span className="text-[11px] font-black text-white tabular-nums" style={{ textShadow: '0 1px 0 rgba(0,0,0,.45)' }}>
-                            {i + 1}
-                          </span>
-                        )}
-                        {isCurrent && (
-                          <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-base animate-bounce" aria-hidden="true">📍</span>
-                        )}
-                      </span>
-                      <div className={`text-left rounded-lg border px-3 py-2 shadow-sm min-w-[190px] transition-all group-hover:shadow-md ${isCurrent ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/40 border-amber-600') : isLocked ? (day ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-indigo-950/30 border-indigo-800 opacity-70') : pill}`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`text-[9px] font-semibold ${sub}`}>{isCurrent ? '📍' : isDone ? '✓' : isLocked ? '🔒' : '🏁'} Step {i + 1}</span>
-                          {isCurrent && (
-                            <span className="text-[9px] font-bold uppercase tracking-wide text-amber-600">You are here</span>
-                          )}
-                        </div>
-                        <div className={`text-xs font-bold mt-0.5 ${isDone ? 'line-through opacity-60' : ''} ${txt}`}>{stop.name}</div>
-                        <div className={`text-[9px] mt-0.5 opacity-70 ${isLocked ? '' : 'group-hover:underline'} ${sub}`}>
-                          {isLocked ? 'Locked' : 'Tap to view →'}
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                )
-              })}
+              {/* CENTRE: the map itself.
+                  This was a card per step with a dot beside it — a list with
+                  icons, not a level map. It is now the same node trail as the
+                  Trail Map view: a winding path through painted ground with
+                  the steps AS the nodes. No cards. */}
+              <div className="min-w-0" style={{ gridColumn: 2, gridRow: '1 / -1' }}>
+                <MilestoneTrail
+                  milestones={trackStops.map((m: any) => ({
+                    id: m.id,
+                    name: m.name,
+                    status: m.status,
+                    dimension: m.dimension,
+                    dimensionLabel: m.dimensionLabel,
+                  }))}
+                  completedIds={completedMilestoneIds}
+                  currentIndex={0 /* the trail derives it from completedIds */}
+                  day={day}
+                  onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
+                />
+              </div>
 
               {/* RIGHT: current goals + per-path progress, in the current dot's
                   row. The progress bars are Liam's ask — the check marks alone
                   made it hard to read how far along a path you actually are. */}
-              <div className="flex justify-start items-center" style={{ gridColumn: 3, gridRow: currentStopIdx + 1 }}>
+              <div className="flex justify-start items-start pt-10" style={{ gridColumn: 3, gridRow: 1 }}>
                 <div className={`w-full max-w-[190px] ${pill} border-2 rounded-xl shadow-md p-2.5`}>
                   <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Current Goals</h4>
                   <div className="space-y-2">
