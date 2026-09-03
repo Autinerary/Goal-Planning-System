@@ -28,8 +28,15 @@ export interface CurrentTask {
  * the first milestone regardless of progress.
  */
 export async function fetchCurrentTask(userId: string): Promise<CurrentTask | null> {
+  // The path endpoint requires a session — it used to return anyone's
+  // profile, barrierTypes and email included, to whoever knew their UUID.
+  const { data: sess } = await supabase.auth.getSession()
+  const token = sess.session?.access_token
+  if (!token) return null
+
   const res = await fetch(
-    `${API_BASE}/api/onboarding/user/${encodeURIComponent(userId)}/path`
+    `${API_BASE}/api/onboarding/user/${encodeURIComponent(userId)}/path`,
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   if (!res.ok) return null
 

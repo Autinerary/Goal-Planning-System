@@ -3,7 +3,13 @@
 // Talks to the FastAPI multi-path endpoints so a user's saved paths follow
 // them across devices, unlike the local-only snapshots in pathSnapshots.ts.
 
+import { backendAuthHeaders } from '@/lib/backendAuth'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+// These endpoints require a session now — they used to expose any user's
+// paths to anyone holding their UUID. Every call from here is made from a
+// client component, so the browser session is available.
 
 export interface ServerPathSummary {
   pathId: string
@@ -20,7 +26,7 @@ export interface ServerPathSummary {
 export async function listServerPaths(userId: string): Promise<ServerPathSummary[]> {
   if (!userId) return []
   try {
-    const res = await fetch(`${API_URL}/api/onboarding/user/${userId}/paths`, { cache: 'no-store' })
+    const res = await fetch(`${API_URL}/api/onboarding/user/${userId}/paths`, { cache: 'no-store', headers: await backendAuthHeaders() })
     if (!res.ok) return []
     const data = await res.json()
     return (data?.paths as ServerPathSummary[]) || []
@@ -33,7 +39,7 @@ export async function listServerPaths(userId: string): Promise<ServerPathSummary
 export async function fetchServerPath(pathId: string): Promise<any | null> {
   if (!pathId) return null
   try {
-    const res = await fetch(`${API_URL}/api/onboarding/path/${pathId}`, { cache: 'no-store' })
+    const res = await fetch(`${API_URL}/api/onboarding/path/${pathId}`, { cache: 'no-store', headers: await backendAuthHeaders() })
     if (!res.ok) return null
     return await res.json()
   } catch {
@@ -47,6 +53,7 @@ export async function activateServerPath(userId: string, pathId: string): Promis
   try {
     const res = await fetch(`${API_URL}/api/onboarding/user/${userId}/paths/${pathId}/activate`, {
       method: 'POST',
+      headers: await backendAuthHeaders(),
     })
     return res.ok
   } catch {
@@ -60,6 +67,7 @@ export async function deleteServerPath(userId: string, pathId: string): Promise<
   try {
     const res = await fetch(`${API_URL}/api/onboarding/user/${userId}/paths/${pathId}`, {
       method: 'DELETE',
+      headers: await backendAuthHeaders(),
     })
     return res.ok
   } catch {

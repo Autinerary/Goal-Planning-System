@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { backendAuthHeaders } from '@/lib/backendAuth'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote, GitCompare, Save } from 'lucide-react'
@@ -112,7 +113,7 @@ export default function PathView() {
           response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)
         }
         if ((!response || !response.ok) && userId) {
-          response = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`)
+          response = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: await backendAuthHeaders() })
         }
 
         if (response && response.ok) {

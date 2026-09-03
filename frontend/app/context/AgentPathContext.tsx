@@ -14,6 +14,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
 import { useAuth } from './AuthContext'
+import { backendAuthHeaders } from '@/lib/backendAuth'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -95,12 +96,15 @@ export function AgentPathProvider({ children }: { children: ReactNode }) {
 
       // 2. Fallback: FastAPI (when running locally or when the user_paths
       //    row hasn't been mirrored to Next.js yet).
+      // These endpoints now require a session — they used to return a
+      // user's full profile to anyone holding their UUID.
+      const authHeaders = await backendAuthHeaders()
       let res: Response | null = null
       if (pathId) {
-        res = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)
+        res = await fetch(`${API_URL}/api/onboarding/path/${pathId}`, { headers: authHeaders })
       }
       if ((!res || !res.ok) && userId) {
-        res = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`)
+        res = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: authHeaders })
       }
       if (res && res.ok) {
         setPayload(await res.json())

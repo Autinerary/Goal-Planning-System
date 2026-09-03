@@ -5,7 +5,9 @@ Step 0: Questionnaire → Agent Orchestration → Path Generation
 
 import asyncio
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
+
+from api.auth_guard import current_user_id, require_self_or_guardian
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
@@ -701,8 +703,15 @@ async def get_generated_path(path_id: str):
 
 
 @router.get("/user/{user_id}/path")
-async def get_user_path(user_id: str):
-    """Retrieve the current path for a user (from Supabase user_paths)."""
+async def get_user_path(user_id: str, caller_id: str = Depends(current_user_id)):
+    """Retrieve the current path for a user (from Supabase user_paths).
+
+    Requires a valid session, and that the caller is the user or their
+    guardian. This endpoint previously had no auth at all and returned the
+    full profile — barrierTypes and email included — to anyone holding a
+    UUID.
+    """
+    require_self_or_guardian(user_id, caller_id)
     payload = _load_path_by_user(user_id)
     if payload is None:
         raise HTTPException(status_code=404, detail="No path found for user.")
@@ -710,10 +719,11 @@ async def get_user_path(user_id: str):
 
 
 @router.get("/user/{user_id}/paths")
-async def list_user_paths(user_id: str):
+async def list_user_paths(user_id: str, caller_id: str = Depends(current_user_id)):
     """List all of a user's saved paths (metadata only) for the multi-path
     switcher / compare views. Returns a lightweight summary per path so the
     client can render a list without downloading every full payload."""
+    require_self_or_guardian(user_id, caller_id)
     rows = _list_paths_by_user(user_id)
     summaries = []
     for row in rows:
@@ -739,16 +749,18 @@ async def list_user_paths(user_id: str):
 
 
 @router.post("/user/{user_id}/paths/{path_id}/activate")
-async def activate_user_path(user_id: str, path_id: str):
+async def activate_user_path(user_id: str, path_id: str, caller_id: str = Depends(current_user_id)):
     """Switch which path is active for the user."""
+    require_self_or_guardian(user_id, caller_id)
     if not _set_active_path(user_id, path_id):
         raise HTTPException(status_code=400, detail="Could not activate path.")
     return {"pathId": path_id, "isActive": True}
 
 
 @router.delete("/user/{user_id}/paths/{path_id}")
-async def delete_user_path(user_id: str, path_id: str):
+async def delete_user_path(user_id: str, path_id: str, caller_id: str = Depends(current_user_id)):
     """Delete one of a user's paths."""
+    require_self_or_guardian(user_id, caller_id)
     if not _delete_path(user_id, path_id):
         raise HTTPException(status_code=400, detail="Could not delete path.")
     return {"pathId": path_id, "deleted": True}
