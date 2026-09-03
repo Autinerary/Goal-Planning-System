@@ -39,7 +39,7 @@ interface LaneWorldProps {
   day?: boolean
 }
 
-const STEP = 152
+const STEP = 168
 const PAD_TOP = 96
 
 export default function LaneWorld({ lanes, completedIds, onSelect, day = true }: LaneWorldProps) {
@@ -51,7 +51,9 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
 
   // Five territories need room to stay legible. Below this the plaques and
   // banners collide, which is what pushed the world off the side of the page.
-  const minWidth = lanes.length * 210
+  // Each lane must hold a 150px plaque plus breathing room on both sides,
+  // or names bleed across into the next territory.
+  const minWidth = lanes.length * 200
 
   return (
     <div className="w-full overflow-x-auto overflow-y-hidden rounded-[28px]">
@@ -165,7 +167,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
         const pts = lane.steps.map((s, i) => ({
           s,
           i,
-          x: cx + Math.sin(i * 1.3 + li) * Math.min(colW * 0.22, 5),
+          x: cx + Math.sin(i * 1.3 + li) * Math.min(colW * 0.10, 2.2),
           y: PAD_TOP + i * STEP,
         }))
 
@@ -287,7 +289,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   {/* Name on a small wooden plaque, the way a level map labels
                       a stage — not a paragraph of body text. */}
                   <span
-                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[168px] rounded-md px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
+                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[150px] rounded-md px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
                       done
                         ? 'bg-emerald-50/95 text-emerald-800 line-through decoration-emerald-600/50'
                         : locked

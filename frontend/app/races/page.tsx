@@ -1666,10 +1666,14 @@ function RacesContent() {
                 beside the path centred on where you actually are, rather than
                 floating at the top of the page. */}
             {trackStops.length > 0 && (
-            <div className="grid gap-x-3 px-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+            <div
+              className="grid gap-x-3 gap-y-4 px-2 justify-items-center"
+              style={{ gridTemplateColumns: 'minmax(0,1fr)' }}
+            >
 
-              {/* LEFT: Pit Stop Shop, in the current dot's row */}
-              <div className="flex justify-end items-start pt-10" style={{ gridColumn: 1, gridRow: 1 }}>
+              {/* LEFT: Pit Stop Shop. Above the map rather than beside it —
+                  flanking panels stole the width the trail needs. */}
+              <div className="flex justify-center items-start w-full" style={{ gridColumn: 1, gridRow: 1 }}>
                 <div className="w-full max-w-[180px]">
                 <div className={`relative w-full max-w-[180px] ${day ? 'bg-amber-50/90 border-amber-300' : 'bg-indigo-900/70 border-indigo-600'} border-2 rounded-b-xl shadow-md overflow-visible`}>
                   {/* Awning top */}
@@ -1717,7 +1721,7 @@ function RacesContent() {
                   icons, not a level map. It is now the same node trail as the
                   Trail Map view: a winding path through painted ground with
                   the steps AS the nodes. No cards. */}
-              <div className="min-w-0" style={{ gridColumn: 2, gridRow: '1 / -1' }}>
+              <div className="w-full max-w-[440px] mx-auto" style={{ gridColumn: 1, gridRow: 2 }}>
                 <MilestoneTrail
                   milestones={trackStops.map((m: any) => ({
                     id: m.id,
@@ -1736,7 +1740,7 @@ function RacesContent() {
               {/* RIGHT: current goals + per-path progress, in the current dot's
                   row. The progress bars are Liam's ask — the check marks alone
                   made it hard to read how far along a path you actually are. */}
-              <div className="flex justify-start items-start pt-10" style={{ gridColumn: 3, gridRow: 1 }}>
+              <div className="flex justify-center items-start w-full" style={{ gridColumn: 1, gridRow: 3 }}>
                 <div className={`w-full max-w-[190px] ${pill} border-2 rounded-xl shadow-md p-2.5`}>
                   <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Current Goals</h4>
                   <div className="space-y-2">
