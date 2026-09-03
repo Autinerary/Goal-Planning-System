@@ -55,6 +55,19 @@ function RacesContent() {
   // move through, rather than the five-stop road. Default, because seeing
   // progress spatially is the point of the race framing in the first place.
   const [trackShape, setTrackShape] = useState<'trail' | 'one' | 'separate'>('trail')
+  // Your generated Dream Self portrait, if you have one. The header showed a
+  // generic stick figure even after you had made a portrait of the person you
+  // are growing into — which is the one place it most belongs.
+  const [dreamPortrait, setDreamPortrait] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/me/ideal-self', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (!cancelled && j?.portrait?.imageUrl) setDreamPortrait(j.portrait.imageUrl) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
       try { const s = localStorage.getItem('completedMilestoneIds'); return s ? new Set(JSON.parse(s)) : new Set() } catch { return new Set() }
@@ -1066,6 +1079,14 @@ function RacesContent() {
             <div className="relative dg rounded-full p-4 mb-1">
               <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-28 h-8 rounded-full blur-lg ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
               <div className="bn relative">
+                {dreamPortrait ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={dreamPortrait}
+                    alt="Your Dream Self portrait"
+                    className="w-28 h-28 rounded-full object-cover border-[3px] border-white shadow-lg"
+                  />
+                ) : (
                 <svg viewBox="0 0 120 150" className="w-20 h-28">
                   {[0, 45, 90, 135, 180, 225, 270, 315].map((a, i) => { const r = a * Math.PI / 180; return <line key={i} x1={60 + 26 * Math.cos(r)} y1={48 + 26 * Math.sin(r)} x2={60 + 44 * Math.cos(r)} y2={48 + 44 * Math.sin(r)} stroke={day ? '#bae6fd' : '#6366f1'} strokeWidth="1.5" strokeDasharray="4" opacity=".5" /> })}
                   <circle cx="60" cy="32" r="14" fill="none" stroke={stroke} strokeWidth="3" />
@@ -1081,11 +1102,14 @@ function RacesContent() {
                   <line x1="60" y1="85" x2="72" y2="110" stroke={stroke} strokeWidth="3" />
                   <circle cx="60" cy="14" r="6" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="3" />
                 </svg>
+                )}
               </div>
             </div>
             <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
-            <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>✨ See more →</Link>
+            <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
+              {dreamPortrait ? '✨ See more →' : '✨ Create your portrait →'}
+            </Link>
           </div>
 
           {/* ═══════════════════════════════════════════════════
