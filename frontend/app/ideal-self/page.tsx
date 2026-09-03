@@ -121,7 +121,9 @@ export default function IdealSelfPage() {
         // that says exactly this. Setting `error` too printed the same
         // sentence twice — once amber, once red.
         if (j?.code === 'no_api_key') { setHasApiKey(false); setError(null) }
-        else setError(j?.error || 'Generation failed. Please try again.')
+        // Show the hint too — "Image generation failed" alone is not
+        // actionable, and the caller is usually the person who can fix it.
+        else setError([j?.error, j?.hint].filter(Boolean).join(' ') || 'Generation failed. Please try again.')
         return
       }
       if (j?.portrait) setPortrait(j.portrait)

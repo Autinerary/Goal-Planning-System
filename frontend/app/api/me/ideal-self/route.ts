@@ -134,8 +134,35 @@ export async function POST(req: NextRequest) {
     if (!oaRes.ok) {
       const detail = await oaRes.text()
       console.error('OpenAI image error:', oaRes.status, detail.slice(0, 500))
+
+      // Surface what OpenAI actually said. "Image generation failed." told
+      // the user nothing and told us nothing — the real cause (unverified
+      // organisation, no image permission on the key, exhausted quota, a
+      // rejected prompt) only reached the server log. These messages carry
+      // no secrets; the key is never echoed back.
+      let reason = ''
+      try {
+        const parsed = JSON.parse(detail)
+        reason = String(parsed?.error?.message || '').slice(0, 300)
+      } catch {
+        reason = detail.slice(0, 200)
+      }
+
+      const hint =
+        oaRes.status === 401 ? 'The OpenAI key was rejected — check it is valid and not revoked.'
+        : oaRes.status === 403 ? 'The key lacks image permission, or the organisation needs verifying for this model.'
+        : oaRes.status === 429 ? 'OpenAI rate limit or quota reached — check billing on the account.'
+        : oaRes.status === 400 ? 'OpenAI rejected the request. If this mentions safety, the prompt needs softening.'
+        : ''
+
       return NextResponse.json(
-        { error: 'Image generation failed.', code: 'openai_error', status: oaRes.status },
+        {
+          error: reason ? `Image generation failed: ${reason}` : 'Image generation failed.',
+          hint,
+          code: 'openai_error',
+          model: IMAGE_MODEL,
+          status: oaRes.status,
+        },
         { status: 502 }
       )
     }
