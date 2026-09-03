@@ -28,14 +28,18 @@ export default function IdealSelfPage() {
   const barriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
   const dreamHeadline = dreams[0] || 'Cloud 9 — Your ideal future'
 
-  // Role models / influences. Prefer real data if present, else a warm demo set.
+  // Role models / influences — real data only.
+  //
+  // These used to fall back to invented people ('Sarah C.', 'Marcus J.',
+  // 'James W.', 'Lisa P.'), and 'Alex T.' was not even conditional — every
+  // user was shown a friend who does not exist. On a page about the person
+  // you are growing into, inventing your support network is the worst
+  // possible place to put placeholder data.
   const roleModels: string[] = (payload?.userProfile?.roleModels || []) as string[]
   const mentors: string[] = (payload?.userProfile?.mentors || []) as string[]
-  const influences = {
-    roleModels: roleModels.length ? roleModels : ['Sarah C.', 'Marcus J.'],
-    mentors: mentors.length ? mentors : ['James W.', 'Lisa P.'],
-    friends: ['Alex T.'],
-  }
+  const friends: string[] = (payload?.userProfile?.friends || []) as string[]
+  const influences = { roleModels, mentors, friends }
+  const hasInfluences = roleModels.length + mentors.length + friends.length > 0
 
   // Stats from the real life-stats loader (signed-in only).
   const [stats, setStats] = useState<Stat[]>([
@@ -108,7 +112,10 @@ export default function IdealSelfPage() {
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) {
-        if (j?.code === 'no_api_key') { setHasApiKey(false); setError('Portrait generation isn\u2019t configured yet.') }
+        // Flipping hasApiKey already swaps the button for the amber banner
+        // that says exactly this. Setting `error` too printed the same
+        // sentence twice — once amber, once red.
+        if (j?.code === 'no_api_key') { setHasApiKey(false); setError(null) }
         else setError(j?.error || 'Generation failed. Please try again.')
         return
       }
@@ -226,26 +233,41 @@ export default function IdealSelfPage() {
               <Users className="w-5 h-5 text-purple-500" />
               <h3 className="font-bold text-slate-800">Role Models & Influences</h3>
             </div>
-            <div className="space-y-3">
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role Models</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {influences.roleModels.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{n}</span>)}
-                </div>
+            {hasInfluences ? (
+              <div className="space-y-3">
+                {influences.roleModels.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role Models</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {influences.roleModels.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{n}</span>)}
+                    </div>
+                  </div>
+                )}
+                {influences.mentors.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Mentors</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {influences.mentors.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">{n}</span>)}
+                    </div>
+                  </div>
+                )}
+                {influences.friends.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Friends &amp; Family</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {influences.friends.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{n}</span>)}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Mentors</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {influences.mentors.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">{n}</span>)}
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Friends & Family</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {influences.friends.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{n}</span>)}
-                </div>
-              </div>
-            </div>
+            ) : (
+              /* Empty is honest. Inventing names here would be telling someone
+                 who their mentors are. */
+              <p className="text-sm text-slate-500">
+                No one added yet. The people who inspire and support you will show up here
+                once you add them in Hare World.
+              </p>
+            )}
             <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block mt-4 text-xs font-semibold text-purple-600 hover:underline">
               See all people in Hare World →
             </Link>
