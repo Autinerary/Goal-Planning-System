@@ -49,10 +49,15 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
   const height = PAD_TOP + (maxSteps - 1) * STEP + 150
   const colW = 100 / lanes.length
 
+  // Five territories need room to stay legible. Below this the plaques and
+  // banners collide, which is what pushed the world off the side of the page.
+  const minWidth = lanes.length * 150
+
   return (
+    <div className="w-full overflow-x-auto overflow-y-hidden rounded-[28px]">
     <div
       className="relative overflow-hidden rounded-[28px] border-[3px] border-white/70"
-      style={{ height, boxShadow: '0 6px 0 rgba(120,100,70,.25), 0 14px 28px rgba(60,50,40,.22)' }}
+      style={{ height, minWidth, boxShadow: '0 6px 0 rgba(120,100,70,.25), 0 14px 28px rgba(60,50,40,.22)' }}
     >
       {/* ── The world ─────────────────────────────────────────────────── */}
       <svg
@@ -93,82 +98,63 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
           />
         ))}
 
-        {/* Water pools, mirroring the ponds in the reference map. */}
-        {[0.18, 0.62].map((frac, k) => (
-          <ellipse
-            key={`w${k}`}
-            cx={k === 0 ? 12 : 88}
-            cy={height * frac}
-            rx={11}
-            ry={height * 0.028}
-            fill="#bfe4f5"
-            opacity={0.5}
-          />
-        ))}
-
         <rect width="100" height={height} fill="url(#world-deep)" />
       </svg>
 
-      {/* ── Scenery. Deterministic scatter, never under a node. ────────── */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox={`0 0 100 ${height}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {Array.from({ length: maxSteps * lanes.length * 2 + 14 }, (_, k) => {
+      {/* ── Scenery. Plain HTML, because anything drawn in the squashed
+             viewBox above comes out smeared sideways. Deterministic scatter,
+             never over a track. ─────────────────────────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {Array.from({ length: maxSteps * lanes.length + 18 }, (_, k) => {
           const laneIdx = k % lanes.length
           const l = lanes[laneIdx]
-          const x = laneIdx * colW + 4 + ((k * 29) % Math.max(colW - 8, 4))
-          const y = 54 + ((k * 173) % Math.max(height - 120, 60))
-          // Keep the middle of each lane clear — that is where the track runs.
-          if (Math.abs(x - (laneIdx * colW + colW / 2)) < 4.5) return null
-          const kind = k % 4
-          const s = 0.75 + ((k % 5) / 4)
+          const within = 4 + ((k * 29) % Math.max(colW - 8, 4))
+          const x = laneIdx * colW + within
+          const y = 60 + ((k * 173) % Math.max(height - 130, 60))
+          // Keep the middle of each lane clear — the track runs there.
+          if (Math.abs(within - colW / 2) < 5) return null
+          const kind = k % 3
+          const size = 7 + (k % 4) * 4
 
           if (kind === 0) {
-            // Boulder
             return (
-              <g key={k} transform={`translate(${x} ${y})`} opacity={0.5}>
-                <ellipse cx="0" cy="0" rx={2.4 * s} ry={9 * s} fill="#ffffff" opacity={0.5} />
-                <ellipse cx="0" cy={-2 * s} rx={1.7 * s} ry={6 * s} fill={l.ground} />
-              </g>
+              <span
+                key={k}
+                className="absolute rounded-full"
+                style={{
+                  left: `${x}%`, top: y, width: size, height: size * 0.8,
+                  background: l.ground, opacity: 0.55,
+                  boxShadow: '0 1px 0 rgba(255,255,255,.7)',
+                }}
+              />
             )
           }
           if (kind === 1) {
-            // Shrub
             return (
-              <g key={k} transform={`translate(${x} ${y})`} opacity={0.42}>
-                <ellipse cx="0" cy="0" rx={1.5 * s} ry={7 * s} fill={l.accent} opacity={0.6} />
-                <ellipse cx={1.1 * s} cy={3 * s} rx={1.1 * s} ry={5 * s} fill={l.accent} opacity={0.4} />
-              </g>
+              <span
+                key={k}
+                className="absolute rounded-full"
+                style={{
+                  left: `${x}%`, top: y, width: size * 0.8, height: size * 0.8,
+                  background: l.accent, opacity: 0.28,
+                }}
+              />
             )
           }
-          if (kind === 2) {
-            // Crystal / marker, echoing the spires in the reference
-            return (
-              <g key={k} transform={`translate(${x} ${y})`} opacity={0.36}>
-                <path d={`M0,${-9 * s} L${1.5 * s},0 L0,${9 * s} L${-1.5 * s},0 Z`} fill="#ffffff" />
-                <path d={`M0,${-5 * s} L${0.8 * s},0 L0,${5 * s} L${-0.8 * s},0 Z`} fill={l.accent} opacity={0.7} />
-              </g>
-            )
-          }
-          // Grass tuft
           return (
-            <g key={k} transform={`translate(${x} ${y})`} opacity={0.3}>
-              {[-1, 0, 1].map((o) => (
-                <path
-                  key={o}
-                  d={`M${o * 1.1 * s},${5 * s} Q${o * 1.5 * s},0 ${o * 0.7 * s},${-6 * s}`}
-                  stroke={l.accent}
-                  strokeWidth={0.5}
-                  fill="none"
-                />
-              ))}
-            </g>
+            <span
+              key={k}
+              className="absolute"
+              style={{
+                left: `${x}%`, top: y, width: 0, height: 0, opacity: 0.3,
+                borderLeft: `${size * 0.4}px solid transparent`,
+                borderRight: `${size * 0.4}px solid transparent`,
+                borderBottom: `${size}px solid ${l.accent}`,
+              }}
+            />
           )
         })}
-      </svg>
+      </div>
 
       {/* ── The five tracks ───────────────────────────────────────────── */}
       {lanes.map((lane, li) => {
@@ -203,8 +189,31 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              <path d={d} fill="none" stroke="#ffffff" strokeWidth={10} strokeLinecap="round" opacity={0.9} />
-              <path d={d} fill="none" stroke={lane.accent} strokeWidth={3} strokeLinecap="round" strokeDasharray="1 7" opacity={0.5} />
+              {/* vectorEffect is essential here: the viewBox squashes X to 100
+                  units while Y runs to the full pixel height, so without it
+                  every stroke and dash is stretched into a wide horizontal
+                  blob instead of a round dotted trail. non-scaling-stroke
+                  renders the stroke in screen space, undistorted. */}
+              <path
+                d={d}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={14}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.92}
+                vectorEffect="non-scaling-stroke"
+              />
+              <path
+                d={d}
+                fill="none"
+                stroke={lane.accent}
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeDasharray="0.1 9"
+                opacity={0.55}
+                vectorEffect="non-scaling-stroke"
+              />
             </svg>
 
             {/* Territory banner, painted onto the land — not a card header. */}
@@ -213,7 +222,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
               style={{ left: `${cx}%`, top: 26 }}
             >
               <span
-                className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white whitespace-nowrap"
+                className="inline-flex items-center gap-1 max-w-[130px] rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-white truncate"
                 style={{ background: lane.node, boxShadow: `0 3px 0 ${lane.nodeDark}, 0 6px 12px rgba(0,0,0,.28)` }}
               >
                 <span className="text-xs">{lane.emoji}</span>
@@ -278,7 +287,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   {/* Name on a small wooden plaque, the way a level map labels
                       a stage — not a paragraph of body text. */}
                   <span
-                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[104px] rounded-md px-1.5 py-1 text-center text-[9px] font-bold leading-tight line-clamp-2 shadow-md ${
+                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[112px] max-w-[92%] rounded-md px-1.5 py-1 text-center text-[9px] font-bold leading-tight line-clamp-2 shadow-md ${
                       done
                         ? 'bg-emerald-50/95 text-emerald-800 line-through decoration-emerald-600/50'
                         : locked
@@ -294,6 +303,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
           </div>
         )
       })}
+    </div>
     </div>
   )
 }
