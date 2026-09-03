@@ -14,7 +14,21 @@ import { createServerSupabase } from '@/lib/supabase/server'
  */
 
 const STORAGE_BUCKET = 'resource-images'
-const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'dall-e-3'
+// Image models, newest first. dall-e-3 was the default here and has since
+// been retired by OpenAI — the request failed with "The model 'dall-e-3' does
+// not exist", which is invisible until you actually read the API's reply.
+//
+// Verified against the models endpoint on this account: dall-e-2 and dall-e-3
+// are both gone; these are what remain. The list is a fallback chain, not a
+// single value, so the next retirement degrades to the next model instead of
+// breaking the feature outright.
+const IMAGE_MODELS = [
+  process.env.OPENAI_IMAGE_MODEL,
+  'gpt-image-2',
+  'gpt-image-1.5',
+  'gpt-image-1',
+  'gpt-image-1-mini',
+].filter(Boolean) as string[]
 
 // ── GET: return the saved portrait ────────────────────────────────────
 export async function GET() {
@@ -112,26 +126,47 @@ export async function POST(req: NextRequest) {
   })
 
   // 1. Ask OpenAI for a PNG as base64.
+  //
+  // Walks the model chain: if a model has been retired, that is a 4xx saying
+  // it "does not exist", and we move to the next rather than surfacing a dead
+  // end. Any other failure stops immediately — retrying a safety rejection or
+  // a billing problem against four models just burns time.
   let b64: string
+  let usedModel = IMAGE_MODELS[0]
   try {
-    const oaRes = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: IMAGE_MODEL,
-        prompt,
-        n: 1,
-        size: '1024x1024',
-        // Deliberately no response_format and no quality. The API rejected
-        // response_format outright ("Unknown parameter: 'response_format'"),
-        // and the accepted values for quality differ per model. Sending
-        // neither works across every image model; we handle whichever shape
-        // comes back below.
-      }),
-    })
+    let oaRes: Response | null = null
+    for (const model of IMAGE_MODELS) {
+      usedModel = model
+      oaRes = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          prompt,
+          n: 1,
+          size: '1024x1024',
+          // Deliberately no response_format and no quality. The API rejected
+          // response_format outright ("Unknown parameter: 'response_format'"),
+          // and the accepted values for quality differ per model. Sending
+          // neither works across every image model; we handle whichever shape
+          // comes back below.
+        }),
+      })
+
+      if (oaRes.ok) break
+
+      // Only a retired/unknown model is worth retrying.
+      const peek = await oaRes.clone().text()
+      if (!/does not exist|not found|unknown model/i.test(peek)) break
+      console.warn(`Image model ${model} unavailable, trying next.`)
+    }
+
+    if (!oaRes) {
+      return NextResponse.json({ error: 'No image model configured.', code: 'no_model' }, { status: 500 })
+    }
 
     if (!oaRes.ok) {
       const detail = await oaRes.text()
@@ -164,7 +199,8 @@ export async function POST(req: NextRequest) {
           error: reason ? `Image generation failed: ${reason}` : 'Image generation failed.',
           hint,
           code: 'openai_error',
-          model: IMAGE_MODEL,
+          model: usedModel,
+          triedModels: IMAGE_MODELS,
           status: oaRes.status,
         },
         { status: 502 }
