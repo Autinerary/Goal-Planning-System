@@ -125,9 +125,11 @@ export async function POST(req: NextRequest) {
         prompt,
         n: 1,
         size: '1024x1024',
-        // dall-e-3 needs an explicit response_format; gpt-image-1 ignores it
-        // and always returns b64_json.
-        ...(IMAGE_MODEL === 'dall-e-3' ? { response_format: 'b64_json', quality: 'standard' } : {}),
+        // Deliberately no response_format and no quality. The API rejected
+        // response_format outright ("Unknown parameter: 'response_format'"),
+        // and the accepted values for quality differ per model. Sending
+        // neither works across every image model; we handle whichever shape
+        // comes back below.
       }),
     })
 
@@ -152,7 +154,9 @@ export async function POST(req: NextRequest) {
         oaRes.status === 401 ? 'The OpenAI key was rejected — check it is valid and not revoked.'
         : oaRes.status === 403 ? 'The key lacks image permission, or the organisation needs verifying for this model.'
         : oaRes.status === 429 ? 'OpenAI rate limit or quota reached — check billing on the account.'
-        : oaRes.status === 400 ? 'OpenAI rejected the request. If this mentions safety, the prompt needs softening.'
+        // Don't guess at 400. It was steering people toward "soften the
+        // prompt" when the real cause was an unsupported parameter.
+        : oaRes.status === 400 ? 'OpenAI rejected the request — the message above says why.'
         : ''
 
       return NextResponse.json(
@@ -168,8 +172,23 @@ export async function POST(req: NextRequest) {
     }
 
     const json = await oaRes.json()
-    b64 = json?.data?.[0]?.b64_json
-    if (!b64) {
+    const first = json?.data?.[0]
+
+    // Models differ: some return base64 inline, others a short-lived URL.
+    // Handle both rather than assuming, which is what broke this.
+    if (first?.b64_json) {
+      b64 = first.b64_json
+    } else if (first?.url) {
+      const imgRes = await fetch(first.url)
+      if (!imgRes.ok) {
+        return NextResponse.json(
+          { error: 'Image generated but could not be downloaded.', code: 'fetch_failed' },
+          { status: 502 }
+        )
+      }
+      b64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64')
+    } else {
+      console.error('OpenAI image: unrecognised response shape', JSON.stringify(json).slice(0, 300))
       return NextResponse.json({ error: 'No image returned.', code: 'empty' }, { status: 502 })
     }
   } catch (e: any) {
