@@ -277,9 +277,14 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // The row is saved at this point — publicUrl only tells us whether the
+  // image went to Storage or is inlined as a data URL. Reporting saved:false
+  // for a successful DB write told the user their portrait was lost when it
+  // was not.
   return NextResponse.json({
     portrait: { imageUrl: finalUrl, prompt, style, updatedAt: new Date().toISOString() },
-    saved: Boolean(publicUrl),
+    saved: true,
+    storedInBucket: Boolean(publicUrl),
   })
 }
 
