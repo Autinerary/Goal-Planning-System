@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Draw the mascot over other apps. Not a runtime permission: the user
+       grants it in system settings, which requestOverlayPermission opens. -->
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  <application>
+    <service
+      android:name="com.autinerary.bubble.BubbleService"
+      android:exported="false" />
+  </application>
+</manifest>
