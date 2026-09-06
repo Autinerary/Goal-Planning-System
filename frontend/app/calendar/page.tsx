@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
 import { fetchCompletedMilestoneIds, type ProgressMilestone } from '../../lib/raceProgress'
 import { playTaskCompleteSound } from '../../lib/taskSound'
+import RainDayBanner from '../components/RainDayBanner'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -455,6 +456,14 @@ function CalendarContent() {
         }),
       }).catch(() => {/* silent — localStorage still has it */})
     }
+  }
+
+  // "Move this to <day> instead" from the rain banner. Only touches
+  // addedTasks, the user's own additions — agent-scheduled tasks for the
+  // rainy day stay put, since silently rewriting the plan the agents built
+  // is a bigger claim than a weather nudge should make.
+  const moveDayTasks = (fromDay: string, toDay: string) => {
+    setAddedTasks((prev) => prev.map((t) => (t.day === fromDay ? { ...t, day: toDay } : t)))
   }
 
   const addSuggestionToCalendar = (suggestion: string, from: string, selectedDay: string, selectedTime: string) => {
@@ -1033,6 +1042,7 @@ function CalendarContent() {
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
+                onSwitchDay={moveDayTasks}
               />
             ) : (
               <TimeBlockView
@@ -1040,6 +1050,7 @@ function CalendarContent() {
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
+                onSwitchDay={moveDayTasks}
               />
             )}
           </div>
@@ -1096,11 +1107,12 @@ function CalendarContent() {
   )
 }
 
-function ListView({ days, completedTasks, toggleTask, addedTasks }: { 
+function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }: { 
   days: typeof scenarioData.average.days, 
   completedTasks: Set<string>,
   toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>
+  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>,
+  onSwitchDay?: (fromDay: string, toDay: string) => void
 }) {
   const router = useRouter()
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
@@ -1128,11 +1140,12 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleDays.map((day, idx) => (
           <div key={idx} className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
-            <div className="mb-4 pb-3 border-b border-slate-300">
+            <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
               <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
               <div className="text-sm italic text-blue-600 mb-1">Theme: {day.theme}</div>
               <div className="text-sm italic text-purple-600">{day.typeOfDay}</div>
               <div className="text-sm italic text-pink-600 mt-1">&ldquo;{day.motivation}&rdquo;</div>
+              <RainDayBanner weekday={day.name} onSwitchDay={(toWeekday) => onSwitchDay?.(day.name, toWeekday)} />
             </div>
 
             <div className="space-y-2">
@@ -1200,11 +1213,12 @@ function ListView({ days, completedTasks, toggleTask, addedTasks }: {
   )
 }
 
-function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: { 
+function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }: { 
   days: typeof scenarioData.average.days,
   completedTasks: Set<string>,
   toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>
+  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>,
+  onSwitchDay?: (fromDay: string, toDay: string) => void
 }) {
   const router = useRouter()
   // Get all unique time slots (including added tasks)
@@ -1239,6 +1253,7 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks }: {
                 <div className="text-xs italic font-normal text-blue-600 mt-1">{day.theme}</div>
                 <div className="text-xs italic font-normal text-purple-600">{day.typeOfDay}</div>
                 <div className="text-xs italic font-normal text-pink-600 mt-1">"{day.motivation}"</div>
+                <div className="mt-2"><RainDayBanner weekday={day.name} compact onSwitchDay={(toWeekday) => onSwitchDay?.(day.name, toWeekday)} /></div>
               </th>
             ))}
           </tr>
