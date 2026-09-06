@@ -843,6 +843,22 @@ function PitStopContent() {
         {/* Hare World Tab */}
         {activeTab === 'haveworld' && (
           <div className="space-y-6">
+            {/* Role Model Galleria entry point (Odosa: "Role Model Galleria
+                in Hare World"). Own route rather than inlined here — this
+                file is already the largest page in the app. */}
+            <Link href="/hare-world/role-models" className="block group">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-purple-300">
+                <div className="flex items-center gap-3">
+                  <Users className="w-6 h-6 text-purple-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-slate-900">Role Model Galleria</p>
+                    <p className="text-sm text-slate-500">People to look to, by category — Black, Neurodivergent, and more.</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-purple-400 ml-auto group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
+
             {/* Tidbits Community CTA */}
             <a
               href={goHubHref('/community?from=hare-world&context=pit-stop')}
