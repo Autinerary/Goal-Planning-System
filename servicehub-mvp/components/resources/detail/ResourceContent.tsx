@@ -4,6 +4,7 @@ import { Phone, Mail, Globe, MapPin, Navigation } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import LocationMap from './LocationMap'
 import ResourceBadgesLoader from '../ResourceBadgesLoader'
+import RelatedTidbits from '../RelatedTidbits'
 import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
 import type { Location, ContactInfo } from '@/types/database'
 
@@ -29,6 +30,8 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
           <p className="text-gray-700 whitespace-pre-wrap">{resource.description}</p>
         </section>
       )}
+
+      <RelatedTidbits resourceName={resource.name} />
 
       {/* Location Map */}
       {hasLocation && (
