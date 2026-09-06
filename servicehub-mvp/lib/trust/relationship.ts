@@ -64,6 +64,11 @@ const CONNECTION_TO_RELATIONSHIP: Record<string, Relationship> = {
   therapist: 'indirect_support',
   researcher: 'indirect_support',
   medical: 'indirect_support',
+  // 'coworker' and 'friend' now appear as onboarding options but had no
+  // tier — they defaulted to 'ally' via the fallback below, undercounting a
+  // friend's closeness relative to, say, an educator.
+  coworker: 'indirect_support',
+  friend: 'indirect_support',
   ally: 'ally',
 }
 

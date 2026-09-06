@@ -3,6 +3,7 @@
 import { Phone, Mail, Globe, MapPin, Navigation } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import LocationMap from './LocationMap'
+import ResourceBadgesLoader from '../ResourceBadgesLoader'
 import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
 import type { Location, ContactInfo } from '@/types/database'
 
@@ -19,6 +20,8 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
+      <ResourceBadgesLoader resourceId={resource.id} />
+
       {/* Description */}
       {resource.description && (
         <section>

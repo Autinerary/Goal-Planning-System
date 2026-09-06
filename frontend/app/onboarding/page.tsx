@@ -242,6 +242,14 @@ const connectionTypes = [
   { id: 'self', label: 'Self (Lived Experience)', icon: '👤' },
   { id: 'parent', label: 'Parent', icon: '👨‍👩‍👧‍👦' },
   { id: 'sibling', label: 'Sibling', icon: '👫' },
+  // 'partner' and 'coworker' already mapped to a trust tier in
+  // relationship.ts (direct_support / indirect_support respectively) but
+  // were never offered as options here, so no one could actually select
+  // them. 'friend' had no tier at all — added as indirect_support, the same
+  // proximity as a coworker: closer than an ally, not daily-life-sharing.
+  { id: 'partner', label: 'Partner', icon: '💞' },
+  { id: 'coworker', label: 'Coworker', icon: '🧑‍🤝‍🧑' },
+  { id: 'friend', label: 'Friend', icon: '🙋' },
   { id: 'educator', label: 'Educator', icon: '📚' },
   { id: 'employer', label: 'Employer', icon: '💼' },
   { id: 'therapist', label: 'Therapist', icon: '🧠' },

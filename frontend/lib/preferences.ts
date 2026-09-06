@@ -10,7 +10,13 @@
 // preferences only tune HOW MUCH visual energy we apply, not whether the
 // journey is a game.
 
-export type AgeRange = '18-40' | '40-65' | '65+'
+// '18-40' used to be one bucket spanning 22 years next to two much narrower
+// ones ('40-65' is 25, but '65+' is open — the real gap was the young-adult
+// end, where an 18-year-old and a 39-year-old got identical treatment).
+// Split at 25: distinguishes the student/early-career stage from the rest of
+// working-age adulthood, which is the age boundary most onboarding copy and
+// tone decisions already implicitly assume.
+export type AgeRange = '18-24' | '25-40' | '40-65' | '65+'
 export type TechSavvy = 'not_at_all' | 'somewhat' | 'always'
 export type ViewPreference = 'plain' | 'pretty' | 'exciting' | 'fun'
 export type ReminderChannel = 'email' | 'sms'
@@ -133,7 +139,8 @@ const LS_KEY = 'autinerary_preferences'
 // ── Option metadata (single source of truth for UI + analytics) ──
 
 export const AGE_RANGES: { id: AgeRange; label: string }[] = [
-  { id: '18-40', label: '18–40' },
+  { id: '18-24', label: '18–24' },
+  { id: '25-40', label: '25–40' },
   { id: '40-65', label: '40–65' },
   { id: '65+', label: '65+' },
 ]
