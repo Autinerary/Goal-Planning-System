@@ -41,8 +41,38 @@ Node integration; the mascot's preload exposes exactly three argument-checked
 functions rather than raw IPC; external links open in the real browser instead
 of a chromeless window.
 
-## Not done yet
+## Building an installer
 
-No packaging. `electron-builder` produces the `.dmg`/`.exe`, and needs an icon
-set and (for distribution without scary warnings) code signing — Apple
-Developer for macOS, a cert for Windows.
+```bash
+npm run pack        # unpacked .app, fastest way to test packaging
+npm run dist:mac    # .dmg for Apple Silicon + Intel
+npm run dist:win    # .exe (NSIS installer)
+npm run dist:linux  # AppImage
+```
+
+Output lands in `dist/`. Icons for every platform are generated from the
+single `build/icon.png`, so the three cannot drift apart.
+
+Verified on macOS: both DMGs build, mount with the usual drag-to-Applications
+layout, and the packaged app launches clean.
+
+## Code signing — the remaining gap
+
+Builds are currently **unsigned** (`CSC_IDENTITY_AUTO_DISCOVERY=false` in the
+mac scripts, or electron-builder fails looking for a keychain identity).
+
+An unsigned build is fine for you and for testers who are told what to expect,
+but macOS Gatekeeper will refuse to open it normally — the recipient has to
+right-click → Open and confirm a warning that says the app cannot be checked
+for malware. Windows SmartScreen shows a comparable warning.
+
+To remove that:
+
+- **macOS** — Apple Developer Program ($99/yr), a Developer ID Application
+  certificate, then set `CSC_LINK`/`CSC_KEY_PASSWORD` and notarise with
+  `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
+  `hardenedRuntime` is already on, which notarisation requires.
+- **Windows** — an Authenticode code-signing certificate.
+
+Nothing in the config needs to change to sign; only the credentials are
+missing.

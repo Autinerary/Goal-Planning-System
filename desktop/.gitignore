@@ -1,3 +1,9 @@
 node_modules/
 dist/
 .DS_Store
+
+# build/ is buildResources, NOT build output — electron-builder reads
+# build/icon.png from here to generate every platform's icon. A parent
+# .gitignore has a generic `build/` rule, so un-ignore it explicitly.
+!build/
+!build/icon.png

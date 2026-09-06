@@ -5,11 +5,16 @@
   "main": "main.js",
   "scripts": {
     "start": "env -u ELECTRON_RUN_AS_NODE electron .",
-    "start:local": "env -u ELECTRON_RUN_AS_NODE AUTINERARY_URL=http://localhost:3000 electron ."
+    "start:local": "env -u ELECTRON_RUN_AS_NODE AUTINERARY_URL=http://localhost:3000 electron .",
+    "pack": "env -u ELECTRON_RUN_AS_NODE CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir",
+    "dist:mac": "env -u ELECTRON_RUN_AS_NODE CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac",
+    "dist:win": "env -u ELECTRON_RUN_AS_NODE electron-builder --win",
+    "dist:linux": "env -u ELECTRON_RUN_AS_NODE electron-builder --linux"
   },
   "type": "commonjs",
   "devDependencies": {
-    "electron": "^44.1.1"
+    "electron": "^44.1.1",
+    "electron-builder": "^26.15.3"
   },
   "private": true
 }
