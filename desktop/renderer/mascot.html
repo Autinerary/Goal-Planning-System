@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    /* Transparent window: only the bubble itself should be visible. */
+    html, body {
+      margin: 0; padding: 0; background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      overflow: hidden; user-select: none; cursor: grab;
+    }
+    body:active { cursor: grabbing; }
+    .bubble {
+      margin: 8px;
+      background: rgba(255,255,255,0.97);
+      border: 2px solid #a5b4fc;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(30,41,59,0.28);
+      padding: 10px 12px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .face { font-size: 26px; line-height: 1; flex-shrink: 0; }
+    .label { font-size: 10px; font-weight: 700; color: #7c3aed;
+             text-transform: uppercase; letter-spacing: .04em; }
+    .task { font-size: 12px; font-weight: 700; color: #1e293b;
+            line-height: 1.25; margin-top: 2px;
+            display: -webkit-box; -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; overflow: hidden; }
+    .hint { font-size: 9px; color: #94a3b8; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="bubble">
+    <div class="face">🐢</div>
+    <div>
+      <div class="label">Right now</div>
+      <!-- Populated from the real API. Never a placeholder task: if we
+           cannot load one, the bubble says so rather than inventing work. -->
+      <div class="task" id="task">Loading…</div>
+      <div class="hint">Click to open · drag to move</div>
+    </div>
+  </div>
+
+  <script>
+    // Drag vs click, same 5px threshold as the calendar grid: a slightly
+    // shaky click should still open the app, not nudge the window.
+    let down = null
+    let moved = false
+
+    document.addEventListener('mousedown', (e) => {
+      down = { x: e.screenX, y: e.screenY }
+      moved = false
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (!down) return
+      const dx = e.screenX - down.x
+      const dy = e.screenY - down.y
+      if (!moved && Math.hypot(dx, dy) > 5) moved = true
+      if (moved) {
+        window.autinerary.drag(dx, dy)
+        down = { x: e.screenX, y: e.screenY }
+      }
+    })
+
+    document.addEventListener('mouseup', () => {
+      if (down && !moved) window.autinerary.openApp()
+      down = null
+    })
+
+    // Real task, or an honest empty state — never a placeholder.
+    const taskEl = document.getElementById('task')
+    async function refresh() {
+      try {
+        const task = await window.autinerary.currentTask()
+        taskEl.textContent = task
+          ? task.name
+          : 'Nothing scheduled — click to open Autinerary'
+      } catch {
+        taskEl.textContent = 'Click to open Autinerary'
+      }
+    }
+    refresh()
+    // A minute is often enough to catch a task being ticked off in the main
+    // window without polling hard enough to matter.
+    setInterval(refresh, 60_000)
+  </script>
+</body>
+</html>

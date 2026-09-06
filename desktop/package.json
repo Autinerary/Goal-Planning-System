@@ -1,0 +1,15 @@
+{
+  "name": "autinerary-desktop",
+  "version": "0.1.0",
+  "description": "Autinerary desktop \u2014 floating current-task mascot that stays above other windows.",
+  "main": "main.js",
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "start:local": "env -u ELECTRON_RUN_AS_NODE AUTINERARY_URL=http://localhost:3000 electron ."
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^44.1.1"
+  },
+  "private": true
+}
