@@ -731,3 +731,32 @@ def schedule_to_buckets(
         out.append(bucket)
     return out
 
+
+
+async def get_common_mistakes(
+    context_id: str,
+    min_samples: int = 5,
+    max_results: int = 5,
+) -> List[Dict[str, Any]]:
+    """Real, cross-user 'what not to do' list for a milestone stage.
+
+    Returns rows like {indicator, pct, sample_size}. Empty when there isn't
+    enough data yet (see get_common_mistakes() in
+    2026_common_mistakes.sql) — never a made-up percentage.
+    """
+    supa = get_supabase()
+    if supa is None or not context_id:
+        return []
+    try:
+        res = supa.rpc(
+            "get_common_mistakes",
+            {
+                "p_context_id": context_id,
+                "min_samples": int(min_samples),
+                "max_results": int(max_results),
+            },
+        ).execute()
+        return res.data or []
+    except Exception as e:
+        print(f"[learning] get_common_mistakes skipped: {e}")
+        return []

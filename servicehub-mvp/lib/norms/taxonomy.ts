@@ -66,6 +66,11 @@ export const NORM_GROUPS: NormGroup[] = [
     norms: [
       { id: 'chronic_health', label: 'Chronic Health Conditions' },
       { id: 'mental_health', label: 'Mental Health Considerations' },
+      // Named explicitly rather than folded into 'mental_health' generally —
+      // Odosa asked for both by name, matching how 'bipolar' already gets
+      // its own entry instead of hiding under a broader label.
+      { id: 'depression', label: 'Depression' },
+      { id: 'substance_use', label: 'Substance Use / Recovery' },
     ],
   },
 ]

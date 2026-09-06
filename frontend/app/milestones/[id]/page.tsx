@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageSquare, Package, Lightbulb } from 'lucide-react'
 import { useAgentPath } from '../../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import CommonMistakes from '@/app/components/CommonMistakes'
 
 
 interface Tool {
@@ -221,6 +222,8 @@ export default function MilestoneDetailView() {
               </div>
             </div>
           )}
+
+          <CommonMistakes milestoneId={milestone.id} />
         </div>
 
         {/* Tools Section */}

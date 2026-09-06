@@ -71,3 +71,20 @@ async def adapt_path(path_id: str, reflection_data: dict):
     generated_paths[path_id].update(adaptation_result)
 
     return adaptation_result
+
+@router.get("/milestones/{milestone_id}/common-mistakes")
+async def milestone_common_mistakes(milestone_id: str):
+    """Real, cross-user 'what not to do' list for one milestone stage.
+
+    Aggregate only — an indicator name, a percentage, and how many
+    reflections it's based on. No individual's data is identifiable from
+    this, so unlike the user-path endpoints this stays open.
+
+    Milestone ids are structural (milestone_g{goal}_{dim}_{i}), so this
+    naturally pools real signal across every user whose Nth milestone in a
+    dimension is this one — not a single person's history.
+    """
+    from core.learning import get_common_mistakes
+
+    mistakes = await get_common_mistakes(milestone_id)
+    return {"milestoneId": milestone_id, "mistakes": mistakes}
