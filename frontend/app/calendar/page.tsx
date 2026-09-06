@@ -1259,12 +1259,21 @@ function CalendarContent() {
                     tasks={datedTasks}
                     anchorDate={anchorDate}
                     onMove={rescheduleTask}
+                    // Same destination the List and Time Block views already
+                    // use — this prop existed but was never passed, so blocks
+                    // were unclickable.
+                    onSelect={(task) =>
+                      router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
+                    }
                   />
                 ) : (
                   <MonthGrid
                     tasks={datedTasks}
                     month={anchorDate}
                     onSelectDay={(d) => { setAnchorDate(d); router.push(`/calendar?view=week&comparison=${comparisonType}`) }}
+                    onSelectTask={(task) =>
+                      router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
+                    }
                   />
                 )}
 

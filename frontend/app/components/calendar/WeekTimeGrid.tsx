@@ -58,18 +58,35 @@ export default function WeekTimeGrid({
   } | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
 
+  // Where the pointer went down, and whether it has travelled far enough to
+  // count as a drag. Without this a plain click fires onMove with the block's
+  // CURRENT position — a pointless write that also silently converts a
+  // recurring agent task into a dated one just by clicking it.
+  const pressRef = useRef<{ x: number; y: number; moved: boolean; task: CalendarTask } | null>(null)
+
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
 
   const beginDrag = (e: React.PointerEvent, occ: Occurrence, dayIndex: number) => {
-    if (!onMove) return
     // Capture on the element receiving the events, or pointerup never fires
     // and the block is left stranded mid-drag.
     e.currentTarget.setPointerCapture(e.pointerId)
-    setDrag({ taskId: occ.task.id, dayIndex, startMinutes: occ.startMinutes })
+    pressRef.current = { x: e.clientX, y: e.clientY, moved: false, task: occ.task }
+    if (onMove) {
+      setDrag({ taskId: occ.task.id, dayIndex, startMinutes: occ.startMinutes })
+    }
   }
 
   const moveDrag = (e: React.PointerEvent) => {
-    if (!drag || !bodyRef.current) return
+    const press = pressRef.current
+    if (!press) return
+
+    // 5px of slop, so a slightly shaky tap still opens the task rather than
+    // nudging it a few minutes and saving.
+    if (!press.moved && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) {
+      press.moved = true
+    }
+    if (!press.moved || !drag || !bodyRef.current) return
+
     const rect = bodyRef.current.getBoundingClientRect()
     const colWidth = rect.width / 7
 
@@ -84,8 +101,19 @@ export default function WeekTimeGrid({
   }
 
   const endDrag = () => {
-    if (!drag) return
-    onMove?.(drag.taskId, toISODate(days[drag.dayIndex]), minutesToTime(drag.startMinutes))
+    const press = pressRef.current
+    pressRef.current = null
+
+    // A press that never travelled is a click: open the task. Only an actual
+    // drag writes a new date/time.
+    if (press && !press.moved) {
+      setDrag(null)
+      onSelect?.(press.task)
+      return
+    }
+    if (drag) {
+      onMove?.(drag.taskId, toISODate(days[drag.dayIndex]), minutesToTime(drag.startMinutes))
+    }
     setDrag(null)
   }
 
@@ -170,8 +198,7 @@ export default function WeekTimeGrid({
                     key={`${occ.task.id}-${day.toISOString()}`}
                     type="button"
                     onPointerDown={(e) => beginDrag(e, occ, dayIndex)}
-                    onClick={() => !dragging && onSelect?.(occ.task)}
-                    title={`${occ.task.name} · ${minutesToTime(effStart)}${occ.recurring ? ' · repeats weekly' : ''}`}
+                    title={`${occ.task.name} · ${minutesToTime(effStart)}${occ.recurring ? ' · repeats weekly' : ''}${onSelect ? ' — click to open, drag to move' : ''}`}
                     className={`absolute text-left rounded-md px-1.5 py-1 overflow-hidden border transition-shadow ${
                       dragging ? 'shadow-lg z-20 opacity-90' : 'z-10 hover:shadow-md'
                     } ${

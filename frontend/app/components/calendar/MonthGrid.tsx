@@ -16,10 +16,12 @@ export default function MonthGrid({
   tasks,
   month,
   onSelectDay,
+  onSelectTask,
 }: {
   tasks: CalendarTask[]
   month: Date
   onSelectDay?: (date: Date) => void
+  onSelectTask?: (task: CalendarTask) => void
 }) {
   const days = useMemo(() => monthGridDays(month), [month])
   const occurrences = useMemo(
@@ -45,16 +47,20 @@ export default function MonthGrid({
           const extra = dayOccs.length - shown.length
 
           return (
-            <button
+            // A div, not a button: the task chips inside are themselves
+            // buttons, and nesting a button inside a button is invalid HTML —
+            // which is why these chips could not be made clickable before.
+            <div
               key={day.toISOString()}
-              type="button"
-              onClick={() => onSelectDay?.(day)}
-              className={`text-left min-h-[92px] border-b border-r border-slate-100 p-1.5 align-top transition-colors hover:bg-slate-50 ${
+              className={`text-left min-h-[92px] border-b border-r border-slate-100 p-1.5 align-top ${
                 inMonth ? '' : 'bg-slate-50/60'
               }`}
             >
-              <div
-                className={`inline-grid place-items-center w-6 h-6 rounded-full text-xs font-bold mb-1 ${
+              <button
+                type="button"
+                onClick={() => onSelectDay?.(day)}
+                title="Open this week"
+                className={`inline-grid place-items-center w-6 h-6 rounded-full text-xs font-bold mb-1 transition-colors hover:ring-2 hover:ring-cyan-300 ${
                   isToday(day)
                     ? 'bg-cyan-600 text-white'
                     : inMonth
@@ -63,13 +69,16 @@ export default function MonthGrid({
                 }`}
               >
                 {format(day, 'd')}
-              </div>
+              </button>
 
               <div className="space-y-0.5">
                 {shown.map((occ) => (
-                  <div
+                  <button
                     key={`${occ.task.id}-${day.toISOString()}`}
-                    className={`text-[9px] leading-tight truncate rounded px-1 py-0.5 ${
+                    type="button"
+                    onClick={() => onSelectTask?.(occ.task)}
+                    title={`${occ.task.name} — open`}
+                    className={`block w-full text-left text-[9px] leading-tight truncate rounded px-1 py-0.5 transition-opacity hover:opacity-80 ${
                       occ.task.completed
                         ? 'bg-slate-100 text-slate-400 line-through'
                         : occ.recurring
@@ -78,13 +87,19 @@ export default function MonthGrid({
                     }`}
                   >
                     {occ.task.name}
-                  </div>
+                  </button>
                 ))}
                 {extra > 0 && (
-                  <div className="text-[9px] text-slate-400 px-1">+{extra} more</div>
+                  <button
+                    type="button"
+                    onClick={() => onSelectDay?.(day)}
+                    className="text-[9px] text-slate-400 px-1 hover:text-slate-600"
+                  >
+                    +{extra} more
+                  </button>
                 )}
               </div>
-            </button>
+            </div>
           )
         })}
       </div>
