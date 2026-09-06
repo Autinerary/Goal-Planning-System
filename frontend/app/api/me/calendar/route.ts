@@ -25,9 +25,12 @@ export async function GET(_req: NextRequest) {
 
   const { data, error } = await supabase
     .from('calendar_tasks')
-    .select('id, client_id, day, time, name, duration, priority, source, scenario, completed, completed_at, created_at')
+    .select('id, client_id, day, time, scheduled_date, duration_minutes, name, duration, priority, source, scenario, completed, completed_at, created_at')
     .eq('user_id', user.id)
-    .order('day', { ascending: true })
+    // Dated tasks first in real chronological order, then the weekly
+    // template rows. `day` was previously the primary sort — a weekday NAME,
+    // so it ordered Friday before Monday alphabetically.
+    .order('scheduled_date', { ascending: true, nullsFirst: false })
     .order('time', { ascending: true })
 
   if (error) {
@@ -69,6 +72,27 @@ export async function POST(req: NextRequest) {
   }
 
   const duration = clamp(body?.duration, 40, '30 min')
+
+  // Real date for a one-time task. Omitted/null means the row recurs weekly
+  // on `day`, which is what the path-planning agents produce.
+  const rawDate = clamp(body?.scheduled_date, 10)
+  const scheduled_date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null
+
+  // Numeric length, for sizing a block on the time grid. Falls back to
+  // parsing the display string rather than assuming a default here — the DB
+  // column is nullable precisely so "unknown" stays distinguishable.
+  const rawMinutes = Number(body?.duration_minutes)
+  let duration_minutes: number | null =
+    Number.isFinite(rawMinutes) && rawMinutes > 0 && rawMinutes <= 1440
+      ? Math.round(rawMinutes)
+      : null
+  if (duration_minutes === null) {
+    const m = /^\s*(\d+)\s*(min|mins|minute|minutes|hr|hrs|hour|hours)\s*$/i.exec(duration)
+    if (m) {
+      const n = Number(m[1])
+      duration_minutes = /^h/i.test(m[2]) ? n * 60 : n
+    }
+  }
   const rawPriority = clamp(body?.priority, 20, 'medium')
   const priority = ALLOWED_PRIORITY.has(rawPriority) ? rawPriority : 'medium'
   const source = clamp(body?.source, 120) || null
@@ -83,6 +107,8 @@ export async function POST(req: NextRequest) {
         client_id,
         day,
         time,
+        scheduled_date,
+        duration_minutes,
         name,
         duration,
         priority,
@@ -91,7 +117,7 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: 'user_id,client_id' }
     )
-    .select('id, client_id, day, time, name, duration, priority, source, scenario, completed, completed_at, created_at')
+    .select('id, client_id, day, time, scheduled_date, duration_minutes, name, duration, priority, source, scenario, completed, completed_at, created_at')
     .single()
 
   if (error) {

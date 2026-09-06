@@ -29,7 +29,7 @@ export default function PhotoScheduleImport({
   onConfirm,
   onClose,
 }: {
-  onConfirm: (events: { name: string; day: string; time: string }[]) => void
+  onConfirm: (events: { name: string; day: string; time: string; date: string | null }[]) => void
   onClose: () => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -78,8 +78,13 @@ export default function PhotoScheduleImport({
       .filter((e) => e.included && e.name.trim())
       .map((e) => ({
         name: e.name.trim(),
-        day: e.weekday || 'Monday', // needs a weekday to slot into this calendar's template
+        // The weekday is still sent so a dateless event ("every Tuesday" on a
+        // whiteboard) can slot into the weekly template.
+        day: e.weekday || 'Monday',
         time: e.time || '09:00',
+        // A real date read off the photo is now kept instead of being
+        // flattened to a weekday — the calendar can hold actual dates.
+        date: e.date,
       }))
     onConfirm(chosen)
   }
@@ -151,10 +156,25 @@ export default function PhotoScheduleImport({
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={e.date || ''}
+                          onChange={(ev) => {
+                            const date = ev.target.value || null
+                            // Keep the weekday consistent with the date rather
+                            // than letting the two drift apart.
+                            const weekday = date
+                              ? WEEKDAYS[new Date(date + 'T00:00:00').getDay()]
+                              : e.weekday
+                            update(e.id, { date, weekday })
+                          }}
+                          className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                        />
                         <select
                           value={e.weekday || ''}
                           onChange={(ev) => update(e.id, { weekday: ev.target.value || null })}
                           className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                          title="Used when no specific date was found — the event repeats weekly."
                         >
                           <option value="">Day…</option>
                           {WEEKDAYS.map((w) => <option key={w} value={w}>{w}</option>)}

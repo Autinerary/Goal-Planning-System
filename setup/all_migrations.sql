@@ -3304,5 +3304,47 @@ GRANT EXECUTE ON FUNCTION public.get_resource_badges(UUID[]) TO authenticated, a
 COMMENT ON FUNCTION public.get_resource_badges(UUID[]) IS
   'Trending/rare/highly-requested badges from real saves and category scarcity. No resource is badged without meeting a real, fixed threshold.';
 
+-- =============================================================================
+-- STEP 30 — backend/database/migrations/2026_calendar_real_dates.sql
+-- =============================================================================
+-- Real dates for the calendar. Additive: scheduled_date NULL keeps the
+-- existing weekly-template behaviour, a set date is a one-time task.
+
+
+ALTER TABLE public.calendar_tasks
+  ADD COLUMN IF NOT EXISTS scheduled_date   DATE,
+  ADD COLUMN IF NOT EXISTS duration_minutes INTEGER
+    CHECK (duration_minutes IS NULL OR (duration_minutes > 0 AND duration_minutes <= 1440));
+
+-- "What is on screen right now" — the only query the new views make.
+CREATE INDEX IF NOT EXISTS calendar_tasks_user_date_idx
+  ON public.calendar_tasks (user_id, scheduled_date);
+
+-- Recurring rows are looked up by weekday instead.
+CREATE INDEX IF NOT EXISTS calendar_tasks_user_recurring_idx
+  ON public.calendar_tasks (user_id, day)
+  WHERE scheduled_date IS NULL;
+
+-- Backfill duration_minutes from the human-readable string already stored.
+-- Only unambiguous forms are converted; anything else stays NULL rather than
+-- being assigned a made-up length.
+UPDATE public.calendar_tasks
+   SET duration_minutes = CASE
+     WHEN duration ~* '^\s*(\d+)\s*(min|mins|minute|minutes)\s*$'
+       THEN (regexp_match(duration, '(\d+)'))[1]::INT
+     WHEN duration ~* '^\s*(\d+)\s*(hr|hrs|hour|hours)\s*$'
+       THEN (regexp_match(duration, '(\d+)'))[1]::INT * 60
+     WHEN duration ~* '^\s*(\d+)\s*\.\s*5\s*(hr|hrs|hour|hours)\s*$'
+       THEN (regexp_match(duration, '(\d+)'))[1]::INT * 60 + 30
+     ELSE NULL
+   END
+ WHERE duration_minutes IS NULL
+   AND duration IS NOT NULL;
+
+COMMENT ON COLUMN public.calendar_tasks.scheduled_date IS
+  'Real calendar date for a one-time task. NULL means the row recurs weekly on `day` — which is what the path-planning agents actually generate.';
+COMMENT ON COLUMN public.calendar_tasks.duration_minutes IS
+  'Length in minutes, for sizing a block on the time grid. Backfilled by parsing `duration`; NULL when that string was not unambiguously parseable.';
+
 
 COMMIT;

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft, Download, Upload } from 'lucide-react'
@@ -12,6 +12,10 @@ import { fetchCompletedMilestoneIds, type ProgressMilestone } from '../../lib/ra
 import { playTaskCompleteSound } from '../../lib/taskSound'
 import RainDayBanner from '../components/RainDayBanner'
 import PhotoScheduleImport from '../components/PhotoScheduleImport'
+import WeekTimeGrid from '../components/calendar/WeekTimeGrid'
+import MonthGrid from '../components/calendar/MonthGrid'
+import { parseDurationString, toISODate, type CalendarTask as DatedTask } from '@/lib/calendarModel'
+import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -228,6 +232,12 @@ function CalendarContent() {
   const isSignedIn = Boolean(supabaseUser)
   const [showAddTask, setShowAddTask] = useState(false)
   const [showPhotoImport, setShowPhotoImport] = useState(false)
+  // Which week/month the real-date views are looking at.
+  const [anchorDate, setAnchorDate] = useState<Date>(() => new Date())
+  // Real dates + numeric durations, straight from the server. The local
+  // `addedTasks` state is deliberately NOT the source here: it only carries a
+  // weekday name, so it cannot answer "what is on the 14th".
+  const [serverTasks, setServerTasks] = useState<any[]>([])
   const [addedTasks, setAddedTasks] = useState<Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>>(() => {
     // Load from localStorage on mount (will be overwritten from Supabase below if signed in)
     if (typeof window !== 'undefined') {
@@ -464,6 +474,95 @@ function CalendarContent() {
   // addedTasks, the user's own additions — agent-scheduled tasks for the
   // rainy day stay put, since silently rewriting the plan the agents built
   // is a bigger claim than a weather nudge should make.
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    fetch('/api/me/calendar', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (!cancelled && Array.isArray(j?.tasks)) setServerTasks(j.tasks) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isSignedIn])
+
+  // Everything the real-date views draw: server rows (which may carry a real
+  // date) plus the agent's weekly template, which genuinely has no dates and
+  // so is expanded as a weekly recurrence.
+  const datedTasks: DatedTask[] = useMemo(() => {
+    const fromServer: DatedTask[] = serverTasks.map((t: any) => ({
+      id: String(t.client_id || t.id),
+      name: String(t.name || ''),
+      day: String(t.day || 'Monday'),
+      time: String(t.time || '09:00'),
+      scheduledDate: t.scheduled_date || null,
+      durationMinutes:
+        typeof t.duration_minutes === 'number' ? t.duration_minutes : parseDurationString(t.duration),
+      priority: String(t.priority || 'medium'),
+      source: t.source || undefined,
+      completed: Boolean(t.completed),
+    }))
+
+    const seen = new Set(fromServer.map((t) => t.id))
+    const fromAgent: DatedTask[] = (currentData.days || []).flatMap((d: any) =>
+      (d.tasks || [])
+        .filter((t: any) => !seen.has(String(t.id)))
+        .map((t: any) => ({
+          id: String(t.id),
+          name: String(t.name || ''),
+          day: String(d.name),
+          time: String(t.time || '09:00'),
+          scheduledDate: null,
+          durationMinutes: parseDurationString(t.duration),
+          priority: String(t.priority || 'medium'),
+          completed: completedTasks.has(String(t.id)),
+        }))
+    )
+
+    return [...fromServer, ...fromAgent]
+  }, [serverTasks, currentData, completedTasks])
+
+  // Drag-to-reschedule on the week grid. Writes the real date server-side and
+  // updates locally so the block doesn't snap back while the request is in
+  // flight.
+  const rescheduleTask = (taskId: string, newDateISO: string, newTime: string) => {
+    setServerTasks((prev) => {
+      const exists = prev.some((t: any) => String(t.client_id || t.id) === taskId)
+      if (exists) {
+        return prev.map((t: any) =>
+          String(t.client_id || t.id) === taskId
+            ? { ...t, scheduled_date: newDateISO, time: newTime }
+            : t
+        )
+      }
+      // Dragging an agent-template task pins it to a real date for the first
+      // time, so it becomes a server row rather than staying a weekly repeat.
+      const agent = datedTasks.find((t) => t.id === taskId)
+      if (!agent) return prev
+      return [...prev, {
+        client_id: taskId, name: agent.name, day: agent.day, time: newTime,
+        scheduled_date: newDateISO, duration_minutes: agent.durationMinutes,
+        priority: agent.priority, completed: false,
+      }]
+    })
+
+    if (!isSignedIn) return
+    const agent = datedTasks.find((t) => t.id === taskId)
+    fetch('/api/me/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        client_id: taskId,
+        day: agent?.day || 'Monday',
+        time: newTime,
+        scheduled_date: newDateISO,
+        duration_minutes: agent?.durationMinutes ?? undefined,
+        name: agent?.name || 'Task',
+        priority: agent?.priority || 'medium',
+        scenario,
+      }),
+    }).catch(() => {})
+  }
+
   const moveDayTasks = (fromDay: string, toDay: string) => {
     setAddedTasks((prev) => prev.map((t) => (t.day === fromDay ? { ...t, day: toDay } : t)))
   }
@@ -472,7 +571,7 @@ function CalendarContent() {
   // extracted rows. Mirrors addSuggestionToCalendar's persistence exactly —
   // localStorage always, Supabase fire-and-forget when signed in — so a
   // photo-imported task is indistinguishable from a manually typed one.
-  const addPhotoEventsToCalendar = (events: { name: string; day: string; time: string }[]) => {
+  const addPhotoEventsToCalendar = (events: { name: string; day: string; time: string; date?: string | null }[]) => {
     const created = events.map((e, i) => ({
       id: `photo_${Date.now()}_${i}`,
       day: e.day,
@@ -481,7 +580,21 @@ function CalendarContent() {
       duration: '30 min',
       priority: 'medium',
       from: 'Photo import',
+      scheduledDate: e.date ?? null,
     }))
+
+    // Anything with a real date also lands in the dated views immediately,
+    // rather than only appearing after a reload.
+    setServerTasks((prev) => [
+      ...prev,
+      ...created
+        .filter((t) => t.scheduledDate)
+        .map((t) => ({
+          client_id: t.id, name: t.name, day: t.day, time: t.time,
+          scheduled_date: t.scheduledDate, duration_minutes: 30,
+          priority: t.priority, source: t.from, completed: false,
+        })),
+    ])
     const updated = [...addedTasks, ...created]
     setAddedTasks(updated)
     localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
@@ -495,6 +608,8 @@ function CalendarContent() {
           body: JSON.stringify({
             client_id: t.id, day: t.day, time: t.time, name: t.name,
             duration: t.duration, priority: t.priority, source: t.from, scenario,
+            scheduled_date: t.scheduledDate ?? undefined,
+            duration_minutes: 30,
           }),
         }).catch(() => {})
       })
@@ -905,6 +1020,28 @@ function CalendarContent() {
             >
               ⏰ Time Blocks
             </button>
+            {/* Real-date views. The two above run on the weekly template the
+                agents generate; these run on actual dates. */}
+            <button
+              onClick={() => router.push(`/calendar?view=week&comparison=${comparisonType}`)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                viewType === 'week'
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
+                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+              }`}
+            >
+              🗓️ Week
+            </button>
+            <button
+              onClick={() => router.push(`/calendar?view=month&comparison=${comparisonType}`)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                viewType === 'month'
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
+                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+              }`}
+            >
+              📆 Month
+            </button>
           </div>
 
           <div className="h-6 w-px bg-slate-300" />
@@ -1085,7 +1222,58 @@ function CalendarContent() {
             </div>
           )}
           <div>
-            {viewType === 'list' ? (
+            {viewType === 'week' || viewType === 'month' ? (
+              <div className="space-y-3">
+                {/* Real-date navigation. The template views have no concept of
+                    "next week", so this only exists here. */}
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, -1) : addDays(anchorDate, -7))}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
+                  >
+                    ← Previous
+                  </button>
+                  <div className="text-sm font-bold text-slate-700">
+                    {viewType === 'month'
+                      ? fmtDate(anchorDate, 'MMMM yyyy')
+                      : `Week of ${fmtDate(startOfWeek(anchorDate), 'MMM d, yyyy')}`}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setAnchorDate(new Date())}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, 1) : addDays(anchorDate, 7))}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+
+                {viewType === 'week' ? (
+                  <WeekTimeGrid
+                    tasks={datedTasks}
+                    anchorDate={anchorDate}
+                    onMove={rescheduleTask}
+                  />
+                ) : (
+                  <MonthGrid
+                    tasks={datedTasks}
+                    month={anchorDate}
+                    onSelectDay={(d) => { setAnchorDate(d); router.push(`/calendar?view=week&comparison=${comparisonType}`) }}
+                  />
+                )}
+
+                <p className="text-[11px] text-slate-400">
+                  Purple blocks repeat every week — that&apos;s the plan your agents built.
+                  Blue blocks are on a specific date. Drag any block to move it.
+                </p>
+              </div>
+            ) : viewType === 'list' ? (
               <ListView
                 days={displayDays}
                 completedTasks={completedTasks}
