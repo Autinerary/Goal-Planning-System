@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2, Check, Lock } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2, Check, Lock, GitCompare } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
@@ -1109,6 +1109,14 @@ function RacesContent() {
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
             <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
               {dreamPortrait ? '✨ See more →' : '✨ Create your portrait →'}
+            </Link>
+            {/* Path view already surfaces the multi-path switcher; Races did
+                not (Odosa asked for it at the top of Path and/or Race view). */}
+            <Link
+              href="/paths/compare"
+              className={`mt-1 text-[10px] font-semibold flex items-center gap-1 ${day ? 'text-slate-500 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              <GitCompare className="w-3 h-3" /> Compare / switch paths
             </Link>
           </div>
 

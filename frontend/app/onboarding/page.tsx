@@ -503,24 +503,23 @@ export default function OnboardingPage() {
       if (seedRaw) {
         const seed = JSON.parse(seedRaw)
         const focusCategory: string = seed?.focusCategory || 'other'
+        // Odosa: pathway selection should SUGGEST, not pre-select — picking a
+        // Path Market model used to write its seedGoals directly into
+        // goalsByCategory as if the user had typed them, so a model's goals
+        // were already "chosen" before onboarding even started and the user
+        // had to notice and remove the ones they did not want. The model's
+        // goals now join the same tap-to-add suggestion chips the category's
+        // general examples already use, instead of a second, separate
+        // mechanism that silently pre-fills real entries.
         if (seed?.key) {
+          const modelGoals: string[] = Array.isArray(seed.goals) ? seed.goals : []
+          const generalSuggestions: string[] = Array.isArray(seed.suggestions) ? seed.suggestions : []
+          const merged = [...modelGoals, ...generalSuggestions.filter((s) => !modelGoals.includes(s))]
           setPathSeed({
             key: seed.key,
             title: seed.title || 'Your path',
             focusCategory,
-            suggestions: Array.isArray(seed.suggestions) ? seed.suggestions : [],
-          })
-        }
-        if (seed?.goals?.length) {
-          setFormData(prev => {
-            const existing = prev.goalsByCategory || {}
-            if (Object.keys(existing).length > 0) return prev // don't clobber a resumed draft
-            return {
-              ...prev,
-              goalsByCategory: {
-                [focusCategory]: seed.goals.map((g: string) => ({ goal: g, dreams: '', obstacles: '' })),
-              },
-            }
+            suggestions: merged,
           })
         }
       }
