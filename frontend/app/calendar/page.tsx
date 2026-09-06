@@ -11,6 +11,7 @@ import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
 import { fetchCompletedMilestoneIds, type ProgressMilestone } from '../../lib/raceProgress'
 import { playTaskCompleteSound } from '../../lib/taskSound'
 import RainDayBanner from '../components/RainDayBanner'
+import PhotoScheduleImport from '../components/PhotoScheduleImport'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -226,6 +227,7 @@ function CalendarContent() {
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
   const [showAddTask, setShowAddTask] = useState(false)
+  const [showPhotoImport, setShowPhotoImport] = useState(false)
   const [addedTasks, setAddedTasks] = useState<Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>>(() => {
     // Load from localStorage on mount (will be overwritten from Supabase below if signed in)
     if (typeof window !== 'undefined') {
@@ -466,6 +468,40 @@ function CalendarContent() {
     setAddedTasks((prev) => prev.map((t) => (t.day === fromDay ? { ...t, day: toDay } : t)))
   }
 
+  // From PhotoScheduleImport, after the user has confirmed/edited the
+  // extracted rows. Mirrors addSuggestionToCalendar's persistence exactly —
+  // localStorage always, Supabase fire-and-forget when signed in — so a
+  // photo-imported task is indistinguishable from a manually typed one.
+  const addPhotoEventsToCalendar = (events: { name: string; day: string; time: string }[]) => {
+    const created = events.map((e, i) => ({
+      id: `photo_${Date.now()}_${i}`,
+      day: e.day,
+      time: e.time,
+      name: e.name,
+      duration: '30 min',
+      priority: 'medium',
+      from: 'Photo import',
+    }))
+    const updated = [...addedTasks, ...created]
+    setAddedTasks(updated)
+    localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
+
+    if (isSignedIn) {
+      created.forEach((t) => {
+        fetch('/api/me/calendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            client_id: t.id, day: t.day, time: t.time, name: t.name,
+            duration: t.duration, priority: t.priority, source: t.from, scenario,
+          }),
+        }).catch(() => {})
+      })
+    }
+    setShowPhotoImport(false)
+  }
+
   const addSuggestionToCalendar = (suggestion: string, from: string, selectedDay: string, selectedTime: string) => {
     // Generate task ID
     const taskId = `suggestion_${Date.now()}`
@@ -642,6 +678,13 @@ function CalendarContent() {
         <div className="absolute bottom-20 right-6 text-2xl turtle-peek transform -scale-x-100" style={{ animationDelay: '1.5s' }}>🐢</div>
       </div>
       <div className="relative z-10">
+        {showPhotoImport && (
+          <PhotoScheduleImport
+            onClose={() => setShowPhotoImport(false)}
+            onConfirm={addPhotoEventsToCalendar}
+          />
+        )}
+
         {/* Suggestion Modal */}
         {/* Add-your-own-task modal (Chi) */}
         {showAddTask && (
@@ -989,8 +1032,14 @@ function CalendarContent() {
           ))}
           {/* Add your own task (Chi) */}
           <button
+            onClick={() => setShowPhotoImport(true)}
+            className="ml-auto px-4 py-2 rounded-lg font-medium text-sm border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50 transition-all"
+          >
+            📷 Add from photo
+          </button>
+          <button
             onClick={() => setShowAddTask(true)}
-            className="ml-auto px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:opacity-90 transition-all"
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:opacity-90 transition-all"
           >
             + Add task
           </button>
