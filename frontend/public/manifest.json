@@ -1,0 +1,65 @@
+{
+  "name": "Autinerary",
+  "short_name": "Autinerary",
+  "description": "Personalised life planning that works with how your brain actually works.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef4ff",
+  "theme_color": "#7c3aed",
+  "categories": [
+    "health",
+    "lifestyle",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's tasks",
+      "url": "/calendar",
+      "description": "What you're doing today"
+    },
+    {
+      "name": "Your path",
+      "url": "/races",
+      "description": "Your milestone map"
+    },
+    {
+      "name": "Resources",
+      "url": "/pit-stop",
+      "description": "Tools and support"
+    }
+  ]
+}
