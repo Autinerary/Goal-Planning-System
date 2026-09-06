@@ -67,3 +67,87 @@ export async function fetchCurrentTask(userId: string): Promise<CurrentTask | nu
     milestoneName: String(next.name || ''),
   }
 }
+
+
+export interface Milestone {
+  id: string
+  name: string
+  dimension: string
+  dimensionLabel: string
+  completed: boolean
+}
+
+/**
+ * The user's whole path, as milestones with real completion state.
+ *
+ * Same two-source shape as fetchCurrentTask: the path comes from the backend
+ * (verified against the live endpoint — milestones hang off races[], there is
+ * no `pathPlanning` key despite the web app's naming), and completion comes
+ * from race_progress in Supabase, which the web app reads through a Next API
+ * route that does not exist on mobile.
+ */
+export async function fetchMilestones(userId: string): Promise<Milestone[]> {
+  const { data: sess } = await supabase.auth.getSession()
+  const token = sess.session?.access_token
+  if (!token) return []
+
+  const res = await fetch(
+    `${API_BASE}/api/onboarding/user/${encodeURIComponent(userId)}/path`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) return []
+
+  const payload = await res.json().catch(() => null)
+  const raw: any[] = (payload?.races || []).flatMap((r: any) => r?.milestones || [])
+  if (raw.length === 0) return []
+
+  const { data: progress } = await supabase
+    .from('race_progress')
+    .select('milestone_id')
+    .eq('user_id', userId)
+    .eq('kind', 'completed')
+
+  const done = new Set((progress || []).map((r: any) => String(r.milestone_id)))
+
+  return raw.map((m: any) => ({
+    id: String(m.id),
+    name: String(m.name || 'Milestone'),
+    dimension: String(m.dimension || 'default'),
+    dimensionLabel: String(m.dimensionLabel || ''),
+    completed: done.has(String(m.id)),
+  }))
+}
+
+/** Mark a milestone done, or undo it. Writes to the same race_progress table
+ *  the web app uses, so progress is shared across every client. */
+export async function setMilestoneComplete(
+  userId: string,
+  milestoneId: string,
+  completed: boolean
+): Promise<boolean> {
+  try {
+    if (completed) {
+      const { error } = await supabase
+        .from('race_progress')
+        .upsert(
+          { user_id: userId, milestone_id: milestoneId, kind: 'completed' },
+          // Conflict target named explicitly, matching what the web app's
+          // /api/me/progress already does in production — Postgres defaults
+          // to the primary key otherwise, which is the wrong constraint.
+          // ignoreDuplicates because the row is a marker with nothing to
+          // update: re-completing should be a no-op, not an error.
+          { onConflict: 'user_id,milestone_id,kind', ignoreDuplicates: true }
+        )
+      return !error
+    }
+    const { error } = await supabase
+      .from('race_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('milestone_id', milestoneId)
+      .eq('kind', 'completed')
+    return !error
+  } catch {
+    return false
+  }
+}
