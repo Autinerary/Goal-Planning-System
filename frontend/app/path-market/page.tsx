@@ -268,6 +268,14 @@ export default function PathMarketPage() {
           >
             <Plus className="w-4 h-4" /> Share your path model
           </button>
+          {/* Bulk route, for someone who already has a list rather than a
+              single model to describe. */}
+          <Link
+            href="/bulk-import"
+            className="mt-3 ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-purple-200 text-purple-700 text-sm font-semibold hover:border-purple-400 transition-all"
+          >
+            <Sparkles className="w-4 h-4" /> Recommend a batch
+          </Link>
         </div>
 
         {/* Layer 1: Your Norms */}

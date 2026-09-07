@@ -3346,5 +3346,59 @@ COMMENT ON COLUMN public.calendar_tasks.scheduled_date IS
 COMMENT ON COLUMN public.calendar_tasks.duration_minutes IS
   'Length in minutes, for sizing a block on the time grid. Backfilled by parsing `duration`; NULL when that string was not unambiguously parseable.';
 
+-- =============================================================================
+-- STEP 31 — backend/database/migrations/2026_bulk_suggestions.sql
+-- =============================================================================
+-- Mass recommending. Milestones had no user-submission path at all before
+-- this; resources already have one via public.resources.
+
+
+CREATE TABLE IF NOT EXISTS public.milestone_suggestions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 3 AND 200),
+  description   TEXT,
+  -- Life dimension, matching what the path planner emits so an approved
+  -- suggestion can slot straight into a generated path.
+  dimension     TEXT NOT NULL DEFAULT 'education'
+                  CHECK (dimension IN ('education', 'workplace', 'relationships', 'health', 'barrier')),
+  -- Which Path Market life category this belongs under. Free text rather
+  -- than a foreign key: path_categories is editable content, and a
+  -- suggestion should not be destroyed because a category was renamed.
+  category_key  TEXT,
+  submitted_by  UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  -- Groups everything from one paste, so a reviewer can accept or reject a
+  -- batch together and a submitter can see what they sent as one unit.
+  batch_id      UUID,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS milestone_suggestions_status_idx
+  ON public.milestone_suggestions (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS milestone_suggestions_owner_idx
+  ON public.milestone_suggestions (submitted_by);
+CREATE INDEX IF NOT EXISTS milestone_suggestions_batch_idx
+  ON public.milestone_suggestions (batch_id);
+
+ALTER TABLE public.milestone_suggestions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS milestone_suggestions_read_approved ON public.milestone_suggestions;
+CREATE POLICY milestone_suggestions_read_approved ON public.milestone_suggestions
+  FOR SELECT USING (status = 'approved');
+
+DROP POLICY IF EXISTS milestone_suggestions_read_own ON public.milestone_suggestions;
+CREATE POLICY milestone_suggestions_read_own ON public.milestone_suggestions
+  FOR SELECT USING (auth.uid() = submitted_by);
+
+DROP POLICY IF EXISTS milestone_suggestions_insert_own ON public.milestone_suggestions;
+CREATE POLICY milestone_suggestions_insert_own ON public.milestone_suggestions
+  FOR INSERT WITH CHECK (auth.uid() = submitted_by AND status = 'pending');
+
+-- Approval goes through the service-role admin path, same as path_models.
+
+COMMENT ON TABLE public.milestone_suggestions IS
+  'User-contributed milestones from the bulk import. Nothing is publicly visible until approved — a bulk paste is exactly how a half-formed list reaches a shared catalogue.';
+
 
 COMMIT;
