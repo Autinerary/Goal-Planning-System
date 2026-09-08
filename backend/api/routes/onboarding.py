@@ -7,7 +7,7 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.auth_guard import current_user_id, require_self_or_guardian
+from api.auth_guard import current_user_id, optional_user_id, require_self_or_guardian
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
@@ -320,6 +320,7 @@ class OnboardingResponse(BaseModel):
 async def _generate_path_for(
     request: "OnboardingRequest",
     job_id: Optional[str] = None,
+    actor: Optional[str] = None,
 ) -> str:
     """Run the full pipeline and persist the path. Returns the path id.
 
@@ -373,9 +374,10 @@ async def _generate_path_for(
     # Load this user's cross-session memory so agents build on past plans
     user_memory = mem.load_user_memory(user_id)
 
-    # Scopes every agent call in this run to the caller's chosen models, and
-    # charges the spend to them.
-    with llm.use_selection(llm.parse_selection(request.llmConfig), actor=user_id):
+    # Spend is charged to the verified session when there is one. Falling back
+    # to the request id keeps signed-out onboarding working, but a signed-in
+    # caller cannot pick someone else's budget.
+    with llm.use_selection(llm.parse_selection(request.llmConfig), actor=actor or user_id):
         # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
         _stage("Mapping out your milestones")
         agent_result = await orchestrator.generate_path(
@@ -422,13 +424,16 @@ async def _generate_path_for(
 
 
 @router.post("/", response_model=OnboardingResponse)
-async def create_onboarding(request: OnboardingRequest):
+async def create_onboarding(
+    request: OnboardingRequest,
+    actor: Optional[str] = Depends(optional_user_id),
+):
     """
     Create user profile, run agent orchestration, and generate personalized path.
     This is the main entry point that connects onboarding → multi-agent system → path.
     """
     try:
-        path_id = await _generate_path_for(request)
+        path_id = await _generate_path_for(request, actor=actor)
         return OnboardingResponse(
             userId=request.userId or "",
             pathId=path_id,
@@ -454,11 +459,15 @@ class JobStatus(BaseModel):
     error: Optional[str] = None
 
 
-async def _run_job(job_id: str, request: "OnboardingRequest") -> None:
+async def _run_job(
+    job_id: str,
+    request: "OnboardingRequest",
+    actor: Optional[str] = None,
+) -> None:
     """Background worker. Never raises — a job failure is data, not a crash."""
     jobs.mark_running(job_id)
     try:
-        path_id = await _generate_path_for(request, job_id=job_id)
+        path_id = await _generate_path_for(request, job_id=job_id, actor=actor)
         jobs.mark_succeeded(job_id, path_id)
     except HTTPException as e:
         # Guardrail rejections carry a message meant for the user.
@@ -472,7 +481,10 @@ async def _run_job(job_id: str, request: "OnboardingRequest") -> None:
 
 
 @router.post("/jobs", response_model=JobAccepted, status_code=202)
-async def enqueue_onboarding(request: OnboardingRequest):
+async def enqueue_onboarding(
+    request: OnboardingRequest,
+    actor: Optional[str] = Depends(optional_user_id),
+):
     """Start a generation and return immediately.
 
     The synchronous endpoint still works and is unchanged, but it holds a
@@ -502,7 +514,7 @@ async def enqueue_onboarding(request: OnboardingRequest):
     # Detached so the response is not waiting on it. Held in a module-level set
     # because asyncio only keeps a weak reference to tasks — without this the
     # garbage collector can cancel a running generation mid-flight.
-    task = asyncio.create_task(_run_job(job_id, request))
+    task = asyncio.create_task(_run_job(job_id, request, actor=actor))
     _BACKGROUND_TASKS.add(task)
     task.add_done_callback(_BACKGROUND_TASKS.discard)
 

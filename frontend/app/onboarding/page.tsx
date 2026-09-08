@@ -17,6 +17,7 @@ import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SK
 import UserAvatar from '@/app/components/UserAvatar'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
+import { createClient } from '@/lib/supabase/client'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -952,9 +953,17 @@ export default function OnboardingPage() {
 
       let response: { data: { pathId?: string } }
 
+      // Lets the backend attribute generation spend to this account rather than
+      // to the shared anonymous budget.
+      const { data: { session } } = await createClient().auth.getSession()
+      const authHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      }
+
       const enqueued = await axios
         .post(`${API_URL}/api/onboarding/jobs`, onboardingBody, {
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           timeout: 20000,
           validateStatus: (status) => status === 202 || status === 503,
         })
@@ -987,7 +996,7 @@ export default function OnboardingPage() {
       } else {
         // Blocking path — job store unavailable or the enqueue never landed.
         response = await axios.post(`${API_URL}/api/onboarding/`, onboardingBody, {
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           timeout: 360000,
         })
       }

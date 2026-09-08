@@ -52,6 +52,32 @@ def current_user_id(authorization: Optional[str] = Header(None)) -> str:
     return str(uid)
 
 
+def optional_user_id(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    """The signed-in user's id when there is a valid session, else None.
+
+    For routes that stay open to signed-out callers but must still attribute
+    usage to a real account. Returns None rather than raising, so a missing or
+    bad token degrades to the shared anonymous budget instead of a 401 — and a
+    caller can never pick their own identity, which a header could.
+    """
+    token = _bearer(authorization)
+    if not token:
+        return None
+
+    client = get_supabase()
+    if client is None:
+        return None
+
+    try:
+        res = client.auth.get_user(token)
+    except Exception:
+        return None
+
+    user = getattr(res, "user", None)
+    uid = getattr(user, "id", None) if user else None
+    return str(uid) if uid else None
+
+
 def _is_guardian(guardian_id: str, child_id: str) -> bool:
     """Family accounts: a guardian may read the child they supervise."""
     client = get_supabase()

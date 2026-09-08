@@ -11,9 +11,10 @@ POST /api/assistant/chat
 """
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from api.auth_guard import optional_user_id
 from core import budget, llm
 
 router = APIRouter()
@@ -46,7 +47,7 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-async def chat(req: ChatRequest, x_user_id: Optional[str] = Header(None)):
+async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id)):
     # Keep only well-formed user/assistant turns; cap history + length.
     history = [
         {"role": m.role, "content": m.content.strip()[:4000]}
@@ -78,7 +79,7 @@ async def chat(req: ChatRequest, x_user_id: Optional[str] = Header(None)):
 
     selection = llm.parse_selection(req.llm_config)
     try:
-        with llm.use_selection(selection, actor=x_user_id):
+        with llm.use_selection(selection, actor=actor):
             reply = await llm.complete_chat(
                 [{"role": "system", "content": system}] + history,
                 max_tokens=700,

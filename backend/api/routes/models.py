@@ -7,15 +7,17 @@ GET /api/models
   user should see rather than a mysteriously missing option.
 
 GET /api/models/usage
-  What this account has used today against the configured limits. `usd_today`
-  is null unless the operator configured MODEL_PRICING: tokens are measured,
-  a dollar figure without real prices would be invented.
+  What this account has used today against the configured limits. Attributed
+  to the verified session, so a caller cannot report or reset someone else's
+  budget. `usd_today` is null unless the operator configured MODEL_PRICING:
+  tokens are measured, a dollar figure without real prices would be invented.
 """
 
 from typing import Optional
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Depends
 
+from api.auth_guard import optional_user_id
 from core import budget
 from core import model_registry as registry
 
@@ -32,5 +34,5 @@ async def list_models():
 
 
 @router.get("/usage")
-async def usage(x_user_id: Optional[str] = Header(None)):
-    return budget.snapshot(x_user_id)
+async def usage(actor: Optional[str] = Depends(optional_user_id)):
+    return budget.snapshot(actor)

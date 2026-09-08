@@ -24,6 +24,7 @@ import {
   loadModelPrefs,
   saveModelPrefs,
 } from '@/lib/modelPrefs'
+import { createClient } from '@/lib/supabase/client'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -36,7 +37,10 @@ export default function ModelSettingsPage() {
 
   useEffect(() => {
     setPrefs(loadModelPrefs())
-    fetchUsage(API_URL).then(setUsage)
+    ;(async () => {
+      const { data } = await createClient().auth.getSession()
+      setUsage(await fetchUsage(API_URL, data.session?.access_token))
+    })().catch(() => {})
     fetchCatalogue(API_URL)
       .then(setCatalogue)
       .finally(() => setLoading(false))

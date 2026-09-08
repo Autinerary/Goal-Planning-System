@@ -120,10 +120,10 @@ export async function fetchCatalogue(apiBase: string): Promise<Catalogue | null>
   }
 }
 
-export async function fetchUsage(apiBase: string, userId?: string): Promise<Usage | null> {
+export async function fetchUsage(apiBase: string, accessToken?: string): Promise<Usage | null> {
   try {
     const res = await fetch(`${apiBase.replace(/\/$/, '')}/api/models/usage`, {
-      headers: userId ? { 'X-User-Id': userId } : undefined,
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     })
     if (!res.ok) return null
     return (await res.json()) as Usage

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 // Proxies at request time (never prerendered).
 export const dynamic = 'force-dynamic'
@@ -45,9 +46,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Forwarded so the backend can attribute usage to a verified account. Read
+    // from the auth cookie here rather than trusting anything the browser sent.
+    const {
+      data: { session },
+    } = await createServerSupabase().auth.getSession()
+
     const res = await fetch(`${BACKEND}/api/assistant/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {}),
+      },
       body: JSON.stringify({
         messages,
         context: typeof body.context === 'string' ? body.context : '',
@@ -60,6 +72,18 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) {
       const detail = await res.text().catch(() => '')
+      // A rate-limit message is actionable, so pass it through instead of
+      // replacing it with a generic "try again" that hides the real reason.
+      if (res.status === 429) {
+        let message = 'You have reached the usage limit for now. Please try again shortly.'
+        try {
+          const parsed = JSON.parse(detail)
+          if (typeof parsed?.detail === 'string') message = parsed.detail
+        } catch {
+          /* keep the default */
+        }
+        return NextResponse.json({ reply: message, rateLimited: true }, { status: 200 })
+      }
       console.error('[assistant] backend error:', res.status, detail.slice(0, 300))
       return NextResponse.json(
         { reply: "Sorry — I couldn't reach the assistant just now. Please try again in a moment." },
