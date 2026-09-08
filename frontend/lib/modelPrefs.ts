@@ -40,6 +40,8 @@ export type Limits = {
   usd_per_day: number | null
   cost_tracking: boolean
   priced_models: string[]
+  /** Set when MODEL_PRICING is present but unusable, so a typo is visible. */
+  pricing_error: string | null
 }
 
 export type Usage = {

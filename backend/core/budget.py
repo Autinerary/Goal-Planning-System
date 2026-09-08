@@ -82,19 +82,32 @@ SPEND_PER_DAY_USD = _float_env("LLM_SPEND_PER_DAY_USD")
 ANONYMOUS = "anonymous"
 
 
+# Set when MODEL_PRICING is present but unusable. A silently ignored env var
+# looks identical to an unset one, which sends the operator looking for a bug
+# in the app rather than a typo in their config.
+PRICING_ERROR: Optional[str] = None
+
+
 def _load_pricing() -> Dict[str, Dict[str, float]]:
     """USD per 1M tokens, keyed by model id. Empty when unconfigured."""
+    global PRICING_ERROR
     raw = os.getenv("MODEL_PRICING", "").strip()
     if not raw:
         return {}
     try:
         parsed = json.loads(raw)
     except ValueError:
-        print("[budget] MODEL_PRICING is not valid JSON — cost tracking disabled")
+        PRICING_ERROR = (
+            "MODEL_PRICING is set but is not valid JSON. Expected "
+            '{"model-id": {"in": 0.15, "out": 0.60}} in USD per 1M tokens.'
+        )
+        print(f"[budget] {PRICING_ERROR}")
         return {}
 
     prices: Dict[str, Dict[str, float]] = {}
     if not isinstance(parsed, dict):
+        PRICING_ERROR = "MODEL_PRICING must be a JSON object keyed by model id."
+        print(f"[budget] {PRICING_ERROR}")
         return prices
     for model_id, entry in parsed.items():
         if not isinstance(entry, dict):
@@ -106,6 +119,10 @@ def _load_pricing() -> Dict[str, Dict[str, float]]:
             }
         except (TypeError, ValueError):
             continue
+
+    if not prices:
+        PRICING_ERROR = "MODEL_PRICING parsed but contained no usable model prices."
+        print(f"[budget] {PRICING_ERROR}")
     return prices
 
 
@@ -352,4 +369,5 @@ def limits() -> Dict[str, object]:
         "usd_per_day": SPEND_PER_DAY_USD,
         "cost_tracking": bool(PRICING),
         "priced_models": sorted(PRICING.keys()),
+        "pricing_error": PRICING_ERROR,
     }

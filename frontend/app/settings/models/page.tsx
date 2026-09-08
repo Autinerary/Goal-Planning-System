@@ -122,6 +122,11 @@ export default function ModelSettingsPage() {
                   what you have actually used.
                 </p>
               )}
+              {catalogue.limits?.pricing_error && (
+                <p className="text-xs text-amber-700">
+                  Server configuration: {catalogue.limits.pricing_error}
+                </p>
+              )}
             </section>
           )}
 
