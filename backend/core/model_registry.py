@@ -19,6 +19,12 @@ import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
+from dotenv import load_dotenv
+
+# This module is imported before main.py calls load_dotenv(), so it loads its
+# own env rather than depending on import order.
+load_dotenv()
+
 
 @dataclass(frozen=True)
 class Provider:
@@ -144,7 +150,8 @@ MODELS: Dict[str, Model] = {
             id="local-fused",
             label="Local fine-tune",
             provider="local",
-            model_name=os.getenv("LOCAL_LLM_MODEL", "") or "fused",
+            # Resolved per call: the env may not be loaded at import time.
+            model_name="",
             description="Your LoRA fine-tune. Runs on your machine at no cost.",
         ),
     ]
@@ -231,6 +238,13 @@ def provider_credentials(provider_id: str) -> tuple[Optional[str], Optional[str]
     if not key:
         return (None, None)
     return (key, provider.base_url)
+
+
+def wire_name(model: "Model") -> str:
+    """The model name sent to the provider, resolved at call time."""
+    if model.provider == "local":
+        return os.getenv("LOCAL_LLM_MODEL", "").strip() or "fused"
+    return model.model_name
 
 
 def is_model_available(model_id: str) -> bool:

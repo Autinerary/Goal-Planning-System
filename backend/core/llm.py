@@ -39,19 +39,16 @@ from typing import Any, Dict, Optional, Tuple
 from core import model_registry as registry
 from core import budget
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-
-# Local mlx_lm.server (or any OpenAI-compatible local server: vLLM, llama.cpp
-# in OpenAI mode, etc.). When base URL is set, the foundation model is YOUR
-# fine-tune running on YOUR machine — the only path in this codebase that
-# actually updates real model weights at $0 marginal cost.
-LOCAL_LLM_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL", "").rstrip("/")
-LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "")
+# Read at call time, never captured at import: this module is imported before
+# main.py calls load_dotenv(), so module-level os.getenv would see nothing.
 
 # One client per provider — they differ only by api_key and base_url.
 _clients: Dict[str, Any] = {}
 _client_lock = asyncio.Lock()
+
+# Reasoning tokens are billed against the same cap as the visible answer, so a
+# budget sized for prose leaves nothing to reply with.
+REASONING_MIN_TOKENS = 2000
 
 
 @dataclass(frozen=True)
@@ -129,10 +126,11 @@ def use_selection(selection: Optional[Selection], actor: Optional[str] = None):
 
 def _legacy_default_model() -> Optional[str]:
     """Pre-harness behavior, still honoured when it names a listed model."""
-    if LOCAL_LLM_BASE_URL:
+    if os.getenv("LOCAL_LLM_BASE_URL", "").strip():
         return "local-fused"
-    if OPENAI_API_KEY and OPENAI_MODEL in registry.MODELS:
-        return OPENAI_MODEL
+    configured = os.getenv("OPENAI_MODEL", "").strip()
+    if os.getenv("OPENAI_API_KEY", "").strip() and configured in registry.MODELS:
+        return configured
     return None
 
 
@@ -212,19 +210,24 @@ def _tuned(
     effort: registry.Effort,
     temperature: float,
     max_tokens: int,
-) -> Dict[str, Any]:
-    """Apply the chosen effort level to the caller's sampling budget."""
-    budget = max(64, min(int(max_tokens * effort.token_multiplier), model.max_output_tokens))
+) -> Tuple[Dict[str, Any], int]:
+    """Apply the chosen effort to the caller's budget. Returns (kwargs, planned)."""
+    token_budget = max(64, min(int(max_tokens * effort.token_multiplier), model.max_output_tokens))
     kwargs: Dict[str, Any] = {
-        "model": model.model_name,
+        "model": registry.wire_name(model),
         "temperature": max(0.0, min(1.0, temperature + effort.temperature_delta)),
-        "max_tokens": budget,
+        "max_tokens": token_budget,
     }
     if model.native_reasoning:
-        # Reasoning models set their own sampling; effort is the real dial.
+        # Reasoning models set their own sampling, reject max_tokens, and spend
+        # part of the budget on hidden reasoning — too small a cap returns an
+        # empty message rather than an error.
         kwargs.pop("temperature")
+        token_budget = max(token_budget, REASONING_MIN_TOKENS)
+        kwargs.pop("max_tokens")
+        kwargs["max_completion_tokens"] = token_budget
         kwargs["reasoning_effort"] = effort.id
-    return kwargs
+    return kwargs, token_budget
 
 
 def _guard(model: registry.Model, planned_tokens: int) -> None:
@@ -259,8 +262,8 @@ async def complete_text(
     client = await _client_for(model)
     if client is None:
         return None
-    tuned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, tuned["max_tokens"])
+    tuned, planned = _tuned(model, effort, temperature, max_tokens)
+    _guard(model, planned)
     try:
         resp = await client.chat.completions.create(
             messages=[
@@ -291,8 +294,8 @@ async def complete_chat(
     client = await _client_for(model)
     if client is None:
         return None
-    tuned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, tuned["max_tokens"])
+    tuned, planned = _tuned(model, effort, temperature, max_tokens)
+    _guard(model, planned)
     try:
         resp = await client.chat.completions.create(
             messages=messages,
@@ -325,8 +328,8 @@ async def complete_json(
     client = await _client_for(model)
     if client is None:
         return None
-    tuned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, tuned["max_tokens"])
+    tuned, planned = _tuned(model, effort, temperature, max_tokens)
+    _guard(model, planned)
     try:
         kwargs: Dict[str, Any] = {
             "messages": [
