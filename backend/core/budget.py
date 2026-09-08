@@ -134,6 +134,10 @@ class _Usage:
     persisted_tokens: int = 0
     persisted_usd: float = 0.0
     loaded_at: float = 0.0
+    # Only a session-verified id exists in auth.users, which the ledger's
+    # foreign key requires. An unverified id is also a spoofing vector: it
+    # would let a caller bill their spend to someone else's account.
+    verified: bool = False
 
     def prune(self, now: float) -> None:
         while self.requests and now - self.requests[0] > MINUTE_SECONDS:
@@ -168,7 +172,7 @@ def _is_uuid(value: str) -> bool:
         return False
 
 
-def _load_persisted(actor: str) -> Optional[Tuple[int, float]]:
+def _load_persisted(actor: str, verified: bool) -> Optional[Tuple[int, float]]:
     """Sum the last 24h from the ledger. None when it could not be read.
 
     None and (0, 0.0) must stay distinct: the first means "unknown, keep what
@@ -180,15 +184,15 @@ def _load_persisted(actor: str) -> Optional[Tuple[int, float]]:
     if sb is None:
         return None
 
+    global _ledger_ok
     since = (datetime.now(timezone.utc) - timedelta(seconds=DAY_SECONDS)).isoformat()
     try:
         q = sb.table(TABLE).select("total_tokens, cost_usd").gte("created_at", since)
-        # Anonymous callers share the NULL-user rows.
-        q = q.eq("user_id", actor) if actor != ANONYMOUS and _is_uuid(actor) else q.is_("user_id", "null")
+        # Unverified and signed-out callers share the NULL-user rows.
+        q = q.eq("user_id", actor) if verified else q.is_("user_id", "null")
         rows = q.execute().data or []
     except Exception as e:
         # A ledger read failure must not block generation; fall back to memory.
-        global _ledger_ok
         _ledger_ok = False
         print(f"[budget] usage read failed: {type(e).__name__}: {e}")
         return None
@@ -203,7 +207,7 @@ def _refresh(usage: _Usage, actor: str, now: float) -> None:
     """Reload the ledger total when the cached one is cold or stale."""
     if now - usage.loaded_at < CACHE_TTL_SECONDS:
         return
-    loaded = _load_persisted(actor)
+    loaded = _load_persisted(actor, usage.verified)
     if loaded is None:
         # Keep counting in memory rather than granting a fresh allowance.
         return
@@ -216,6 +220,7 @@ def _refresh(usage: _Usage, actor: str, now: float) -> None:
 
 def _persist(
     actor: str,
+    verified: bool,
     model_id: str,
     agent_id: Optional[str],
     prompt_tokens: int,
@@ -228,7 +233,7 @@ def _persist(
     global _ledger_ok
     try:
         sb.table(TABLE).insert({
-            "user_id": actor if actor != ANONYMOUS and _is_uuid(actor) else None,
+            "user_id": actor if verified else None,
             "model_id": model_id,
             "agent_id": agent_id,
             "prompt_tokens": max(0, int(prompt_tokens)),
@@ -250,7 +255,7 @@ def cost_usd(model_id: str, prompt_tokens: int, completion_tokens: int) -> Optio
     return (prompt_tokens * price["in"] + completion_tokens * price["out"]) / 1_000_000
 
 
-def check(actor: Optional[str], model_id: str, planned_tokens: int) -> None:
+def check(actor: Optional[str], model_id: str, planned_tokens: int, verified: bool = False) -> None:
     """Raise LimitExceeded if this call should not proceed.
 
     `planned_tokens` is the caller's max output budget, so a request is
@@ -262,6 +267,7 @@ def check(actor: Optional[str], model_id: str, planned_tokens: int) -> None:
 
     with _lock:
         usage = _usage.setdefault(key, _Usage())
+        usage.verified = usage.verified or verified
         usage.prune(now)
         _refresh(usage, key, now)
 
@@ -293,6 +299,7 @@ def record(
     prompt_tokens: int,
     completion_tokens: int,
     agent_id: Optional[str] = None,
+    verified: bool = False,
 ) -> None:
     """Record real measured usage from a completed call."""
     key = actor or ANONYMOUS
@@ -302,18 +309,21 @@ def record(
 
     with _lock:
         usage = _usage.setdefault(key, _Usage())
+        usage.verified = usage.verified or verified
         usage.prune(now)
         usage.spend.append((now, total, usd or 0.0))
+        is_verified = usage.verified
 
-    _persist(key, model_id, agent_id, prompt_tokens, completion_tokens, usd)
+    _persist(key, is_verified, model_id, agent_id, prompt_tokens, completion_tokens, usd)
 
 
-def snapshot(actor: Optional[str]) -> Dict[str, object]:
+def snapshot(actor: Optional[str], verified: bool = False) -> Dict[str, object]:
     """What this account has used. `usd` is None when prices aren't configured."""
     key = actor or ANONYMOUS
     now = time.time()
     with _lock:
         usage = _usage.setdefault(key, _Usage())
+        usage.verified = usage.verified or verified
         usage.prune(now)
         _refresh(usage, key, now)
         tokens = usage.tokens_today()

@@ -79,7 +79,7 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
 
     selection = llm.parse_selection(req.llm_config)
     try:
-        with llm.use_selection(selection, actor=actor):
+        with llm.use_selection(selection, actor=actor, verified=actor is not None):
             reply = await llm.complete_chat(
                 [{"role": "system", "content": system}] + history,
                 max_tokens=700,

@@ -375,9 +375,14 @@ async def _generate_path_for(
     user_memory = mem.load_user_memory(user_id)
 
     # Spend is charged to the verified session when there is one. Falling back
-    # to the request id keeps signed-out onboarding working, but a signed-in
-    # caller cannot pick someone else's budget.
-    with llm.use_selection(llm.parse_selection(request.llmConfig), actor=actor or user_id):
+    # to the request id keeps signed-out onboarding working, but only a
+    # verified id is written to the ledger — an unverified one would let a
+    # caller bill their spend to someone else's account.
+    with llm.use_selection(
+        llm.parse_selection(request.llmConfig),
+        actor=actor or user_id,
+        verified=actor is not None,
+    ):
         # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
         _stage("Mapping out your milestones")
         agent_result = await orchestrator.generate_path(

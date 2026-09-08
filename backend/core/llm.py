@@ -63,6 +63,9 @@ class Selection:
 _selection: ContextVar[Optional[Selection]] = ContextVar("llm_selection", default=None)
 # Who the spend is charged to. None means the shared anonymous bucket.
 _actor: ContextVar[Optional[str]] = ContextVar("llm_actor", default=None)
+# True only when the actor came from a verified session, which is what the
+# usage ledger's foreign key requires.
+_actor_verified: ContextVar[bool] = ContextVar("llm_actor_verified", default=False)
 
 
 def parse_selection(raw: Optional[Dict[str, Any]]) -> Optional[Selection]:
@@ -110,13 +113,18 @@ def parse_selection(raw: Optional[Dict[str, Any]]) -> Optional[Selection]:
 
 
 @contextlib.contextmanager
-def use_selection(selection: Optional[Selection], actor: Optional[str] = None):
+def use_selection(
+    selection: Optional[Selection],
+    actor: Optional[str] = None,
+    verified: bool = False,
+):
     """Scope a model selection, and whose budget it spends, to this block."""
     tokens = []
     if selection is not None:
         tokens.append((_selection, _selection.set(selection)))
     if actor is not None:
         tokens.append((_actor, _actor.set(actor)))
+        tokens.append((_actor_verified, _actor_verified.set(verified)))
     try:
         yield
     finally:
@@ -232,7 +240,7 @@ def _tuned(
 
 def _guard(model: registry.Model, planned_tokens: int) -> None:
     """Refuse the call if it would push this account past a configured limit."""
-    budget.check(_actor.get(), model.id, planned_tokens)
+    budget.check(_actor.get(), model.id, planned_tokens, verified=_actor_verified.get())
 
 
 def _record(model: registry.Model, resp, agent: Optional[str] = None) -> None:
@@ -246,6 +254,7 @@ def _record(model: registry.Model, resp, agent: Optional[str] = None) -> None:
         int(getattr(usage, "prompt_tokens", 0) or 0),
         int(getattr(usage, "completion_tokens", 0) or 0),
         agent_id=agent,
+        verified=_actor_verified.get(),
     )
 
 

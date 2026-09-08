@@ -35,4 +35,4 @@ async def list_models():
 
 @router.get("/usage")
 async def usage(actor: Optional[str] = Depends(optional_user_id)):
-    return budget.snapshot(actor)
+    return budget.snapshot(actor, verified=actor is not None)
