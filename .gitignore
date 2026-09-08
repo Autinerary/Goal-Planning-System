@@ -53,3 +53,8 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# Generated presentation artefacts (rebuild with pandoc + Chrome)
+docs/vector-presentation.docx
+docs/vector-presentation.html
+docs/vector-presentation.pdf
