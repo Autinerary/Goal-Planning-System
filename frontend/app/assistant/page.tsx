@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
+import { toLlmConfig } from '@/lib/modelPrefs'
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -103,6 +104,7 @@ export default function AssistantPage() {
           // Only real turns (drop the canned intro) go to the model.
           messages: next.filter((m) => m !== INTRO),
           context,
+          llm_config: toLlmConfig(),
         }),
       })
       const data = await res.json().catch(() => null)

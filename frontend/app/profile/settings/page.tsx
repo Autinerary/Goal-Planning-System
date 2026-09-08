@@ -189,6 +189,12 @@ export default function ProfileSettingsPage() {
         >
           <ShieldCheck className="w-4 h-4 text-cyan-700" /> Condition &amp; Support Profile
         </button>
+        <button
+          onClick={() => router.push('/settings/models')}
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+        >
+          Models →
+        </button>
 
         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">
           <h1 className="text-2xl font-bold mb-1">Profile & Discovery</h1>

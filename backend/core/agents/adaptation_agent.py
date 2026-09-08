@@ -181,6 +181,7 @@ class AdaptationAgent(BaseAgent):
                 user=user_msg,
                 temperature=0.6,
                 max_tokens=120,
+                agent="adaptation",
             )
             if text:
                 explanation = text

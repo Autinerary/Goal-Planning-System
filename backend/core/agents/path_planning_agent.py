@@ -343,6 +343,7 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 temperature=0.7,
                 max_tokens=900,
+                agent="path_planning",
             )
             if isinstance(data, dict):
                 for key, _, _ in dimensions:
@@ -463,6 +464,7 @@ class PathPlanningAgent(BaseAgent):
                 user=f"Norms: {', '.join(barriers)}",
                 temperature=0.4,
                 max_tokens=400,
+                agent="path_planning",
             )
             if not isinstance(data, dict):
                 return empty
@@ -519,6 +521,7 @@ class PathPlanningAgent(BaseAgent):
                     ),
                     temperature=0.6,
                     max_tokens=180 * len(chunk),
+                    agent="path_planning",
                 )
                 mapping = (data or {}).get('descriptions') or {}
                 for j, name in enumerate(chunk):
@@ -555,6 +558,7 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 temperature=0.6,
                 max_tokens=80,
+                agent="path_planning",
             )
             if text:
                 return text
@@ -647,6 +651,7 @@ class PathPlanningAgent(BaseAgent):
                     ),
                     temperature=0.6,
                     max_tokens=520 * len(chunk),
+                    agent="path_planning",
                 )
                 mapping = (data or {}).get('milestones') or {}
                 for j, m in enumerate(chunk):
@@ -729,6 +734,7 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 temperature=0.6,
                 max_tokens=500,
+                agent="path_planning",
             )
             if isinstance(data, dict) and isinstance(data.get('tasks'), list):
                 cleaned = [
@@ -791,6 +797,7 @@ class PathPlanningAgent(BaseAgent):
                 ),
                 temperature=0.7,
                 max_tokens=200,
+                agent="path_planning",
             )
             if data and isinstance(data.get('tricks'), list) and data['tricks']:
                 return [str(t) for t in data['tricks'][:3]]

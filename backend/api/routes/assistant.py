@@ -5,15 +5,16 @@ full agent path context passed from the frontend.
 
 POST /api/assistant/chat
   Body: { "messages": [{"role": "user"|"assistant", "content": str}],
-          "context": optional str summary of the user's goals/path/norms }
-  Returns: { "configured": bool, "reply": str }
+          "context": optional str summary of the user's goals/path/norms,
+          "llm_config": optional { "model": str, "effort": "low"|"medium"|"high" } }
+  Returns: { "configured": bool, "reply": str, "model": str|None }
 """
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 
-from core import llm
+from core import budget, llm
 
 router = APIRouter()
 
@@ -40,10 +41,12 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     context: Optional[str] = None
+    # Not named model_config: that attribute is reserved by pydantic v2.
+    llm_config: Optional[Dict[str, Any]] = None
 
 
 @router.post("/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, x_user_id: Optional[str] = Header(None)):
     # Keep only well-formed user/assistant turns; cap history + length.
     history = [
         {"role": m.role, "content": m.content.strip()[:4000]}
@@ -73,12 +76,18 @@ async def chat(req: ChatRequest):
             f"repeat it back verbatim):\n{context}"
         )
 
-    reply = await llm.complete_chat(
-        [{"role": "system", "content": system}] + history,
-        max_tokens=700,
-    )
+    selection = llm.parse_selection(req.llm_config)
+    try:
+        with llm.use_selection(selection, actor=x_user_id):
+            reply = await llm.complete_chat(
+                [{"role": "system", "content": system}] + history,
+                max_tokens=700,
+            )
+            used_model = llm.active_model_id()
+    except budget.LimitExceeded as e:
+        raise HTTPException(status_code=429, detail=e.message)
 
     if not reply:
         return {"reply": "Sorry — I couldn't respond just now. Please try again."}
 
-    return {"configured": True, "reply": reply}
+    return {"configured": True, "reply": reply, "model": used_model}

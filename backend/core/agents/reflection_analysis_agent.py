@@ -192,6 +192,7 @@ class ReflectionAnalysisAgent(BaseAgent):
                 ),
                 temperature=0.2,
                 max_tokens=200,
+                agent="reflection_analysis",
             )
             if data and data.get('label') in ('positive', 'negative', 'neutral'):
                 try:
@@ -444,6 +445,7 @@ class ReflectionAnalysisAgent(BaseAgent):
                 ),
                 temperature=0.4,
                 max_tokens=400,
+                agent="reflection_analysis",
             )
             if isinstance(data, dict):
                 for key in insights:

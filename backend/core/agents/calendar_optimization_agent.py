@@ -186,6 +186,7 @@ class CalendarOptimizationAgent(BaseAgent):
                 ),
                 temperature=0.6,
                 max_tokens=100,
+                agent="calendar_optimization",
             )
             if text:
                 explanation = text

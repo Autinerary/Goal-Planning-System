@@ -143,6 +143,7 @@ class ToolRecommendationAgent(BaseAgent):
                 ),
                 temperature=0.6,
                 max_tokens=100,
+                agent="tool_recommendation",
             )
             if text:
                 explanation = text
@@ -207,6 +208,7 @@ class ToolRecommendationAgent(BaseAgent):
             ),
             temperature=0.4,
             max_tokens=2000,
+            agent="tool_recommendation",
         )
 
         out: Dict[str, List[Dict[str, Any]]] = {}
@@ -387,6 +389,7 @@ class ToolRecommendationAgent(BaseAgent):
                 user=f"Barriers: {', '.join(barriers)}\n\nResources:\n{listing}",
                 temperature=0.2,
                 max_tokens=900,
+                agent="tool_recommendation",
             )
             parsed = json.loads((raw or '').strip().removeprefix('```json').removeprefix('```').removesuffix('```'))
             out = dict(neutral)

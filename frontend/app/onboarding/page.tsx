@@ -16,6 +16,7 @@ import { isSimpleView } from '@/lib/disclosure'
 import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
 import { playPageTurnSound } from '@/lib/taskSound'
+import { toLlmConfig } from '@/lib/modelPrefs'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -946,6 +947,7 @@ export default function OnboardingPage() {
           spiritAnimals: formData.spiritAnimals,
           reminders: remindersToSave,
         },
+        llmConfig: toLlmConfig(),
       }
 
       let response: { data: { pathId?: string } }

@@ -18,7 +18,7 @@ interface ChatMessage {
 const BACKEND = (process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || '').replace(/\/$/, '')
 
 export async function POST(request: NextRequest) {
-  let body: { messages?: ChatMessage[]; context?: string }
+  let body: { messages?: ChatMessage[]; context?: string; llm_config?: unknown }
   try {
     body = await request.json()
   } catch {
@@ -48,7 +48,11 @@ export async function POST(request: NextRequest) {
     const res = await fetch(`${BACKEND}/api/assistant/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, context: typeof body.context === 'string' ? body.context : '' }),
+      body: JSON.stringify({
+        messages,
+        context: typeof body.context === 'string' ? body.context : '',
+        llm_config: body.llm_config ?? null,
+      }),
       // Render free tier sleeps when idle; the first request can take ~40s+ to
       // wake the service, so allow generous headroom before giving up.
       signal: AbortSignal.timeout(75000),

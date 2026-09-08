@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 # in either frontend ever called them. Unregistered rather than left serving
 # fabricated data on a public API — the real equivalents live under
 # /api/onboarding/* and read from user_paths.
-from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant
+from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models
 from database.connection import init_db
 
 load_dotenv()
@@ -109,6 +109,7 @@ app.include_router(calls.router, tags=["calls"])
 app.include_router(memes.router, prefix="/api/memes", tags=["memes"])
 app.include_router(memory.router, prefix="/api/memory", tags=["memory"])
 app.include_router(assistant.router, prefix="/api/assistant", tags=["assistant"])
+app.include_router(models.router, prefix="/api/models", tags=["models"])
 
 @app.get("/")
 async def root():
@@ -130,6 +131,7 @@ async def health_check():
     whether the product is generating plans or serving canned ones.
     """
     from core import llm
+    from core import model_registry
     from database.supabase_client import get_supabase
 
     llm_on = llm.is_enabled()
@@ -149,6 +151,8 @@ async def health_check():
         "capability": capability,
         "note": note,
         "llm_enabled": llm_on,
+        "active_model": llm.active_model_id(),
+        "available_models": model_registry.available_model_ids(),
         "resource_catalogue": catalogue,
         "orchestrator_type": "AutoGen" if USE_AUTOGEN else "LangGraph",
         "orchestrator": await orchestrator.health_check()
