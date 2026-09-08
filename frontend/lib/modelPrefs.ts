@@ -116,7 +116,9 @@ export function toLlmConfig(prefs: ModelPrefs = loadModelPrefs()) {
 
 export async function fetchCatalogue(apiBase: string): Promise<Catalogue | null> {
   try {
-    const res = await fetch(`${apiBase.replace(/\/$/, '')}/api/models`)
+    const res = await fetch(`${apiBase.replace(/\/$/, '')}/api/models`, {
+      cache: 'no-store',
+    })
     if (!res.ok) return null
     return (await res.json()) as Catalogue
   } catch {
@@ -126,7 +128,10 @@ export async function fetchCatalogue(apiBase: string): Promise<Catalogue | null>
 
 export async function fetchUsage(apiBase: string, accessToken?: string): Promise<Usage | null> {
   try {
+    // Without no-store the browser can serve a cached response, so the panel
+    // keeps reporting the usage you had before you generated anything.
     const res = await fetch(`${apiBase.replace(/\/$/, '')}/api/models/usage`, {
+      cache: 'no-store',
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     })
     if (!res.ok) return null
