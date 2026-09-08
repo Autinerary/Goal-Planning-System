@@ -235,7 +235,7 @@ def _guard(model: registry.Model, planned_tokens: int) -> None:
     budget.check(_actor.get(), model.id, planned_tokens)
 
 
-def _record(model: registry.Model, resp) -> None:
+def _record(model: registry.Model, resp, agent: Optional[str] = None) -> None:
     """Charge real measured tokens. Providers that omit usage cost nothing."""
     usage = getattr(resp, "usage", None)
     if usage is None:
@@ -245,6 +245,7 @@ def _record(model: registry.Model, resp) -> None:
         model.id,
         int(getattr(usage, "prompt_tokens", 0) or 0),
         int(getattr(usage, "completion_tokens", 0) or 0),
+        agent_id=agent,
     )
 
 
@@ -272,7 +273,7 @@ async def complete_text(
             ],
             **tuned,
         )
-        _record(model, resp)
+        _record(model, resp, agent)
         return (resp.choices[0].message.content or "").strip()
     except Exception as e:
         print(f"   ⚠️  LLM text call failed ({model.id}): {e}")
@@ -301,7 +302,7 @@ async def complete_chat(
             messages=messages,
             **tuned,
         )
-        _record(model, resp)
+        _record(model, resp, agent)
         return (resp.choices[0].message.content or "").strip()
     except Exception as e:
         print(f"   ⚠️  LLM chat call failed ({model.id}): {e}")
@@ -341,7 +342,7 @@ async def complete_json(
         if registry.PROVIDERS[model.provider].supports_json_mode:
             kwargs["response_format"] = {"type": "json_object"}
         resp = await client.chat.completions.create(**kwargs)
-        _record(model, resp)
+        _record(model, resp, agent)
         content = (resp.choices[0].message.content or "").strip()
         if not content:
             return None

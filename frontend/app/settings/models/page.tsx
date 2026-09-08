@@ -116,6 +116,12 @@ export default function ModelSettingsPage() {
                   ? `Estimated spend today: $${usage.usd_today.toFixed(2)}`
                   : 'Cost in dollars isn\u2019t tracked on this server, so only token usage is shown.'}
               </p>
+              {!usage.durable && (
+                <p className="text-xs text-amber-700">
+                  This count resets whenever the server restarts, so it may read lower than
+                  what you have actually used.
+                </p>
+              )}
             </section>
           )}
 

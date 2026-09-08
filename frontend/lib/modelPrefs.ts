@@ -52,6 +52,8 @@ export type Usage = {
   usd_today: number | null
   usd_per_day_limit: number | null
   cost_tracking: boolean
+  /** False when counts live only in process memory and reset on restart. */
+  durable: boolean
 }
 
 export type Catalogue = {

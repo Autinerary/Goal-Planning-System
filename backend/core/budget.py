@@ -21,10 +21,15 @@ figures. Set MODEL_PRICING to opt in:
 With no pricing configured, token limits still apply and no dollar amount is
 ever reported — the app says "not tracked" rather than inventing a number.
 
-State is per-process and in memory: adding a database round trip to every LLM
-call would cost more on the ~55s generation path than the limit saves. That
-makes this a guard against runaway usage, not an accounting ledger — a restart
-clears the counters, and multiple workers each hold their own.
+State lives in Supabase (public.llm_usage) so it survives a restart and is
+shared across workers. In-memory counters are kept in front of it as a
+per-process cache: the pre-call check must not add a database round trip to
+every LLM call on a ~55s generation path. The cache is refreshed from the
+ledger when it is cold, so a restart reloads the real total instead of
+silently granting everyone a fresh allowance.
+
+Without Supabase configured this degrades to memory only — still a runaway
+guard, just not durable.
 """
 
 from __future__ import annotations
@@ -35,10 +40,18 @@ import threading
 import time
 from collections import deque
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import Deque, Dict, Optional, Tuple
 
+from database.supabase_client import get_supabase
+
+TABLE = "llm_usage"
 DAY_SECONDS = 86_400
 MINUTE_SECONDS = 60
+
+# How long a per-user total is trusted before it is re-read from the ledger.
+# Keeps the hot path in memory while bounding drift between workers.
+CACHE_TTL_SECONDS = 60
 
 
 def _int_env(name: str, default: int) -> int:
@@ -115,8 +128,12 @@ class LimitExceeded(RuntimeError):
 @dataclass
 class _Usage:
     requests: Deque[float] = field(default_factory=deque)
-    # (timestamp, tokens, usd)
+    # (timestamp, tokens, usd) — this process's own calls only.
     spend: Deque[Tuple[float, int, float]] = field(default_factory=deque)
+    # Totals loaded from the ledger, covering calls this process never saw.
+    persisted_tokens: int = 0
+    persisted_usd: float = 0.0
+    loaded_at: float = 0.0
 
     def prune(self, now: float) -> None:
         while self.requests and now - self.requests[0] > MINUTE_SECONDS:
@@ -125,14 +142,104 @@ class _Usage:
             self.spend.popleft()
 
     def tokens_today(self) -> int:
-        return sum(entry[1] for entry in self.spend)
+        return self.persisted_tokens + sum(e[1] for e in self.spend)
 
     def usd_today(self) -> float:
-        return sum(entry[2] for entry in self.spend)
+        return self.persisted_usd + sum(e[2] for e in self.spend)
 
 
 _usage: Dict[str, _Usage] = {}
 _lock = threading.Lock()
+
+# None = untried. Set from real read/write outcomes, because "Supabase is
+# configured" is not the same claim as "the ledger works" — the table may not
+# be migrated yet, and reporting durable counts that silently reset is worse
+# than admitting they are volatile.
+_ledger_ok: Optional[bool] = None
+
+
+def _is_uuid(value: str) -> bool:
+    """Onboarding can run before a session exists, so ids are not always UUIDs."""
+    try:
+        from uuid import UUID
+        UUID(str(value))
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
+def _load_persisted(actor: str) -> Optional[Tuple[int, float]]:
+    """Sum the last 24h from the ledger. None when it could not be read.
+
+    None and (0, 0.0) must stay distinct: the first means "unknown, keep what
+    this process counted", the second means "genuinely nothing used today".
+    Conflating them let a failed read erase the in-memory total, which removed
+    the limit entirely.
+    """
+    sb = get_supabase()
+    if sb is None:
+        return None
+
+    since = (datetime.now(timezone.utc) - timedelta(seconds=DAY_SECONDS)).isoformat()
+    try:
+        q = sb.table(TABLE).select("total_tokens, cost_usd").gte("created_at", since)
+        # Anonymous callers share the NULL-user rows.
+        q = q.eq("user_id", actor) if actor != ANONYMOUS and _is_uuid(actor) else q.is_("user_id", "null")
+        rows = q.execute().data or []
+    except Exception as e:
+        # A ledger read failure must not block generation; fall back to memory.
+        global _ledger_ok
+        _ledger_ok = False
+        print(f"[budget] usage read failed: {type(e).__name__}: {e}")
+        return None
+
+    _ledger_ok = True
+    tokens = sum(int(r.get("total_tokens") or 0) for r in rows)
+    usd = sum(float(r.get("cost_usd") or 0.0) for r in rows)
+    return (tokens, usd)
+
+
+def _refresh(usage: _Usage, actor: str, now: float) -> None:
+    """Reload the ledger total when the cached one is cold or stale."""
+    if now - usage.loaded_at < CACHE_TTL_SECONDS:
+        return
+    loaded = _load_persisted(actor)
+    if loaded is None:
+        # Keep counting in memory rather than granting a fresh allowance.
+        return
+    usage.persisted_tokens, usage.persisted_usd = loaded
+    usage.loaded_at = now
+    # Locally recorded calls are now included in the ledger figure; keeping
+    # them would double-count.
+    usage.spend.clear()
+
+
+def _persist(
+    actor: str,
+    model_id: str,
+    agent_id: Optional[str],
+    prompt_tokens: int,
+    completion_tokens: int,
+    usd: Optional[float],
+) -> None:
+    sb = get_supabase()
+    if sb is None:
+        return
+    global _ledger_ok
+    try:
+        sb.table(TABLE).insert({
+            "user_id": actor if actor != ANONYMOUS and _is_uuid(actor) else None,
+            "model_id": model_id,
+            "agent_id": agent_id,
+            "prompt_tokens": max(0, int(prompt_tokens)),
+            "completion_tokens": max(0, int(completion_tokens)),
+            "cost_usd": usd,
+        }).execute()
+        _ledger_ok = True
+    except Exception as e:
+        # A dropped write costs one call's worth of accounting, not the total.
+        _ledger_ok = False
+        print(f"[budget] usage write failed: {type(e).__name__}: {e}")
 
 
 def cost_usd(model_id: str, prompt_tokens: int, completion_tokens: int) -> Optional[float]:
@@ -156,6 +263,7 @@ def check(actor: Optional[str], model_id: str, planned_tokens: int) -> None:
     with _lock:
         usage = _usage.setdefault(key, _Usage())
         usage.prune(now)
+        _refresh(usage, key, now)
 
         if len(usage.requests) >= REQUESTS_PER_MINUTE:
             raise LimitExceeded(
@@ -184,17 +292,20 @@ def record(
     model_id: str,
     prompt_tokens: int,
     completion_tokens: int,
+    agent_id: Optional[str] = None,
 ) -> None:
     """Record real measured usage from a completed call."""
     key = actor or ANONYMOUS
     now = time.time()
     total = max(0, int(prompt_tokens)) + max(0, int(completion_tokens))
-    usd = cost_usd(model_id, prompt_tokens, completion_tokens) or 0.0
+    usd = cost_usd(model_id, prompt_tokens, completion_tokens)
 
     with _lock:
         usage = _usage.setdefault(key, _Usage())
         usage.prune(now)
-        usage.spend.append((now, total, usd))
+        usage.spend.append((now, total, usd or 0.0))
+
+    _persist(key, model_id, agent_id, prompt_tokens, completion_tokens, usd)
 
 
 def snapshot(actor: Optional[str]) -> Dict[str, object]:
@@ -204,6 +315,7 @@ def snapshot(actor: Optional[str]) -> Dict[str, object]:
     with _lock:
         usage = _usage.setdefault(key, _Usage())
         usage.prune(now)
+        _refresh(usage, key, now)
         tokens = usage.tokens_today()
         usd = usage.usd_today() if PRICING else None
         requests = len(usage.requests)
@@ -217,6 +329,9 @@ def snapshot(actor: Optional[str]) -> Dict[str, object]:
         "usd_today": round(usd, 4) if usd is not None else None,
         "usd_per_day_limit": SPEND_PER_DAY_USD,
         "cost_tracking": bool(PRICING),
+        # False means counts reset when the process restarts, so the UI can say
+        # so instead of implying a durable total.
+        "durable": bool(_ledger_ok),
     }
 
 
