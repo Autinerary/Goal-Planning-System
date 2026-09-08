@@ -353,7 +353,9 @@ def snapshot(actor: Optional[str], verified: bool = False) -> Dict[str, object]:
         "tokens_today": tokens,
         "tokens_per_day_limit": TOKENS_PER_DAY,
         "tokens_remaining": max(0, TOKENS_PER_DAY - tokens),
-        "usd_today": round(usd, 4) if usd is not None else None,
+        # 6dp, matching the column: a real call can cost $0.00004, and rounding
+        # that to 0.0 reports "free" for something that was not.
+        "usd_today": round(usd, 6) if usd is not None else None,
         "usd_per_day_limit": SPEND_PER_DAY_USD,
         "cost_tracking": bool(PRICING),
         # False means counts reset when the process restarts, so the UI can say

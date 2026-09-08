@@ -28,6 +28,13 @@ import { createClient } from '@/lib/supabase/client'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+/** Real spend is often a fraction of a cent; $0.00 would read as "free". */
+function formatSpend(usd: number): string {
+  if (usd === 0) return '$0.00'
+  if (usd < 0.01) return `under $0.01 (${usd.toFixed(6)})`
+  return `$${usd.toFixed(2)}`
+}
+
 export default function ModelSettingsPage() {
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null)
   const [usage, setUsage] = useState<Usage | null>(null)
@@ -111,9 +118,15 @@ export default function ModelSettingsPage() {
                 {usage.tokens_per_day_limit.toLocaleString()} tokens used. Higher thinking
                 effort and larger models use this up faster.
               </p>
+              {usage.tokens_today === 0 && (
+                <p className="text-xs text-slate-500">
+                  Nothing recorded in the last 24 hours. Generating a plan or chatting with
+                  the assistant will show up here.
+                </p>
+              )}
               <p className="text-xs text-slate-500">
                 {usage.cost_tracking && usage.usd_today !== null
-                  ? `Estimated spend today: $${usage.usd_today.toFixed(2)}`
+                  ? `Estimated spend today: ${formatSpend(usage.usd_today)}`
                   : 'Cost in dollars isn\u2019t tracked on this server, so only token usage is shown.'}
               </p>
               {!usage.durable && (
