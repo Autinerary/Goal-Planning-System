@@ -14,6 +14,8 @@ import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone
 import { saveSnapshot } from '@/lib/pathSnapshots'
 import { goHubHref } from '@/lib/serviceHub'
 import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
+import { canManageMultiplePaths } from '@/lib/entitlements'
+import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -46,6 +48,18 @@ export default function PathView() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [savedSnapshotName, setSavedSnapshotName] = useState<string | null>(null)
   const [serverPaths, setServerPaths] = useState<ServerPathSummary[]>([])
+  // Onboarding preferences kept locally, for paths generated before the server
+  // started storing them.
+  const [localProfilePrefs, setLocalProfilePrefs] = useState<any>(null)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('autinerary_profile')
+      if (raw) setLocalProfilePrefs(JSON.parse(raw)?.preferences ?? null)
+    } catch {
+      /* a blocked or corrupt profile just means no spirit animal */
+    }
+  }, [])
   const [switchingPath, setSwitchingPath] = useState(false)
 
   // Reset the current path: clears the locally cached onboarding draft / path
@@ -162,14 +176,19 @@ export default function PathView() {
   // ── Derive data from AI path or use defaults ──
 
   const userName = supabaseUser?.user_metadata?.name || supabaseUser?.email?.split('@')[0] || 'Explorer'
-  const spiritAnimals = pathData?.userProfile?.spiritAnimals || [
-    { type: 'owl', color: 'purple' },
-    { type: 'fox', color: 'orange' },
-  ]
-  const spiritAnimalEmojis: Record<string, string> = {
-    owl: '🦉', fox: '🦊', wolf: '🐺', bear: '🐻', eagle: '🦅', dolphin: '🐬',
-    lion: '🦁', tiger: '🐯', hawk: '🦅', rabbit: '🐰', deer: '🦌', turtle: '🐢',
-  }
+
+  // Spirit animals live in onboarding preferences. They reach us on the stored
+  // path, or from the local profile for a user whose path predates that.
+  // No default pair here: the old fallback showed everyone an owl and a fox,
+  // so a user who picked a wolf saw someone else's animals as their own.
+  const spiritPrefs = (pathData?.userProfile?.preferences || localProfilePrefs) as
+    | { spiritAnimals?: any[]; spiritAnimalMode?: any }
+    | undefined
+  const todaysAnimal = selectTodaysAnimal(
+    spiritPrefs?.spiritAnimals,
+    spiritPrefs?.spiritAnimalMode,
+    pathData?.schedule,
+  )
 
   const races = pathData?.races?.length
     ? pathData.races.map((race: any, idx: number) => ({
@@ -327,18 +346,16 @@ export default function PathView() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            {/* Spirit Animals — a single guide in simple view, fast/slow pair otherwise */}
-            <div className="flex -space-x-2">
-              {spiritAnimals.slice(0, isSimple ? 1 : 2).map((animal: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-white shadow-md flex items-center justify-center text-2xl"
-                  title={isSimple ? `Your guide: ${animal.type}` : `${idx === 0 ? 'Fast Day' : 'Slow Day'}: ${animal.type}`}
-                >
-                  {spiritAnimalEmojis[animal.type] || '🐾'}
-                </div>
-              ))}
-            </div>
+            {/* Only today's spirit animal — the pair view showed a weekly user
+                two unrelated days at once. */}
+            {todaysAnimal && (
+              <div
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-white shadow-md flex items-center justify-center text-2xl"
+                title={`${todaysAnimal.label}: ${todaysAnimal.animal.type}`}
+              >
+                {SPIRIT_ANIMAL_EMOJI[todaysAnimal.animal.type] || '🐾'}
+              </div>
+            )}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
@@ -401,34 +418,54 @@ export default function PathView() {
               title="Edit your answers. Your progress and saved path are kept — use Reset to start over."
             >
               <Settings className="w-4 h-4" />
-              Customize
+              Re-do Onboarding
             </button>
           </div>
         </div>
 
-        {/* ── Multi-path switcher (only when the user has more than one) ── */}
+        {/* ── Multi-path switcher — paid feature ── */}
         {serverPaths.length > 1 && (
-          <div className="mb-6 flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
-            <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-              <GitCompare className="w-4 h-4 text-purple-500" /> Your paths
-            </span>
-            <select
-              value={pathData?.id || ''}
-              disabled={switchingPath}
-              onChange={(e) => handleSwitchPath(e.target.value)}
-              className="text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
-            >
-              {serverPaths.map((p) => (
-                <option key={p.pathId} value={p.pathId}>
-                  {p.label}{p.isActive ? ' (active)' : ''} — {p.overallProgress}%
-                </option>
-              ))}
-            </select>
-            {switchingPath && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
-            <Link href="/paths/compare" className="text-xs font-medium text-purple-600 hover:text-purple-700 ml-auto inline-flex items-center gap-1">
-              Compare all <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
+          canManageMultiplePaths() ? (
+            <div className="mb-6 flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
+              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                <GitCompare className="w-4 h-4 text-purple-500" /> Your paths
+              </span>
+              <select
+                value={pathData?.id || ''}
+                disabled={switchingPath}
+                onChange={(e) => handleSwitchPath(e.target.value)}
+                className="text-sm bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
+              >
+                {serverPaths.map((p) => (
+                  <option key={p.pathId} value={p.pathId}>
+                    {p.label}{p.isActive ? ' (active)' : ''} — {p.overallProgress}%
+                  </option>
+                ))}
+              </select>
+              {switchingPath && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+              <Link href="/paths/compare" className="text-xs font-medium text-purple-600 hover:text-purple-700 ml-auto inline-flex items-center gap-1">
+                Compare all <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+          ) : (
+            // Existing paths stay visible and the active one keeps working —
+            // locking someone out of data they already created would be worse
+            // than not shipping the gate.
+            <div className="mb-6 flex flex-wrap items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
+              <Lock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-800">
+                  You have {serverPaths.length} paths saved
+                </p>
+                <p className="text-xs text-slate-500">
+                  Running more than one path at a time is part of Multi-Path Management.
+                </p>
+              </div>
+              <button className="ml-auto px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-lg hover:shadow-md transition-all text-xs whitespace-nowrap">
+                Learn More
+              </button>
+            </div>
+          )
         )}
 
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
@@ -518,7 +555,16 @@ export default function PathView() {
           </div>
 
           {/* ── Card 2: Life Stats ── */}
-          <LifeStatsCard />
+          <div>
+            <LifeStatsCard />
+            <Link
+              href="/stats"
+              className="mt-3 flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+            >
+              <TrendingUp className="w-4 h-4 text-emerald-500" />
+              Stats Breakdown
+            </Link>
+          </div>
 
           {/* ── Card 3: Your People (Hare World) ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
@@ -622,10 +668,7 @@ export default function PathView() {
             <Wrench className="w-4 h-4 text-purple-500" />
             Pit Stop
           </Link>
-          <Link href="/stats" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
-            Stats Breakdown
-          </Link>
+          {/* Stats Breakdown now sits with Life Stats, where the numbers are. */}
           <Link href="/reflection?contextType=path" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <BookOpen className="w-4 h-4 text-amber-500" />
             Journal
@@ -637,7 +680,7 @@ export default function PathView() {
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-emerald-500" />
-            View related posts
+            Tidbits
           </a>
           <a
             href={goHubHref('/search')}
@@ -646,7 +689,7 @@ export default function PathView() {
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Map className="w-4 h-4 text-cyan-500" />
-            Browse by life area
+            ResourceHub
           </a>
           <Link href="/path-market" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
             <Sparkles className="w-4 h-4 text-purple-500" />

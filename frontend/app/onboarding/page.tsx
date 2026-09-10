@@ -1056,6 +1056,10 @@ export default function OnboardingPage() {
           ageRange: formData.ageRange,
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
+          // The Path header reads these; without them it fell back to a
+          // default owl/fox pair that was nobody's actual choice.
+          spiritAnimalMode: formData.spiritAnimalMode,
+          spiritAnimals: formData.spiritAnimals,
         },
       }))
 

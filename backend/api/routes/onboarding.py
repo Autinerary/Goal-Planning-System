@@ -360,6 +360,9 @@ async def _generate_path_for(
         "dreams": request.dreams,
         "currentChallenges": request.currentChallenges,
         "supportContext": request.supportContext.model_dump() if request.supportContext else {},
+        # Carried so the app can render the user's own choices (spirit animals,
+        # view style) from the stored path rather than a hardcoded default.
+        "preferences": request.preferences or {},
         "createdAt": datetime.utcnow().isoformat()
     }
 
