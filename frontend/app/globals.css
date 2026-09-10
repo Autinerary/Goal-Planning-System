@@ -104,6 +104,29 @@ html[data-view-energy="0"] .pref-gamify-motion { animation: none !important; }
 html[data-view-energy="1"] .pref-gamify { opacity: 0.85; animation-duration: 6s !important; }
 html[data-view-energy="1"] .pref-gamify-motion { animation: none !important; }
 
+/* Navbar/action icon hover animation (Liam). Fun mode only — energy 3 — so a
+   user who chose a calmer view never gets bouncing icons. The rule lives under
+   the energy selector rather than in each component, and the reduce-motion
+   block above still overrides it, because an accessibility choice must win
+   over a stylistic one. */
+.pref-icon-anim { display: inline-flex; transition: transform 0.18s ease; }
+html[data-view-energy="3"] .pref-icon-anim:hover,
+html[data-view-energy="3"] button:hover > .pref-icon-anim,
+html[data-view-energy="3"] a:hover > .pref-icon-anim {
+  animation: icon-wiggle 0.45s ease-in-out;
+}
+html[data-view-energy="3"] .pref-icon-anim:active,
+html[data-view-energy="3"] button:active > .pref-icon-anim {
+  transform: scale(0.88);
+}
+
+@keyframes icon-wiggle {
+  0%   { transform: rotate(0deg)   scale(1); }
+  30%  { transform: rotate(-9deg)  scale(1.14); }
+  60%  { transform: rotate(8deg)   scale(1.14); }
+  100% { transform: rotate(0deg)   scale(1); }
+}
+
 /* Custom animations */
 @keyframes spin {
   from {

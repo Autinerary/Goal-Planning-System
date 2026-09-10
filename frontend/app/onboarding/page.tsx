@@ -444,6 +444,12 @@ export default function OnboardingPage() {
   const [pathSeed, setPathSeed] = useState<
     { key: string; title: string; focusCategory: string; suggestions: string[] } | null
   >(null)
+  // The Path Market model this path was started from. Kept separately because
+  // pathSeed is consumed for suggestions, while this is a lasting fact about
+  // the path that the Path view names back to the user.
+  const [chosenModel, setChosenModel] = useState<
+    { key: string; title: string; name: string | null; categoryTitle: string | null; description: string | null } | null
+  >(null)
   // True when we prefilled stable answers (barriers/location/etc.) from a prior
   // completed onboarding so a returning user doesn't re-enter everything.
   const [carriedOver, setCarriedOver] = useState(false)
@@ -522,6 +528,13 @@ export default function OnboardingPage() {
             title: seed.title || 'Your path',
             focusCategory,
             suggestions: merged,
+          })
+          setChosenModel({
+            key: seed.key,
+            title: seed.title || 'Your path',
+            name: seed.modelName || null,
+            categoryTitle: seed.categoryTitle || null,
+            description: seed.description || null,
           })
         }
       }
@@ -1061,6 +1074,11 @@ export default function OnboardingPage() {
           spiritAnimalMode: formData.spiritAnimalMode,
           spiritAnimals: formData.spiritAnimals,
         },
+        // Norms are the user's own answers, not the model's — a model does not
+        // know which norms the person selected.
+        pathModel: chosenModel
+          ? { ...chosenModel, norms: selectedBarrierTypes }
+          : null,
       }))
 
       // Snapshot stable answers so a returning user starting another path can

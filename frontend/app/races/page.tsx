@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { loadChosenPathModel, pathModelShortName } from '@/lib/pathModel'
 import { Sparkles, ChevronDown, ChevronUp, ExternalLink, ArrowLeft, Users, UserCheck, UserPlus, Bell, Trophy, RefreshCw, Filter, X, Info, AlertTriangle, Send, MessageSquare, Eye, Loader2, Check, Lock, GitCompare } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
@@ -59,6 +60,11 @@ function RacesContent() {
   // generic stick figure even after you had made a portrait of the person you
   // are growing into — which is the one place it most belongs.
   const [dreamPortrait, setDreamPortrait] = useState<string | null>(null)
+  // Name only — the full model, its description and norms live on the Path view.
+  const [modelName, setModelName] = useState<string | null>(null)
+  useEffect(() => {
+    setModelName(pathModelShortName(loadChosenPathModel()))
+  }, [])
   useEffect(() => {
     let cancelled = false
     fetch('/api/me/ideal-self', { cache: 'no-store', credentials: 'include' })
@@ -781,6 +787,19 @@ function RacesContent() {
                 }
               }} className={`p-1 rounded-lg hover:opacity-70 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
               <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
+              {modelName && (
+                <Link
+                  href="/path#life-path-models"
+                  title="View this Life Path Model"
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                    day
+                      ? 'bg-white/70 border-sky-300 text-sky-800 hover:bg-white'
+                      : 'bg-indigo-900/70 border-indigo-700 text-indigo-100 hover:bg-indigo-900'
+                  }`}
+                >
+                  {modelName}
+                </Link>
+              )}
             </div>
             <div className="flex items-center gap-1.5">
               {/* Motivation Pinwheel - position follows the user's saved layout preference */}

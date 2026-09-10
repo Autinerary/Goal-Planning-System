@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote, GitCompare, Save } from 'lucide-react'
+import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote, GitCompare, Save, Compass } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
 import StreakBadge from '../components/StreakBadge'
@@ -16,6 +16,7 @@ import { goHubHref } from '@/lib/serviceHub'
 import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/lib/serverPaths'
 import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
+import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -51,6 +52,11 @@ export default function PathView() {
   // Onboarding preferences kept locally, for paths generated before the server
   // started storing them.
   const [localProfilePrefs, setLocalProfilePrefs] = useState<any>(null)
+  const [chosenModel, setChosenModel] = useState<ChosenPathModel | null>(null)
+
+  useEffect(() => {
+    setChosenModel(loadChosenPathModel())
+  }, [])
 
   useEffect(() => {
     try {
@@ -378,7 +384,7 @@ export default function PathView() {
                 ? 'You’re in Simple view. Show all features.'
                 : `You’re in ${level === 'full' ? 'Full' : 'Standard'} view. Switch to a simpler layout.`}
             >
-              <Map className="w-4 h-4" />
+              <Map className="w-4 h-4 pref-icon-anim" />
               {isSimple ? 'Show more' : 'Simplify'}
             </button>
             <button
@@ -395,21 +401,21 @@ export default function PathView() {
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-cyan-700 border border-slate-300 rounded-lg hover:bg-white hover:border-cyan-300 transition-all"
               title="Save this path as a snapshot to compare later"
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-4 h-4 pref-icon-anim" />
               Save snapshot
             </button>
             <Link
               href="/paths/compare"
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-purple-700 border border-slate-300 rounded-lg hover:bg-white hover:border-purple-300 transition-all"
             >
-              <GitCompare className="w-4 h-4" />
+              <GitCompare className="w-4 h-4 pref-icon-anim" />
               Compare
             </Link>
             <button
               onClick={() => setShowResetConfirm(true)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-red-600 border border-slate-300 rounded-lg hover:bg-white hover:border-red-300 transition-all"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4 pref-icon-anim" />
               Reset
             </button>
             <button
@@ -417,7 +423,7 @@ export default function PathView() {
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-white transition-all"
               title="Edit your answers. Your progress and saved path are kept — use Reset to start over."
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 pref-icon-anim" />
               Re-do Onboarding
             </button>
           </div>
@@ -654,6 +660,69 @@ export default function PathView() {
           </div>
         </div>
 
+        {/* ── Life Path Models ── */}
+        <div id="life-path-models" className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8 scroll-mt-6">
+          <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+            <Compass className="w-5 h-5 text-cyan-500" /> Life Path Models
+          </h2>
+
+          {chosenModel ? (
+            <div className="rounded-xl border-2 border-cyan-200 bg-cyan-50/60 p-4">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">
+                    Currently following
+                  </p>
+                  <p className="text-lg font-bold text-slate-900">{chosenModel.title}</p>
+                </div>
+                <Link
+                  href="/path-market"
+                  className="text-xs font-semibold text-cyan-700 hover:text-cyan-800 inline-flex items-center gap-1"
+                >
+                  Change model <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              {chosenModel.description && (
+                <p className="mt-2 text-sm text-slate-600">{chosenModel.description}</p>
+              )}
+
+              {chosenModel.norms.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-slate-500 mb-1.5">Norms this model considers</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {chosenModel.norms.map((n) => (
+                      <span
+                        key={n}
+                        className="text-xs font-medium px-2.5 py-1 rounded-full bg-white border border-cyan-200 text-cyan-800"
+                      >
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Paths created before the model was recorded have nothing to name,
+            // and guessing one after the fact would be fiction.
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-600">
+                This path wasn&apos;t started from a Life Path Model — or was created before we
+                started recording it. Browse the Path Market to follow one.
+              </p>
+            </div>
+          )}
+
+          <Link
+            href="/path-market"
+            className="mt-4 flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+          >
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            Path Market
+          </Link>
+        </div>
+
         {/* ── Quick Links ── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
           <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
@@ -691,10 +760,6 @@ export default function PathView() {
             <Map className="w-4 h-4 text-cyan-500" />
             ResourceHub
           </a>
-          <Link href="/path-market" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            Path Market
-          </Link>
           </div>
         </div>
 

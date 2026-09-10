@@ -235,6 +235,11 @@ export default function PathMarketPage() {
           goals: m.seedGoals,
           focusCategory: c.focusCategory,
           suggestions: c.examples,
+          // Carried so the Path view can name the model the user actually
+          // started, rather than inferring one after the fact.
+          modelName: m.name,
+          categoryTitle: c.title,
+          description: m.description,
         })
       )
     } catch {
