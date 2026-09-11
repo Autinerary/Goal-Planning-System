@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Search, UserPlus, UserMinus, Users, UserCheck, Sparkles, Share2, Lock, Globe, MessageSquare, Bell, Trophy, Video, X, Filter, Heart, Star, Users2, Crown, Code, Eye, ChevronRight, ChevronLeft } from 'lucide-react'
 import axios from 'axios'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import MerchantShopkeeper from '../components/MerchantShopkeeper'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import { resolveToolLink } from '@/lib/toolLink'
@@ -29,6 +30,8 @@ function PitStopContent() {
   const initialView = searchParams.get('view') as 'people' | 'collab' | 'relationships' || 'people'
   
   const [activeTab, setActiveTab] = useState<'tools' | 'haveworld'>(initialTab)
+  // Filters the shelves by tool name (Odosa's sketch: magnifier at the top).
+  const [toolQuery, setToolQuery] = useState('')
   const [haveWorldView, setHaveWorldView] = useState<'people' | 'collab' | 'relationships'>(initialView)
   
   // Update state when URL params change
@@ -734,7 +737,20 @@ function PitStopContent() {
 
         {/* Tools Tab - Redirects to ServiceHub */}
         {activeTab === 'tools' && (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-36">
+            {/* Shop counter search — filters the shelves below by name. */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={toolQuery}
+                onChange={(e) => setToolQuery(e.target.value)}
+                placeholder="Search your tools by name…"
+                aria-label="Search your recommended tools by name"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
+              />
+            </div>
+
             {/* Browse resources by life area — the former Resource Roadmap
                 domains, now a filter in ResourceHub Search. */}
             <a href={goHubHref('/search')} target="_blank" rel="noopener noreferrer" className="block group">
@@ -766,22 +782,41 @@ function PitStopContent() {
                 { key: 'commentaries', label: 'Commentaries', icon: '🏋️', color: 'border-purple-200 bg-purple-50' },
                 { key: 'other', label: 'Other', icon: '🔨', color: 'border-slate-200 bg-slate-50' },
               ]
-              const hasAny = buckets.some((b) => (pit[b.key] || []).length > 0)
-              if (!hasAny) return null
+              const q = toolQuery.trim().toLowerCase()
+              const match = (t: any) =>
+                !q ||
+                String(t?.name || '').toLowerCase().includes(q) ||
+                String(t?.description || '').toLowerCase().includes(q)
+
+              const hasAnyAtAll = buckets.some((b) => (pit[b.key] || []).length > 0)
+              if (!hasAnyAtAll) return null
+
+              const hasMatches = buckets.some((b) => (pit[b.key] || []).some(match))
               return (
                 <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-1">Recommended for you</h3>
                   <p className="text-sm text-slate-600 mb-4">Personalised pit-stop picks from your tool recommendation agent.</p>
+                  {!hasMatches && (
+                    <p className="text-sm text-slate-500 italic">
+                      Nothing on your shelves matches “{toolQuery.trim()}”. Try the Resource Hub below
+                      for the full catalogue.
+                    </p>
+                  )}
                   <div className="grid md:grid-cols-2 gap-4">
                     {buckets.map((b) => {
-                      const items = (pit[b.key] || []).slice(0, 4)
+                      const items = (pit[b.key] || []).filter(match).slice(0, 4)
                       if (!items.length) return null
                       return (
                         <div key={b.key} className={`rounded-xl border-2 ${b.color} p-4`}>
                           <div className="font-semibold mb-2 flex items-center gap-2"><span>{b.icon}</span>{b.label}</div>
                           <ul className="space-y-2">
                             {items.map((t: any) => (
-                              <li key={t.id} className="text-sm">
+                              <li key={t.id} className="text-sm flex gap-2">
+                                {/* Per-item icon (Odosa: "stays same, but add icons").
+                                    Inherits the bucket's icon so it never implies
+                                    a distinction the data does not carry. */}
+                                <span aria-hidden="true" className="mt-0.5 flex-shrink-0 text-base leading-none">{b.icon}</span>
+                                <div className="min-w-0">
                                 <a href={resolveToolLink(t.url, t.name).href} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
                                 {t.description && <div className="text-xs text-slate-600 line-clamp-2">{t.description}</div>}
                                 {/* What this helps with (agent-generated, when present) */}
@@ -801,6 +836,7 @@ function PitStopContent() {
                                     ))}
                                   </div>
                                 )}
+                                </div>
                               </li>
                             ))}
                           </ul>
@@ -837,6 +873,18 @@ function PitStopContent() {
               </div>
             </div>
           </div>
+
+          {/* The shopkeeper. Line is built from the real shelf count — never a
+              greeting that implies stock we do not have. */}
+          {(() => {
+            const pit: any = toolRecommendation?.pit_stop_tools || {}
+            const stocked = ['services', 'products', 'commentaries', 'other']
+              .reduce((n, k) => n + (pit[k] || []).length, 0)
+            const line = stocked > 0
+              ? `${stocked} tool${stocked === 1 ? '' : 's'} picked out for you today.`
+              : 'Shelves are bare for now — finish onboarding and I\u2019ll stock them.'
+            return <MerchantShopkeeper line={line} />
+          })()}
           </div>
         )}
 

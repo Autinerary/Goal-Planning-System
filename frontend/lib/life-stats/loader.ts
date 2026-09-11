@@ -11,6 +11,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
+  computeCommitment,
   computeEnergy,
   computeFocus,
   computeHappiness,
@@ -44,6 +45,8 @@ export interface LifeStatsPayload {
     happiness: StatResponse & { source: 'checkin' | 'inferred' }
     focus: StatResponse
     energy: StatResponse
+    /** Null until the account has enough history to judge — not a zero. */
+    commitment: StatResponse | null
   }
   /** True if user already submitted a mood check-in for today. */
   checkinPromptedToday: boolean
@@ -55,6 +58,11 @@ function dayKey(d: Date): string {
 
 function sevenDaysAgo(now: Date): Date {
   return new Date(now.getTime() - 7 * MS_PER_DAY)
+}
+
+/** Commitment looks back four weeks, so it needs its own, wider fetch. */
+function twentyEightDaysAgo(now: Date): Date {
+  return new Date(now.getTime() - 28 * MS_PER_DAY)
 }
 
 function toResponse(s: StatComponents, baseline: number | null): StatResponse {
@@ -81,6 +89,9 @@ export async function loadAndComputeForUser(
   const weekAgoIso = weekAgo.toISOString()
   const weekAgoDay = dayKey(weekAgo)
   const todayDay = dayKey(now)
+  const monthAgo = twentyEightDaysAgo(now)
+  const monthAgoIso = monthAgo.toISOString()
+  const monthAgoDay = dayKey(monthAgo)
 
   // Fetch every signal in parallel. Errors fall back to empty arrays
   // so a single bad query doesn't 500 the whole endpoint.
@@ -94,6 +105,9 @@ export async function loadAndComputeForUser(
     suggestionsFromMeRes,
     todaysCheckinRes,
     baselineSnapRes,
+    monthMilestonesRes,
+    monthCheckinsRes,
+    monthTasksRes,
   ] = await Promise.all([
     supabase
       .from('calendar_tasks')
@@ -150,10 +164,32 @@ export async function loadAndComputeForUser(
 
     supabase
       .from('life_stats_snapshots')
-      .select('mentality, happiness, focus, energy')
+      .select('mentality, happiness, focus, energy, commitment')
       .eq('user_id', userId)
       .eq('snapshot_date', weekAgoDay)
       .maybeSingle(),
+
+    // 28-day signals for Commitment. Separate queries rather than widening the
+    // 7-day ones, so the other stats keep their window exactly.
+    supabase
+      .from('race_progress')
+      .select('completed_at')
+      .eq('user_id', userId)
+      .eq('kind', 'completed')
+      .gte('completed_at', monthAgoIso),
+
+    supabase
+      .from('life_stats_checkins')
+      .select('checkin_date')
+      .eq('user_id', userId)
+      .gte('checkin_date', monthAgoDay),
+
+    supabase
+      .from('calendar_tasks')
+      .select('completed_at')
+      .eq('user_id', userId)
+      .not('completed_at', 'is', null)
+      .gte('completed_at', monthAgoIso),
   ])
 
   // ---- Reshape rows for the pure compute functions ----
@@ -211,6 +247,19 @@ export async function loadAndComputeForUser(
   const mentality = computeMentality(reflectionRows, milestoneEvents, /*barrierCount*/ 0, now)
   const happiness = computeHappiness(checkinRows, reflectionRows, socialEvents, now)
 
+  // Commitment reads its own 28-day pings. Only signals the app actually
+  // writes are used — milestone completions and check-ins are recorded today,
+  // so the score reflects real behaviour rather than an empty column.
+  const monthMilestones: MilestoneEvent[] = (monthMilestonesRes.data ?? []).map((r: any) => ({
+    completedAt: new Date(r.completed_at),
+  }))
+  const monthPings: ActivityPing[] = [
+    ...monthMilestones.map((m) => ({ occurredAt: m.completedAt })),
+    ...((monthCheckinsRes.data ?? []).map((r: any) => ({ occurredAt: new Date(String(r.checkin_date)) }))),
+    ...((monthTasksRes.data ?? []).map((r: any) => ({ occurredAt: new Date(r.completed_at) }))),
+  ]
+  const commitment = computeCommitment(monthPings, monthMilestones, now)
+
   // ---- Trend baselines ----
 
   const baseline = baselineSnapRes.data
@@ -218,6 +267,7 @@ export async function loadAndComputeForUser(
   const baselineEnergy    = baseline?.energy    ?? null
   const baselineMentality = baseline?.mentality ?? null
   const baselineHappiness = baseline?.happiness ?? null
+  const baselineCommitment = baseline?.commitment ?? null
 
   // ---- Upsert today's snapshot ----
   // We re-upsert on every request — cheap and keeps the "today" value fresh
@@ -232,6 +282,7 @@ export async function loadAndComputeForUser(
         happiness: happiness.score,
         focus: focus.score,
         energy: energy.score,
+        commitment: commitment ? commitment.score : null,
         happiness_source: happiness.source,
         computed_at: now.toISOString(),
       },
@@ -245,6 +296,7 @@ export async function loadAndComputeForUser(
       happiness: { ...toResponse(happiness, baselineHappiness), source: happiness.source },
       focus:     toResponse(focus, baselineFocus),
       energy:    toResponse(energy, baselineEnergy),
+      commitment: commitment ? toResponse(commitment, baselineCommitment) : null,
     },
     checkinPromptedToday: Boolean(todaysCheckinRes.data),
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Brain, Heart, Target, Zap, TrendingUp, TrendingDown, Sparkles, Loader2, Info } from 'lucide-react'
+import { Brain, Heart, Target, Zap, TrendingUp, TrendingDown, Sparkles, Loader2, Info, Flag } from 'lucide-react'
 import MoodCheckInCard from './MoodCheckInCard'
 
 // Mirrors the API payload shape from /api/me/life-stats.
@@ -19,11 +19,13 @@ interface LifeStatsPayload {
     happiness: HappinessResponse
     focus: StatResponse
     energy: StatResponse
+    /** Null until the account has ~2 weeks of history — not the same as zero. */
+    commitment: StatResponse | null
   }
   checkinPromptedToday: boolean
 }
 
-type StatKey = 'mentality' | 'happiness' | 'focus' | 'energy'
+type StatKey = 'mentality' | 'happiness' | 'focus' | 'energy' | 'commitment'
 
 const STAT_META: Record<StatKey, {
   label: string
@@ -36,9 +38,10 @@ const STAT_META: Record<StatKey, {
   happiness: { label: 'Happiness', icon: Heart,  color: 'text-pink-600',   bgColor: 'bg-pink-100',   barColor: 'bg-pink-500' },
   focus:     { label: 'Focus',     icon: Target, color: 'text-cyan-600',   bgColor: 'bg-cyan-100',   barColor: 'bg-cyan-500' },
   energy:    { label: 'Energy',    icon: Zap,    color: 'text-amber-600',  bgColor: 'bg-amber-100',  barColor: 'bg-amber-500' },
+  commitment:{ label: 'Commitment',icon: Flag,   color: 'text-emerald-600',bgColor: 'bg-emerald-100',barColor: 'bg-emerald-500' },
 }
 
-const STAT_ORDER: StatKey[] = ['mentality', 'happiness', 'focus', 'energy']
+const STAT_ORDER: StatKey[] = ['mentality', 'happiness', 'focus', 'energy', 'commitment']
 
 /**
  * Live Life Stats card. Replaces the old hardcoded array in app/path/page.tsx.
@@ -105,7 +108,7 @@ export default function LifeStatsCard() {
         Life Stats
       </h2>
       <p className="text-xs text-slate-500 italic mb-4">
-        Computed from your activity over the last 7 days.
+        Computed from your activity over the last 7 days — Commitment over 4 weeks.
       </p>
 
       {showCheckin && (
@@ -132,6 +135,28 @@ export default function LifeStatsCard() {
             const stat = payload.stats[key]
             const meta = STAT_META[key]
             const Icon = meta.icon
+
+            // Commitment is null until there is enough history. Saying so is
+            // the point — a new user has not failed to commit, and a 0/10
+            // would read as a judgement we have not earned.
+            if (!stat) {
+              return (
+                <div key={key} className="border-b border-slate-100 last:border-b-0 pb-3 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg ${meta.bgColor} flex items-center justify-center opacity-60`}>
+                      <Icon className={`w-4 h-4 ${meta.color}`} aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{meta.label}</p>
+                      <p className="text-xs text-slate-500">
+                        Needs a couple of weeks of history before this means anything.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
             const widthPct = Math.max(0, Math.min(100, stat.score))
             const trend = renderTrend(stat.change)
             const isOpen = openStat === key

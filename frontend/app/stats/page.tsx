@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity } from 'lucide-react'
+import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity, Flag } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 type Part = { label: string; value: number; weight: number }
 type Stat = { value: number; change: number | null; score: number; parts: Part[]; source?: string }
 type Payload = {
   asOf: string
-  stats: { mentality: Stat; happiness: Stat & { source: string }; focus: Stat; energy: Stat }
+  stats: { mentality: Stat; happiness: Stat & { source: string }; focus: Stat; energy: Stat; commitment: Stat | null }
   checkinPromptedToday: boolean
 }
 
@@ -47,6 +47,14 @@ const META: Record<string, { label: string; Icon: any; color: string; bar: strin
     what: 'Your recent momentum \u2014 overall activity and social connection across the last 7 days.',
     improve: 'Take small actions often and lean on your Hare World people. Rest counts too \u2014 sustainable pace keeps energy up.',
   },
+  commitment: {
+    label: 'Commitment',
+    Icon: Flag,
+    color: 'text-teal-600',
+    bar: 'bg-teal-500',
+    what: 'Whether you keep coming back \u2014 how many of the last four weeks you were active, plus milestones finished in that time. The only stat measured over a month rather than a week.',
+    improve: 'Consistency beats intensity here. A short visit in a week you would otherwise have missed moves this more than a heavy day.',
+  },
 }
 
 function Trend({ change }: { change: number | null }) {
@@ -80,8 +88,11 @@ const RAMIFICATIONS: Record<string, { low: string; mid: string; high: string }> 
     low: 'Low momentum and connection make everything feel heavier. Rest and one social nudge can reset it.',
     mid: 'Momentum is okay. Regular small actions and leaning on your people keeps it from sliding.',
     high: 'High momentum — you have capacity to push a race forward or support someone else right now.',
-  },
-}
+  },  commitment: {
+    low: 'There have been quiet weeks lately. One small visit a week is enough to turn this around \u2014 it counts the weeks you show up, not how hard you go.',
+    mid: 'You come back most weeks. Closing the gaps is what turns steady effort into finished milestones.',
+    high: 'You have kept at this for weeks. That endurance is the thing most plans fail on, and it is the reason your milestones land.',
+  },}
 
 function levelOf(value: number): 'low' | 'mid' | 'high' {
   if (value < 4) return 'low'
@@ -94,12 +105,18 @@ function RamificationsBar({ stats, order, meta }: {
   order: Array<keyof Payload['stats']>
   meta: typeof META
 }) {
-  // Composite wellbeing = average of the four stats. The bar visualises each
-  // stat's contribution as a stacked segment so users see the balance.
-  const values = order.map((k) => stats[k].value)
-  const composite = values.reduce((a, b) => a + b, 0) / values.length
-  const lowest = order.reduce((lo, k) => (stats[k].value < stats[lo].value ? k : lo), order[0])
-  const highest = order.reduce((hi, k) => (stats[k].value > stats[hi].value ? k : hi), order[0])
+  // `order` only ever contains stats that are present, so this accessor never
+  // actually falls back — it exists to keep the nullable Commitment honest in
+  // the type system rather than asserted away.
+  const val = (k: keyof Payload['stats']) => stats[k]?.value ?? 0
+
+  // Composite wellbeing = average of the stats we can actually show.
+  const values = order.map(val)
+  const composite = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0
+  const lowest = order.reduce((lo, k) => (val(k) < val(lo) ? k : lo), order[0])
+  const highest = order.reduce((hi, k) => (val(k) > val(hi) ? k : hi), order[0])
+
+  if (order.length === 0) return null
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-4">
@@ -119,8 +136,8 @@ function RamificationsBar({ stats, order, meta }: {
       {/* Stacked contribution bar */}
       <div className="flex h-3 rounded-full overflow-hidden mb-2 border border-slate-100">
         {order.map((k) => {
-          const share = (stats[k].value / (values.reduce((a, b) => a + b, 0) || 1)) * 100
-          return <div key={k} className={meta[k].bar} style={{ width: `${share}%` }} title={`${meta[k].label}: ${stats[k].value.toFixed(1)}`} />
+          const share = (val(k) / (values.reduce((a, b) => a + b, 0) || 1)) * 100
+          return <div key={k} className={meta[k].bar} style={{ width: `${share}%` }} title={`${meta[k].label}: ${val(k).toFixed(1)}`} />
         })}
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
@@ -135,11 +152,11 @@ function RamificationsBar({ stats, order, meta }: {
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="bg-rose-50 border border-rose-100 rounded-xl p-3">
           <div className="text-[11px] font-bold uppercase tracking-wide text-rose-500 mb-1">Needs attention · {meta[lowest].label}</div>
-          <p className="text-xs text-slate-600">{RAMIFICATIONS[lowest][levelOf(stats[lowest].value)]}</p>
+          <p className="text-xs text-slate-600">{RAMIFICATIONS[lowest][levelOf(val(lowest))]}</p>
         </div>
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
           <div className="text-[11px] font-bold uppercase tracking-wide text-emerald-600 mb-1">Your strength · {meta[highest].label}</div>
-          <p className="text-xs text-slate-600">{RAMIFICATIONS[highest][levelOf(stats[highest].value)]}</p>
+          <p className="text-xs text-slate-600">{RAMIFICATIONS[highest][levelOf(val(highest))]}</p>
         </div>
       </div>
     </div>
@@ -173,7 +190,11 @@ export default function StatsBreakdownPage() {
     return () => { cancelled = true }
   }, [isSignedIn])
 
-  const order: Array<keyof Payload['stats']> = ['mentality', 'happiness', 'focus', 'energy']
+  // Commitment is omitted until the account has enough history for it to mean
+  // anything, rather than being shown as a zero the user has not earned.
+  const order: Array<keyof Payload['stats']> = (
+    ['mentality', 'happiness', 'focus', 'energy', 'commitment'] as Array<keyof Payload['stats']>
+  ).filter((k) => payload?.stats?.[k] != null)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-emerald-50/40">
@@ -211,6 +232,7 @@ export default function StatsBreakdownPage() {
 
             {order.map((key) => {
               const stat = payload.stats[key]
+              if (!stat) return null
               const meta = META[key]
               const pct = Math.round((stat.value / 10) * 100)
               const totalWeight = stat.parts.reduce((a, p) => a + p.weight, 0) || 1

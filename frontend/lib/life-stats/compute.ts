@@ -11,7 +11,7 @@
 
 // ---------- Types ----------
 
-export type StatName = 'mentality' | 'happiness' | 'focus' | 'energy'
+export type StatName = 'mentality' | 'happiness' | 'focus' | 'energy' | 'commitment'
 
 export interface ActivityPing {
   // Any timestamped user-write event in the last 7 days.
@@ -225,6 +225,70 @@ export function computeMentality(
       },
       { label: `${recentMilestones.length} milestones completed this week`, value: milestoneRatio, weight: 0.3 },
       { label: `${barrierCount} known barriers (small penalty)`, value: barrierMultiplier, weight: 0.2 },
+    ],
+  }
+}
+
+// ---------- COMMITMENT ----------
+// The only stat measured over 28 days rather than 7, because that is what
+// separates it from the others: Focus asks "did you do this week's plan?",
+// Energy asks "have you been active lately?", Commitment asks "do you keep
+// coming back?".
+//
+// 60% weeks with at least one active day (out of 4)
+// 40% milestones completed in the window (capped at 8)
+//
+// Returns null — not zero — until the account is old enough to judge. Someone
+// who signed up yesterday has not failed to commit, and showing a new user
+// "Commitment 0/10" would be both wrong and discouraging.
+
+/** Days of history required before a commitment score means anything. */
+export const COMMITMENT_MIN_HISTORY_DAYS = 14
+const COMMITMENT_WINDOW_DAYS = 28
+
+export function computeCommitment(
+  pings: ActivityPing[],
+  milestoneEvents: MilestoneEvent[],
+  now: Date = new Date()
+): StatComponents | null {
+  if (pings.length === 0) return null
+
+  // Oldest signal we hold for this user, as a proxy for how long they have
+  // been here. Anything younger than the threshold is not yet a judgement we
+  // are entitled to make.
+  const oldest = pings.reduce(
+    (min, p) => (p.occurredAt < min ? p.occurredAt : min),
+    pings[0].occurredAt,
+  )
+  if (daysAgo(oldest, now) < COMMITMENT_MIN_HISTORY_DAYS) return null
+
+  const inWindow = pings.filter((p) => {
+    const age = daysAgo(p.occurredAt, now)
+    return age >= 0 && age < COMMITMENT_WINDOW_DAYS
+  })
+
+  // Week 0 is the last 7 days, week 3 is days 21-27.
+  const weeksTouched = new Set<number>()
+  for (const p of inWindow) {
+    weeksTouched.add(Math.floor(daysAgo(p.occurredAt, now) / 7))
+  }
+  const weeksActive = weeksTouched.size
+  const weeksRatio = weeksActive / 4
+
+  const MILESTONE_CAP = 8
+  const recentMilestones = milestoneEvents.filter((m) => {
+    const age = daysAgo(m.completedAt, now)
+    return age >= 0 && age < COMMITMENT_WINDOW_DAYS
+  })
+  const milestoneRatio = Math.min(recentMilestones.length, MILESTONE_CAP) / MILESTONE_CAP
+
+  const final = (weeksRatio * 0.6 + milestoneRatio * 0.4) * 100
+
+  return {
+    score: clamp(final),
+    parts: [
+      { label: `Active in ${weeksActive} of the last 4 weeks`, value: weeksRatio, weight: 0.6 },
+      { label: `${recentMilestones.length} milestones completed in 28 days`, value: milestoneRatio, weight: 0.4 },
     ],
   }
 }
