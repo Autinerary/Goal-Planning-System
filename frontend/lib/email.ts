@@ -9,6 +9,7 @@ export interface SendEmailInput {
   subject: string
   html: string
   text?: string
+  idempotencyKey?: string
 }
 
 export type SendEmailResult = { ok: boolean; skipped?: boolean; id?: string; error?: string }
@@ -28,8 +29,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...(input.idempotencyKey ? { 'Idempotency-Key': input.idempotencyKey } : {}) },
       body: JSON.stringify({ from, to: input.to, subject: input.subject, html: input.html, text: input.text }),
+      signal: AbortSignal.timeout(10000),
     })
     if (!res.ok) {
       const body = await res.text().catch(() => '')

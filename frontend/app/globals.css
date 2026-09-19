@@ -127,6 +127,65 @@ html[data-view-energy="3"] button:active > .pref-icon-anim {
   100% { transform: rotate(0deg)   scale(1); }
 }
 
+/* Per-icon character animations (Liam): the bell rings, the reel spins like
+   film through a projector, and memory jumps and shakes. Available from energy
+   2 up — unlike the generic wiggle, these say something about the control, so
+   they earn their place one level earlier. The reduce-motion block still wins. */
+.anim-bell,
+.anim-reel,
+.anim-shake { display: inline-flex; transform-origin: center; }
+.anim-bell { transform-origin: 50% 10%; }
+
+html[data-view-energy="2"] a:hover > .anim-bell,
+html[data-view-energy="2"] button:hover > .anim-bell,
+html[data-view-energy="3"] a:hover > .anim-bell,
+html[data-view-energy="3"] button:hover > .anim-bell { animation: bell-ring 0.7s ease-in-out; }
+
+html[data-view-energy="2"] a:hover > .anim-reel,
+html[data-view-energy="2"] button:hover > .anim-reel,
+html[data-view-energy="3"] a:hover > .anim-reel,
+html[data-view-energy="3"] button:hover > .anim-reel { animation: reel-spin 1.2s linear infinite; }
+
+html[data-view-energy="2"] a:hover > .anim-shake,
+html[data-view-energy="2"] button:hover > .anim-shake,
+html[data-view-energy="3"] a:hover > .anim-shake,
+html[data-view-energy="3"] button:hover > .anim-shake { animation: memory-shake 0.55s ease-in-out; }
+
+/* An unread notification rings on its own — the one case where the animation
+   is information rather than decoration. */
+html[data-view-energy="2"] .anim-bell--alert,
+html[data-view-energy="3"] .anim-bell--alert { animation: bell-ring 0.9s ease-in-out 0.4s 2; }
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  10%  { transform: rotate(16deg); }
+  22%  { transform: rotate(-13deg); }
+  34%  { transform: rotate(10deg); }
+  46%  { transform: rotate(-7deg); }
+  58%  { transform: rotate(4deg); }
+  70%  { transform: rotate(-2deg); }
+}
+
+/* Film advancing through a projector: step, hold, step — not a smooth spin. */
+@keyframes reel-spin {
+  0%   { transform: rotate(0deg); }
+  18%  { transform: rotate(90deg); }
+  25%, 43% { transform: rotate(90deg); }
+  50%  { transform: rotate(180deg); }
+  57%, 68% { transform: rotate(180deg); }
+  75%  { transform: rotate(270deg); }
+  82%, 93% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes memory-shake {
+  0%, 100% { transform: scale(1)    translateX(0); }
+  20%      { transform: scale(1.18) translateX(-2px) rotate(-6deg); }
+  40%      { transform: scale(1.18) translateX(2px)  rotate(5deg); }
+  60%      { transform: scale(1.18) translateX(-2px) rotate(-4deg); }
+  80%      { transform: scale(1.12) translateX(1px)  rotate(2deg); }
+}
+
 /* Custom animations */
 @keyframes spin {
   from {

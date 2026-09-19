@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { computeAge } from '@/lib/age'
 
 /**
  * GET  /api/family/children — list the children the signed-in adult supervises.
@@ -61,6 +62,10 @@ export async function GET(_req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guardian = await requireUser()
   if (!guardian) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  const guardianAge = computeAge(guardian.app_metadata?.date_of_birth || guardian.user_metadata?.date_of_birth)
+  if (guardianAge === null || guardianAge < 18 || guardian.app_metadata?.managed_by_guardian || guardian.user_metadata?.managed_by_guardian) {
+    return NextResponse.json({ error: 'An adult account with a recorded date of birth is required.' }, { status: 403 })
+  }
 
   let body: any
   try {
@@ -74,6 +79,13 @@ export async function POST(req: NextRequest) {
   const password = typeof body?.password === 'string' ? body.password : ''
   const dateOfBirth = typeof body?.dateOfBirth === 'string' ? body.dateOfBirth : ''
   const relationship = typeof body?.relationship === 'string' && body.relationship ? body.relationship : 'parent'
+  const childAge = computeAge(dateOfBirth)
+  if (childAge === null || childAge < 0 || childAge >= 18) {
+    return NextResponse.json({ error: 'Enter a valid date of birth for a child under 18.' }, { status: 400 })
+  }
+  if (!['parent', 'legal_guardian'].includes(relationship) || body?.legalGuardianConsent !== true || body?.reviewed !== true) {
+    return NextResponse.json({ error: 'Review the account details and confirm that you are the legal parent or guardian.' }, { status: 400 })
+  }
 
   if (!name || !email || !password || !dateOfBirth) {
     return NextResponse.json({ error: 'Name, email, password and date of birth are required.' }, { status: 400 })
@@ -89,6 +101,13 @@ export async function POST(req: NextRequest) {
     email,
     password,
     email_confirm: true,
+    ban_duration: '876000h',
+    app_metadata: {
+      managed_by_guardian: true,
+      guardian_id: guardian.id,
+      date_of_birth: dateOfBirth,
+      guardian_approval: { state: 'pending', relationship, attestation_version: '2026-09-18' },
+    },
     user_metadata: {
       name,
       full_name: name,
@@ -112,10 +131,19 @@ export async function POST(req: NextRequest) {
     .from('guardianships')
     .insert({ guardian_id: guardian.id, child_id: childId, relationship })
   if (linkErr) {
-    // Roll back the orphaned auth user so a retry can reuse the email.
-    await admin.auth.admin.deleteUser(childId).catch(() => {})
-    return NextResponse.json({ error: linkErr.message }, { status: 500 })
+    return NextResponse.json({ error: 'Account remains locked because guardian linking failed. Contact support before retrying.' }, { status: 500 })
   }
+
+  const { error: approvalError } = await admin.auth.admin.updateUserById(childId, {
+    ban_duration: 'none',
+    app_metadata: {
+      managed_by_guardian: true,
+      guardian_id: guardian.id,
+      date_of_birth: dateOfBirth,
+      guardian_approval: { state: 'approved', relationship, attestation_version: '2026-09-18', approved_at: new Date().toISOString(), approved_by: guardian.id },
+    },
+  })
+  if (approvalError) return NextResponse.json({ error: 'Account created but remains locked; approval could not be saved.' }, { status: 503 })
 
   await admin
     .from('profiles')

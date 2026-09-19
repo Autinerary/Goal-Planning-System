@@ -4,9 +4,11 @@ export const MIN_SIGNUP_AGE = 18
 
 /** Whole-years age from a 'YYYY-MM-DD' date of birth, or null if unparseable. */
 export function computeAge(dobISO: string | null | undefined, now: Date = new Date()): number | null {
-  if (!dobISO) return null
+  if (!dobISO || !/^\d{4}-\d{2}-\d{2}$/.test(dobISO)) return null
   const dob = new Date(`${dobISO}T00:00:00`)
   if (isNaN(dob.getTime())) return null
+  const [year, month, day] = dobISO.split('-').map(Number)
+  if (dob.getFullYear() !== year || dob.getMonth() + 1 !== month || dob.getDate() !== day || dob > now) return null
   let age = now.getFullYear() - dob.getFullYear()
   const m = now.getMonth() - dob.getMonth()
   if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--

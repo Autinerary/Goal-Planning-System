@@ -183,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.user) {
         setSupabaseUser(data.user)
         setUser(profileFromSupabase(data.user))
+        void fetch('/api/me/welcome', { method: 'POST' }).catch(() => {})
       }
     } catch (err) {
       console.error('Error saving onboarding status:', err)

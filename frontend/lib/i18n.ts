@@ -7,14 +7,56 @@
 // To add a language: add its code to LANGUAGES and a block to `dictionaries`.
 // Missing keys fall back to English, then to the key itself.
 
-export type LanguageCode = 'en' | 'es' | 'fr' | 'zh'
+export type LanguageCode =
+  | 'en' | 'es' | 'fr' | 'zh'
+  | 'ar' | 'bn' | 'de' | 'gu' | 'hi' | 'it' | 'ja' | 'ko' | 'pa' | 'pl'
+  | 'pt' | 'ru' | 'so' | 'ta' | 'tl' | 'uk' | 'ur' | 'vi'
 
-export const LANGUAGES: { code: LanguageCode; label: string; flag: string }[] = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'zh', label: '中文', flag: '🇨🇳' },
-]
+/**
+ * Selectable languages, alphabetical by English name (Odosa).
+ *
+ * Seven languages have core-navigation dictionaries. This does not imply
+ * full-page translation. Other languages remain listed but disabled in Settings.
+ *
+ * To finish one: add its dictionary to `dictionaries` and flip the flag.
+ */
+export const LANGUAGES: {
+  code: LanguageCode
+  label: string
+  english: string
+  flag: string
+  translated: boolean
+}[] = [
+  { code: 'ar', label: 'العربية',    english: 'Arabic',     flag: '🇸🇦', translated: false },
+  { code: 'bn', label: 'বাংলা',       english: 'Bengali',    flag: '🇧🇩', translated: false },
+  { code: 'zh', label: '中文',        english: 'Chinese',    flag: '🇨🇳', translated: true  },
+  { code: 'en', label: 'English',    english: 'English',    flag: '🇬🇧', translated: true  },
+  { code: 'tl', label: 'Filipino',   english: 'Filipino',   flag: '🇵🇭', translated: false },
+  { code: 'fr', label: 'Français',   english: 'French',     flag: '🇫🇷', translated: true  },
+  { code: 'de', label: 'Deutsch',    english: 'German',     flag: '🇩🇪', translated: true },
+  { code: 'gu', label: 'ગુજરાતી',      english: 'Gujarati',   flag: '🇮🇳', translated: false },
+  { code: 'hi', label: 'हिन्दी',        english: 'Hindi',      flag: '🇮🇳', translated: false },
+  { code: 'it', label: 'Italiano',   english: 'Italian',    flag: '🇮🇹', translated: true },
+  { code: 'ja', label: '日本語',      english: 'Japanese',   flag: '🇯🇵', translated: false },
+  { code: 'ko', label: '한국어',      english: 'Korean',     flag: '🇰🇷', translated: false },
+  { code: 'pa', label: 'ਪੰਜਾਬੀ',       english: 'Punjabi',    flag: '🇮🇳', translated: false },
+  { code: 'pl', label: 'Polski',     english: 'Polish',     flag: '🇵🇱', translated: false },
+  { code: 'pt', label: 'Português',  english: 'Portuguese', flag: '🇵🇹', translated: true },
+  { code: 'ru', label: 'Русский',    english: 'Russian',    flag: '🇷🇺', translated: false },
+  { code: 'so', label: 'Soomaali',   english: 'Somali',     flag: '🇸🇴', translated: false },
+  { code: 'es', label: 'Español',    english: 'Spanish',    flag: '🇪🇸', translated: true  },
+  { code: 'ta', label: 'தமிழ்',       english: 'Tamil',      flag: '🇮🇳', translated: false },
+  { code: 'uk', label: 'Українська', english: 'Ukrainian',  flag: '🇺🇦', translated: false },
+  { code: 'ur', label: 'اردو',        english: 'Urdu',       flag: '🇵🇰', translated: false },
+  { code: 'vi', label: 'Tiếng Việt', english: 'Vietnamese', flag: '🇻🇳', translated: false },
+].sort((first, second) => first.english.localeCompare(second.english, 'en')) as { code: LanguageCode; label: string; english: string; flag: string; translated: boolean }[]
+
+/** Languages with a real dictionary — the ones that actually change the UI. */
+export const TRANSLATED_LANGUAGES = LANGUAGES.filter((l) => l.translated)
+
+export function isTranslated(code: string): boolean {
+  return LANGUAGES.some((l) => l.code === code && l.translated)
+}
 
 // Common UI strings. Keys are stable identifiers; values are the display text.
 type Dict = Record<string, string>
@@ -191,7 +233,63 @@ const zh: Dict = {
   'settings.language': '语言',
 }
 
-const dictionaries: Record<LanguageCode, Dict> = { en, es, fr, zh }
+// Partial: a code without an entry falls back to English, which is exactly
+// what the `translated: false` flag above tells the user will happen.
+const de: Dict = {
+  'nav.settings': 'Einstellungen', 'nav.howItWorks': 'So funktioniert es',
+  'nav.findResources': 'Angebote finden', 'nav.logout': 'Abmelden',
+  'nav.path': 'Weg', 'nav.races': 'Etappen', 'nav.milestones': 'Meilensteine',
+  'nav.tasks': 'Aufgaben', 'nav.reflection': 'Reflexion', 'nav.profile': 'Profil',
+  'nav.search': 'Suche', 'nav.help': 'Hilfe', 'common.back': 'Zurück',
+  'common.next': 'Weiter', 'common.previous': 'Zurück', 'common.skip': 'Überspringen',
+  'common.cancel': 'Abbrechen', 'common.close': 'Schließen', 'common.done': 'Fertig',
+  'common.continue': 'Fortfahren', 'common.getStarted': 'Loslegen', 'common.save': 'Speichern',
+  'common.edit': 'Bearbeiten', 'common.delete': 'Löschen', 'common.import': 'Importieren',
+  'common.export': 'Exportieren', 'common.loading': 'Wird geladen...',
+  'common.resetToDefaults': 'Standardeinstellungen wiederherstellen', 'common.language': 'Sprache',
+  'common.customize': 'Anpassen', 'common.journeySnapshot': 'Dein Weg im Überblick',
+  'common.aiGenerated': 'KI-generiert', 'path.title': 'Dein Weg', 'races.title': 'Etappen',
+  'milestones.title': 'Meilensteine', 'tasks.title': 'Aufgaben', 'journal.title': 'Tagebuch',
+  'journal.allEntries': 'Alle Einträge', 'settings.accessibility': 'Barrierefreiheit', 'settings.language': 'Sprache',
+}
+
+const it: Dict = {
+  'nav.settings': 'Impostazioni', 'nav.howItWorks': 'Come funziona',
+  'nav.findResources': 'Trova risorse', 'nav.logout': 'Esci',
+  'nav.path': 'Percorso', 'nav.races': 'Tappe', 'nav.milestones': 'Traguardi',
+  'nav.tasks': 'Attività', 'nav.reflection': 'Riflessione', 'nav.profile': 'Profilo',
+  'nav.search': 'Cerca', 'nav.help': 'Aiuto', 'common.back': 'Indietro',
+  'common.next': 'Avanti', 'common.previous': 'Precedente', 'common.skip': 'Salta',
+  'common.cancel': 'Annulla', 'common.close': 'Chiudi', 'common.done': 'Fatto',
+  'common.continue': 'Continua', 'common.getStarted': 'Inizia', 'common.save': 'Salva',
+  'common.edit': 'Modifica', 'common.delete': 'Elimina', 'common.import': 'Importa',
+  'common.export': 'Esporta', 'common.loading': 'Caricamento...',
+  'common.resetToDefaults': 'Ripristina impostazioni predefinite', 'common.language': 'Lingua',
+  'common.customize': 'Personalizza', 'common.journeySnapshot': 'Il tuo percorso in breve',
+  'common.aiGenerated': "Generato dall'IA", 'path.title': 'Il tuo percorso', 'races.title': 'Tappe',
+  'milestones.title': 'Traguardi', 'tasks.title': 'Attività', 'journal.title': 'Diario',
+  'journal.allEntries': 'Tutte le voci', 'settings.accessibility': 'Accessibilità', 'settings.language': 'Lingua',
+}
+
+const pt: Dict = {
+  'nav.settings': 'Configurações', 'nav.howItWorks': 'Como funciona',
+  'nav.findResources': 'Encontrar recursos', 'nav.logout': 'Sair',
+  'nav.path': 'Caminho', 'nav.races': 'Etapas', 'nav.milestones': 'Marcos',
+  'nav.tasks': 'Tarefas', 'nav.reflection': 'Reflexão', 'nav.profile': 'Perfil',
+  'nav.search': 'Pesquisar', 'nav.help': 'Ajuda', 'common.back': 'Voltar',
+  'common.next': 'Seguinte', 'common.previous': 'Anterior', 'common.skip': 'Pular',
+  'common.cancel': 'Cancelar', 'common.close': 'Fechar', 'common.done': 'Concluído',
+  'common.continue': 'Continuar', 'common.getStarted': 'Começar', 'common.save': 'Salvar',
+  'common.edit': 'Editar', 'common.delete': 'Excluir', 'common.import': 'Importar',
+  'common.export': 'Exportar', 'common.loading': 'Carregando...',
+  'common.resetToDefaults': 'Restaurar padrões', 'common.language': 'Idioma',
+  'common.customize': 'Personalizar', 'common.journeySnapshot': 'Resumo da sua jornada',
+  'common.aiGenerated': 'Gerado por IA', 'path.title': 'Seu caminho', 'races.title': 'Etapas',
+  'milestones.title': 'Marcos', 'tasks.title': 'Tarefas', 'journal.title': 'Diário',
+  'journal.allEntries': 'Todas as entradas', 'settings.accessibility': 'Acessibilidade', 'settings.language': 'Idioma',
+}
+
+const dictionaries: Partial<Record<LanguageCode, Dict>> = { en, es, fr, zh, de, it, pt }
 
 const phraseKeyByEnglish: Record<string, string> = Object.entries(en).reduce((acc, [k, v]) => {
   acc[v.trim().toLowerCase()] = k
@@ -200,7 +298,7 @@ const phraseKeyByEnglish: Record<string, string> = Object.entries(en).reduce((ac
 
 type PhraseDict = Record<string, string>
 
-const phraseBooks: Record<LanguageCode, PhraseDict> = {
+const phraseBooks: Partial<Record<LanguageCode, PhraseDict>> = {
   en: {},
   es: {
     'loading your path...': 'Cargando tu camino...',

@@ -350,8 +350,8 @@ export default function PathView() {
         )}
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col items-start gap-4 mb-6 xl:flex-row xl:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
             {/* Only today's spirit animal — the pair view showed a weekly user
                 two unrelated days at once. */}
             {todaysAnimal && (
@@ -363,7 +363,7 @@ export default function PathView() {
               </div>
             )}
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
+              <h1 className="break-words text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <p className="text-sm text-slate-500">Your journey snapshot</p>
                 <StreakBadge />
@@ -375,7 +375,7 @@ export default function PathView() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-full flex-wrap items-center gap-2">
             {/* Simple / Full view toggle (progressive disclosure override) */}
             <button
               onClick={() => setOverride(isSimple ? 'full' : 'simple')}
@@ -746,6 +746,8 @@ export default function PathView() {
             href={goHubHref('/community?from=hare-world&context=path')}
             target="_blank"
             rel="noopener noreferrer"
+            title="View Related posts"
+            data-info="Opens Tidbits — posts and questions from other people working on similar goals."
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-emerald-500" />
@@ -755,6 +757,8 @@ export default function PathView() {
             href={goHubHref('/search')}
             target="_blank"
             rel="noopener noreferrer"
+            title="Find relevant resources"
+            data-info="Opens ResourceHub — search services, tools and support matched to your goals."
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Map className="w-4 h-4 text-cyan-500" />
@@ -765,9 +769,9 @@ export default function PathView() {
 
         {/* ── Unlock Multi-Path Management ── */}
         <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
                 <Lock className="w-6 h-6 text-white" />
               </div>
               <div>

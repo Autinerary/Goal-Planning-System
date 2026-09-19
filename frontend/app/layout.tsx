@@ -12,6 +12,7 @@ import InteractiveDemo from './components/InteractiveDemo'
 import AppWideTranslator from './components/AppWideTranslator'
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
+import InfoModeProvider from './components/InfoModeProvider'
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
@@ -66,6 +67,7 @@ export default function RootLayout({
             </main>
             <FeedbackGate />
             <InteractiveDemo />
+            <InfoModeProvider />
             </LanguageProvider>
           </AgentPathProvider>
         </AuthProvider>

@@ -15,6 +15,7 @@ import {
 import { isSimpleView } from '@/lib/disclosure'
 import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
+import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
@@ -82,10 +83,12 @@ const spiritAnimalColors = [
   { id: 'red', label: 'Red', hex: '#f87171', bg: 'bg-red-300' },
 ]
 
+const animalHue: Record<string, number> = { pink: 290, blue: 170, purple: 230, green: 70, orange: 0, gold: 20, teal: 120, red: 330 }
+
 // Spirit animal modes (Odosa): how many animals the user assigns.
 const spiritAnimalModes = [
   { id: 'general', label: 'One spirit animal', desc: 'A single guide for every day.', count: 1, emoji: '🐾' },
-  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides — one for high-energy days, one for rest days.', count: 2, emoji: '⚡' },
+  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides — one for busier schedules, one for lighter schedules.', count: 2, emoji: '⚡' },
   { id: 'weekly', label: 'One per weekday', desc: 'Seven guides — a different animal for each day of the week.', count: 7, emoji: '📅' },
 ] as const
 
@@ -119,7 +122,7 @@ const steps = [
 
 // Steps the user is allowed to skip without filling anything in. The core
 // steps (barriers, location, goals) stay required.
-const skippableSteps = new Set([0, 4, 5, 6, 7])
+const skippableSteps = new Set([4, 5, 6, 7])
 
 const goalCategories = [
   { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
@@ -226,7 +229,14 @@ const barrierGoalSuggestions: Record<string, Partial<Record<string, string[]>>> 
  * the universal strategies (Normalizing/Positivity, etc.).
  */
 function getGoalSuggestions(categoryId: string, barrierTypes: string[]): string[] {
-  const out = new Set<string>()
+  const sourceSuggestions: Record<string, string[]> = {
+    education: ['Learn a new language', 'Take a course in a practical skill'],
+    career: ['Practice presentation skills', 'Mentor a colleague'],
+    relationships: ['Arrange a regular catch-up with a friend', 'Plan shared time with family', 'Volunteer in my community'],
+    health: ['Find a physical activity I enjoy', 'Make time for a mindful pause'],
+    other: ['Learn to cook a new meal', 'Start a creative hobby', 'Build a personal budget', 'Start an emergency fund', 'Reduce weekly expenses', 'Plan to pay down debt'],
+  }
+  const out = new Set<string>(sourceSuggestions[categoryId] || [])
 
   if (categoryId === 'barrier') {
     universalBarrierStrategies.forEach(s => out.add(s))
@@ -273,6 +283,10 @@ const lifeStages = [
 ]
 
 const barrierCategories = [
+  {
+    name: 'Combined Norms',
+    subcategories: [{ name: 'Combined experiences', items: ['AuDHD'] }],
+  },
   ...CONDITION_GROUPS.map((group) => ({
     name: group.label,
     subcategories: [{ name: 'Conditions and differences', items: group.conditions.map((condition) => condition.label) }],
@@ -371,7 +385,9 @@ function CharacterAvatar({
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, completeOnboarding, isLoading: authLoading } = useAuth()
+  const { user, supabaseUser, completeOnboarding, isLoading: authLoading } = useAuth()
+  const [guardianApproved, setGuardianApproved] = useState(false)
+  const isManagedAccount = !!(supabaseUser?.app_metadata?.managed_by_guardian || supabaseUser?.user_metadata?.managed_by_guardian)
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Path generation takes ~55s alone and ~90s when a few people submit at once
@@ -389,11 +405,12 @@ export default function OnboardingPage() {
   }, [isSubmitting])
   
   // Rocket ship launch animation state
-  const [showRocketTransition, setShowRocketTransition] = useState(false)
+  const [missingSections, setMissingSections] = useState<number[]>([])
 
   const [formData, setFormData] = useState({
     // Character select
     characterType: 'avatar' as string, // always avatar now (spirit animal selection at end)
+    ageConfirmation: '' as '' | 'adult' | 'under18',
     bodyType: '' as string,
     hairStyle: '' as string,
     hairColor: DEFAULT_HAIR_COLOR as string,
@@ -413,7 +430,7 @@ export default function OnboardingPage() {
     lifeStage: '' as string,
     barrierTypes: [] as string[],
     // Categorized goals with per-goal dreams and obstacles
-    goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string; idealRelationship?: string }>>,
+    goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string; idealRelationship?: string; selfDream?: string }>>,
     ultimateDream: '' as string,
     // Flat arrays kept for backward compat with backend API
     goals: [''] as string[],
@@ -429,14 +446,30 @@ export default function OnboardingPage() {
     reminders: { ...DEFAULT_REMINDERS } as ReminderPreferences,
     // Profile customization
     dreamSelf: '',
+    dreamForOther: '',
+    dreamRelationship: '',
+    dreamAppearance: { hairStyle: 'short_straight', hairColor: DEFAULT_HAIR_COLOR, skinColor: DEFAULT_SKIN_TONE } as Appearance,
+    personaAppearance: { hairStyle: 'short_straight', hairColor: DEFAULT_HAIR_COLOR, skinColor: DEFAULT_SKIN_TONE } as Appearance,
     // Alternate Persona (optional) — a named alter-ego for the Dream Self
     alternatePersonaName: '' as string,
     alternatePersonaNote: '' as string,
     // Spirit animals — mode decides how many slots:
     //   general = 1, fastSlow = 2 (fast/slow day), weekly = 7 (one per day)
-    spiritAnimalMode: 'fastSlow' as 'general' | 'fastSlow' | 'weekly',
+    spiritAnimalMode: 'general' as 'general' | 'fastSlow' | 'weekly',
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
+  const canAccessOnboarding = isManagedAccount ? guardianApproved : formData.ageConfirmation === 'adult'
+
+  useEffect(() => {
+    setGuardianApproved(false)
+    if (!isManagedAccount) return
+    let cancelled = false
+    fetch('/api/me/guardian-approval', { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : { approved: false })
+      .then(result => { if (!cancelled) setGuardianApproved(result.approved === true) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user?.id, isManagedAccount])
 
   // Active Path Market context (null when the user started their own path).
   // Drives the pathway banner and the tailored goal suggestions so a chosen
@@ -497,7 +530,7 @@ export default function OnboardingPage() {
         const { step, data } = JSON.parse(saved)
         if (data && typeof step === 'number') {
           setFormData(prev => ({ ...prev, ...data }))
-          setCurrentStep(step)
+          setCurrentStep(data.ageConfirmation === 'adult' ? Math.max(0, Math.min(steps.length - 1, step)) : 0)
           restoredDraft = true
         }
       }
@@ -653,9 +686,10 @@ export default function OnboardingPage() {
     }
   }
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 0: return formData.bodyType !== '' && formData.hairStyle !== '' // Character select — body + hair chosen or skipped
+  const canProceed = (step = currentStep) => {
+    if (!canAccessOnboarding) return false
+    switch (step) {
+      case 0: return true
       case 1: return selectedBarrierTypes.length > 0 // Barrier Connections — selection or free-text description
       case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
       case 3: { // Goals & Dreams — at least one goal in any category
@@ -679,6 +713,12 @@ export default function OnboardingPage() {
   }, [currentStep])
   
   const fetchRecommendations = async () => {
+    const missing = [1, 2, 3].filter(index => !canProceed(index))
+    if (missing.length > 0) {
+      setRecommendations([])
+      setRecommendationExplanation(`Complete ${missing.map(index => steps[index].title).join(', ')} before requesting recommendations.`)
+      return
+    }
     setIsLoadingRecommendations(true)
     try {
       const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
@@ -710,7 +750,7 @@ export default function OnboardingPage() {
         role: derivedRole,
         location: formData.location,
         barriers: serviceHubBarriers,
-        lifeStage: formData.lifeStage,
+        lifeStage: formData.lifeStage || 'not_sure',
         goals: goalsToSend.length > 0 ? goalsToSend : ['General wellbeing'],
         culturalNotes: '',
         additionalNotes: challengesToSend.join('; '),
@@ -878,6 +918,13 @@ export default function OnboardingPage() {
   }
 
   const handleSubmit = async () => {
+    if (isManagedAccount) {
+      const approval = await fetch('/api/me/guardian-approval', { cache: 'no-store' }).then(response => response.ok ? response.json() : { approved: false }).catch(() => ({ approved: false }))
+      if (!approval.approved) { setGuardianApproved(false); setCurrentStep(0); return }
+    }
+    const missing = steps.flatMap((step, index) => !skippableSteps.has(index) && !canProceed(index) ? [index] : [])
+    setMissingSections(missing)
+    if (missing.length > 0) return
     // Paper/page-turn cue so the submission clearly registered (Liam).
     playPageTurnSound()
     if (!user) return
@@ -896,6 +943,8 @@ export default function OnboardingPage() {
       // Record view/interaction preferences (age, tech savvy, view style) so the
       // rest of the app can adapt and we can learn from intersecting profiles.
       savePreferences({
+        dreamAppearance: formData.dreamAppearance,
+        alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
         ageRange: (formData.ageRange || '') as any,
         techSavvy: (formData.techSavvy || '') as any,
         viewPreference: (formData.viewPreference || '') as any,
@@ -910,11 +959,15 @@ export default function OnboardingPage() {
         entries.forEach(entry => {
           if (entry.goal.trim()) allGoals.push(entry.goal.trim())
           if (entry.dreams.trim()) allDreams.push(entry.dreams.trim())
+          if (entry.selfDream?.trim()) allDreams.push(`Dream for self: ${entry.selfDream.trim()}`)
           if (entry.idealRelationship?.trim()) allDreams.push(entry.idealRelationship.trim())
           if (entry.obstacles.trim()) allObstacles.push(entry.obstacles.trim())
         })
       })
       if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
+      if (formData.dreamSelf.trim()) allDreams.push(`Dream for self: ${formData.dreamSelf.trim()}`)
+      if (formData.dreamForOther.trim()) allDreams.push(`Dream for another person: ${formData.dreamForOther.trim()}`)
+      if (formData.dreamRelationship.trim()) allDreams.push(`Dream for the relationship: ${formData.dreamRelationship.trim()}`)
 
       // The full private profile never enters local autosave or agent payloads.
       // After consent, it is saved separately; agents receive only the bounded
@@ -959,6 +1012,8 @@ export default function OnboardingPage() {
           viewPreference: formData.viewPreference,
           spiritAnimalMode: formData.spiritAnimalMode,
           spiritAnimals: formData.spiritAnimals,
+          dreamAppearance: formData.dreamAppearance,
+          alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
           reminders: remindersToSave,
         },
         llmConfig: toLlmConfig(),
@@ -1064,7 +1119,11 @@ export default function OnboardingPage() {
         alternatePersona: {
           name: formData.alternatePersonaName.trim(),
           note: formData.alternatePersonaNote.trim(),
+          appearance: formData.personaAppearance,
         },
+        dreamSelf: { description: formData.dreamSelf, appearance: formData.dreamAppearance },
+        dreamForOther: formData.dreamForOther,
+        dreamRelationship: formData.dreamRelationship,
         preferences: {
           ageRange: formData.ageRange,
           techSavvy: formData.techSavvy,
@@ -1103,11 +1162,12 @@ export default function OnboardingPage() {
       } catch {}
 
       await completeOnboarding(response.data.pathId)
+      await axios.post('/api/me/preferences', {
+        dreamAppearance: formData.dreamAppearance,
+        alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
+      }).catch(() => {})
       clearAutosave()
-      // Play the "Launch to Dream Land" celebration only now — at the very end,
-      // after every question is answered and the path has actually been created.
-      setShowRocketTransition(true)
-      setTimeout(() => router.push('/onboarding-confirmation'), 1600)
+      router.push('/onboarding-confirmation')
     } catch (error: any) {
       console.error('Error creating path:', error)
       console.error('Error details:', {
@@ -1258,15 +1318,20 @@ export default function OnboardingPage() {
           </div>
           
           {/* Step Labels Below Path */}
-          <div className="flex justify-between mt-4 px-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-4 mt-4 px-2">
             {steps.map((step, idx) => {
               const Icon = step.icon
               const isActive = idx === currentStep
-              const isCompleted = idx < currentStep
+              const isCompleted = canProceed(idx)
               
               return (
-                <div 
+                <button
+                  type="button"
                   key={step.id} 
+                  onClick={() => setCurrentStep(idx)}
+                  disabled={isSubmitting || (idx !== 0 && !canAccessOnboarding)}
+                  aria-current={isActive ? 'step' : undefined}
+                  aria-label={`${step.title}${isCompleted ? ', complete' : ''}`}
                   className="flex flex-col items-center flex-1"
                 >
                   <div 
@@ -1287,7 +1352,7 @@ export default function OnboardingPage() {
                   <span className={`text-xs mt-1 text-center max-w-[60px] ${isActive ? 'text-slate-800 font-bold' : isCompleted ? 'text-green-600' : 'text-slate-500'}`}>
                     {step.title}
                   </span>
-                </div>
+                </button>
               )
             })}
           </div>
@@ -1295,16 +1360,14 @@ export default function OnboardingPage() {
 
         {/* Step Content Card */}
         <div className="bg-white/90 backdrop-blur-lg border-2 border-white/50 rounded-2xl p-6 md:p-8 shadow-2xl">
-          {/* Rocket Ship Transition Overlay */}
-          {showRocketTransition && (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-sky-300 via-indigo-400 to-purple-600 transition-all">
-              <div className="animate-bounce text-8xl mb-4">🚀</div>
-              <h2 className="text-3xl font-bold text-white mb-2 animate-pulse">Launching to Dream Land!</h2>
-              <div className="flex gap-2 mt-4">
-                {['☁️', '⭐', '☁️', '✨', '☁️'].map((e, i) => (
-                  <span key={i} className="text-3xl animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>{e}</span>
+          {missingSections.length > 0 && (
+            <div role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">
+              <p className="font-semibold">Complete these required sections:</p>
+              <ul className="mt-2 space-y-2">
+                {missingSections.filter(index => !canProceed(index)).map(index => (
+                  <li key={index}><button type="button" onClick={() => setCurrentStep(canAccessOnboarding ? index : 0)} className="underline">{steps[index].title}</button></li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
@@ -1313,6 +1376,23 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character ✨</h2>
               <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land.</p>
+
+              <label className="block mb-6 font-medium">
+                Confirm your age
+                <select
+                  value={formData.ageConfirmation}
+                  onChange={event => setFormData(previous => ({ ...previous, ageConfirmation: event.target.value as '' | 'adult' | 'under18' }))}
+                  className="mt-2 block w-full rounded-lg border border-slate-300 p-3"
+                >
+                  <option value="">Select your age group</option>
+                  <option value="adult">I am 18 or older</option>
+                  <option value="under18">I am under 18</option>
+                </select>
+              </label>
+              {guardianApproved && <p role="status" className="mb-4 text-sm text-emerald-700">Your legal adult has approved this supervised account.</p>}
+              {!guardianApproved && (formData.ageConfirmation === 'under18' || isManagedAccount) && (
+                <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
+              )}
 
               {/* Avatar Customization */}
               <div className="space-y-6">
@@ -1543,7 +1623,7 @@ export default function OnboardingPage() {
                               // Derive role from first selected connection for backend compat
                               const selectedKeys = Object.keys(current)
                               const role = selectedKeys.includes('self') ? 'self_advocate' : selectedKeys.length > 0 ? selectedKeys[0] : ''
-                              return { ...prev, barrierConnections: current, role }
+                              return { ...prev, barrierConnections: current, role, barrierTypes: [...new Set(Object.values(current).flat())] }
                             })
                           }}
                           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -1612,9 +1692,12 @@ export default function OnboardingPage() {
                                         <div className="flex flex-wrap gap-1.5 mb-2">
                                           {sub.items.map((barrier) => {
                                             const isSelected = formData.barrierConnections[connId]?.includes(barrier)
+                                            const includedInCombination = ['Autism', 'Autism spectrum disorder', 'ADHD'].includes(barrier) && formData.barrierConnections[connId]?.includes('AuDHD')
                                             return (
                                               <button
                                                 key={barrier}
+                                                disabled={includedInCombination}
+                                                title={includedInCombination ? 'Already included in AuDHD for this person' : undefined}
                                                 onClick={() => {
                                                   setFormData(prev => {
                                                     const current = { ...prev.barrierConnections }
@@ -1622,14 +1705,16 @@ export default function OnboardingPage() {
                                                     if (list.includes(barrier)) {
                                                       current[connId] = list.filter(b => b !== barrier)
                                                     } else {
-                                                      current[connId] = [...list, barrier]
+                                                      current[connId] = barrier === 'AuDHD'
+                                                        ? [...list.filter(item => !['Autism', 'Autism spectrum disorder', 'ADHD'].includes(item)), barrier]
+                                                        : [...list, barrier]
                                                     }
                                                     // Flatten all barriers into barrierTypes for backend compat
                                                     const allBarriers = [...new Set(Object.values(current).flat())]
                                                     return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                                   })
                                                 }}
-                                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                                   isSelected
                                                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
                                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
@@ -1945,7 +2030,7 @@ export default function OnboardingPage() {
                           <div className="mb-3">
                             <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
                               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                              Suggestions based on your barriers
+                              Goal ideas
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {suggestions.map((sug) => (
@@ -2011,26 +2096,20 @@ export default function OnboardingPage() {
                           </div>
                           
                           {/* Per-goal dream */}
-                          <div className="ml-4 mb-1">
-                            <label className="text-xs text-purple-500 font-medium">
-                              {hasOtherPerson ? `Dream for ${otherPersonLabel}` : 'Dream for this goal'} <span className="text-slate-400">(optional)</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={entry.dreams}
-                              onChange={(e) => {
-                                setFormData(prev => {
-                                  const updated = { ...prev.goalsByCategory }
-                                  const list = [...(updated[cat.id] || [])]
-                                  list[idx] = { ...list[idx], dreams: e.target.value }
-                                  updated[cat.id] = list
-                                  return { ...prev, goalsByCategory: updated }
-                                })
-                              }}
-                              placeholder="Where does this goal lead in 5-10 years?"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400 mt-1"
-                            />
-                          </div>
+                          {(() => {
+                            const fields: Array<{ key: 'dreams' | 'selfDream'; label: string }> = [{ key: 'dreams', label: hasOtherPerson ? 'Dream for the other person' : 'Dream for Self' }]
+                            if (hasOtherPerson && formData.barrierConnections.self?.length) {
+                              const selfField = { key: 'selfDream' as const, label: 'Dream for Self' }
+                              if (formData.barrierConnections.parent !== undefined) fields.push(selfField)
+                              else fields.unshift(selfField)
+                            }
+                            return fields.map(field => (
+                              <label key={field.key} className="ml-4 mb-2 block text-xs font-medium text-purple-600">
+                                {field.label} (optional)
+                                <input value={entry[field.key] || ''} onChange={event => setFormData(previous => ({ ...previous, goalsByCategory: { ...previous.goalsByCategory, [cat.id]: previous.goalsByCategory[cat.id].map((goal, index) => index === idx ? { ...goal, [field.key]: event.target.value } : goal) } }))} placeholder="Where does this goal lead in 5-10 years?" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" />
+                              </label>
+                            ))
+                          })()}
 
                           {/* Ideal relationship — second option when the goal
                               involves another person (e.g. a sibling). Both this
@@ -2184,36 +2263,7 @@ export default function OnboardingPage() {
           {/* Step 5: Profile Customization - Dreams & Dream Self */}
           {currentStep === 5 && (
             <div>
-              {/* Variant heading based on connection type */}
-              {(() => {
-                const isParent = formData.barrierConnections['parent'] !== undefined
-                const isSibling = formData.barrierConnections['sibling'] !== undefined
-                const isSelfOnly = Object.keys(formData.barrierConnections).length === 0 || 
-                  (Object.keys(formData.barrierConnections).length === 1 && formData.barrierConnections['self'] !== undefined)
-                
-                if (isParent) {
-                  return (
-                    <>
-                      <h2 className="text-2xl font-bold mb-2 text-slate-800">Dream Future ✨</h2>
-                      <p className="text-slate-600 mb-6">Close your eyes. Where do you dream of seeing your child/children? What does their best life look like?</p>
-                    </>
-                  )
-                }
-                if (isSibling) {
-                  return (
-                    <>
-                      <h2 className="text-2xl font-bold mb-2 text-slate-800">Dream Future ✨</h2>
-                      <p className="text-slate-600 mb-6">Close your eyes. Where do you dream of seeing your sibling? What does their best life look like?</p>
-                    </>
-                  )
-                }
-                return (
-                  <>
-                    <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Dream Self ✨</h2>
-                    <p className="text-slate-600 mb-6">Close your eyes and imagine the best version of you — your Dream Self. What does that look like?</p>
-                  </>
-                )
-              })()}
+              <h2 className="text-2xl font-bold mb-6 text-slate-800">Dream Self &amp; Alternate Persona</h2>
               
               {/* Dreams Summary — pulled from per-goal dreams + ultimate dream */}
               {(() => {
@@ -2238,37 +2288,25 @@ export default function OnboardingPage() {
 
               {/* Dream Self Description */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {formData.barrierConnections['parent'] !== undefined
-                      ? 'Describe your dream future for your child/children'
-                      : formData.barrierConnections['sibling'] !== undefined
-                        ? 'Describe your dream future for your sibling'
-                        : 'Describe your Dream Self'}
-                  </label>
-                  <textarea
-                    value={formData.dreamSelf}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dreamSelf: e.target.value }))}
-                    placeholder={
-                      formData.barrierConnections['parent'] !== undefined
-                        ? "When I close my eyes and imagine my child's best future, I see them..."
-                        : "When I close my eyes and imagine my best future self, I see someone who..."
-                    }
-                    rows={5}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
-                  />
-                  <p className="text-xs text-slate-400 mt-2">Think about: What do you look like? What are you doing? How do you feel? Who is around you?</p>
-                </div>
-
-                {/* Avatar Preview */}
-                <div className="bg-gradient-to-br from-sky-100 via-purple-50 to-pink-100 rounded-xl p-6 text-center border border-purple-200">
-                  <div className="text-6xl mb-3">
-                    {formData.characterType === 'avatar' ? '👤' : formData.characterType === 'spirit_animal' ? '🐾' : '✨'}
-                  </div>
-                  <p className="text-sm text-purple-600 font-medium">
-                    {formData.dreamSelf ? `"${formData.dreamSelf.slice(0, 80)}${formData.dreamSelf.length > 80 ? '...' : ''}"` : 'Your Dream Self awaits...'}
-                  </p>
-                </div>
+                {(() => {
+                  const hasOther = Object.keys(formData.barrierConnections).some(key => key !== 'self' && formData.barrierConnections[key].length > 0)
+                  const hasSelf = !!formData.barrierConnections.self?.length || !hasOther || !!formData.dreamSelf
+                  const fields: Array<{ key: 'dreamSelf' | 'dreamForOther' | 'dreamRelationship'; label: string }> = []
+                  if (hasSelf) fields.push({ key: 'dreamSelf', label: 'Dream for Self' })
+                  if (hasOther) {
+                    const other = { key: 'dreamForOther' as const, label: 'Dream for the other person' }
+                    if (formData.barrierConnections.parent !== undefined) fields.unshift(other)
+                    else fields.push(other)
+                    fields.push({ key: 'dreamRelationship', label: 'Dream for your relationship with them' })
+                  }
+                  return fields.map(field => (
+                    <label key={field.key} className="block text-sm font-medium text-slate-700">
+                      {field.label} (optional)
+                      <textarea value={formData[field.key]} onChange={event => setFormData(previous => ({ ...previous, [field.key]: event.target.value }))} rows={3} className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3" />
+                    </label>
+                  ))
+                })()}
+                <AppearanceEditor title="Dream Self appearance" value={formData.dreamAppearance} onChange={value => setFormData(previous => ({ ...previous, dreamAppearance: value }))} />
 
                 {/* Alternate Persona (optional) — a named alter-ego for the Dream Self */}
                 <div className="border-t border-slate-200 pt-6">
@@ -2297,6 +2335,7 @@ export default function OnboardingPage() {
                         className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                       />
                     </div>
+                    <AppearanceEditor title="Alternate Persona appearance" value={formData.personaAppearance} onChange={value => setFormData(previous => ({ ...previous, personaAppearance: value }))} />
                   </div>
                 </div>
               </div>
@@ -2356,10 +2395,9 @@ export default function OnboardingPage() {
                 <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
                   <p className="font-medium mb-1">⚡ Fast day vs 🌙 slow day</p>
                   <p>
-                    A <strong>fast day</strong> is when you feel energized and productive — you want a guide that
-                    matches that momentum. A <strong>slow day</strong> is when you need rest and recharge — a
-                    gentler guide meets you there. Picking one for each lets the app adapt its tone to how
-                    you&apos;re actually feeling.
+                    A <strong>fast day</strong> has more planned activity. A <strong>slow day</strong> has fewer
+                    activities or more room for rest. Neither is better. Your Path chooses the guide from
+                    your schedule; it does not infer how you feel.
                   </p>
                 </div>
               )}
@@ -2393,7 +2431,7 @@ export default function OnboardingPage() {
                               : 'border-slate-200 hover:border-purple-300 hover:bg-purple-50'
                           }`}
                         >
-                          <span className="text-2xl">{opt.emoji}</span>
+                          <img src={`/spirit-animals/${opt.id}.png`} alt="" width={48} height={48} className="h-12 w-12 object-contain" />
                           <span className="text-xs mt-1 text-slate-600">{opt.label}</span>
                         </button>
                       ))}
@@ -2424,9 +2462,7 @@ export default function OnboardingPage() {
                       {/* Preview */}
                       {animal.color && (
                         <div className="mt-3 flex items-center gap-3 bg-white rounded-lg p-3 border border-purple-100">
-                          <span className="text-4xl" style={{ filter: `drop-shadow(0 0 8px ${spiritAnimalColors.find(c => c.id === animal.color)?.hex || '#a78bfa'})` }}>
-                            {spiritAnimalOptions.find(o => o.id === animal.type)?.emoji}
-                          </span>
+                          <img src={`/spirit-animals/${spiritAnimalOptions.find(option => option.id === animal.type)?.id || 'owl'}.png`} alt={`${animal.color} ${animal.type}`} width={72} height={72} className="h-16 w-16 object-contain" style={{ filter: `hue-rotate(${animalHue[animal.color] || 0}deg)` }} />
                           <span className="text-sm text-purple-600 font-medium">
                             {spiritAnimalColors.find(c => c.id === animal.color)?.label} {spiritAnimalOptions.find(o => o.id === animal.type)?.label}
                           </span>
@@ -2437,18 +2473,20 @@ export default function OnboardingPage() {
                 </div>
               ))}
 
+              <a href="/spirit-animals/ATTRIBUTION.md" target="_blank" rel="noopener noreferrer" className="mb-3 block text-xs text-slate-500 underline">Twemoji artwork · CC BY 4.0</a>
+
               {/* Add Spirit Animal Button */}
               {formData.spiritAnimals.length < slotCount && (
                 <button
                   onClick={addSpiritAnimal}
                   className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-500 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
                 >
-                  + Add {spiritAnimalSlotLabel(formData.spiritAnimalMode, formData.spiritAnimals.length).replace(/^[^\s]+\s/, '')}
-                  {slotCount > 1 && <span className="text-purple-400 text-sm"> ({formData.spiritAnimals.length + 1} of {slotCount})</span>}
+                  {formData.spiritAnimalMode === 'general' ? 'Choose your spirit animal' : `Choose ${spiritAnimalSlotLabel(formData.spiritAnimalMode, formData.spiritAnimals.length).replace(/^(?:🐾|⚡|🌙)\s*/u, '')}`}
+                  {slotCount > 1 && <span className="text-purple-400 text-sm"> ({formData.spiritAnimals.length + 1}/{slotCount})</span>}
                 </button>
               )}
               
-              {formData.spiritAnimals.length === slotCount && slotCount > 0 && (
+              {formData.spiritAnimals.length === slotCount && formData.spiritAnimals.every(animal => animal.type && animal.color) && (
                 <p className="text-sm text-slate-500 text-center mt-2">
                   {formData.spiritAnimalMode === 'general' && 'Your spirit animal is set! 🐾'}
                   {formData.spiritAnimalMode === 'fastSlow' && 'You\u2019ve got both — your \u26A1 Fast Day and \uD83C\uDF19 Slow Day spirit animals!'}
@@ -2698,47 +2736,9 @@ export default function OnboardingPage() {
               </div>
 
               {isLoadingRecommendations ? (
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-indigo-950 via-purple-900 to-sky-400 py-16 px-6">
-                  {/* Twinkling stars */}
-                  {Array.from({ length: 25 }, (_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1 h-1 bg-white rounded-full"
-                      style={{
-                        left: `${(i * 37 + 13) % 100}%`,
-                        top: `${(i * 23 + 7) % 70}%`,
-                        opacity: ((i * 17) % 80 + 20) / 100,
-                        animation: `twinkle ${1 + (i % 3)}s ease-in-out infinite`,
-                        animationDelay: `${(i * 13 % 200) / 100}s`,
-                      }}
-                    />
-                  ))}
-                  <style>{`
-                    @keyframes twinkle { 0%,100%{opacity:.2} 50%{opacity:1} }
-                    @keyframes rocketFloat { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-14px) rotate(4deg)} }
-                  `}</style>
-
-                  <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="text-7xl mb-4" style={{ animation: 'rocketFloat 2.5s ease-in-out infinite' }}>🚀</div>
-                    <h3 className="text-2xl font-bold text-white mb-2">☁️ Welcome to Dream Land!</h3>
-                    <p className="text-sky-100 text-sm max-w-sm mb-6">
-                      Our AI agents are analyzing your norms, your goals, and your location to find the best matches. Hang tight while we build your Dream Land.
-                    </p>
-                    <div className="space-y-2 w-full max-w-sm text-left">
-                      <div className="flex items-center gap-3 text-sm text-sky-100">
-                        <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" />
-                        Analyzing your barrier profile...
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-sky-100">
-                        <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
-                        Matching with community-rated resources...
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-sky-100">
-                        <div className="w-2 h-2 bg-pink-300 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-                        Personalizing recommendations...
-                      </div>
-                    </div>
-                  </div>
+                <div role="status" className="flex items-center justify-center gap-3 py-12 text-slate-600">
+                  <Loader2 aria-hidden="true" className="h-5 w-5 motion-safe:animate-spin" />
+                  Finding relevant resources...
                 </div>
               ) : recommendations.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
@@ -2787,7 +2787,7 @@ export default function OnboardingPage() {
                                 <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded">
                                   ${resource.price}
                                 </span>
-                              ) : null}
+                              ) : <span className="text-xs text-slate-500">Price not listed</span>}
                             </div>
                             <p className="text-sm text-slate-600 mb-2 line-clamp-2">
                               {resource.description}
@@ -2882,7 +2882,7 @@ export default function OnboardingPage() {
                     </>
                   ) : (
                     <>
-                      🚀 Launch to Dream Land!
+                      Create my Path
                       <Rocket className="w-5 h-5" />
                     </>
                   )}

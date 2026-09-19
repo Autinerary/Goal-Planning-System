@@ -50,6 +50,8 @@ export interface LayoutPositions {
 }
 
 export interface UserPreferences {
+  dreamAppearance?: { hairStyle: string; hairColor: string; skinColor: string }
+  alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }
   ageRange: AgeRange | ''
   techSavvy: TechSavvy | ''
   viewPreference: ViewPreference | ''
@@ -74,6 +76,8 @@ export interface AccessibilitySettings {
   underlineLinks: boolean
   /** Play a short "pop" when a task is completed (Liam). Default on. */
   soundEffects: boolean
+  spokenDescriptions: boolean
+  voiceNavigation: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -83,6 +87,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   dyslexiaFont: false,
   underlineLinks: false,
   soundEffects: true,
+  spokenDescriptions: false,
+  voiceNavigation: false,
 }
 
 export const DEFAULT_LAYOUT: LayoutPositions = {

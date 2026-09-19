@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Users, ChevronRight, Rocket } from 'lucide-react'
+import { Sparkles, Users, Rocket } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 
@@ -19,6 +19,13 @@ import { useAgentPath } from '../context/AgentPathContext'
 export default function OnboardingConfirmationPage() {
   const router = useRouter()
   const { payload, pathPlanning } = useAgentPath()
+  const [launching, setLaunching] = useState(false)
+
+  useEffect(() => {
+    if (!launching) return
+    const timer = window.setTimeout(() => router.push('/path'), 1200)
+    return () => window.clearTimeout(timer)
+  }, [launching, router])
 
   const goals: string[] = (payload?.userProfile?.goals || []) as string[]
   const barriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
@@ -27,6 +34,12 @@ export default function OnboardingConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-purple-50">
+      {launching && (
+        <div role="status" className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white p-6 text-center">
+          <Rocket aria-hidden="true" className="mb-4 h-16 w-16 text-cyan-600 motion-safe:animate-bounce" />
+          <h1 className="text-3xl font-bold">Welcome to Dreamland</h1>
+        </div>
+      )}
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="space-y-3 mb-6">
           <AgentInsightsBanner agent="path_planning" />
@@ -36,7 +49,7 @@ export default function OnboardingConfirmationPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🎉</div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Your path is ready</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Final Step - Guidance</h1>
           <p className="text-slate-600">Here&apos;s what your agents built from your onboarding.</p>
         </div>
 
@@ -51,7 +64,7 @@ export default function OnboardingConfirmationPage() {
               <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Goals: </span>{goals.join(' · ')}</div>
             )}
             {barriers.length > 0 && (
-              <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Barriers considered: </span>{barriers.join(' · ')}</div>
+              <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Norms considered: </span>{barriers.join(' · ')}</div>
             )}
             {firstMilestone && (
               <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">First milestone: </span>{firstMilestone}</div>
@@ -72,18 +85,14 @@ export default function OnboardingConfirmationPage() {
             Connect with real people in Hare World — search for role models, mentors, and friends.
             Anyone you connect with shows up on your Path and can share their journey with you.
           </p>
-          <Link
-            href="/pit-stop?tab=haveworld&view=people"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all"
-          >
-            <Users className="w-4 h-4" /> Meet people in Hare World <ChevronRight className="w-4 h-4" />
-          </Link>
+          <p className="text-sm text-slate-500">Optional: visit People from your Path when you are ready.</p>
         </div>
 
         {/* Continue */}
         <div className="text-center">
           <button
-            onClick={() => router.push('/path')}
+            onClick={() => setLaunching(true)}
+            disabled={launching}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-lg font-bold hover:shadow-xl transition-all"
           >
             <Rocket className="w-5 h-5" /> Go to my Path

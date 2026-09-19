@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Map, Flag, Milestone, CalendarDays, CheckSquare, GitCompare } from 'lucide-react'
+import { useDisclosure } from '@/lib/disclosure'
 
 /**
  * ViewTabs — the "Tabs flow" navigation across the five main screens.
@@ -26,24 +27,27 @@ const FLOW_PREFIXES = ['/path', '/races', '/milestones', '/calendar', '/tasks', 
 
 export default function ViewTabs() {
   const pathname = usePathname()
+  const { isSimple } = useDisclosure()
   if (!pathname) return null
 
   const onFlowRoute = FLOW_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
   if (!onFlowRoute) return null
 
   const activeIndex = TABS.findIndex((t) => pathname === t.href || pathname.startsWith(t.href + '/'))
+  const visibleTabs = TABS.filter(tab => !isSimple || ['/path', '/calendar', '/tasks'].includes(tab.href) || pathname === tab.href || pathname.startsWith(tab.href + '/'))
 
   return (
     <div className="bg-white/50 backdrop-blur-md border-b border-white/50">
       <div className="max-w-5xl mx-auto px-2 sm:px-4">
         <nav className="flex items-center gap-1 overflow-x-auto py-2 no-scrollbar" aria-label="Section navigation">
-          {TABS.map((tab, i) => {
-            const isActive = i === activeIndex
-            const isDone = activeIndex > -1 && i < activeIndex
+          {visibleTabs.map((tab, i) => {
+            const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+            const isDone = activeIndex > -1 && TABS.indexOf(tab) < activeIndex
             return (
               <div key={tab.href} className="flex items-center flex-shrink-0">
                 <Link
                   href={tab.href}
+                  data-info={`Opens ${tab.label}: ${tab.href === '/path' ? 'your overall plan and next milestone' : tab.href === '/calendar' ? 'your scheduled activities' : tab.href === '/tasks' ? 'your individual actions' : 'a detailed view of your plan'}.`}
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                     isActive
@@ -56,7 +60,7 @@ export default function ViewTabs() {
                   <tab.Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
                 </Link>
-                {i < TABS.length - 1 && (
+                {i < visibleTabs.length - 1 && (
                   <span className="mx-0.5 text-slate-300 select-none" aria-hidden="true">›</span>
                 )}
               </div>
@@ -64,6 +68,7 @@ export default function ViewTabs() {
           })}
 
           {/* Compare — its own toggle, separated from the linear flow (Odosa) */}
+          {(!isSimple || pathname.startsWith('/paths/compare')) && <>
           <span className="mx-1 h-4 w-px bg-slate-300 flex-shrink-0" aria-hidden="true" />
           <Link
             href="/paths/compare"
@@ -77,6 +82,7 @@ export default function ViewTabs() {
             <GitCompare className="w-3.5 h-3.5" />
             <span>Compare</span>
           </Link>
+          </>}
         </nav>
       </div>
     </div>

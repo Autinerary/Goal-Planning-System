@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'under_age',
           message:
-            'You must be 18 or older to create your own account. Ask a parent or guardian to add you from their account.',
+            'Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!',
         },
         { status: 403 }
       )
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       email: normalizedEmail,
       password,
       email_confirm: true,
+      app_metadata: { date_of_birth: dateOfBirth },
       user_metadata: {
         full_name: name || null,
         name: name || null,

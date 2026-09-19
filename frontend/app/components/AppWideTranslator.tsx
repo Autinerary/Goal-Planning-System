@@ -4,7 +4,8 @@ import { useEffect } from 'react'
 import { useTranslation } from '../context/LanguageContext'
 import { translatePhrase } from '@/lib/i18n'
 
-const ORIGINAL_TEXT = new WeakMap<Text, string>()
+const ORIGINAL_TEXT = new WeakMap<Text, { source: string; rendered: string }>()
+const ORIGINAL_ATTRIBUTES = new WeakMap<Element, Map<string, { source: string; rendered: string }>>()
 const ATTRS = ['placeholder', 'title', 'aria-label'] as const
 
 function shouldSkipNode(el: Element | null): boolean {
@@ -18,26 +19,25 @@ function shouldSkipNode(el: Element | null): boolean {
 function translateTextNode(node: Text, lang: string): void {
   const parent = node.parentElement
   if (shouldSkipNode(parent)) return
-  const original = ORIGINAL_TEXT.get(node) ?? node.nodeValue ?? ''
-  if (!ORIGINAL_TEXT.has(node)) ORIGINAL_TEXT.set(node, original)
+  const current = node.nodeValue ?? ''
+  const previous = ORIGINAL_TEXT.get(node)
+  const original = previous && current === previous.rendered ? previous.source : current
   const translated = translatePhrase(lang as any, original)
+  ORIGINAL_TEXT.set(node, { source: original, rendered: translated })
   if (translated !== node.nodeValue) node.nodeValue = translated
-}
-
-function attrDatasetKey(attr: string): string {
-  return `i18nOrig${attr.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase()).replace(/^./, (c) => c.toUpperCase())}`
 }
 
 function translateElementAttrs(el: Element, lang: string): void {
   if (shouldSkipNode(el)) return
-  const htmlEl = el as HTMLElement
+  const originals = ORIGINAL_ATTRIBUTES.get(el) || new Map<string, { source: string; rendered: string }>()
+  ORIGINAL_ATTRIBUTES.set(el, originals)
   for (const attr of ATTRS) {
     const current = el.getAttribute(attr)
     if (!current) continue
-    const key = attrDatasetKey(attr)
-    const original = (htmlEl.dataset as Record<string, string | undefined>)[key] ?? current
-    ;(htmlEl.dataset as Record<string, string | undefined>)[key] = original
+    const previous = originals.get(attr)
+    const original = previous && current === previous.rendered ? previous.source : current
     const translated = translatePhrase(lang as any, original)
+    originals.set(attr, { source: original, rendered: translated })
     if (translated !== current) {
       el.setAttribute(attr, translated)
     }

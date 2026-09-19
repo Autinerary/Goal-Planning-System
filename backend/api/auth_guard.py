@@ -14,6 +14,7 @@ call, and there is no JWT secret to leak or rotate here.
 """
 
 from typing import Optional
+from datetime import date
 
 from fastapi import Header, HTTPException
 
@@ -76,6 +77,52 @@ def optional_user_id(authorization: Optional[str] = Header(None)) -> Optional[st
     user = getattr(res, "user", None)
     uid = getattr(user, "id", None) if user else None
     return str(uid) if uid else None
+
+
+def onboarding_user_id(authorization: Optional[str] = Header(None)) -> str:
+    token = _bearer(authorization)
+    if not token:
+        raise HTTPException(status_code=401, detail="Sign-in required.")
+    client = get_supabase()
+    if client is None:
+        raise HTTPException(status_code=503, detail="Auth unavailable.")
+    try:
+        user = client.auth.get_user(token).user
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired session.")
+    if not user or not user.id:
+        raise HTTPException(status_code=401, detail="Invalid or expired session.")
+
+    metadata = getattr(user, "app_metadata", None) or {}
+    legacy = getattr(user, "user_metadata", None) or {}
+    managed = metadata.get("managed_by_guardian") or legacy.get("managed_by_guardian")
+    if managed:
+        approval = metadata.get("guardian_approval") or {}
+        guardian_id = metadata.get("guardian_id")
+        if not guardian_id or approval.get("state") != "approved" or approval.get("approved_by") != guardian_id:
+            raise HTTPException(status_code=403, detail="Legal guardian approval is required.")
+        if not _is_guardian(str(guardian_id), str(user.id)):
+            raise HTTPException(status_code=403, detail="Legal guardian approval is required.")
+        try:
+            guardian = client.auth.admin.get_user_by_id(guardian_id).user
+        except Exception:
+            raise HTTPException(status_code=503, detail="Unable to verify guardian.")
+        if not guardian:
+            raise HTTPException(status_code=403, detail="Legal guardian account is required.")
+        metadata = getattr(guardian, "app_metadata", None) or {}
+        legacy = getattr(guardian, "user_metadata", None) or {}
+        if metadata.get("managed_by_guardian") or legacy.get("managed_by_guardian"):
+            raise HTTPException(status_code=403, detail="An adult guardian account is required.")
+
+    try:
+        birthday = date.fromisoformat(metadata.get("date_of_birth") or legacy.get("date_of_birth") or "")
+        today = date.today()
+        age = today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=403, detail="A valid date of birth is required.")
+    if age < 18:
+        raise HTTPException(status_code=403, detail="Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!")
+    return str(user.id)
 
 
 def _is_guardian(guardian_id: str, child_id: str) -> bool:

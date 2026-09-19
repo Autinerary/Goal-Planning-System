@@ -21,6 +21,8 @@ export default function FamilyPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [reviewing, setReviewing] = useState(false)
+  const [legalGuardianConsent, setLegalGuardianConsent] = useState(false)
 
   const [form, setForm] = useState({ name: '', email: '', password: '', dateOfBirth: '', relationship: 'parent' })
 
@@ -51,13 +53,20 @@ export default function FamilyPage() {
       setError('Password must be at least 8 characters.')
       return
     }
+    const age = computeAge(form.dateOfBirth)
+    if (age === null || age < 0 || age >= 18) {
+      setError('Enter a valid date of birth for a child under 18.')
+      return
+    }
+    if (!reviewing) { setReviewing(true); return }
+    if (!legalGuardianConsent) { setError('Legal parent or guardian confirmation is required.'); return }
     setSaving(true)
     try {
       const res = await fetch('/api/family/children', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, legalGuardianConsent, reviewed: true }),
       })
       const j = await res.json()
       if (!res.ok) {
@@ -66,6 +75,8 @@ export default function FamilyPage() {
       }
       setForm({ name: '', email: '', password: '', dateOfBirth: '', relationship: 'parent' })
       setShowAdd(false)
+      setReviewing(false)
+      setLegalGuardianConsent(false)
       setLoading(true)
       await load()
     } finally {
@@ -147,7 +158,9 @@ export default function FamilyPage() {
                 <ShieldCheck className="w-5 h-5 text-purple-500" /> Add a child
               </h2>
               {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+              <fieldset disabled={reviewing || saving} className="space-y-3">
               <input
+                aria-label="Child's name"
                 className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                 placeholder="Child's name"
                 value={form.name}
@@ -155,6 +168,7 @@ export default function FamilyPage() {
               />
               <input
                 type="email"
+                aria-label="Child's login email"
                 className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                 placeholder="Child's login email"
                 value={form.email}
@@ -164,6 +178,7 @@ export default function FamilyPage() {
                 <label className="block text-xs text-slate-500 mb-1">Date of birth</label>
                 <input
                   type="date"
+                  aria-label="Child's date of birth"
                   max={new Date().toISOString().split('T')[0]}
                   className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                   value={form.dateOfBirth}
@@ -172,24 +187,43 @@ export default function FamilyPage() {
               </div>
               <input
                 type="password"
+                aria-label="Child's password"
                 className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                 placeholder="A password for their account (min 8 chars)"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
+              <label className="block text-sm">Your legal relationship
+                <select className="mt-1 w-full rounded-lg border p-2" value={form.relationship} onChange={event => setForm({ ...form, relationship: event.target.value })}>
+                  <option value="parent">Legal parent</option>
+                  <option value="legal_guardian">Legal guardian</option>
+                </select>
+              </label>
+              </fieldset>
+              {reviewing && (
+                <section aria-label="Review child account" className="space-y-3 border-t pt-4">
+                  <h3 className="font-semibold">Review and approve</h3>
+                  <p className="text-sm">{form.name} · {form.email} · {form.dateOfBirth}</p>
+                  <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" checked={legalGuardianConsent} onChange={event => setLegalGuardianConsent(event.target.checked)} />
+                    I am this child's legal parent or guardian, have reviewed these details, and approve their supervised account.
+                  </label>
+                  <button type="button" disabled={saving} onClick={() => { setReviewing(false); setLegalGuardianConsent(false) }} className="text-sm underline">Edit details</button>
+                </section>
+              )}
               <p className="text-xs text-slate-400">
                 You’re creating your child’s account. Share the email &amp; password with them, or log in on their device.
               </p>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => { setShowAdd(false); setError('') }} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-slate-800">
+                <button type="button" disabled={saving} onClick={() => { setShowAdd(false); setError(''); setReviewing(false); setLegalGuardianConsent(false) }} className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-slate-800">
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || (reviewing && !legalGuardianConsent)}
                   className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
-                  {saving && <Loader2 className="w-4 h-4 animate-spin" />} Add child
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />} {reviewing ? 'Approve account' : 'Review details'}
                 </button>
               </div>
             </form>

@@ -3,25 +3,24 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Target, Users, Wand2, Loader2, RefreshCw, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Sparkles, Target, Users, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
+import AvatarEditor from '../components/AvatarEditor'
+import { usePreferences } from '../context/usePreferences'
+import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 
 type Portrait = { imageUrl: string; prompt?: string; style?: string; updatedAt?: string }
 type Stat = { name: string; value: number; max: number }
-
-const STYLES = [
-  { key: 'painterly', label: '🎨 Painterly' },
-  { key: 'watercolor', label: '💧 Watercolor' },
-  { key: 'anime', label: '✨ Anime' },
-  { key: 'photoreal', label: '📷 Cinematic' },
-]
 
 export default function IdealSelfPage() {
   const router = useRouter()
   const { payload } = useAgentPath()
   const { supabaseUser } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
+  const { prefs, update } = usePreferences()
+  const defaultAppearance = { hairStyle: 'short_straight', hairColor: DEFAULT_HAIR_COLOR, skinColor: DEFAULT_SKIN_TONE }
+  const persona = prefs.alternatePersona || { name: '', note: '', appearance: defaultAppearance }
 
   const dreams: string[] = (payload?.userProfile?.dreams || []) as string[]
   const goals: string[] = (payload?.userProfile?.goals || []) as string[]
@@ -77,11 +76,7 @@ export default function IdealSelfPage() {
 
   // Portrait state.
   const [portrait, setPortrait] = useState<Portrait | null>(null)
-  const [style, setStyle] = useState('painterly')
   const [loadingSaved, setLoadingSaved] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [hasApiKey, setHasApiKey] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -92,8 +87,7 @@ export default function IdealSelfPage() {
         if (res.ok) {
           const j = await res.json()
           if (cancelled) return
-          if (j?.portrait) { setPortrait(j.portrait); if (j.portrait.style) setStyle(j.portrait.style) }
-          setHasApiKey(Boolean(j?.hasApiKey))
+          if (j?.portrait) setPortrait(j.portrait)
         }
       } catch {
         /* ignore */
@@ -103,37 +97,6 @@ export default function IdealSelfPage() {
     })()
     return () => { cancelled = true }
   }, [isSignedIn])
-
-  const generate = async () => {
-    if (generating) return
-    setGenerating(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/me/ideal-self', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ dreams, goals, barriers, style }),
-      })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        // Flipping hasApiKey already swaps the button for the amber banner
-        // that says exactly this. Setting `error` too printed the same
-        // sentence twice — once amber, once red.
-        if (j?.code === 'no_api_key') { setHasApiKey(false); setError(null) }
-        // Show the hint too — "Image generation failed" alone is not
-        // actionable, and the caller is usually the person who can fix it.
-        else setError([j?.error, j?.hint].filter(Boolean).join(' ') || 'Generation failed. Please try again.')
-        return
-      }
-      if (j?.portrait) setPortrait(j.portrait)
-      if (j?.saved === false) setError('Generated, but couldn\u2019t save it to your profile.')
-    } catch {
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setGenerating(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
@@ -156,83 +119,22 @@ export default function IdealSelfPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* ④ AI-generated portrait — spans both columns on top for prominence */}
-          <div className="lg:col-span-2 bg-white/70 backdrop-blur border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Wand2 className="w-5 h-5 text-purple-500" />
-              <h3 className="font-bold text-slate-800">AI Portrait of Your Ideal Self</h3>
+          <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-5">
+            <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
+            <div className="space-y-4">
+              <label className="block text-sm font-medium">Alternate Persona name
+                <input value={persona.name} maxLength={60} onChange={event => update({ alternatePersona: { ...persona, name: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
+              </label>
+              <label className="block text-sm font-medium">About your Alternate Persona
+                <textarea value={persona.note} maxLength={400} onChange={event => update({ alternatePersona: { ...persona, note: event.target.value } })} className="mt-2 block w-full rounded-lg border bg-white p-2" />
+              </label>
+              <AvatarEditor title="Alternate Persona appearance" value={persona.appearance} onChange={appearance => update({ alternatePersona: { ...persona, appearance } })} />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-[280px_1fr] gap-5 items-start">
-              {/* Image / placeholder */}
-              <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-2xl overflow-hidden border border-slate-200 bg-gradient-to-b from-sky-50 to-purple-50 flex items-center justify-center">
-                {generating ? (
-                  <div className="flex flex-col items-center text-slate-500">
-                    <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                    <span className="text-xs">Painting your future self…</span>
-                  </div>
-                ) : portrait ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={portrait.imageUrl} alt="AI-generated portrait of your ideal self" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400 px-4 text-center">
-                    <Sparkles className="w-8 h-8 mb-2" />
-                    <span className="text-xs">Your portrait will appear here</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Controls */}
-              <div>
-                <p className="text-xs text-slate-600 mb-3">
-                  Generate an inspiring, symbolic portrait of the person you’re growing into — shaped by your dreams and goals.
-                </p>
-
-                <div className="mb-3">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Style</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {STYLES.map(s => (
-                      <button
-                        key={s.key}
-                        onClick={() => setStyle(s.key)}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
-                          style === s.key ? 'bg-slate-800 text-white border-slate-800' : 'bg-white/70 text-slate-600 border-slate-200 hover:bg-white'
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {!isSignedIn ? (
-                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    <span>Sign in to generate and save your portrait.</span>
-                  </div>
-                ) : !hasApiKey ? (
-                  <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    <span>Portrait generation isn’t configured yet (missing OpenAI key).</span>
-                  </div>
-                ) : (
-                  <button
-                    onClick={generate}
-                    disabled={generating}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow hover:scale-[1.02] transition-all disabled:opacity-50"
-                  >
-                    {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : portrait ? <RefreshCw className="w-4 h-4" /> : <Wand2 className="w-4 h-4" />}
-                    {generating ? 'Generating…' : portrait ? 'Regenerate' : 'Generate portrait'}
-                  </button>
-                )}
-
-                {error && <div className="mt-2 text-xs text-red-600">{error}</div>}
-                {portrait?.updatedAt && !generating && (
-                  <div className="mt-2 text-[10px] text-slate-400">Last updated {new Date(portrait.updatedAt).toLocaleDateString()}</div>
-                )}
-              </div>
-            </div>
-          </div>
+            {portrait && <details className="sm:col-span-2">
+              <summary className="cursor-pointer text-sm">Previously saved portrait</summary>
+              <img src={portrait.imageUrl} alt="Previously saved Dream Self portrait" className="mt-3 aspect-square w-48 object-cover" />
+            </details>}
+          </section>
 
           {/* ① Role Models / Influences */}
           <div className="bg-white/70 backdrop-blur border border-slate-200 rounded-2xl p-5 shadow-sm">

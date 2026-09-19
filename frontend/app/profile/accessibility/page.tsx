@@ -1,10 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Languages, Palette, Maximize, Volume2 } from 'lucide-react'
+import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2 } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
-import { useTranslation } from '../../context/LanguageContext'
-import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
 import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
 
 const FONT_SCALES: { id: FontScale; label: string; sample: string }[] = [
@@ -16,7 +14,6 @@ const FONT_SCALES: { id: FontScale; label: string; sample: string }[] = [
 export default function AccessibilitySettingsPage() {
   const router = useRouter()
   const { prefs, update } = usePreferences()
-  const { lang, setLang } = useTranslation()
   const a11y = prefs.accessibility
 
   const setA11y = (patch: Partial<typeof a11y>) => update({ accessibility: { ...a11y, ...patch } })
@@ -32,6 +29,8 @@ export default function AccessibilitySettingsPage() {
     { key: 'dyslexiaFont', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
     { key: 'underlineLinks', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
     { key: 'soundEffects', label: 'Task completion sound', desc: 'Play a soft "pop" when you check off a task.', icon: Volume2 },
+    { key: 'spokenDescriptions', label: 'Spoken descriptions', desc: 'Read control names and descriptions when clicked or focused. Off by default to avoid duplicating a screen reader.', icon: Volume2 },
+    { key: 'voiceNavigation', label: 'Voice navigation', desc: 'Enable a microphone button. Listening starts only when pressed. Your browser may send audio to its speech service; Autinerary does not store recordings.', icon: Volume2 },
   ]
 
   return (
@@ -50,27 +49,8 @@ export default function AccessibilitySettingsPage() {
             Tune how the app looks and moves. Changes apply instantly and are saved on this device.
           </p>
 
-          {/* Language */}
-          <div className="mb-6">
-            <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
-              <Languages className="w-4 h-4 text-cyan-600" /> Language
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLang(l.code as LanguageCode)}
-                  className={`px-4 py-3 rounded-xl border-2 text-center transition-all ${
-                    lang === l.code ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xl mb-0.5">{l.flag}</div>
-                  <div className={`text-xs font-medium ${lang === l.code ? 'text-cyan-700' : 'text-slate-700'}`}>{l.label}</div>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-400 mt-2">Language now applies across app UI labels and common page text.</p>
-          </div>
+          {/* Language moved to the main Settings page (Odosa): needing another
+              language is not an accessibility need, and it was hard to find here. */}
 
           {/* Appearance — widget size & accent color (persist across devices) */}
           <div className="mb-6">

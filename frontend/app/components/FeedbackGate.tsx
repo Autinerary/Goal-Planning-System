@@ -28,13 +28,14 @@ const FORM_URL = process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || DEFAULT_FORM_URL
 
 // Routes where the gate must NOT block (auth/onboarding entry — otherwise
 // brand-new users could be locked out before they have an account).
-const SKIP_PREFIXES = ['/login', '/signup', '/auth']
+const SKIP_PREFIXES = ['/login', '/signup', '/auth', '/onboarding', '/onboarding-confirmation']
 
 export default function FeedbackGate() {
   const pathname = usePathname() || ''
   const [hydrated, setHydrated] = useState(false)
   const [done, setDone] = useState(true)         // start true to avoid SSR flash
   const [confirmed, setConfirmed] = useState(false)
+  const skipped = SKIP_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))
 
   useEffect(() => {
     setHydrated(true)
@@ -49,17 +50,17 @@ export default function FeedbackGate() {
 
   // Body scroll lock while the gate is up.
   useEffect(() => {
-    if (!hydrated || done) return
+    if (!hydrated || done || skipped) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
     }
-  }, [hydrated, done])
+  }, [hydrated, done, skipped])
 
   if (!hydrated) return null
   if (done) return null
-  if (SKIP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null
+  if (skipped) return null
 
   const handleConfirm = () => {
     try { window.localStorage.setItem(FEEDBACK_KEY, 'true') } catch {}

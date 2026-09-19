@@ -91,6 +91,11 @@ export class RecommendationAgent {
         input.context,
         learnedScores
       )
+      scoredResources.sort((first, second) => {
+        const firstPrice = typeof first.price === 'number' && Number.isFinite(first.price) && first.price >= 0 ? first.price : Infinity
+        const secondPrice = typeof second.price === 'number' && Number.isFinite(second.price) && second.price >= 0 ? second.price : Infinity
+        return firstPrice === secondPrice ? second.score - first.score : firstPrice - secondPrice
+      })
 
       // Step 4: Generate explanations (why agent chose these), memory-aware
       const explanations = await this.generateExplanations(

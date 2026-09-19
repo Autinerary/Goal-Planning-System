@@ -1,14 +1,8 @@
 // Progressive disclosure
 //
-// The app starts SIMPLE and reveals more as the user returns, so new users
-// aren't overwhelmed (Eliyana's feedback: "start out simple… then progresses as
-// you spend more time"). This is a separate axis from view "energy" in
-// preferences.ts (how much visual flair) — disclosure controls how many
-// FEATURES are surfaced.
-//
-// Level is derived from the number of distinct days the user has opened the app,
-// unless they've set an explicit override (a "Show more" / "Keep it simple"
-// control). Everything is client-side/localStorage, mirroring preferences.ts.
+// Simple remains the default until the user explicitly changes it.
+// Disclosure controls feature visibility independently of visual energy.
+// The override is device-local; visit counts do not expand the interface.
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -96,9 +90,9 @@ export function getUsageLevel(): DisclosureLevel {
   return 'simple'
 }
 
-/** Effective disclosure level: manual override wins, else usage-derived. */
+/** Effective disclosure level stays simple until explicitly changed. */
 export function getDisclosureLevel(): DisclosureLevel {
-  return getOverride() ?? getUsageLevel()
+  return getOverride() ?? 'simple'
 }
 
 /** True when the app should show its simplest surface. */

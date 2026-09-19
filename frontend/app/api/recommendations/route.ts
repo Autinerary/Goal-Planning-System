@@ -54,12 +54,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Cheapest first (free before paid), then by match score. Chi asked to see
-    // free / lower-cost options rather than only paid ones. Unknown price sorts
-    // after known-free but before expensive, so nothing is hidden.
+    // free / lower-cost options rather than only paid ones. Unknown prices sort last.
     const recs = Array.isArray(data.recommendations) ? [...data.recommendations] : []
     recs.sort((a: any, b: any) => {
-      const pa = typeof a?.price === 'number' ? a.price : Number.POSITIVE_INFINITY
-      const pb = typeof b?.price === 'number' ? b.price : Number.POSITIVE_INFINITY
+      const pa = typeof a?.price === 'number' && Number.isFinite(a.price) && a.price >= 0 ? a.price : Number.POSITIVE_INFINITY
+      const pb = typeof b?.price === 'number' && Number.isFinite(b.price) && b.price >= 0 ? b.price : Number.POSITIVE_INFINITY
       const freeA = pa === 0 ? 0 : 1
       const freeB = pb === 0 ? 0 : 1
       if (freeA !== freeB) return freeA - freeB

@@ -7,7 +7,7 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.auth_guard import current_user_id, optional_user_id, require_self_or_guardian
+from api.auth_guard import current_user_id, onboarding_user_id, require_self_or_guardian
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
@@ -434,12 +434,15 @@ async def _generate_path_for(
 @router.post("/", response_model=OnboardingResponse)
 async def create_onboarding(
     request: OnboardingRequest,
-    actor: Optional[str] = Depends(optional_user_id),
+    actor: str = Depends(onboarding_user_id),
 ):
     """
     Create user profile, run agent orchestration, and generate personalized path.
     This is the main entry point that connects onboarding → multi-agent system → path.
     """
+    if request.userId and request.userId != actor:
+        raise HTTPException(status_code=403, detail="Cannot create another account's path.")
+    request.userId = actor
     try:
         path_id = await _generate_path_for(request, actor=actor)
         return OnboardingResponse(
@@ -491,7 +494,7 @@ async def _run_job(
 @router.post("/jobs", response_model=JobAccepted, status_code=202)
 async def enqueue_onboarding(
     request: OnboardingRequest,
-    actor: Optional[str] = Depends(optional_user_id),
+    actor: str = Depends(onboarding_user_id),
 ):
     """Start a generation and return immediately.
 
@@ -503,6 +506,9 @@ async def enqueue_onboarding(
     a browser is willing to wait. A client that reloads or drops off can find
     its job again instead of losing the work.
     """
+    if request.userId and request.userId != actor:
+        raise HTTPException(status_code=403, detail="Cannot create another account's path.")
+    request.userId = actor
     if not jobs.enabled():
         raise HTTPException(
             status_code=503,

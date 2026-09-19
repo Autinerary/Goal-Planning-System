@@ -535,9 +535,9 @@ function RacesContent() {
     const hub = goHubHref('/')
     const shops: { emoji: string; name: string; desc: string; href: string; ext: boolean }[] = [
       { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
-      { emoji: '🏪', name: 'ResourceHub', desc: 'Curated services & support', href: hub,                                     ext: true  },
+      { emoji: '🏪', name: 'ResourceHub', desc: 'Find relevant resources', href: hub,                                     ext: true  },
       { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/pit-stop?tab=haveworld&view=people',   ext: false },
-      { emoji: '💬', name: 'Tidbits',     desc: 'Community Q&A',              href: `${hub}/community?from=hare-world&context=races`, ext: true  },
+      { emoji: '💬', name: 'Tidbits',     desc: 'View Related posts',         href: goHubHref('/community?from=hare-world&context=races'), ext: true  },
     ]
     return (
       <div className="w-full max-w-3xl px-2 my-4">
