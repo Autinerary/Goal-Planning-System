@@ -100,3 +100,40 @@ export const isConnectionType = (v: string) => CONNECTION_TYPES.some((c) => c.id
 export const isAgeRange = (v: string) => AGE_RANGES.some((a) => a.id === v)
 export const isSpecialTag = (v: string) => SPECIAL_TAGS.some((t) => t.id === v)
 export const isSourceType = (v: string) => SOURCE_TYPES.some((s) => s.id === v)
+
+
+/** Therapy sub-types (Odosa: "change Therapist to Therapy, and add dropdowns
+ *  for types of Therapy ... take from the Autism Services dropdowns on our
+ *  site").
+ *
+ *  These eight are the categories actually published on
+ *  autinerary.ca/learning/general-service-info. Odosa also asked for the
+ *  bolded items *under* each one as a third layer — those are rendered
+ *  client-side on that page and were not retrievable, so they are
+ *  deliberately absent rather than invented. Adding a made-up list of
+ *  specific therapies under "Behavioural" would be exactly the kind of
+ *  confident-looking clinical misinformation we agreed not to ship. */
+export const THERAPY_TYPES = [
+  { id: 'behavioural',      label: 'Behavioural' },
+  { id: 'developmental',    label: 'Developmental' },
+  { id: 'educational',      label: 'Educational' },
+  { id: 'nutritional',      label: 'Nutritional' },
+  { id: 'pharmacological',  label: 'Pharmacological' },
+  { id: 'psychological',    label: 'Psychological' },
+  { id: 'social_relational',label: 'Social-Relational' },
+  { id: 'therapy_other',    label: 'Other' },
+] as const
+
+/** Provider types, also from the Learning page. Distinct from therapy TYPE:
+ *  "who delivers it" is a different question from "what kind it is". */
+export const THERAPY_PROVIDERS = [
+  { id: 'bcba',              label: 'BCBA (Board Certified Behaviour Analyst)' },
+  { id: 'ot',                label: 'OT (Occupational Therapist)' },
+  { id: 'slp',               label: 'SLP (Speech Language Pathologist)' },
+  { id: 'early_intervention',label: 'Early Interventionist' },
+  { id: 'educational_therapist', label: 'Educational Therapist' },
+  { id: 'pediatrician',      label: 'Pediatrician' },
+  { id: 'non_autism_specific', label: 'Non autism-specific professional' },
+] as const
+
+export const isTherapyType = (v: string) => THERAPY_TYPES.some((t) => t.id === v)

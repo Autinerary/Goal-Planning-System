@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAgeRange, isSpecialTag, isConnectionType } from '@/lib/filters/taxonomy'
+import { isAgeRange, isSpecialTag, isConnectionType, isSourceType } from '@/lib/filters/taxonomy'
 import {
   searchResources,
   type SearchFilters,
@@ -96,6 +96,7 @@ export async function GET(request: NextRequest) {
     const ageRanges = csv('ageRanges')?.filter(isAgeRange)
     const specialTags = csv('specialTags')?.filter(isSpecialTag)
     const connectionTypes = csv('connectionTypes')?.filter(isConnectionType)
+    const sourceTypes = csv('sourceTypes')?.filter(isSourceType)
 
     const sort = parseSortParam(searchParams.get('sort'))
     const page = Number(searchParams.get('page') || '1')
@@ -145,6 +146,7 @@ export async function GET(request: NextRequest) {
       ageRanges,
       specialTags,
       connectionTypes,
+      sourceTypes,
       status: 'approved',
     }
 

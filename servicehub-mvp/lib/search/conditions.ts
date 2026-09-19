@@ -56,6 +56,14 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
           { id: 'combined', label: 'Combined' },
         ],
       },
+      // Odosa: "we have to pick up famous combined categories (ex. AuDHD)".
+      // A real, widely-used identity in its own right — people search for it
+      // by name, and selecting Autism + ADHD separately does not surface
+      // resources written specifically about the combination.
+      {
+        id: 'audhd',
+        label: 'AuDHD (Autism + ADHD)',
+      },
       {
         id: 'specific_learning_disabilities',
         label: 'Specific Learning Disabilities',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CONNECTION_TYPES, AGE_RANGES, SPECIAL_TAGS } from '@/lib/filters/taxonomy'
+import { CONNECTION_TYPES, AGE_RANGES, SPECIAL_TAGS, SOURCE_TYPE_GROUPS } from '@/lib/filters/taxonomy'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import ConditionsFilter from './ConditionsFilter'
 import CostFilter from './CostFilter'
@@ -34,18 +34,22 @@ interface FilterSidebarProps {
   connectionTypes?: string[]
   ageRanges?: string[]
   specialTags?: string[]
+  sourceTypes?: string[]
   onConnectionTypeToggle?: (id: string) => void
   onAgeRangeToggle?: (id: string) => void
   onSpecialTagToggle?: (id: string) => void
+  onSourceTypeToggle?: (id: string) => void
 }
 
 export default function FilterSidebar({
   connectionTypes: selectedConnectionTypes = [],
   ageRanges: selectedAgeRanges = [],
   specialTags: selectedSpecialTags = [],
+  sourceTypes: selectedSourceTypes = [],
   onConnectionTypeToggle,
   onAgeRangeToggle,
   onSpecialTagToggle,
+  onSourceTypeToggle,
   categories: selectedCategories,
   barriers: selectedBarriers,
   conditions: selectedConditions,
@@ -252,6 +256,52 @@ export default function FilterSidebar({
 
       {/* Cost */}
       <CostFilter min={minPrice} max={maxPrice} onChange={onPriceChange} />
+
+      {/* Commentaries by source (Odosa). Only meaningful for commentary
+          resources, so the whole group is hidden unless the Commentaries
+          type is actually selected — an always-visible "filter by Reddit"
+          on a list of therapists is noise. */}
+      {onSourceTypeToggle && selectedCategories.includes('commentary') && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">Commentary Source</h3>
+          <p className="text-[11px] text-gray-500 mb-2">Where the commentary came from.</p>
+
+          {/* Odosa: when a source is selected, link out to everything from
+              that source. Built from the current selection rather than
+              hardcoded, so it always points somewhere real. */}
+          {selectedSourceTypes.length > 0 && (
+            <a
+              href={`/search?categories=commentary&sourceTypes=${selectedSourceTypes.join(',')}`}
+              className="block mb-3 text-xs font-semibold text-purple-700 underline hover:text-purple-900"
+            >
+              Check out their full page of commentaries here!
+            </a>
+          )}
+
+          <div className="space-y-2">
+            {SOURCE_TYPE_GROUPS.map((group) => (
+              <div key={group.label}>
+                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                  {group.label}
+                </div>
+                <div className="space-y-1 pl-1">
+                  {group.options.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedSourceTypes.includes(opt.id)}
+                        onChange={() => onSourceTypeToggle(opt.id)}
+                        className="rounded border-gray-300"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Special Tags (Odosa). Rendered before Rating because these are the
           headline filters — "Autinerary's Own" carries the gradient

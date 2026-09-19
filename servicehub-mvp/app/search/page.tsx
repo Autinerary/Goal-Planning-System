@@ -76,6 +76,12 @@ function SearchResults() {
   const barriers = searchParams.get('barriers')?.split(',').filter(Boolean) || []
   const conditions = searchParams.get('conditions')?.split(',').filter(Boolean) || []
   const lifeAreas = searchParams.get('lifeAreas')?.split(',').filter(Boolean) || []
+  // Odosa's three new groups. Same URL-derived pattern as the others, so a
+  // filtered search stays shareable and survives a refresh.
+  const connectionTypes = searchParams.get('connectionTypes')?.split(',').filter(Boolean) || []
+  const ageRanges = searchParams.get('ageRanges')?.split(',').filter(Boolean) || []
+  const specialTags = searchParams.get('specialTags')?.split(',').filter(Boolean) || []
+  const sourceTypes = searchParams.get('sourceTypes')?.split(',').filter(Boolean) || []
   const ratingStarsRaw = searchParams.get('ratingStars')?.split(',').filter(Boolean) || []
   const ratingStars = ratingStarsRaw.map((s) => Number(s)).filter((n) => !Number.isNaN(n))
   const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined
@@ -128,6 +134,10 @@ function SearchResults() {
           barriers: barriers.join(','),
           conditions: conditions.join(','),
           lifeAreas: lifeAreas.join(','),
+          connectionTypes: connectionTypes.join(','),
+          ageRanges: ageRanges.join(','),
+          specialTags: specialTags.join(','),
+          sourceTypes: sourceTypes.join(','),
           ratingStars: ratingStars.join(','),
           minRating: minRating?.toString() || '',
           minPrice: minPrice?.toString() || '',
@@ -172,6 +182,10 @@ function SearchResults() {
     barriers.join(','),
     conditions.join(','),
     lifeAreas.join(','),
+    connectionTypes.join(','),
+    ageRanges.join(','),
+    specialTags.join(','),
+    sourceTypes.join(','),
     ratingStars.join(','),
     minRating,
     minPrice,
@@ -186,6 +200,53 @@ function SearchResults() {
       updateSearchParams({ q: newQuery })
     },
     [updateSearchParams]
+  )
+
+  // Odosa's three new filter groups. One shared shape — toggle membership in
+  // the list and push it to the URL — so they behave exactly like the
+  // existing category/barrier filters do.
+  const handleConnectionTypeToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({
+        connectionTypes: connectionTypes.includes(id)
+          ? connectionTypes.filter((c) => c !== id)
+          : [...connectionTypes, id],
+      })
+    },
+    [connectionTypes, updateSearchParams]
+  )
+
+  const handleAgeRangeToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({
+        ageRanges: ageRanges.includes(id)
+          ? ageRanges.filter((a) => a !== id)
+          : [...ageRanges, id],
+      })
+    },
+    [ageRanges, updateSearchParams]
+  )
+
+  const handleSpecialTagToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({
+        specialTags: specialTags.includes(id)
+          ? specialTags.filter((t) => t !== id)
+          : [...specialTags, id],
+      })
+    },
+    [specialTags, updateSearchParams]
+  )
+
+  const handleSourceTypeToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({
+        sourceTypes: sourceTypes.includes(id)
+          ? sourceTypes.filter((t) => t !== id)
+          : [...sourceTypes, id],
+      })
+    },
+    [sourceTypes, updateSearchParams]
   )
 
   const handleCategoryToggle = useCallback(
@@ -335,6 +396,14 @@ function SearchResults() {
                   minPrice={minPrice}
                   maxPrice={maxPrice}
                   maxDistance={maxDistance}
+                  connectionTypes={connectionTypes}
+                  ageRanges={ageRanges}
+                  specialTags={specialTags}
+                  sourceTypes={sourceTypes}
+                  onConnectionTypeToggle={handleConnectionTypeToggle}
+                  onAgeRangeToggle={handleAgeRangeToggle}
+                  onSpecialTagToggle={handleSpecialTagToggle}
+                  onSourceTypeToggle={handleSourceTypeToggle}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
                   onLifeAreaToggle={handleLifeAreaToggle}
@@ -586,6 +655,14 @@ function SearchResults() {
                   minPrice={minPrice}
                   maxPrice={maxPrice}
                   maxDistance={maxDistance}
+                  connectionTypes={connectionTypes}
+                  ageRanges={ageRanges}
+                  specialTags={specialTags}
+                  sourceTypes={sourceTypes}
+                  onConnectionTypeToggle={handleConnectionTypeToggle}
+                  onAgeRangeToggle={handleAgeRangeToggle}
+                  onSpecialTagToggle={handleSpecialTagToggle}
+                  onSourceTypeToggle={handleSourceTypeToggle}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
                   onLifeAreaToggle={handleLifeAreaToggle}

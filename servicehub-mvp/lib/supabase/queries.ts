@@ -927,6 +927,12 @@ export interface SearchFilters {
    * RLS blocks reading another user's profile.
    */
   connectionTypes?: string[]
+  /**
+   * Commentary provenance (Odosa): 'reddit', 'youtube', 'news'… Only
+   * commentary resources carry a source_type, so this narrows to those
+   * automatically.
+   */
+  sourceTypes?: string[]
   maxDistance?: number // Maximum distance in km
   userLocation?: { lat: number; lng: number } // User's location for distance calculation
   status?: Resource['status'] // Resource status (default: 'approved')
@@ -1051,6 +1057,10 @@ export async function searchResources(
   // after the badge lookup.
   if (filters.specialTags?.includes('first_party')) {
     query = query.eq('is_first_party', true)
+  }
+
+  if (filters.sourceTypes && filters.sourceTypes.length > 0) {
+    query = query.in('source_type', filters.sourceTypes)
   }
 
   // Get all matching resources first

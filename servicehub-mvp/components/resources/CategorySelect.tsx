@@ -11,7 +11,10 @@ interface CategorySelectProps {
 }
 
 const categories = [
-  { id: 'therapist', label: 'Therapist', icon: '🧠' },
+  // Odosa: "Therapist" renamed to "Therapy" — the category is the service,
+  // not the person providing it. The id stays 'therapist' so existing rows
+  // and saved filters keep resolving.
+  { id: 'therapist', label: 'Therapy', icon: '🧠' },
   { id: 'school', label: 'School', icon: '🏫' },
   { id: 'doctor', label: 'Doctor', icon: '👨‍⚕️' },
   { id: 'park', label: 'Park', icon: '🌳' },
@@ -22,6 +25,18 @@ const categories = [
   { id: 'organization', label: 'Organization', icon: '🏢' },
   { id: 'workshop', label: 'Workshop', icon: '🎓' },
   { id: 'recreation', label: 'Recreation', icon: '🎨' },
+  // Odosa's additions. Swimming and horseback riding are named explicitly
+  // rather than folded into Recreation because people search for them by
+  // name — burying them makes them unfindable.
+  { id: 'swimming', label: 'Swimming', icon: '🏊' },
+  { id: 'horseback_riding', label: 'Horseback Riding', icon: '🐴' },
+  { id: 'animal_therapy', label: 'Animal Therapy', icon: '🐕' },
+  // Commentaries carry source_type + source_url (STEP 34) so a quote is
+  // always attributable back to where it came from.
+  { id: 'commentary', label: 'Commentary', icon: '💬' },
+  // Odosa: real human art only. There is deliberately no AI-generated
+  // option here, and the submission form says so.
+  { id: 'visuals', label: 'Visuals / Art', icon: '🎨' },
   { id: 'other', label: 'Other', icon: '📌' },
 ]
 
