@@ -908,6 +908,25 @@ export interface SearchFilters {
   ratingStars?: number[]
   minPrice?: number // Lower bound on resource price (inclusive)
   maxPrice?: number // Upper bound on resource price (inclusive)
+  /**
+   * Age bands the resource serves (Odosa). A resource with an EMPTY
+   * age_ranges means "not stated" and is excluded when this filter is
+   * active — treating unknown as "serves everyone" would put toddlers in
+   * front of adult services.
+   */
+  ageRanges?: string[]
+  /**
+   * Special tags: 'first_party' ("Autinerary's Own"), 'rare',
+   * 'highly_requested'. rare/highly_requested are computed from real save
+   * counts by get_resource_badges, so they are applied after the base query.
+   */
+  specialTags?: string[]
+  /**
+   * Connection types of the people who RATED the resource (Odosa). Filters
+   * on the rater_connection_types snapshot, not on live profile reads —
+   * RLS blocks reading another user's profile.
+   */
+  connectionTypes?: string[]
   maxDistance?: number // Maximum distance in km
   userLocation?: { lat: number; lng: number } // User's location for distance calculation
   status?: Resource['status'] // Resource status (default: 'approved')
@@ -1018,6 +1037,20 @@ export async function searchResources(
   // Category filter
   if (filters.categories && filters.categories.length > 0) {
     query = query.in('category', filters.categories)
+  }
+
+  // Age bands: overlaps() is an array-intersection test, so a resource
+  // matches if it serves ANY selected band. Resources with an empty
+  // age_ranges do not match — unknown is not the same as universal.
+  if (filters.ageRanges && filters.ageRanges.length > 0) {
+    query = query.overlaps('age_ranges', filters.ageRanges)
+  }
+
+  // "Autinerary's Own" is a plain column so it filters in the base query.
+  // rare / highly_requested come from save counts and are applied below,
+  // after the badge lookup.
+  if (filters.specialTags?.includes('first_party')) {
+    query = query.eq('is_first_party', true)
   }
 
   // Get all matching resources first

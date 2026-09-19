@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { CONNECTION_TYPES, AGE_RANGES, SPECIAL_TAGS } from '@/lib/filters/taxonomy'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import ConditionsFilter from './ConditionsFilter'
 import CostFilter from './CostFilter'
@@ -28,9 +29,23 @@ interface FilterSidebarProps {
   onPriceChange: (next: { min?: number; max?: number }) => void
   onMaxDistanceChange: (distance: number | undefined) => void
   onClearFilters?: () => void
+  // Odosa's three new groups. Optional so existing callers keep working
+  // until they pass them.
+  connectionTypes?: string[]
+  ageRanges?: string[]
+  specialTags?: string[]
+  onConnectionTypeToggle?: (id: string) => void
+  onAgeRangeToggle?: (id: string) => void
+  onSpecialTagToggle?: (id: string) => void
 }
 
 export default function FilterSidebar({
+  connectionTypes: selectedConnectionTypes = [],
+  ageRanges: selectedAgeRanges = [],
+  specialTags: selectedSpecialTags = [],
+  onConnectionTypeToggle,
+  onAgeRangeToggle,
+  onSpecialTagToggle,
   categories: selectedCategories,
   barriers: selectedBarriers,
   conditions: selectedConditions,
@@ -237,6 +252,81 @@ export default function FilterSidebar({
 
       {/* Cost */}
       <CostFilter min={minPrice} max={maxPrice} onChange={onPriceChange} />
+
+      {/* Special Tags (Odosa). Rendered before Rating because these are the
+          headline filters — "Autinerary's Own" carries the gradient
+          treatment, and the trending tiers are surfaced on the cards
+          themselves rather than as four separate checkboxes here. */}
+      {onSpecialTagToggle && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Special Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {SPECIAL_TAGS.map((tag) => {
+              const active = selectedSpecialTags.includes(tag.id)
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => onSpecialTagToggle(tag.id)}
+                  aria-pressed={active}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                    active
+                      ? `${tag.className} border-transparent shadow-sm ring-2 ring-offset-1 ring-purple-300`
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  {tag.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Connection Type to Norm (Odosa). Filters by the connection type of
+          the people who RATED a resource — "show me what actually-diagnosed
+          people rated" is a different question from "what allies rated". */}
+      {onConnectionTypeToggle && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">Connection Type to Norm</h3>
+          <p className="text-[11px] text-gray-500 mb-2">Whose experience the ratings come from.</p>
+          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+            {CONNECTION_TYPES.map((c) => (
+              <label key={c.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedConnectionTypes.includes(c.id)}
+                  onChange={() => onConnectionTypeToggle(c.id)}
+                  className="rounded border-gray-300"
+                />
+                <span>{c.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Age Range (Odosa). Note an empty age_ranges on a resource means
+          "not stated", which the API treats as unknown rather than quietly
+          matching every band. */}
+      {onAgeRangeToggle && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Age Range</h3>
+          <div className="space-y-1.5">
+            {AGE_RANGES.map((a) => (
+              <label key={a.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedAgeRanges.includes(a.id)}
+                  onChange={() => onAgeRangeToggle(a.id)}
+                  className="rounded border-gray-300"
+                />
+                <span>{a.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Rating Filter */}
       <div>

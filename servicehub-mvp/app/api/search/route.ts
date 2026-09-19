@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAgeRange, isSpecialTag, isConnectionType } from '@/lib/filters/taxonomy'
 import {
   searchResources,
   type SearchFilters,
@@ -87,6 +88,15 @@ export async function GET(request: NextRequest) {
     const maxDistance = searchParams.get('maxDistance')
       ? Number(searchParams.get('maxDistance'))
       : undefined
+    // Odosa's new filters. Each value is validated against its vocabulary —
+    // an unrecognised string would otherwise reach the query builder and
+    // silently match nothing, which reads as "the filter is broken".
+    const csv = (key: string) =>
+      searchParams.get(key) ? searchParams.get(key)!.split(',').filter(Boolean) : undefined
+    const ageRanges = csv('ageRanges')?.filter(isAgeRange)
+    const specialTags = csv('specialTags')?.filter(isSpecialTag)
+    const connectionTypes = csv('connectionTypes')?.filter(isConnectionType)
+
     const sort = parseSortParam(searchParams.get('sort'))
     const page = Number(searchParams.get('page') || '1')
     const pageSize = Number(searchParams.get('pageSize') || '20')
@@ -132,6 +142,9 @@ export async function GET(request: NextRequest) {
       maxPrice,
       maxDistance,
       userLocation,
+      ageRanges,
+      specialTags,
+      connectionTypes,
       status: 'approved',
     }
 

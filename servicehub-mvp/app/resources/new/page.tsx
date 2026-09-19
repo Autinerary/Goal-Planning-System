@@ -34,6 +34,10 @@ export default function NewResourcePage() {
 
   // Load draft from localStorage
   const loadDraft = useCallback((): Partial<ResourceFormData> | null => {
+    // localStorage does not exist during prerender, so an unguarded read
+    // throws on every build and logs a scary "Error loading draft" that has
+    // nothing to do with any actual draft.
+    if (typeof window === 'undefined') return null
     try {
       const draft = localStorage.getItem(DRAFT_KEY)
       if (draft) {
