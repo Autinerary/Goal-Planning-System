@@ -29,7 +29,7 @@ export default function PhotoScheduleImport({
   onConfirm,
   onClose,
 }: {
-  onConfirm: (events: { name: string; day: string; time: string; date: string | null }[]) => void
+  onConfirm: (events: { name: string; day: string; time: string; date: string | null }[]) => Promise<boolean>
   onClose: () => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -73,7 +73,8 @@ export default function PhotoScheduleImport({
     setEvents((prev) => (prev || []).map((e) => (e.id === id ? { ...e, ...patch } : e)))
   }
 
-  const confirm = () => {
+  const confirm = async () => {
+    if (busy) return
     const chosen = (events || [])
       .filter((e) => e.included && e.name.trim())
       .map((e) => ({
@@ -86,7 +87,12 @@ export default function PhotoScheduleImport({
         // flattened to a weekday — the calendar can hold actual dates.
         date: e.date,
       }))
-    onConfirm(chosen)
+    setBusy(true)
+    setError('')
+    try {
+      if (!await onConfirm(chosen)) setError('Could not save these events. Check the calendar error and try again.')
+    } catch { setError('Could not save these events. Please try again.') }
+    finally { setBusy(false) }
   }
 
   return (
@@ -194,6 +200,7 @@ export default function PhotoScheduleImport({
             <div className="flex gap-2 pt-2">
               <button
                 onClick={confirm}
+                disabled={busy || !events.some(event => event.included && event.name.trim())}
                 className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-cyan-600 text-white font-semibold hover:bg-cyan-700"
               >
                 <Check className="w-4 h-4" /> Add {events.filter((e) => e.included).length} to calendar

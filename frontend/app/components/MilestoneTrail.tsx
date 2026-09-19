@@ -34,6 +34,8 @@ interface MilestoneTrailProps {
   currentIndex: number
   onSelect: (m: TrailMilestone) => void
   day?: boolean
+  startIndex?: number
+  previewAll?: boolean
 }
 
 const ZONE: Record<
@@ -51,7 +53,7 @@ const zoneFor = (d?: string) => ZONE[(d || '').toLowerCase()] || ZONE.default
 
 // Vertical space per milestone. Enough that a node plus its label never
 // collides with the one above.
-const STEP = 108
+const STEP = 160
 const PAD_TOP = 70
 const PAD_BOTTOM = 90
 
@@ -61,6 +63,8 @@ export default function MilestoneTrail({
   currentIndex,
   onSelect,
   day = true,
+  startIndex = 0,
+  previewAll = false,
 }: MilestoneTrailProps) {
   const n = milestones.length
   const height = PAD_TOP + Math.max(1, n) * STEP + PAD_BOTTOM
@@ -260,7 +264,7 @@ export default function MilestoneTrail({
           // Only the first UNFINISHED step is "here" — a completed node must
           // never carry the pin, which is what it was doing.
           const current = i === activeIndex && !done
-          const locked = !done && i > lastOfActiveZone
+          const locked = !previewAll && !done && i > lastOfActiveZone
 
           return (
             <button
@@ -274,7 +278,7 @@ export default function MilestoneTrail({
               aria-current={current ? 'step' : undefined}
               aria-disabled={locked}
               title={locked ? 'Finish your current area to unlock this' : m.name}
-              aria-label={`Step ${i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked — finish your current area first)' : ''}`}
+              aria-label={`Step ${startIndex + i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked — finish your current area first)' : ''}`}
               className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 group rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-white ${
                 locked ? 'cursor-not-allowed' : 'cursor-pointer'
               }`}
@@ -306,26 +310,23 @@ export default function MilestoneTrail({
                     {/* Keep the number visible on finished steps — otherwise a
                         run of green ticks loses all sense of where you are. */}
                     <span className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-full bg-white text-[10px] font-black text-emerald-700 shadow tabular-nums">
-                      {i + 1}
+                      {startIndex + i + 1}
                     </span>
                   </>
                 ) : locked ? (
                   <Lock className="w-5 h-5 text-white/90" aria-hidden="true" />
                 ) : (
                   <span className="text-lg font-black text-white tabular-nums" style={{ textShadow: '0 2px 0 rgba(0,0,0,.45)' }}>
-                    {i + 1}
+                    {startIndex + i + 1}
                   </span>
                 )}
               </span>
 
-              {current && (
-                <>
-                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-2xl animate-bounce" aria-hidden="true">📍</span>
-                  <span className="absolute top-[62px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-white/95 px-2 py-1 text-[11px] font-bold text-slate-800 shadow-md max-w-[170px] truncate">
-                    {m.name}
-                  </span>
-                </>
-              )}
+              {current && <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-1 text-xs font-bold text-slate-900">You are here</span>}
+              <span className="absolute top-[62px] left-1/2 w-32 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-[11px] font-semibold leading-tight text-slate-800">
+                <span className="line-clamp-2">{m.name}</span>
+                <span className="mt-1 block text-sky-700">{locked ? 'Locked' : 'Tap to view'}</span>
+              </span>
             </button>
           )
         })}

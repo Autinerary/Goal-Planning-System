@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
@@ -517,12 +517,17 @@ export default function OnboardingPage() {
 
   // ─── Autosave: persist progress to localStorage so it survives page reloads ───
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
+  const [draftReady, setDraftReady] = useState(false)
+  const draftRestored = useRef(false)
+  const draftSubmitted = useRef(false)
   // Stable answers from the last completed onboarding, reused to prefill when a
   // returning user starts another path (see the carry-over block on mount).
   const CARRYOVER_KEY = 'autinerary_onboarding_carryover'
 
   // Restore saved draft on mount
   useEffect(() => {
+    if (draftRestored.current) return
+    draftRestored.current = true
     try {
       const saved = localStorage.getItem(AUTOSAVE_KEY)
       let restoredDraft = false
@@ -553,6 +558,16 @@ export default function OnboardingPage() {
         // general examples already use, instead of a second, separate
         // mechanism that silently pre-fills real entries.
         if (seed?.key) {
+          if (Array.isArray(seed.selectedGoals) && seed.selectedGoals.length > 0) {
+            setFormData(previous => {
+              const entries = [...(previous.goalsByCategory[focusCategory] || [])]
+              for (const goal of seed.selectedGoals) {
+                if (typeof goal === 'string' && goal.trim() && !entries.some(entry => entry.goal === goal)) entries.push({ goal, dreams: '', obstacles: '' })
+              }
+              return { ...previous, goalsByCategory: { ...previous.goalsByCategory, [focusCategory]: entries } }
+            })
+            localStorage.setItem('autinerary_path_seed', JSON.stringify({ ...seed, selectedGoals: [] }))
+          }
           const modelGoals: string[] = Array.isArray(seed.goals) ? seed.goals : []
           const generalSuggestions: string[] = Array.isArray(seed.suggestions) ? seed.suggestions : []
           const merged = [...modelGoals, ...generalSuggestions.filter((s) => !modelGoals.includes(s))]
@@ -605,12 +620,13 @@ export default function OnboardingPage() {
       }
     } catch {
       // corrupt data — ignore
+    } finally {
+      setDraftReady(true)
     }
   }, [])
 
-  // Save on every step change or formData change (debounced)
   useEffect(() => {
-    const timer = setTimeout(() => {
+      if (!draftReady || draftSubmitted.current) return
       try {
         localStorage.setItem(
           AUTOSAVE_KEY,
@@ -619,12 +635,11 @@ export default function OnboardingPage() {
       } catch {
         // quota exceeded — ignore
       }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [currentStep, formData])
+  }, [currentStep, formData, draftReady])
 
   // Clear autosave + consumed path seed on successful submission
   const clearAutosave = () => {
+    draftSubmitted.current = true
     try {
       localStorage.removeItem(AUTOSAVE_KEY)
       localStorage.removeItem('autinerary_path_seed')
@@ -1007,6 +1022,7 @@ export default function OnboardingPage() {
         motivationType: formData.motivationType,
         supportContext: recommendationSupportContext,
         preferences: {
+          pathModel: chosenModel,
           ageRange: formData.ageRange,
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
@@ -1112,7 +1128,11 @@ export default function OnboardingPage() {
           hairColor: formData.hairColor,
           skinColor: formData.skinColor,
         },
-        goals: formData.goals.filter(g => g.trim()),
+        goals: onboardingBody.goals,
+        dreams: onboardingBody.dreams,
+        currentChallenges: onboardingBody.currentChallenges,
+        goalsByCategory: formData.goalsByCategory,
+        barrierTypes: selectedBarrierTypes,
         lifeStage: formData.lifeStage,
         location: formData.location,
         role: formData.role,

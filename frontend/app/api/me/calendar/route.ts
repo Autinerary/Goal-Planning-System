@@ -98,6 +98,8 @@ export async function POST(req: NextRequest) {
   const source = clamp(body?.source, 120) || null
   const rawScenario = clamp(body?.scenario, 20)
   const scenario = rawScenario && ALLOWED_SCENARIO.has(rawScenario) ? rawScenario : null
+  const completedAt = clamp(body?.completed_at, 40)
+  const completionTime = completedAt && !Number.isNaN(Date.parse(completedAt)) ? new Date(completedAt).toISOString() : null
 
   const { data, error } = await supabase
     .from('calendar_tasks')
@@ -114,6 +116,7 @@ export async function POST(req: NextRequest) {
         priority,
         source,
         scenario,
+        ...(typeof body.completed === 'boolean' ? { completed: body.completed, completed_at: body.completed ? completionTime : null } : {}),
       },
       { onConflict: 'user_id,client_id' }
     )
@@ -126,4 +129,15 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ task: data })
+}
+
+export async function DELETE(req: NextRequest) {
+  const supabase = createServerSupabase()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  const clientId = clamp(req.nextUrl.searchParams.get('client_id'), 120)
+  if (!clientId) return NextResponse.json({ error: 'client_id is required' }, { status: 400 })
+  const { error } = await supabase.from('calendar_tasks').delete().eq('user_id', user.id).eq('client_id', clientId)
+  if (error) return NextResponse.json({ error: 'Could not remove this calendar task.' }, { status: 500 })
+  return NextResponse.json({ deleted: true })
 }

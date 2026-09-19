@@ -3,11 +3,30 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   loadPreferences,
+  DEFAULT_PREFERENCES,
   savePreferences,
   saveLayout,
   type UserPreferences,
   type LayoutPositions,
 } from '@/lib/preferences'
+
+let pendingWrites = 0
+let preferenceRevision = 0
+let writeQueue: Promise<boolean> = Promise.resolve(true)
+
+function persistPreferences(patch: Partial<UserPreferences>) {
+  pendingWrites++
+  preferenceRevision++
+  const request = writeQueue.then(async () => {
+    try {
+      const response = await fetch('/api/me/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(patch) })
+      return response.ok
+    } catch { return false }
+    finally { pendingWrites-- }
+  })
+  writeQueue = request
+  return request
+}
 
 /**
  * Live access to the user's view/interaction preferences. Updates in the same
@@ -15,10 +34,12 @@ import {
  * event), so customization controls reflect instantly everywhere.
  */
 export function usePreferences() {
-  const [prefs, setPrefs] = useState<UserPreferences>(loadPreferences)
+  const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFERENCES)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     const sync = () => setPrefs(loadPreferences())
+    sync()
     const onCustom = (e: Event) => {
       const detail = (e as CustomEvent).detail as UserPreferences | undefined
       setPrefs(detail || loadPreferences())
@@ -36,12 +57,14 @@ export function usePreferences() {
   // merged result is written back to localStorage and broadcast.
   useEffect(() => {
     let cancelled = false
+    const revision = preferenceRevision
+    const localVersion = loadPreferences().updatedAt
     ;(async () => {
       try {
         const res = await fetch('/api/me/preferences', { cache: 'no-store', credentials: 'include' })
         if (!res.ok) return
         const json = await res.json()
-        if (cancelled || !json?.preferences) return
+        if (cancelled || pendingWrites > 0 || preferenceRevision !== revision || loadPreferences().updatedAt !== localVersion || !json?.preferences) return
         const server = json.preferences as Partial<UserPreferences>
         const local = loadPreferences()
         // Prefer server as the source of truth for layout/view (last saved wins),
@@ -58,29 +81,25 @@ export function usePreferences() {
     return () => { cancelled = true }
   }, [])
 
-  const update = useCallback((patch: Partial<UserPreferences>) => {
+  const update = useCallback(async (patch: Partial<UserPreferences>) => {
     setPrefs(savePreferences(patch))
     // Fire-and-forget server sync (skip device-only accessibility).
     const { accessibility, ...serverPatch } = patch
     if (Object.keys(serverPatch).length > 0) {
-      fetch('/api/me/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(serverPatch),
-      }).catch(() => {/* localStorage already has it */})
+      const saved = await persistPreferences(serverPatch)
+      setSaveError(saved ? '' : 'Saved on this device only. Account sync failed; try again when connected.')
+      return saved
     }
+    return true
   }, [])
 
-  const updateLayout = useCallback((patch: Partial<LayoutPositions>) => {
-    setPrefs(saveLayout(patch))
-    fetch('/api/me/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ layout: patch }),
-    }).catch(() => {/* localStorage already has it */})
+  const updateLayout = useCallback(async (patch: Partial<LayoutPositions>) => {
+    const next = saveLayout(patch)
+    setPrefs(next)
+    const saved = await persistPreferences({ layout: next.layout })
+    setSaveError(saved ? '' : 'Saved on this device only. Account sync failed; try again when connected.')
+    return saved
   }, [])
 
-  return { prefs, update, updateLayout }
+  return { prefs, update, updateLayout, saveError }
 }

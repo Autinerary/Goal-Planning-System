@@ -50,6 +50,7 @@ export interface LayoutPositions {
 }
 
 export interface UserPreferences {
+  gamification?: import('./gamification').GamificationPreferences
   dreamAppearance?: { hairStyle: string; hairColor: string; skinColor: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }
   ageRange: AgeRange | ''

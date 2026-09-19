@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route, ShieldCheck } from 'lucide-react'
 import { loadMovement, movementSummary, exportMovement, clearMovement, type RouteVisit } from '@/lib/movement'
 import SettingsPreferences from '../../components/SettingsPreferences'
+import GamificationSettings from '../../components/GamificationSettings'
 
 type Profile = {
   id: string
@@ -198,6 +199,7 @@ export default function ProfileSettingsPage() {
         </button>
 
         <SettingsPreferences />
+        <GamificationSettings />
 
         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">
           <h1 className="text-2xl font-bold mb-1">Profile & Discovery</h1>

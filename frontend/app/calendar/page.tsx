@@ -14,8 +14,12 @@ import RainDayBanner from '../components/RainDayBanner'
 import PhotoScheduleImport from '../components/PhotoScheduleImport'
 import WeekTimeGrid from '../components/calendar/WeekTimeGrid'
 import MonthGrid from '../components/calendar/MonthGrid'
+import GamificationSettings, { useGamification } from '../components/GamificationSettings'
+import { animalForDay, themeForDate, ANIMAL_COLORS, WEEKDAYS, type GamificationPreferences } from '@/lib/gamification'
 import { parseDurationString, toISODate, type CalendarTask as DatedTask } from '@/lib/calendarModel'
 import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
+import { useCalendarHistory } from '@/lib/calendarHistory'
+import { Undo2, Redo2 } from 'lucide-react'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -227,8 +231,8 @@ function CalendarContent() {
   // Day / Week / Month period (Odosa). 'day' shows one day; 'week'/'month' show
   // the full pattern (month adds a note that it repeats weekly).
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('week')
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
-  const { supabaseUser } = useAuth()
+  const [agentCompletedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
+  const { supabaseUser, isLoading: authLoading } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
   const [showAddTask, setShowAddTask] = useState(false)
   const [showPhotoImport, setShowPhotoImport] = useState(false)
@@ -237,15 +241,11 @@ function CalendarContent() {
   // Real dates + numeric durations, straight from the server. The local
   // `addedTasks` state is deliberately NOT the source here: it only carries a
   // weekday name, so it cannot answer "what is on the 14th".
-  const [serverTasks, setServerTasks] = useState<any[]>([])
-  const [addedTasks, setAddedTasks] = useState<Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>>(() => {
-    // Load from localStorage on mount (will be overwritten from Supabase below if signed in)
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('calendarAddedTasks')
-      return saved ? JSON.parse(saved) : []
-    }
-    return []
-  })
+  const history = useCalendarHistory(supabaseUser?.id, authLoading)
+  const { value: gamification } = useGamification()
+  const addedTasks = history.tasks
+  const completedTasks = new Set([...agentCompletedTasks, ...addedTasks.filter(task => task.completed).map(task => task.id)])
+  const serverTasks = addedTasks.map(task => ({ ...task, client_id: task.id, scheduled_date: task.scheduledDate, duration_minutes: task.durationMinutes, source: task.from }))
   // Real connections for the mentor/role-model comparison (no fake schedules).
   const [realConnections, setRealConnections] = useState<Record<string, any[]>>({ friends: [], mentors: [], rolemodels: [] })
   useEffect(() => {
@@ -270,33 +270,6 @@ function CalendarContent() {
     ;(async () => {
       const ids = await fetchCompletedMilestoneIds()
       if (!cancelled) setCompletedMilestoneIds(ids)
-    })()
-    return () => { cancelled = true }
-  }, [isSignedIn])
-
-  // When signed in, replace the localStorage-seeded state with whatever Supabase has.
-  useEffect(() => {
-    if (!isSignedIn) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await fetch('/api/me/calendar', { cache: 'no-store', credentials: 'include' })
-        if (!res.ok) return
-        const json = await res.json()
-        if (cancelled) return
-        const mapped = (json.tasks || []).map((t: any) => ({
-          id: t.client_id,
-          day: t.day,
-          time: t.time,
-          name: t.name,
-          duration: t.duration,
-          priority: t.priority,
-          from: t.source || undefined,
-        }))
-        setAddedTasks(mapped)
-      } catch {
-        /* keep localStorage state */
-      }
     })()
     return () => { cancelled = true }
   }, [isSignedIn])
@@ -376,7 +349,11 @@ function CalendarContent() {
   // but no fake days — the schedule area shows an honest empty state.
   const agentData = buildAgentScenarioData()
   const hasAgentSchedule = !!agentData
-  const currentData: any = agentData || { ...scenarioData[scenario], days: [] }
+  const extraDays = [...new Set(addedTasks.map(task => task.day))]
+    .filter(day => !agentData?.days.some((entry: any) => entry.name === day))
+    .sort((first, second) => WEEKDAYS.indexOf(first) - WEEKDAYS.indexOf(second))
+    .map(name => ({ name, theme: '', typeOfDay: '', motivation: '', tasks: [] }))
+  const currentData: any = { ...(agentData || scenarioData[scenario]), days: [...(agentData?.days || []), ...extraDays] }
   const ScenarioIcon = currentData.icon
 
   // Day period anchors to TODAY's weekday (Odosa: "doesn't update to current
@@ -388,6 +365,11 @@ function CalendarContent() {
     return today ? [today] : _allDays.slice(0, 1)
   })()
   const displayDays = period === 'day' ? _dayModeDays : _allDays
+  const renderDayIdentity = (date: Date) => {
+    const weekday = WEEKDAYS[(date.getDay() + 6) % 7]
+    const day = _allDays.find((entry: any) => entry.name === weekday)
+    return <CalendarDayIdentity value={gamification} date={date} weekday={weekday} fallbackTheme={day?.theme || ''} dayType={day?.typeOfDay || ''} />
+  }
 
   // Check for pending suggestion on mount or when params change
   useEffect(() => {
@@ -416,7 +398,13 @@ function CalendarContent() {
     }
   }, [suggestionParam, fromParam, router, viewType, comparisonType])
 
-  const toggleTask = (taskId: string) => {
+  const toggleTask = async (taskId: string) => {
+    const added = addedTasks.find(task => task.id === taskId)
+    if (added) {
+      const saved = await history.change(addedTasks.map(task => task.id === taskId ? { ...task, completed: !task.completed, completedAt: task.completed ? null : new Date().toISOString() } : task))
+      if (saved && !added.completed) playTaskCompleteSound()
+      return
+    }
     setCompletedTasks(prev => {
       const newSet = new Set(prev)
       if (newSet.has(taskId)) {
@@ -445,44 +433,13 @@ function CalendarContent() {
     const taskId = `user_${Date.now()}`
     const newTask = { id: taskId, ...task, from: 'You' }
 
-    const updated = [...addedTasks, newTask]
-    setAddedTasks(updated)
-    try {
-      localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
-    } catch { /* quota — server copy below still applies */ }
-
-    if (isSignedIn) {
-      fetch('/api/me/calendar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          client_id: taskId,
-          day: task.day,
-          time: task.time,
-          name: task.name,
-          duration: task.duration,
-          priority: task.priority,
-          source: 'You',
-          scenario,
-        }),
-      }).catch(() => {/* silent — localStorage still has it */})
-    }
+    return history.change([...addedTasks, { ...newTask, scenario }])
   }
 
   // "Move this to <day> instead" from the rain banner. Only touches
   // addedTasks, the user's own additions — agent-scheduled tasks for the
   // rainy day stay put, since silently rewriting the plan the agents built
   // is a bigger claim than a weather nudge should make.
-  useEffect(() => {
-    if (!isSignedIn) return
-    let cancelled = false
-    fetch('/api/me/calendar', { cache: 'no-store', credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (!cancelled && Array.isArray(j?.tasks)) setServerTasks(j.tasks) })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [isSignedIn])
 
   // Everything the real-date views draw: server rows (which may carry a real
   // date) plus the agent's weekly template, which genuinely has no dates and
@@ -524,47 +481,17 @@ function CalendarContent() {
   // updates locally so the block doesn't snap back while the request is in
   // flight.
   const rescheduleTask = (taskId: string, newDateISO: string, newTime: string) => {
-    setServerTasks((prev) => {
-      const exists = prev.some((t: any) => String(t.client_id || t.id) === taskId)
-      if (exists) {
-        return prev.map((t: any) =>
-          String(t.client_id || t.id) === taskId
-            ? { ...t, scheduled_date: newDateISO, time: newTime }
-            : t
-        )
-      }
-      // Dragging an agent-template task pins it to a real date for the first
-      // time, so it becomes a server row rather than staying a weekly repeat.
-      const agent = datedTasks.find((t) => t.id === taskId)
-      if (!agent) return prev
-      return [...prev, {
-        client_id: taskId, name: agent.name, day: agent.day, time: newTime,
-        scheduled_date: newDateISO, duration_minutes: agent.durationMinutes,
-        priority: agent.priority, completed: false,
-      }]
-    })
-
-    if (!isSignedIn) return
     const agent = datedTasks.find((t) => t.id === taskId)
-    fetch('/api/me/calendar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        client_id: taskId,
-        day: agent?.day || 'Monday',
-        time: newTime,
-        scheduled_date: newDateISO,
-        duration_minutes: agent?.durationMinutes ?? undefined,
-        name: agent?.name || 'Task',
-        priority: agent?.priority || 'medium',
-        scenario,
-      }),
-    }).catch(() => {})
+    if (!agent) return
+    const day = new Date(`${newDateISO}T12:00:00`).toLocaleDateString('en', { weekday: 'long' })
+    const existing = addedTasks.find(task => task.id === taskId)
+    const moved = { ...existing, id: taskId, day, time: newTime, scheduledDate: newDateISO, durationMinutes: agent.durationMinutes, name: agent.name, duration: existing?.duration || `${agent.durationMinutes || 30} min`, priority: agent.priority, scenario }
+    void history.change(existing ? addedTasks.map(task => task.id === taskId ? moved : task) : [...addedTasks, moved])
   }
 
-  const moveDayTasks = (fromDay: string, toDay: string) => {
-    setAddedTasks((prev) => prev.map((t) => (t.day === fromDay ? { ...t, day: toDay } : t)))
+  const moveDayTasks = async (fromDay: string, toDay: string) => {
+    if (!addedTasks.some(task => task.day === fromDay && !task.scheduledDate)) return true
+    return history.change(addedTasks.map(task => task.day === fromDay && !task.scheduledDate ? { ...task, day: toDay } : task))
   }
 
   // From PhotoScheduleImport, after the user has confirmed/edited the
@@ -583,38 +510,7 @@ function CalendarContent() {
       scheduledDate: e.date ?? null,
     }))
 
-    // Anything with a real date also lands in the dated views immediately,
-    // rather than only appearing after a reload.
-    setServerTasks((prev) => [
-      ...prev,
-      ...created
-        .filter((t) => t.scheduledDate)
-        .map((t) => ({
-          client_id: t.id, name: t.name, day: t.day, time: t.time,
-          scheduled_date: t.scheduledDate, duration_minutes: 30,
-          priority: t.priority, source: t.from, completed: false,
-        })),
-    ])
-    const updated = [...addedTasks, ...created]
-    setAddedTasks(updated)
-    localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
-
-    if (isSignedIn) {
-      created.forEach((t) => {
-        fetch('/api/me/calendar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            client_id: t.id, day: t.day, time: t.time, name: t.name,
-            duration: t.duration, priority: t.priority, source: t.from, scenario,
-            scheduled_date: t.scheduledDate ?? undefined,
-            duration_minutes: 30,
-          }),
-        }).catch(() => {})
-      })
-    }
-    setShowPhotoImport(false)
+    return history.change([...addedTasks, ...created.map(task => ({ ...task, scenario, durationMinutes: 30 }))]).then(saved => { if (saved) setShowPhotoImport(false); return saved })
   }
 
   const addSuggestionToCalendar = (suggestion: string, from: string, selectedDay: string, selectedTime: string) => {
@@ -649,37 +545,10 @@ function CalendarContent() {
       from: from
     }
     
-    // Add to state
-    const updated = [...addedTasks, newTask]
-    setAddedTasks(updated)
+    void history.change([...addedTasks, { ...newTask, scenario }]).then(saved => {
+      if (saved) { setShowSuggestionModal(false); setPendingSuggestion(null) }
+    })
     
-    // Save to localStorage (always — guest fallback / instant offline copy)
-    localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
-
-    // Also persist to Supabase when signed in. Fire-and-forget — UI already updated.
-    if (isSignedIn) {
-      fetch('/api/me/calendar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          client_id: taskId,
-          day: selectedDay,
-          time: selectedTime,
-          name: taskName,
-          duration,
-          priority,
-          source: from,
-          scenario,
-        }),
-      }).catch(() => {/* silent — localStorage still has it */})
-    }
-
-    // Close modal
-    setShowSuggestionModal(false)
-    setPendingSuggestion(null)
-    
-    alert(`✅ Task added to ${selectedDay} at ${selectedTime}!\n\n"${taskName}"\n\nFrom: ${from}`)
   }
 
   // Export the whole week (scenario tasks + user-added tasks) to an .ics file
@@ -695,6 +564,7 @@ function CalendarContent() {
       })),
     )
     const userTasks = addedTasks.map((t) => ({
+      scheduledDate: t.scheduledDate,
       day: t.day,
       time: t.time,
       name: t.name,
@@ -725,6 +595,7 @@ function CalendarContent() {
       }
       const imported = parsed.map((t, i) => ({
         id: `import_${Date.now()}_${i}`,
+        scheduledDate: t.scheduledDate,
         day: t.day,
         time: t.time,
         name: t.name,
@@ -732,31 +603,7 @@ function CalendarContent() {
         priority: t.priority || 'medium',
         from: 'Imported (.ics)',
       }))
-      const updated = [...addedTasks, ...imported]
-      setAddedTasks(updated)
-      localStorage.setItem('calendarAddedTasks', JSON.stringify(updated))
-
-      if (isSignedIn) {
-        for (const task of imported) {
-          fetch('/api/me/calendar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              client_id: task.id,
-              day: task.day,
-              time: task.time,
-              name: task.name,
-              duration: task.duration,
-              priority: task.priority,
-              source: task.from,
-              scenario,
-            }),
-          }).catch(() => {/* silent — localStorage still has it */})
-        }
-      }
-
-      alert(`✅ Imported ${imported.length} event${imported.length === 1 ? '' : 's'} into your calendar.`)
+      await history.change([...addedTasks, ...imported.map(task => ({ ...task, scenario }))])
     } catch (err) {
       console.error('Failed to import .ics file:', err)
       alert('Sorry, that file could not be read as a calendar (.ics) file.')
@@ -780,18 +627,8 @@ function CalendarContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/50 to-sky-50 p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/50 to-sky-50 p-4 sm:p-8 relative overflow-hidden">
       <style>{`@keyframes turtlePeek{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}} @keyframes scrollUnfurl{from{max-height:0;opacity:0}to{max-height:2000px;opacity:1}} .turtle-peek{animation:turtlePeek 3s ease-in-out infinite}`}</style>
-      {/* Background decorations + Turtles peeking */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-amber-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-sky-200/30 rounded-full blur-3xl" />
-        {/* Turtles peeking from edges */}
-        <div className="absolute top-32 left-0 text-3xl turtle-peek" style={{ animationDelay: '0s' }}>🐢</div>
-        <div className="absolute top-64 right-0 text-3xl turtle-peek transform -scale-x-100" style={{ animationDelay: '1s' }}>🐢</div>
-        <div className="absolute bottom-40 left-4 text-2xl turtle-peek" style={{ animationDelay: '0.5s' }}>🐢</div>
-        <div className="absolute bottom-20 right-6 text-2xl turtle-peek transform -scale-x-100" style={{ animationDelay: '1.5s' }}>🐢</div>
-      </div>
       <div className="relative z-10">
         {showPhotoImport && (
           <PhotoScheduleImport
@@ -807,20 +644,22 @@ function CalendarContent() {
             <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-slate-800 mb-4">Add a task</h3>
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault()
                   const f = new FormData(e.currentTarget as HTMLFormElement)
                   const name = String(f.get('name') || '').trim()
                   if (!name) return
-                  addTaskToCalendar({
+                  const saved = await addTaskToCalendar({
                     name,
                     day: String(f.get('day') || 'Monday'),
                     time: String(f.get('time') || '09:00'),
                     duration: String(f.get('duration') || '30 min'),
                     priority: String(f.get('priority') || 'medium'),
                   })
-                  playTaskCompleteSound()
-                  setShowAddTask(false)
+                  if (saved) {
+                    playTaskCompleteSound()
+                    setShowAddTask(false)
+                  }
                 }}
                 className="space-y-4"
               >
@@ -840,8 +679,8 @@ function CalendarContent() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Day</label>
                     <select name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
-                      {(_allDays.length ? _allDays : [{ name: 'Monday' }]).map((d: any) => (
-                        <option key={d.name} value={d.name}>{d.name}</option>
+                      {WEEKDAYS.map(day => (
+                        <option key={day} value={day}>{day}</option>
                       ))}
                     </select>
                   </div>
@@ -878,10 +717,11 @@ function CalendarContent() {
                   <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90">
+                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90 disabled:opacity-40">
                     Add task
                   </button>
                 </div>
+                {history.error && <p role="alert" className="text-sm text-red-700">{history.error}</p>}
               </form>
             </div>
           </div>
@@ -1083,7 +923,11 @@ function CalendarContent() {
             </div>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <button type="button" title="Undo calendar change" aria-label="Undo calendar change" disabled={!history.canUndo || history.busy} onClick={() => history.undo()} className="rounded border p-2 disabled:opacity-40"><Undo2 className="h-5 w-5" /></button>
+            <button type="button" title="Redo calendar change" aria-label="Redo calendar change" disabled={!history.canRedo || history.busy} onClick={() => history.redo()} className="rounded border p-2 disabled:opacity-40"><Redo2 className="h-5 w-5" /></button>
+            {history.busy && <span role="status" className="text-sm">Saving calendar...</span>}
+            {history.error && <span role="alert" className="max-w-sm text-sm text-red-700">{history.error}</span>}
             <input
               ref={importInputRef}
               type="file"
@@ -1182,7 +1026,7 @@ function CalendarContent() {
           </button>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-3 sm:p-6 md:p-8 shadow-2xl">
           {period === 'month' && (
             <div className="mb-6 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
               Showing your weekly pattern — it repeats through the month. Day-by-date scheduling is coming soon.
@@ -1215,9 +1059,9 @@ function CalendarContent() {
 
           {/* YOUR CALENDAR — always shown. Day period shows the first day only;
               Week/Month show the full pattern. */}
-          {!hasAgentSchedule && (
+          {!hasAgentSchedule && addedTasks.length === 0 && (
             <div className="mb-4 text-center py-8 px-4 border-2 border-dashed border-slate-200 rounded-xl">
-              <p className="text-sm text-slate-500 mb-3">Your schedule appears here once your path is generated.</p>
+              <p className="text-sm text-slate-500 mb-3">No activities yet. Add a task, import a calendar, or generate a path.</p>
               <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
             </div>
           )}
@@ -1226,7 +1070,7 @@ function CalendarContent() {
               <div className="space-y-3">
                 {/* Real-date navigation. The template views have no concept of
                     "next week", so this only exists here. */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <button
                     onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, -1) : addDays(anchorDate, -7))}
                     className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
@@ -1258,7 +1102,8 @@ function CalendarContent() {
                   <WeekTimeGrid
                     tasks={datedTasks}
                     anchorDate={anchorDate}
-                    onMove={rescheduleTask}
+                    onMove={history.busy ? undefined : rescheduleTask}
+                    renderDayIdentity={renderDayIdentity}
                     // Same destination the List and Time Block views already
                     // use — this prop existed but was never passed, so blocks
                     // were unclickable.
@@ -1270,6 +1115,7 @@ function CalendarContent() {
                   <MonthGrid
                     tasks={datedTasks}
                     month={anchorDate}
+                    renderDayIdentity={renderDayIdentity}
                     onSelectDay={(d) => { setAnchorDate(d); router.push(`/calendar?view=week&comparison=${comparisonType}`) }}
                     onSelectTask={(task) =>
                       router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
@@ -1284,19 +1130,21 @@ function CalendarContent() {
               </div>
             ) : viewType === 'list' ? (
               <ListView
+                gamification={gamification}
                 days={displayDays}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
-                onSwitchDay={moveDayTasks}
+                onSwitchDay={history.busy ? undefined : moveDayTasks}
               />
             ) : (
               <TimeBlockView
+                gamification={gamification}
                 days={displayDays}
                 completedTasks={completedTasks}
                 toggleTask={toggleTask}
                 addedTasks={addedTasks}
-                onSwitchDay={moveDayTasks}
+                onSwitchDay={history.busy ? undefined : moveDayTasks}
               />
             )}
           </div>
@@ -1337,6 +1185,11 @@ function CalendarContent() {
           )}
 
 
+          <details className="mt-6 border-t border-slate-300 pt-4">
+            <summary className="cursor-pointer font-semibold text-slate-800">Customize animals and themes</summary>
+            <GamificationSettings />
+          </details>
+
         {/* Journal Button */}
           <div className="mt-8 text-center">
             <Link 
@@ -1353,12 +1206,28 @@ function CalendarContent() {
   )
 }
 
-function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }: { 
+function CalendarDayIdentity({ value, date: selectedDate, weekday, fallbackTheme, dayType }: { value: GamificationPreferences; date?: Date; weekday: string; fallbackTheme: string; dayType: string }) {
+  const date = selectedDate ? new Date(selectedDate) : new Date()
+  if (!selectedDate) {
+    const offset = (WEEKDAYS.indexOf(weekday) - (date.getDay() + 6) % 7 + 7) % 7
+    date.setDate(date.getDate() + offset)
+  }
+  const pace = /slow|low|rest|recovery|gentle/i.test(dayType) ? 'slow' : /fast|high|focus|work|busy/i.test(dayType) ? 'fast' : 'unknown'
+  const animal = animalForDay(value, date, pace)
+  const theme = themeForDate(value, date) || fallbackTheme
+  return <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs font-normal text-blue-700">
+    {animal && <img src={`/spirit-animals/${animal.type}.png`} alt={`${weekday}: ${animal.color} ${animal.type}`} width={32} height={32} style={{ maxWidth: '100%', filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
+    {theme && <span className="min-w-0 max-w-full [overflow-wrap:anywhere]">{theme}</span>}
+  </div>
+}
+
+function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, gamification }: {
+  gamification: GamificationPreferences,
   days: typeof scenarioData.average.days, 
   completedTasks: Set<string>,
   toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>,
-  onSwitchDay?: (fromDay: string, toDay: string) => void
+  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string, scheduledDate?: string | null}>,
+  onSwitchDay?: (fromDay: string, toDay: string) => Promise<boolean>
 }) {
   const router = useRouter()
   const [currentDayIndex, setCurrentDayIndex] = useState(0)
@@ -1388,10 +1257,10 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }:
           <div key={idx} className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
             <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
               <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
-              <div className="text-sm italic text-blue-600 mb-1">Theme: {day.theme}</div>
+              <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
               <div className="text-sm italic text-purple-600">{day.typeOfDay}</div>
               <div className="text-sm italic text-pink-600 mt-1">&ldquo;{day.motivation}&rdquo;</div>
-              <RainDayBanner weekday={day.name} onSwitchDay={(toWeekday) => onSwitchDay?.(day.name, toWeekday)} />
+              <RainDayBanner weekday={day.name} onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} />
             </div>
 
             <div className="space-y-2">
@@ -1459,12 +1328,13 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }:
   )
 }
 
-function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay }: { 
+function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, gamification }: {
+  gamification: GamificationPreferences,
   days: typeof scenarioData.average.days,
   completedTasks: Set<string>,
   toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string}>,
-  onSwitchDay?: (fromDay: string, toDay: string) => void
+  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string, scheduledDate?: string | null}>,
+  onSwitchDay?: (fromDay: string, toDay: string) => Promise<boolean>
 }) {
   const router = useRouter()
   // Get all unique time slots (including added tasks)
@@ -1496,10 +1366,10 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchD
             {days.map((day, idx) => (
               <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-slate-300">
                 <div className="font-bold text-slate-800 text-lg">{day.name}</div>
-                <div className="text-xs italic font-normal text-blue-600 mt-1">{day.theme}</div>
+                <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
                 <div className="text-xs italic font-normal text-purple-600">{day.typeOfDay}</div>
                 <div className="text-xs italic font-normal text-pink-600 mt-1">"{day.motivation}"</div>
-                <div className="mt-2"><RainDayBanner weekday={day.name} compact onSwitchDay={(toWeekday) => onSwitchDay?.(day.name, toWeekday)} /></div>
+                <div className="mt-2"><RainDayBanner weekday={day.name} compact onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} /></div>
               </th>
             ))}
           </tr>

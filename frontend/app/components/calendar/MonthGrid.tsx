@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { format, isSameDay, isSameMonth, isToday } from 'date-fns'
 import { monthGridDays, occurrencesInRange, type CalendarTask } from '@/lib/calendarModel'
 
@@ -17,11 +17,13 @@ export default function MonthGrid({
   month,
   onSelectDay,
   onSelectTask,
+  renderDayIdentity,
 }: {
   tasks: CalendarTask[]
   month: Date
   onSelectDay?: (date: Date) => void
   onSelectTask?: (task: CalendarTask) => void
+  renderDayIdentity?: (date: Date) => ReactNode
 }) {
   const days = useMemo(() => monthGridDays(month), [month])
   const occurrences = useMemo(
@@ -30,7 +32,8 @@ export default function MonthGrid({
   )
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+    <div className="max-w-full overflow-x-auto" tabIndex={0} aria-label="Monthly calendar">
+    <div className="min-w-[560px] rounded-lg border border-slate-200 bg-white overflow-hidden">
       <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
           <div key={d} className="px-2 py-2 text-center text-[11px] font-bold text-slate-500 uppercase">
@@ -70,6 +73,7 @@ export default function MonthGrid({
               >
                 {format(day, 'd')}
               </button>
+              {renderDayIdentity?.(day)}
 
               <div className="space-y-0.5">
                 {shown.map((occ) => (
@@ -103,6 +107,7 @@ export default function MonthGrid({
           )
         })}
       </div>
+    </div>
     </div>
   )
 }

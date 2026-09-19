@@ -5,6 +5,7 @@
 // speak the RFC 5545 .ics format.
 
 export interface IcsTask {
+  scheduledDate?: string | null
   day: string // weekday name, e.g. "Monday"
   time: string // "HH:MM" (24h) or "H:MM"
   name: string
@@ -77,7 +78,7 @@ export function buildIcs(tasks: IcsTask[], calendarName = 'My Journey'): string 
   ]
 
   tasks.forEach((task, i) => {
-    const start = dateForWeekday(task.day, task.time)
+    const start = task.scheduledDate ? new Date(`${task.scheduledDate}T${task.time || '09:00'}:00`) : dateForWeekday(task.day, task.time)
     const end = new Date(start.getTime() + durationToMinutes(task.duration) * 60000)
     const uid = `${stamp}-${i}-${Math.random().toString(36).slice(2, 8)}@goal-planning`
     lines.push(
@@ -166,6 +167,7 @@ export function parseIcs(content: string): IcsTask[] {
           duration = mins >= 60 && mins % 60 === 0 ? `${mins / 60} hr` : `${mins} min`
         }
         tasks.push({
+          scheduledDate: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`,
           day: WEEKDAYS[start.getDay()],
           time: `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`,
           name: summary,

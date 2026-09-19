@@ -13,6 +13,10 @@ import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
 import LaneWorld from '../components/LaneWorld'
+import UserAvatar from '../components/UserAvatar'
+import { Car } from 'lucide-react'
+import { playTaskCompleteSound } from '@/lib/taskSound'
+import { useDisclosure } from '@/lib/disclosure'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
 
 /*
@@ -27,6 +31,11 @@ function RacesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { prefs, updateLayout } = usePreferences()
+  const { isSimple } = useDisclosure()
+  const [characterAppearance, setCharacterAppearance] = useState<{ hairStyle?: string; hairColor?: string; skinColor?: string }>({})
+  useEffect(() => {
+    try { setCharacterAppearance(JSON.parse(localStorage.getItem('autinerary_profile') || '{}').avatar || {}) } catch {}
+  }, [])
 
   const [isDayTheme, setIsDayTheme] = useState(true)
   const [showRocketEntry, setShowRocketEntry] = useState(false)
@@ -39,7 +48,6 @@ function RacesContent() {
   const [todaysMotivation, setTodaysMotivation] = useState<string | null>(null)
   const [showCompareMenu, setShowCompareMenu] = useState(false)
   const [showNewViewsMenu, setShowNewViewsMenu] = useState(false)
-  const [suggestionFilter, setSuggestionFilter] = useState<string>('All')
   const [expandShop, setExpandShop] = useState(false)
   const [suggestionText, setSuggestionText] = useState('')
   const [sentSuggestions, setSentSuggestions] = useState<{ to: string; text: string }[]>([])
@@ -59,19 +67,10 @@ function RacesContent() {
   // Your generated Dream Self portrait, if you have one. The header showed a
   // generic stick figure even after you had made a portrait of the person you
   // are growing into — which is the one place it most belongs.
-  const [dreamPortrait, setDreamPortrait] = useState<string | null>(null)
   // Name only — the full model, its description and norms live on the Path view.
   const [modelName, setModelName] = useState<string | null>(null)
   useEffect(() => {
     setModelName(pathModelShortName(loadChosenPathModel()))
-  }, [])
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/me/ideal-self', { cache: 'no-store', credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (!cancelled && j?.portrait?.imageUrl) setDreamPortrait(j.portrait.imageUrl) })
-      .catch(() => {})
-    return () => { cancelled = true }
   }, [])
 
   const [completedMilestoneIds, setCompletedMilestoneIds] = useState<Set<string>>(() => {
@@ -188,6 +187,7 @@ function RacesContent() {
     })
   }
   const toggleMilestoneComplete = (id: string) => {
+    if (!completedMilestoneIds.has(id)) playTaskCompleteSound()
     setCompletedMilestoneIds(prev => {
       const next = new Set(prev)
       const wasCompleted = next.has(id)
@@ -228,17 +228,10 @@ function RacesContent() {
     }
   }, [showRocketEntry])
 
-  const theirStats = { mentality: 7, happiness: 9, focus: 8, energy: 6 }
-  const theirProgress = 65, yourProgress = 45
   // Stats card: prefer the real life-stats loader (Supabase-backed
   // /api/me/life-stats — mentality, happiness, focus, energy computed from
   // reflections + milestones + calendar + check-ins). For guests / pre-load,
   // fall back to a profile-derived approximation so the demo still has bars.
-  const _userBarrierCount = (payload?.userProfile?.barrierTypes || []).length
-  const _userGoalCount = (payload?.userProfile?.goals || []).length
-  const _userDreamCount = (payload?.userProfile?.dreams || []).length
-  const _userChallengeCount = (payload?.userProfile?.currentChallenges || []).length
-  const _clamp = (n: number) => Math.max(1, Math.min(10, n))
   const stats: { name: string; value: number; max: number; change: number | null }[] = liveStats
     ? [
         { name: 'Mentality', value: liveStats.mentality.value, max: 10, change: liveStats.mentality.change },
@@ -246,12 +239,7 @@ function RacesContent() {
         { name: 'Focus',     value: liveStats.focus.value,     max: 10, change: liveStats.focus.change },
         { name: 'Energy',    value: liveStats.energy.value,    max: 10, change: liveStats.energy.change },
       ]
-    : [
-        { name: 'Mentality', value: _clamp(4 + _userBarrierCount), max: 10, change: null },
-        { name: 'Happiness', value: _clamp(5 + _userDreamCount), max: 10, change: null },
-        { name: 'Focus',     value: _clamp(3 + _userChallengeCount), max: 10, change: null },
-        { name: 'Energy',    value: _clamp(4 + _userGoalCount + _userDreamCount), max: 10, change: null },
-      ]
+    : []
   const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your differences are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
   // Recommended choices for the CURRENT milestone come from the
   // tool_recommendation agent. Fall back to the demo list if we have none.
@@ -290,8 +278,14 @@ function RacesContent() {
   const userGoalNames: string[] = (payload?.userProfile?.goals || []) as string[]
   const agentMilestoneList: any[] = (pathPlanning?.milestones || payload?.milestones || []) as any[]
   const firstMilestoneName: string | undefined = agentMilestoneList[0]?.name || agentMilestoneList[0]?.title
-  const rawRaces = payload?.races?.length
-    ? payload.races.map((r: any, idx: number) => ({
+  const raceSources = userGoalNames.length
+    ? userGoalNames.map(goal => {
+        const matchingRace = payload?.races?.find(race => [race.name, race.goal].some(name => typeof name === 'string' && name.trim().toLowerCase() === goal.trim().toLowerCase()))
+        return { ...matchingRace, id: matchingRace?.id || `goal:${goal}`, name: goal }
+      })
+    : payload?.races || []
+  const rawRaces = raceSources.length
+    ? raceSources.map((r: any, idx: number) => ({
         id: r.id || `r${idx + 1}`,
         // Prefer the user's actual goal text over the backend's generic\n        // "Main Goal" label.
         name: userGoalNames[idx] || r.name || r.goal || `Goal ${idx + 1}`,
@@ -504,7 +498,9 @@ function RacesContent() {
   // Five dots on the path. The "active" milestone is the one that carries
   // "You are here", and it also decides which grid row the Pit Stop and
   // Current Goals panels sit in, so they flank the path beside it.
-  const trackStops = milestones.slice(0, 5)
+  const firstUnfinishedIndex = milestones.findIndex((milestone: any) => !completedMilestoneIds.has(milestone.id))
+  const trackStart = Math.max(0, Math.min((firstUnfinishedIndex < 0 ? milestones.length - 1 : firstUnfinishedIndex) - 2, milestones.length - 5))
+  const trackStops = milestones.slice(trackStart, trackStart + 5)
   // Where you actually are: the first stop you have NOT finished. This used to
   // read the backend `status` flag, which is always index 0, and "done" was
   // derived from array position rather than from what you had ticked off — so
@@ -528,6 +524,10 @@ function RacesContent() {
     .st{animation:starTwinkle 2s ease-in-out infinite}
     .sw{animation:signSwing 3s ease-in-out infinite}
     .aw{animation:awningWave 4s ease-in-out infinite}
+    @keyframes raceViewEnter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .race-view-enter{animation:raceViewEnter .22s ease-out}
+    @media(prefers-reduced-motion:reduce){.race-view-enter,.bn,.dg,.cf,.st,.sw,.aw{animation:none}}
+    html[data-reduce-motion="on"] .race-view-enter{animation:none}
   `
 
   /* Storefront navigation row — Toolbox · ResourceHub · Hare World · Tidbits */
@@ -926,8 +926,11 @@ function RacesContent() {
                   ))}
                 </div>
               )}
-              {newView === 'suggestions' && <div className="space-y-2"><div className="flex gap-1">{['All', 'Role Models', 'Mentors', 'Friends'].map(f => <button key={f} onClick={() => setSuggestionFilter(f)} className={`px-2 py-0.5 text-[10px] border rounded-lg ${suggestionFilter === f ? 'bg-purple-500 text-white border-purple-500' : `${pill} ${sub}`}`}>{f}</button>)}</div>{[{ from: 'Sarah (RM)', sug: 'Pomodoro', time: '2h', cat: 'Role Models' }, { from: 'James (M)', sug: 'Smaller steps', time: '5h', cat: 'Mentors' }, { from: 'Alex (F)', sug: 'Body double', time: '1d', cat: 'Friends' }].filter(x => suggestionFilter === 'All' || x.cat === suggestionFilter).map((x, i) => <button key={i} onClick={() => router.push(`/calendar?suggestion=${encodeURIComponent(x.sug)}`)} className={`w-full text-left p-2 ${day ? 'bg-purple-50 border-purple-200' : 'bg-purple-900/30 border-purple-700'} border rounded-lg`}><div className="flex justify-between"><span className={`font-medium text-[10px] ${day ? 'text-purple-900' : 'text-purple-300'}`}>{x.from}</span><span className={`text-[9px] ${sub}`}>{x.time}</span></div><div className={`text-[10px] ${sub}`}>{x.sug}</div></button>)}</div>}
-              {newView === 'compete' && <div className="space-y-2">{[{ rival: 'Marcus', g: '10 tasks/wk', y: 6, th: 8 }, { rival: 'Alex', g: '20 hrs', y: 12, th: 15 }].map((c, i) => <div key={i} className={`p-2 border-2 rounded-lg ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}><div className="flex items-center gap-2 mb-1"><div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-[9px]">{c.rival[0]}</div><div className={`text-xs font-medium ${txt}`}>{c.rival} ({c.g})</div></div><div className={`h-1.5 ${day ? 'bg-slate-200' : 'bg-indigo-800'} rounded-full overflow-hidden`}><div className="h-full bg-gradient-to-r from-sky-400 to-amber-400 rounded-full" style={{ width: `${(c.y / Math.max(c.y, c.th)) * 100}%` }} /></div><div className="flex justify-between text-[9px] mt-0.5"><span className={sub}>You:{c.y}</span><span className={sub}>Them:{c.th}</span></div></div>)}</div>}
+              {(newView === 'suggestions' || newView === 'compete') && <div className="space-y-3 text-sm">
+                <p>No shared {newView === 'suggestions' ? 'suggestions' : 'challenges'} are available here yet.</p>
+                {Object.values(realConnections).flat().filter(person => person.target_user_id).map(person => <Link key={person.id} href={`/friend/${person.target_user_id}`} className="block underline">{person.name}</Link>)}
+                <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block underline">Manage my people</Link>
+              </div>}
             </div>
           </div>
         )}
@@ -938,7 +941,7 @@ function RacesContent() {
             Road connectors (SVGs) sit between content blocks
             so the path is always visually connected.
            ═════════════════════════════════════════════════════════ */}
-        <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
+        <div key={layoutMode} className="race-view-enter relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
 
           {/* ═══ YOUR GOALS, DREAMS & OBSTACLES (from onboarding) ═══
               Surfaced at the very top so users can see their choices ARE
@@ -961,9 +964,17 @@ function RacesContent() {
                     <div className="mb-2.5">
                       <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>🎯 Goals ({goalsList.length})</div>
                       <div className="flex flex-wrap gap-1.5">
-                        {goalsList.map((g, i) => (
-                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-cyan-900/30 text-cyan-200 border border-cyan-800'}`}>{g}</span>
-                        ))}
+                        {goalsList.map((goal, index) => {
+                          const progress = computeRaceProgress(rawRaces[index] || { name: goal }, milestones, completedMilestoneIds)
+                          return <div key={`${index}-${goal}`} className="w-full border-b border-slate-200 py-2">
+                            <div className="flex justify-between gap-3 text-sm"><span className="break-words">{goal}</span><span className="shrink-0">{progress === null ? 'No linked milestones' : `${progress}%`}</span></div>
+                            {progress !== null && <progress aria-label={`${goal} progress`} value={progress} max={100} className="mt-1 h-2 w-full accent-emerald-600" />}
+                            <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'unanswered', context: 'races' })}`)} className="text-cyan-700 underline">Answer related questions</Link>
+                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'solved', context: 'races' })}`)} className="text-cyan-700 underline">Solved threads / share experience</Link>
+                            </div>
+                          </div>
+                        })}
                       </div>
                     </div>
                   )}
@@ -1009,7 +1020,7 @@ function RacesContent() {
           </div>
 
           {/* Track shape sub-toggle — As One vs Separate parallel tracks */}
-          {layoutMode === 'track' && (
+          {layoutMode === 'track' && !isSimple && (
             <div className="pt-2 w-full flex justify-center">
               <GameTabs
                 value={trackShape}
@@ -1034,6 +1045,7 @@ function RacesContent() {
               {gamifiedMode ? (
                 <GamePanel tone="parchment" className="px-4 pt-6 pb-4">
                   <GameBanner tone="violet">✨ Your Stats</GameBanner>
+                  {!liveStats && <p className="py-3 text-center text-sm text-slate-600">Live stats are not available yet.</p>}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {stats.map((st, i) => (
                       <GameMeter
@@ -1098,36 +1110,16 @@ function RacesContent() {
             <div className="relative dg rounded-full p-4 mb-1">
               <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-28 h-8 rounded-full blur-lg ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
               <div className="bn relative">
-                {dreamPortrait ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={dreamPortrait}
-                    alt="Your Dream Self portrait"
-                    className="w-28 h-28 rounded-full object-cover border-[3px] border-white shadow-lg"
-                  />
-                ) : (
-                <svg viewBox="0 0 120 150" className="w-20 h-28">
-                  {[0, 45, 90, 135, 180, 225, 270, 315].map((a, i) => { const r = a * Math.PI / 180; return <line key={i} x1={60 + 26 * Math.cos(r)} y1={48 + 26 * Math.sin(r)} x2={60 + 44 * Math.cos(r)} y2={48 + 44 * Math.sin(r)} stroke={day ? '#bae6fd' : '#6366f1'} strokeWidth="1.5" strokeDasharray="4" opacity=".5" /> })}
-                  <circle cx="60" cy="32" r="14" fill="none" stroke={stroke} strokeWidth="3" />
-                  <path d="M54 30 Q56 27 58 30" fill="none" stroke={stroke} strokeWidth="1.5" />
-                  <path d="M62 30 Q64 27 66 30" fill="none" stroke={stroke} strokeWidth="1.5" />
-                  <path d="M54 37 Q60 44 66 37" fill="none" stroke={stroke} strokeWidth="2" />
-                  <line x1="60" y1="46" x2="60" y2="85" stroke={stroke} strokeWidth="3" />
-                  <line x1="60" y1="58" x2="42" y2="46" stroke={stroke} strokeWidth="3" />
-                  <line x1="60" y1="58" x2="78" y2="46" stroke={stroke} strokeWidth="3" />
-                  <text x="34" y="44" fontSize="11">⭐</text>
-                  <text x="74" y="44" fontSize="11">⭐</text>
-                  <line x1="60" y1="85" x2="48" y2="110" stroke={stroke} strokeWidth="3" />
-                  <line x1="60" y1="85" x2="72" y2="110" stroke={stroke} strokeWidth="3" />
-                  <circle cx="60" cy="14" r="6" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="3" />
-                </svg>
-                )}
+                <div className="relative flex h-36 w-40 justify-center" aria-label="Your Dream Self in a car">
+                  <UserAvatar {...(prefs.dreamAppearance || characterAppearance)} size={88} />
+                  <Car aria-hidden="true" className="absolute bottom-0 h-24 w-40 text-cyan-700" strokeWidth={2.5} />
+                </div>
               </div>
             </div>
             <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
             <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
-              {dreamPortrait ? '✨ See more →' : '✨ Create your portrait →'}
+              See more
             </Link>
             {/* Path view already surfaces the multi-path switcher; Races did
                 not (Odosa asked for it at the top of Path and/or Race view). */}
@@ -1580,16 +1572,29 @@ function RacesContent() {
                   <p className={`text-xs mt-1 ${sub}`}>Finish onboarding and your milestones become the map.</p>
                 </div>
               ) : (
-                <MilestoneTrail
-                  milestones={milestones as any}
+                <div className="grid items-start gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
+                <aside className="order-2 lg:order-1 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${110 + currentStopIdx * 160}px` } as React.CSSProperties}>
+                  <h3 className="mb-2 font-semibold">Pit Stop</h3>
+                  <div className="flex flex-wrap gap-3 text-sm lg:flex-col"><Link className="underline" href={goHubHref('/')}>ResourceHub</Link><Link className="underline" href="/pit-stop?tab=haveworld&view=people">Hare World</Link><Link className="underline" href={goHubHref('/community')}>Tidbits</Link></div>
+                </aside>
+                <div className="order-1 min-w-0 lg:order-2"><MilestoneTrail
+                  milestones={trackStops as any}
                   completedIds={completedMilestoneIds}
-                  currentIndex={0 /* superseded: the trail derives it from completedIds */}
+                  currentIndex={currentStopIdx}
+                  startIndex={trackStart}
+                  previewAll
                   // Open THAT milestone, not the list. Every node used to
                   // push to /milestones, so all 144 of them led to the same
                   // screen — which is why they looked identical.
                   onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
                   day={day}
-                />
+                /></div>
+                <aside className="order-3 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${110 + currentStopIdx * 160}px` } as React.CSSProperties}>
+                  <h3 className="mb-2 font-semibold">Current milestone</h3>
+                  <p className="break-words text-sm">{trackStops[currentStopIdx]?.name || 'All milestones completed'}</p>
+                  <Link href="/calendar" className="mt-3 inline-block text-sm underline">Calendar</Link>
+                </aside>
+                </div>
               )}
             </div>
           )}

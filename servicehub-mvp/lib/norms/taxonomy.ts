@@ -71,6 +71,8 @@ export const NORM_GROUPS: NormGroup[] = [
       // its own entry instead of hiding under a broader label.
       { id: 'depression', label: 'Depression' },
       { id: 'substance_use', label: 'Substance Use / Recovery' },
+      { id: 'healthy_eating', label: 'Healthy Options / Eating Healthy' },
+      { id: 'veganism', label: 'Veganism' },
     ],
   },
 ]

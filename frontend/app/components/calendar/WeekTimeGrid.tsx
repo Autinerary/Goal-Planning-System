@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { format, isSameDay, isToday } from 'date-fns'
 import {
   layoutDayColumn, minutesToTime, occurrencesInRange, toISODate, weekDays,
@@ -18,6 +18,7 @@ interface WeekTimeGridProps {
   endHour?: number
   onMove?: (taskId: string, newDateISO: string, newTime: string) => void
   onSelect?: (task: CalendarTask) => void
+  renderDayIdentity?: (date: Date) => ReactNode
 }
 
 /**
@@ -40,6 +41,7 @@ export default function WeekTimeGrid({
   endHour = 23,
   onMove,
   onSelect,
+  renderDayIdentity,
 }: WeekTimeGridProps) {
   const days = useMemo(() => weekDays(anchorDate), [anchorDate])
   const gridStartMin = startHour * 60
@@ -118,7 +120,8 @@ export default function WeekTimeGrid({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+    <div className="max-w-full overflow-x-auto" tabIndex={0} aria-label="Weekly calendar">
+    <div className="min-w-[640px] rounded-lg border border-slate-200 bg-white overflow-hidden">
       {/* Day headers — real dates, not just weekday names. */}
       <div className="grid border-b border-slate-200" style={{ gridTemplateColumns: '56px repeat(7, 1fr)' }}>
         <div className="border-r border-slate-200" />
@@ -133,6 +136,7 @@ export default function WeekTimeGrid({
             <div className={`text-lg font-bold ${isToday(d) ? 'text-cyan-700' : 'text-slate-800'}`}>
               {format(d, 'd')}
             </div>
+            {renderDayIdentity?.(d)}
           </div>
         ))}
       </div>
@@ -232,6 +236,7 @@ export default function WeekTimeGrid({
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

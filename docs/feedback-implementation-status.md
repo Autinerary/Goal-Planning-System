@@ -4,6 +4,82 @@ Local working-tree status, 2026-09-19. Not deployed or approved for release.
 Existing user data and unrelated changes were preserved. No email was sent,
 no live child accounts were created, and no environment files were changed.
 
+## Follow-Up: Path Market, Races, Calendar
+
+This follow-up is local and uncommitted. It has not been pushed or deployed.
+The earlier feedback commits were pushed separately; this report does not
+claim that the new changes are already available in production.
+
+### Implemented
+
+| Area | Change |
+| --- | --- |
+| Path Market selection | Unframed category sections and model choices open an accessible review dialog. Suggested goals start unchecked; only explicitly chosen goals are added. Pending models cannot start a path. Related Tidbit topic links cover resumes, cold emails, course selection and time scheduling. |
+| Selection persistence | Draft restoration completes before autosave begins. Successful submission does not recreate the cleared draft. Cached goals, dreams and obstacles use the same flattened values sent for generation. Chosen-model metadata is included in generation preferences. |
+| Requested pathways | Model Jet, Adulting for Neurodivs, Addictions, healthy eating, Veganism, separate health/education streams, Entrepreneurship x ADHD/Neurodiv, and relationship/community pathways are listed as awaiting content. No recovery, Public Health or entrepreneurship curriculum was authored. |
+| ResourceHub options | Healthy Options / Eating Healthy and Veganism were added to its taxonomy. Depression already existed. This adds filter choices, not reviewed resource inventory. |
+| Races | All selected goals remain represented even if the backend returns fewer races. Race identities match goal names, not response positions. Goals include linked-milestone progress and unanswered/solved Tidbit links. The shared stats/resources/Dream Self area precedes List or Track. |
+| Track and avatar | Main track shows a sliding five-stop window, current-position label and tappable stops. Desktop Pit Stop/current options align beside the current stop; mobile stacks them. Local Dream Self/Character Select avatar replaces the AI portrait and stickman. Completion calls the existing sound-preference-aware helper. |
+| People and stats | Removed fabricated social suggestions, challenge opponents and estimated stats from Race overlays. Saved/connected people remain intact. Missing live stats have an explicit empty state. |
+| Gamification | Calendar and Settings share controls for 0-7 animals, general/fast-slow/weekday assignment, color swatches, yearly/monthly/weekday themes and 0-31 day-of-month themes. All four Calendar layouts display date-specific assignments. Missing assignments do not fall back to another day's animal. |
+| Calendar history | Manual tasks, ICS imports, confirmed photo imports, rescheduling and weather moves share undo/redo persistence. Added-task completion and timestamps participate in history. Dates survive basic ICS round trips and photo imports. Undo deletion is authenticated and scoped to both owner and task ID. |
+| Save behavior | Forms retain input on failure. Calendar changes wait for account hydration, caches/stacks are account-scoped, and competing saves report an error. Preference writes are ordered; stale hydration cannot overwrite current edits. Initial preference rendering no longer causes saved-settings hydration errors. |
+| Weather | Opt-in browser location and Open-Meteo forecasts, rain warnings, rain/sunny preference, offered day moves and optional automatic matching. Location sharing is disclosed before enabling. Missing forecast probabilities are not treated as sunny. |
+| Responsive layouts | Week/Month grids scroll within their own bounds on narrow screens; surrounding controls wrap. Main Race view transitions respect reduced-motion preferences. |
+
+### Still Partial or Blocked
+
+- Pathway selection changes goal suggestions and carries model metadata. A
+  substantially different, model-authored milestone/resource plan is **not
+  implemented or verified**. Approved source material and integration into
+  planning are still needed. Placeholder pathway listings are not usable curricula.
+- Tidbit links use topic text plus unanswered/solved filters. They are **not
+  semantic similarity retrieval**, and relevant posts may not exist. Live
+  authenticated ResourceHub handoff was not tested in this batch.
+- The existing Avoidance view was not redesigned. Advanced alternate Race
+  layouts remain available in Full View; the five-stop treatment is the main
+  trail view. Existing saved people were not deleted to force a reported count.
+- Weekly themes currently mean recurring weekday themes, not numbered weeks
+  of the year. Fast/slow assignment reads schedule day-type labels; an unknown
+  pace shows neither animal. Legacy animal IDs outside the current artwork set
+  are not migrated. Color changes are approximate hue rotations.
+- Weather moves only **undated user-added tasks**, not generated-plan tasks or
+  dated appointments. Automatic matching runs in visible List/Time Block day
+  panels, not a background scheduler. It changes the recurring weekday, not
+  one isolated occurrence. Failed automatic attempts require manual retry.
+- History keeps at most 30 operations for the mounted calendar session; the
+  stack does not survive refresh. Multi-task writes use compensating requests,
+  not a database transaction. A lost response or failed compensation can require
+  reload/reconciliation. Old unscoped device-only task caches are not imported
+  into another account; the old storage key is left untouched.
+- The existing ICS parser supports basic event fields; full recurrence rules,
+  exceptions and named-timezone semantics remain unsupported. Generated-plan
+  completion remains outside the added-task history implementation.
+- Live forecast/location permissions, actual photo extraction, cross-device
+  preference synchronization and production Supabase mutations were not tested.
+  No claim of clinical review, measured usability improvement or production
+  readiness follows from these local checks.
+
+### Validation
+
+- Frontend TypeScript: `tsc --noEmit --incremental false` passed.
+- `node --test frontend/scripts/feedback-regression.cjs`: **14 passed**, including
+  calendar inverses/compensation, deletion ownership, preference-write ordering,
+  ICS dates, weather matching and gamification bounds/date lookup.
+- ResourceHub taxonomy was checked for required entries and unique IDs. Its
+  full application build was not a validation gate for this taxonomy-only change.
+- Playwright with synthetic data and intercepted APIs: unchecked pathway ideas;
+  one selected goal surviving onboarding reload; five selected Race goals and
+  five visible track stops; correct current milestone; manual/photo/ICS undo and
+  redo; manual task surviving reload; failed save retaining form input; assigned
+  weekday animals and loaded assets; Settings color control; dialog Escape.
+- Desktop 1440px and mobile 390px/320px layouts inspected. Race, Calendar and
+  Settings checks found no page overflow; saved-settings Calendar reload and
+  final Race/Settings loads had no captured runtime errors. Screenshots helped
+  identify and fix a hydration defect during this batch.
+- Browser photo extraction and forecasts were fixtures, not real-provider
+  accuracy tests. The local preview is `http://localhost:3012`.
+
 ## Requirement Coverage
 
 | Request | Local implementation | Remaining limits |
@@ -21,7 +97,7 @@ no live child accounts were created, and no environment files were changed.
 | AuDHD | Selecting AuDHD removes and disables separate Autism/ADHD for that relationship; removing relationships updates the flattened selections. | Contradictory restored drafts and free-text variants are not comprehensively normalized. |
 | More goal ideas | Expanded practical goal suggestions informed by NHS wellbeing guidance and Canadian budgeting guidance. | Not ResourceHub popularity or measured trends; no invented trend claims. Sources below. |
 | Separate dream subjects | Self, other-person, and relationship dream fields, including per-goal self dreams. Parent-associated goals show the other-person dream first; otherwise self is first. | No distinct guardian relationship option was added to this ordering rule. |
-| Alternate Persona and avatar editors | Independent local Dream Self and Alternate Persona appearance editors replace the user-facing AI portrait-generation controls. Existing saved portraits remain viewable. | Legacy paid generation API still exists, and Races still uses the old portrait integration. Persistence failure reporting needs improvement. |
+| Alternate Persona and avatar editors | Independent local Dream Self and Alternate Persona appearance editors replace the user-facing AI portrait-generation controls. Existing saved portraits remain viewable. The follow-up replaces the Race portrait with the local avatar. | Legacy paid generation API still exists. |
 | Spirit animals | General/pair/weekly modes, corrected weekday labels and counts, schedule-based fast/slow description, local full-color Twemoji PNGs and tinted previews with attribution. | Color rotation is approximate, not individually redrawn color variants. Other screens still use existing emoji artwork. Switching modes can discard extra selections. |
 | Recommendation diagnosis and cost | Missing optional life stage uses a valid fallback. Free/cheap eligible candidates are sorted before the upstream shortlist; unknown/invalid prices sort last. No synthetic seeding was used as a cure. | Live inference and catalogue coverage unverified. Currency/billing-period normalization is absent. Proxy errors can still appear as empty results; stale recommendations and cross-app saving need further work. |
 | Final guidance, then welcome | Final Step - Guidance -> Welcome to Dreamland -> Path. Earlier submission is now Create my Path. | Browser-tested with mocked APIs, not a live generated plan. |

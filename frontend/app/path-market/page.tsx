@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   ArrowLeft,
   Search,
@@ -23,6 +23,26 @@ import {
   Send,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { goHubHref } from '@/lib/serviceHub'
+
+const REQUESTED_PATHWAYS = [
+  ['Model Jet', 'Life organization with ADHD, OCD and Depression; awaiting Odosa\'s model.'],
+  ['Adulting for Neurodivs', 'Awaiting contributor milestones and resources.'],
+  ['Addictions', 'Awaiting qualified clinical review; no recovery curriculum supplied.'],
+  ['Healthy Options / Eating Healthy', 'Awaiting reviewed resources.'],
+  ['Veganism', 'Awaiting reviewed resources, including the proposed cultural version.'],
+  ['Undergraduate study', 'A separate stream from medical-school admission.'],
+  ['Getting into Med School', 'Awaiting institution-specific admission resources.'],
+  ['Nursing', 'A separate stream from becoming a doctor.'],
+  ['Doctor', 'Awaiting jurisdiction-specific training resources.'],
+  ['Public Health', 'Awaiting reviewed curriculum; no program supplied.'],
+  ['Entrepreneurship x ADHD / Neurodiv', 'Awaiting Odosa and Aayush\'s reviewed material.'],
+  ['Parents', 'Awaiting contributor models and resources.'],
+  ['Siblings', 'Awaiting contributor models and resources.'],
+  ['Young Leaders', 'Awaiting contributor models and resources.'],
+  ['Neurodiv', 'Awaiting contributor models and resources.'],
+  ['Visible Minorities', 'Awaiting contributor models and resources.'],
+]
 
 /**
  * Path Market — 3 layers (Odosa):
@@ -122,6 +142,12 @@ export default function PathMarketPage() {
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [norms, setNorms] = useState<string[]>([])
+  const [reviewModel, setReviewModel] = useState<{ category: LifeCategory; model: PathModel } | null>(null)
+  const [selectedIdeas, setSelectedIdeas] = useState<string[]>([])
+  const reviewDialog = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    if (reviewModel && !reviewDialog.current?.open) reviewDialog.current?.showModal()
+  }, [reviewModel])
 
   // Layer 3: community-submitted models, grouped by category_key.
   const [community, setCommunity] = useState<Record<string, PathModel[]>>({})
@@ -233,6 +259,7 @@ export default function PathMarketPage() {
           key: `${c.key}:${m.key}`,
           title: `${c.title}${m.name && m.name !== 'Foundations' ? ` · ${m.name}` : ''}`,
           goals: m.seedGoals,
+          selectedGoals: selectedIdeas,
           focusCategory: c.focusCategory,
           suggestions: c.examples,
           // Carried so the Path view can name the model the user actually
@@ -252,7 +279,7 @@ export default function PathMarketPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <button
-          onClick={() => router.back()}
+            onClick={() => router.push('/path')}
           className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4" /> Back
@@ -265,7 +292,7 @@ export default function PathMarketPage() {
           </div>
           <p className="text-slate-600 max-w-2xl">
             Pick a <strong>life category</strong>, then a <strong>path model</strong> to start from. Starting a model
-            pre-fills your goals — you can always customize during onboarding.
+            offers goal ideas for you to choose during onboarding. Nothing is selected for you.
           </p>
           <button
             onClick={() => { setShowSubmit(true); setSubmitDone(false); setSubmitError('') }}
@@ -322,10 +349,10 @@ export default function PathMarketPage() {
           {filtered.map((c) => {
             const Icon = c.icon
             return (
-              <div key={c.key} className={`rounded-2xl border-2 bg-gradient-to-br ${c.tint} p-5 shadow-sm`}>
+              <div key={c.key} className="grid gap-4 border-t border-slate-300 py-6 md:grid-cols-[220px_minmax(0,1fr)]">
                 {/* Category header */}
                 <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${c.iconTint}`}>
+                  <div className={`w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 ${c.iconTint}`}>
                     <Icon className="w-6 h-6" />
                   </div>
                   <div className="min-w-0">
@@ -339,8 +366,8 @@ export default function PathMarketPage() {
                   {c.models.map((m) => {
                     const status = STATUS_META[m.status]
                     return (
-                      <div key={m.key} className="rounded-xl bg-white/70 border border-white/80 p-3">
-                        <div className="flex items-start justify-between gap-3">
+                      <div key={m.key} className="rounded-lg bg-white/70 border border-slate-200 p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-semibold text-slate-900 text-sm">{m.name}</span>
@@ -357,10 +384,11 @@ export default function PathMarketPage() {
                             <p className="text-xs text-slate-600 mt-1">{m.description}</p>
                           </div>
                           <button
+                            disabled={m.status === 'pending'}
                             onClick={() =>
                               m.status === 'coming'
                                 ? router.push(`/under-construction?feature=${encodeURIComponent(`${c.title} · ${m.name}`)}`)
-                                : startModel(c, m)
+                                : (() => { setReviewModel({ category: c, model: m }); setSelectedIdeas([]) })()
                             }
                             className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                               m.status === 'coming'
@@ -368,7 +396,7 @@ export default function PathMarketPage() {
                                 : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg'
                             }`}
                           >
-                            {m.status === 'coming' ? 'Coming soon →' : 'Start this Path →'}
+                            {m.status === 'coming' ? 'Coming soon →' : m.status === 'pending' ? 'Awaiting review' : 'Review ideas'}
                           </button>
                         </div>
                       </div>
@@ -397,6 +425,22 @@ export default function PathMarketPage() {
           </div>
         )}
       </div>
+
+      <section className="mx-auto max-w-4xl border-t px-4 py-6">
+        <h2 className="mb-4 text-xl font-semibold">Pathways awaiting content</h2>
+        <div className="grid gap-x-8 sm:grid-cols-2">{REQUESTED_PATHWAYS.filter(([name]) => !q || name.toLowerCase().includes(q)).map(([name, note]) => <div key={name} className="border-b py-3"><h3 className="font-medium">{name}</h3><p className="mt-1 text-sm text-slate-600">{note}</p></div>)}</div>
+      </section>
+
+      {reviewModel && <dialog ref={reviewDialog} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setReviewModel(null) } }} onCancel={() => setReviewModel(null)} onClose={() => setReviewModel(null)} className="max-h-[90vh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg bg-white p-0 backdrop:bg-black/50" aria-label="Review pathway ideas">
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3"><h2 className="text-xl font-semibold">{reviewModel.category.title}: {reviewModel.model.name}</h2><button type="button" aria-label="Close pathway review" onClick={() => setReviewModel(null)}><X className="h-5 w-5" /></button></div>
+          <p className="my-3 text-sm text-slate-600">{reviewModel.model.description}</p>
+          <fieldset className="space-y-3"><legend className="mb-3 font-medium">Optional goals</legend>{reviewModel.model.seedGoals.map(goal => <label key={goal} className="flex items-start gap-3 text-sm"><input type="checkbox" checked={selectedIdeas.includes(goal)} onChange={event => setSelectedIdeas(event.target.checked ? [...selectedIdeas, goal] : selectedIdeas.filter(item => item !== goal))} className="mt-1" />{goal}</label>)}</fieldset>
+          <h3 className="mb-2 mt-5 font-medium">Related Tidbits</h3>
+          <div className="flex flex-wrap gap-3">{(reviewModel.category.focusCategory === 'education' ? ['course selection', 'time scheduling'] : ['cold email', 'resume', 'time scheduling']).map(topic => <Link key={topic} href={goHubHref(`/community?${new URLSearchParams({ q: topic, from: 'path-market' })}`)} className="text-sm text-cyan-800 underline">{topic}</Link>)}</div>
+          <button type="button" onClick={() => startModel(reviewModel.category, reviewModel.model)} className="mt-6 rounded bg-cyan-700 px-4 py-2 font-medium text-white">Continue with {selectedIdeas.length} selected goals</button>
+        </div>
+      </dialog>}
 
       {/* Share-a-model modal */}
       {showSubmit && (

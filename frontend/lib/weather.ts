@@ -27,12 +27,19 @@ export async function fetchForecast(lat: number, lon: number): Promise<DayForeca
   const json = await res.json()
   const dates: string[] = json?.daily?.time || []
   const probs: number[] = json?.daily?.precipitation_probability_max || []
-  return dates.map((date, i) => {
-    const pct = Number(probs[i] ?? 0)
+  return dates.flatMap((date, i) => {
+    if (probs[i] == null || !Number.isFinite(Number(probs[i]))) return []
+    const pct = Number(probs[i])
     const [y, m, d] = date.split('-').map(Number)
     const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()]
-    return { date, weekday, rainProbabilityPct: pct, isRainy: pct >= RAIN_THRESHOLD }
+    return [{ date, weekday, rainProbabilityPct: pct, isRainy: pct >= RAIN_THRESHOLD }]
   })
+}
+
+export function suggestPreferredDay(forecast: DayForecast[], current: DayForecast, preference: 'rain' | 'sunny' | 'no_preference'): DayForecast | null {
+  if (preference === 'no_preference' || current.isRainy === (preference === 'rain')) return null
+  const candidates = forecast.filter(day => day.date > current.date && day.isRainy === (preference === 'rain'))
+  return candidates.sort((first, second) => preference === 'rain' ? second.rainProbabilityPct - first.rainProbabilityPct : first.rainProbabilityPct - second.rainProbabilityPct)[0] || null
 }
 
 /** Best rain-free day in the SAME set as the given rainy one — for the
