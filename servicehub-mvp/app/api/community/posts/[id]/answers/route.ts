@@ -21,6 +21,8 @@ interface Body {
   body_markdown?: string;
   parent_id?: string | null;
   image_urls?: string[];
+  /** Passage of the post this reply responds to (Odosa's "Comment on"). */
+  quoted_text?: string | null;
 }
 
 export async function POST(
@@ -101,6 +103,13 @@ export async function POST(
       image_urls: imageUrls,
       author_relationships: authorRel.relationships,
       author_weight: authorRel.weight,
+      // Odosa's "Comment on": the passage this reply responds to. Trimmed
+      // and length-capped here as well as in the DB CHECK, so an
+      // over-long selection fails cleanly instead of as a 500.
+      quoted_text: (() => {
+        const q = typeof body?.quoted_text === 'string' ? body.quoted_text.trim() : ''
+        return q ? q.slice(0, 1000) : null
+      })(),
     })
     .select('id')
     .single();

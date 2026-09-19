@@ -16,6 +16,10 @@ interface AnswerComposerProps {
   parentId?: string | null
   onSubmitted: () => void
   onCancel?: () => void
+  /** A passage the reader highlighted and is replying to (Odosa's
+   *  "Comment on"). Shown above the box and stored with the reply. */
+  quotedText?: string | null
+  onClearQuote?: () => void
 }
 
 /**
@@ -30,6 +34,8 @@ export default function AnswerComposer({
   parentId,
   onSubmitted,
   onCancel,
+  quotedText,
+  onClearQuote,
 }: AnswerComposerProps) {
   const [body, setBody] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
@@ -52,6 +58,7 @@ export default function AnswerComposer({
           body_markdown: body.trim(),
           parent_id: parentId ?? null,
           image_urls: imageUrls,
+          quoted_text: quotedText ?? null,
         }),
       })
       if (!res.ok) {
@@ -60,6 +67,7 @@ export default function AnswerComposer({
       }
       setBody('')
       setImageUrls([])
+      onClearQuote?.()
       onSubmitted()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit')
@@ -70,6 +78,23 @@ export default function AnswerComposer({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-2" data-testid="answer-composer">
+      {/* The highlighted passage this reply is about. Shown so the commenter
+          can see exactly what they selected before writing. */}
+      {quotedText && (
+        <div className="flex items-start gap-2 rounded-lg border-l-4 border-purple-400 bg-purple-50 px-3 py-2">
+          <p className="flex-1 text-xs italic text-purple-900 line-clamp-3">&ldquo;{quotedText}&rdquo;</p>
+          {onClearQuote && (
+            <button
+              type="button"
+              onClick={onClearQuote}
+              className="text-xs font-semibold text-purple-600 hover:text-purple-900"
+              aria-label="Remove the quoted passage"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
       {preview ? (
         <Markdown source={body || '*Nothing to preview yet*'} />
       ) : (

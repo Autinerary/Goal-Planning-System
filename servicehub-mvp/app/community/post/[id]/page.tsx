@@ -1,7 +1,7 @@
 'use client'
 
 import RelationshipBadge from '@/components/community/RelationshipBadge'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   CheckCircle2,
   Sparkles,
+  Quote,
 } from 'lucide-react'
 import type { CommunityPostDetail, CommunityAnswerNode } from '@/types/community'
 import VoteButton from '@/components/community/VoteButton'
@@ -36,6 +37,29 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
     const built = query.toString()
     return built ? `?${built}` : ''
   })()
+  // Odosa's "Comment on": the passage a reader highlighted in the post
+  // body, carried into the composer below.
+  const [quotedText, setQuotedText] = useState<string | null>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+
+  /** Pull the reader's current selection, but only if it actually lies inside
+   *  the post body — otherwise selecting text in a reply, or in the nav,
+   *  would quote the wrong thing entirely. */
+  const captureSelection = () => {
+    const sel = typeof window !== 'undefined' ? window.getSelection() : null
+    const text = sel?.toString().trim() ?? ''
+    if (!text || !bodyRef.current || !sel?.anchorNode) {
+      setQuotedText(null)
+      return
+    }
+    if (!bodyRef.current.contains(sel.anchorNode)) {
+      setQuotedText(null)
+      return
+    }
+    // The DB caps this at 1000; trim here so the user sees what will be saved.
+    setQuotedText(text.slice(0, 1000))
+    document.getElementById('answer-composer-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
   const [post, setPost] = useState<CommunityPostDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -204,7 +228,27 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                 <p className="text-sm text-rose-900 font-medium italic">“{post.what_didnt_work}”</p>
               </div>
             )}
-            <Markdown source={post.body_markdown} />
+            <div ref={bodyRef}>
+              <Markdown source={post.body_markdown} />
+            </div>
+
+            {/* Odosa: a "Comment on" button beside the normal Comment action,
+                so a reader can reply to one specific passage rather than the
+                whole story. Enabled only once something is actually selected
+                inside the body — a button that silently does nothing is
+                worse than one that is visibly waiting. */}
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={captureSelection}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-300 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50"
+              >
+                <Quote className="w-3.5 h-3.5" /> Comment on a highlighted part
+              </button>
+              <span className="text-[11px] text-gray-400">
+                Select any text above, then click this.
+              </span>
+            </div>
             {post.image_urls.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {post.image_urls.map((u) => (
@@ -274,8 +318,15 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
       {!post.is_locked && (
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-gray-900">Your answer</h2>
-          <AnswerComposer postId={post.id} onSubmitted={reload} />
+          <h2 className="text-lg font-semibold text-gray-900" id="answer-composer-anchor">
+            Your answer
+          </h2>
+          <AnswerComposer
+            postId={post.id}
+            onSubmitted={reload}
+            quotedText={quotedText}
+            onClearQuote={() => setQuotedText(null)}
+          />
         </section>
       )}
 

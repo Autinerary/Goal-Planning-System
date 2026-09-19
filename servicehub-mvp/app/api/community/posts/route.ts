@@ -20,7 +20,7 @@ import type {
 
 export const dynamic = 'force-dynamic';
 
-const SORTS: ReadonlyArray<FeedSort> = ['recent', 'top', 'unanswered', 'solved'];
+const SORTS: ReadonlyArray<FeedSort> = ['recent', 'top', 'unanswered', 'solved', 'solutions'];
 
 function parseSort(input: string | null): FeedSort {
   if (!input) return 'recent';
@@ -68,6 +68,9 @@ export async function GET(request: NextRequest) {
   if (q) query = query.or(`title.ilike.%${q}%,body_markdown.ilike.%${q}%`);
   if (sort === 'unanswered') query = query.eq('answer_count', 0);
   if (sort === 'solved') query = query.not('accepted_answer_id', 'is', null);
+  // Solutions: the author highlighted what unlocked it. Independent of
+  // whether anyone's answer was accepted.
+  if (sort === 'solutions') query = query.not('unlocking_moment', 'is', null);
 
   if (sort === 'top') {
     query = query.order('score', { ascending: false }).order('last_activity_at', { ascending: false });

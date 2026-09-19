@@ -28,6 +28,7 @@ interface AnswerRowLite {
   updated_at: string;
   author_relationships?: Record<string, string> | null;
   author_weight?: number | null;
+  quoted_text?: string | null;
 }
 
 /**
@@ -76,6 +77,7 @@ export function buildAnswerTree(
       // Whose experience this is (Odosa) — shown as a badge and used to rank.
       author_relationship: primaryRelationship(r.author_relationships),
       author_weight: typeof r.author_weight === 'number' ? r.author_weight : 1,
+      quoted_text: typeof r.quoted_text === 'string' ? r.quoted_text : null,
       viewer_can_edit: !!viewerId && viewerId === r.author_id,
       viewer_can_delete: !!viewerId && (viewerId === r.author_id || isAdmin),
       children: [],

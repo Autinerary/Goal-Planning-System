@@ -11,6 +11,7 @@ import {
   TrendingUp,
   MessageCircleQuestion,
   CheckCircle2,
+  Lightbulb,
   Plus,
 } from 'lucide-react'
 import type { CommunityPostSummary, FeedSort } from '@/types/community'
@@ -31,6 +32,10 @@ const SORTS: ReadonlyArray<{ id: FeedSort; label: string; icon: typeof Clock }> 
   { id: 'top', label: 'Top', icon: TrendingUp },
   { id: 'unanswered', label: 'Unanswered', icon: MessageCircleQuestion },
   { id: 'solved', label: 'Solved', icon: CheckCircle2 },
+  // Odosa's "Solutions": posts where the author recorded the key sentence
+  // that unlocked it. Distinct from Solved, which only means someone's
+  // answer was accepted.
+  { id: 'solutions', label: 'Solutions', icon: Lightbulb },
 ]
 
 function FeedInner() {

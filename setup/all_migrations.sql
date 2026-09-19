@@ -3657,5 +3657,24 @@ GRANT EXECUTE ON FUNCTION public.get_resource_badges(UUID[]) TO authenticated, a
 COMMENT ON FUNCTION public.get_resource_badges(UUID[]) IS
   'Trending (tiered bronze/silver/gold/platinum by sustained saves), rare, highly-requested and first-party badges. Every tier has a fixed real threshold; nothing is badged for existing.';
 
+-- =============================================================================
+-- STEP 35 — backend/database/migrations/2026_tidbits_quoted_comments.sql
+-- =============================================================================
+-- "Comment on" a highlighted passage. Quote stored as text, not offsets.
+
+
+ALTER TABLE public.community_answers
+  -- The passage this reply is responding to. NULL = an ordinary reply to the
+  -- whole post, which stays the default.
+  ADD COLUMN IF NOT EXISTS quoted_text TEXT
+    CHECK (quoted_text IS NULL OR length(trim(quoted_text)) BETWEEN 1 AND 1000);
+
+CREATE INDEX IF NOT EXISTS community_answers_quoted_idx
+  ON public.community_answers (post_id)
+  WHERE quoted_text IS NOT NULL;
+
+COMMENT ON COLUMN public.community_answers.quoted_text IS
+  'The passage a reader highlighted and replied to. Stored as text, not offsets, so an author editing the post cannot silently repoint every quote at the wrong words.';
+
 
 COMMIT;

@@ -166,6 +166,8 @@ export interface CommunityAnswerSummary {
  * Threaded answer payload. Children are recursive.
  */
 export interface CommunityAnswerNode {
+  /** Passage of the post this reply is responding to (Odosa's "Comment on"). */
+  quoted_text?: string | null;
   id: string;
   post_id: string;
   parent_id: string | null;
@@ -251,7 +253,11 @@ export interface CommunityFollowRow {
 }
 
 /** Sort modes supported by the feed. */
-export type FeedSort = 'recent' | 'top' | 'unanswered' | 'solved';
+// 'solutions' is NOT the same as 'solved'. Solved means someone's answer was
+// accepted; Solutions means the author themselves recorded the key sentence
+// that unlocked it — which is the thing Odosa actually wanted surfaced, and
+// can exist on a post with no answers at all.
+export type FeedSort = 'recent' | 'top' | 'unanswered' | 'solved' | 'solutions';
 
 export interface FeedQuery {
   sort: FeedSort;

@@ -58,7 +58,7 @@ export async function GET(
   const { data: answers } = await client
     .from('community_answers')
     .select(
-      'id, post_id, parent_id, author_id, body_markdown, image_urls, upvotes, downvotes, score, is_accepted, accepted_at, created_at, updated_at, author_relationships, author_weight'
+      'id, post_id, parent_id, author_id, body_markdown, image_urls, upvotes, downvotes, score, is_accepted, accepted_at, created_at, updated_at, author_relationships, author_weight, quoted_text'
     )
     .eq('post_id', postId)
     .eq('is_deleted', false);

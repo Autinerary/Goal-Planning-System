@@ -70,6 +70,13 @@ export default function ThreadedAnswer({
               {new Date(answer.created_at).toLocaleString()}
             </span>
           </div>
+          {/* The passage this reply was written about (Odosa's "Comment on"),
+              so the reply reads in context rather than as a non-sequitur. */}
+          {answer.quoted_text && (
+            <blockquote className="mb-2 border-l-4 border-purple-300 bg-purple-50 px-3 py-1.5 text-xs italic text-purple-900">
+              &ldquo;{answer.quoted_text}&rdquo;
+            </blockquote>
+          )}
           <Markdown source={answer.body_markdown} />
           {answer.image_urls?.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
