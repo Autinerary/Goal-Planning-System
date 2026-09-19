@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Autinerary — Agent Evaluation &amp; Data Gap Analysis</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+@page {
+size: letter;
+margin: 0.75in;
+}
+body {
+font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 10.5pt;
+line-height: 1.45;
+color: #1a1a1a;
+max-width: 7in;
+margin: 0 auto;
+}
+h1 {
+font-size: 17pt;
+border-bottom: 2px solid #0f766e;
+padding-bottom: 4px;
+margin-top: 28px;
+color: #0f766e;
+page-break-after: avoid;
+}
+h2 {
+font-size: 13pt;
+margin-top: 20px;
+color: #134e4a;
+page-break-after: avoid;
+}
+h1.title {
+border: none;
+font-size: 22pt;
+margin-bottom: 2px;
+}
+p.subtitle {
+font-size: 12pt;
+color: #52525b;
+margin-top: 0;
+}
+p.date {
+color: #71717a;
+font-size: 10pt;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 10px 0 16px;
+font-size: 9.5pt;
+page-break-inside: avoid;
+}
+th {
+background: #f0fdfa;
+text-align: left;
+padding: 5px 8px;
+border-bottom: 1.5px solid #0f766e;
+}
+td {
+padding: 4px 8px;
+border-bottom: 1px solid #e4e4e7;
+}
+
+blockquote {
+border-left: 3px solid #0f766e;
+margin: 10px 0;
+padding: 4px 0 4px 14px;
+color: #27272a;
+background: #fafafa;
+page-break-inside: avoid;
+}
+code {
+background: #f4f4f5;
+padding: 1px 4px;
+border-radius: 3px;
+font-size: 9pt;
+}
+strong { color: #0f172a; }
+hr {
+border: none;
+border-top: 1px solid #d4d4d8;
+margin: 20px 0;
+}
+#TOC {
+background: #fafafa;
+border: 1px solid #e4e4e7;
+padding: 10px 18px;
+margin-bottom: 20px;
+font-size: 10pt;
+}
+#TOC ul { margin: 4px 0; }
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Autinerary — Agent Evaluation &amp; Data Gap
+Analysis</h1>
+<p class="subtitle">Ground truths, label distributions, and confidence
+formulas for all six agents</p>
+<p class="date">September 2026 — Internal / Confidential, not for
+external distribution</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#housekeeping-before-the-agents" id="toc-housekeeping-before-the-agents">0. Housekeeping — before the
+agents</a>
+<ul>
+<li><a href="#real-user-numbers-corrected" id="toc-real-user-numbers-corrected">Real user numbers,
+corrected</a></li>
+<li><a href="#a-finding-from-this-morning-that-did-not-hold-up-retracted" id="toc-a-finding-from-this-morning-that-did-not-hold-up-retracted">A
+finding from this morning that did NOT hold up — retracted</a></li>
+</ul></li>
+<li><a href="#six-agents-one-honesty-rule" id="toc-six-agents-one-honesty-rule">1. Six agents, one honesty
+rule</a></li>
+<li><a href="#path-planning-agent" id="toc-path-planning-agent">2. Path
+Planning Agent</a></li>
+<li><a href="#pattern-recognition-agent-the-0.2-question-and-is-this-a-group-patterns-agent" id="toc-pattern-recognition-agent-the-0.2-question-and-is-this-a-group-patterns-agent">3.
+Pattern Recognition Agent — the 0.2 question, and is this a “group
+patterns” agent?</a></li>
+<li><a href="#tool-recommendation-agent" id="toc-tool-recommendation-agent">4. Tool Recommendation Agent</a></li>
+<li><a href="#calendar-optimization-agent" id="toc-calendar-optimization-agent">5. Calendar Optimization
+Agent</a></li>
+<li><a href="#reflection-analysis-agent" id="toc-reflection-analysis-agent">6. Reflection Analysis Agent</a></li>
+<li><a href="#adaptation-agent" id="toc-adaptation-agent">7. Adaptation
+Agent</a></li>
+<li><a href="#resourcehub-has-its-own-agent-system-four-more-agents" id="toc-resourcehub-has-its-own-agent-system-four-more-agents">8.
+ResourceHub has its own agent system — four more agents</a></li>
+<li><a href="#recommendation-agent" id="toc-recommendation-agent">9.
+Recommendation Agent</a></li>
+<li><a href="#pattern-agent-the-agent-that-answers-does-anything-find-group-level-patterns" id="toc-pattern-agent-the-agent-that-answers-does-anything-find-group-level-patterns">10.
+Pattern Agent — the agent that answers “does anything find group-level
+patterns?”</a></li>
+<li><a href="#validation-agent" id="toc-validation-agent">11. Validation
+Agent</a></li>
+<li><a href="#synthesis-engine" id="toc-synthesis-engine">12. Synthesis
+Engine</a></li>
+<li><a href="#what-this-tells-us-to-prioritize" id="toc-what-this-tells-us-to-prioritize">13. What this tells us to
+prioritize</a></li>
+<li><a href="#what-we-need-from-this-group" id="toc-what-we-need-from-this-group">14. What we need from this
+group</a></li>
+</ul>
+</nav>
+<h1 id="housekeeping-before-the-agents">0. Housekeeping — before the
+agents</h1>
+<h2 id="real-user-numbers-corrected">Real user numbers, corrected</h2>
+<p>The version of this deck built this morning had a bug in how it
+counted users — it only ever looked at the 50 most-recently-created
+accounts, silently missing everyone earlier than that. Re-pulled against
+the full account list:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Morning draft (wrong)</th>
+<th>Corrected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total accounts</td>
+<td>50</td>
+<td><strong>339</strong></td>
+</tr>
+<tr>
+<td>Real signups</td>
+<td>41</td>
+<td><strong>70</strong></td>
+</tr>
+<tr>
+<td>Team / QA / dev test accounts</td>
+<td>9</td>
+<td><strong>19</strong></td>
+</tr>
+<tr>
+<td>Synthetic seed accounts</td>
+<td>0</td>
+<td><strong>250</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The synthetic seed cohort was never gone — it was simply outside the
+window the broken query could see. All 250 were created in a single
+batch on 2026-07-12, which is exactly what deliberate seed generation
+looks like.</p>
+<p>The 70 real signups run from June 6 through today, with the bulk
+(~60) landing Sept 8–17. <strong>That recent cluster is Riipen-sourced,
+not unexplained</strong> — confirmed, no open question there.</p>
+<h2 id="a-finding-from-this-morning-that-did-not-hold-up-retracted">A
+finding from this morning that did NOT hold up — retracted</h2>
+<p>This morning’s deck flagged “88 completed-milestone rows and 515 of
+519 ResourceHub ratings all point at accounts that no longer exist” as
+an urgent data-integrity problem. <strong>That finding was caused by the
+same counting bug above, not a real problem.</strong> Once the user list
+is read completely, all 88 completed-milestone rows and all 519 ratings
+match real, currently-existing accounts. Retracted — not softened,
+retracted. It should not have gone out this morning, and it does not
+appear in this version.</p>
+<p>The real (much less alarming) finding underneath it: those 519
+ResourceHub ratings all belong to team/test/synthetic seed personas
+(<code>autism_parent@test.com</code>,
+<code>superautism@gmail.com</code>, etc.) — legitimate seed data doing
+what seed data is for, not a bug. <strong>Zero ratings from real organic
+users yet.</strong> That’s a genuine, calmer gap, addressed under
+ResourceHub below.</p>
+<hr />
+<h1 id="six-agents-one-honesty-rule">1. Six agents, one honesty
+rule</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Path Planning</td>
+<td>Builds the milestone plan for a user’s goals</td>
+</tr>
+<tr>
+<td>Pattern Recognition</td>
+<td>Finds similar users, surfaces what worked for them</td>
+</tr>
+<tr>
+<td>Tool Recommendation</td>
+<td>Matches resources to a milestone’s barriers</td>
+</tr>
+<tr>
+<td>Calendar Optimization</td>
+<td>Places tasks into a barrier-aware weekly schedule</td>
+</tr>
+<tr>
+<td>Reflection Analysis</td>
+<td>Reads sentiment/patterns from journal entries</td>
+</tr>
+<tr>
+<td>Adaptation</td>
+<td>Adjusts the plan when reflection or completion signals change</td>
+</tr>
+</tbody>
+</table>
+<p>Every agent computes confidence from something it actually measured
+this run — never a flat constant. Where the honest answer is “nothing to
+go on,” the score is 0.0.</p>
+<p><strong>On the numbers inside each formula below:</strong> these are
+engineering-chosen weights (a floor plus a scaling curve), not
+statistically fitted parameters. We do not yet have enough labelled
+outcome data to fit them properly — that itself is one of the gaps this
+deck is surfacing. Each slide below states plainly which numbers are
+“chosen so the score behaves sensibly” versus “measured directly,” so
+nothing is presented as more precise than it is.</p>
+<hr />
+<h1 id="path-planning-agent">2. Path Planning Agent</h1>
+<p><strong>What “nameSource” means:</strong> every milestone the agent
+produces is tagged either <code>generated</code> (an LLM wrote this
+milestone’s name specifically for this user’s stated goals) or
+<code>template</code> (the LLM call for that life-area either wasn’t
+available or returned nothing usable, so the agent fell back to a fixed
+starter list every user in that life area receives). It’s a recorded
+fact written at generation time, not an estimate — we can always tell
+after the fact whether a given milestone was personalized or
+generic.</p>
+<p><strong>Ground truth:</strong> no external gold-standard path exists
+to compare against. The real signal is internal — how much of this
+specific plan was actually written for this user, per the nameSource
+flag above.</p>
+<p><strong>Formula:</strong>
+<code>confidence = 0.35 + 0.6 * (generated / total_milestones)</code></p>
+<p><strong>Where 0.35 and 0.6 come from:</strong> chosen, not fitted.
+0.35 is a floor — a fully templated plan is still a usable, coherent
+plan (just not personalized), so it shouldn’t score near zero. 0.6 is
+the remaining range up to a ceiling of 0.95, so a fully personalized
+plan reads as high-confidence without ever claiming certainty. We have
+not yet validated that 0.35 (versus, say, 0.3 or 0.4) is the right floor
+against real outcome data — flagging that honestly rather than
+presenting it as derived.</p>
+<p><strong>Real data (n=48 real paths):</strong> mean 30.9
+milestones/path, range 16–144.</p>
+<p><strong>Gap:</strong> the generated-vs-templated split isn’t logged
+in queryable form yet — it’s in the payload but hasn’t been extracted
+into a reportable number.</p>
+<p><strong>Odosa’s question — should this incorporate user validation,
+extended from milestones to whole paths?</strong> Yes, and there’s a
+real gap between what exists today and what she’s describing. Tool
+Recommendation already has an analogous mechanism
+(<code>tool_outcomes</code>: a reflection-derived reward per tool, per
+barrier, folded back into future ranking). Path Planning’s closest
+equivalent (<code>path_planning_outcomes</code>) only tracks reward at
+the <em>whole-profile</em> level (milestone count and pacing that worked
+for similar profiles) — there is <strong>no existing mechanism that
+rates an individual milestone against the specific barrier it was meant
+to help with</strong>, and nothing that rolls milestone-level ratings up
+into a path-level score the way she describes (7 of 14 milestones rated
+useful = “half a path’s worth of value,” not just “50% complete”). This
+is a real, buildable extension, following the exact pattern
+<code>tool_outcomes</code> already established — not a new
+architecture.</p>
+<hr />
+<h1 id="pattern-recognition-agent-the-0.2-question-and-is-this-a-group-patterns-agent">3.
+Pattern Recognition Agent — the 0.2 question, and is this a “group
+patterns” agent?</h1>
+<p><strong>No bare acronyms:</strong> the agent calls a Remote Procedure
+Call (RPC) — essentially a stored database function — named
+<code>find_similar_pattern_users</code>.</p>
+<p><strong>What this agent actually does — important scope
+note:</strong> this agent retrieves similar users <strong>for one
+specific person, one query at a time.</strong> It embeds <em>that
+user’s</em> profile and searches for their nearest neighbours. It is
+<strong>not</strong> a population-wide, unsupervised pattern-mining
+system — it does not compare groups to each other or look for structure
+across the whole user base. (See slide 10 for the agent that actually
+does that, on the ResourceHub side.)</p>
+<p><strong>Why the confidence was 0.2:</strong> the agent requests the
+10 most similar users per query — 10 is a chosen batch size, not derived
+from anything. With <strong>36 real users embedded today</strong>
+(corrected from an earlier, too-low estimate of 16), a query still often
+only finds 2 genuinely comparable people past the match-quality
+threshold. 2/10 = 0.2. Worth being precise here: with the pool now known
+to be 36, not 16, “we just need more users” is a weaker complete
+explanation than it looked this morning — it may also mean the 2 real
+matches found were genuinely the only close matches among 36, which is a
+different, more specific thing to investigate (are barrier profiles just
+this varied, or is the match threshold too strict?).</p>
+<p><strong>Why we don’t use the vector database’s own similarity
+score:</strong> measured directly, it sits near 1.0 for every result
+regardless of match quality — it blends a ranking score with a
+success-rate bias and a personalization term. Using it would hide
+exactly the signal being asked about.</p>
+<p><strong>Formula:</strong>
+<code>confidence = min(similar_users_returned / 10, 1.0)</code>. The
+<code>10</code> and the <code>0.7</code> match-quality threshold used by
+the RPC are both chosen constants, not fitted or measured.</p>
+<p><strong>Odosa’s suggestion — should users confirm whether the
+returned group actually looks similar to them?</strong> Yes, and nothing
+like that exists today. Right now the agent’s only feedback signal is
+indirect, via reflections on outcomes; there’s no direct “does this
+group of similar users look right to you” check. That would be new
+instrumentation, following the same outcome-table pattern used elsewhere
+(<code>tool_outcomes</code>, <code>adaptation_outcomes</code>).</p>
+<hr />
+<h1 id="tool-recommendation-agent">4. Tool Recommendation Agent</h1>
+<p><strong>Ground truth:</strong> community ratings on the recommended
+resource, <strong>plus</strong> a learned reward from
+<code>tool_outcomes</code> — a reflection-derived signal per (tool,
+barrier) pair that’s already folded into ranking. This wasn’t fully
+stated this morning: the formula isn’t rating-only, it already
+incorporates outcome learning.</p>
+<p><strong>Formula:</strong>
+<code>evidence = 0.6 + 0.4*(rated/total)</code> then
+<code>confidence = mean_relevance * evidence</code>. No catalogue match
+→ 0.0.</p>
+<p><strong>Where 0.6 and 0.4 come from:</strong> chosen. 0.6 is a floor
+so relevance still counts for something even with zero reviews; 0.4 is
+the remaining weight given to how much of the recommended set carries
+real community evidence. Not fitted against outcome data yet.</p>
+<p><strong>Real data:</strong> 132 resources, 95 approved / 37 pending.
+Thinnest categories: Employment (5), Housing (4) — also two of the
+highest-stakes categories for adult independence.</p>
+<p><strong>Gap:</strong> review-coverage across the 95 approved
+resources hasn’t been queried yet — it’s the direct ceiling on this
+agent’s confidence.</p>
+<p><strong>Odosa’s question — does this (or any agent) consider people:
+mentors, role models, friends, rivals?</strong> No. The
+<code>connections</code> table exists in the schema (role_model / mentor
+/ friend / rival relationships are already modelled and stored) but
+<strong>no agent, in either system, currently reads it.</strong> This is
+a real, clean gap, not a design decision we made on purpose — social
+connections are captured but never used in a recommendation. Whether to
+build this as a genuinely combined “Tool &amp; People Recommendation
+Agent,” or keep them separate and just wire the existing connections
+data into this agent’s scoring, is a real design choice worth a
+deliberate decision rather than defaulting into it.</p>
+<hr />
+<h1 id="calendar-optimization-agent">5. Calendar Optimization Agent</h1>
+<p><strong>Ground truth, plainly:</strong> the agent is not graded on
+“did it get through everyone’s whole to-do list.” It’s graded on “did it
+produce a sensible week” — every day has a reasonable amount to do,
+nothing is crammed, nothing is empty when it didn’t need to be. A real
+run once placed only 30 of a person’s 80 backlogged tasks into one
+week’s schedule, and that was the <em>correct</em> outcome, not a
+failure: 80 tasks across 16 milestones is genuinely several weeks of
+real work, and a schedule that forced all of it into 7 days would be
+actively bad for the user, even though it would look more “complete” by
+a naive measure.</p>
+<p><strong>Formula:</strong>
+<code>fill = days_with_work/total_days</code>, then
+<code>confidence = fill * (1.0 if preferred_buckets else 0.75)</code>.</p>
+<p><strong>Where 1.0 and 0.75 come from:</strong> chosen. A user who’s
+told us their preferred time-of-day buckets gets full credit (1.0) for a
+well-formed week; without that preference data the agent is working with
+less to go on, so the same well-formed week is capped at 0.75 confidence
+rather than claiming the same certainty. Not fitted against real
+satisfaction data.</p>
+<p><strong>Gap:</strong> real per-user weekly fill rate hasn’t been
+pulled across the actual user base yet.</p>
+<hr />
+<h1 id="reflection-analysis-agent">6. Reflection Analysis Agent</h1>
+<p><strong>Ground truth:</strong> length and pattern-density of what the
+user actually wrote. A one-word entry cannot score as high as a
+paragraph — a hard floor, not an inference the agent makes anyway.</p>
+<p><strong>Formula:</strong> <code>depth = min(words/60, 1.0)</code>,
+<code>signal = min(patterns/3, 1.0)</code>,
+<code>confidence = 0.3 + 0.5*depth + 0.2*signal</code> (0.0 if
+empty).</p>
+<p><strong>Where these numbers come from:</strong> chosen. 60 words is a
+judgment call for “this reads like a real reflection, not a one-liner” —
+untested against real data on whether that’s the right cutoff. 3
+detected patterns is treated as “plenty of signal” for the same reason.
+The 0.3 / 0.5 / 0.2 split weights depth of writing over pattern count,
+on the reasoning that length is a more reliable signal than our current
+pattern-detection quality — again, a judgment call, not a fitted
+weighting.</p>
+<p><strong>Gap:</strong> entry-length distribution across real
+reflections hasn’t been pulled for this pass.</p>
+<hr />
+<h1 id="adaptation-agent">7. Adaptation Agent</h1>
+<p><strong>Ground truth today:</strong> whether the agent found
+something to actually adapt. Zero adaptations fired is a real, different
+answer from a low-confidence guess.</p>
+<p><strong>Formula:</strong>
+<code>confidence = min(0.4 + 0.15 * adaptations_fired, 1.0)</code> (0.0
+if none fired). 0.4 and 0.15 are chosen constants — a floor once
+<em>anything</em> was adapted, plus 0.15 credit per adaptation, capping
+out after roughly 4.</p>
+<p><strong>Correction from this morning:</strong> we said no
+adaptation-events log existed at all. That was wrong. A table
+(<code>adaptation_outcomes</code>) already exists, designed to record
+exactly the kind of signal Odosa is asking for — which rule fired, and
+what the user’s <em>next</em> reflection reward looked like afterward,
+as an implicit “did this seem to help.” <strong>The table exists and has
+the right shape. It currently has zero rows — the mechanism was built
+but never wired up to actually write to it.</strong> That’s a smaller,
+more precise gap than “we need to design this from scratch.”</p>
+<p><strong>Odosa’s critique — this is weak, because firing more
+adaptations isn’t evidence they worked.</strong> Correct, and sharper
+than our framing. The current formula literally rewards quantity of
+changes, not quality. Her proposed fix — suggest an adaptation, get an
+explicit yes/no, then re-ask after a set period (a week) whether it
+actually helped, and score both moments — is a real improvement over the
+current implicit, reflection-only signal, and it maps directly onto the
+unused <code>adaptation_outcomes</code> table: it already has a slot for
+“reward from what happened next,” it just needs (1) writes turned on,
+and (2) an explicit prompt-based signal added alongside the passive
+reflection-derived one.</p>
+<hr />
+<h1 id="resourcehub-has-its-own-agent-system-four-more-agents">8.
+ResourceHub has its own agent system — four more agents</h1>
+<p>Everything above is Autinerary’s path-planning orchestrator
+(<code>backend/core/agents/</code>). ResourceHub
+(<code>servicehub-mvp/</code>) runs a <strong>separate</strong> set of
+four agents, on the same Supabase project but with its own LLM client
+and its own orchestrator. Presenting six agents without these four would
+be presenting half the product.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recommendation Agent</td>
+<td>Matches people to resources (collaborative filtering + LLM
+explanation)</td>
+</tr>
+<tr>
+<td>Pattern Agent</td>
+<td>Discovers patterns across the whole user population, unprompted</td>
+</tr>
+<tr>
+<td>Validation Agent</td>
+<td>Approves / rejects / flags submitted content and ratings</td>
+</tr>
+<tr>
+<td>Synthesis Engine</td>
+<td>Combines the three above into one ranked, explained result</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Finding common to Recommendation and Validation:</strong>
+ResourceHub’s 519 ratings all belong to team/test/synthetic seed
+personas — 0 from a real organic user yet. Recommendation Agent quality
+and Validation Agent trust scores both ultimately wait on this same gap:
+real people rating real resources.</p>
+<hr />
+<h1 id="recommendation-agent">9. Recommendation Agent</h1>
+<p><strong>Ground truth:</strong> collaborative filtering against
+similar users’ resource ratings, with an LLM explanation layer and
+cross-session memory. Cold-start fallback ranks approved resources
+directly when vector similarity finds no neighbours, so a new user is
+never shown “no results.”</p>
+<p><strong>Formula:</strong>
+<code>confidence = min(similarUsers/50, 1.0)*50 + (avgScore/100)*50</code>
+— half from how many comparable users were found, half from mean
+recommendation quality.</p>
+<p><strong>Where 50/50 and the /50 denominator come from:</strong>
+chosen. The split gives equal weight to “did we find enough comparable
+people” and “how good does the match look,” on the reasoning that either
+one alone can mislead — many weak matches or one perfect match with no
+corroboration are both worth discounting. The specific denominator (50
+similar users = full credit) is not derived from data.</p>
+<p><strong>Real data:</strong> 95 approved resources, 72 (76%) have ≥1
+rating — but per slide 8, those ratings are all seed/test data, so the
+“similar users” half of this formula has no real signal to draw on
+yet.</p>
+<p><strong>Same people/mentors question as Tool Recommendation:</strong>
+no, this agent also does not read the <code>connections</code>
+table.</p>
+<hr />
+<h1 id="pattern-agent-the-agent-that-answers-does-anything-find-group-level-patterns">10.
+Pattern Agent — the agent that answers “does anything find group-level
+patterns?”</h1>
+<p>This is the direct answer to the question raised for today:
+<strong>is there an agent that finds overarching patterns between groups
+and within groups, unsupervised</strong> — as opposed to patterns for
+one individual at a time?</p>
+<p><strong>Short answer: partially, and only on the ResourceHub
+side.</strong> Autinerary’s Pattern Recognition Agent (slide 3) is
+strictly per-user retrieval — it never looks at the population as a
+whole. This ResourceHub Pattern Agent is the one that actually mines the
+whole population, unsupervised, without a predefined target — closer to
+what “pattern recognition” sounds like it should mean.</p>
+<p><strong>What it actually finds, precisely, so we don’t
+overclaim:</strong> - <strong>Within-group co-occurrence</strong> —
+which conditions cluster together in the same people across the whole
+population (e.g. “43 users have Autism + ADHD together”). This is
+aggregate, unsupervised, population-level. - <strong>Resource
+affinity</strong> — population-level collaborative filtering (“people
+who rated X highly also rated Y highly”). - <strong>Unexpected
+preferences</strong> — which barrier types over-index on liking a given
+resource category, aggregated across everyone who rated it.</p>
+<p><strong>What it does NOT do, and why that’s a real architectural
+point, not an oversight:</strong> it does not run explicit
+<strong>between-named-group</strong> comparisons (e.g. Autism community
+vs. a racial/ethnic community as two labelled cohorts), and it
+<strong>cannot currently compare diagnosis subtypes</strong>
+(e.g. Autism Level 1 vs. Level 3) — because that subtype-level detail is
+deliberately stripped out before any data reaches an agent (the same
+privacy boundary covered in the diagnostic-profile design: agents get
+“what support helps,” never the underlying label or its severity level).
+Enabling subtype-level group comparison would mean deliberately relaxing
+that boundary for this one use case — a considered decision, not a small
+code change, and one that should be made explicitly rather than as a
+side effect of adding this feature.</p>
+<p><strong>Real data:</strong> only 48 real users have any barrier data,
+and only 25 of those have 2+ distinct barrier types — below the default
+5-user minimum support needed for most combinations to surface. Same
+root cause as Autinerary’s Pattern Recognition Agent, same fix: more
+real users.</p>
+<hr />
+<h1 id="validation-agent">11. Validation Agent</h1>
+<p><strong>Ground truth:</strong> four independent checks (Content
+Quality, Spam Detection, User Trust, Behavioral Patterns) combine into
+approve / reject / flag-for-review.
+<code>confidence = mean of the four check scores</code>.</p>
+<p><strong>Decision rule:</strong> approve if trust&gt;70 &amp;
+quality&gt;80 &amp; spam&lt;30; reject if trust&lt;30 OR quality&lt;40
+OR spam≥70; otherwise flag for human review. The specific cutoffs
+(70/80/30, 30/40/70) are chosen thresholds, not fitted — the
+deliberately wide middle band that defaults to human review is the one
+part of this that’s a considered design choice rather than an arbitrary
+number: it’s there so uncertain cases go to a person, not so the system
+looks more automated than it is.</p>
+<p><strong>Trust score:</strong> starts at 50 (chosen baseline), +up to
+20 for account age (roughly 2 points/day, capped), +up to 20 for prior
+contributions (2 points each, capped), +up to 10 for helpful votes
+received, −up to 30 for violations (15 points each, capped), + a
+consistency bonus. All bounds are chosen caps to keep any single factor
+from dominating, not fitted weights.</p>
+<p><strong>Real data:</strong> <code>moderation_queue</code> has
+<strong>0 rows</strong>. The approve/reject/flag logic exists and runs,
+but nothing has been logged to the table that would let us evaluate it
+against real decisions yet.</p>
+<hr />
+<h1 id="synthesis-engine">12. Synthesis Engine</h1>
+<p>Combines Recommendation Agent + Pattern Agent + Validation Agent
+output into one ranked, explained result — filters out anything
+Validation rejected, generates human-readable explanations, and picks a
+synthesis strategy that’s bandit-refined against learned reward when
+enough signal exists.</p>
+<p><strong>Ground truth:</strong> none independently — its correctness
+is entirely a function of the three agents it combines. There’s no
+separate metric to evaluate Synthesis Engine on its own; if
+Recommendation, Pattern, and Validation are each sound, Synthesis
+inherits that. If any of the three’s real-data gaps above aren’t closed,
+Synthesis can’t be evaluated meaningfully either.</p>
+<hr />
+<h1 id="what-this-tells-us-to-prioritize">13. What this tells us to
+prioritize</h1>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Status</th>
+<th>What would move it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pattern Recognition (Autinerary)</td>
+<td>Explained; pool bigger than we thought (36) but still small</td>
+<td>More real users with embeddings</td>
+</tr>
+<tr>
+<td>Tool Recommendation</td>
+<td>Formula solid, one query missing</td>
+<td>Review-coverage across 95 approved resources</td>
+</tr>
+<tr>
+<td>Path Planning</td>
+<td>Formula solid; milestone-level validation doesn’t exist yet</td>
+<td>Extract nameSource split; design milestone/path rating loop</td>
+</tr>
+<tr>
+<td>Calendar Optimization</td>
+<td>Formula solid, one query missing</td>
+<td>Real per-user weekly fill rate</td>
+</tr>
+<tr>
+<td>Reflection Analysis</td>
+<td>Formula solid, one query missing</td>
+<td>Entry-length distribution</td>
+</tr>
+<tr>
+<td>Adaptation</td>
+<td>Infra exists (adaptation_outcomes), unused</td>
+<td>Wire up writes; add explicit yes/no + delayed re-ask</td>
+</tr>
+<tr>
+<td>Recommendation (ResourceHub)</td>
+<td>Formula solid, ratings are all seed data</td>
+<td>Get real users rating real resources</td>
+</tr>
+<tr>
+<td>Pattern (ResourceHub)</td>
+<td>Explained, expected</td>
+<td>More users with ≥2 barrier types (25 today)</td>
+</tr>
+<tr>
+<td>Validation (ResourceHub)</td>
+<td>No decision log yet</td>
+<td>Start logging to moderation_queue</td>
+</tr>
+</tbody>
+</table>
+<p>Most of these are queries against data we already have or
+infrastructure that already exists and just needs wiring up — not new
+experiments. The two Pattern agents share the same root fix (more real
+users), already our #1 roadmap item.</p>
+<hr />
+<h1 id="what-we-need-from-this-group">14. What we need from this
+group</h1>
+<p><strong>October beta timing:</strong> hold ResourceHub’s public
+launch to waitlist + feature demo only, or move fast on data-compliance
+work, before going fully public for Autism Awareness Month. This is
+sharper for ResourceHub specifically — a community rating system that
+scores things like “autism-friendliness” sits closer to the
+medical-device-classification line Malikeh flagged than Autinerary’s
+planning agents do.</p>
+<p>Everything in this deck is reproducible:
+<code>backend/scripts/vector_evaluation_pull.py</code> and
+<code>backend/scripts/vector_evaluation_pull_servicehub.py</code>, plus
+the agent source files in <code>backend/core/agents/</code> and
+<code>servicehub-mvp/lib/agents/</code>.</p>
+</body>
+</html>
