@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity, Flag } from 'lucide-react'
+import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity, Flag, Flame } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useStreak } from '@/lib/streak'
 
 type Part = { label: string; value: number; weight: number }
 type Stat = { value: number; change: number | null; score: number; parts: Part[]; source?: string }
@@ -98,6 +99,41 @@ function levelOf(value: number): 'low' | 'mid' | 'high' {
   if (value < 4) return 'low'
   if (value < 7) return 'mid'
   return 'high'
+}
+
+/** Current + longest streak, shown inside the Commitment card (Odosa). */
+function StreakDetail() {
+  const { current, longest, activeToday } = useStreak()
+
+  return (
+    <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-orange-500">
+          <Flame className="w-3.5 h-3.5" /> Current streak
+        </div>
+        <div className="text-xl font-bold text-orange-700">
+          {current} <span className="text-sm font-medium text-orange-500">day{current === 1 ? '' : 's'}</span>
+        </div>
+        <div className="text-[11px] text-orange-600/80">
+          {current === 0
+            ? 'Open the app tomorrow to start one'
+            : activeToday
+              ? 'Counted today'
+              : 'Not counted yet today'}
+        </div>
+      </div>
+
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Longest streak</div>
+        <div className="text-xl font-bold text-slate-700">
+          {longest} <span className="text-sm font-medium text-slate-500">day{longest === 1 ? '' : 's'}</span>
+        </div>
+        <div className="text-[11px] text-slate-500">
+          {longest > 0 && current >= longest ? 'Your best run — right now' : 'Your best run so far'}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function RamificationsBar({ stats, order, meta }: {
@@ -260,6 +296,8 @@ export default function StatsBreakdownPage() {
                   {/* What it measures */}
                   <p className="text-sm text-slate-600 mb-3">{meta.what}</p>
 
+                  {key === 'commitment' && <StreakDetail />}
+
                   {/* Ramification — what this level means for the journey */}
                   <div className="bg-slate-50 border-l-2 border-purple-300 rounded-r-lg px-3 py-2 mb-3">
                     <p className="text-xs text-slate-600"><span className="font-semibold text-purple-600">What it means: </span>{RAMIFICATIONS[key][levelOf(stat.value)]}</p>
@@ -289,6 +327,23 @@ export default function StatsBreakdownPage() {
                 </div>
               )
             })}
+
+            {/* Streaks are real from day one, unlike the Commitment score, which
+                needs a fortnight of history. Show them anyway rather than
+                hiding the section a new user was told to look for. */}
+            {!order.includes('commitment') && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Flag className="w-5 h-5 text-teal-600" />
+                  <h2 className="font-bold text-slate-800">Commitment</h2>
+                </div>
+                <StreakDetail />
+                <p className="text-xs text-slate-500">
+                  Your Commitment score needs a few weeks of history before it means anything, so it isn&apos;t
+                  scored yet. Your streak counts from today.
+                </p>
+              </div>
+            )}
 
             <p className="text-[11px] text-slate-400 text-center pt-2">
               As of {payload.asOf}. Stats update from your activity over a rolling 7-day window.

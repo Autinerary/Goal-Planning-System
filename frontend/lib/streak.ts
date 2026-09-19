@@ -1,14 +1,17 @@
 // Daily streaks (with freezes + celebration milestones)
 //
-// Tracks consecutive days the user COMPLETES A TASK and exposes current/longest
+// Tracks consecutive days the user SHOWS UP and exposes current/longest
 // streak, available freezes, and pending celebrations for a visible streak
 // experience (Eliyana: "Streaks!" + depth). Client-side/localStorage, consistent
 // with preferences.ts and disclosure.ts.
 //
-// "Active" = completed a task that day. Call recordActiveDay() from the task
-// completion handler (see app/tasks/[id]/page.tsx). A "freeze" auto-bridges a
-// missed day so a single slip doesn't reset a hard-won streak — you earn one
-// freeze per 7-day milestone (capped).
+// "Active" = opened the app that day (Odosa: "for every day someone logs in"),
+// or completed a task. Signing in is the lower bar of the two, so in practice
+// it is what keeps a streak alive; task completion still counts and is what
+// Focus and Commitment measure. Recorded by recordLoginDay() on app load and
+// recordActiveDay() from the task handler — both idempotent per day.
+// A "freeze" auto-bridges a missed day so a single slip doesn't reset a
+// hard-won streak — you earn one freeze per 7-day milestone (capped).
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -184,6 +187,15 @@ export function recordActiveDay(): void {
   } catch {
     /* quota — ignore */
   }
+}
+
+/**
+ * Record today because the user opened the app while signed in (Odosa).
+ * Same bookkeeping as a completed task — showing up is the lower bar, and it
+ * is deliberately what keeps the streak alive.
+ */
+export function recordLoginDay(): void {
+  recordActiveDay()
 }
 
 /** Compute current + longest streak and available freezes. */

@@ -1,7 +1,4 @@
-"""
-AutoGen-based Multi-Agent Orchestrator
-Uses Microsoft AutoGen framework for agent collaboration
-"""
+
 
 import os
 from typing import Dict, List, Any, Optional
