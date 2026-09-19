@@ -125,7 +125,13 @@ CREATE INDEX IF NOT EXISTS resources_source_type_idx
 -- trending tier — the highest it genuinely meets — rather than four badges.
 --
 -- Thresholds are fixed and real. Nothing is badged for merely existing.
-CREATE OR REPLACE FUNCTION public.get_resource_badges(p_resource_ids UUID[])
+-- Postgres refuses CREATE OR REPLACE when the OUT-parameter row shape
+-- changes (here: adding trending_tier and first_party to STEP 29's
+-- columns), so the old signature has to be dropped explicitly first.
+-- IF EXISTS keeps this safe to re-run.
+DROP FUNCTION IF EXISTS public.get_resource_badges(UUID[]);
+
+CREATE FUNCTION public.get_resource_badges(p_resource_ids UUID[])
 RETURNS TABLE (
   resource_id       UUID,
   trending          BOOLEAN,
