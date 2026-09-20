@@ -718,7 +718,7 @@ function CalendarContent() {
                   <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold hover:brightness-110 disabled:opacity-40">
+                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold disabled:opacity-40">
                     Add task
                   </button>
                 </div>
@@ -806,7 +806,7 @@ function CalendarContent() {
                         )
                       }
                     }}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2 font-semibold"
+                    className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2 font-semibold"
                   >
                     <Check className="w-5 h-5" />
                     Add to Calendar
@@ -833,7 +833,7 @@ function CalendarContent() {
           </div>
           {/* Title */}
           <div className="border border-slate-200 rounded-xl p-6 surface">
-            <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">📅 Your Calendar</h1>
+            <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2"><Calendar className="w-6 h-6 text-indigo-600" aria-hidden="true" />Your Calendar</h1>
             <p className="text-slate-500 text-sm">Plan your journey through each day</p>
           </div>
         </div>
@@ -845,7 +845,7 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'list' 
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg' 
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
                   : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -855,7 +855,7 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'timeblock' 
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg' 
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
                   : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -867,7 +867,7 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=week&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'week'
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
                   : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -877,7 +877,7 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=month&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'month'
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
                   : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -892,7 +892,7 @@ function CalendarContent() {
             onClick={() => setShowComparison(!showComparison)}
             className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
               showComparison
-                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
                 : 'surface text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -1005,7 +1005,7 @@ function CalendarContent() {
               onClick={() => setPeriod(p.id)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 period === p.id
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
                   : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -1021,7 +1021,7 @@ function CalendarContent() {
           </button>
           <button
             onClick={() => setShowAddTask(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow hover:brightness-110 transition-all"
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow transition-all"
           >
             + Add task
           </button>

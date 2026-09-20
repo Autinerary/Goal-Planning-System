@@ -38,7 +38,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-wrap justify-between items-center min-h-16 py-2 gap-2">
           <Link href="/path" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg flex items-center justify-center">
               <span className="font-bold text-sm text-white">A</span>
             </div>
             <span className="font-bold text-lg hidden sm:block text-slate-700">Autinerary</span>
@@ -54,7 +54,7 @@ export default function Navigation() {
               onClick={goToServiceHub}
               aria-label="Find resources"
               data-info="Opens ResourceHub to find services and tools for your goals."
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:brightness-110 rounded-lg transition-all"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg transition-all"
             >
               <ExternalLink className="w-4 h-4" />
               <span className="hidden sm:inline">{t('nav.findResources')}</span>

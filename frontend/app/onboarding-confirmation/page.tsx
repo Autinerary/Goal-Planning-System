@@ -93,7 +93,7 @@ export default function OnboardingConfirmationPage() {
           <button
             onClick={() => setLaunching(true)}
             disabled={launching}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-lg font-bold hover:shadow-xl transition-all"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-lg font-bold hover:shadow-xl transition-all"
           >
             <Rocket className="w-5 h-5" /> Go to my Path
           </button>

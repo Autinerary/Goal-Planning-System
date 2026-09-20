@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2, Users, MessageCircle } from 'lucide-react'
+import { X, Sparkles, Calendar, Heart, Key, Hammer, ArrowUp, SprayCan, Wrench, Shield, Lock, Unlock, ChevronDown, ChevronUp, Star, Bookmark, CheckCircle2, ExternalLink, Loader2, Users, MessageCircle, ClipboardList, Flag } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import { goHubHref } from '@/lib/serviceHub'
@@ -393,7 +393,7 @@ export default function MilestoneView() {
                 {/* Nails */}
                 <div className="absolute top-2 left-3 w-2 h-2 rounded-full bg-amber-600" />
                 <div className="absolute top-2 right-3 w-2 h-2 rounded-full bg-amber-600" />
-                <h1 className="text-2xl font-bold text-amber-900 text-center">🪧 Milestone View</h1>
+                <h1 className="text-2xl font-bold text-amber-900 text-center flex items-center justify-center gap-2"><Flag className="w-6 h-6" aria-hidden="true" />Milestone View</h1>
                 <p className="text-amber-700 text-sm text-center mt-1">{races[0].name}: Race 1</p>
               </div>
             </div>
@@ -433,7 +433,7 @@ export default function MilestoneView() {
 
         {/* Summary — moved to just below the progress bar (Odosa) */}
         <div className="mb-4 border border-amber-300 rounded-2xl p-4 surface">
-          <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2">📋 Summary</h3>
+          <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2"><ClipboardList className="w-4 h-4" aria-hidden="true" />Summary</h3>
           <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || races[0]?.name || 'Your current milestone'}</strong></p>
           <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely. Barriers get bigger but so do you!</p>
         </div>
@@ -575,7 +575,7 @@ export default function MilestoneView() {
             href={goHubHref('/')}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
           >
             <ExternalLink className="w-4 h-4" /> View all resources &amp; ResourceHub
           </a>
@@ -593,10 +593,10 @@ export default function MilestoneView() {
 
         {/* Footer navigation */}
         <div className="mt-6 flex justify-center gap-3">
-          <Link href="/reflection?contextType=milestone" className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/reflection?contextType=milestone" className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Sparkles className="w-4 h-4" /> Journal / Reflection
           </Link>
-          <Link href="/calendar" className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/calendar" className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Calendar className="w-4 h-4" /> Calendar
           </Link>
         </div>

@@ -137,7 +137,7 @@ export default function RecommendChoicesPage() {
               onClick={() => setFilterService(null)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filterService === null
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-md'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -149,7 +149,7 @@ export default function RecommendChoicesPage() {
                 onClick={() => setFilterService(service)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   filterService === service
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                    ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-md'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
@@ -302,7 +302,7 @@ export default function RecommendChoicesPage() {
           {/* Action Button */}
           <Link
             href={`/milestones/${choice.id}`}
-            className="ml-4 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
+            className="ml-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
           >
             View Details
             <ExternalLink className="w-4 h-4" />

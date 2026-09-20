@@ -51,7 +51,7 @@ export default function ViewTabs() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
+                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
                       : isDone
                         ? 'text-slate-700 hover:bg-white/70'
                         : 'text-slate-500 hover:bg-white/70'
@@ -75,7 +75,7 @@ export default function ViewTabs() {
             aria-current={pathname.startsWith('/paths/compare') ? 'page' : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
               pathname.startsWith('/paths/compare')
-                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
+                ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
                 : 'text-slate-500 hover:bg-white/70'
             }`}
           >

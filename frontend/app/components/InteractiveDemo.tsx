@@ -255,14 +255,14 @@ export default function InteractiveDemo() {
           {isLast ? (
             <button
               onClick={finish}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
             >
               Get started
             </button>
           ) : (
             <button
               onClick={() => go(step + 1)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>

@@ -156,7 +156,7 @@ export default function FamilyPage() {
           {!showAdd ? (
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all"
             >
               <Plus className="w-4 h-4" /> Add a child
             </button>
@@ -229,7 +229,7 @@ export default function FamilyPage() {
                 <button
                   type="submit"
                   disabled={saving || (reviewing && !legalGuardianConsent)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {saving && <Loader2 className="w-4 h-4 animate-spin" />} {reviewing ? 'Approve account' : 'Review details'}
                 </button>

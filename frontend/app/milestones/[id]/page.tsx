@@ -191,7 +191,7 @@ export default function MilestoneDetailView() {
               </div>
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full transition-all"
+                  className="h-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-full transition-all"
                   style={{ width: `${milestone.progress}%` }}
                 />
               </div>

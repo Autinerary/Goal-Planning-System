@@ -267,7 +267,7 @@ export default function FirstRunIntro() {
           </button>
           <button
             onClick={() => (isLast ? finish() : go(1))}
-            className="inline-flex items-center gap-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all"
           >
             {isLast ? 'Start exploring' : 'Next'}
             {!isLast && <ChevronRight className="w-4 h-4" />}

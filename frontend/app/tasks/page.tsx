@@ -245,7 +245,7 @@ export default function TasksPage() {
                 {musicFile && (
                   <button
                     onClick={togglePlay}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-xs font-medium"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-medium"
                   >
                     {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     {isPlaying ? 'Pause' : 'Play'}
@@ -300,7 +300,7 @@ export default function TasksPage() {
             className={`px-16 py-4 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
               allDone
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
-                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-purple-500/30'
+                : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white hover:shadow-purple-500/30'
             }`}
           >
             {allDone ? '✓ Done!' : 'Done'}

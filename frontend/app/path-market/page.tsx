@@ -393,7 +393,7 @@ export default function PathMarketPage() {
                             className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                               m.status === 'coming'
                                 ? 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
-                                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-lg'
+                                : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white hover:shadow-lg'
                             }`}
                           >
                             {m.status === 'coming' ? 'Coming soon →' : m.status === 'pending' ? 'Awaiting review' : 'Review ideas'}
@@ -456,7 +456,7 @@ export default function PathMarketPage() {
                 <div className="text-4xl mb-2">🎉</div>
                 <p className="font-semibold text-slate-800">Thanks for sharing!</p>
                 <p className="text-sm text-slate-500 mt-1">Your model is <strong>pending review</strong>. You’ll see it in its category with a “Pending review” badge until it’s approved for everyone.</p>
-                <button onClick={() => setShowSubmit(false)} className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold">Done</button>
+                <button onClick={() => setShowSubmit(false)} className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold">Done</button>
               </div>
             ) : (
               <form onSubmit={submitModel} className="space-y-3">
@@ -501,7 +501,7 @@ export default function PathMarketPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Submit model
                 </button>

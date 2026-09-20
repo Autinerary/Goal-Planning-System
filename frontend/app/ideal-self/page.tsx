@@ -112,7 +112,7 @@ export default function IdealSelfPage() {
           <button onClick={() => router.back()} className="p-1 rounded-lg hover:bg-slate-900/10 text-slate-800">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-bold text-slate-800">✨ Ideal Self</h1>
+          <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-600" aria-hidden="true" />Ideal Self</h1>
         </div>
       </header>
 

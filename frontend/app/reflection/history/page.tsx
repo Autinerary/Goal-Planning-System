@@ -227,7 +227,7 @@ export default function JournalHistory() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => setShowImport((v) => !v)}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium inline-flex items-center gap-2"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium inline-flex items-center gap-2"
             >
               <Upload className="w-4 h-4" /> Import entries
             </button>
@@ -282,7 +282,7 @@ export default function JournalHistory() {
               <button
                 onClick={handleImportSubmit}
                 disabled={importBusy || !importText.trim()}
-                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
               >
                 {importBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {importBusy ? 'Importing…' : 'Import & consider these'}
@@ -418,7 +418,7 @@ export default function JournalHistory() {
               onClick={() => setFilter(f)}
               className={`px-4 py-2.5 rounded-lg capitalize font-medium transition-all ${
                 filter === f 
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg scale-105' 
+                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg scale-105' 
                   : 'surface text-slate-800 hover:bg-slate-50'
               }`}
             >

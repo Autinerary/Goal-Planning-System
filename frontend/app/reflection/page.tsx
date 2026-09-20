@@ -218,7 +218,7 @@ function ReflectionContent() {
               <button
                 onClick={() => handleThemeChange('colorful')}
                 className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-2 ${
-                  theme === 'colorful' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white' : 'hover:bg-slate-100 text-slate-700'
+                  theme === 'colorful' ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white' : 'hover:bg-slate-100 text-slate-700'
                 }`}
               >
                 <Palette className="w-4 h-4" />

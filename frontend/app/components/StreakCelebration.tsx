@@ -64,7 +64,7 @@ export default function StreakCelebration({
           🔥
         </div>
         <div className="flex items-center justify-center gap-2 text-3xl font-extrabold text-orange-600">
-          <Flame className="w-7 h-7 text-orange-500" />
+          <Flame className="w-6 h-6 text-orange-500" />
           {milestone} days!
         </div>
         <p className="text-slate-600 mt-2 text-sm">

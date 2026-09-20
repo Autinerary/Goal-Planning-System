@@ -91,7 +91,7 @@ export default function ChildSupervisionPage() {
                 <span className="text-sm font-bold text-cyan-600">{overall}%</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full transition-all" style={{ width: `${overall}%` }} />
+                <div className="h-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-full transition-all" style={{ width: `${overall}%` }} />
               </div>
               <p className="text-xs text-slate-400 mt-2">{totalDone} of {allMilestones.length} milestones complete</p>
             </div>
@@ -109,7 +109,7 @@ export default function ChildSupervisionPage() {
                       <span className="text-xs font-bold text-purple-600">{pct}%</span>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-xs text-slate-400 mt-1.5">{done}/{ms.length} milestones</p>
                   </div>

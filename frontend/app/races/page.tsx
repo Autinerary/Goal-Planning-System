@@ -712,7 +712,7 @@ function RacesContent() {
         <p className="text-sm text-slate-500 max-w-sm">
           Your goals become races once your path is generated. Complete onboarding to build one.
         </p>
-        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
+        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all">
           Go to onboarding →
         </Link>
       </div>
@@ -797,7 +797,7 @@ function RacesContent() {
                   router.push('/path')
                 }
               }} className={`p-1 rounded-lg hover:bg-black/10 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
-              <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
+              <h1 className={`text-lg font-bold flex items-center gap-2 ${txt}`}><span aria-hidden="true">🏁</span>Dream Land Race Track</h1>
               {modelName && (
                 <Link
                   href="/path#life-path-models"
@@ -838,7 +838,7 @@ function RacesContent() {
                 {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'To Role Model(s)', I: Users }, { k: 'friend', l: 'To Friend-vals', I: UserPlus }, { k: 'mentor', l: 'To Mentoring', I: UserCheck }, { k: 'recommendations', l: 'To Recommendations', I: Sparkles }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
               </div>
               <div className="relative">
-                <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
+                <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
                 {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Compete' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
               </div>
             </div>
@@ -872,7 +872,7 @@ function RacesContent() {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">👥</div>
                     <p className={`text-sm mb-4 ${sub}`}>You haven&apos;t connected with a {cat.label.toLowerCase()} yet. Comparisons use your real connections&apos; shared paths.</p>
-                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
+                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all">
                       Find a {cat.label.toLowerCase()} in Hare World →
                     </Link>
                   </div>
@@ -1734,7 +1734,7 @@ function RacesContent() {
                     <div className={`absolute bottom-0 left-0 right-0 h-2 ${day ? 'bg-red-700' : 'bg-purple-900'}`} style={{ clipPath: 'polygon(0% 0%, 7% 100%, 14% 0%, 21% 100%, 28% 0%, 35% 100%, 42% 0%, 50% 100%, 57% 0%, 64% 100%, 71% 0%, 78% 100%, 85% 0%, 92% 100%, 100% 0%)' }} />
                   </div>
                   <div className="p-2.5">
-                    <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏪 Pit Stop Shop</h4>
+                    <h4 className={`font-bold text-xs mb-1.5 flex items-center gap-1.5 ${txt}`}><span aria-hidden="true">🏪</span>Pit Stop Shop</h4>
                     <div className="space-y-1">
                       {shopItems.length === 0 && (
                         <p className={`text-[9px] ${sub} py-1`}>No items yet. They appear as your agents recommend tools.</p>
@@ -1751,14 +1751,14 @@ function RacesContent() {
                     </div>
                     {/* Up/Down scroll arrows */}
                     <div className="flex justify-center gap-2 mt-1.5">
-                      <button onClick={() => setExpandShop(false)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
+                      <button onClick={() => setExpandShop(false)} className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
                         <ChevronUp className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setExpandShop(true)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
+                      <button onClick={() => setExpandShop(true)} className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
-                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'}`}>🏪 Open Full Shop →</a>
+                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
                 </div>
@@ -1790,7 +1790,7 @@ function RacesContent() {
                   made it hard to read how far along a path you actually are. */}
               <div className="flex justify-center items-start w-full" style={{ gridColumn: 1, gridRow: 3 }}>
                 <div className={`w-full max-w-[190px] ${pill} border-2 rounded-xl shadow-md p-2.5`}>
-                  <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏁 Current Goals</h4>
+                  <h4 className={`font-bold text-xs mb-1.5 flex items-center gap-1.5 ${txt}`}><span aria-hidden="true">🏁</span>Current Goals</h4>
                   <div className="space-y-2">
                     {races.filter((r: any) => r.id !== 'r_placeholder').slice(0, 3).map((r: any) => (
                       <div key={r.id}>

@@ -232,7 +232,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isSubmitting || password !== confirmPassword}
-              className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
               {isSubmitting ? (
                 <>

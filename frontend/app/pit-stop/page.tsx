@@ -901,7 +901,7 @@ function PitStopContent() {
               <div className="space-y-3 max-w-sm mx-auto">
                 <button
                   onClick={handleToolsRedirect}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
                 >
                   Go to Resource Hub →
                 </button>
@@ -1371,7 +1371,7 @@ function PitStopContent() {
                     <h3 className="text-lg font-bold">Collab Groups (via Collab Type)</h3>
                     <button
                       onClick={() => setShowGroupModal(true)}
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
                     >
                       <UserPlus className="w-4 h-4" />
                       Create Group
@@ -1515,7 +1515,7 @@ function PitStopContent() {
                         setShowMatchModal(true)
                         setCurrentMatchIndex(0)
                       }}
-                      className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
                     >
                       <Heart className="w-5 h-5" />
                       Start Matching
@@ -1916,7 +1916,7 @@ function PitStopContent() {
                           handleRequestConnection(input?.value || '', selectedCategory)
                         }
                       }}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                      className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all"
                     >
                       Add Contact
                     </button>
@@ -2011,7 +2011,7 @@ function PitStopContent() {
                   <button
                     onClick={createCollabGroup}
                     disabled={creatingGroup || groupForm.name.trim().length < 2}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
                   >
                     {creatingGroup ? 'Creating…' : 'Create Group'}
                   </button>
@@ -2284,7 +2284,7 @@ function PitStopContent() {
                         }, 2000)
                       })
                     }}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all"
                   >
                     Join Group
                   </button>
@@ -2439,7 +2439,7 @@ function PitStopContent() {
                         }
                       }, 1500)
                     }}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ChevronRight className="w-5 h-5" />
                     Match

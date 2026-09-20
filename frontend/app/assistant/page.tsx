@@ -147,7 +147,7 @@ export default function AssistantPage() {
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-br-sm'
+                    ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-br-sm'
                     : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-sm'
                 }`}
               >
@@ -209,7 +209,7 @@ export default function AssistantPage() {
           <button
             type="submit"
             disabled={!input.trim() || sending}
-            className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center disabled:opacity-40 transition-opacity"
+            className="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white flex items-center justify-center disabled:opacity-40 transition-opacity"
             aria-label="Send"
           >
             <Send className="w-4 h-4" />

@@ -1458,7 +1458,7 @@ export default function OnboardingPage() {
                   <div
                     className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
                       isActive 
-                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 scale-125 ring-4 ring-cyan-300' 
+                        ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 scale-125 ring-4 ring-cyan-300' 
                         : isCompleted 
                           ? 'bg-green-500 scale-110' 
                           : 'bg-slate-300 scale-100'
@@ -1499,7 +1499,7 @@ export default function OnboardingPage() {
           {/* Step 0: Character Select */}
           {currentStep === 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character ✨</h2>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
               <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land.</p>
 
               <label className="block mb-6 font-medium">
@@ -1742,7 +1742,7 @@ export default function OnboardingPage() {
                   onClick={() => setBarrierInputMode('text')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     barrierInputMode === 'text'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                       : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -1752,7 +1752,7 @@ export default function OnboardingPage() {
                   onClick={() => setBarrierInputMode('manual')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     barrierInputMode === 'manual'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                       : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -1837,7 +1837,7 @@ export default function OnboardingPage() {
                             'disabled' in conn && conn.disabled
                               ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
                               : formData.barrierConnections[conn.id] !== undefined
-                                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+                                ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                                 : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
                           }`}
                         >
@@ -1939,7 +1939,7 @@ export default function OnboardingPage() {
                                                 }}
                                                 className={`px-3 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                                   isSelected
-                                                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+                                                    ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
                                                 }`}
                                               >
@@ -1976,7 +1976,7 @@ export default function OnboardingPage() {
                                             return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                           })
                                         }}
-                                        className="px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                                        className="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white"
                                       >
                                         {b} ✕
                                       </button>
@@ -2020,7 +2020,7 @@ export default function OnboardingPage() {
                                     })
                                     setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
                                   }}
-                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:brightness-110"
+                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white"
                                 >
                                   Add
                                 </button>
@@ -2518,7 +2518,7 @@ export default function OnboardingPage() {
                 if (dreamsToShow.length === 0) return null
                 return (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
-                    <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far 💭</h3>
+                    <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far</h3>
                     <div className="flex flex-wrap gap-2">
                       {dreamsToShow.map((dream, idx) => (
                         <span key={idx} className="px-3 py-1 bg-white/80 border border-purple-200 rounded-full text-sm text-purple-700">{dream}</span>
@@ -2595,7 +2595,7 @@ export default function OnboardingPage() {
               : spiritAnimalModes
             return (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s)</h2>
               <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you.{modesCollapsed ? ' Keeping it simple with one guide. You can add more anytime.' : " Pick how many you'd like."}</p>
 
               {/* Mode selector (Odosa's 3 options; simplified in simple view) */}
@@ -3139,7 +3139,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {currentStep === 7 ? 'View Recommendations' : 'Continue'}
                   <ChevronRight className="w-5 h-5" />
@@ -3148,7 +3148,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={!canProceed() || isSubmitting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {isSubmitting ? (
                     <>

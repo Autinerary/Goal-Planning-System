@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => router.push('/signup')}
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
+                className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
               >
                 Start Your Journey
                 <ArrowRight className="w-5 h-5" />
@@ -147,56 +147,61 @@ export default function HomePage() {
       {/* Stats/Races Section with Gradient */}
       <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg">
-              Track Your Progress
+          {/*
+            This was three identical gradient boxes in a row, each with an
+            icon tile and a number: 12 Active Races, 48 Milestones, 7 Day
+            Streak, under lines like "You're making great progress!".
+
+            Two problems. The triplet of icon boxes is the most copied
+            section on the web and says nothing that the words beneath it
+            do not. Worse, the numbers were invented and addressed to a
+            visitor who does not have an account yet, so the page opened by
+            congratulating a stranger on progress they had not made. A
+            product whose whole pitch is that it will not hand you generic
+            advice should not fabricate your statistics on the way in.
+
+            One panel, no figures, describing what the app actually keeps
+            track of.
+          */}
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 drop-shadow-lg">
+              What Autinerary keeps track of
             </h2>
-            <p className="text-white/80 max-w-xl mx-auto">
-              See how you're doing across all your races and goals
+            <p className="text-white/80 mb-8">
+              Everything here is built from what you do, and nothing is filled in on your behalf.
             </p>
-          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Active Races - Blue Gradient */}
-            <div className="bg-gradient-to-br from-blue-500/30 via-blue-400/20 to-blue-600/30 backdrop-blur-lg border-2 border-blue-400/30 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-blue-500/50 rounded-xl flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-blue-200" />
-                </div>
+            <div className="surface-veil-dark rounded-2xl p-6 divide-y divide-white/15">
+              <div className="flex items-start gap-4 pb-4">
+                <Trophy className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
                 <div>
-                  <h3 className="text-2xl font-bold text-white">12</h3>
-                  <p className="text-blue-200 text-sm">Active Races</p>
+                  <h3 className="font-semibold text-white">Your goals, as races</h3>
+                  <p className="text-white/75 text-sm">
+                    Each goal becomes a route with its own milestones, so progress is something you
+                    can see rather than something you have to remember.
+                  </p>
                 </div>
               </div>
-              <div className="text-blue-100 text-sm">Keep pushing forward!</div>
-            </div>
-
-            {/* Completed Milestones - Pink Gradient */}
-            <div className="bg-gradient-to-br from-pink-500/30 via-pink-400/20 to-pink-600/30 backdrop-blur-lg border-2 border-pink-400/30 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-pink-500/50 rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-pink-200" />
-                </div>
+              <div className="flex items-start gap-4 py-4">
+                <Target className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
                 <div>
-                  <h3 className="text-2xl font-bold text-white">48</h3>
-                  <p className="text-pink-200 text-sm">Milestones</p>
+                  <h3 className="font-semibold text-white">Milestones you have actually finished</h3>
+                  <p className="text-white/75 text-sm">
+                    Counted from what you tick off. If you have not done anything yet, it says so
+                    instead of showing you a number.
+                  </p>
                 </div>
               </div>
-              <div className="text-pink-100 text-sm">You're making great progress!</div>
-            </div>
-
-            {/* Current Streak - Purple Gradient */}
-            <div className="bg-gradient-to-br from-purple-500/30 via-purple-400/20 to-purple-600/30 backdrop-blur-lg border-2 border-purple-400/30 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-purple-500/50 rounded-xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-purple-200" />
-                </div>
+              <div className="flex items-start gap-4 pt-4">
+                <Zap className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
                 <div>
-                  <h3 className="text-2xl font-bold text-white">7</h3>
-                  <p className="text-purple-200 text-sm">Day Streak</p>
+                  <h3 className="font-semibold text-white">Streaks that survive a bad week</h3>
+                  <p className="text-white/75 text-sm">
+                    Turning up counts. Streak freezes mean missing a day does not wipe out the
+                    weeks behind it.
+                  </p>
                 </div>
               </div>
-              <div className="text-purple-100 text-sm">Stay consistent!</div>
             </div>
           </div>
         </div>
@@ -291,7 +296,7 @@ export default function HomePage() {
           </p>
           <button
             onClick={() => router.push('/signup')}
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
+            className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
           >
             Create Your Account
             <ArrowRight className="w-5 h-5" />
@@ -304,7 +309,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-indigo-600 to-violet-600 rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded flex items-center justify-center">
                 <span className="font-bold text-xs text-white">A</span>
               </div>
               <span className="font-semibold text-white">Autinerary</span>

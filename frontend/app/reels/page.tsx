@@ -22,7 +22,7 @@ const GRADIENTS = [
   'from-amber-500 to-orange-600',
   'from-emerald-500 to-teal-600',
   'from-rose-500 to-fuchsia-600',
-  'from-indigo-500 to-violet-600',
+  'from-sky-500 to-cyan-600',
 ]
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
