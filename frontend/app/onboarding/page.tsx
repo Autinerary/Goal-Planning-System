@@ -2481,6 +2481,7 @@ export default function OnboardingPage() {
                       {spiritAnimalSlotLabel(formData.spiritAnimalMode, idx)}
                     </h3>
                     <button
+                      type="button"
                       onClick={() => removeSpiritAnimal(idx)}
                       className="text-sm text-red-400 hover:text-red-500"
                     >
@@ -2488,13 +2489,27 @@ export default function OnboardingPage() {
                     </button>
                   </div>
                   
-                  {/* Step ① Select Animal */}
+                  {/* Step ① Select Animal
+                      A tester reported the animal "won't change without
+                      clicking Remove first". The grid stays live and tapping
+                      another animal always worked, but once a slot was filled
+                      nothing said so, and Remove was the only visible action.
+                      The hint below is the affordance that was missing. */}
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">① Choose Animal</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      ① Choose Animal
+                      {animal.type && (
+                        <span className="ml-2 font-normal text-slate-500">
+                          — tap a different one to change it
+                        </span>
+                      )}
+                    </label>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                       {spiritAnimalOptions.map((opt) => (
                         <button
                           key={opt.id}
+                          type="button"
+                          aria-pressed={animal.type === opt.id}
                           onClick={() => updateSpiritAnimal(idx, 'type', opt.id)}
                           className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
                             animal.type === opt.id
@@ -2512,11 +2527,20 @@ export default function OnboardingPage() {
                   {/* Step ② Select Color */}
                   {animal.type && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">② Choose Color</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        ② Choose Color
+                        {animal.color && (
+                          <span className="ml-2 font-normal text-slate-500">
+                            — tap a different one to change it
+                          </span>
+                        )}
+                      </label>
                       <div className="flex flex-wrap gap-2">
                         {spiritAnimalColors.map((color) => (
                           <button
                             key={color.id}
+                            type="button"
+                            aria-pressed={animal.color === color.id}
                             onClick={() => updateSpiritAnimal(idx, 'color', color.id)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
                               animal.color === color.id

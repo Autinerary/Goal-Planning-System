@@ -500,6 +500,16 @@ function PitStopContent() {
   }
 
   /**
+   * Everyone the user can actually open a conversation with.
+   *
+   * Only connections whose request has been accepted: messaging someone
+   * who has not agreed to connect is not something this app should offer.
+   */
+  const messageablePeople = [...roleModels, ...mentors, ...friends].filter(
+    (p: any) => (p.status ?? 'connected') === 'connected'
+  )
+
+  /**
    * The subtitle shown under a connection's name.
    *
    * `role` is filled with the placeholder text 'Pending Request' when a
@@ -764,7 +774,7 @@ function PitStopContent() {
                 : 'border-transparent text-slate-600 hover:text-slate-700'
             }`}
           >
-            3.5. People &amp; Community (Hare World)
+            People &amp; Community (Hare World) 🐇
           </button>
         </div>
 
@@ -2564,10 +2574,15 @@ function PitStopContent() {
                     <MessageSquare className="w-5 h-5 text-green-600" />
                     Moderated Messaging
                   </h3>
+                  {/* Was just "Live", which a tester asked the meaning of.
+                      It marks that the thread is polling, so say that. */}
                   {selectedConversation && messagePollInterval && (
-                    <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    <span
+                      className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
+                      title="This conversation refreshes on its own. New messages appear without reloading."
+                    >
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                      Live
+                      Updating automatically
                     </span>
                   )}
                 </div>
@@ -2592,8 +2607,23 @@ function PitStopContent() {
                   <p className="text-slate-600 text-sm">
                     Safe, moderated communication with your connections. All messages are reviewed for safety.
                   </p>
+                  {/* A tester reported this modal "only shows a description".
+                      That is what happens with no connections: the list below
+                      was the entire rest of the modal, so an empty list left
+                      one sentence and nothing to do. The .slice(0, 3) was a
+                      second bug — someone with ten connections could only
+                      message three of them, with no indication why. */}
+                  {messageablePeople.length === 0 && (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                      <p className="font-medium text-slate-800 mb-1">No one to message yet</p>
+                      <p>
+                        Messaging works with people you are connected to. Add a friend, mentor or role
+                        model in People &amp; Community, and once they accept they will appear here.
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-2">
-                    {roleModels.concat(mentors as any).concat(friends as any).slice(0, 3).map((person) => (
+                    {messageablePeople.map((person) => (
                       <button
                         key={person.id}
                         onClick={async () => {

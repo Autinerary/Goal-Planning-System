@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Users, Plus, Loader2, ChevronRight, ShieldCheck, Crown } from 'lucide-react'
+import { ArrowLeft, Users, Plus, Loader2, ChevronRight, ShieldCheck } from 'lucide-react'
 import { computeAge } from '@/lib/age'
 
 interface Child {
@@ -99,13 +99,21 @@ export default function FamilyPage() {
           Add children under 18 and supervise their journey. Each child gets their own account that you manage.
         </p>
 
-        {/* Family plan (billing stub) */}
-        <div className="mb-6 flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
-          <Crown className="w-4 h-4" />
-          {children.length > 0
-            ? <span><strong>Family plan</strong> — supervising {children.length} {children.length === 1 ? 'child' : 'children'}.</span>
-            : <span><strong>Family plan</strong> — add your first child to get started.</span>}
-        </div>
+        {/*
+          This used to read "Family plan" under a crown, for everybody,
+          including people who had added nobody. A tester read it as a paid
+          tier they had somehow been put on. There is no billing here, so it
+          should not look like a subscription badge. It now states what is
+          actually true, and only appears once there is something to state.
+        */}
+        {children.length > 0 && (
+          <div className="mb-6 flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+            <Users className="w-4 h-4" />
+            <span>
+              You are supervising {children.length} {children.length === 1 ? 'account' : 'accounts'}.
+            </span>
+          </div>
+        )}
 
         {/* Children list */}
         {loading ? (
