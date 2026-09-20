@@ -8,13 +8,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /*
+   * This app has no dark theme. Every surface is a literal light Tailwind
+   * class (bg-white, text-gray-900) and there is not one `dark:` variant
+   * in app/ or components/.
+   *
+   * There used to be a prefers-color-scheme: dark block here that flipped
+   * --foreground to #ededed and --background to #0a0a0a. On a device set
+   * to dark mode it produced exactly two failures testers reported:
+   *
+   *   - Anything with no explicit text colour inherited near-white and sat
+   *     on a bg-white card. That is the Tidbits post body, which the
+   *     Markdown renderer emits unstyled: white text on a white card.
+   *   - Anything with no explicit background sat on the near-black body
+   *     while keeping its dark text, which is the profile page reading as
+   *     "dark background, dark text".
+   *
+   * Declaring a dark palette that no component honours is worse than not
+   * claiming one, so the block is gone and color-scheme pins form
+   * controls, scrollbars and autofill to light to match. A real dark
+   * theme means auditing every surface, not one variable.
+   */
+  color-scheme: light;
 }
 
 body {
@@ -133,4 +149,89 @@ input[type="radio"] {
   select {
     font-size: 16px; /* Prevents zoom on iOS */
   }
+}
+
+/* ------------------------------------------------------------------
+ * Tidbits / community post bodies
+ *
+ * Markdown.tsx tags its output `prose prose-sm community-markdown`, but
+ * @tailwindcss/typography is not installed and is not in the Tailwind
+ * plugins list, so every one of those prose classes is inert and
+ * community-markdown had no rules at all. Post bodies therefore rendered
+ * with no paragraph spacing, no list markers and no colour of their own,
+ * inheriting whatever the page happened to set. A tester reported the
+ * body text as unreadable grey on white.
+ *
+ * These rules give the rendered markdown its own colour and rhythm
+ * instead of depending on inheritance, and cover exactly the tags the
+ * renderer in lib/community/markdown.ts can emit. Pulling in the
+ * typography plugin would mean a new dependency and a rebuild for what
+ * amounts to twenty lines.
+ * ------------------------------------------------------------------ */
+.community-markdown {
+  color: #1f2937;           /* gray-800: passes AA on white and on gray-50 */
+  font-size: 0.95rem;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+.community-markdown > *:first-child { margin-top: 0; }
+.community-markdown > *:last-child  { margin-bottom: 0; }
+
+.community-markdown p { margin: 0 0 0.85em; }
+
+.community-markdown strong { font-weight: 700; color: #111827; }
+.community-markdown em     { font-style: italic; }
+
+.community-markdown ul,
+.community-markdown ol {
+  margin: 0 0 0.85em;
+  padding-left: 1.5em;
+}
+.community-markdown ul { list-style: disc; }
+.community-markdown ol { list-style: decimal; }
+.community-markdown li { margin: 0.25em 0; }
+
+.community-markdown a {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.community-markdown a:hover { color: #1e40af; }
+
+.community-markdown blockquote {
+  margin: 0 0 0.85em;
+  padding: 0.35em 0 0.35em 0.9em;
+  border-left: 4px solid #d1d5db;
+  color: #374151;
+  font-style: italic;
+}
+
+.community-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  background: #f3f4f6;
+  color: #111827;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+.community-markdown pre {
+  margin: 0 0 0.85em;
+  padding: 0.85em 1em;
+  background: #f3f4f6;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.community-markdown pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.community-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.5em 0;
 }
