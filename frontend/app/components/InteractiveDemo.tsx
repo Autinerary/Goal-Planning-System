@@ -177,8 +177,22 @@ export default function InteractiveDemo() {
   const isLast = step === STEPS.length - 1
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6">
+    /*
+      Two tester reports met here.
+
+      "Can't scroll at 100% zoom": this is a fixed inset-0 overlay, which
+      does not scroll with the page, and the card had no height limit. At
+      100% zoom a step with a features list runs past the bottom of the
+      viewport and its buttons become unreachable, while zooming out makes
+      it fit and hides the problem. The overlay now scrolls and the card is
+      capped to the viewport.
+
+      "The tour blurs the whole page": backdrop-blur-sm over everything
+      defeats a tour whose job is to describe what is on screen. The scrim
+      is now a plain dim, so the page stays legible behind the card.
+    */
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-y-auto bg-black/40 p-4">
+      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6">
         <button
           onClick={finish}
           className="absolute top-3 right-3 text-slate-400 hover:text-slate-700"

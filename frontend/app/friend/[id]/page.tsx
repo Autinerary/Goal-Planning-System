@@ -308,7 +308,7 @@ export default function FriendProfilePage() {
 
         {/* Suggest a resource modal */}
         {showSuggest && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overlay-scroll">
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center gap-2">

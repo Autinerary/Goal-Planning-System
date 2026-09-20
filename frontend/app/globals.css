@@ -267,3 +267,28 @@ table {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ── Full-screen overlays stay reachable ───────────────────────────
+ * A `fixed inset-0` overlay does not scroll with the page. When the
+ * card inside it is taller than the viewport, the bottom of that card
+ * — usually where the buttons are — simply cannot be reached. It only
+ * shows up at 100% zoom, because zooming out makes the card fit, which
+ * is exactly how a tester hit it and why it looked like "can't scroll
+ * at 100% zoom" rather than a broken dialog.
+ *
+ * `overlay-scroll` on the backdrop makes it scroll, and the auto
+ * margins keep the card centred when it fits while letting it start at
+ * the top when it does not. Without those margins, `items-center` on a
+ * scrolling flex container puts the card's top above the scrollable
+ * area, where it is unreachable in every browser.
+ * ----------------------------------------------------------------- */
+.overlay-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.overlay-scroll > * {
+  margin-top: auto;
+  margin-bottom: auto;
+  max-height: none;
+}

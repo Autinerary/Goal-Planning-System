@@ -187,8 +187,10 @@ export default function FirstRunIntro() {
   const isLast = step === STEPS.length - 1
 
   return (
-    <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8">
+    /* Same two fixes as InteractiveDemo: the overlay scrolls so a tall card
+       stays reachable at 100% zoom, and the whole-page blur is gone. */
+    <div className="fixed inset-0 z-[55] flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4">
+      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-8">
         {/* Skip */}
         <button
           onClick={finish}

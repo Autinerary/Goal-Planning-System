@@ -314,7 +314,7 @@ export default function PathView() {
 
         {/* Reset confirmation */}
         {showResetConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overlay-scroll">
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
               <div className="flex items-center gap-2 mb-2">
                 <RotateCcw className="w-5 h-5 text-red-500" />

@@ -96,7 +96,7 @@ export default function PhotoScheduleImport({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 overlay-scroll">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">Add from a photo</h2>

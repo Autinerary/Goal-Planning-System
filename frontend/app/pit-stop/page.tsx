@@ -1784,7 +1784,7 @@ function PitStopContent() {
 
         {/* Add Connection Modal — Phase A: search real users (default) or add free-form */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 shadow-xl max-h-[85vh] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">
@@ -1929,7 +1929,7 @@ function PitStopContent() {
 
         {/* Create Group Modal */}
         {showGroupModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Create Collab Group</h3>
@@ -2023,7 +2023,7 @@ function PitStopContent() {
 
         {/* Category Selection Modal */}
         {showCategoryModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">
@@ -2086,7 +2086,7 @@ function PitStopContent() {
 
         {/* Confirm Remove (single connection) */}
         {pendingRemoval && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
               <h3 className="text-xl font-bold mb-2">Remove connection?</h3>
               <p className="text-slate-600 mb-5">
@@ -2112,7 +2112,7 @@ function PitStopContent() {
 
         {/* Remove Connection Modal */}
         {showRemoveModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Remove Connection</h3>
@@ -2196,7 +2196,7 @@ function PitStopContent() {
 
         {/* Join Success Modal */}
         {showJoinSuccessModal && joinedGroupName && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="text-center">
                 <div className="text-5xl mb-4">🎉</div>
@@ -2220,7 +2220,7 @@ function PitStopContent() {
 
         {/* Group Code Input Modal */}
         {showCodeModal && selectedGroupForJoin && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Join Private Group</h3>
@@ -2296,7 +2296,7 @@ function PitStopContent() {
 
         {/* Match Modal (Swipe Interface) */}
         {showMatchModal && matchProfiles[currentMatchIndex] && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl relative">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Match Prompt: Dream(s)</h3>
@@ -2463,7 +2463,7 @@ function PitStopContent() {
 
         {/* Feature Modals */}
         {showFeatureModal === 'rival' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2492,7 +2492,7 @@ function PitStopContent() {
         )}
 
         {showFeatureModal === 'mentor' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2538,7 +2538,7 @@ function PitStopContent() {
         )}
 
         {showFeatureModal === 'support' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2566,7 +2566,7 @@ function PitStopContent() {
         )}
 
         {showFeatureModal === 'messaging' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-xl max-h-[80vh] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -2705,7 +2705,7 @@ function PitStopContent() {
         )}
 
         {showFeatureModal === 'memes' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -2843,7 +2843,7 @@ function PitStopContent() {
         )}
 
         {showFeatureModal === 'mentor-call' && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2986,7 +2986,7 @@ function PitStopContent() {
 
         {/* Text Meme Input Modal */}
         {showTextMemeModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Share Text Meme</h3>

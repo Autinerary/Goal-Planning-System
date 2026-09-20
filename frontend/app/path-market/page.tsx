@@ -444,7 +444,7 @@ export default function PathMarketPage() {
 
       {/* Share-a-model modal */}
       {showSubmit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowSubmit(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={() => setShowSubmit(false)}>
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-bold text-lg text-slate-900 flex items-center gap-2"><Plus className="w-5 h-5 text-cyan-500" /> Share your path model</h2>

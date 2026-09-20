@@ -640,7 +640,7 @@ function CalendarContent() {
         {/* Suggestion Modal */}
         {/* Add-your-own-task modal (Chi) */}
         {showAddTask && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowAddTask(false)}>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overlay-scroll" onClick={() => setShowAddTask(false)}>
             <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-slate-800 mb-4">Add a task</h3>
               <form
@@ -728,7 +728,7 @@ function CalendarContent() {
         )}
 
         {showSuggestionModal && pendingSuggestion && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white/95 backdrop-blur-sm border-2 border-slate-300 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

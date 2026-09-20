@@ -449,7 +449,7 @@ export default function ProfileSettingsPage() {
 
       {/* Confirm modal */}
       {confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setConfirm(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={() => setConfirm(null)}>
           <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} />

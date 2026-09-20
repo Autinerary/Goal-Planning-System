@@ -1869,7 +1869,7 @@ function RacesContent() {
 
         {/* ═══ MOTIVATION PINWHEEL POPUP ═══ */}
         {showPinwheelPopup && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowPinwheelPopup(false)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm overlay-scroll" onClick={() => setShowPinwheelPopup(false)}>
             <div className={`relative ${day ? 'bg-white' : 'bg-indigo-950'} rounded-2xl shadow-2xl border ${day ? 'border-slate-200' : 'border-indigo-700'} p-8 max-w-sm w-full mx-4`} onClick={e => e.stopPropagation()}>
               <button onClick={() => setShowPinwheelPopup(false)} className={`absolute top-3 right-3 ${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
               <h2 className={`text-lg font-bold ${txt} text-center mb-1`}>Motivation Pinwheel</h2>

@@ -73,7 +73,7 @@ export default function FeedbackGate() {
       aria-modal="true"
       aria-labelledby="feedback-gate-title"
       aria-describedby="feedback-gate-desc"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 overlay-scroll"
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden">
         <div className="px-5 sm:px-6 py-4 border-b border-gray-200 flex-shrink-0">

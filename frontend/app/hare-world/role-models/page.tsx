@@ -164,7 +164,7 @@ function SuggestForm({ onClose, onSubmitted }: { onClose: () => void; onSubmitte
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 overlay-scroll">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-slate-900">Suggest a role model</h2>
