@@ -87,6 +87,15 @@ export interface MotivationReport {
   ranked: MotivationScore[]
   totalHits: number
   entryCount: number
+  /**
+   * Every style sharing the highest score.
+   *
+   * A tester saw "Achievement was your best Motivation Style this month"
+   * above three bars reading 33%, 33%, 33%. `top` was just ranked[0], so a
+   * dead heat still crowned whichever style happened to sort first. With a
+   * tie there is no best one, and saying otherwise invents a result.
+   */
+  tiedTop: MotivationStyle[]
 }
 
 /**
@@ -97,10 +106,19 @@ export function buildMotivationReport(entryTexts: string[]): MotivationReport {
   const combined = entryTexts.join('\n')
   const ranked = scoreMotivation(combined)
   const totalHits = ranked.reduce((s, r) => s + r.score, 0)
+
+  const best = ranked.length > 0 ? ranked[0].score : 0
+  const tiedTop = totalHits > 0 && best > 0
+    ? ranked.filter((r) => r.score === best).map((r) => r.style)
+    : []
+
   return {
-    top: totalHits > 0 ? ranked[0].style : null,
+    // Only a clear single leader is reported as the top style. A tie is
+    // reported as a tie by the caller, using tiedTop.
+    top: tiedTop.length === 1 ? tiedTop[0] : null,
     ranked,
     totalHits,
     entryCount: entryTexts.length,
+    tiedTop,
   }
 }
