@@ -7,6 +7,10 @@ interface UserAvatarProps {
   hairStyle?: string
   hairColor?: string
   skinColor?: string
+  /** Glasses or other face accessory; 'none' for bare. */
+  accessory?: string
+  facialHair?: string
+  clothing?: string
   size?: number
   className?: string
 }
@@ -22,12 +26,15 @@ export default function UserAvatar({
   hairStyle = '',
   hairColor,
   skinColor,
+  accessory,
+  facialHair,
+  clothing,
   size = 96,
   className = '',
 }: UserAvatarProps) {
   const svg = useMemo(
-    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, size }),
-    [hairStyle, hairColor, skinColor, size]
+    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size }),
+    [hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size]
   )
 
   return (

@@ -195,7 +195,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             {post.author.pseudonym}
           </Link>
           <RelationshipBadge relationship={post.author_relationship} />
-          <span>{post.author.karma} karma</span>
+          <span>{post.author.karma} found helpful</span>
           <BadgeList badges={post.author.top_badges} max={3} />
           <span className="ml-auto text-xs text-gray-400">
             asked {new Date(post.created_at).toLocaleString()}

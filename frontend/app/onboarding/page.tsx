@@ -13,7 +13,8 @@ import {
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
-import { buildAvatarSvg, HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
+import { buildAvatarSvg, HAIR_GROUPS, HAIR_OPTIONS, ACCESSORIES, FACIAL_HAIR, CLOTHING,
+  HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
 import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor'
 import { playPageTurnSound } from '@/lib/taskSound'
@@ -34,15 +35,9 @@ const characterTypes = [
   { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
 ]
 
-const hairStyles = [
-  { id: 'short_straight', label: 'Short & Straight', emoji: '💇' },
-  { id: 'short_curly', label: 'Short & Curly', emoji: '🌀' },
-  { id: 'long_straight', label: 'Long & Straight', emoji: '💇‍♀️' },
-  { id: 'long_curly', label: 'Long & Curly', emoji: '🌊' },
-  { id: 'braids', label: 'Braids', emoji: '🎀' },
-  { id: 'buzz', label: 'Buzz Cut', emoji: '✂️' },
-  { id: 'none', label: 'No Hair / Bald', emoji: '🌟' },
-]
+// The hair vocabulary lives in lib/avatar.ts now — all 34 avataaars options
+// grouped for browsing, rather than the 7 this file used to hard-code.
+// Legacy ids from profiles saved before that still render, via HAIR_TOP.
 
 const bodyTypes = [
   { id: 'tall', label: 'Tall' },
@@ -389,11 +384,22 @@ function CharacterAvatar({
   hairStyle = '',
   hairColor,
   skinColor,
+  accessory,
+  facialHair,
+  clothing,
   size = 96,
-}: { hairStyle?: string; hairColor?: string; skinColor?: string; size?: number }) {
+}: {
+  hairStyle?: string
+  hairColor?: string
+  skinColor?: string
+  accessory?: string
+  facialHair?: string
+  clothing?: string
+  size?: number
+}) {
   const svg = useMemo(
-    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, size }),
-    [hairStyle, hairColor, skinColor, size]
+    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size }),
+    [hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size]
   )
   return (
     <div
@@ -437,6 +443,9 @@ export default function OnboardingPage() {
     hairStyle: '' as string,
     hairColor: DEFAULT_HAIR_COLOR as string,
     skinColor: DEFAULT_SKIN_TONE as string,
+    accessory: 'none' as string,
+    facialHair: 'none' as string,
+    clothing: DEFAULT_CLOTHING as string,
     cloudTheme: 'daydream' as string,
     // Barrier Connections (combined role + barriers)
     role: '' as string, // kept for backward compat with backend
@@ -643,6 +652,9 @@ export default function OnboardingPage() {
               hairStyle: c.hairStyle || prev.hairStyle,
               hairColor: c.hairColor || prev.hairColor,
               skinColor: c.skinColor || prev.skinColor,
+              accessory: c.accessory || prev.accessory,
+              facialHair: c.facialHair || prev.facialHair,
+              clothing: c.clothing || prev.clothing,
             }))
             if ((Array.isArray(c.barrierTypes) && c.barrierTypes.length > 0) || c.location?.city) {
               setCarriedOver(true)
@@ -1196,6 +1208,9 @@ export default function OnboardingPage() {
           hairStyle: formData.hairStyle,
           hairColor: formData.hairColor,
           skinColor: formData.skinColor,
+          accessory: formData.accessory,
+          facialHair: formData.facialHair,
+          clothing: formData.clothing,
         },
         goals: onboardingBody.goals,
         dreams: onboardingBody.dreams,
@@ -1241,6 +1256,9 @@ export default function OnboardingPage() {
           hairStyle: formData.hairStyle,
           hairColor: formData.hairColor,
           skinColor: formData.skinColor,
+          accessory: formData.accessory,
+          facialHair: formData.facialHair,
+          clothing: formData.clothing,
           location: formData.location,
           lifeStage: formData.lifeStage,
           lifeStages: formData.lifeStages,
@@ -1533,41 +1551,115 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 
-                {/* Hair Style with visual preview */}
+                {/* Hair & headwear.
+                    A tester asked for the full Avataaars range; this offered
+                    7 of 34. All of them are here now, grouped so the list
+                    stays browsable, and each swatch previews in the user's
+                    own colours rather than as a generic thumbnail. */}
                 <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Style</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {hairStyles.map((hs) => (
+                  <h3 className="text-sm font-medium text-slate-700 mb-1">Hair &amp; headwear</h3>
+                  <p className="text-xs text-slate-500 mb-3">Tap any option to try it. You can change it later.</p>
+                  <div className="space-y-4">
+                    {HAIR_GROUPS.map((group) => (
+                      <div key={group.name}>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{group.name}</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                          {group.options.map((hs) => (
+                            <button
+                              key={hs.id}
+                              type="button"
+                              aria-pressed={formData.hairStyle === hs.id}
+                              onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
+                              className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
+                                formData.hairStyle === hs.id
+                                  ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-300'
+                                  : 'border-slate-200 hover:border-cyan-400'
+                              }`}
+                            >
+                              <CharacterAvatar
+                                hairStyle={hs.id}
+                                hairColor={formData.hairColor}
+                                skinColor={formData.skinColor}
+                                accessory={formData.accessory}
+                                facialHair={formData.facialHair}
+                                clothing={formData.clothing}
+                                size={44}
+                              />
+                              <span className="text-[10px] leading-tight text-center text-slate-600">{hs.label}</span>
+                              {formData.hairStyle === hs.id && (
+                                <Check className="absolute top-1 right-1 w-3.5 h-3.5 text-cyan-500" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Glasses and other face accessories */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Glasses &amp; accessories</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {ACCESSORIES.map((a) => (
                       <button
-                        key={hs.id}
-                        onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
-                        className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-medium transition-all ${
-                          formData.hairStyle === hs.id
-                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 ring-2 ring-cyan-300'
+                        key={a.id}
+                        type="button"
+                        aria-pressed={formData.accessory === a.id}
+                        onClick={() => setFormData(prev => ({ ...prev, accessory: a.id }))}
+                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                          formData.accessory === a.id
+                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
                             : 'border-slate-200 hover:border-cyan-400 text-slate-600'
                         }`}
                       >
-                        <CharacterAvatar hairStyle={hs.id} hairColor={formData.hairColor} skinColor={formData.skinColor} size={46} />
-                        <span className="text-xs text-center">{hs.label}</span>
-                        {formData.hairStyle === hs.id && (
-                          <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
-                        )}
+                        {a.label}
                       </button>
                     ))}
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, hairStyle: 'skip' }))}
-                      className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-medium transition-all ${
-                        formData.hairStyle === 'skip'
-                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700 ring-2 ring-cyan-300'
-                          : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                      }`}
-                    >
-                      <span className="text-3xl">⏭️</span>
-                      <span className="text-xs text-center">Skip / None</span>
-                      {formData.hairStyle === 'skip' && (
-                        <Check className="absolute top-1.5 right-1.5 w-4 h-4 text-cyan-500" />
-                      )}
-                    </button>
+                  </div>
+                </div>
+
+                {/* Facial hair */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Facial hair</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {FACIAL_HAIR.map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        aria-pressed={formData.facialHair === f.id}
+                        onClick={() => setFormData(prev => ({ ...prev, facialHair: f.id }))}
+                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                          formData.facialHair === f.id
+                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
+                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clothing */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-3">Outfit</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {CLOTHING.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        aria-pressed={formData.clothing === c.id}
+                        onClick={() => setFormData(prev => ({ ...prev, clothing: c.id }))}
+                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                          formData.clothing === c.id
+                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
+                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -1616,10 +1708,18 @@ export default function OnboardingPage() {
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
                     <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
-                      <UserAvatar hairStyle={formData.hairStyle} hairColor={formData.hairColor} skinColor={formData.skinColor} size={120} />
+                      <UserAvatar
+                        hairStyle={formData.hairStyle}
+                        hairColor={formData.hairColor}
+                        skinColor={formData.skinColor}
+                        accessory={formData.accessory}
+                        facialHair={formData.facialHair}
+                        clothing={formData.clothing}
+                        size={120}
+                      />
                       <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
                         {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
-                        {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${hairStyles.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
+                        {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${HAIR_OPTIONS.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
                       </p>
                     </div>
                   </div>

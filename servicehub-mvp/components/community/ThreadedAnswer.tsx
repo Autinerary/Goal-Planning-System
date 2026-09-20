@@ -64,7 +64,7 @@ export default function ThreadedAnswer({
             </Link>
             <RelationshipBadge relationship={answer.author_relationship} />
             <span aria-hidden="true">·</span>
-            <span className="text-xs">{answer.author.karma} karma</span>
+            <span className="text-xs">{answer.author.karma} found helpful</span>
             <BadgeList badges={answer.author.top_badges} max={2} />
             <span className="ml-auto text-xs text-gray-400">
               {new Date(answer.created_at).toLocaleString()}
