@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { getVisitDayCount } from '@/lib/disclosure'
 
 /**
  * Blocking feedback modal.
@@ -30,11 +31,29 @@ const FORM_URL = process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || DEFAULT_FORM_URL
 // brand-new users could be locked out before they have an account).
 const SKIP_PREFIXES = ['/login', '/signup', '/auth', '/onboarding', '/onboarding-confirmation']
 
+/**
+ * How much use has to happen before we are entitled to ask.
+ *
+ * A tester's note: the form was "asked immediately, better to wait". It was
+ * — this gate blocked the very first page a signed-in person landed on,
+ * before they had used a single feature. Feedback collected at that point
+ * is worthless to us and the interruption is hostile to them, especially
+ * for an audience this app exists to be gentler on.
+ *
+ * Two days of use means they have come back once, which is the point at
+ * which they have something to say. The dwell timer stops the gate landing
+ * mid-action on the day it does become due.
+ */
+const MIN_VISIT_DAYS = 2
+const MIN_DWELL_MS = 90_000
+
 export default function FeedbackGate() {
   const pathname = usePathname() || ''
   const [hydrated, setHydrated] = useState(false)
   const [done, setDone] = useState(true)         // start true to avoid SSR flash
   const [confirmed, setConfirmed] = useState(false)
+  // Whether enough use has happened AND enough of this session has elapsed.
+  const [earnedTheRight, setEarnedTheRight] = useState(false)
   const skipped = SKIP_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))
 
   useEffect(() => {
@@ -48,19 +67,29 @@ export default function FeedbackGate() {
     }
   }, [])
 
+  // Hold the gate until the person has actually used the app, then wait out
+  // the dwell timer so it does not land in the middle of what they are doing.
+  useEffect(() => {
+    if (!hydrated || done) return
+    if (getVisitDayCount() < MIN_VISIT_DAYS) return
+    const timer = setTimeout(() => setEarnedTheRight(true), MIN_DWELL_MS)
+    return () => clearTimeout(timer)
+  }, [hydrated, done])
+
   // Body scroll lock while the gate is up.
   useEffect(() => {
-    if (!hydrated || done || skipped) return
+    if (!hydrated || done || skipped || !earnedTheRight) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
     }
-  }, [hydrated, done, skipped])
+  }, [hydrated, done, skipped, earnedTheRight])
 
   if (!hydrated) return null
   if (done) return null
   if (skipped) return null
+  if (!earnedTheRight) return null
 
   const handleConfirm = () => {
     try { window.localStorage.setItem(FEEDBACK_KEY, 'true') } catch {}
