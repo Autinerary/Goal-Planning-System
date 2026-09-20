@@ -17,6 +17,10 @@ type SortOption = 'helpful' | 'newest' | 'highest'
 
 interface ReviewWithUser extends Rating {
   user?: Profile
+  /** Whether the signed-in viewer has already marked this review helpful. */
+  viewer_marked_helpful?: boolean
+  /** True when the viewer wrote this review, so they cannot vote on it. */
+  viewer_is_author?: boolean
 }
 
 export default function CommunityReviews({ resourceId, userId }: CommunityReviewsProps) {
@@ -49,29 +53,55 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
     }
   }
 
+  // Reviews currently awaiting a response, so a second press does not fire
+  // a second request while the first is still in flight.
+  const [pendingHelpful, setPendingHelpful] = useState<Set<string>>(new Set())
+
+  /**
+   * Toggle your helpful vote.
+   *
+   * This used to add 1 to the local count on every press and the server
+   * did the same, so holding the button ran the number up without limit.
+   * One vote per person is now enforced by the database; the count comes
+   * back from the server rather than being guessed here.
+   */
   const handleMarkHelpful = async (ratingId: string) => {
+    if (pendingHelpful.has(ratingId)) return
+    setPendingHelpful((prev) => new Set(prev).add(ratingId))
     try {
       const response = await fetch(`/api/ratings/${ratingId}/helpful`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
+      const data = await response.json().catch(() => null)
 
-      if (response.ok) {
-        showToast.success('Thank you for marking this review as helpful!')
-        // Update local state
-        setReviews(
-          reviews.map((review) =>
+      if (response.ok && data) {
+        showToast.success(
+          data.voted ? 'Thanks — marked as helpful.' : 'Your helpful vote was removed.'
+        )
+        setReviews((prev) =>
+          prev.map((review) =>
             review.id === ratingId
-              ? { ...review, helpful_count: (review.helpful_count || 0) + 1 }
+              ? {
+                  ...review,
+                  helpful_count: data.helpful_count ?? review.helpful_count ?? 0,
+                  viewer_marked_helpful: data.voted,
+                }
               : review
           )
         )
       } else {
-        showToast.error('Failed to mark review as helpful')
+        showToast.error(data?.error || 'Failed to update your vote')
       }
     } catch (error) {
       console.error('Error marking review helpful:', error)
-      showToast.error('Failed to mark review as helpful')
+      showToast.error('Failed to update your vote')
+    } finally {
+      setPendingHelpful((prev) => {
+        const next = new Set(prev)
+        next.delete(ratingId)
+        return next
+      })
     }
   }
 
@@ -200,13 +230,29 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
                   )}
 
                   <div className="flex items-center gap-4 pl-13">
-                    <button
-                      onClick={() => handleMarkHelpful(review.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <ThumbsUp className="w-4 h-4" aria-hidden="true" />
-                      Helpful ({review.helpful_count || 0})
-                    </button>
+                    {review.viewer_is_author ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 text-sm text-gray-500">
+                        <ThumbsUp className="w-4 h-4" aria-hidden="true" />
+                        {review.helpful_count || 0} found this helpful
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleMarkHelpful(review.id)}
+                        disabled={pendingHelpful.has(review.id)}
+                        aria-pressed={!!review.viewer_marked_helpful}
+                        className={`inline-flex items-center gap-1 px-3 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${
+                          review.viewer_marked_helpful
+                            ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        }`}
+                      >
+                        <ThumbsUp
+                          className={`w-4 h-4 ${review.viewer_marked_helpful ? 'fill-current' : ''}`}
+                          aria-hidden="true"
+                        />
+                        Helpful ({review.helpful_count || 0})
+                      </button>
+                    )}
                   </div>
                 </div>
               )

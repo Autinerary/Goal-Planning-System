@@ -703,33 +703,18 @@ export async function createOrUpdateRating(rating: {
   }
 }
 
-export async function markRatingHelpful(ratingId: string): Promise<boolean> {
-  const supabase = createClient()
-  const { error } = await supabase.rpc('increment_helpful_count', { rating_id: ratingId })
-
-  if (error) {
-    // If RPC doesn't exist, fetch current count and increment
-    const { data: currentRating } = await supabase
-      .from('ratings')
-      .select('helpful_count')
-      .eq('id', ratingId)
-      .single()
-    
-    if (currentRating) {
-      const { error: updateError } = await supabase
-        .from('ratings')
-        .update({ helpful_count: (currentRating.helpful_count || 0) + 1 })
-        .eq('id', ratingId)
-
-      if (updateError) {
-        console.error('Error marking rating helpful:', updateError)
-        return false
-      }
-    }
-  }
-
-  return true
-}
+/**
+ * Removed: markRatingHelpful().
+ *
+ * It did an unconditional helpful_count + 1 with no record of who voted,
+ * so the Helpful button could be held down to inflate a review's count
+ * without limit. Votes now live in rating_helpful_votes, keyed on
+ * (rating_id, user_id), and a trigger maintains helpful_count. Go through
+ * POST /api/ratings/[id]/helpful, which toggles one vote per person.
+ *
+ * Deliberately not left as a wrapper: nothing should be able to bump that
+ * counter without writing a vote row.
+ */
 
 // ==================== Saved Resources Queries ====================
 

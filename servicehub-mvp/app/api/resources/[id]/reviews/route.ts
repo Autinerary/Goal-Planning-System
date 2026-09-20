@@ -47,23 +47,46 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const offset = (page - 1) * pageSize
     const paginatedReviews = reviewsWithUsers.slice(offset, offset + pageSize)
 
-    // Check if current user has rated
+    // Check if current user has rated, and which reviews on this page they
+    // have already marked helpful. Without the second part the button cannot
+    // render its own state, which is how it ended up looking like an endless
+    // +1 instead of a vote you either have cast or have not.
     let userHasRated = false
+    let viewerId: string | null = null
+    let helpfulByViewer = new Set<string>()
     try {
       const supabase = createClient()
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (user) {
+        viewerId = user.id
         const userRating = await getRatingByUserAndResource(params.id, user.id)
         userHasRated = !!userRating
+
+        const pageIds = paginatedReviews.map((r) => r.id)
+        if (pageIds.length > 0) {
+          const { data: votes } = await supabase
+            .from('rating_helpful_votes')
+            .select('rating_id')
+            .eq('user_id', user.id)
+            .in('rating_id', pageIds)
+          helpfulByViewer = new Set((votes ?? []).map((v: any) => v.rating_id))
+        }
       }
     } catch (error) {
       // Silently fail if user check fails
     }
 
+    const reviewsForViewer = paginatedReviews.map((r) => ({
+      ...r,
+      viewer_marked_helpful: helpfulByViewer.has(r.id),
+      // You cannot vote your own review helpful, so the button is hidden.
+      viewer_is_author: viewerId !== null && r.user_id === viewerId,
+    }))
+
     return NextResponse.json({
-      reviews: paginatedReviews,
+      reviews: reviewsForViewer,
       total,
       page,
       pageSize,
