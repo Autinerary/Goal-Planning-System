@@ -499,25 +499,32 @@ function PitStopContent() {
     return name.toLowerCase().includes(q) || role.toLowerCase().includes(q)
   }
 
-  const getUserId = () => {
-    try {
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
-        const user = JSON.parse(userStr)
-        return user.id || 'demo_user'
-      }
-    } catch (e) {
-      console.error('Error getting user ID:', e)
-    }
-    return 'demo_user'
-  }
+  /**
+   * The signed-in user's real id, or null.
+   *
+   * This used to read a 'user' key out of localStorage that nothing writes
+   * any more, then fall back to the literal string 'demo_user'. That string
+   * went straight into ?user_id= on every messaging, meme and call request,
+   * and the backend correctly rejected it with "user_id must be a valid
+   * user id" — which is the error testers hit on Send and on Share Text
+   * Meme. The session already knows who this is; ask it.
+   *
+   * Returns null rather than a placeholder so callers must handle the
+   * signed-out case instead of sending a fake id to the API.
+   */
+  const getUserId = (): string | null => authUser?.id ?? null
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation || isSendingMessage) return
     
+    const userId = getUserId()
+    if (!userId) {
+      alert('Please sign in to send messages.')
+      return
+    }
+
     setIsSendingMessage(true)
     try {
-      const userId = getUserId()
       const response = await axios.post(`${API_URL}/api/messaging/send?user_id=${userId}`, {
         receiver_id: selectedConversation,
         content: messageInput.trim()
@@ -534,8 +541,12 @@ function PitStopContent() {
   }
 
   const handleStartCall = async (mentorId: string, mentorName: string) => {
+    const userId = getUserId()
+    if (!userId) {
+      alert('Please sign in to start a call.')
+      return
+    }
     try {
-      const userId = getUserId()
       const response = await axios.post(`${API_URL}/api/calls/start?user_id=${userId}`, {
         receiver_id: mentorId,
         call_type: 'mentor',
@@ -555,9 +566,14 @@ function PitStopContent() {
 
   const handleEndCall = async () => {
     if (!activeCallId) return
-    
+
+    const userId = getUserId()
+    if (!userId) {
+      alert('Please sign in to end this call.')
+      return
+    }
+
     try {
-      const userId = getUserId()
       await axios.post(`${API_URL}/api/calls/${activeCallId}/end?user_id=${userId}`)
       
       setActiveCallId(null)
@@ -577,8 +593,9 @@ function PitStopContent() {
   }
 
   const loadCallHistory = async () => {
+    const userId = getUserId()
+    if (!userId) return
     try {
-      const userId = getUserId()
       const response = await axios.get(`${API_URL}/api/calls/history?user_id=${userId}`)
       setCallHistory(response.data)
     } catch (error) {
@@ -603,8 +620,9 @@ function PitStopContent() {
   useEffect(() => {
     if (selectedConversation && showFeatureModal === 'messaging') {
       const interval = setInterval(async () => {
+        const userId = getUserId()
+        if (!userId) return
         try {
-          const userId = getUserId()
           const response = await axios.get(`${API_URL}/api/messaging/conversation/${selectedConversation}?user_id=${userId}`)
           setMessages(response.data)
         } catch (error) {
@@ -2565,8 +2583,9 @@ function PitStopContent() {
                         key={person.id}
                         onClick={async () => {
                           setSelectedConversation(person.id)
+                          const userId = getUserId()
+                          if (!userId) { setMessages([]); return }
                           try {
-                            const userId = getUserId()
                             const response = await axios.get(`${API_URL}/api/messaging/conversation/${person.id}?user_id=${userId}`)
                             setMessages(response.data)
                           } catch (error) {
@@ -2588,17 +2607,22 @@ function PitStopContent() {
                     {messages.length > 0 ? (
                       messages.map((msg, index) => {
                         const isNew = index === messages.length - 1 && Date.now() - new Date(msg.created_at).getTime() < 5000
+                        // "Is this mine?" used to compare sender_id against the
+                        // literal 'demo_user', which no row ever contains, so
+                        // every message you sent rendered as if it came from
+                        // the other person. Compare against the real id.
+                        const isMine = !!authUser?.id && msg.sender_id === authUser.id
                         return (
                           <div
                             key={msg.id}
                             className={`p-2 rounded-lg transition-all ${
-                              msg.sender_id === 'demo_user' 
-                                ? 'bg-green-500 text-white ml-auto max-w-[80%]' 
+                              isMine
+                                ? 'bg-green-500 text-white ml-auto max-w-[80%]'
                                 : 'bg-white border border-slate-200 max-w-[80%]'
                             } ${isNew ? 'animate-pulse' : ''}`}
                           >
                             <div className="text-sm">{msg.content}</div>
-                            <div className={`text-xs mt-1 ${msg.sender_id === 'demo_user' ? 'text-green-100' : 'text-slate-500'}`}>
+                            <div className={`text-xs mt-1 ${isMine ? 'text-green-100' : 'text-slate-500'}`}>
                               {new Date(msg.created_at).toLocaleTimeString()}
                             </div>
                           </div>
@@ -2648,8 +2672,9 @@ function PitStopContent() {
                     onClick={async () => {
                       setShowMemeFeed(!showMemeFeed)
                       if (!showMemeFeed) {
+                        const userId = getUserId()
+                        if (!userId) { setMemeFeed([]); return }
                         try {
-                          const userId = getUserId()
                           const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
                           setMemeFeed(response.data)
                         } catch (error) {
@@ -2690,8 +2715,9 @@ function PitStopContent() {
                             </div>
                             <button
                               onClick={async () => {
+                                const userId = getUserId()
+                                if (!userId) return
                                 try {
-                                  const userId = getUserId()
                                   await axios.post(`${API_URL}/api/memes/like?user_id=${userId}&meme_id=${meme.id}`)
                                   // Refresh feed
                                   const response = await axios.get(`${API_URL}/api/memes/feed?user_id=${userId}`)
@@ -2727,9 +2753,13 @@ function PitStopContent() {
                       key={idx}
                       onClick={async () => {
                         if (isSharingMeme) return
+                        const userId = getUserId()
+                        if (!userId) {
+                          alert('Please sign in to share a meme.')
+                          return
+                        }
                         setIsSharingMeme(true)
                         try {
-                          const userId = getUserId()
                           await axios.post(`${API_URL}/api/memes/share?user_id=${userId}`, {
                             content_type: 'emoji',
                             content: emoji,
@@ -2947,9 +2977,13 @@ function PitStopContent() {
                     onClick={async () => {
                       if (!textMemeInput.trim()) return
                       
+                      const userId = getUserId()
+                      if (!userId) {
+                        alert('Please sign in to share a meme.')
+                        return
+                      }
                       setIsSharingMeme(true)
                       try {
-                        const userId = getUserId()
                         await axios.post(`${API_URL}/api/memes/share?user_id=${userId}`, {
                           content_type: 'text',
                           content: textMemeInput.trim(),
