@@ -6,6 +6,7 @@ import { LanguageProvider } from './context/LanguageContext'
 import Navigation from './components/Navigation'
 import ViewTabs from './components/ViewTabs'
 import FeedbackGate from './components/FeedbackGate'
+import Toaster from './components/Toaster'
 import MovementTracker from './components/MovementTracker'
 import AccessibilityProvider from './components/AccessibilityProvider'
 import InteractiveDemo from './components/InteractiveDemo'
@@ -74,6 +75,7 @@ export default function RootLayout({
               {children}
             </main>
             <FeedbackGate />
+            <Toaster />
             <InteractiveDemo />
             <InfoModeProvider />
             </LanguageProvider>

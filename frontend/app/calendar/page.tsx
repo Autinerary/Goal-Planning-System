@@ -20,6 +20,7 @@ import { parseDurationString, toISODate, type CalendarTask as DatedTask } from '
 import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
 import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
+import { toast } from '../components/Toaster'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -573,7 +574,7 @@ function CalendarContent() {
     }))
     const all = [...scenarioTasks, ...userTasks]
     if (all.length === 0) {
-      alert('Nothing to export yet — add some tasks first.')
+      toast.info('Nothing to export yet — add some tasks first.')
       return
     }
     const ics = buildIcs(all, 'My Journey')
@@ -590,7 +591,7 @@ function CalendarContent() {
       const text = await file.text()
       const parsed = parseIcs(text)
       if (parsed.length === 0) {
-        alert('No events found in that file.')
+        toast.error('No events found in that file.')
         return
       }
       const imported = parsed.map((t, i) => ({
@@ -606,7 +607,7 @@ function CalendarContent() {
       await history.change([...addedTasks, ...imported.map(task => ({ ...task, scenario }))])
     } catch (err) {
       console.error('Failed to import .ics file:', err)
-      alert('Sorry, that file could not be read as a calendar (.ics) file.')
+      toast.error('Sorry, that file could not be read as a calendar (.ics) file.')
     }
   }
 

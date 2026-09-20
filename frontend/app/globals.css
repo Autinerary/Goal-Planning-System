@@ -7,16 +7,49 @@
   --background: #e8dff5;
 }
 
+/*
+ * Cloud background.
+ *
+ * A tester: "barely visible spirals on the page feel very unnecessary,
+ * seem to add nothing." They were looking at cloud-bg.png, which is a
+ * 1024x682 landscape watercolour. With `cover` on a tall phone viewport
+ * the image is magnified several times over to fill the height, so what
+ * reaches the screen is a hugely enlarged corner — the cloud shapes stop
+ * reading as clouds and become vague smudges behind the text. That is the
+ * "barely visible spirals": not a decoration anyone chose, just an artefact
+ * of over-scaling.
+ *
+ * Keeping the identity, fixing the artefact. A soft scrim over the image
+ * makes it a deliberate calm wash instead of ambiguous shapes, and gives
+ * text a consistent surface to sit on, which matters for this audience.
+ */
 body {
   color: var(--foreground);
-  background: linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%);
-  background-image: url('/cloud-bg.png');
-  background-size: cover;
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-color: var(--background);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.72)),
+    url('/cloud-bg.png'),
+    linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%);
+  background-size: cover, cover, cover;
+  background-attachment: fixed, fixed, fixed;
+  background-position: center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
   font-family: 'Arial', sans-serif;
   min-height: 100vh;
+}
+
+/*
+ * On a narrow, tall screen `cover` is what does the over-magnifying, and
+ * `fixed` is unreliable on iOS Safari besides. Pinning the image to the top
+ * at its own aspect ratio keeps the clouds at a size where they look like
+ * clouds; the gradient underneath carries the rest of the page.
+ */
+@media (max-width: 640px) {
+  body {
+    background-size: cover, 100% auto, cover;
+    background-attachment: scroll, scroll, scroll;
+    background-position: center, top center, center;
+  }
 }
 
 input[type="checkbox"] {

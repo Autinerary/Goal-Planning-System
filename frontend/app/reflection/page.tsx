@@ -9,6 +9,7 @@ import { playPageTurnSound } from '@/lib/taskSound'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from '../components/Toaster'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -50,12 +51,36 @@ function ReflectionContent() {
     setShowThemeMenu(false)
   }
 
+  /**
+   * The thing being reflected on, named.
+   *
+   * The first question used to read "How was it/today/this period of time?"
+   * — three guesses at the subject, separated by slashes, because the copy
+   * did not know what the person had opened. It does: contextType is in the
+   * URL. A tester suggested exactly this ("maybe a 'How was the thing you
+   * are writing about?'"), so the form now names the subject instead of
+   * listing possibilities.
+   */
+  const SUBJECTS: Record<string, string> = {
+    path: 'your path',
+    race: 'this goal',
+    milestone: 'this milestone',
+    task: 'this task',
+    calendar: 'today',
+    imported: 'this entry',
+  }
+  const subject = SUBJECTS[contextType] || 'this'
+
   const questions = [
-    { id: 'q1', text: 'How was it/today/this period of time?', icon: Lightbulb, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
-    { id: 'q2', text: 'How well done do you think it was?', icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    { id: 'q3', text: 'What would you improve?', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
-    { id: 'q4', text: 'What could we improve?', icon: Sparkles, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200' },
-    { id: 'q5', text: 'Any other thoughts or feelings?', icon: Heart, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-200' },
+    { id: 'q1', text: `How did ${subject} go?`, icon: Lightbulb, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
+    { id: 'q2', text: 'How well do you think it went?', icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+    // q3 and q4 were "What would you improve?" and "What could we improve?".
+    // Read one after the other those are the same question, and the reader
+    // has to spot a single pronoun to tell them apart. One is about their
+    // own approach, the other is feedback on the product; say so.
+    { id: 'q3', text: 'What would you do differently next time?', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
+    { id: 'q4', text: 'What could Autinerary have done better?', icon: Sparkles, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200' },
+    { id: 'q5', text: 'Anything else on your mind?', icon: Heart, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-200' },
   ]
 
   // Theme configurations
@@ -122,11 +147,11 @@ function ReflectionContent() {
           ? { Authorization: `Bearer ${session.access_token}` }
           : undefined,
       })
-      alert('Reflection submitted successfully!')
+      toast.success('Reflection saved.')
       router.push('/reflection/history')
     } catch (error) {
       console.error('Error:', error)
-      alert('Error submitting reflection')
+      toast.error('Could not save your reflection. Your text is still here — try again.')
     } finally {
       setLoading(false)
     }
@@ -270,39 +295,68 @@ function ReflectionContent() {
           <button onClick={() => setMode('landing')} className={`mb-4 text-sm ${currentTheme.textSecondary} hover:underline flex items-center gap-1`}>
             ← Back
           </button>
-          {/* Desk Scene — Characters at desk writing */}
+          {/*
+            Desk scene. A tester reported the props looking scattered: coffee
+            hovering off the table, the pencil over the bunny's head, the
+            lamp beside the bunny rather than above it. All three had the
+            same cause.
+
+            The desk was a fixed w-48 bar, absolutely positioned and centred,
+            while the props were a content-width flex row — so the row was
+            wider than the desk and the outermost prop, the coffee, hung past
+            its edge. The pencil was absolutely positioned inside a bunny div
+            that was never `relative`, so it resolved against the whole row
+            and landed on the bunny's head instead of beside its paw. The
+            lamp sat in its own column to the left.
+
+            Now the desk is a sibling of the row inside an inline-block
+            wrapper, so `w-full` is exactly the row's width and every prop
+            stands on it. The bunny is its own positioning context, holding
+            its pencil and sitting under its lamp.
+          */}
           <div className="text-center mb-8">
             <div className="relative inline-block mb-4">
-              {/* Desk scene */}
-              <div className="relative flex items-end justify-center gap-1">
-                {/* Lamp */}
-                <div className="flex flex-col items-center mr-2">
-                  <div className="text-2xl" style={{ animation: 'lampGlow 3s ease-in-out infinite' }}>💡</div>
-                  <div className="w-0.5 h-4 bg-amber-600 rounded" />
+              <div className="flex items-end justify-center gap-3 px-3">
+                {/* Bunny, with its lamp above and its pencil in hand */}
+                <div className="relative" style={{ animation: 'deskBob 3s ease-in-out infinite' }}>
+                  <div
+                    className="absolute -top-6 left-1/2 -translate-x-1/2 text-xl"
+                    style={{ animation: 'lampGlow 3s ease-in-out infinite' }}
+                  >
+                    💡
+                  </div>
+                  <div className="text-5xl leading-none">🐰</div>
+                  <div
+                    className="absolute bottom-1 -right-2 text-base"
+                    style={{ animation: 'penWrite 1.5s ease-in-out infinite' }}
+                  >
+                    ✏️
+                  </div>
                 </div>
-                {/* Character 1: bunny writing */}
-                <div style={{ animation: 'deskBob 3s ease-in-out infinite' }}>
-                  <div className="text-5xl">🐰</div>
-                  <div className="absolute -top-1 left-[42%] text-xl" style={{ animation: 'penWrite 1.5s ease-in-out infinite' }}>✏️</div>
-                </div>
-                {/* Desk surface */}
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-3 bg-amber-700 rounded-t-sm" />
-                {/* Books on desk */}
-                <div className="text-lg mb-1 mr-1">📚</div>
-                {/* Character 2: turtle reading */}
+                {/* Books */}
+                <div className="text-lg leading-none">📚</div>
+                {/* Turtle reading */}
                 <div style={{ animation: 'deskBob 3s ease-in-out infinite', animationDelay: '0.5s' }}>
-                  <div className="text-4xl">🐢</div>
+                  <div className="text-4xl leading-none">🐢</div>
                 </div>
-                {/* Coffee/tea */}
-                <div className="text-lg mb-1 ml-1">☕</div>
+                {/* Coffee */}
+                <div className="text-lg leading-none">☕</div>
               </div>
+              {/* Desk surface — spans the row above it, so nothing floats. */}
+              <div className="h-2 w-full rounded-sm bg-amber-700" />
             </div>
             <h1 className={`text-3xl font-bold ${currentTheme.text} mb-2`}>Journal</h1>
             <p className={`${currentTheme.textSecondary} mt-1`}>Take a moment to reflect on your journey</p>
-            {/* Auto-journal hint */}
-            <div className={`mt-2 text-xs ${currentTheme.textSecondary} italic flex items-center justify-center gap-1`}>
-              <Sparkles className="w-3 h-3" /> Auto-journal captures your progress as you go
-            </div>
+            {/*
+              Removed: "Auto-journal captures your progress as you go".
+
+              A tester asked what it meant, having reasonably assumed it was
+              auto-save. It is neither. There is no auto-journal anywhere in
+              the codebase — the string was the only trace of it. Promising a
+              feature that does not exist is worse than saying nothing,
+              especially next to a form someone is about to trust with their
+              writing. If auto-capture gets built, this line can come back.
+            */}
           </div>
 
           {/* Questions */}
@@ -357,9 +411,30 @@ function ReflectionContent() {
           </div>
 
           <fieldset className={`mt-6 rounded-xl border-2 p-4 ${theme === 'dark' ? 'border-white/20 bg-white/10' : 'border-slate-200 bg-white/70'}`}>
-            <legend className={`px-2 font-semibold ${currentTheme.text}`}>Did this part of Autinerary help?</legend>
-            <p className={`mb-3 text-sm ${currentTheme.textSecondary}`}>
-              Optional. Only this direct answer can change future agent behavior; your journal text alone is never treated as a quality score.
+            {/*
+              A tester read the old copy and asked: "is this a feedback form,
+              or something that is fed into AI? What alternative does it
+              bring?" Fair questions that the text did not answer — it said
+              "only this direct answer can change future agent behavior",
+              which is written for someone who already knows there is a
+              learning loop behind it.
+
+              What is actually true, and now what it says: the answer is
+              scoped to this user (close_adaptation_loop takes user_id_in),
+              it is the only input to that loop, and "Not sure" is recorded
+              but carries no reward. Nothing here trains anything for anyone
+              else, and the journal text is never scored.
+            */}
+            <legend className={`px-2 font-semibold ${currentTheme.text}`}>Did this suggestion help you?</legend>
+            <p className={`mb-1 text-sm ${currentTheme.textSecondary}`}>
+              Optional. This is the one thing that changes what Autinerary suggests to <em>you</em> next
+              time: say it helped and you will see more like it, say it made things worse and you will
+              see less.
+            </p>
+            <p className={`mb-3 text-xs ${currentTheme.textSecondary}`}>
+              It stays on your account and is not used to train anything for anyone else. What you write
+              above is never graded or read as a rating — only this answer counts. &ldquo;Not sure&rdquo;
+              is recorded and changes nothing.
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
@@ -407,10 +482,9 @@ function ReflectionContent() {
             )}
           </fieldset>
 
-          {/* More questions indicator */}
-          <div className={`text-center my-6 text-sm italic ${currentTheme.textSecondary}`}>
-            (more questions coming soon...)
-          </div>
+          {/* Removed "(more questions coming soon...)" — a note to ourselves
+              that shipped to users, telling them the form is unfinished
+              right at the point they are deciding whether to submit it. */}
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
