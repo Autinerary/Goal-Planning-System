@@ -540,6 +540,9 @@ export default function OnboardingPage() {
   const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
   const [recommendationExplanation, setRecommendationExplanation] = useState('')
+  // True while we are retrying a cold-starting recommendation service, so
+  // the spinner can say why it is taking a while instead of just spinning.
+  const [recommendationsWaking, setRecommendationsWaking] = useState(false)
 
   // ─── Autosave: persist progress to localStorage so it survives page reloads ───
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
@@ -749,12 +752,18 @@ export default function OnboardingPage() {
     }
   }
   
-  // Fetch AI recommendations when reaching the recommendations step
+  // Fetch AI recommendations when reaching the recommendations step.
+  //
+  // The guard is a ref, not the isLoadingRecommendations state. This effect
+  // only depends on currentStep, so under React StrictMode it runs twice
+  // with the same closure, where that state is still false — two requests
+  // went out and the loser's failure overwrote the winner's results.
+  const recommendationsInFlight = useRef(false)
   useEffect(() => {
-    if (currentStep === 8 && recommendations.length === 0 && !isLoadingRecommendations) {
+    if (currentStep === 8 && recommendations.length === 0 && !recommendationsInFlight.current) {
       fetchRecommendations()
     }
-  }, [currentStep])
+  }, [currentStep]) // eslint-disable-line react-hooks/exhaustive-deps
   
   const fetchRecommendations = async () => {
     const missing = [1, 2, 3].filter(index => !canProceed(index))
@@ -763,7 +772,11 @@ export default function OnboardingPage() {
       setRecommendationExplanation(`Complete ${missing.map(index => steps[index].title).join(', ')} before requesting recommendations.`)
       return
     }
+    if (recommendationsInFlight.current) return
+    recommendationsInFlight.current = true
     setIsLoadingRecommendations(true)
+    setRecommendationExplanation('')
+    setRecommendationsWaking(false)
     try {
       const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
       
@@ -790,7 +803,7 @@ export default function OnboardingPage() {
       
       // Same-origin proxy — a direct cross-origin POST to ServiceHub was blocked
       // by CORS preflight, which is why this step never worked (Odosa).
-      const serviceHubResponse = await axios.post('/api/recommendations', {
+      const payload = {
         role: derivedRole,
         location: formData.location,
         barriers: serviceHubBarriers,
@@ -799,12 +812,32 @@ export default function OnboardingPage() {
         culturalNotes: '',
         additionalNotes: challengesToSend.join('; '),
         supportContext: recommendationSupportContext,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        validateStatus: () => true // Don't throw on any status
-      })
+      }
+
+      // Testers hit an error on the FIRST load of this step and success on a
+      // retry. That is the recommendation service cold-starting: it sleeps
+      // when idle and the first request after that can take most of a
+      // minute, coming back as a gateway error or a timeout. One attempt
+      // turned a slow start into a failure the user had to notice and work
+      // around. Retry the transient statuses, and say what is happening
+      // rather than leaving them looking at a spinner.
+      const TRANSIENT = [408, 429, 502, 503, 504]
+      const MAX_ATTEMPTS = 3
+      let serviceHubResponse: any = null
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        serviceHubResponse = await axios.post('/api/recommendations', payload, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 45_000,
+          validateStatus: () => true, // Don't throw on any status
+        })
+
+        const retryable = serviceHubResponse.status === 0 || TRANSIENT.includes(serviceHubResponse.status)
+        if (!retryable || attempt === MAX_ATTEMPTS) break
+
+        setRecommendationsWaking(true)
+        await new Promise(resolve => setTimeout(resolve, attempt * 2000))
+      }
 
       if (serviceHubResponse.status === 200 && serviceHubResponse.data.recommendations) {
         setRecommendations(serviceHubResponse.data.recommendations || [])
@@ -821,10 +854,12 @@ export default function OnboardingPage() {
       setRecommendations([])
       setRecommendationExplanation('Unable to load recommendations at this time. Please try again later.')
     } finally {
+      recommendationsInFlight.current = false
       setIsLoadingRecommendations(false)
+      setRecommendationsWaking(false)
     }
   }
-  
+
   const handleSaveResource = async (resourceId: string) => {
     // Toggle save state
     if (savedResources.has(resourceId)) {
@@ -1748,11 +1783,27 @@ export default function OnboardingPage() {
                       {Object.keys(formData.barrierConnections).map((connId) => {
                         const conn = connectionTypes.find(c => c.id === connId)
                         if (!conn) return null
+                        // How well you can be expected to know someone's
+                        // clinical details varies enormously by relationship.
+                        // You know your own. A parent usually knows a child's.
+                        // You very likely do not know whether a coworker or a
+                        // friend has a diagnosis, and a guessed diagnosis is
+                        // worse input than a blank one, because it shapes the
+                        // plan around something that may not be true.
+                        const isSelf = connId === 'self'
+                        const distantRelationship = ['coworker', 'friend', 'employer', 'educator', 'ally'].includes(connId)
                         return (
                           <div key={connId} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                            <h4 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
-                              <span>{conn.icon}</span> Barriers for: {conn.label}
+                            <h4 className="font-medium text-slate-800 mb-1 flex items-center gap-2">
+                              <span>{conn.icon}</span> Norms for: {conn.label}
                             </h4>
+                            <p className="text-xs text-slate-500 mb-3">
+                              {isSelf
+                                ? 'Pick whatever applies to you. Nothing here is required.'
+                                : distantRelationship
+                                  ? `Only pick what you actually know about your ${conn.label.toLowerCase()}. If you are not sure whether they have a diagnosis, leave it blank — a guess would shape their plan around something that may not be true. What you have seen yourself, like sensory needs or accommodations, is the useful part.`
+                                  : 'Pick what you know. Anything you are unsure about is better left blank than guessed.'}
+                            </p>
                             <div className="space-y-4">
                               {barrierCategories.map((category) => (
                                 <div key={category.name}>
@@ -2851,9 +2902,18 @@ export default function OnboardingPage() {
               </div>
 
               {isLoadingRecommendations ? (
-                <div role="status" className="flex items-center justify-center gap-3 py-12 text-slate-600">
-                  <Loader2 aria-hidden="true" className="h-5 w-5 motion-safe:animate-spin" />
-                  Finding relevant resources...
+                <div role="status" className="flex flex-col items-center justify-center gap-2 py-12 text-slate-600">
+                  <span className="flex items-center gap-3">
+                    <Loader2 aria-hidden="true" className="h-5 w-5 motion-safe:animate-spin" />
+                    Finding relevant resources...
+                  </span>
+                  {/* Only shown once a retry is under way, so a slow cold
+                      start reads as slow rather than broken. */}
+                  {recommendationsWaking && (
+                    <span className="text-xs text-slate-500">
+                      The recommendation service is waking up. This can take up to a minute the first time.
+                    </span>
+                  )}
                 </div>
               ) : recommendations.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
