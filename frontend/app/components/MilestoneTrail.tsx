@@ -150,7 +150,7 @@ export default function MilestoneTrail({
     <div className="w-full max-w-[440px] mx-auto">
       {/* HUD */}
       <div className="sticky top-2 z-30 mb-2 flex justify-center">
-        <div className="flex items-center gap-2 rounded-full bg-white/92 backdrop-blur border-2 border-amber-200 px-4 py-1.5 shadow-lg">
+        <div className="flex items-center gap-2 rounded-full surface-chrome border border-amber-200 px-4 py-1.5 shadow-lg">
           <span className="text-lg leading-none" aria-hidden="true">🏁</span>
           <span className="text-xs font-extrabold tabular-nums text-slate-800">
             {doneCount}<span className="text-slate-400">/{n}</span>

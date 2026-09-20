@@ -120,7 +120,7 @@ export default function IdealSelfPage() {
         {/* Hero */}
         <div className="text-center mb-6">
           <div className="text-6xl mb-2">🧑‍🚀</div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">Your Dream Self</h2>
+          <h2 className="text-2xl font-bold text-indigo-700">Your Dream Self</h2>
           <p className="text-slate-600 text-sm mt-1">{dreamHeadline}</p>
         </div>
 
@@ -143,7 +143,7 @@ export default function IdealSelfPage() {
           </section>
 
           {/* ① Role Models / Influences */}
-          <div className="bg-white/70 backdrop-blur border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="border border-slate-200 rounded-2xl p-5 surface">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-5 h-5 text-purple-500" />
               <h3 className="font-bold text-slate-800">Role Models & Influences</h3>
@@ -189,7 +189,7 @@ export default function IdealSelfPage() {
           </div>
 
           {/* ② Goals */}
-          <div className="bg-white/70 backdrop-blur border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="border border-slate-200 rounded-2xl p-5 surface">
             <div className="flex items-center gap-2 mb-3">
               <Target className="w-5 h-5 text-sky-500" />
               <h3 className="font-bold text-slate-800">Goals</h3>
@@ -220,7 +220,7 @@ export default function IdealSelfPage() {
           </div>
 
           {/* ③ Stats */}
-          <div className="lg:col-span-2 bg-white/70 backdrop-blur border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="lg:col-span-2 border border-slate-200 rounded-2xl p-5 surface">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-amber-500" />
               <h3 className="font-bold text-slate-800">Stats</h3>

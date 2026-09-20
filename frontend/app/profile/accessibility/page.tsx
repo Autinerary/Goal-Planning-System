@@ -38,12 +38,12 @@ export default function AccessibilitySettingsPage() {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <h1 className="text-2xl font-bold mb-1">Accessibility</h1>
           <p className="text-slate-600 mb-6 text-sm">
             Tune how the app looks and moves. Changes apply instantly and are saved on this device.
@@ -124,7 +124,7 @@ export default function AccessibilitySettingsPage() {
             {toggles.map(({ key, label, desc, icon: Icon }) => {
               const on = Boolean(a11y[key])
               return (
-                <div key={key} className="flex items-center justify-between gap-4 p-4 rounded-xl border-2 border-slate-200">
+                <div key={key} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200">
                   <div className="flex items-start gap-3">
                     <Icon className="w-5 h-5 text-slate-500 mt-0.5" />
                     <div>
@@ -149,7 +149,7 @@ export default function AccessibilitySettingsPage() {
           {/* Reset */}
           <button
             onClick={() => update({ accessibility: { ...DEFAULT_ACCESSIBILITY } })}
-            className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
+            className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
           >
             <RotateCcw className="w-4 h-4" /> Reset to defaults
           </button>

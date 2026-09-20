@@ -202,14 +202,14 @@ export default function PathView() {
         name: race.name || race.goal || `Goal ${idx + 1}`,
         progress: race.progress || 0,
         category: idx % 2 === 0 ? 'Career' : 'Education',
-        color: idx % 2 === 0 ? 'from-cyan-500 to-blue-500' : 'from-purple-500 to-pink-500',
+        color: idx % 2 === 0 ? 'from-indigo-600 to-violet-600' : 'from-indigo-600 to-violet-600',
       }))
     : pathData?.userProfile?.goals?.map((goal: string, idx: number) => ({
         id: `race_${idx + 1}`,
         name: goal,
         progress: 0,
         category: idx % 2 === 0 ? 'Career' : 'Education',
-        color: idx % 2 === 0 ? 'from-cyan-500 to-blue-500' : 'from-purple-500 to-pink-500',
+        color: idx % 2 === 0 ? 'from-indigo-600 to-violet-600' : 'from-indigo-600 to-violet-600',
       })) || []
 
   // ── Real progress ─────────────────────────────────────────────────
@@ -475,7 +475,7 @@ export default function PathView() {
         )}
 
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
-        <div className="mb-6 bg-gradient-to-r from-purple-100 via-cyan-100 to-purple-100 border-2 border-purple-200 rounded-2xl px-6 py-5 flex items-center gap-4 shadow-sm">
+        <div className="mb-6 bg-gradient-to-r from-indigo-600 to-violet-600 border border-purple-200 rounded-2xl px-6 py-5 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
             <Quote className="w-6 h-6 text-purple-500" />
           </div>
@@ -506,7 +506,7 @@ export default function PathView() {
                   <span className="font-bold text-cyan-600">{overallProgress}%</span>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all" style={{ width: `${overallProgress}%` }} />
+                  <div className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full transition-all" style={{ width: `${overallProgress}%` }} />
                 </div>
               </div>
             </div>
@@ -667,7 +667,7 @@ export default function PathView() {
           </h2>
 
           {chosenModel ? (
-            <div className="rounded-xl border-2 border-cyan-200 bg-cyan-50/60 p-4">
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50/60 p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">

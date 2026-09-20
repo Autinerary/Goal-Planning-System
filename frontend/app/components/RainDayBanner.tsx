@@ -97,7 +97,7 @@ export default function RainDayBanner({
       {busy && <p role="status" className="text-xs">Loading forecast...</p>}
       {denied && <p role="status" className="text-xs">Forecast unavailable. Check location permission or turn weather off and on to retry.</p>}
       {thisDay?.isRainy && (
-        <div className="flex items-start gap-3 p-3 rounded-xl border-2 border-sky-300 bg-sky-50">
+        <div className="flex items-start gap-3 p-3 rounded-xl border border-sky-300 bg-sky-50">
           <CloudRain className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1 text-sm">
             <p className="font-semibold text-sky-900">

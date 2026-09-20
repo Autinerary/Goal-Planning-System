@@ -296,7 +296,7 @@ export default function PathMarketPage() {
           </p>
           <button
             onClick={() => { setShowSubmit(true); setSubmitDone(false); setSubmitError('') }}
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-cyan-200 text-cyan-700 text-sm font-semibold hover:border-cyan-400 transition-all"
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-cyan-200 text-cyan-700 text-sm font-semibold hover:border-cyan-400 transition-all"
           >
             <Plus className="w-4 h-4" /> Share your path model
           </button>
@@ -304,14 +304,14 @@ export default function PathMarketPage() {
               single model to describe. */}
           <Link
             href="/bulk-import"
-            className="mt-3 ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-purple-200 text-purple-700 text-sm font-semibold hover:border-purple-400 transition-all"
+            className="mt-3 ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-purple-200 text-purple-700 text-sm font-semibold hover:border-purple-400 transition-all"
           >
             <Sparkles className="w-4 h-4" /> Recommend a batch
           </Link>
         </div>
 
         {/* Layer 1: Your Norms */}
-        <div className="mb-6 rounded-2xl border-2 border-slate-200 bg-white p-4">
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-1">Your Norms</div>
           <p className="text-sm text-slate-600">
             Every path here is shaped around your norms: the systemic realities you navigate.
@@ -334,7 +334,7 @@ export default function PathMarketPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search categories or models (e.g. medicine, living, career)…"
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:border-cyan-400"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-cyan-400"
           />
         </div>
 
@@ -393,7 +393,7 @@ export default function PathMarketPage() {
                             className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                               m.status === 'coming'
                                 ? 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
-                                : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg'
+                                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-lg'
                             }`}
                           >
                             {m.status === 'coming' ? 'Coming soon →' : m.status === 'pending' ? 'Awaiting review' : 'Review ideas'}
@@ -456,7 +456,7 @@ export default function PathMarketPage() {
                 <div className="text-4xl mb-2">🎉</div>
                 <p className="font-semibold text-slate-800">Thanks for sharing!</p>
                 <p className="text-sm text-slate-500 mt-1">Your model is <strong>pending review</strong>. You’ll see it in its category with a “Pending review” badge until it’s approved for everyone.</p>
-                <button onClick={() => setShowSubmit(false)} className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold">Done</button>
+                <button onClick={() => setShowSubmit(false)} className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold">Done</button>
               </div>
             ) : (
               <form onSubmit={submitModel} className="space-y-3">
@@ -467,32 +467,32 @@ export default function PathMarketPage() {
                   <select
                     value={form.categoryKey}
                     onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
-                    className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   >
                     {categories.map((c) => <option key={c.key} value={c.key}>{c.title}</option>)}
                   </select>
                 </div>
                 <input
-                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   placeholder="Model name (e.g. Model Madhu)"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
                 <input
-                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   placeholder="Your name / credit (optional)"
                   value={form.contributor}
                   onChange={(e) => setForm({ ...form, contributor: e.target.value })}
                 />
                 <textarea
-                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   rows={2}
                   placeholder="Short description. How does this path differ? (10–280 chars)"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
                 <textarea
-                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   rows={2}
                   placeholder="Starting goals: one per line (e.g. Get into a research program)"
                   value={form.goalsText}
@@ -501,7 +501,7 @@ export default function PathMarketPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Submit model
                 </button>

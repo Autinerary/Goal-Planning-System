@@ -32,13 +32,13 @@ function UnderConstructionContent() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
           >
             <ArrowLeft className="w-4 h-4" /> Go back
           </button>
           <Link
             href="/path"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold hover:shadow-lg transition-all"
           >
             Back to my Path
           </Link>

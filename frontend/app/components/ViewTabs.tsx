@@ -37,7 +37,7 @@ export default function ViewTabs() {
   const visibleTabs = TABS.filter(tab => !isSimple || ['/path', '/calendar', '/tasks'].includes(tab.href) || pathname === tab.href || pathname.startsWith(tab.href + '/'))
 
   return (
-    <div className="bg-white/50 backdrop-blur-md border-b border-white/50">
+    <div className="border-b border-white/50 surface-veil">
       <div className="max-w-5xl mx-auto px-2 sm:px-4">
         <nav className="flex items-center gap-1 overflow-x-auto py-2 no-scrollbar" aria-label="Section navigation">
           {visibleTabs.map((tab, i) => {
@@ -51,7 +51,7 @@ export default function ViewTabs() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
                       : isDone
                         ? 'text-slate-700 hover:bg-white/70'
                         : 'text-slate-500 hover:bg-white/70'
@@ -75,7 +75,7 @@ export default function ViewTabs() {
             aria-current={pathname.startsWith('/paths/compare') ? 'page' : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
               pathname.startsWith('/paths/compare')
-                ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
                 : 'text-slate-500 hover:bg-white/70'
             }`}
           >

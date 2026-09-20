@@ -118,7 +118,7 @@ export default function DiagnosticProfilePage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
         >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
@@ -206,7 +206,7 @@ export default function DiagnosticProfilePage() {
                   type="button"
                   onClick={remove}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-lg border-2 border-red-200 bg-white px-4 py-2 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" /> Delete all details
                 </button>

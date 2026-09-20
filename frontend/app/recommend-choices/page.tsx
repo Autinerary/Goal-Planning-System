@@ -95,7 +95,7 @@ export default function RecommendChoicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden surface-veil">
       <div className="max-w-6xl mx-auto mb-4 relative z-10">
         <AgentInsightsBanner agent="tool_recommendation" />
       </div>
@@ -111,7 +111,7 @@ export default function RecommendChoicesPage() {
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={() => router.back()}
-              className="px-4 py-2 bg-white/90 backdrop-blur-sm border-2 border-slate-300 rounded-xl font-medium hover:bg-white hover:shadow-md transition-all flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 rounded-xl font-medium hover:bg-white hover:shadow-md transition-all flex items-center gap-2 surface"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -127,7 +127,7 @@ export default function RecommendChoicesPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-slate-300 p-4 mb-6 shadow-lg">
+        <div className="rounded-2xl p-4 mb-6 surface">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-slate-600" />
@@ -137,7 +137,7 @@ export default function RecommendChoicesPage() {
               onClick={() => setFilterService(null)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filterService === null
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -149,7 +149,7 @@ export default function RecommendChoicesPage() {
                 onClick={() => setFilterService(service)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   filterService === service
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
@@ -161,7 +161,7 @@ export default function RecommendChoicesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'success' | 'attempts' | 'name')}
-                className="px-3 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
+                className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
               >
                 <option value="success">Highest Rated</option>
                 <option value="attempts">Most Reviewed</option>
@@ -175,7 +175,7 @@ export default function RecommendChoicesPage() {
         {filterService ? (
           // Show filtered choices
           <div className="space-y-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-blue-300 p-6 shadow-lg">
+            <div className="rounded-2xl border border-blue-300 p-6 surface">
               <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-blue-600" />
                 {filterService}
@@ -191,7 +191,7 @@ export default function RecommendChoicesPage() {
           // Show all services
           <div className="space-y-6">
             {services.map((service) => (
-              <div key={service} className="bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-slate-300 p-6 shadow-lg">
+              <div key={service} className="rounded-2xl p-6 surface">
                 <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-purple-600" />
                   {service}
@@ -210,7 +210,7 @@ export default function RecommendChoicesPage() {
 
         {/* Empty State */}
         {sortedChoices.length === 0 && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-slate-300 p-12 text-center shadow-lg">
+          <div className="rounded-2xl p-12 text-center surface">
             <Sparkles className="w-16 h-16 text-slate-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-700 mb-2">No choices found</h3>
             <p className="text-slate-600">Try selecting a different service or check back later.</p>
@@ -222,7 +222,7 @@ export default function RecommendChoicesPage() {
 
   function ChoiceCard({ choice }: { choice: RecommendedChoice }) {
     return (
-      <div className="border-2 border-slate-200 rounded-xl p-5 hover:shadow-lg transition-all bg-gradient-to-br from-white to-slate-50">
+      <div className="border border-slate-200 rounded-xl p-5 hover:shadow-lg transition-all bg-gradient-to-br from-white to-slate-50">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -302,7 +302,7 @@ export default function RecommendChoicesPage() {
           {/* Action Button */}
           <Link
             href={`/milestones/${choice.id}`}
-            className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
+            className="ml-4 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap"
           >
             View Details
             <ExternalLink className="w-4 h-4" />

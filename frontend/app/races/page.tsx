@@ -492,7 +492,7 @@ function RacesContent() {
   const txt = day ? 'text-slate-800' : 'text-white'
   const sub = day ? 'text-slate-500' : 'text-indigo-300'
   const pill = day ? 'bg-white/80 border-slate-200' : 'bg-indigo-950/70 border-indigo-700'
-  const accent = day ? 'from-sky-400 to-indigo-500' : 'from-purple-500 to-pink-500'
+  const accent = day ? 'from-sky-400 to-indigo-500' : 'from-indigo-600 to-violet-600'
   const line = day ? '#38bdf8' : '#818cf8'
   const stroke = day ? '#0369a1' : '#a78bfa'
 
@@ -712,7 +712,7 @@ function RacesContent() {
         <p className="text-sm text-slate-500 max-w-sm">
           Your goals become races once your path is generated. Complete onboarding to build one.
         </p>
-        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
           Go to onboarding →
         </Link>
       </div>
@@ -838,7 +838,7 @@ function RacesContent() {
                 {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'To Role Model(s)', I: Users }, { k: 'friend', l: 'To Friend-vals', I: UserPlus }, { k: 'mentor', l: 'To Mentoring', I: UserCheck }, { k: 'recommendations', l: 'To Recommendations', I: Sparkles }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
               </div>
               <div className="relative">
-                <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
+                <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
                 {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Compete' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
               </div>
             </div>
@@ -872,7 +872,7 @@ function RacesContent() {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">👥</div>
                     <p className={`text-sm mb-4 ${sub}`}>You haven&apos;t connected with a {cat.label.toLowerCase()} yet. Comparisons use your real connections&apos; shared paths.</p>
-                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
                       Find a {cat.label.toLowerCase()} in Hare World →
                     </Link>
                   </div>
@@ -908,7 +908,7 @@ function RacesContent() {
         {/* ═══ OVERLAY PANELS (non-compare views) ═══ */}
         {newView && (
           <div className="relative z-30 max-w-3xl mx-auto px-4 pt-3">
-            <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border backdrop-blur-sm rounded-2xl p-4 shadow-lg`}>
+            <div className={`${day ? ' border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border rounded-2xl p-4 surface`}>
               <div className="flex items-center justify-between mb-2">
                 <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Compete'}</h2>
                 <button onClick={() => router.push('/races')} className={`${sub} hover:bg-black/10`}><X className="w-5 h-5" /></button>
@@ -1132,7 +1132,7 @@ function RacesContent() {
                 </div>
               </div>
             </div>
-            <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
+            <div className="text-lg font-bold text-indigo-700">Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
             <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
               See more
@@ -1758,7 +1758,7 @@ function RacesContent() {
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
-                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'}`}>🏪 Open Full Shop →</a>
+                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
                 </div>

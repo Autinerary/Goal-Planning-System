@@ -174,7 +174,7 @@ export default function JournalHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white/20 backdrop-blur-sm flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center surface-veil">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-slate-600" />
           <p className="text-slate-600">Loading journals...</p>
@@ -185,7 +185,7 @@ export default function JournalHistory() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8">
+      <div className="min-h-screen p-8 surface-veil">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/reflection" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
@@ -206,7 +206,7 @@ export default function JournalHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden surface-veil">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -217,7 +217,7 @@ export default function JournalHistory() {
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/reflection" className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg hover:bg-white/80 transition-all">
+          <Link href="/reflection" className="p-2 rounded-lg hover:bg-slate-50 transition-all surface">
             <ChevronLeft className="w-5 h-5 text-slate-800" />
           </Link>
           <div className="flex items-center gap-3">
@@ -227,13 +227,13 @@ export default function JournalHistory() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={() => setShowImport((v) => !v)}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium inline-flex items-center gap-2"
+              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium inline-flex items-center gap-2"
             >
               <Upload className="w-4 h-4" /> Import entries
             </button>
             <button
               onClick={fetchJournals}
-              className="px-4 py-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all text-sm font-medium"
+              className="px-4 py-2 text-slate-800 rounded-lg hover:bg-slate-50 transition-all text-sm font-medium surface"
             >
               Refresh
             </button>
@@ -242,7 +242,7 @@ export default function JournalHistory() {
 
         {/* Import panel — bring in journals kept elsewhere (Notes app, files, etc.) */}
         {showImport && (
-          <div className="mb-8 bg-white/70 backdrop-blur-lg border-2 border-cyan-300 rounded-xl p-6 shadow-lg">
+          <div className="mb-8 border border-cyan-300 rounded-xl p-6 surface">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function JournalHistory() {
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
               placeholder="Paste your journal entries here…"
-              className="w-full min-h-[160px] rounded-xl border-2 border-slate-300 p-4 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-y bg-white/80"
+              className="w-full min-h-[160px] rounded-xl border border-slate-300 p-4 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-y bg-white/80"
             />
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <input
@@ -275,14 +275,14 @@ export default function JournalHistory() {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-white border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-medium inline-flex items-center gap-2"
+                className="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-medium inline-flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" /> Choose files (.txt / .md)
               </button>
               <button
                 onClick={handleImportSubmit}
                 disabled={importBusy || !importText.trim()}
-                className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+                className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
               >
                 {importBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {importBusy ? 'Importing…' : 'Import & consider these'}
@@ -319,7 +319,7 @@ export default function JournalHistory() {
           const isTie = motivationReport.tiedTop.length > 1
 
           return (
-            <div className="mb-8 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 backdrop-blur-lg border-2 border-indigo-300 rounded-xl p-6 shadow-lg">
+            <div className="mb-8 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 backdrop-blur-lg border border-indigo-300 rounded-xl p-6 shadow-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-5 h-5 text-indigo-600" />
                 <h2 className="text-lg font-bold text-slate-800">Your Motivation Style report</h2>
@@ -392,7 +392,7 @@ export default function JournalHistory() {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl p-6 text-center shadow-lg">
+          <div className="rounded-xl p-6 text-center surface">
             <div className="text-4xl font-bold text-slate-800 mb-2">{journals.length}</div>
             <div className="text-sm text-slate-700">Total Entries</div>
           </div>
@@ -418,8 +418,8 @@ export default function JournalHistory() {
               onClick={() => setFilter(f)}
               className={`px-5 py-2.5 rounded-lg capitalize font-medium transition-all ${
                 filter === f 
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg scale-105' 
-                  : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg scale-105' 
+                  : 'surface text-slate-800 hover:bg-slate-50'
               }`}
             >
               {f} ({sentimentCounts[f]})
@@ -435,7 +435,7 @@ export default function JournalHistory() {
             const isExpanded = expandedId === journal.id
 
             return (
-              <div key={journal.id} className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all">
+              <div key={journal.id} className="rounded-xl overflow-hidden hover:shadow-xl transition-all surface">
                 {/* Header Row */}
                 <div 
                   className="flex items-center gap-4 p-5 cursor-pointer hover:bg-white/40 transition-all"
@@ -482,7 +482,7 @@ export default function JournalHistory() {
                         <h4 className="font-bold mb-3 text-slate-800">Reflection Responses:</h4>
                         <div className="space-y-3">
                           {journal.questions.map((qa, idx) => (
-                            <div key={idx} className="bg-white/60 backdrop-blur-sm p-4 rounded-lg border border-slate-300">
+                            <div key={idx} className="p-4 rounded-lg border border-slate-300 surface">
                               <div className="font-medium text-blue-600 text-sm mb-2">{qa.q}</div>
                               <div className="mt-1 text-slate-700 whitespace-pre-line [&>p]:indent-6 leading-relaxed">
                                 {qa.a.split('\n').map((para: string, pIdx: number) => (
@@ -529,7 +529,7 @@ export default function JournalHistory() {
         </div>
 
         {filteredJournals.length === 0 && (
-          <div className="text-center py-16 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-xl">
+          <div className="text-center py-16 rounded-xl surface">
             <div className="text-6xl mb-4">📝</div>
             <p className="text-slate-700 text-lg mb-4">No journal entries found for this filter.</p>
             <Link href="/reflection" className="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-2">
@@ -550,7 +550,7 @@ export default function JournalHistory() {
           came from. When there is nothing to support, we say that instead.
         */}
         {journals.length > 0 && (
-          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border-2 border-slate-300 rounded-xl p-8 shadow-2xl">
+          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border border-slate-300 rounded-xl p-8 shadow-2xl">
             <h3 className="font-bold text-2xl mb-2 text-slate-800 flex items-center gap-2">
               <span className="text-3xl">📊</span>
               Detected Patterns
@@ -586,7 +586,7 @@ export default function JournalHistory() {
                       success:        { icon: '🎯', label: 'Success Factor',    color: 'text-purple-700' },
                     }[p.kind]
                     return (
-                      <div key={i} className="bg-white/60 backdrop-blur-sm p-5 rounded-lg border border-slate-300">
+                      <div key={i} className="p-5 rounded-lg border border-slate-300 surface">
                         <div className={`font-semibold ${meta.color} mb-2 flex items-center gap-2`}>
                           <span>{meta.icon}</span> {meta.label}
                         </div>

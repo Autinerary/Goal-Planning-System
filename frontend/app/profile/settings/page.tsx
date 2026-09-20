@@ -174,26 +174,26 @@ export default function ProfileSettingsPage() {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
 
         <button
           onClick={() => router.push('/profile/accessibility')}
-          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           Accessibility →
         </button>
         <button
           onClick={() => router.push('/profile/diagnostic')}
-          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           <ShieldCheck className="w-4 h-4 text-cyan-700" /> Condition &amp; Support Profile
         </button>
         <button
           onClick={() => router.push('/settings/models')}
-          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
+          className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
           Models →
         </button>
@@ -201,7 +201,7 @@ export default function ProfileSettingsPage() {
         <SettingsPreferences />
         <GamificationSettings />
 
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <h1 className="text-2xl font-bold mb-1">Profile & Discovery</h1>
           <p className="text-slate-600 mb-6 text-sm">
             Control what other Hare World members see about you, and whether they can find you in search.
@@ -229,7 +229,7 @@ export default function ProfileSettingsPage() {
                   value={profile.display_name || ''}
                   onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
                   placeholder="What other people see"
-                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
                   maxLength={80}
                 />
               </div>
@@ -241,7 +241,7 @@ export default function ProfileSettingsPage() {
                   type="email"
                   value={profile.email || ''}
                   disabled
-                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
                 />
                 <p className="text-xs text-slate-500 mt-1">Email is fixed by your account. Other users can search by it if you make your profile discoverable.</p>
               </div>
@@ -255,7 +255,7 @@ export default function ProfileSettingsPage() {
                   placeholder="e.g. Build a neurodivergent-friendly workspace"
                   rows={2}
                   maxLength={280}
-                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
                 />
                 <p className="text-xs text-slate-500 mt-1">Shown on your card to friends and on the matching screen.</p>
               </div>
@@ -282,7 +282,7 @@ export default function ProfileSettingsPage() {
               </div>
 
               {/* Discoverable toggle */}
-              <div className="p-4 bg-slate-50 border-2 border-slate-200 rounded-xl">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -331,7 +331,7 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* ── Data & Progress ── */}
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
           <h2 className="text-xl font-bold mb-1">Data &amp; Progress</h2>
           <p className="text-slate-600 mb-5 text-sm">
             Back up your data before testing, restore it later, or start over with a clean slate.
@@ -357,7 +357,7 @@ export default function ProfileSettingsPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={dataBusy !== null}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-800 rounded-lg font-semibold disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 rounded-lg font-semibold disabled:opacity-50"
             >
               {dataBusy === 'restore' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               Restore from backup
@@ -366,7 +366,7 @@ export default function ProfileSettingsPage() {
           </div>
 
           {/* Danger zone */}
-          <div className="border-2 border-red-200 rounded-xl p-4 bg-red-50/40">
+          <div className="border border-red-200 rounded-xl p-4 bg-red-50/40">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="w-4 h-4 text-red-500" />
               <span className="font-bold text-red-700 text-sm">Danger zone</span>
@@ -405,7 +405,7 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* ── App Journey (movement order) ── */}
-        <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
           <div className="flex items-center gap-2 mb-1">
             <Route className="w-5 h-5 text-cyan-600" />
             <h2 className="text-xl font-bold">App Journey</h2>
@@ -437,7 +437,7 @@ export default function ProfileSettingsPage() {
                 </button>
                 <button
                   onClick={() => { clearMovement(); setMovement([]) }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
                 >
                   <Trash2 className="w-4 h-4" /> Clear
                 </button>
@@ -450,7 +450,7 @@ export default function ProfileSettingsPage() {
       {/* Confirm modal */}
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={() => setConfirm(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} />
               <h3 className="text-lg font-bold text-slate-900">{confirm === 'all' ? 'Full restart?' : 'Reset progress?'}</h3>
@@ -461,7 +461,7 @@ export default function ProfileSettingsPage() {
                 : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone. Back up first if you want to restore later.'}
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border-2 border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
+              <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
               <button
                 onClick={() => doReset(confirm)}
                 className={`flex-1 px-4 py-2 text-white rounded-lg font-semibold ${confirm === 'all' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}

@@ -40,7 +40,7 @@ export default function SettingsPreferences() {
   const setView = (v: 'simple' | 'full') => setOverride(v as DisclosureLevel)
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-6 mb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
       <h2 className="text-xl font-bold mb-1">Display &amp; Language</h2>
       <p className="text-slate-600 mb-6 text-sm">
         How the app looks, how much it shows you at once, and what language it speaks.

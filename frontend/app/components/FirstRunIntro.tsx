@@ -236,7 +236,7 @@ export default function FirstRunIntro() {
             }}
             disabled={!ttsSupported}
             title={ttsSupported ? (ttsOn ? 'Mute narration' : 'Read aloud') : 'Narration isn’t supported in this browser'}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {ttsOn && ttsSupported ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             {ttsOn ? 'Narrating' : 'Muted'}
@@ -267,7 +267,7 @@ export default function FirstRunIntro() {
           </button>
           <button
             onClick={() => (isLast ? finish() : go(1))}
-            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
           >
             {isLast ? 'Start exploring' : 'Next'}
             {!isLast && <ChevronRight className="w-4 h-4" />}

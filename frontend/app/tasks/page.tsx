@@ -105,7 +105,7 @@ export default function TasksPage() {
   }, [musicFile])
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden surface-veil">
       {/* Draggable corner companions (Eliyana). Park them wherever they don't
           compete with the task you're actually doing. */}
       <TaskCompanions energized={mascotMood === 'celebrating'} />
@@ -151,7 +151,7 @@ export default function TasksPage() {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 pb-8">
         {/* Main card — the shop/stage layout from the whiteboard */}
-        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="rounded-2xl overflow-hidden surface">
 
           {/* === Three-column layout: Tasks | Stage | Goals === */}
           {/* Three EQUAL columns (Odosa: "make all 3 sections even, instead of
@@ -245,7 +245,7 @@ export default function TasksPage() {
                 {musicFile && (
                   <button
                     onClick={togglePlay}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-xs font-medium"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-xs font-medium"
                   >
                     {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     {isPlaying ? 'Pause' : 'Play'}
@@ -300,7 +300,7 @@ export default function TasksPage() {
             className={`px-16 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
               allDone
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
-                : 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/30'
+                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-purple-500/30'
             }`}
           >
             {allDone ? '✓ Done!' : 'Done'}

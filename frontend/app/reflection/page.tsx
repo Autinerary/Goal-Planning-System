@@ -87,7 +87,7 @@ function ReflectionContent() {
   const themeConfigs = {
     dark: {
       bg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
-      card: 'bg-white/10 backdrop-blur-lg border-white/20',
+      card: 'surface-veil-dark',
       text: 'text-slate-900',
       textSecondary: 'text-slate-700',
     },
@@ -99,7 +99,7 @@ function ReflectionContent() {
     },
     colorful: {
       bg: 'bg-gradient-to-br from-pink-200 via-purple-200 to-cyan-200',
-      card: 'bg-white/90 backdrop-blur-lg border-purple-300',
+      card: 'surface',
       text: 'text-slate-900',
       textSecondary: 'text-slate-700',
     },
@@ -158,7 +158,7 @@ function ReflectionContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden surface-veil">
       <div className="max-w-4xl mx-auto mb-4 relative z-10 space-y-3">
         <AgentInsightsBanner agent="reflection_analysis" />
         <AgentInsightsBanner agent="adaptation" />
@@ -190,13 +190,13 @@ function ReflectionContent() {
         <div className="relative">
           <button
             onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="p-3 bg-white/20 backdrop-blur-lg rounded-full border-2 border-white/30 hover:bg-white/30 transition-all shadow-lg"
+            className="p-3 rounded-full border-2 border-white/30 hover:bg-white/30 transition-all shadow-lg surface-veil"
             title="Change theme"
           >
             <Palette className="w-5 h-5 text-slate-700" />
           </button>
           {showThemeMenu && (
-            <div className="absolute top-14 right-0 bg-white/90 backdrop-blur-lg rounded-xl border-2 border-white/30 shadow-2xl p-2 min-w-[150px]">
+            <div className="absolute top-14 right-0 rounded-xl p-2 min-w-[150px] surface">
               <button
                 onClick={() => handleThemeChange('dark')}
                 className={`w-full text-left px-4 py-2 rounded-lg mb-1 flex items-center gap-2 ${
@@ -218,7 +218,7 @@ function ReflectionContent() {
               <button
                 onClick={() => handleThemeChange('colorful')}
                 className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-2 ${
-                  theme === 'colorful' ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : 'hover:bg-slate-100 text-slate-700'
+                  theme === 'colorful' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white' : 'hover:bg-slate-100 text-slate-700'
                 }`}
               >
                 <Palette className="w-4 h-4" />
@@ -267,7 +267,7 @@ function ReflectionContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 onClick={() => setMode('write')}
-                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
               >
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
                   <Send className="w-6 h-6 text-white" />
@@ -278,7 +278,7 @@ function ReflectionContent() {
 
               <Link
                 href="/reflection/history"
-                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-purple-50 to-cyan-50 border-2 border-purple-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-purple-50 to-cyan-50 border border-purple-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
               >
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-cyan-500 flex items-center justify-center shadow-md">
                   <BookOpen className="w-6 h-6 text-white" />

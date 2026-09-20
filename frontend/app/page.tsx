@@ -63,7 +63,7 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: sunsetStyles }} />
       
       {/* Sunset Background with Clouds - semi-transparent so global cloud bg shows through */}
-      <div className="fixed inset-0 bg-white/20 backdrop-blur-sm z-0">
+      <div className="fixed inset-0 z-0 surface-chrome">
         {/* Clouds */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="cloud-move-1 absolute top-20 left-0 w-64 h-32 bg-white/30 rounded-full blur-xl cloud-float" />
@@ -116,14 +116,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => router.push('/signup')}
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 via-pink-500 to-purple-500 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
+                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
               >
                 Start Your Journey
                 <ArrowRight className="w-5 h-5" />
               </button>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all border border-white/30 shadow-lg"
+                className="inline-flex items-center justify-center gap-2 hover:bg-white/30 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all border border-white/30 shadow-lg surface-veil"
               >
                 Sign In
               </Link>
@@ -145,7 +145,7 @@ export default function HomePage() {
       </div>
 
       {/* Stats/Races Section with Gradient */}
-      <div className="relative z-10 py-20 border-t border-white/20 bg-white/5 backdrop-blur-sm">
+      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg">
@@ -203,7 +203,7 @@ export default function HomePage() {
       </div>
 
       {/* Features Section */}
-      <div className="relative z-10 py-20 border-t border-white/20 bg-white/5 backdrop-blur-sm">
+      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg text-white">
@@ -247,7 +247,7 @@ export default function HomePage() {
       </div>
 
       {/* Who It's For Section */}
-      <div className="relative z-10 py-20 border-t border-white/20 bg-white/5 backdrop-blur-sm">
+      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg text-white">
@@ -267,7 +267,7 @@ export default function HomePage() {
             ].map((barrier) => (
               <span
                 key={barrier}
-                className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-sm text-white hover:bg-white/30 transition-colors shadow-lg"
+                className="px-4 py-2 border border-white/30 rounded-full text-sm text-white hover:bg-white/30 transition-colors shadow-lg surface-veil"
               >
                 {barrier}
               </span>
@@ -281,7 +281,7 @@ export default function HomePage() {
       </div>
 
       {/* Final CTA */}
-      <div className="relative z-10 py-20 border-t border-white/20 bg-white/5 backdrop-blur-sm">
+      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 drop-shadow-lg text-white">
             Ready to Find Your Path?
@@ -291,7 +291,7 @@ export default function HomePage() {
           </p>
           <button
             onClick={() => router.push('/signup')}
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 via-pink-500 to-purple-500 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
           >
             Create Your Account
             <ArrowRight className="w-5 h-5" />
@@ -300,11 +300,11 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/20 py-8 bg-white/5 backdrop-blur-sm">
+      <footer className="relative z-10 border-t border-white/20 py-8 surface-veil-dark">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-400 via-pink-400 to-purple-500 rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-indigo-600 to-violet-600 rounded flex items-center justify-center">
                 <span className="font-bold text-xs text-white">A</span>
               </div>
               <span className="font-semibold text-white">Autinerary</span>

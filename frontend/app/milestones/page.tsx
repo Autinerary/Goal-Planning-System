@@ -331,7 +331,7 @@ export default function MilestoneView() {
         <AgentInsightsBanner agent="pattern_recognition" />
         {/* Stuck? — three ways to get help (Odosa): make a Tidbit, ask a
             mentor/role model, or ask the assistant. */}
-        <div className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-4 shadow-sm">
+        <div className="relative overflow-hidden rounded-xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
@@ -432,14 +432,14 @@ export default function MilestoneView() {
       <div className="max-w-4xl mx-auto px-4 pb-8">
 
         {/* Summary — moved to just below the progress bar (Odosa) */}
-        <div className="mb-4 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
+        <div className="mb-4 border border-amber-300 rounded-2xl p-4 surface">
           <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2">📋 Summary</h3>
           <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || races[0]?.name || 'Your current milestone'}</strong></p>
           <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely. Barriers get bigger but so do you!</p>
         </div>
 
         {/* Tools to Use — each tool shows what it helps with (Odosa redesign) */}
-        <div className="bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl overflow-hidden shadow-md">
+        <div className="border border-amber-300 rounded-2xl overflow-hidden surface">
           {/* Collapsible toggle — lets users slim the page (Odosa: dropdown) */}
           <button
             type="button"
@@ -575,7 +575,7 @@ export default function MilestoneView() {
             href={goHubHref('/')}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
           >
             <ExternalLink className="w-4 h-4" /> View all resources &amp; ResourceHub
           </a>
@@ -593,10 +593,10 @@ export default function MilestoneView() {
 
         {/* Footer navigation */}
         <div className="mt-6 flex justify-center gap-3">
-          <Link href="/reflection?contextType=milestone" className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/reflection?contextType=milestone" className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Sparkles className="w-4 h-4" /> Journal / Reflection
           </Link>
-          <Link href="/calendar" className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-500 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/calendar" className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Calendar className="w-4 h-4" /> Calendar
           </Link>
         </div>

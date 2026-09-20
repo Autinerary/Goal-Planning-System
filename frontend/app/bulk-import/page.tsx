@@ -121,7 +121,7 @@ export default function BulkImportPage() {
         </p>
 
         {saved && (
-          <div className="mb-6 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <div className="mb-6 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
             <p className="font-bold">Sent for review</p>
             <p className="mt-1">
               {saved.milestones} milestone{saved.milestones === 1 ? '' : 's'} and{' '}
@@ -138,7 +138,7 @@ export default function BulkImportPage() {
               onChange={(e) => setText(e.target.value)}
               rows={12}
               placeholder={`e.g.\n- Book an appointment with the campus disability office\n- Headspace app for sleep\n- Join a study group\n- Dr Chen, OT on Bloor St`}
-              className="w-full rounded-xl border-2 border-slate-200 p-4 text-sm font-mono focus:border-purple-400 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 p-4 text-sm font-mono focus:border-purple-400 focus:outline-none"
             />
             <button
               onClick={parse}

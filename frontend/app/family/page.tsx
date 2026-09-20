@@ -131,7 +131,7 @@ export default function FamilyPage() {
                 <Link
                   key={c.id}
                   href={`/family/${c.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border-2 border-slate-200 bg-white p-4 hover:border-purple-300 hover:shadow-sm transition-all"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-purple-300 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold flex-shrink-0">
@@ -156,12 +156,12 @@ export default function FamilyPage() {
           {!showAdd ? (
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
             >
               <Plus className="w-4 h-4" /> Add a child
             </button>
           ) : (
-            <form onSubmit={submit} className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
+            <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
               <h2 className="font-bold text-slate-800 flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-purple-500" /> Add a child
               </h2>
@@ -169,7 +169,7 @@ export default function FamilyPage() {
               <fieldset disabled={reviewing || saving} className="space-y-3">
               <input
                 aria-label="Child's name"
-                className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 placeholder="Child's name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -177,7 +177,7 @@ export default function FamilyPage() {
               <input
                 type="email"
                 aria-label="Child's login email"
-                className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 placeholder="Child's login email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -188,7 +188,7 @@ export default function FamilyPage() {
                   type="date"
                   aria-label="Child's date of birth"
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                   value={form.dateOfBirth}
                   onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
                 />
@@ -196,7 +196,7 @@ export default function FamilyPage() {
               <input
                 type="password"
                 aria-label="Child's password"
-                className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 placeholder="A password for their account (min 8 chars)"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -229,7 +229,7 @@ export default function FamilyPage() {
                 <button
                   type="submit"
                   disabled={saving || (reviewing && !legalGuardianConsent)}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {saving && <Loader2 className="w-4 h-4 animate-spin" />} {reviewing ? 'Approve account' : 'Review details'}
                 </button>

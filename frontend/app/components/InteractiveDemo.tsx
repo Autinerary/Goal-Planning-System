@@ -192,7 +192,7 @@ export default function InteractiveDemo() {
       is now a plain dim, so the page stays legible behind the card.
     */
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border-2 border-slate-200 p-6">
+      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
         <button
           onClick={finish}
           className="absolute top-3 right-3 text-slate-400 hover:text-slate-700"
@@ -255,14 +255,14 @@ export default function InteractiveDemo() {
           {isLast ? (
             <button
               onClick={finish}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
             >
               Get started
             </button>
           ) : (
             <button
               onClick={() => go(step + 1)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>

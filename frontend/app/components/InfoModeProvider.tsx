@@ -88,7 +88,7 @@ export default function InfoModeProvider() {
           working, which is worse than never having the mode. */}
       <div
         data-info-exempt="true"
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 rounded-full border-2 border-cyan-300 bg-cyan-50 px-4 py-2 shadow-lg"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-4 py-2 shadow-lg"
       >
         <HelpCircle className="h-4 w-4 text-cyan-700" aria-hidden="true" />
         <span className="text-xs font-semibold text-cyan-900">
@@ -103,7 +103,7 @@ export default function InfoModeProvider() {
             role="dialog"
             aria-label={shown.title}
             aria-live="polite"
-            className="fixed z-[80] w-72 max-w-[90vw] -translate-x-1/2 rounded-xl border-2 border-cyan-300 bg-white p-3 shadow-xl"
+            className="fixed z-[80] w-72 max-w-[90vw] -translate-x-1/2 rounded-xl border border-cyan-300 bg-white p-3 shadow-xl"
             style={{
               left: Math.min(Math.max(shown.x, 150), window.innerWidth - 150),
               top: Math.min(shown.y + 8, window.innerHeight - 160),

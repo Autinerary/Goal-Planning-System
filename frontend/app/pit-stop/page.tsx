@@ -710,7 +710,7 @@ function PitStopContent() {
   }, [activeCallId])
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden surface-veil">
       <div className="max-w-6xl mx-auto mb-4 space-y-3 relative z-10">
         <AgentInsightsBanner agent="adaptation" />
         <AgentInsightsBanner agent="reflection_analysis" />
@@ -734,7 +734,7 @@ function PitStopContent() {
               router.push('/path')
             }
           }}
-          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all"
+          className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
@@ -790,14 +790,14 @@ function PitStopContent() {
                 onChange={(e) => setToolQuery(e.target.value)}
                 placeholder="Search your tools by name…"
                 aria-label="Search your recommended tools by name"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
               />
             </div>
 
             {/* Browse resources by life area — the former Resource Roadmap
                 domains, now a filter in ResourceHub Search. */}
             <a href={goHubHref('/search')} target="_blank" rel="noopener noreferrer" className="block group">
-              <div className="rounded-2xl border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
+              <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -836,7 +836,7 @@ function PitStopContent() {
 
               const hasMatches = buckets.some((b) => (pit[b.key] || []).some(match))
               return (
-                <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-purple-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-1">Recommended for you</h3>
                   <p className="text-sm text-slate-600 mb-4">Personalised pit-stop picks from your tool recommendation agent.</p>
                   {!hasMatches && (
@@ -891,7 +891,7 @@ function PitStopContent() {
               )
             })()}
 
-          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
             <div className="text-center">
               <div className="text-5xl mb-4">🏪</div>
               <h3 className="text-xl font-bold text-slate-800 mb-2">Looking for more tools & services?</h3>
@@ -901,7 +901,7 @@ function PitStopContent() {
               <div className="space-y-3 max-w-sm mx-auto">
                 <button
                   onClick={handleToolsRedirect}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
                 >
                   Go to Resource Hub →
                 </button>
@@ -938,7 +938,7 @@ function PitStopContent() {
                 in Hare World"). Own route rather than inlined here — this
                 file is already the largest page in the app. */}
             <Link href="/hare-world/role-models" className="block group">
-              <div className="relative overflow-hidden rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-purple-300">
+              <div className="relative overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-purple-300">
                 <div className="flex items-center gap-3">
                   <Users className="w-6 h-6 text-purple-600 flex-shrink-0" />
                   <div>
@@ -957,7 +957,7 @@ function PitStopContent() {
               rel="noopener noreferrer"
               className="block group"
             >
-              <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-300">
+              <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-300">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -980,7 +980,7 @@ function PitStopContent() {
             </a>
 
             {/* Description */}
-            <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-purple-200 p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-2">People &amp; Community <span className="text-slate-400 font-normal text-base">(Hare World)</span></h2>
               <p className="text-slate-600 mb-4">Your people hub. Connect with role models, mentors, and friends, and join collaboration groups.</p>
               
@@ -1032,7 +1032,7 @@ function PitStopContent() {
                     }
                   }}
                   placeholder="Find/Search people or groups... (press Enter)"
-                  className="w-full pl-10 pr-24 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full pl-10 pr-24 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 bg-white text-slate-900 placeholder-slate-400"
                 />
                 {activeSearchQuery && (
                   <button
@@ -1072,7 +1072,7 @@ function PitStopContent() {
 
             {/* Pending friend-request inbox */}
             {isSignedIn && pendingInbox.length > 0 && (
-              <div className="bg-white rounded-2xl border-2 border-amber-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm">
                 <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
                   <Bell className="w-5 h-5 text-amber-500" />
                   Friend requests ({pendingInbox.length})
@@ -1113,7 +1113,7 @@ function PitStopContent() {
 
             {/* Resource suggestion inbox */}
             {isSignedIn && suggestionInbox.length > 0 && (
-              <div className="bg-white rounded-2xl border-2 border-emerald-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-emerald-200 p-6 shadow-sm">
                 <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-emerald-500" />
                   Resources friends suggested ({suggestionInbox.length})
@@ -1170,7 +1170,7 @@ function PitStopContent() {
             {haveWorldView === 'people' && (
             <div className="grid md:grid-cols-3 gap-6">
               {/* Role Models */}
-              <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <Users className="w-5 h-5 text-orange-500" />
@@ -1226,7 +1226,7 @@ function PitStopContent() {
               </div>
 
               {/* Mentors */}
-              <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-blue-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <UserCheck className="w-5 h-5 text-blue-500" />
@@ -1282,7 +1282,7 @@ function PitStopContent() {
               </div>
 
               {/* Friends */}
-              <div className="bg-white rounded-2xl border-2 border-pink-200 p-6 shadow-sm">
+              <div className="bg-white rounded-2xl border border-pink-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <Users className="w-5 h-5 text-pink-500" />
@@ -1343,7 +1343,7 @@ function PitStopContent() {
             {haveWorldView === 'collab' && (
               <div className="space-y-6">
                 {/* Collab Types */}
-                <div className="bg-white rounded-2xl border-2 border-indigo-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-indigo-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-4">Collaborate</h3>
                   <div className="grid md:grid-cols-3 gap-4">
                     {collabTypes.map((type) => (
@@ -1366,12 +1366,12 @@ function PitStopContent() {
                 </div>
 
                 {/* Collab Groups */}
-                <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold">Collab Groups (via Collab Type)</h3>
                     <button
                       onClick={() => setShowGroupModal(true)}
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
                     >
                       <UserPlus className="w-4 h-4" />
                       Create Group
@@ -1388,12 +1388,12 @@ function PitStopContent() {
                       onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                       onKeyDown={(e) => { if (e.key === 'Enter') joinByCode() }}
                       placeholder="Have a code? Enter it to join a private group"
-                      className="flex-1 px-3 py-2 border-2 border-slate-200 rounded-lg text-sm font-mono tracking-wider focus:outline-none focus:border-indigo-500"
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono tracking-wider focus:outline-none focus:border-indigo-500"
                     />
                     <button
                       onClick={joinByCode}
                       disabled={!joinCodeInput.trim()}
-                      className="px-4 py-2 rounded-lg border-2 border-indigo-200 text-indigo-700 text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50"
+                      className="px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 text-sm font-semibold hover:bg-indigo-50 disabled:opacity-50"
                     >
                       Join
                     </button>
@@ -1413,7 +1413,7 @@ function PitStopContent() {
                       ? collabGroups.filter(g => g.type === selectedCollabType)
                       : collabGroups
                     ).map((group) => (
-                      <div key={group.id} className="border-2 border-slate-200 rounded-lg p-4 hover:border-indigo-300 transition-all">
+                      <div key={group.id} className="border border-slate-200 rounded-lg p-4 hover:border-indigo-300 transition-all">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -1495,7 +1495,7 @@ function PitStopContent() {
             {haveWorldView === 'relationships' && (
               <div className="space-y-6">
                 {/* Match Prompt */}
-                <div className="bg-white rounded-2xl border-2 border-pink-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-pink-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-1">Relationships / Matching</h3>
                   <p className="text-sm text-slate-600 mb-3">
                     Swipe through suggested profiles. Matches are scored on shared dreams and interests.
@@ -1515,7 +1515,7 @@ function PitStopContent() {
                         setShowMatchModal(true)
                         setCurrentMatchIndex(0)
                       }}
-                      className="w-full px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
                     >
                       <Heart className="w-5 h-5" />
                       Start Matching
@@ -1561,14 +1561,14 @@ function PitStopContent() {
                 </div>
 
                 {/* Role Models — real connections only, no invented metrics */}
-                <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-4">Role Models</h3>
                   {roleModelsWithMetrics.length === 0 && (
                     <p className="text-sm text-slate-500 py-3">No role models yet. Search above to find and add one.</p>
                   )}
                   <div className="space-y-4">
                     {roleModelsWithMetrics.map((rm) => (
-                      <div key={rm.id} className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
+                      <div key={rm.id} className="border border-orange-200 rounded-lg p-4 bg-orange-50">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
                             {rm.icon}
@@ -1588,7 +1588,7 @@ function PitStopContent() {
 
             {/* Functions Section - Only show in People view */}
             {haveWorldView === 'people' && (
-            <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-lg font-bold mb-1">What you can do here</h3>
               <p className="text-sm text-slate-500 mb-4">Search for people, add connections, or manage who&apos;s on your team.</p>
               <div className="grid md:grid-cols-2 gap-4">
@@ -1674,7 +1674,7 @@ function PitStopContent() {
 
             {/* Additional Features - Only show in People view */}
             {haveWorldView === 'people' && (
-            <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-lg font-bold mb-4">Additional Features:</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <button
@@ -1837,7 +1837,7 @@ function PitStopContent() {
                     onChange={(e) => setUserSearchQuery(e.target.value)}
                     disabled={!isSignedIn}
                     placeholder="Search by name or email…"
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 disabled:bg-slate-100 disabled:text-slate-400"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 disabled:bg-slate-100 disabled:text-slate-400"
                   />
                   <p className="text-xs text-slate-500">
                     Only users who turned on <strong>Discoverable</strong> in <a href="/profile/settings" className="text-purple-600 underline">Profile Settings</a> appear here.
@@ -1890,7 +1890,7 @@ function PitStopContent() {
                       type="text"
                       id="username-input"
                       placeholder="Enter a name"
-                      className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && selectedCategory) {
                           const input = e.target as HTMLInputElement
@@ -1905,7 +1905,7 @@ function PitStopContent() {
                         setShowAddModal(false)
                         setSelectedCategory(null)
                       }}
-                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
+                      className="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
                     >
                       Cancel
                     </button>
@@ -1916,7 +1916,7 @@ function PitStopContent() {
                           handleRequestConnection(input?.value || '', selectedCategory)
                         }
                       }}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                      className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
                     >
                       Add Contact
                     </button>
@@ -1950,7 +1950,7 @@ function PitStopContent() {
                     placeholder="Enter group name"
                     maxLength={80}
                     autoFocus
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -1958,7 +1958,7 @@ function PitStopContent() {
                   <select
                     value={groupForm.type || collabTypes[0].id}
                     onChange={(e) => setGroupForm({ ...groupForm, type: e.target.value })}
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
                   >
                     {collabTypes.map((type) => (
                       <option key={type.id} value={type.id}>{type.label}</option>
@@ -1994,7 +1994,7 @@ function PitStopContent() {
                     value={groupForm.rules}
                     onChange={(e) => setGroupForm({ ...groupForm, rules: e.target.value })}
                     placeholder="Set rules (e.g., If groups can see others' data)"
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 h-24"
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 h-24"
                   />
                   <p className="text-xs text-slate-500 mt-1">As group leader, you set the rules</p>
                 </div>
@@ -2004,14 +2004,14 @@ function PitStopContent() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowGroupModal(false)}
-                    className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
+                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={createCollabGroup}
                     disabled={creatingGroup || groupForm.name.trim().length < 2}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50"
                   >
                     {creatingGroup ? 'Creating…' : 'Create Group'}
                   </button>
@@ -2048,7 +2048,7 @@ function PitStopContent() {
                     setShowCategoryModal(false)
                     setActionType(null)
                   }}
-                  className="w-full p-4 bg-orange-50 border-2 border-orange-200 rounded-lg hover:bg-orange-100 transition-all text-left"
+                  className="w-full p-4 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-all text-left"
                 >
                   <div className="font-medium text-orange-900">Role Models</div>
                   <div className="text-sm text-orange-700">Add a role model connection</div>
@@ -2061,7 +2061,7 @@ function PitStopContent() {
                     setShowCategoryModal(false)
                     setActionType(null)
                   }}
-                  className="w-full p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 transition-all text-left"
+                  className="w-full p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all text-left"
                 >
                   <div className="font-medium text-blue-900">Mentors</div>
                   <div className="text-sm text-blue-700">Add a mentor connection</div>
@@ -2074,7 +2074,7 @@ function PitStopContent() {
                     setShowCategoryModal(false)
                     setActionType(null)
                   }}
-                  className="w-full p-4 bg-pink-50 border-2 border-pink-200 rounded-lg hover:bg-pink-100 transition-all text-left"
+                  className="w-full p-4 bg-pink-50 border border-pink-200 rounded-lg hover:bg-pink-100 transition-all text-left"
                 >
                   <div className="font-medium text-pink-900">Friends</div>
                   <div className="text-sm text-pink-700">Add a friend connection</div>
@@ -2245,7 +2245,7 @@ function PitStopContent() {
                     value={codeInput}
                     onChange={(e) => setCodeInput(e.target.value)}
                     placeholder="Enter group code"
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider bg-white text-slate-900 placeholder-slate-400"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         submitJoinCode(codeInput, () => {
@@ -2265,7 +2265,7 @@ function PitStopContent() {
                       setSelectedGroupForJoin(null)
                       setCodeInput('')
                     }}
-                    className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
+                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-all"
                   >
                     Cancel
                   </button>
@@ -2284,7 +2284,7 @@ function PitStopContent() {
                         }, 2000)
                       })
                     }}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
                   >
                     Join Group
                   </button>
@@ -2382,7 +2382,7 @@ function PitStopContent() {
                         setCurrentMatchIndex(0)
                       }
                     }}
-                    className="flex-1 px-4 py-3 border-2 border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 px-4 py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5" />
                     Pass
@@ -2439,7 +2439,7 @@ function PitStopContent() {
                         }
                       }, 1500)
                     }}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ChevronRight className="w-5 h-5" />
                     Match
@@ -2688,7 +2688,7 @@ function PitStopContent() {
                         }
                       }}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-green-500 bg-white text-slate-900 placeholder-slate-400"
+                      className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-green-500 bg-white text-slate-900 placeholder-slate-400"
                     />
                     <button
                       onClick={handleSendMessage}
@@ -2868,7 +2868,7 @@ function PitStopContent() {
 
               {/* Active Call Interface */}
               {activeCallId && (
-                <div className="mb-6 p-6 bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-300 rounded-xl">
+                <div className="mb-6 p-6 bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-300 rounded-xl">
                   <div className="text-center">
                     <div className="w-20 h-20 rounded-full bg-rose-500 mx-auto mb-4 flex items-center justify-center">
                       <Video className="w-10 h-10 text-white" />
@@ -3005,7 +3005,7 @@ function PitStopContent() {
                   value={textMemeInput}
                   onChange={(e) => setTextMemeInput(e.target.value)}
                   placeholder="Enter your meme text..."
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-yellow-500 resize-none bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-yellow-500 resize-none bg-white text-slate-900 placeholder-slate-400"
                   rows={4}
                 />
                 <div className="flex gap-3">

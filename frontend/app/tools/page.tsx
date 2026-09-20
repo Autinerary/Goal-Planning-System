@@ -103,7 +103,7 @@ function ToolsContent() {
   const availableBarriers = [...new Set(currentTools.flatMap((t: Tool) => t.barriers))]
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-8">
+    <div className="min-h-screen p-8 surface-veil">
       <div className="max-w-6xl mx-auto mb-4">
         <AgentInsightsBanner agent="tool_recommendation" />
       </div>

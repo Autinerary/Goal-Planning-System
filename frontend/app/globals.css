@@ -327,3 +327,70 @@ table {
   margin-bottom: auto;
   max-height: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+ * SURFACES
+ *
+ * The app had eight card translucencies (white at 5, 20, 30, 60, 70,
+ * 80, 90 and 95 percent) crossed with three blur strengths, picked ad
+ * hoc per component. That combinatorial spread is the actual reason the
+ * UI reads as generated: no two cards agreed on what a card is, and
+ * body text sat on a semi-transparent panel over a photograph, which
+ * costs contrast for nothing.
+ *
+ * Three surfaces, and every panel is one of them.
+ *
+ *   .surface        content that holds text. Opaque. This is the default
+ *                   and should be the answer unless there is a reason.
+ *   .surface-veil   a panel that is deliberately part of the sky behind
+ *                   it: hero panels, decorative frames. One opacity, one
+ *                   blur, chosen once.
+ *   .surface-chrome sticky bars and modal shells, where translucency is
+ *                   functional because content scrolls underneath.
+ *
+ * In @layer components so a Tailwind utility can still override any of
+ * it at a call site that genuinely needs to.
+ * ══════════════════════════════════════════════════════════════════ */
+@layer components {
+  .surface {
+    background-color: #ffffff;
+    border: 1px solid rgb(226 232 240);      /* slate-200 hairline */
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  }
+
+  .surface-raised {
+    background-color: #ffffff;
+    border: 1px solid rgb(226 232 240);
+    box-shadow: 0 4px 6px -1px rgb(15 23 42 / 0.08), 0 10px 24px -6px rgb(15 23 42 / 0.12);
+  }
+
+  .surface-veil {
+    background-color: rgb(255 255 255 / 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.6);
+  }
+
+  .surface-chrome {
+    background-color: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgb(226 232 240);
+  }
+
+  /* Dark panels (the journal's dark theme) get the same three levels so
+     the system holds on both sides rather than falling back to ad hoc
+     white-at-5-percent. */
+  .surface-dark {
+    background-color: rgb(30 41 59 / 0.92);  /* slate-800 */
+    border: 1px solid rgb(51 65 85);         /* slate-700 */
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  }
+
+  .surface-veil-dark {
+    background-color: rgb(255 255 255 / 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.14);
+  }
+}

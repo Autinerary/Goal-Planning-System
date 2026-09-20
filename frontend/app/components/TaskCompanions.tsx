@@ -168,7 +168,7 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
         .companion-tortoise-fast{animation:tortoiseSway 1s ease-in-out infinite}
       `}</style>
       <div
-        className={`flex items-end gap-1 bg-white/85 backdrop-blur border border-amber-200 rounded-2xl pl-1 pr-2 py-2 shadow-lg ${
+        className={`flex items-end gap-1 surface-chrome border border-amber-200 rounded-2xl pl-1 pr-2 py-2 shadow-lg ${
           drag ? 'cursor-grabbing shadow-2xl ring-2 ring-amber-300' : ''
         }`}
       >

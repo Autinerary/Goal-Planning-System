@@ -85,13 +85,13 @@ export default function ChildSupervisionPage() {
         ) : (
           <>
             {/* Overall progress */}
-            <div className="rounded-2xl border-2 border-slate-200 bg-white p-5 mb-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 mb-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-800 flex items-center gap-2"><Target className="w-4 h-4 text-cyan-500" /> Overall progress</span>
                 <span className="text-sm font-bold text-cyan-600">{overall}%</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all" style={{ width: `${overall}%` }} />
+                <div className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full transition-all" style={{ width: `${overall}%` }} />
               </div>
               <p className="text-xs text-slate-400 mt-2">{totalDone} of {allMilestones.length} milestones complete</p>
             </div>
@@ -103,13 +103,13 @@ export default function ChildSupervisionPage() {
                 const done = ms.filter((m) => completed.has(m.id)).length
                 const pct = ms.length ? Math.round((done / ms.length) * 100) : 0
                 return (
-                  <div key={r.id || idx} className="rounded-xl border-2 border-slate-200 bg-white p-4">
+                  <div key={r.id || idx} className="rounded-xl border border-slate-200 bg-white p-4">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-semibold text-slate-800 flex items-center gap-2"><Flag className="w-4 h-4 text-purple-500" /> {r.name}</span>
                       <span className="text-xs font-bold text-purple-600">{pct}%</span>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-xs text-slate-400 mt-1.5">{done}/{ms.length} milestones</p>
                   </div>

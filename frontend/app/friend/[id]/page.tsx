@@ -194,7 +194,7 @@ export default function FriendProfilePage() {
         {bundle && !loading && (
           <>
             {/* Profile card */}
-            <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm mb-6">
+            <div className="bg-white rounded-2xl border border-purple-200 p-6 shadow-sm mb-6">
               <div className="flex items-start gap-4">
                 <div className="text-6xl">{bundle.profile?.avatar_emoji || '👤'}</div>
                 <div className="flex-1 min-w-0">
@@ -221,7 +221,7 @@ export default function FriendProfilePage() {
             </div>
 
             {/* Pathway / races */}
-            <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm mb-6">
+            <div className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm mb-6">
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-orange-500" />
                 Their pathway
@@ -257,7 +257,7 @@ export default function FriendProfilePage() {
                                   {done ? (
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                                   ) : (
-                                    <span className="w-4 h-4 border-2 border-slate-300 rounded-full flex-shrink-0" />
+                                    <span className="w-4 h-4 border border-slate-300 rounded-full flex-shrink-0" />
                                   )}
                                   <span className={done ? 'text-slate-500 line-through' : 'text-slate-800'}>
                                     {m.name || m.title || 'Milestone'}
@@ -275,7 +275,7 @@ export default function FriendProfilePage() {
             </div>
 
             {/* Calendar */}
-            <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-sm mb-6">
+            <div className="bg-white rounded-2xl border border-blue-200 p-6 shadow-sm mb-6">
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <CalIcon className="w-5 h-5 text-blue-500" />
                 Their calendar

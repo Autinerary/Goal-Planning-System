@@ -73,7 +73,7 @@ export default function InstallPrompt() {
   if (!show) return null
 
   return (
-    <div className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border-2 border-cyan-300 bg-white shadow-xl p-4">
+    <div className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-cyan-300 bg-white shadow-xl p-4">
       <button
         onClick={dismiss}
         aria-label="Not now"

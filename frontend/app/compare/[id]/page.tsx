@@ -227,7 +227,7 @@ export default function ComparePage() {
         {!loading && !error && me && friend && (
           <div className="grid md:grid-cols-2 gap-4">
             {/* Headers */}
-            <div className="bg-white rounded-2xl border-2 border-indigo-300 p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-indigo-300 p-5 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="text-4xl">{me.profile?.avatar_emoji || '👤'}</div>
                 <div className="min-w-0">
@@ -242,7 +242,7 @@ export default function ComparePage() {
                 <Stat label="tasks" value={meTasks} />
               </div>
             </div>
-            <div className="bg-white rounded-2xl border-2 border-pink-300 p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-pink-300 p-5 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="text-4xl">{friend.profile?.avatar_emoji || '👤'}</div>
                 <div className="min-w-0">

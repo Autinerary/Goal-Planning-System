@@ -85,13 +85,13 @@ export default function ModelSettingsPage() {
       </header>
 
       {!catalogue && (
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Couldn&apos;t reach the server to load the model list. Your existing choice is kept.
         </div>
       )}
 
       {catalogue && !catalogue.any_available && (
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           No model is configured on the server yet, so the agents are running on their
           built-in rules. Add a provider key on the server to enable model selection.
         </div>
@@ -100,7 +100,7 @@ export default function ModelSettingsPage() {
       {catalogue && (
         <>
           {usage && (
-            <section className="rounded-xl border-2 border-slate-200 p-4 space-y-2">
+            <section className="rounded-xl border border-slate-200 p-4 space-y-2">
               <h2 className="text-lg font-semibold text-slate-900">Today&apos;s usage</h2>
               <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                 <div
@@ -146,7 +146,7 @@ export default function ModelSettingsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-slate-900">Default model</h2>
             <div className="grid gap-2">
-              <label className="flex items-start gap-3 rounded-xl border-2 border-slate-200 p-3 cursor-pointer hover:border-slate-300">
+              <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 cursor-pointer hover:border-slate-300">
                 <input
                   type="radio"
                   name="default-model"
@@ -236,7 +236,7 @@ export default function ModelSettingsPage() {
                 return (
                   <div
                     key={a.id}
-                    className="rounded-xl border-2 border-slate-200 p-3 flex flex-wrap items-center gap-3"
+                    className="rounded-xl border border-slate-200 p-3 flex flex-wrap items-center gap-3"
                   >
                     <span className="text-sm font-medium text-slate-900 flex-1 min-w-[10rem]">
                       {a.label}
@@ -245,7 +245,7 @@ export default function ModelSettingsPage() {
                     <select
                       value={choice.model || ''}
                       onChange={(e) => setChoice({ model: e.target.value || undefined })}
-                      className="rounded-lg border-2 border-slate-200 px-2 py-1.5 text-sm"
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
                       aria-label={`Model for ${a.label}`}
                     >
                       <option value="">Use default</option>
@@ -261,7 +261,7 @@ export default function ModelSettingsPage() {
                       onChange={(e) =>
                         setChoice({ effort: (e.target.value || undefined) as Effort | undefined })
                       }
-                      className="rounded-lg border-2 border-slate-200 px-2 py-1.5 text-sm"
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
                       aria-label={`Thinking effort for ${a.label}`}
                     >
                       <option value="">Default effort</option>
@@ -281,7 +281,7 @@ export default function ModelSettingsPage() {
             <button
               type="button"
               onClick={() => update(DEFAULT_PREFS)}
-              className="rounded-lg border-2 border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300"
             >
               Reset to defaults
             </button>

@@ -62,7 +62,7 @@ export default function MerchantShopkeeper({ line }: Props) {
             className="pointer-events-auto mb-1 flex flex-col items-center transition-transform duration-300 ease-out"
             style={{ transform: `translateY(${-rungOffset}px)` }}
           >
-            <div className="mb-1 max-w-[15rem] rounded-2xl border-2 border-amber-300 bg-amber-50 px-3 py-1.5 text-center text-[11px] font-medium text-amber-900 shadow-sm">
+            <div className="mb-1 max-w-[15rem] rounded-2xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-center text-[11px] font-medium text-amber-900 shadow-sm">
               {line}
             </div>
 

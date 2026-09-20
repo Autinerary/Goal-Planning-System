@@ -111,7 +111,7 @@ export default function MilestoneDetailView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white/30 backdrop-blur-sm">
+      <div className="flex items-center justify-center min-h-screen surface-veil">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Loading milestone...</p>
@@ -122,7 +122,7 @@ export default function MilestoneDetailView() {
 
   if (!milestone) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white/30 backdrop-blur-sm">
+      <div className="flex items-center justify-center min-h-screen surface-veil">
         <div className="text-center">
           <p className="text-slate-600 mb-4">Milestone not found</p>
           <Link href="/races" className="text-cyan-600 hover:underline">Back to Races</Link>
@@ -139,7 +139,7 @@ export default function MilestoneDetailView() {
   }
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden surface-veil">
       {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none pref-gamify">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
@@ -158,7 +158,7 @@ export default function MilestoneDetailView() {
         </Link>
 
         {/* Milestone Header Card */}
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 md:p-8 mb-6 shadow-sm">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 mb-6 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -191,7 +191,7 @@ export default function MilestoneDetailView() {
               </div>
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full transition-all"
                   style={{ width: `${milestone.progress}%` }}
                 />
               </div>
@@ -227,12 +227,12 @@ export default function MilestoneDetailView() {
         </div>
 
         {/* Tools Section */}
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 md:p-8 shadow-sm">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Recommended Tools</h2>
 
           {/* Barriers Unlocked */}
           {(milestone.tools?.length > 0) && (
-            <div className="mb-6 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl">
+            <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">🛡️</span>
                 <h3 className="text-lg font-semibold text-violet-900">Barriers Unlocked</h3>

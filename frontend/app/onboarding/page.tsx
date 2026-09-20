@@ -1339,7 +1339,7 @@ export default function OnboardingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-900 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen text-slate-900 p-4 md:p-8 relative overflow-hidden surface-veil">
       {/* Cloudy Background — static, soft gradients. Previously each cloud ran a
           continuous `animate-pulse` (5 stacked blur-2xl/3xl layers repainting
           nonstop), which caused scroll jank on lower-end machines. The look is
@@ -1458,7 +1458,7 @@ export default function OnboardingPage() {
                   <div
                     className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
                       isActive 
-                        ? 'bg-gradient-to-r from-cyan-500 to-purple-500 scale-125 ring-4 ring-cyan-300' 
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 scale-125 ring-4 ring-cyan-300' 
                         : isCompleted 
                           ? 'bg-green-500 scale-110' 
                           : 'bg-slate-300 scale-100'
@@ -1484,7 +1484,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Content Card */}
-        <div className="bg-white/90 backdrop-blur-lg border-2 border-white/50 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="rounded-2xl p-6 md:p-8 surface">
           {missingSections.length > 0 && (
             <div role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">
               <p className="font-semibold">Complete these required sections:</p>
@@ -1707,7 +1707,7 @@ export default function OnboardingPage() {
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
                   <div className="flex justify-center">
-                    <div className="relative w-44 rounded-2xl border-2 border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
+                    <div className="relative w-44 rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
                       <UserAvatar
                         hairStyle={formData.hairStyle}
                         hairColor={formData.hairColor}
@@ -1742,7 +1742,7 @@ export default function OnboardingPage() {
                   onClick={() => setBarrierInputMode('text')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     barrierInputMode === 'text'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
                       : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -1752,7 +1752,7 @@ export default function OnboardingPage() {
                   onClick={() => setBarrierInputMode('manual')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     barrierInputMode === 'manual'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
                       : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -1837,7 +1837,7 @@ export default function OnboardingPage() {
                             'disabled' in conn && conn.disabled
                               ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
                               : formData.barrierConnections[conn.id] !== undefined
-                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
                                 : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
                           }`}
                         >
@@ -1939,7 +1939,7 @@ export default function OnboardingPage() {
                                                 }}
                                                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                                   isSelected
-                                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
+                                                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
                                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
                                                 }`}
                                               >
@@ -1976,7 +1976,7 @@ export default function OnboardingPage() {
                                             return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                           })
                                         }}
-                                        className="px-3 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                                        className="px-3 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
                                       >
                                         {b} ✕
                                       </button>
@@ -2020,7 +2020,7 @@ export default function OnboardingPage() {
                                     })
                                     setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
                                   }}
-                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:brightness-110"
+                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:brightness-110"
                                 >
                                   Add
                                 </button>
@@ -3119,7 +3119,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
               Back
@@ -3139,7 +3139,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {currentStep === 7 ? 'View Recommendations' : 'Continue'}
                   <ChevronRight className="w-5 h-5" />
@@ -3148,7 +3148,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={!canProceed() || isSubmitting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {isSubmitting ? (
                     <>

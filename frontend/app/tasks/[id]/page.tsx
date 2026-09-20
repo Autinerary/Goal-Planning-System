@@ -217,7 +217,7 @@ function TaskViewContent() {
   }, [musicFile])
 
   return (
-    <div className="min-h-screen bg-white/20 backdrop-blur-sm text-slate-800 p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen text-slate-800 p-4 md:p-8 relative overflow-hidden surface-veil">
       {/* Hare + tortoise corner companions — present while you work the task */}
       <TaskCompanions energized={isDoneDancing} />
       {/* Streak milestone celebration (fires from handleDone) */}
@@ -261,7 +261,7 @@ function TaskViewContent() {
 
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Main card */}
-        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="rounded-2xl overflow-hidden surface">
 
           {/* Task Title */}
           <div className="text-center py-5 px-4">
@@ -356,7 +356,7 @@ function TaskViewContent() {
                 {musicFile && (
                   <button
                     onClick={togglePlay}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-xs font-medium"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg text-xs font-medium"
                   >
                     {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                     {isPlaying ? 'Pause' : 'Play'}
@@ -384,7 +384,7 @@ function TaskViewContent() {
         {/* Today's Motivation (from pinwheel spin on Races page) */}
         {todaysMotivation && (
           <div className="mt-6 max-w-md mx-auto text-center">
-            <div className="bg-white/60 backdrop-blur-sm border border-amber-200 rounded-xl px-6 py-4">
+            <div className="border border-amber-200 rounded-xl px-6 py-4 surface">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Today&apos;s Motivation</p>
               <p className="text-sm italic text-slate-700">&ldquo;{todaysMotivation}&rdquo;</p>
             </div>
@@ -399,7 +399,7 @@ function TaskViewContent() {
             className={`px-16 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
               completed
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                : 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-500/30'
+                : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-purple-500/30'
             }`}
           >
             {completed ? '✓ Done!' : 'Done'}

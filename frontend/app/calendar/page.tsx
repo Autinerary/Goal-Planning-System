@@ -672,14 +672,14 @@ function CalendarContent() {
                     required
                     maxLength={120}
                     placeholder="e.g. Call the pharmacy"
-                    className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Day</label>
-                    <select name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <select name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {WEEKDAYS.map(day => (
                         <option key={day} value={day}>{day}</option>
                       ))}
@@ -687,7 +687,7 @@ function CalendarContent() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Time</label>
-                    <select name="time" defaultValue="09:00" size={1} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <select name="time" defaultValue="09:00" size={1} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map((t) => (
                         <option key={t} value={t}>{t}</option>
                       ))}
@@ -698,7 +698,7 @@ function CalendarContent() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Duration</label>
-                    <select name="duration" defaultValue="30 min" className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <select name="duration" defaultValue="30 min" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {['15 min', '30 min', '45 min', '1 hr', '1.5 hr', '2 hr'].map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
@@ -706,7 +706,7 @@ function CalendarContent() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-                    <select name="priority" defaultValue="medium" className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <select name="priority" defaultValue="medium" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {['essential', 'high', 'medium', 'low'].map((pr) => (
                         <option key={pr} value={pr} className="capitalize">{pr}</option>
                       ))}
@@ -715,10 +715,10 @@ function CalendarContent() {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+                  <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:brightness-110 disabled:opacity-40">
+                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold hover:brightness-110 disabled:opacity-40">
                     Add task
                   </button>
                 </div>
@@ -730,7 +730,7 @@ function CalendarContent() {
 
         {showSuggestionModal && pendingSuggestion && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 overlay-scroll">
-            <div className="bg-white/95 backdrop-blur-sm border-2 border-slate-300 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="rounded-2xl p-6 max-w-md w-full mx-4 surface">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-lg">
@@ -759,7 +759,7 @@ function CalendarContent() {
                   <label className="block text-sm font-medium text-slate-700">Select Day:</label>
                   <select
                     id="suggestion-day"
-                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 surface"
                     defaultValue={currentData.days[0]?.name || 'Monday'}
                   >
                     {currentData.days.map((day: any) => (
@@ -773,7 +773,7 @@ function CalendarContent() {
                   <select
                     id="suggestion-time"
                     size={8}
-                    className="w-full px-4 py-2 bg-white/80 backdrop-blur-sm border-2 border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 max-h-56 overflow-y-auto"
+                    className="w-full px-4 py-2 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 max-h-56 overflow-y-auto surface"
                     defaultValue="14:00"
                   >
                     {/* Full 24-hour clock, hour by hour, scrollable (Odosa) */}
@@ -789,7 +789,7 @@ function CalendarContent() {
                       setShowSuggestionModal(false)
                       setPendingSuggestion(null)
                     }}
-                    className="flex-1 px-4 py-3 bg-white/60 backdrop-blur-sm border-2 border-slate-300 text-slate-800 rounded-lg hover:bg-white/80 transition-all"
+                    className="flex-1 px-4 py-3 text-slate-800 rounded-lg hover:bg-slate-50 transition-all surface"
                   >
                     Cancel
                   </button>
@@ -806,7 +806,7 @@ function CalendarContent() {
                         )
                       }
                     }}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2 font-semibold"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2 font-semibold"
                   >
                     <Check className="w-5 h-5" />
                     Add to Calendar
@@ -832,7 +832,7 @@ function CalendarContent() {
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: {currentMilestoneName}</div>
           </div>
           {/* Title */}
-          <div className="bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm">
+          <div className="border border-slate-200 rounded-xl p-5 surface">
             <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">📅 Your Calendar</h1>
             <p className="text-slate-500 text-sm">Plan your journey through each day</p>
           </div>
@@ -845,8 +845,8 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'list' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg' 
+                  : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
               📋 List View
@@ -855,8 +855,8 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'timeblock' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg' 
+                  : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
               ⏰ Time Blocks
@@ -867,8 +867,8 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=week&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'week'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
-                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                  : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
               🗓️ Week
@@ -877,8 +877,8 @@ function CalendarContent() {
               onClick={() => router.push(`/calendar?view=month&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'month'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
-                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                  : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
               📆 Month
@@ -892,8 +892,8 @@ function CalendarContent() {
             onClick={() => setShowComparison(!showComparison)}
             className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
               showComparison
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
+                : 'surface text-slate-700 hover:bg-slate-50'
             }`}
           >
             👥 {showComparison ? 'Hide' : 'Compare with'} Role Model / Mentor
@@ -962,7 +962,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'worst' 
                 ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 
-                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
             <BatteryLow className="w-5 h-5" />
@@ -973,7 +973,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'average' 
                 ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
-                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
             <Battery className="w-5 h-5" />
@@ -984,7 +984,7 @@ function CalendarContent() {
             className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'best' 
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
-                : 'bg-white/60 backdrop-blur-lg border-2 border-slate-300 text-slate-800 hover:bg-white/80'
+                : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
             <Zap className="w-5 h-5" />
@@ -1005,8 +1005,8 @@ function CalendarContent() {
               onClick={() => setPeriod(p.id)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 period === p.id
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow'
-                  : 'bg-white/60 backdrop-blur-lg border border-slate-300 text-slate-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow'
+                  : 'surface text-slate-700 hover:bg-slate-50'
               }`}
             >
               {p.label}
@@ -1015,19 +1015,19 @@ function CalendarContent() {
           {/* Add your own task (Chi) */}
           <button
             onClick={() => setShowPhotoImport(true)}
-            className="ml-auto px-4 py-2 rounded-lg font-medium text-sm border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50 transition-all"
+            className="ml-auto px-4 py-2 rounded-lg font-medium text-sm border border-cyan-300 text-cyan-700 hover:bg-cyan-50 transition-all"
           >
             📷 Add from photo
           </button>
           <button
             onClick={() => setShowAddTask(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:brightness-110 transition-all"
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow hover:brightness-110 transition-all"
           >
             + Add task
           </button>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-3 sm:p-6 md:p-8 shadow-2xl">
+        <div className="rounded-2xl p-3 sm:p-6 md:p-8 surface">
           {period === 'month' && (
             <div className="mb-6 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
               Showing your weekly pattern. It repeats through the month. Day-by-date scheduling is coming soon.
@@ -1255,7 +1255,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleDays.map((day, idx) => (
-          <div key={idx} className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-300">
+          <div key={idx} className="rounded-xl p-5 border border-slate-300 surface">
             <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
               <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
               <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
@@ -1309,7 +1309,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
           <button
             onClick={() => setCurrentDayIndex(Math.max(0, safeIndex - 1))}
             disabled={safeIndex === 0}
-            className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -1319,7 +1319,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
           <button
             onClick={() => setCurrentDayIndex(Math.min(days.length - 2, safeIndex + 1))}
             disabled={safeIndex >= days.length - 2}
-            className="p-2 bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-lg text-slate-800 hover:bg-white/80 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
