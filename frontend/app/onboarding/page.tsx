@@ -108,16 +108,20 @@ function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: num
 }
 
 // Step components
+// `short` is what the progress rail shows. Nine labels share one row, so
+// "Character Select" and "AI Recommendations" wrapped to three lines each,
+// pushed their neighbours out of line and collided with the circle above.
+// `title` stays the full name and remains the accessible label.
 const steps = [
-  { id: 'character', title: 'Character Select', icon: User },
-  { id: 'barrierConnections', title: 'Your Norms', icon: AlertCircle },
-  { id: 'location', title: 'Location', icon: User },
-  { id: 'goalsAndDreams', title: 'Goals & Dreams', icon: Target },
-  { id: 'motivation', title: 'Motivation Style', icon: Zap },
-  { id: 'profile', title: 'Dream Self', icon: Palette },
-  { id: 'spiritAnimal', title: 'Spirit Animals', icon: Heart },
-  { id: 'personalize', title: 'Personalize', icon: Palette },
-  { id: 'recommendations', title: 'AI Recommendations', icon: Sparkles },
+  { id: 'character', title: 'Character Select', short: 'Character', icon: User },
+  { id: 'barrierConnections', title: 'Your Norms', short: 'Norms', icon: AlertCircle },
+  { id: 'location', title: 'Location', short: 'Location', icon: User },
+  { id: 'goalsAndDreams', title: 'Goals & Dreams', short: 'Goals', icon: Target },
+  { id: 'motivation', title: 'Motivation Style', short: 'Motivation', icon: Zap },
+  { id: 'profile', title: 'Dream Self', short: 'Dream Self', icon: Palette },
+  { id: 'spiritAnimal', title: 'Spirit Animals', short: 'Animals', icon: Heart },
+  { id: 'personalize', title: 'Personalize', short: 'Personalize', icon: Palette },
+  { id: 'recommendations', title: 'AI Recommendations', short: 'Resources', icon: Sparkles },
 ]
 
 // Steps the user is allowed to skip without filling anything in. The core
@@ -1342,26 +1346,38 @@ export default function OnboardingPage() {
             </div>
             
             {/* Food Items along the path */}
-            {foodItems.map((food, idx) => (
-              <div
-                key={idx}
-                className="absolute top-1/2 -translate-y-1/2 text-3xl md:text-4xl transition-all duration-500 drop-shadow-lg z-10"
-                style={{ 
-                  left: `${food.position}%`,
-                  transform: `translate(-50%, -50%) ${currentStep >= Math.floor((food.position / 100) * steps.length) ? 'scale(0.8) opacity-60' : 'scale(1) opacity-100'}`,
-                  animation: currentStep >= Math.floor((food.position / 100) * steps.length) ? 'bounce 0.5s' : 'none'
-                }}
-              >
-                {food.emoji}
-              </div>
-            ))}
+            {foodItems.map((food, idx) => {
+              const eaten = currentStep >= Math.floor((food.position / 100) * steps.length)
+              return (
+                <div
+                  key={idx}
+                  className="absolute top-1/2 text-3xl md:text-4xl transition-all duration-500 drop-shadow-lg z-10"
+                  style={{
+                    left: `${food.position}%`,
+                    // opacity is not a transform function. It used to be
+                    // written inline as `opacity-60`, a Tailwind class name,
+                    // and one invalid function voids the whole transform
+                    // declaration — so translate(-50%, -50%) was silently
+                    // dropped the moment a step completed and the emoji
+                    // jumped out of line.
+                    transform: `translate(-50%, -50%) scale(${eaten ? 0.8 : 1})`,
+                    opacity: eaten ? 0.6 : 1,
+                    animation: eaten ? 'bounce 0.5s' : 'none',
+                  }}
+                >
+                  {food.emoji}
+                </div>
+              )
+            })}
             
             {/* Animated Bunny */}
             <div
               className="absolute top-1/2 text-4xl md:text-5xl transition-all duration-700 ease-out drop-shadow-2xl z-20"
-              style={{ 
+              style={{
                 left: `${progressPercentage}%`,
-                transform: 'translateX(-50%)',
+                // translateY was missing, so the bunny hung half its own
+                // height below the food items it is meant to line up with.
+                transform: 'translate(-50%, -50%)',
                 animation: 'bunnyHop 0.6s ease-in-out infinite'
               }}
             >
@@ -1384,10 +1400,10 @@ export default function OnboardingPage() {
                   disabled={isSubmitting || (idx !== 0 && !canAccessOnboarding)}
                   aria-current={isActive ? 'step' : undefined}
                   aria-label={`${step.title}${isCompleted ? ', complete' : ''}`}
-                  className="flex flex-col items-center flex-1"
+                  className="flex min-h-[72px] flex-col items-center flex-1"
                 >
-                  <div 
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
+                  <div
+                    className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
                       isActive 
                         ? 'bg-gradient-to-r from-cyan-500 to-purple-500 scale-125 ring-4 ring-cyan-300' 
                         : isCompleted 
@@ -1401,8 +1417,12 @@ export default function OnboardingPage() {
                       <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isActive ? 'text-white' : 'text-slate-600'}`} />
                     )}
                   </div>
-                  <span className={`text-xs mt-1 text-center max-w-[60px] ${isActive ? 'text-slate-800 font-bold' : isCompleted ? 'text-green-600' : 'text-slate-500'}`}>
-                    {step.title}
+                  {/* mt-3 clears the active circle, which is scale-125 and
+                      grows downward into whatever sits directly beneath it.
+                      leading-tight plus a wider box keeps two short words on
+                      one or two tidy lines instead of a ragged stack. */}
+                  <span className={`text-[11px] leading-tight mt-3 text-center w-full max-w-[72px] ${isActive ? 'text-slate-800 font-bold' : isCompleted ? 'text-green-600' : 'text-slate-500'}`}>
+                    {step.short}
                   </span>
                 </button>
               )
