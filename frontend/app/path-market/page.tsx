@@ -285,7 +285,7 @@ export default function PathMarketPage() {
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <div className="mb-5">
+        <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-6 h-6 text-cyan-500" />
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Path Market</h1>
@@ -432,11 +432,11 @@ export default function PathMarketPage() {
       </section>
 
       {reviewModel && <dialog ref={reviewDialog} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setReviewModel(null) } }} onCancel={() => setReviewModel(null)} onClose={() => setReviewModel(null)} className="max-h-[90vh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg bg-white p-0 backdrop:bg-black/50" aria-label="Review pathway ideas">
-        <div className="p-5">
+        <div className="p-6">
           <div className="flex items-start justify-between gap-3"><h2 className="text-xl font-semibold">{reviewModel.category.title}: {reviewModel.model.name}</h2><button type="button" aria-label="Close pathway review" onClick={() => setReviewModel(null)}><X className="h-5 w-5" /></button></div>
           <p className="my-3 text-sm text-slate-600">{reviewModel.model.description}</p>
           <fieldset className="space-y-3"><legend className="mb-3 font-medium">Optional goals</legend>{reviewModel.model.seedGoals.map(goal => <label key={goal} className="flex items-start gap-3 text-sm"><input type="checkbox" checked={selectedIdeas.includes(goal)} onChange={event => setSelectedIdeas(event.target.checked ? [...selectedIdeas, goal] : selectedIdeas.filter(item => item !== goal))} className="mt-1" />{goal}</label>)}</fieldset>
-          <h3 className="mb-2 mt-5 font-medium">Related Tidbits</h3>
+          <h3 className="mb-2 mt-6 font-medium">Related Tidbits</h3>
           <div className="flex flex-wrap gap-3">{(reviewModel.category.focusCategory === 'education' ? ['course selection', 'time scheduling'] : ['cold email', 'resume', 'time scheduling']).map(topic => <Link key={topic} href={goHubHref(`/community?${new URLSearchParams({ q: topic, from: 'path-market' })}`)} className="text-sm text-cyan-800 underline">{topic}</Link>)}</div>
           <button type="button" onClick={() => startModel(reviewModel.category, reviewModel.model)} className="mt-6 rounded bg-cyan-700 px-4 py-2 font-medium text-white">Continue with {selectedIdeas.length} selected goals</button>
         </div>
@@ -456,7 +456,7 @@ export default function PathMarketPage() {
                 <div className="text-4xl mb-2">🎉</div>
                 <p className="font-semibold text-slate-800">Thanks for sharing!</p>
                 <p className="text-sm text-slate-500 mt-1">Your model is <strong>pending review</strong>. You’ll see it in its category with a “Pending review” badge until it’s approved for everyone.</p>
-                <button onClick={() => setShowSubmit(false)} className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold">Done</button>
+                <button onClick={() => setShowSubmit(false)} className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold">Done</button>
               </div>
             ) : (
               <form onSubmit={submitModel} className="space-y-3">
@@ -501,7 +501,7 @@ export default function PathMarketPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Submit model
                 </button>

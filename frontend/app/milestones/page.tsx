@@ -310,7 +310,7 @@ export default function MilestoneView() {
         <p className="text-sm text-slate-500 max-w-sm">
           Your milestones appear here once your path is generated. Complete onboarding to build one.
         </p>
-        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
+        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
           Go to onboarding →
         </Link>
       </div>
@@ -575,7 +575,7 @@ export default function MilestoneView() {
             href={goHubHref('/')}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all"
           >
             <ExternalLink className="w-4 h-4" /> View all resources &amp; ResourceHub
           </a>
@@ -593,10 +593,10 @@ export default function MilestoneView() {
 
         {/* Footer navigation */}
         <div className="mt-6 flex justify-center gap-3">
-          <Link href="/reflection?contextType=milestone" className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/reflection?contextType=milestone" className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Sparkles className="w-4 h-4" /> Journal / Reflection
           </Link>
-          <Link href="/calendar" className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
+          <Link href="/calendar" className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-medium text-sm hover:shadow-lg transition-all flex items-center gap-2">
             <Calendar className="w-4 h-4" /> Calendar
           </Link>
         </div>

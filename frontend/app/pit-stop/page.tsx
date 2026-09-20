@@ -797,7 +797,7 @@ function PitStopContent() {
             {/* Browse resources by life area — the former Resource Roadmap
                 domains, now a filter in ResourceHub Search. */}
             <a href={goHubHref('/search')} target="_blank" rel="noopener noreferrer" className="block group">
-              <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
+              <div className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-6 shadow-sm transition-all hover:shadow-md hover:border-cyan-300">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -938,7 +938,7 @@ function PitStopContent() {
                 in Hare World"). Own route rather than inlined here — this
                 file is already the largest page in the app. */}
             <Link href="/hare-world/role-models" className="block group">
-              <div className="relative overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 p-5 shadow-sm transition-all hover:shadow-md hover:border-purple-300">
+              <div className="relative overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 p-6 shadow-sm transition-all hover:shadow-md hover:border-purple-300">
                 <div className="flex items-center gap-3">
                   <Users className="w-6 h-6 text-purple-600 flex-shrink-0" />
                   <div>
@@ -1094,13 +1094,13 @@ function PitStopContent() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => acceptPendingRequest(p.id)}
-                          className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-md"
+                          className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg"
                         >
                           Accept
                         </button>
                         <button
                           onClick={() => declinePendingRequest(p.id)}
-                          className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md"
+                          className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-lg"
                         >
                           Decline
                         </button>
@@ -1148,13 +1148,13 @@ function PitStopContent() {
                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
                           <button
                             onClick={() => updateSuggestionStatus(s.id, 'accepted')}
-                            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-md"
+                            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg"
                           >
                             Got it
                           </button>
                           <button
                             onClick={() => updateSuggestionStatus(s.id, 'dismissed')}
-                            className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-md"
+                            className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-lg"
                           >
                             Dismiss
                           </button>
@@ -1503,7 +1503,7 @@ function PitStopContent() {
                   {/* Clarifies difference between People › Friends and Matching */}
                   <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-xs text-slate-700">
                     <strong className="text-pink-700">How is this different from Friends in the People tab?</strong>
-                    <ul className="mt-1 list-disc pl-5 space-y-0.5">
+                    <ul className="mt-1 list-disc pl-4 space-y-0.5">
                       <li><strong>People › Friends</strong>: you manually add specific people you already know.</li>
                       <li><strong>Matching</strong>: the system suggests new people based on dreams &amp; interests. When you tap <em>Match</em>, they're added to your Friends column automatically.</li>
                     </ul>
@@ -1862,7 +1862,7 @@ function PitStopContent() {
                           <button
                             onClick={() => selectedCategory && sendRealUserRequest(r, selectedCategory)}
                             disabled={disabled || !selectedCategory}
-                            className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+                            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
                               state === 'connected'
                                 ? 'bg-emerald-100 text-emerald-700 cursor-default'
                                 : state === 'pending'
@@ -2089,7 +2089,7 @@ function PitStopContent() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overlay-scroll">
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
               <h3 className="text-xl font-bold mb-2">Remove connection?</h3>
-              <p className="text-slate-600 mb-5">
+              <p className="text-slate-600 mb-6">
                 Are you sure you want to remove <span className="font-semibold text-slate-900">{pendingRemoval.name}</span> from your connections? This only removes them locally and can't be undone in this session.
               </p>
               <div className="flex gap-3">

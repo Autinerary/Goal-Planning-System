@@ -107,7 +107,7 @@ export default function HomePage() {
             </h1>
 
             {/* Subheading */}
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-10 drop-shadow-md">
+            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 drop-shadow-md">
               Life planning that actually works for people facing systematic barriers. 
               Not generic advice. Personalized paths based on what worked for people like you.
             </p>

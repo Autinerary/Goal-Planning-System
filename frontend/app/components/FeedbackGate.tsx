@@ -105,7 +105,7 @@ export default function FeedbackGate() {
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 overlay-scroll"
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden">
-        <div className="px-5 sm:px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <h2
             id="feedback-gate-title"
             className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2"
@@ -132,7 +132,7 @@ export default function FeedbackGate() {
           </iframe>
         </div>
 
-        <div className="px-5 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0 flex flex-col sm:flex-row sm:items-center gap-3">
           <label className="flex items-start sm:items-center gap-2 text-sm text-gray-700 cursor-pointer flex-1 select-none">
             <input
               type="checkbox"

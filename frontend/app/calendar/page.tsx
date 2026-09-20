@@ -749,7 +749,7 @@ function CalendarContent() {
                 </button>
               </div>
               
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div className="p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-300 rounded-xl backdrop-blur-sm">
                   <div className="text-sm font-semibold text-purple-700 mb-2">{pendingSuggestion.from}</div>
                   <div className="text-sm text-slate-800">{pendingSuggestion.suggestion}</div>
@@ -832,7 +832,7 @@ function CalendarContent() {
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: {currentMilestoneName}</div>
           </div>
           {/* Title */}
-          <div className="border border-slate-200 rounded-xl p-5 surface">
+          <div className="border border-slate-200 rounded-xl p-6 surface">
             <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">📅 Your Calendar</h1>
             <p className="text-slate-500 text-sm">Plan your journey through each day</p>
           </div>
@@ -959,7 +959,7 @@ function CalendarContent() {
         <div className="flex flex-wrap gap-3 mb-8">
           <button
             onClick={() => setScenario('worst')}
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'worst' 
                 ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
@@ -970,7 +970,7 @@ function CalendarContent() {
           </button>
           <button
             onClick={() => setScenario('average')}
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'average' 
                 ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
@@ -981,7 +981,7 @@ function CalendarContent() {
           </button>
           <button
             onClick={() => setScenario('best')}
-            className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'best' 
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
@@ -1034,7 +1034,7 @@ function CalendarContent() {
             </div>
           )}
           {/* Scenario Info Banner */}
-          <div className={`mb-8 p-5 rounded-xl border-2 backdrop-blur-sm ${
+          <div className={`mb-8 p-6 rounded-xl border-2 backdrop-blur-sm ${
             scenario === 'worst' ? 'bg-red-500/20 border-red-400/30' :
             scenario === 'average' ? 'bg-yellow-500/20 border-yellow-400/30' :
             'bg-green-500/20 border-green-400/30'
@@ -1255,7 +1255,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleDays.map((day, idx) => (
-          <div key={idx} className="rounded-xl p-5 border border-slate-300 surface">
+          <div key={idx} className="rounded-xl p-6 border border-slate-300 surface">
             <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
               <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
               <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />

@@ -97,7 +97,7 @@ export default function PhotoScheduleImport({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 overlay-scroll">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-5">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">Add from a photo</h2>
           <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-600">
@@ -174,12 +174,12 @@ export default function PhotoScheduleImport({
                               : e.weekday
                             update(e.id, { date, weekday })
                           }}
-                          className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                          className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
                         />
                         <select
                           value={e.weekday || ''}
                           onChange={(ev) => update(e.id, { weekday: ev.target.value || null })}
-                          className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                          className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
                           title="Used when no specific date was found, so the event repeats weekly."
                         >
                           <option value="">Day…</option>
@@ -189,7 +189,7 @@ export default function PhotoScheduleImport({
                           type="time"
                           value={e.time || ''}
                           onChange={(ev) => update(e.id, { time: ev.target.value || null })}
-                          className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                          className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
                         />
                       </div>
                     </div>

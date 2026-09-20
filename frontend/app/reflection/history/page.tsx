@@ -282,7 +282,7 @@ export default function JournalHistory() {
               <button
                 onClick={handleImportSubmit}
                 disabled={importBusy || !importText.trim()}
-                className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
               >
                 {importBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {importBusy ? 'Importing…' : 'Import & consider these'}
@@ -374,7 +374,7 @@ export default function JournalHistory() {
                   {segments.map((seg) => (
                     <span key={seg.style} className="flex items-center gap-1.5 text-xs text-slate-700">
                       <span
-                        className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+                        className="inline-block h-2.5 w-2.5 shrink-0 rounded-lg"
                         style={{ backgroundColor: seg.color }}
                       />
                       {MOTIVATION_META[seg.style].emoji} {MOTIVATION_META[seg.style].label}
@@ -416,7 +416,7 @@ export default function JournalHistory() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-5 py-2.5 rounded-lg capitalize font-medium transition-all ${
+              className={`px-4 py-2.5 rounded-lg capitalize font-medium transition-all ${
                 filter === f 
                   ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg scale-105' 
                   : 'surface text-slate-800 hover:bg-slate-50'
@@ -438,7 +438,7 @@ export default function JournalHistory() {
               <div key={journal.id} className="rounded-xl overflow-hidden hover:shadow-xl transition-all surface">
                 {/* Header Row */}
                 <div 
-                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-white/40 transition-all"
+                  className="flex items-center gap-4 p-6 cursor-pointer hover:bg-white/40 transition-all"
                   onClick={() => setExpandedId(isExpanded ? null : journal.id)}
                 >
                   {/* Sentiment Icon */}
@@ -469,13 +469,13 @@ export default function JournalHistory() {
                 </div>
 
                 {/* Summary (always visible) */}
-                <div className="px-5 pb-4 -mt-2">
+                <div className="px-4 pb-4 -mt-2">
                   <p className="text-slate-700 italic">"{journal.summary}"</p>
                 </div>
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t-2 border-slate-300 p-5 bg-white/40">
+                  <div className="border-t-2 border-slate-300 p-6 bg-white/40">
                     {/* Questions & Answers */}
                     {journal.questions && journal.questions.length > 0 && (
                       <div className="mb-6">
@@ -550,7 +550,7 @@ export default function JournalHistory() {
           came from. When there is nothing to support, we say that instead.
         */}
         {journals.length > 0 && (
-          <div className="mt-10 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border border-slate-300 rounded-xl p-8 shadow-2xl">
+          <div className="mt-8 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-lg border border-slate-300 rounded-xl p-8 shadow-2xl">
             <h3 className="font-bold text-2xl mb-2 text-slate-800 flex items-center gap-2">
               <span className="text-3xl">📊</span>
               Detected Patterns
@@ -586,7 +586,7 @@ export default function JournalHistory() {
                       success:        { icon: '🎯', label: 'Success Factor',    color: 'text-purple-700' },
                     }[p.kind]
                     return (
-                      <div key={i} className="p-5 rounded-lg border border-slate-300 surface">
+                      <div key={i} className="p-6 rounded-lg border border-slate-300 surface">
                         <div className={`font-semibold ${meta.color} mb-2 flex items-center gap-2`}>
                           <span>{meta.icon}</span> {meta.label}
                         </div>

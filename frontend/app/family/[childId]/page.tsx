@@ -85,7 +85,7 @@ export default function ChildSupervisionPage() {
         ) : (
           <>
             {/* Overall progress */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 mb-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-slate-800 flex items-center gap-2"><Target className="w-4 h-4 text-cyan-500" /> Overall progress</span>
                 <span className="text-sm font-bold text-cyan-600">{overall}%</span>

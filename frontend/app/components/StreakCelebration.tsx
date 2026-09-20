@@ -57,7 +57,7 @@ export default function StreakCelebration({
       </div>
 
       <div
-        className="relative bg-white rounded-3xl px-10 py-8 shadow-2xl text-center max-w-xs mx-4"
+        className="relative bg-white rounded-2xl px-8 py-8 shadow-2xl text-center max-w-xs mx-4"
         style={{ animation: 'streakPop 0.6s ease-out' }}
       >
         <div className="text-6xl mb-2" style={{ animation: 'flameFloat 1.2s ease-in-out infinite' }}>
@@ -76,7 +76,7 @@ export default function StreakCelebration({
         </p>
         <button
           onClick={onDone}
-          className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white text-sm font-semibold hover:shadow-lg transition-all"
+          className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white text-sm font-semibold hover:shadow-lg transition-all"
         >
           Keep going →
         </button>

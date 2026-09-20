@@ -35,7 +35,7 @@ export default function MoodCheckInCard({ onSubmit, onDismiss }: Props) {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 border border-pink-200 rounded-2xl p-5 mb-6 shadow-sm">
+    <div className="relative bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 border border-pink-200 rounded-2xl p-6 mb-6 shadow-sm">
       {onDismiss && (
         <button
           type="button"

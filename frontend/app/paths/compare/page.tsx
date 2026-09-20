@@ -125,7 +125,7 @@ export default function ComparePathsPage() {
         ) : (
           <>
             {/* Selectors */}
-            <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               <PathSelect label="Path A" value={leftId} onChange={setLeftId} snapshots={snapshots} />
               <PathSelect label="Path B" value={rightId} onChange={setRightId} snapshots={snapshots} />
             </div>
@@ -138,7 +138,7 @@ export default function ComparePathsPage() {
 
             {/* Quick verdict */}
             {left && right && left.id !== right.id && (
-              <div className="mt-5 bg-white border border-slate-200 rounded-2xl p-4 text-sm text-slate-700">
+              <div className="mt-6 bg-white border border-slate-200 rounded-2xl p-4 text-sm text-slate-700">
                 <span className="font-semibold">At a glance: </span>
                 {snapshotOverallProgress(left) === snapshotOverallProgress(right)
                   ? 'Both paths are at the same overall progress.'
@@ -184,7 +184,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
 }) {
   if (!snapshot) {
     return (
-      <div className="bg-white/60 border border-dashed border-slate-300 rounded-2xl p-5 text-center text-sm text-slate-400 flex items-center justify-center min-h-[200px]">
+      <div className="bg-white/60 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-sm text-slate-400 flex items-center justify-center min-h-[200px]">
         Select a path to compare
       </div>
     )
@@ -195,7 +195,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
   const chip = accent === 'cyan' ? 'bg-cyan-50 text-cyan-700' : 'bg-purple-50 text-purple-700'
 
   return (
-    <div className={`bg-white border ${ring} rounded-2xl p-5 shadow-sm`}>
+    <div className={`bg-white border ${ring} rounded-2xl p-6 shadow-sm`}>
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
           <h3 className="font-bold text-slate-800 leading-tight">{snapshot.name}</h3>

@@ -320,7 +320,7 @@ export default function PathView() {
                 <RotateCcw className="w-5 h-5 text-red-500" />
                 <h3 className="text-lg font-bold text-slate-800">Reset your path?</h3>
               </div>
-              <p className="text-sm text-slate-600 mb-5">
+              <p className="text-sm text-slate-600 mb-6">
                 This clears your saved onboarding answers on this device and restarts onboarding so
                 you can build a fresh path. Your existing saved path stays until you complete a new one.
               </p>
@@ -475,7 +475,7 @@ export default function PathView() {
         )}
 
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
-        <div className="mb-6 bg-gradient-to-r from-indigo-600 to-violet-600 border border-purple-200 rounded-2xl px-6 py-5 flex items-center gap-4 shadow-sm">
+        <div className="mb-6 bg-gradient-to-r from-indigo-600 to-violet-600 border border-purple-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
             <Quote className="w-6 h-6 text-purple-500" />
           </div>
@@ -781,7 +781,7 @@ export default function PathView() {
                 </p>
               </div>
             </div>
-            <button className="px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-xl hover:shadow-lg transition-all text-sm whitespace-nowrap">
+            <button className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-xl hover:shadow-lg transition-all text-sm whitespace-nowrap">
               Learn More
             </button>
           </div>

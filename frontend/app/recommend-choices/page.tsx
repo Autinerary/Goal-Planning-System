@@ -222,7 +222,7 @@ export default function RecommendChoicesPage() {
 
   function ChoiceCard({ choice }: { choice: RecommendedChoice }) {
     return (
-      <div className="border border-slate-200 rounded-xl p-5 hover:shadow-lg transition-all bg-gradient-to-br from-white to-slate-50">
+      <div className="border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all bg-gradient-to-br from-white to-slate-50">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">

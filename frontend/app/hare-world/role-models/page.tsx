@@ -63,7 +63,7 @@ export default function RoleModelGalleriaPage() {
             <Plus className="w-4 h-4" /> Suggest someone
           </button>
         </div>
-        <p className="text-sm text-slate-500 mb-5">
+        <p className="text-sm text-slate-500 mb-6">
           People to look to. Submitted by the community, reviewed before they go live.
         </p>
 
@@ -88,7 +88,7 @@ export default function RoleModelGalleriaPage() {
         {loading ? (
           <p className="text-sm text-slate-400">Loading…</p>
         ) : roleModels.length === 0 ? (
-          <div className="text-center py-14 border-2 border-dashed border-slate-200 rounded-2xl">
+          <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
             <p className="text-slate-500 text-sm">
               No one here yet{activeCategory ? ` in "${activeCategory}"` : ''}. Be the first to suggest someone.
             </p>
@@ -165,7 +165,7 @@ function SuggestForm({ onClose, onSubmitted }: { onClose: () => void; onSubmitte
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 overlay-scroll">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-slate-900">Suggest a role model</h2>
           <button onClick={onClose} aria-label="Close"><X className="w-5 h-5 text-slate-400" /></button>

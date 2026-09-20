@@ -225,7 +225,7 @@ export default function InteractiveDemo() {
         )}
 
         {/* Progress dots */}
-        <div className="flex items-center gap-1.5 mb-5">
+        <div className="flex items-center gap-1.5 mb-6">
           {STEPS.map((_, i) => (
             <span
               key={i}
@@ -255,14 +255,14 @@ export default function InteractiveDemo() {
           {isLast ? (
             <button
               onClick={finish}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
             >
               Get started
             </button>
           ) : (
             <button
               onClick={() => go(step + 1)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>

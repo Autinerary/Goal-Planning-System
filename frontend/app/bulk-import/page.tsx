@@ -143,7 +143,7 @@ export default function BulkImportPage() {
             <button
               onClick={parse}
               disabled={busy || text.trim().length < 10}
-              className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 disabled:opacity-50"
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 disabled:opacity-50"
             >
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {busy ? 'Reading…' : 'Sort this list'}
@@ -255,7 +255,7 @@ function ItemRow({
           : item.confidence === 'low'
           ? 'border-amber-300 bg-amber-50'
           : 'border-slate-200 bg-white'
-      } ${expanded ? 'p-5' : ''}`}
+      } ${expanded ? 'p-6' : ''}`}
     >
       <div className="flex items-start gap-3">
         <input
@@ -290,7 +290,7 @@ function ItemRow({
             <select
               value={item.kind}
               onChange={(e) => onChange(item.id, { kind: e.target.value as Item['kind'] })}
-              className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+              className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
             >
               <option value="milestone">Milestone</option>
               <option value="resource">Resource</option>
@@ -299,7 +299,7 @@ function ItemRow({
             <select
               value={item.categoryKey || ''}
               onChange={(e) => onChange(item.id, { categoryKey: e.target.value || null })}
-              className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+              className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
             >
               <option value="">Life path…</option>
               {categories.map((c) => (
@@ -311,7 +311,7 @@ function ItemRow({
               <select
                 value={item.dimension || 'education'}
                 onChange={(e) => onChange(item.id, { dimension: e.target.value })}
-                className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
               >
                 {DIMENSIONS.map((d) => (
                   <option key={d.id} value={d.id}>{d.label}</option>
@@ -321,7 +321,7 @@ function ItemRow({
               <select
                 value={item.resourceCategory || 'other'}
                 onChange={(e) => onChange(item.id, { resourceCategory: e.target.value })}
-                className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
+                className="text-xs border border-slate-200 rounded-lg px-1.5 py-1"
               >
                 {RESOURCE_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c.replace('_', ' ')}</option>

@@ -178,14 +178,14 @@ export default function FriendProfilePage() {
         </div>
 
         {loading && (
-          <div className="bg-white rounded-2xl p-10 text-center text-slate-500 shadow-sm">
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-500 shadow-sm">
             <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
             Loading friend…
           </div>
         )}
 
         {error && !loading && (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <p className="text-red-600 font-medium mb-2">{error}</p>
             <Link href="/pit-stop" className="text-purple-600 underline">Back to Pit Stop</Link>
           </div>

@@ -88,7 +88,7 @@ export default function DiagnosticProfileSection({
                           key={status.id}
                           type="button"
                           onClick={() => updateCondition(condition, { status: status.id })}
-                          className={`rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                             response?.status === status.id
                               ? 'border-cyan-600 bg-cyan-50 text-cyan-800'
                               : 'border-slate-200 text-slate-700 hover:border-cyan-300'
@@ -107,7 +107,7 @@ export default function DiagnosticProfileSection({
                         {condition.subtypes.map((subtype) => {
                           const checked = response?.subtypeIds.includes(subtype.id) ?? false
                           return (
-                            <label key={subtype.id} className="flex cursor-pointer items-start gap-2 rounded-md border border-slate-200 p-3 hover:border-cyan-300">
+                            <label key={subtype.id} className="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 hover:border-cyan-300">
                               <input
                                 type="checkbox"
                                 checked={checked}

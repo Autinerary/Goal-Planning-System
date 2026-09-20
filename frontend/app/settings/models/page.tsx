@@ -64,14 +64,14 @@ export default function ModelSettingsPage() {
 
   if (loading) {
     return (
-      <main className="max-w-3xl mx-auto px-4 py-10">
+      <main className="max-w-3xl mx-auto px-4 py-8">
         <p className="text-slate-500">Loading models…</p>
       </main>
     )
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <header className="space-y-2">
         <Link href="/profile/settings" className="text-sm text-slate-500 hover:text-slate-800">
           ← Settings

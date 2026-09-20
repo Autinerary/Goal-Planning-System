@@ -24,7 +24,7 @@ export default function GamificationSettings() {
     items[index] = text
     patch({ [field]: items })
   }
-  return <section className="my-6 border-y border-slate-200 py-5" aria-label="Gamification">
+  return <section className="my-6 border-y border-slate-200 py-4" aria-label="Gamification">
     <h2 className="mb-4 text-xl font-semibold text-slate-900">Gamification</h2>
     {saveError && <p role="alert" className="mb-3 text-sm text-red-700">{saveError}</p>}
     <div className="grid gap-4 sm:grid-cols-2">
@@ -42,7 +42,7 @@ export default function GamificationSettings() {
         <div role="group" aria-label={`Animal ${index + 1} color`} className="flex flex-wrap gap-2">{Object.keys(ANIMAL_COLORS).map(color => <button key={color} type="button" title={color} aria-label={`Animal ${index + 1}: ${color}`} aria-pressed={animal.color === color} onClick={() => patch({ animals: value.animals.map((item, position) => position === index ? { ...item, color } : item) })} className={`h-6 w-6 rounded-full border-2 ${animal.color === color ? 'border-slate-900 ring-2 ring-offset-2 ring-slate-600' : 'border-slate-300'}`} style={{ backgroundColor: color }} />)}</div>
       </fieldset>)}
     </div>
-    <label className="mt-5 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => patch({ yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
+    <label className="mt-6 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => patch({ yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Monthly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-3">{Array.from({ length: 12 }, (_, index) => <label key={index} className="text-sm">{new Date(2026, index, 1).toLocaleString('en', { month: 'long' })}<input maxLength={100} value={value.monthlyThemes[index] || ''} onChange={event => setTheme('monthlyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Weekly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">{WEEKDAYS.map((day, index) => <label key={day} className="text-sm">{day}<input maxLength={100} value={value.weeklyThemes[index] || ''} onChange={event => setTheme('weeklyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>
     <label className="mt-4 block text-sm">Daily themes (0-31)<input aria-label="Number of daily themes" type="number" min={0} max={31} value={value.dailyThemes.length} onChange={event => patch({ dailyThemes: Array.from({ length: Math.max(0, Math.min(31, Math.trunc(Number(event.target.value) || 0))) }, (_, index) => value.dailyThemes[index] || '') })} className="mt-1 block w-24 rounded border p-2" /></label>

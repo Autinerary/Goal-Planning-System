@@ -343,7 +343,7 @@ function ReflectionContent() {
                 <div className="text-lg leading-none">☕</div>
               </div>
               {/* Desk surface — spans the row above it, so nothing floats. */}
-              <div className="h-2 w-full rounded-sm bg-amber-700" />
+              <div className="h-2 w-full rounded-lg bg-amber-700" />
             </div>
             <h1 className={`text-3xl font-bold ${currentTheme.text} mb-2`}>Journal</h1>
             <p className={`${currentTheme.textSecondary} mt-1`}>Take a moment to reflect on your journey</p>
@@ -377,7 +377,7 @@ function ReflectionContent() {
                   </div>
                 )}
                 {recs && recs.length > 0 && (
-                  <ul className="text-sm list-disc pl-5 space-y-1">
+                  <ul className="text-sm list-disc pl-4 space-y-1">
                     {recs.slice(0, 3).map((r: any, i: number) => (
                       <li key={i}>{typeof r === 'string' ? r : (r.description || r.action || r.title)}</li>
                     ))}
@@ -387,7 +387,7 @@ function ReflectionContent() {
             )
           })()}
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             {questions.map((q) => {
               const Icon = q.icon
               return (

@@ -97,7 +97,7 @@ export function GameButton({
     slate:   { bg: 'linear-gradient(180deg,#e2e8f0,#cbd5e1)', edge: '#94a3b8', text: '#334155' },
   }[tone]
 
-  const pad = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2.5 text-sm'
+  const pad = size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm'
 
   // translate-y on press, with the shadow shrinking to match, is what sells a
   // physical button — the whole thing travels down rather than just dimming.

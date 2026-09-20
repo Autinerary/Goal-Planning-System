@@ -297,7 +297,7 @@ export default function TasksPage() {
         <div className="flex justify-center mt-8">
           <button
             onClick={() => router.push('/calendar')}
-            className={`px-16 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
+            className={`px-16 py-4 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
               allDone
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
                 : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-purple-500/30'

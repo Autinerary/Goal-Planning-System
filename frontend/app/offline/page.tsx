@@ -20,7 +20,7 @@ export default function OfflinePage() {
         </p>
         <Link
           href="/races"
-          className="inline-block px-5 py-2.5 rounded-xl bg-cyan-600 text-white font-semibold text-sm hover:bg-cyan-700"
+          className="inline-block px-4 py-2.5 rounded-xl bg-cyan-600 text-white font-semibold text-sm hover:bg-cyan-700"
         >
           Try again
         </Link>

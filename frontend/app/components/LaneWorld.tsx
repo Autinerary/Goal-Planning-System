@@ -289,7 +289,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   {/* Name on a small wooden plaque, the way a level map labels
                       a stage — not a paragraph of body text. */}
                   <span
-                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[150px] rounded-md px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
+                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[150px] rounded-lg px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
                       done
                         ? 'bg-emerald-50/95 text-emerald-800 line-through decoration-emerald-600/50'
                         : locked

@@ -1937,7 +1937,7 @@ export default function OnboardingPage() {
                                                     return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                                   })
                                                 }}
-                                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                                   isSelected
                                                     ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
                                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
@@ -1976,7 +1976,7 @@ export default function OnboardingPage() {
                                             return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                           })
                                         }}
-                                        className="px-3 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                                        className="px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
                                       >
                                         {b} ✕
                                       </button>
@@ -2646,7 +2646,7 @@ export default function OnboardingPage() {
 
               {/* Spirit Animal Slots */}
               {formData.spiritAnimals.map((animal, idx) => (
-                <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-5">
+                <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-medium text-purple-700">
                       {spiritAnimalSlotLabel(formData.spiritAnimalMode, idx)}
@@ -3119,7 +3119,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
               Back

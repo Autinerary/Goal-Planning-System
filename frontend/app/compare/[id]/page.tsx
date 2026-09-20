@@ -211,14 +211,14 @@ export default function ComparePage() {
         <p className="text-slate-600 mb-6">See how your pathway, calendar, and progress stack up.</p>
 
         {loading && (
-          <div className="bg-white rounded-2xl p-10 text-center text-slate-500 shadow-sm">
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-500 shadow-sm">
             <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
             Loading both pathways…
           </div>
         )}
 
         {error && !loading && (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <p className="text-red-600 font-medium mb-2">{error}</p>
             <Link href="/pit-stop" className="text-purple-600 underline">Back to Pit Stop</Link>
           </div>
@@ -227,7 +227,7 @@ export default function ComparePage() {
         {!loading && !error && me && friend && (
           <div className="grid md:grid-cols-2 gap-4">
             {/* Headers */}
-            <div className="bg-white rounded-2xl border border-indigo-300 p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-indigo-300 p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="text-4xl">{me.profile?.avatar_emoji || '👤'}</div>
                 <div className="min-w-0">
@@ -242,7 +242,7 @@ export default function ComparePage() {
                 <Stat label="tasks" value={meTasks} />
               </div>
             </div>
-            <div className="bg-white rounded-2xl border border-pink-300 p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-pink-300 p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="text-4xl">{friend.profile?.avatar_emoji || '👤'}</div>
                 <div className="min-w-0">
@@ -259,7 +259,7 @@ export default function ComparePage() {
             </div>
 
             {/* Pathway row */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm md:col-span-2">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm md:col-span-2">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Trophy className="w-5 h-5 text-orange-500" />
                 Pathway
@@ -271,7 +271,7 @@ export default function ComparePage() {
             </div>
 
             {/* Calendar row */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm md:col-span-2">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm md:col-span-2">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <CalIcon className="w-5 h-5 text-blue-500" />
                 Calendar

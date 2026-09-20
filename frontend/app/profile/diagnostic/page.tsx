@@ -123,7 +123,7 @@ export default function DiagnosticProfilePage() {
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-7">
+        <section className="rounded-lg border border-slate-200 bg-white p-6 md:p-8">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-1 h-6 w-6 flex-none text-cyan-700" />
             <div>
@@ -150,8 +150,8 @@ export default function DiagnosticProfilePage() {
             </div>
           ) : (
             <>
-              {error && <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
-              {message && <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div>}
+              {error && <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+              {message && <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div>}
 
               <div className="mt-6">
                 <h2 className="font-semibold text-slate-900">Conditions or differences to include</h2>
@@ -168,7 +168,7 @@ export default function DiagnosticProfilePage() {
                               key={condition.id}
                               type="button"
                               onClick={() => toggleCondition(condition.id, condition.label)}
-                              className={`rounded-md border px-3 py-2 text-left text-sm font-medium ${
+                              className={`rounded-lg border px-3 py-2 text-left text-sm font-medium ${
                                 selected
                                   ? 'border-cyan-600 bg-cyan-50 text-cyan-800'
                                   : 'border-slate-200 text-slate-700 hover:border-cyan-300'
@@ -192,7 +192,7 @@ export default function DiagnosticProfilePage() {
                 showConsent={false}
               />
 
-              <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+              <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-200 pt-4">
                 <button
                   type="button"
                   onClick={save}

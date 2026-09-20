@@ -156,12 +156,12 @@ export default function FamilyPage() {
           {!showAdd ? (
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
             >
               <Plus className="w-4 h-4" /> Add a child
             </button>
           ) : (
-            <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+            <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3">
               <h2 className="font-bold text-slate-800 flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-purple-500" /> Add a child
               </h2>
@@ -229,7 +229,7 @@ export default function FamilyPage() {
                 <button
                   type="submit"
                   disabled={saving || (reviewing && !legalGuardianConsent)}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
                 >
                   {saving && <Loader2 className="w-4 h-4 animate-spin" />} {reviewing ? 'Approve account' : 'Review details'}
                 </button>

@@ -165,7 +165,7 @@ export default function ReelsPage() {
           <p className="text-white/70 text-sm max-w-xs mb-6">
             It builds itself as you make progress. Complete a milestone, keep a streak, or check in on how you&apos;re doing.
           </p>
-          <Link href="/milestones" className="px-5 py-2.5 rounded-xl bg-white text-slate-900 text-sm font-semibold">
+          <Link href="/milestones" className="px-4 py-2.5 rounded-xl bg-white text-slate-900 text-sm font-semibold">
             Go to your milestones
           </Link>
         </div>

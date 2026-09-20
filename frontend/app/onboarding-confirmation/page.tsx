@@ -55,7 +55,7 @@ export default function OnboardingConfirmationPage() {
 
         {/* Personalised plan summary — straight from the agents */}
         {(goals.length > 0 || firstMilestone) && (
-          <div className="border border-slate-300 rounded-2xl p-5 mb-6 surface">
+          <div className="border border-slate-300 rounded-2xl p-6 mb-6 surface">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-purple-600" />
               <h2 className="font-bold text-slate-900">Your personalised plan</h2>
@@ -76,7 +76,7 @@ export default function OnboardingConfirmationPage() {
         )}
 
         {/* Find your people — real connections, not a pre-picked sample list */}
-        <div className="border border-purple-200 rounded-2xl p-5 mb-8 surface">
+        <div className="border border-purple-200 rounded-2xl p-6 mb-8 surface">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-purple-600" />
             <h2 className="font-bold text-slate-900">Find role models &amp; mentors</h2>

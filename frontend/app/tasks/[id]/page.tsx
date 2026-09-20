@@ -264,7 +264,7 @@ function TaskViewContent() {
         <div className="rounded-2xl overflow-hidden surface">
 
           {/* Task Title */}
-          <div className="text-center py-5 px-4">
+          <div className="text-center py-4 px-4">
             <h1 className="text-2xl font-bold text-slate-800">Task View</h1>
             <p className="text-sm text-slate-600 mt-1">{taskName}</p>
             <div className="h-px bg-slate-300 w-32 mx-auto mt-2" />
@@ -396,7 +396,7 @@ function TaskViewContent() {
           <button
             onClick={handleDone}
             disabled={completed}
-            className={`px-16 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
+            className={`px-16 py-4 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
               completed
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
                 : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-purple-500/30'

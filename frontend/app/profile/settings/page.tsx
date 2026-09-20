@@ -333,7 +333,7 @@ export default function ProfileSettingsPage() {
         {/* ── Data & Progress ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
           <h2 className="text-xl font-bold mb-1">Data &amp; Progress</h2>
-          <p className="text-slate-600 mb-5 text-sm">
+          <p className="text-slate-600 mb-6 text-sm">
             Back up your data before testing, restore it later, or start over with a clean slate.
           </p>
 
@@ -345,7 +345,7 @@ export default function ProfileSettingsPage() {
           )}
 
           {/* Backup + Restore */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <button
               onClick={downloadBackup}
               disabled={dataBusy !== null}
@@ -455,7 +455,7 @@ export default function ProfileSettingsPage() {
               <AlertTriangle className={`w-5 h-5 ${confirm === 'all' ? 'text-red-500' : 'text-amber-500'}`} />
               <h3 className="text-lg font-bold text-slate-900">{confirm === 'all' ? 'Full restart?' : 'Reset progress?'}</h3>
             </div>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="text-sm text-slate-600 mb-6">
               {confirm === 'all'
                 ? 'This permanently deletes your progress and your generated plan, then restarts onboarding. This can’t be undone. Back up first if you want to restore later.'
                 : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone. Back up first if you want to restore later.'}

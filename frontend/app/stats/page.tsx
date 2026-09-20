@@ -163,7 +163,7 @@ function RamificationsBar({ stats, order, meta }: {
   if (order.length === 0) return null
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-4">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-4">
       <div className="flex items-center justify-between mb-1">
         <h2 className="font-bold text-slate-800 flex items-center gap-2">
           <Activity className="w-5 h-5 text-purple-600" /> Ramifications
@@ -272,7 +272,7 @@ export default function StatsBreakdownPage() {
         {!loading && isSignedIn && payload && (
           <div className="space-y-4">
             {order.length === 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-sm text-slate-600">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-sm text-slate-600">
                 <p className="font-semibold text-slate-800 mb-1">Nothing to score yet</p>
                 <p>
                   These stats are built from what you actually do: mood check-ins, reflections, completed
@@ -293,7 +293,7 @@ export default function StatsBreakdownPage() {
               const pct = Math.round((stat.value / 10) * 100)
               const totalWeight = stat.parts.reduce((a, p) => a + p.weight, 0) || 1
               return (
-                <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <div key={key} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2">
                       <meta.Icon className={`w-5 h-5 ${meta.color}`} />
@@ -352,7 +352,7 @@ export default function StatsBreakdownPage() {
                 needs a fortnight of history. Show them anyway rather than
                 hiding the section a new user was told to look for. */}
             {!order.includes('commitment') && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Flag className="w-5 h-5 text-teal-600" />
                   <h2 className="font-bold text-slate-800">Commitment</h2>

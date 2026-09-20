@@ -82,7 +82,7 @@ export default function LoginPage() {
             <p className="text-slate-600 text-sm mt-1">Sign in to continue your journey</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">

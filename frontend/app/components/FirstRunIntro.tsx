@@ -190,7 +190,7 @@ export default function FirstRunIntro() {
     /* Same two fixes as InteractiveDemo: the overlay scrolls so a tall card
        stays reachable at 100% zoom, and the whole-page blur is gone. */
     <div className="fixed inset-0 z-[55] flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4">
-      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-8">
+      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
         {/* Skip */}
         <button
           onClick={finish}
@@ -254,7 +254,7 @@ export default function FirstRunIntro() {
         </div>
 
         {/* Nav */}
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="mt-6 flex items-center justify-between gap-3">
           <button
             onClick={() => go(-1)}
             disabled={step === 0}
@@ -267,7 +267,7 @@ export default function FirstRunIntro() {
           </button>
           <button
             onClick={() => (isLast ? finish() : go(1))}
-            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
           >
             {isLast ? 'Start exploring' : 'Next'}
             {!isLast && <ChevronRight className="w-4 h-4" />}

@@ -125,7 +125,7 @@ export default function IdealSelfPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-5">
+          <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-4">
             <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
             <div className="space-y-4">
               <label className="block text-sm font-medium">Alternate Persona name
@@ -143,7 +143,7 @@ export default function IdealSelfPage() {
           </section>
 
           {/* ① Role Models / Influences */}
-          <div className="border border-slate-200 rounded-2xl p-5 surface">
+          <div className="border border-slate-200 rounded-2xl p-6 surface">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-5 h-5 text-purple-500" />
               <h3 className="font-bold text-slate-800">Role Models & Influences</h3>
@@ -189,7 +189,7 @@ export default function IdealSelfPage() {
           </div>
 
           {/* ② Goals */}
-          <div className="border border-slate-200 rounded-2xl p-5 surface">
+          <div className="border border-slate-200 rounded-2xl p-6 surface">
             <div className="flex items-center gap-2 mb-3">
               <Target className="w-5 h-5 text-sky-500" />
               <h3 className="font-bold text-slate-800">Goals</h3>
@@ -220,7 +220,7 @@ export default function IdealSelfPage() {
           </div>
 
           {/* ③ Stats */}
-          <div className="lg:col-span-2 border border-slate-200 rounded-2xl p-5 surface">
+          <div className="lg:col-span-2 border border-slate-200 rounded-2xl p-6 surface">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-amber-500" />
               <h3 className="font-bold text-slate-800">Stats</h3>

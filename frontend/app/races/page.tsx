@@ -577,7 +577,7 @@ function RacesContent() {
   /* Race-track road segment with lane markings */
   const RoadDown = ({ h = 60 }: { h?: number }) => (
     <div className="flex justify-center" style={{ margin: '-1px 0' }}>
-      <div className={`relative ${trackCol} rounded-sm`} style={{ width: 52, height: h }}>
+      <div className={`relative ${trackCol} rounded-lg`} style={{ width: 52, height: h }}>
         {/* Outer edge lines */}
         <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
         <div className={`absolute right-0 top-0 bottom-0 w-[3px] ${day ? 'bg-amber-400' : 'bg-amber-600'} rounded-full`} />
@@ -712,7 +712,7 @@ function RacesContent() {
         <p className="text-sm text-slate-500 max-w-sm">
           Your goals become races once your path is generated. Complete onboarding to build one.
         </p>
-        <Link href="/onboarding" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
+        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
           Go to onboarding →
         </Link>
       </div>
@@ -859,7 +859,7 @@ function RacesContent() {
           const unlinked = people.filter((p: any) => !p.target_user_id)
           return (
             <div className="relative z-30 max-w-3xl mx-auto px-3 pt-3 pb-6">
-              <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/90 border-indigo-800'} border-2 rounded-2xl p-5 shadow-xl`}>
+              <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/90 border-indigo-800'} border-2 rounded-2xl p-6 shadow-xl`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Eye className={`w-4 h-4 ${sub}`} />
@@ -872,7 +872,7 @@ function RacesContent() {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">👥</div>
                     <p className={`text-sm mb-4 ${sub}`}>You haven&apos;t connected with a {cat.label.toLowerCase()} yet. Comparisons use your real connections&apos; shared paths.</p>
-                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
+                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:shadow-lg transition-all">
                       Find a {cat.label.toLowerCase()} in Hare World →
                     </Link>
                   </div>
@@ -1051,7 +1051,7 @@ function RacesContent() {
               and ResourceHub & Hare World options that only the list view
               currently has." Ungated, and first in the order for both views.
              ═══════════════════ */}
-            <div className="w-full max-w-2xl px-2 pt-5 space-y-3">
+            <div className="w-full max-w-2xl px-2 pt-4 space-y-3">
               {/* Stats (moved to the top) */}
               {gamifiedMode ? (
                 <GamePanel tone="parchment" className="px-4 pt-6 pb-4">
@@ -1404,7 +1404,7 @@ function RacesContent() {
                   {/* Nothing to show for this dimension. Says so, rather than
                       falling back to invented steps the way this page used to. */}
                   {displaySteps.length === 0 && (
-                    <div className={`rounded-xl border-2 border-dashed p-5 text-center ${day ? 'border-slate-300 bg-white/50' : 'border-indigo-700 bg-indigo-950/30'}`}>
+                    <div className={`rounded-xl border-2 border-dashed p-6 text-center ${day ? 'border-slate-300 bg-white/50' : 'border-indigo-700 bg-indigo-950/30'}`}>
                       <div className="text-2xl mb-1">🗺️</div>
                       <div className={`text-xs font-bold ${txt}`}>No steps here yet</div>
                       <p className={`text-[10px] mt-1 ${sub}`}>
@@ -1445,7 +1445,7 @@ function RacesContent() {
                   })()}
 
                   {/* Steps list */}
-                  <div className="relative pl-5">
+                  <div className="relative pl-4">
                     {/* Lane road line */}
                     <div className={`absolute left-2 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
 
@@ -1580,7 +1580,7 @@ function RacesContent() {
              ═══════════════════════════════════════════════════ */}
           {/* Trail Map — the whole path as zones (gamified level-map view). */}
           {showTrail && (
-            <div className="w-full px-2 pt-4 pb-10">
+            <div className="w-full px-2 pt-4 pb-8">
               {milestones.length === 0 ? (
                 <div className={`max-w-md mx-auto text-center rounded-2xl border-2 border-dashed p-6 ${day ? 'border-slate-300 bg-white/60' : 'border-indigo-700 bg-indigo-950/40'}`}>
                   <div className="text-3xl mb-2">🗺️</div>
@@ -1665,8 +1665,8 @@ function RacesContent() {
               <div className="flex justify-center"><StorefrontRow /></div>
 
               {/* Journal */}
-              <div className="flex justify-center pb-10">
-                <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-5 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
+              <div className="flex justify-center pb-8">
+                <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-4 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
                   <Sparkles className="w-4 h-4" /> Journal / Reflection
                 </Link>
               </div>
@@ -1859,8 +1859,8 @@ function RacesContent() {
           <RoadDown h={50} />
 
           {/* Journal */}
-          <div className="pb-10">
-            <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-5 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
+          <div className="pb-8">
+            <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-4 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
               <Sparkles className="w-4 h-4" /> Journal / Reflection
             </Link>
           </div>
