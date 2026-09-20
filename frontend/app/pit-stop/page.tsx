@@ -500,6 +500,21 @@ function PitStopContent() {
   }
 
   /**
+   * The subtitle shown under a connection's name.
+   *
+   * `role` is filled with the placeholder text 'Pending Request' when a
+   * request is sent. Once the request is accepted that text is stale, and
+   * an accepted friend kept reading "Pending Request" on the card. The
+   * accept endpoint now clears it and a migration backfills old rows;
+   * this guard covers anything written before either lands.
+   */
+  const displayRole = (role: string, status?: string): string => {
+    const placeholder = ['Pending Request', 'Pending Connection'].includes((role || '').trim())
+    if (!placeholder) return role || ''
+    return status === 'connected' ? '' : 'Pending request'
+  }
+
+  /**
    * The signed-in user's real id, or null.
    *
    * This used to read a 'user' key out of localStorage that nothing writes
@@ -1168,7 +1183,7 @@ function PitStopContent() {
                         </div>
                         <div>
                           <div className="font-medium">{rm.name}</div>
-                          <div className="text-xs text-slate-600">{rm.role}</div>
+                          <div className="text-xs text-slate-600">{displayRole(rm.role, rm.status)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1224,7 +1239,7 @@ function PitStopContent() {
                         </div>
                         <div>
                           <div className="font-medium">{m.name}</div>
-                          <div className="text-xs text-slate-600">{m.role}</div>
+                          <div className="text-xs text-slate-600">{displayRole(m.role, m.status)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1280,7 +1295,7 @@ function PitStopContent() {
                         </div>
                         <div>
                           <div className="font-medium">{f.name}</div>
-                          <div className="text-xs text-slate-600">{f.role}</div>
+                          <div className="text-xs text-slate-600">{displayRole(f.role, f.status)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1550,7 +1565,7 @@ function PitStopContent() {
                           </div>
                           <div>
                             <div className="font-bold">{rm.name}</div>
-                            <div className="text-sm text-slate-600">{rm.role}</div>
+                            <div className="text-sm text-slate-600">{displayRole(rm.role, rm.status)}</div>
                             {rm.status === 'pending' && <div className="text-xs text-amber-600 mt-0.5">Request pending</div>}
                           </div>
                         </div>
@@ -2107,7 +2122,7 @@ function PitStopContent() {
                     <div key={rm.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                       <div>
                         <div className="font-medium text-orange-900">{rm.name}</div>
-                        <div className="text-sm text-orange-700">{rm.role}</div>
+                        <div className="text-sm text-orange-700">{displayRole(rm.role, rm.status)}</div>
                       </div>
                       <button
                         onClick={() => {
@@ -2124,7 +2139,7 @@ function PitStopContent() {
                     <div key={m.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div>
                         <div className="font-medium text-blue-900">{m.name}</div>
-                        <div className="text-sm text-blue-700">{m.role}</div>
+                        <div className="text-sm text-blue-700">{displayRole(m.role, m.status)}</div>
                       </div>
                       <button
                         onClick={() => {
@@ -2141,7 +2156,7 @@ function PitStopContent() {
                     <div key={f.id} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
                       <div>
                         <div className="font-medium text-pink-900">{f.name}</div>
-                        <div className="text-sm text-pink-700">{f.role}</div>
+                        <div className="text-sm text-pink-700">{displayRole(f.role, f.status)}</div>
                       </div>
                       <button
                         onClick={() => {

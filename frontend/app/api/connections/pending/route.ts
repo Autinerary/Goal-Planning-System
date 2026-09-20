@@ -33,11 +33,20 @@ export async function GET() {
     for (const p of profs || []) profiles[(p as any).id] = p
   }
 
+  // social_connections.name is the label the REQUESTER typed when adding
+  // this connection — that is, their name for the recipient. Falling back
+  // to it meant a request rendered with the recipient's own name on it,
+  // which is what testers reported seeing. If we genuinely cannot read the
+  // requester's profile, say so plainly instead of naming the wrong person.
   const pending = (rows || []).map(r => ({
     id: r.id,
     category: r.category,
     requested_at: r.created_at,
-    requester: profiles[r.owner_id] || { id: r.owner_id, display_name: r.name, avatar_emoji: r.icon },
+    requester: profiles[r.owner_id] || {
+      id: r.owner_id,
+      display_name: 'Someone on Autinerary',
+      avatar_emoji: '👤',
+    },
   }))
 
   return NextResponse.json({ pending })

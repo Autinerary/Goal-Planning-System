@@ -18,13 +18,34 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // The row's `role` is a human-readable subtitle, but when a request is
+  // sent it is filled with the placeholder text 'Pending Request'. Accept
+  // used to flip only `status`, so the card kept reading "Pending Request"
+  // to both people after the request had been accepted — the bug testers
+  // reported. Clear the placeholder here, and only the placeholder, so a
+  // role someone actually typed is left alone.
+  const PLACEHOLDER_ROLES = ['Pending Request', 'Pending Connection']
+
+  const { data: existing } = await supabase
     .from('social_connections')
-    .update({ status: 'connected' })
+    .select('role')
     .eq('id', id)
     .eq('target_user_id', user.id)
     .eq('status', 'pending')
-    .select('id, status, owner_id, target_user_id, category')
+    .maybeSingle()
+
+  const patch: { status: string; role?: string } = { status: 'connected' }
+  if (existing && PLACEHOLDER_ROLES.includes((existing.role || '').trim())) {
+    patch.role = ''
+  }
+
+  const { data, error } = await supabase
+    .from('social_connections')
+    .update(patch)
+    .eq('id', id)
+    .eq('target_user_id', user.id)
+    .eq('status', 'pending')
+    .select('id, status, role, owner_id, target_user_id, category')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
