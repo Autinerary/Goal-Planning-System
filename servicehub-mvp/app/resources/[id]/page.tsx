@@ -13,6 +13,7 @@ import RatingsBreakdown from '@/components/resources/detail/RatingsBreakdown'
 import CommunityReviews from '@/components/resources/detail/CommunityReviews'
 import SimilarResources from '@/components/resources/detail/SimilarResources'
 import ResourcePatterns from '@/components/resources/detail/ResourcePatterns'
+import SensoryPanel from '@/components/sensory/SensoryPanel'
 import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMatchBanner'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
@@ -194,6 +195,15 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
               orgBreakdown={resource.orgBreakdown}
               relationshipMix={resource.relationshipMix}
               weightedRating={resource.weightedRating}
+            />
+
+            {/* Measured conditions, ahead of written reviews: whether you
+                can be in the room at all comes before whether the service
+                was good. */}
+            <SensoryPanel
+              resourceId={resourceId}
+              resourceName={resource.name}
+              signedIn={Boolean(user?.id)}
             />
 
             <CommunityReviews resourceId={resourceId} userId={user?.id} />

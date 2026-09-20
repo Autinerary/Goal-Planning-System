@@ -194,16 +194,16 @@ AS $$
     END                                                        AS time_bucket,
     COUNT(*)::INT                                              AS scan_count,
     -- Medians, not means: one passing motorbike should not redefine a cafe.
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_median_db)           AS median_db,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_l10_db)              AS l10_db,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_l90_db)              AS l90_db,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_median_db::DOUBLE PRECISION)::NUMERIC           AS median_db,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_l10_db::DOUBLE PRECISION)::NUMERIC              AS l10_db,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_l90_db::DOUBLE PRECISION)::NUMERIC              AS l90_db,
     MAX(vs.sound_peak_db)                                                     AS peak_db,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_peak_events_per_min) AS peak_events_per_min,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_onset_rate)          AS onset_rate,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.light_lux)                 AS lux,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.flicker_hz)                AS flicker_hz,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.flicker_modulation_pct)    AS flicker_modulation_pct,
-    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.light_kelvin::NUMERIC)     AS kelvin,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_peak_events_per_min::DOUBLE PRECISION)::NUMERIC AS peak_events_per_min,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.sound_onset_rate::DOUBLE PRECISION)::NUMERIC          AS onset_rate,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.light_lux::DOUBLE PRECISION)::NUMERIC                 AS lux,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.flicker_hz::DOUBLE PRECISION)::NUMERIC                AS flicker_hz,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.flicker_modulation_pct::DOUBLE PRECISION)::NUMERIC    AS flicker_modulation_pct,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY vs.light_kelvin::DOUBLE PRECISION)::NUMERIC     AS kelvin,
     MAX(vs.scanned_at)                                                        AS last_scanned_at
   FROM public.venue_scans vs
   WHERE vs.resource_id = resource_id_in
