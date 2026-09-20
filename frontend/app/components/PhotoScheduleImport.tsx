@@ -108,7 +108,7 @@ export default function PhotoScheduleImport({
         {!events && (
           <>
             <p className="text-sm text-slate-600 mb-4">
-              A screenshot of a schedule, a photo of a planner page, or a whiteboard — we'll pull out
+              A screenshot of a schedule, a photo of a planner page, or a whiteboard. We'll pull out
               the events so you can check them before anything is added.
             </p>
             <input
@@ -135,7 +135,7 @@ export default function PhotoScheduleImport({
         {events && events.length > 0 && (
           <div className="space-y-3">
             <p className="text-xs text-slate-500">
-              Check the events to add, and fix anything that was misread — especially the ones marked
+              Check the events to add, and fix anything that was misread. Especially the ones marked
               "unsure".
             </p>
             <ul className="space-y-2">
@@ -180,7 +180,7 @@ export default function PhotoScheduleImport({
                           value={e.weekday || ''}
                           onChange={(ev) => update(e.id, { weekday: ev.target.value || null })}
                           className="text-xs border border-slate-200 rounded-md px-1.5 py-1"
-                          title="Used when no specific date was found — the event repeats weekly."
+                          title="Used when no specific date was found, so the event repeats weekly."
                         >
                           <option value="">Day…</option>
                           {WEEKDAYS.map((w) => <option key={w} value={w}>{w}</option>)}

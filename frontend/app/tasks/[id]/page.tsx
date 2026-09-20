@@ -133,12 +133,12 @@ function TaskViewContent() {
     if (milestone) {
       setStreakCelebration(milestone)
       markCelebrated(milestone)
-      notify({ title: `${milestone}-day streak! 🔥`, body: 'You’re on a roll — keep it going.', icon: '🔥', href: '/path' })
+      notify({ title: `${milestone}-day streak! 🔥`, body: 'You’re on a roll. Keep it going.', icon: '🔥', href: '/path' })
     } else {
       const { current } = getStreak()
       notify({
         title: 'Task complete! 🎉',
-        body: current > 0 ? `Nice work — you’re on a ${current}-day streak.` : 'Nice work today.',
+        body: current > 0 ? `Nice work. You’re on a ${current}-day streak.` : 'Nice work today.',
         icon: '✅',
         href: '/path',
       })

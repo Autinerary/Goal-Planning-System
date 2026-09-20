@@ -137,7 +137,7 @@ export default function SignupPage() {
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 <p className="font-semibold mb-0.5">Under 18?</p>
                 <p>
-                  You can’t create your own account yet — but a parent or guardian with an account can add you and
+                  You can’t create your own account yet. But a parent or guardian with an account can add you and
                   set things up for you. Ask them to sign up, then add you from their <strong>Family</strong> page.
                 </p>
               </div>

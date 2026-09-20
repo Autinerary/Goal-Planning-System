@@ -111,7 +111,7 @@ export default function FeedbackGate() {
             className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2"
           >
             <span aria-hidden="true">📝</span>
-            Quick feedback — help us improve
+            Quick feedback: help us improve
           </h2>
           <p id="feedback-gate-desc" className="text-sm text-gray-600 mt-1">
             Before you continue, please take a moment to fill out this short form.

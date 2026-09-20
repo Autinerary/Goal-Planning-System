@@ -95,7 +95,7 @@ export default function InstallPrompt() {
           ) : (
             <>
               <p className="text-xs text-slate-600 mt-1">
-                Opens like an app, with its own icon — no browser bar.
+                Opens like an app, with its own icon: no browser bar.
               </p>
               <button
                 onClick={install}

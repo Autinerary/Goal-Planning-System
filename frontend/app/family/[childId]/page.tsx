@@ -72,7 +72,7 @@ export default function ChildSupervisionPage() {
           <h1 className="text-2xl font-bold text-slate-900">{data?.child.name}</h1>
         </div>
         <p className="text-slate-500 text-sm mb-6">
-          Supervision view — read-only. {data?.child.email}
+          Supervision view: read-only. {data?.child.email}
         </p>
 
         {!data?.payload ? (

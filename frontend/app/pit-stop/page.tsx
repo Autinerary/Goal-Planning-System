@@ -745,13 +745,13 @@ function PitStopContent() {
             <span className="text-4xl">🛒</span>
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Pit Stop</h1>
-              <p className="text-slate-600 text-sm italic">Your cart of tools &amp; supports — add what helps, skip the rest</p>
+              <p className="text-slate-600 text-sm italic">Your cart of tools &amp; supports. Add what helps, skip the rest</p>
             </div>
             <div className="flex gap-1 ml-auto text-2xl">
               <span title="Key">🔑</span><span title="Hammer">🔨</span><span title="Shield">🛡️</span><span title="Boots">👢</span><span title="Wrench">🔧</span>
             </div>
           </div>
-          <p className="text-slate-700">Your hub for tools and connections — search for autism-friendly services</p>
+          <p className="text-slate-700">Your hub for tools and connections. Search for autism-friendly services</p>
         </div>
 
         {/* Tab Navigation */}
@@ -805,8 +805,8 @@ function PitStopContent() {
                     </div>
                     <h3 className="text-lg font-bold text-slate-900">Browse resources by life area</h3>
                     <p className="text-sm text-slate-600 mt-1">
-                      Filter resources by life domain — insurance &amp; legacy planning, workplace
-                      fit, independent living, and after-school activities — in ResourceHub Search.
+                      Filter resources by life domain: insurance &amp; legacy planning, workplace
+                      fit, independent living, and after-school activities, in ResourceHub Search.
                     </p>
                   </div>
                   <span className="hidden sm:block text-xs font-medium text-cyan-700 group-hover:underline whitespace-nowrap">
@@ -925,7 +925,7 @@ function PitStopContent() {
               .reduce((n, k) => n + (pit[k] || []).length, 0)
             const line = stocked > 0
               ? `${stocked} tool${stocked === 1 ? '' : 's'} picked out for you today.`
-              : 'Shelves are bare for now — finish onboarding and I\u2019ll stock them.'
+              : 'Shelves are bare for now. Finish onboarding and I\u2019ll stock them.'
             return <MerchantShopkeeper line={line} />
           })()}
           </div>
@@ -943,7 +943,7 @@ function PitStopContent() {
                   <Users className="w-6 h-6 text-purple-600 flex-shrink-0" />
                   <div>
                     <p className="font-bold text-slate-900">Role Model Galleria</p>
-                    <p className="text-sm text-slate-500">People to look to, by category — Black, Neurodivergent, and more.</p>
+                    <p className="text-sm text-slate-500">People to look to, by category: Black, Neurodivergent, and more.</p>
                   </div>
                   <ChevronRight className="w-5 h-5 text-purple-400 ml-auto group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -982,7 +982,7 @@ function PitStopContent() {
             {/* Description */}
             <div className="bg-white rounded-2xl border-2 border-purple-200 p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-2">People &amp; Community <span className="text-slate-400 font-normal text-base">(Hare World)</span></h2>
-              <p className="text-slate-600 mb-4">Your people hub — connect with role models, mentors, and friends, and join collaboration groups.</p>
+              <p className="text-slate-600 mb-4">Your people hub. Connect with role models, mentors, and friends, and join collaboration groups.</p>
               
               {/* View Toggle */}
               <div className="flex gap-2 mb-4">
@@ -1407,7 +1407,7 @@ function PitStopContent() {
                       <p className="text-sm text-slate-500 text-center py-6">Loading groups…</p>
                     )}
                     {!collabLoading && collabGroups.length === 0 && (
-                      <p className="text-sm text-slate-500 text-center py-6">No groups yet — create one above and invite your people.</p>
+                      <p className="text-sm text-slate-500 text-center py-6">No groups yet. Create one above and invite your people.</p>
                     )}
                     {(selectedCollabType
                       ? collabGroups.filter(g => g.type === selectedCollabType)
@@ -1522,7 +1522,7 @@ function PitStopContent() {
                     </button>
                   ) : (
                     <div className="w-full px-6 py-4 bg-slate-100 text-slate-500 rounded-xl text-sm text-center border border-slate-200">
-                      Match suggestions are coming soon — for now, search for people directly in the People tab.
+                      Match suggestions are coming soon: for now, search for people directly in the People tab.
                     </div>
                   )}
                   
@@ -1564,7 +1564,7 @@ function PitStopContent() {
                 <div className="bg-white rounded-2xl border-2 border-orange-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-4">Role Models</h3>
                   {roleModelsWithMetrics.length === 0 && (
-                    <p className="text-sm text-slate-500 py-3">No role models yet — search above to find and add one.</p>
+                    <p className="text-sm text-slate-500 py-3">No role models yet. Search above to find and add one.</p>
                   )}
                   <div className="space-y-4">
                     {roleModelsWithMetrics.map((rm) => (
@@ -1882,7 +1882,7 @@ function PitStopContent() {
               {addMode === 'manual' && (
                 <div className="space-y-4">
                   <p className="text-xs text-slate-500">
-                    Adds a local contact card. Doesn't send a request — useful for people who aren't on the app yet.
+                    Adds a local contact card. Doesn't send a request, useful for people who aren't on the app yet.
                   </p>
                   <div>
                     <label className="block text-sm font-medium mb-2">Name:</label>
@@ -2402,7 +2402,7 @@ function PitStopContent() {
                         // Persist as a friend with status 'matched' when signed in.
                         const persisted = await persistAddConnection('friends', {
                           name: currentProfile.name,
-                          role: `Matched — “${currentProfile.dream}”`,
+                          role: `Matched. “${currentProfile.dream}”`,
                           status: 'matched',
                           icon: '💖',
                           match_dream: currentProfile.dream,
@@ -2410,7 +2410,7 @@ function PitStopContent() {
                         const newFriend = persisted || {
                           id: `match_${currentProfile.id}`,
                           name: currentProfile.name,
-                          role: `Matched — “${currentProfile.dream}”`,
+                          role: `Matched. “${currentProfile.dream}”`,
                           status: 'matched',
                           icon: '💖'
                         }
@@ -2505,7 +2505,7 @@ function PitStopContent() {
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {mentorTasks.length === 0 && (
-                  <p className="text-slate-500 text-center py-4">No mentor tasks yet — they appear when a connected mentor suggests one.</p>
+                  <p className="text-slate-500 text-center py-4">No mentor tasks yet. They appear when a connected mentor suggests one.</p>
                 )}
                 {mentorTasks.map((task) => (
                   <div key={task.id} className={`p-3 border rounded-lg ${task.completed ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-200'}`}>
@@ -2551,7 +2551,7 @@ function PitStopContent() {
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {supportMessages.length === 0 && (
-                  <p className="text-slate-500 text-center py-4">No support messages yet — encouragement from your people shows up here.</p>
+                  <p className="text-slate-500 text-center py-4">No support messages yet. Encouragement from your people shows up here.</p>
                 )}
                 {supportMessages.map((msg) => (
                   <div key={msg.id} className="p-3 bg-pink-50 border border-pink-200 rounded-lg">

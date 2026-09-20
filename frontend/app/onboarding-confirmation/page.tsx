@@ -82,7 +82,7 @@ export default function OnboardingConfirmationPage() {
             <h2 className="font-bold text-slate-900">Find role models &amp; mentors</h2>
           </div>
           <p className="text-sm text-slate-600 mb-4">
-            Connect with real people in Hare World — search for role models, mentors, and friends.
+            Connect with real people in Hare World. Search for role models, mentors, and friends.
             Anyone you connect with shows up on your Path and can share their journey with you.
           </p>
           <p className="text-sm text-slate-500">Optional: visit People from your Path when you are ready.</p>

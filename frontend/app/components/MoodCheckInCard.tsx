@@ -50,7 +50,7 @@ export default function MoodCheckInCard({ onSubmit, onDismiss }: Props) {
       <div className="flex items-center gap-2 mb-3">
         <Heart className="w-5 h-5 text-pink-500" />
         <h3 className="font-semibold text-slate-800">How are you today?</h3>
-        <span className="text-xs text-slate-500">(takes 5 seconds — drives your Happiness score)</span>
+        <span className="text-xs text-slate-500">(takes 5 seconds, drives your Happiness score)</span>
       </div>
 
       <div className="grid grid-cols-10 gap-1.5 mb-3" role="radiogroup" aria-label="Mood, 1 lowest to 10 highest">

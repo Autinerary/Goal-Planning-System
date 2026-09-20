@@ -202,7 +202,7 @@ export default function WeekTimeGrid({
                     key={`${occ.task.id}-${day.toISOString()}`}
                     type="button"
                     onPointerDown={(e) => beginDrag(e, occ, dayIndex)}
-                    title={`${occ.task.name} · ${minutesToTime(effStart)}${occ.recurring ? ' · repeats weekly' : ''}${onSelect ? ' — click to open, drag to move' : ''}`}
+                    title={`${occ.task.name} · ${minutesToTime(effStart)}${occ.recurring ? ' · repeats weekly' : ''}${onSelect ? '. Click to open, drag to move' : ''}`}
                     className={`absolute text-left rounded-md px-1.5 py-1 overflow-hidden border transition-shadow ${
                       dragging ? 'shadow-lg z-20 opacity-90' : 'z-10 hover:shadow-md'
                     } ${

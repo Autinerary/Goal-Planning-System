@@ -163,7 +163,7 @@ export default function ReelsPage() {
           <div className="text-5xl mb-4">🎬</div>
           <h1 className="text-xl font-bold mb-2">Your reel is waiting</h1>
           <p className="text-white/70 text-sm max-w-xs mb-6">
-            It builds itself as you make progress — complete a milestone, keep a streak, or check in on how you&apos;re doing.
+            It builds itself as you make progress. Complete a milestone, keep a streak, or check in on how you&apos;re doing.
           </p>
           <Link href="/milestones" className="px-5 py-2.5 rounded-xl bg-white text-slate-900 text-sm font-semibold">
             Go to your milestones

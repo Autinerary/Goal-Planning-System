@@ -81,8 +81,8 @@ export default function MonthGrid({
                     key={`${occ.task.id}-${day.toISOString()}`}
                     type="button"
                     onClick={() => onSelectTask?.(occ.task)}
-                    title={`${occ.task.name} — open`}
-                    className={`block w-full text-left text-[9px] leading-tight truncate rounded px-1 py-0.5 transition-opacity hover:opacity-80 ${
+                    title={`${occ.task.name}: open`}
+                    className={`block w-full text-left text-[9px] leading-tight truncate rounded px-1 py-0.5 transition-opacity hover:brightness-105 ${
                       occ.task.completed
                         ? 'bg-slate-100 text-slate-400 line-through'
                         : occ.recurring

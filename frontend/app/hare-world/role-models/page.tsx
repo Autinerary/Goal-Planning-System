@@ -64,7 +64,7 @@ export default function RoleModelGalleriaPage() {
           </button>
         </div>
         <p className="text-sm text-slate-500 mb-5">
-          People to look to — submitted by the community, reviewed before they go live.
+          People to look to. Submitted by the community, reviewed before they go live.
         </p>
 
         <div className="flex flex-wrap gap-2 mb-6">
@@ -173,7 +173,7 @@ function SuggestForm({ onClose, onSubmitted }: { onClose: () => void; onSubmitte
 
         {done ? (
           <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            Thanks — this is queued for review and will appear once approved.
+            Thanks, this is queued for review and will appear once approved.
           </p>
         ) : (
           <div className="space-y-3">

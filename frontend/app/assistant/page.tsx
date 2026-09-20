@@ -14,14 +14,14 @@ interface Msg {
 const INTRO: Msg = {
   role: 'assistant',
   content:
-    "Hi — I'm your assistant. Stuck on a goal, a milestone, or a barrier? Tell me what's going on and I'll help you think through practical next steps.",
+    "Hi, I'm your assistant. Stuck on a goal, a milestone, or a barrier? Tell me what's going on and I'll help you think through practical next steps.",
 }
 
 const STARTERS = [
   "I'm stuck on my current milestone",
   'Help me break a goal into smaller steps',
   'How do I ask for an accommodation?',
-  'I feel overwhelmed — where do I start?',
+  'I feel overwhelmed. Where do I start?',
 ]
 
 /** Read the locally cached onboarding profile (fallback context source). */
@@ -108,7 +108,7 @@ export default function AssistantPage() {
         }),
       })
       const data = await res.json().catch(() => null)
-      const reply = data?.reply || "Sorry — I couldn't respond just now. Please try again."
+      const reply = data?.reply || "Sorry, I couldn't respond just now. Please try again."
       setMessages((m) => [...m, { role: 'assistant', content: reply }])
     } catch {
       setMessages((m) => [...m, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
@@ -161,7 +161,7 @@ export default function AssistantPage() {
               <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                 {warmingUp && (
-                  <span className="text-xs text-slate-500">Waking the assistant up — this first reply can take up to a minute…</span>
+                  <span className="text-xs text-slate-500">Waking the assistant up. This first reply can take up to a minute…</span>
                 )}
               </div>
             </div>

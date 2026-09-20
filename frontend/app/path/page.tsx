@@ -143,7 +143,7 @@ export default function PathView() {
         // empty states rather than a scary "backend down" banner.
       } catch (err) {
         // Only reached if BOTH Supabase and FastAPI are unreachable.
-        setLoadError('Could not load your path — check your connection.')
+        setLoadError('Could not load your path. Check your connection.')
       } finally {
         setIsLoadingPath(false)
       }
@@ -235,7 +235,7 @@ export default function PathView() {
     if (overallProgress === 0) {
       const start = [
         'Every big journey begins with one small step. You\u2019ve got this.',
-        'The start is the hardest part — and you\u2019re already here.',
+        'The start is the hardest part, and you\u2019re already here.',
         'You don\u2019t have to be great to start, but you have to start to be great.',
       ]
       return start[quoteSeed % start.length]
@@ -244,20 +244,20 @@ export default function PathView() {
       const early = [
         'Progress, not perfection. Keep going at your own pace.',
         'Small steps every day add up to big change.',
-        'You\u2019re building momentum — one milestone at a time.',
+        'You\u2019re building momentum: one milestone at a time.',
       ]
       return early[quoteSeed % early.length]
     }
     if (overallProgress < 80) {
       const mid = [
-        'You\u2019re over the hump — look how far you\u2019ve come.',
+        'You\u2019re over the hump. Look how far you\u2019ve come.',
         'Halfway is a milestone worth celebrating. Keep it up!',
         'Consistency is your superpower. Stay the course.',
       ]
       return mid[quoteSeed % mid.length]
     }
     const near = [
-      'The finish line is in sight — finish strong!',
+      'The finish line is in sight. Finish strong!',
       'You\u2019re so close. Your future self is cheering you on.',
       'Almost there. Every step now counts double.',
     ]
@@ -307,7 +307,7 @@ export default function PathView() {
         {savedSnapshotName && (
           <div className="fixed top-4 right-4 z-50 bg-slate-800 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
             <Save className="w-4 h-4 text-cyan-300" />
-            Saved &ldquo;{savedSnapshotName}&rdquo; —{' '}
+            Saved &ldquo;{savedSnapshotName}&rdquo;, {' '}
             <Link href="/paths/compare" className="underline font-medium">Compare</Link>
           </div>
         )}
@@ -389,7 +389,7 @@ export default function PathView() {
             </button>
             <button
               onClick={() => {
-                const snap = saveSnapshot(`${userName}'s Path — ${new Date().toLocaleDateString()}`, {
+                const snap = saveSnapshot(`${userName}'s Path, ${new Date().toLocaleDateString()}`, {
                   ultimateDream,
                   races: races.map((r: any) => ({ id: r.id, name: r.name, progress: r.progress, category: r.category })),
                   milestones: pathMilestones.map((m: any) => ({ id: m.id, name: m.name })),
@@ -421,7 +421,7 @@ export default function PathView() {
             <button
               onClick={() => router.push('/onboarding')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg hover:bg-white transition-all"
-              title="Edit your answers. Your progress and saved path are kept — use Reset to start over."
+              title="Edit your answers. Your progress and saved path are kept. Use Reset to start over."
             >
               <Settings className="w-4 h-4 pref-icon-anim" />
               Re-do Onboarding
@@ -444,7 +444,7 @@ export default function PathView() {
               >
                 {serverPaths.map((p) => (
                   <option key={p.pathId} value={p.pathId}>
-                    {p.label}{p.isActive ? ' (active)' : ''} — {p.overallProgress}%
+                    {p.label}{p.isActive ? ' (active)' : ''}, {p.overallProgress}%
                   </option>
                 ))}
               </select>
@@ -514,7 +514,7 @@ export default function PathView() {
             {/* Empty state — no demo races */}
             {races.length === 0 && (
               <div className="text-center py-6">
-                <p className="text-sm text-slate-500 mb-3">No races yet — your goals become races once your path is generated.</p>
+                <p className="text-sm text-slate-500 mb-3">No races yet: your goals become races once your path is generated.</p>
                 <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
               </div>
             )}
@@ -584,7 +584,7 @@ export default function PathView() {
 
             {!hasAnyPeople && (
               <div className="text-center py-6">
-                <p className="text-sm text-slate-500 mb-3">No connections yet — find role models, mentors, and peers in Hare World.</p>
+                <p className="text-sm text-slate-500 mb-3">No connections yet. Find role models, mentors, and peers in Hare World.</p>
                 <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">
                   Meet people →
                 </Link>
@@ -645,7 +645,7 @@ export default function PathView() {
               </div>
               <p className="text-sm text-slate-600 mb-1 font-medium">Same as ResourceHub</p>
               <p className="text-xs text-slate-400 mb-4 max-w-[250px]">
-                Your saved resources, community-rated services, and AI recommendations — all in one place.
+                Your saved resources, community-rated services, and AI recommendations: all in one place.
               </p>
             </div>
 
@@ -708,7 +708,7 @@ export default function PathView() {
             // and guessing one after the fact would be fiction.
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm text-slate-600">
-                This path wasn&apos;t started from a Life Path Model — or was created before we
+                This path wasn&apos;t started from a Life Path Model. Or was created before we
                 started recording it. Browse the Path Market to follow one.
               </p>
             </div>
@@ -747,7 +747,7 @@ export default function PathView() {
             target="_blank"
             rel="noopener noreferrer"
             title="View Related posts"
-            data-info="Opens Tidbits — posts and questions from other people working on similar goals."
+            data-info="Opens Tidbits. Posts and questions from other people working on similar goals."
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-emerald-500" />
@@ -758,7 +758,7 @@ export default function PathView() {
             target="_blank"
             rel="noopener noreferrer"
             title="Find relevant resources"
-            data-info="Opens ResourceHub — search services, tools and support matched to your goals."
+            data-info="Opens ResourceHub. Search services, tools and support matched to your goals."
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
             <Map className="w-4 h-4 text-cyan-500" />
@@ -777,7 +777,7 @@ export default function PathView() {
               <div>
                 <h3 className="font-bold text-lg">Unlock Multi-Path Management</h3>
                 <p className="text-sm text-slate-400">
-                  For Mentors, Employers, Educators &amp; Parents — manage multiple paths in one place.
+                  For Mentors, Employers, Educators &amp; Parents. Manage multiple paths in one place.
                 </p>
               </div>
             </div>

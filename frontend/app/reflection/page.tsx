@@ -151,7 +151,7 @@ function ReflectionContent() {
       router.push('/reflection/history')
     } catch (error) {
       console.error('Error:', error)
-      toast.error('Could not save your reflection. Your text is still here — try again.')
+      toast.error('Could not save your reflection. Your text is still here. Try again.')
     } finally {
       setLoading(false)
     }
@@ -433,7 +433,7 @@ function ReflectionContent() {
             </p>
             <p className={`mb-3 text-xs ${currentTheme.textSecondary}`}>
               It stays on your account and is not used to train anything for anyone else. What you write
-              above is never graded or read as a rating — only this answer counts. &ldquo;Not sure&rdquo;
+              above is never graded or read as a rating, only this answer counts. &ldquo;Not sure&rdquo;
               is recorded and changes nothing.
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

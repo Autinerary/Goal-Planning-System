@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import { Atkinson_Hyperlegible } from 'next/font/google'
 import { AuthProvider } from './context/AuthContext'
 import { AgentPathProvider } from './context/AgentPathContext'
 import { LanguageProvider } from './context/LanguageContext'
@@ -14,6 +15,36 @@ import AppWideTranslator from './components/AppWideTranslator'
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
 import InfoModeProvider from './components/InfoModeProvider'
+
+/**
+ * Typeface.
+ *
+ * The app had no typographic choice at all: globals.css said
+ * `font-family: 'Arial', sans-serif`, which is the browser's default
+ * fallback wearing a name. That reads as "nobody looked at this" just as
+ * loudly as defaulting to Inter does.
+ *
+ * Atkinson Hyperlegible is the considered pick rather than a fashionable
+ * one. The Braille Institute commissioned it specifically so that letters
+ * which normally collapse into each other stay distinct: the lowercase l,
+ * capital I and digit 1 are drawn differently, as are O and 0, and the
+ * apertures are opened up. For an app whose users include people with
+ * dyslexia, visual processing differences and low vision, that is a
+ * functional decision, not decoration.
+ *
+ * Loaded through next/font so it is self-hosted at build time. No request
+ * to Google at runtime, no layout shift while it loads.
+ */
+const bodyFont = Atkinson_Hyperlegible({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-body',
+  // Matched so the fallback occupies near-identical space and text does
+  // not reflow when the real face arrives.
+  fallback: ['Verdana', 'Geneva', 'system-ui', 'sans-serif'],
+})
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
@@ -59,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={bodyFont.variable}>
       <body className="min-h-screen">
         <AuthProvider>
           <AgentPathProvider>

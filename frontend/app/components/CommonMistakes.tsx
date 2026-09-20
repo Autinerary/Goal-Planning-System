@@ -10,7 +10,7 @@ const INDICATOR_LABEL: Record<string, string> = {
   sleep_issues: 'Skipping sleep before it',
   social_withdrawal: 'Isolating instead of asking for help',
   sensory_overload: 'Pushing through sensory overload',
-  energy_crash: 'Starting on empty — no recovery first',
+  energy_crash: 'Starting on empty: no recovery first',
   meal_skipping: 'Skipping meals around it',
 }
 

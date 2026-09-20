@@ -26,7 +26,7 @@ function UnderConstructionContent() {
           {feature ? `${feature} is under construction` : 'Under construction'}
         </h1>
         <p className="text-slate-600 mb-8">
-          You’re in the right place — this part just isn’t ready yet. We’re building it and it’ll
+          You’re in the right place. This part just isn’t ready yet. We’re building it and it’ll
           show up here soon. Thanks for your patience!
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

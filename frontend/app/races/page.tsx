@@ -274,7 +274,7 @@ function RacesContent() {
         { id: 'see', name: '(See more)', rating: null as number | null, reviews: 0 },
       ]
     : isSignedIn
-    ? []                       // signed in, no recommendations yet — show none
+    ? []                       // signed in, no recommendations yet, show none
     : [
         // Signed-out demo only.
         { id: 'c1', name: 'Recommended Choice 1', rating: 4.5 as number | null, reviews: 12 },
@@ -796,7 +796,7 @@ function RacesContent() {
                 } else {
                   router.push('/path')
                 }
-              }} className={`p-1 rounded-lg hover:opacity-70 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
+              }} className={`p-1 rounded-lg hover:bg-black/10 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
               <h1 className={`text-lg font-bold ${txt}`}>🏁 Dream Land Race Track</h1>
               {modelName && (
                 <Link
@@ -865,7 +865,7 @@ function RacesContent() {
                     <Eye className={`w-4 h-4 ${sub}`} />
                     <span className={`text-sm font-bold ${txt}`}>Compare with a {cat.label}</span>
                   </div>
-                  <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:opacity-60 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
+                  <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:bg-black/10 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
                 </div>
 
                 {people.length === 0 && (
@@ -897,7 +897,7 @@ function RacesContent() {
 
                 {unlinked.length > 0 && (
                   <p className={`text-xs ${sub}`}>
-                    {unlinked.map((p: any) => p.name).join(', ')} {unlinked.length === 1 ? 'is' : 'are'} saved as {unlinked.length === 1 ? 'a contact' : 'contacts'} without a linked account — comparisons need a connected app user.
+                    {unlinked.map((p: any) => p.name).join(', ')} {unlinked.length === 1 ? 'is' : 'are'} saved as {unlinked.length === 1 ? 'a contact' : 'contacts'} without a linked account, comparisons need a connected app user.
                   </p>
                 )}
               </div>
@@ -911,11 +911,11 @@ function RacesContent() {
             <div className={`${day ? 'bg-white/90 border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border backdrop-blur-sm rounded-2xl p-4 shadow-lg`}>
               <div className="flex items-center justify-between mb-2">
                 <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Compete'}</h2>
-                <button onClick={() => router.push('/races')} className={`${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
+                <button onClick={() => router.push('/races')} className={`${sub} hover:bg-black/10`}><X className="w-5 h-5" /></button>
               </div>
               {newView === 'avoidance' && (
                 <div className="space-y-1.5">
-                  <p className={`text-[11px] ${sub} mb-1`}>Habits and traps to steer clear of — based on your obstacles and common pitfalls.</p>
+                  <p className={`text-[11px] ${sub} mb-1`}>Habits and traps to steer clear of. Based on your obstacles and common pitfalls.</p>
                   {(() => {
                     const obstacles = (payload?.userProfile?.currentChallenges || []) as string[]
                     const fromObstacles = obstacles.map((o) => ({ t: `Avoid: ${o}`, r: 'You flagged this as an obstacle' }))
@@ -1059,7 +1059,7 @@ function RacesContent() {
                   {!liveStats && <p className="py-3 text-center text-sm text-slate-600">Live stats are not available yet.</p>}
                   {liveStats && stats.length === 0 && (
                     <p className="py-3 text-center text-sm text-slate-600">
-                      No stats yet — check in with your mood or tick off a milestone and they&apos;ll start filling in.
+                      No stats yet. Check in with your mood or tick off a milestone and they&apos;ll start filling in.
                     </p>
                   )}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1104,7 +1104,7 @@ function RacesContent() {
                 <GamePanel tone="rose" className="px-4 pt-6 pb-4 flex flex-col">
                   <GameBanner tone="violet">🐰 Hare World</GameBanner>
                   <p className="text-[11px] font-medium text-rose-900/80 mb-3 flex-1 text-center">
-                    Your role models, mentors &amp; people — see who&apos;s ahead and learn from them.
+                    Your role models, mentors &amp; people. See who&apos;s ahead and learn from them.
                   </p>
                   <GameButton tone="violet" size="sm" href="/pit-stop?tab=haveworld&view=people" className="w-full">
                     Enter →
@@ -1133,7 +1133,7 @@ function RacesContent() {
               </div>
             </div>
             <div className={`text-lg font-bold bg-gradient-to-r ${accent} bg-clip-text text-transparent`}>Dream Self</div>
-            <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9 — Your ideal future'}</div>
+            <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
             <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
               See more
             </Link>
@@ -1482,12 +1482,12 @@ function RacesContent() {
                                 </div>
                                 <div className={`text-[11px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
                                 {(step as any).isGeneric && !isCompleted && (
-                                  <div className={`text-[8px] mt-0.5 italic ${sub}`}>Generic step — will refine after milestone</div>
+                                  <div className={`text-[8px] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
                                 )}
                               </div>
                               {/* Heart + Complete buttons */}
                               <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                                <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-70'}`}>
+                                <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-100'}`}>
                                   {isHearted ? '❤️' : '🤍'}
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
@@ -1658,7 +1658,7 @@ function RacesContent() {
                     <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
                   ))}
                 </div>
-                <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line — Landing Spot</span>
+                <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
               </div>
 
               {/* Storefronts */}
@@ -1737,7 +1737,7 @@ function RacesContent() {
                     <h4 className={`font-bold text-xs mb-1.5 ${txt}`}>🏪 Pit Stop Shop</h4>
                     <div className="space-y-1">
                       {shopItems.length === 0 && (
-                        <p className={`text-[9px] ${sub} py-1`}>No items yet — they appear as your agents recommend tools.</p>
+                        <p className={`text-[9px] ${sub} py-1`}>No items yet. They appear as your agents recommend tools.</p>
                       )}
                       {shopItems.slice(0, expandShop ? shopItems.length : 3).map((item, i) => (
                         <button key={i} className={`w-full flex items-center gap-1.5 p-1 rounded-lg text-left transition-all hover:scale-[1.02] ${day ? 'bg-white/60 hover:bg-white/90' : 'bg-indigo-800/40 hover:bg-indigo-700/50'}`}>
@@ -1751,10 +1751,10 @@ function RacesContent() {
                     </div>
                     {/* Up/Down scroll arrows */}
                     <div className="flex justify-center gap-2 mt-1.5">
-                      <button onClick={() => setExpandShop(false)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:opacity-70 transition-all`}>
+                      <button onClick={() => setExpandShop(false)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
                         <ChevronUp className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setExpandShop(true)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:opacity-70 transition-all`}>
+                      <button onClick={() => setExpandShop(true)} className={`w-7 h-7 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
@@ -1802,7 +1802,7 @@ function RacesContent() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[10px] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:opacity-80 ${txt}`}>➕ Add another goal</button>
+                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[10px] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:brightness-105 ${txt}`}>➕ Add another goal</button>
                   {userBarrierLabels.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {userBarrierLabels.slice(0, 5).map((b: string) => (
@@ -1823,7 +1823,7 @@ function RacesContent() {
           <RoadDown h={30} />
 
           {/* Previous steps */}
-          <button onClick={() => setShowPreviousSteps(!showPreviousSteps)} className={`flex items-center gap-1 text-[10px] ${sub} hover:opacity-70`}>
+          <button onClick={() => setShowPreviousSteps(!showPreviousSteps)} className={`flex items-center gap-1 text-[10px] ${sub} hover:bg-black/10`}>
             {showPreviousSteps ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             <span className="italic">(previous steps)</span>
           </button>
@@ -1851,7 +1851,7 @@ function RacesContent() {
                 <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
               ))}
             </div>
-            <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line — Landing Spot</span>
+            <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
           </div>
 
 
@@ -1871,7 +1871,7 @@ function RacesContent() {
         {showPinwheelPopup && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm overlay-scroll" onClick={() => setShowPinwheelPopup(false)}>
             <div className={`relative ${day ? 'bg-white' : 'bg-indigo-950'} rounded-2xl shadow-2xl border ${day ? 'border-slate-200' : 'border-indigo-700'} p-8 max-w-sm w-full mx-4`} onClick={e => e.stopPropagation()}>
-              <button onClick={() => setShowPinwheelPopup(false)} className={`absolute top-3 right-3 ${sub} hover:opacity-60`}><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowPinwheelPopup(false)} className={`absolute top-3 right-3 ${sub} hover:bg-black/10`}><X className="w-5 h-5" /></button>
               <h2 className={`text-lg font-bold ${txt} text-center mb-1`}>Motivation Pinwheel</h2>
               <p className={`text-xs ${sub} text-center mb-6`}>Spin to get today&apos;s motivation!</p>
               <div className="flex flex-col items-center">

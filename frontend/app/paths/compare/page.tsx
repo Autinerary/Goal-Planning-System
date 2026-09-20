@@ -168,7 +168,7 @@ function PathSelect({ label, value, onChange, snapshots }: {
         onChange={(e) => onChange(e.target.value)}
         className="mt-1 w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
       >
-        <option value="">— none —</option>
+        <option value="">: none, </option>
         {snapshots.map((s) => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}

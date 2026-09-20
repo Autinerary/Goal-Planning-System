@@ -314,7 +314,7 @@ export default function PathMarketPage() {
         <div className="mb-6 rounded-2xl border-2 border-slate-200 bg-white p-4">
           <div className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-1">Your Norms</div>
           <p className="text-sm text-slate-600">
-            Every path here is shaped around your norms — the systemic realities you navigate.
+            Every path here is shaped around your norms: the systemic realities you navigate.
           </p>
           {norms.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -487,14 +487,14 @@ export default function PathMarketPage() {
                 <textarea
                   className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                   rows={2}
-                  placeholder="Short description — how does this path differ? (10–280 chars)"
+                  placeholder="Short description. How does this path differ? (10–280 chars)"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
                 <textarea
                   className="w-full rounded-lg border-2 border-slate-200 px-3 py-2 text-sm"
                   rows={2}
-                  placeholder="Starting goals — one per line (e.g. Get into a research program)"
+                  placeholder="Starting goals: one per line (e.g. Get into a research program)"
                   value={form.goalsText}
                   onChange={(e) => setForm({ ...form, goalsText: e.target.value })}
                 />

@@ -54,7 +54,7 @@ export default function Navigation() {
               onClick={goToServiceHub}
               aria-label="Find resources"
               data-info="Opens ResourceHub to find services and tools for your goals."
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 rounded-lg transition-all"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:brightness-110 rounded-lg transition-all"
             >
               <ExternalLink className="w-4 h-4" />
               <span className="hidden sm:inline">{t('nav.findResources')}</span>
@@ -76,7 +76,7 @@ export default function Navigation() {
               <Link
                 href="/family"
                 className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
-                title="Family — add & supervise children"
+                title="Family: add & supervise children"
               >
                 <Users className="w-4 h-4" />
                 <span className="hidden lg:inline">Family</span>

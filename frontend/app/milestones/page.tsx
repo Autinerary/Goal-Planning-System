@@ -107,7 +107,7 @@ export default function MilestoneView() {
           const j = await rRes.json()
           setServerRatingByResource(j?.ratings || {})
         }
-      } catch { /* ignore — falls back to local state */ }
+      } catch { /* ignore, falls back to local state */ }
     })()
     return () => { cancelled = true }
   }, [])
@@ -338,7 +338,7 @@ export default function MilestoneView() {
             </div>
             <div>
               <span className="text-sm font-bold text-slate-800">Stuck on a barrier?</span>
-              <p className="text-xs text-slate-600">Get help three ways — from the community, a role model, or the assistant.</p>
+              <p className="text-xs text-slate-600">Get help three ways: from the community, a role model, or the assistant.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -394,7 +394,7 @@ export default function MilestoneView() {
                 <div className="absolute top-2 left-3 w-2 h-2 rounded-full bg-amber-600" />
                 <div className="absolute top-2 right-3 w-2 h-2 rounded-full bg-amber-600" />
                 <h1 className="text-2xl font-bold text-amber-900 text-center">🪧 Milestone View</h1>
-                <p className="text-amber-700 text-sm text-center mt-1">{races[0].name} — Race 1</p>
+                <p className="text-amber-700 text-sm text-center mt-1">{races[0].name}: Race 1</p>
               </div>
             </div>
             {/* Post */}
@@ -435,7 +435,7 @@ export default function MilestoneView() {
         <div className="mb-4 bg-white/80 backdrop-blur border-2 border-amber-300 rounded-2xl p-4 shadow-md">
           <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2">📋 Summary</h3>
           <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || races[0]?.name || 'Your current milestone'}</strong></p>
-          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely — barriers get bigger but so do you!</p>
+          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely. Barriers get bigger but so do you!</p>
         </div>
 
         {/* Tools to Use — each tool shows what it helps with (Odosa redesign) */}
@@ -459,7 +459,7 @@ export default function MilestoneView() {
           {/* Single full-width header */}
           <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-3">
             <h2 className="text-lg font-bold text-white flex items-center gap-2"><Wrench className="w-5 h-5" /> Tools to Use</h2>
-            <p className="text-amber-100 text-xs">Each tool shows what it helps with — add the ones that fit and rate how well they work.</p>
+            <p className="text-amber-100 text-xs">Each tool shows what it helps with. Add the ones that fit and rate how well they work.</p>
           </div>
 
           {/* Tool symbol legend (spans both columns) */}
@@ -474,7 +474,7 @@ export default function MilestoneView() {
           {/* Full-width tool cards — each shows what it helps with (Odosa) */}
           {tools.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-slate-500">
-              No tools yet for this milestone — they’ll appear once the AI finishes recommending resources.
+              No tools yet for this milestone. They’ll appear once the AI finishes recommending resources.
             </div>
           )}
           <div className="divide-y divide-amber-100">

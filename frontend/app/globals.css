@@ -34,7 +34,9 @@ body {
   background-attachment: fixed, fixed, fixed;
   background-position: center, center, center;
   background-repeat: no-repeat, no-repeat, no-repeat;
-  font-family: 'Arial', sans-serif;
+  /* Set by next/font in layout.tsx; the stack after it is the fallback
+     used before the face loads and if it ever fails to. */
+  font-family: var(--font-body), Verdana, Geneva, system-ui, sans-serif;
   min-height: 100vh;
 }
 

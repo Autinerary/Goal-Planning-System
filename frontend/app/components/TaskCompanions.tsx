@@ -178,7 +178,7 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onKeyDown={onKeyDown}
-          aria-label="Move companions — drag, or use the arrow keys"
+          aria-label="Move companions. Drag, or use the arrow keys"
           title="Drag me to any corner"
           className="self-center text-slate-400 hover:text-slate-600 cursor-grab touch-none px-0.5"
         >

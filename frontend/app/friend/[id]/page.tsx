@@ -329,7 +329,7 @@ export default function FriendProfilePage() {
               ) : (
                 <>
                   <p className="text-sm text-slate-600 mb-4">
-                    Pass a ResourceHub link, a service, a tool — anything you think would help{bundle?.profile?.display_name ? ` ${bundle.profile.display_name}` : ''}.
+                    Pass a ResourceHub link, a service, a tool: anything you think would help{bundle?.profile?.display_name ? ` ${bundle.profile.display_name}` : ''}.
                   </p>
                   <div className="space-y-3">
                     <div>

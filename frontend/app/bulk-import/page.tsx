@@ -116,7 +116,7 @@ export default function BulkImportPage() {
           <Sparkles className="w-6 h-6 text-purple-600" /> Recommend a batch
         </h1>
         <p className="text-sm text-slate-500 mb-6">
-          Paste a list of milestones and resources however you have it — bullets, numbered,
+          Paste a list of milestones and resources however you have it: bullets, numbered,
           messy notes. We&apos;ll sort them into life paths and you can fix anything before saving.
         </p>
 

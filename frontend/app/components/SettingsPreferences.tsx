@@ -156,7 +156,7 @@ export default function SettingsPreferences() {
                     prefs.viewPreference === v.id ? 'text-cyan-700' : 'text-slate-700'
                   }`}
                 >
-                  Lvl {i + 1} — {VIEW_LEVEL_COPY[v.id]}
+                  Lvl {i + 1}: {VIEW_LEVEL_COPY[v.id]}
                 </span>
               </div>
             </button>

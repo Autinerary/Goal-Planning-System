@@ -412,7 +412,7 @@ export default function ProfileSettingsPage() {
           </div>
           <p className="text-slate-600 mb-4 text-sm">
             The order you moved through the app this session. This helps us understand how people
-            navigate — you can export it to share as feedback.
+            navigate, you can export it to share as feedback.
           </p>
 
           {movement.length === 0 ? (
@@ -457,8 +457,8 @@ export default function ProfileSettingsPage() {
             </div>
             <p className="text-sm text-slate-600 mb-5">
               {confirm === 'all'
-                ? 'This permanently deletes your progress and your generated plan, then restarts onboarding. This can’t be undone — back up first if you want to restore later.'
-                : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone — back up first if you want to restore later.'}
+                ? 'This permanently deletes your progress and your generated plan, then restarts onboarding. This can’t be undone. Back up first if you want to restore later.'
+                : 'This permanently clears your progress (steps, hearts, calendar, stats, portrait) but keeps your plan. This can’t be undone. Back up first if you want to restore later.'}
             </p>
             <div className="flex gap-3">
               <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border-2 border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>

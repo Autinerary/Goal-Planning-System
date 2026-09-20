@@ -106,7 +106,7 @@ export default function JournalHistory() {
   const handleImportSubmit = async () => {
     const entries = splitEntries(importText)
     if (!entries.length) {
-      setImportMsg('Nothing to import — paste text or choose a file first.')
+      setImportMsg('Nothing to import. Paste text or choose a file first.')
       return
     }
     setImportBusy(true)
@@ -141,7 +141,7 @@ export default function JournalHistory() {
         ? `Imported ${ok} ${ok === 1 ? 'entry' : 'entries'}. They’ll be considered in your reflections.`
         : ok > 0
           ? `Imported ${ok} of ${entries.length}. Some couldn’t be saved (is the backend running?).`
-          : `Couldn’t save entries — the journal backend may be offline. Your text is kept below so you can retry.`
+          : `Couldn’t save entries: the journal backend may be offline. Your text is kept below so you can retry.`
     )
     if (ok > 0) {
       setImportText('')
@@ -339,7 +339,7 @@ export default function JournalHistory() {
                   </p>
                   <p className="text-sm text-slate-600 mt-1">
                     No single style stands out yet. Based on {motivationReport.entryCount}{' '}
-                    {motivationReport.entryCount === 1 ? 'entry' : 'entries'} — a few more will
+                    {motivationReport.entryCount === 1 ? 'entry' : 'entries'}: a few more will
                     usually separate them.
                   </p>
                 </>
@@ -567,7 +567,7 @@ export default function JournalHistory() {
                 ) : (
                   <>
                     Nothing stands out across your {journals.length} entries yet. That is a
-                    real answer, not a gap — your days have not leaned one way often enough
+                    real answer, not a gap, your days have not leaned one way often enough
                     to call it a pattern.
                   </>
                 )}

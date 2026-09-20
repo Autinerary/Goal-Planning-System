@@ -83,8 +83,8 @@ const animalHue: Record<string, number> = { pink: 290, blue: 170, purple: 230, g
 // Spirit animal modes (Odosa): how many animals the user assigns.
 const spiritAnimalModes = [
   { id: 'general', label: 'One spirit animal', desc: 'A single guide for every day.', count: 1, emoji: '🐾' },
-  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides — one for busier schedules, one for lighter schedules.', count: 2, emoji: '⚡' },
-  { id: 'weekly', label: 'One per weekday', desc: 'Seven guides — a different animal for each day of the week.', count: 7, emoji: '📅' },
+  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides: one for busier schedules, one for lighter schedules.', count: 2, emoji: '⚡' },
+  { id: 'weekly', label: 'One per weekday', desc: 'Seven guides: a different animal for each day of the week.', count: 7, emoji: '📅' },
 ] as const
 
 // Labels for the 7-per-week mode slots.
@@ -749,16 +749,16 @@ export default function OnboardingPage() {
     if (!canAccessOnboarding) return false
     switch (step) {
       case 0: return true
-      case 1: return selectedBarrierTypes.length > 0 // Barrier Connections — selection or free-text description
+      case 1: return selectedBarrierTypes.length > 0 // Barrier Connections. Selection or free-text description
       case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
-      case 3: { // Goals & Dreams — at least one goal in any category
+      case 3: { // Goals & Dreams, at least one goal in any category
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
         return hasGoal
       }
       case 4: return formData.motivationTypes.length > 0 && formData.lifeStages.length > 0
       case 5: return formData.dreamSelf.trim() !== '' // Profile customization
-      case 6: return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals — all slots for the chosen mode filled
-      case 7: return true // Personalize — all optional, can always proceed
+      case 6: return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals, all slots for the chosen mode filled
+      case 7: return true // Personalize, all optional, can always proceed
       case 8: return true // Recommendations step - can always proceed (optional to save)
       default: return false
     }
@@ -1095,7 +1095,7 @@ export default function OnboardingPage() {
       // (503), so this cannot make onboarding worse than it already was.
       const onboardingBody = {
         email: user.email,
-        userId: user.id, // Supabase auth UUID — shared with ServiceHub via public.user_barriers
+        userId: user.id, // Supabase auth UUID, shared with ServiceHub via public.user_barriers
         barrierTypes: selectedBarrierTypes,
         goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
@@ -1322,7 +1322,7 @@ export default function OnboardingPage() {
     : elapsed < 30 ? 'Finding people with a similar profile…'
     : elapsed < 55 ? 'Mapping out your milestones…'
     : elapsed < 80 ? 'Matching resources to your goals…'
-    : 'Laying out your schedule — nearly there…'
+    : 'Laying out your schedule. Nearly there…'
   const displayStage = generationStage || localStage
 
   const progressPercentage = (currentStep / (steps.length - 1)) * 100
@@ -1375,7 +1375,7 @@ export default function OnboardingPage() {
           {carriedOver && (
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
               <Check className="w-4 h-4" />
-              Welcome back — we kept your barriers and location. Just set goals for this path.
+              Welcome back. We kept your barriers and location. Just set goals for this path.
             </div>
           )}
         </div>
@@ -1733,8 +1733,8 @@ export default function OnboardingPage() {
           {currentStep === 1 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Norms</h2>
-              <p className="text-slate-600 mb-2">Tell us about your norms — the systemic realities you navigate — either describe them in your own words, or select manually below.</p>
-              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves — the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
+              <p className="text-slate-600 mb-2">Tell us about your norms: the systemic realities you navigate. Either describe them in your own words, or select manually below.</p>
+              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves: the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
 
               {/* Mode toggle */}
               <div className="flex gap-2 mb-6">
@@ -1901,7 +1901,7 @@ export default function OnboardingPage() {
                               {isSelf
                                 ? 'Pick whatever applies to you. Nothing here is required.'
                                 : distantRelationship
-                                  ? `Only pick what you actually know about your ${conn.label.toLowerCase()}. If you are not sure whether they have a diagnosis, leave it blank — a guess would shape their plan around something that may not be true. What you have seen yourself, like sensory needs or accommodations, is the useful part.`
+                                  ? `Only pick what you actually know about your ${conn.label.toLowerCase()}. If you are not sure whether they have a diagnosis, leave it blank: a guess would shape their plan around something that may not be true. What you have seen yourself, like sensory needs or accommodations, is the useful part.`
                                   : 'Pick what you know. Anything you are unsure about is better left blank than guessed.'}
                             </p>
                             <div className="space-y-4">
@@ -1959,7 +1959,7 @@ export default function OnboardingPage() {
                             {/* Add your own — custom / more specific barriers */}
                             <div className="mt-4 pt-3 border-t border-slate-200">
                               <p className="text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Add your own</p>
-                              <p className="text-xs text-slate-400 mb-2">Don&apos;t see a barrier that fits? Add something specific — e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
+                              <p className="text-xs text-slate-400 mb-2">Don&apos;t see a barrier that fits? Add something specific: e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
                               {/* Chips for already-added custom barriers on this connection */}
                               {(formData.barrierConnections[connId] || []).filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b)))).length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -2020,7 +2020,7 @@ export default function OnboardingPage() {
                                     })
                                     setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
                                   }}
-                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:opacity-90"
+                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:brightness-110"
                                 >
                                   Add
                                 </button>
@@ -2340,7 +2340,7 @@ export default function OnboardingPage() {
                           {hasOtherPerson && (
                             <div className="ml-4 mb-1">
                               <label className="text-xs text-indigo-500 font-medium">
-                                Ideal relationship with {otherPersonLabel} <span className="text-slate-400">(optional — instead of, or as well as, the dream)</span>
+                                Ideal relationship with {otherPersonLabel} <span className="text-slate-400">(optional: instead of, or as well as, the dream)</span>
                               </label>
                               <input
                                 type="text"
@@ -2404,7 +2404,7 @@ export default function OnboardingPage() {
                 <h3 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
                   <span>🌟</span> Ultimate Dream
                 </h3>
-                <p className="text-xs text-purple-600 mb-3">Beyond all your goals — what&apos;s your biggest dream?</p>
+                <p className="text-xs text-purple-600 mb-3">Beyond all your goals, what&apos;s your biggest dream?</p>
                 <input
                   type="text"
                   value={formData.ultimateDream}
@@ -2422,7 +2422,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
-                <p className="text-slate-600 mb-6">Select all that apply — most people are motivated by more than one thing.</p>
+                <p className="text-slate-600 mb-6">Select all that apply: most people are motivated by more than one thing.</p>
                 
                 <div className="grid gap-3">
                   {motivationOptions.map((option) => {
@@ -2553,7 +2553,7 @@ export default function OnboardingPage() {
                 {/* Alternate Persona (optional) — a named alter-ego for the Dream Self */}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-lg font-bold text-slate-800 mb-1">Alternate Persona <span className="text-xs font-normal text-slate-400">(optional)</span></h3>
-                  <p className="text-slate-600 text-sm mb-4">Some people picture their Dream Self as a named alter-ego — a confident version of them they can step into. Give yours a name if you like.</p>
+                  <p className="text-slate-600 text-sm mb-4">Some people picture their Dream Self as a named alter-ego: a confident version of them they can step into. Give yours a name if you like.</p>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Persona name</label>
@@ -2596,7 +2596,7 @@ export default function OnboardingPage() {
             return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s) 🐾</h2>
-              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you.{modesCollapsed ? ' Keeping it simple with one guide — you can add more anytime.' : " Pick how many you'd like."}</p>
+              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you.{modesCollapsed ? ' Keeping it simple with one guide. You can add more anytime.' : " Pick how many you'd like."}</p>
 
               {/* Mode selector (Odosa's 3 options; simplified in simple view) */}
               <div className={`grid grid-cols-1 gap-3 mb-4 ${modesCollapsed ? '' : 'sm:grid-cols-3'}`}>
@@ -2671,7 +2671,7 @@ export default function OnboardingPage() {
                       ① Choose Animal
                       {animal.type && (
                         <span className="ml-2 font-normal text-slate-500">
-                          — tap a different one to change it
+, tap a different one to change it
                         </span>
                       )}
                     </label>
@@ -2702,7 +2702,7 @@ export default function OnboardingPage() {
                         ② Choose Color
                         {animal.color && (
                           <span className="ml-2 font-normal text-slate-500">
-                            — tap a different one to change it
+, tap a different one to change it
                           </span>
                         )}
                       </label>
@@ -2755,7 +2755,7 @@ export default function OnboardingPage() {
               {formData.spiritAnimals.length === slotCount && formData.spiritAnimals.every(animal => animal.type && animal.color) && (
                 <p className="text-sm text-slate-500 text-center mt-2">
                   {formData.spiritAnimalMode === 'general' && 'Your spirit animal is set! 🐾'}
-                  {formData.spiritAnimalMode === 'fastSlow' && 'You\u2019ve got both — your \u26A1 Fast Day and \uD83C\uDF19 Slow Day spirit animals!'}
+                  {formData.spiritAnimalMode === 'fastSlow' && 'You\u2019ve got both: your \u26A1 Fast Day and \uD83C\uDF19 Slow Day spirit animals!'}
                   {formData.spiritAnimalMode === 'weekly' && 'All 7 days have a spirit animal! 📅'}
                 </p>
               )}
@@ -2772,7 +2772,7 @@ export default function OnboardingPage() {
               </div>
               <p className="text-slate-600 mb-6">
                 This helps us tailor how the app looks and feels for you. Every mode is still a
-                fun, gamified checklist — this just tunes how much visual energy we add. All optional.
+                fun, gamified checklist, this just tunes how much visual energy we add. All optional.
               </p>
 
               {/* Age Range */}
@@ -2802,7 +2802,7 @@ export default function OnboardingPage() {
                   How often do you use apps?
                 </label>
                 <p className="text-xs text-slate-500 mb-2">
-                  Why we ask: this tunes how much detail the interface shows — if apps
+                  Why we ask: this tunes how much detail the interface shows. If apps
                   aren&apos;t your thing, we keep screens simpler. It&apos;s never shared.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2968,7 +2968,7 @@ export default function OnboardingPage() {
 
                     {/* Honest note: we store the preference now; delivery isn't live yet. */}
                     <p className="text-[11px] text-slate-400 italic">
-                      We&apos;ll save this to your profile now. Reminder delivery is rolling out soon —
+                      We&apos;ll save this to your profile now. Reminder delivery is rolling out soon. 
                       we won&apos;t message you until it&apos;s switched on.
                     </p>
                   </div>
@@ -3174,7 +3174,7 @@ export default function OnboardingPage() {
                   {elapsed}s elapsed · usually about a minute, longer if others are starting at the same time
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  Please keep this tab open — refreshing starts it over.
+                  Please keep this tab open. Refreshing starts it over.
                 </p>
               </div>
             )}

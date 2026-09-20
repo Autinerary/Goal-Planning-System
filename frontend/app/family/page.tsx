@@ -123,7 +123,7 @@ export default function FamilyPage() {
         ) : (
           <div className="space-y-3">
             {children.length === 0 && (
-              <p className="text-sm text-slate-500 text-center py-4">No children yet — add one below.</p>
+              <p className="text-sm text-slate-500 text-center py-4">No children yet. Add one below.</p>
             )}
             {children.map((c) => {
               const age = c.dateOfBirth ? computeAge(c.dateOfBirth) : null

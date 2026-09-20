@@ -574,7 +574,7 @@ function CalendarContent() {
     }))
     const all = [...scenarioTasks, ...userTasks]
     if (all.length === 0) {
-      toast.info('Nothing to export yet — add some tasks first.')
+      toast.info('Nothing to export yet. Add some tasks first.')
       return
     }
     const ics = buildIcs(all, 'My Journey')
@@ -718,7 +718,7 @@ function CalendarContent() {
                   <button type="button" onClick={() => setShowAddTask(false)} className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
                     Cancel
                   </button>
-                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90 disabled:opacity-40">
+                  <button type="submit" disabled={history.busy} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:brightness-110 disabled:opacity-40">
                     Add task
                   </button>
                 </div>
@@ -1021,7 +1021,7 @@ function CalendarContent() {
           </button>
           <button
             onClick={() => setShowAddTask(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:opacity-90 transition-all"
+            className="px-4 py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow hover:brightness-110 transition-all"
           >
             + Add task
           </button>
@@ -1030,7 +1030,7 @@ function CalendarContent() {
         <div className="bg-white/60 backdrop-blur-lg border-2 border-slate-300 rounded-2xl p-3 sm:p-6 md:p-8 shadow-2xl">
           {period === 'month' && (
             <div className="mb-6 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-              Showing your weekly pattern — it repeats through the month. Day-by-date scheduling is coming soon.
+              Showing your weekly pattern. It repeats through the month. Day-by-date scheduling is coming soon.
             </div>
           )}
           {/* Scenario Info Banner */}
@@ -1125,7 +1125,7 @@ function CalendarContent() {
                 )}
 
                 <p className="text-[11px] text-slate-400">
-                  Purple blocks repeat every week — that&apos;s the plan your agents built.
+                  Purple blocks repeat every week. That&apos;s the plan your agents built.
                   Blue blocks are on a specific date. Drag any block to move it.
                 </p>
               </div>
@@ -1163,7 +1163,7 @@ function CalendarContent() {
                 if (mentorish.length === 0) {
                   return (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
-                      <p className="text-sm text-slate-600 mb-3">No mentors or role models connected yet — comparisons use your real connections&apos; shared schedules.</p>
+                      <p className="text-sm text-slate-600 mb-3">No mentors or role models connected yet. Comparisons use your real connections&apos; shared schedules.</p>
                       <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">Find your people →</Link>
                     </div>
                   )

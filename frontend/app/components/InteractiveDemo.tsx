@@ -35,13 +35,13 @@ const STEPS: DemoStep[] = [
     emoji: '👋',
     title: 'Welcome to Autinerary',
     overview:
-      'This quick tour walks you through each screen — first what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime.',
+      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime.',
   },
   {
     emoji: '🧭',
     title: 'Paths View',
     overview:
-      'This is the Paths View — your home base. It gives a general overview of your progress: your goals (as “races”), a motivational message, your streak, and quick actions.',
+      'This is the Paths View: your home base. It gives a general overview of your progress: your goals (as “races”), a motivational message, your streak, and quick actions.',
     features: [
       { name: 'Show more / Simplify', desc: 'Switch between a simple layout and the full set of features.' },
       { name: 'Compare', desc: 'Compare different saved versions of your path side by side.' },
@@ -70,7 +70,7 @@ const STEPS: DemoStep[] = [
     features: [
       { name: 'Tools & Barriers dropdown', desc: 'Collapse or expand the list to keep the page tidy.' },
       { name: 'Wishlist / Currently Using', desc: 'Save a tool to your ResourceHub list or mark that you’re using it.' },
-      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked — this also clears the barrier.' },
+      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked. This also clears the barrier.' },
     ],
     route: '/milestones',
   },
@@ -78,7 +78,7 @@ const STEPS: DemoStep[] = [
     emoji: '📅',
     title: 'Calendar View',
     overview:
-      'This is the Calendar View — your schedule as a travel guide for each day, built around your energy.',
+      'This is the Calendar View: your schedule as a travel guide for each day, built around your energy.',
     features: [
       { name: 'List / Time Blocks', desc: 'Switch between a simple list and a time-blocked layout.' },
       { name: 'Low / Balanced / High energy', desc: 'See a schedule that matches how much energy you have.' },
@@ -91,7 +91,7 @@ const STEPS: DemoStep[] = [
     emoji: '🛒',
     title: 'Pit Stop',
     overview:
-      'This is the Pit Stop — your cart of tools and supports. Everything is tailored to your Diagnostics profile.',
+      'This is the Pit Stop: your cart of tools and supports. Everything is tailored to your Diagnostics profile.',
     features: [
       { name: 'Search', desc: 'Find autism-friendly services, products, and communities.' },
       { name: 'Add to cart', desc: 'Save what helps to your list; skip the rest.' },
@@ -102,14 +102,14 @@ const STEPS: DemoStep[] = [
     emoji: '📖',
     title: 'Journal & Reflections',
     overview:
-      'This is the Journal. Reflect on how things are going — you can import past journals and get a monthly Motivation Style report.',
+      'This is the Journal. Reflect on how things are going. You can import past journals and get a monthly Motivation Style report.',
     route: '/reflection',
   },
   {
     emoji: '🎨',
     title: 'Settings & Personalize',
     overview:
-      'This is Settings. Make the app yours — adjust the look, move widgets, set accessibility options, and manage reminders.',
+      'This is Settings. Make the app yours. Adjust the look, move widgets, set accessibility options, and manage reminders.',
     features: [
       { name: 'View energy', desc: 'Dial how playful vs. calm the interface feels.' },
       { name: 'Accessibility', desc: 'Larger text, reduced motion, high contrast, and more.' },
@@ -218,7 +218,7 @@ export default function InteractiveDemo() {
             {s.features.map((f) => (
               <div key={f.name} className="flex gap-2 text-sm">
                 <span className="font-semibold text-slate-800 whitespace-nowrap">{f.name}</span>
-                <span className="text-slate-500">— {f.desc}</span>
+                <span className="text-slate-500">: {f.desc}</span>
               </div>
             ))}
           </div>

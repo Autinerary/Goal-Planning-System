@@ -27,7 +27,7 @@ export default function IdealSelfPage() {
   const dreams: string[] = (payload?.userProfile?.dreams || []) as string[]
   const goals: string[] = (payload?.userProfile?.goals || []) as string[]
   const barriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
-  const dreamHeadline = dreams[0] || 'Cloud 9 — Your ideal future'
+  const dreamHeadline = dreams[0] || 'Cloud 9: Your ideal future'
 
   // Role models / influences — real data only.
   //
@@ -109,7 +109,7 @@ export default function IdealSelfPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-sky-100/90 backdrop-blur-md border-b border-sky-200 px-4 py-2">
         <div className="flex items-center gap-3 max-w-5xl mx-auto">
-          <button onClick={() => router.back()} className="p-1 rounded-lg hover:opacity-70 text-slate-800">
+          <button onClick={() => router.back()} className="p-1 rounded-lg hover:bg-slate-900/10 text-slate-800">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold text-slate-800">✨ Ideal Self</h1>
@@ -250,7 +250,7 @@ export default function IdealSelfPage() {
               <div className="mt-3 text-[11px] text-slate-400">Loading your stats…</div>
             ) : stats.every((s) => s.value === null) ? (
               <div className="mt-3 text-[11px] text-slate-400">
-                No stats yet — check in with your mood or complete a milestone to start them off.
+                No stats yet. Check in with your mood or complete a milestone to start them off.
               </div>
             ) : null}
           </div>

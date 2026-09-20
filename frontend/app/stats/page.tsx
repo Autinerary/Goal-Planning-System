@@ -79,24 +79,24 @@ function Trend({ change }: { change: number | null }) {
 // level to a plain-language consequence so users see WHY it matters.
 const RAMIFICATIONS: Record<string, { low: string; mid: string; high: string }> = {
   mentality: {
-    low: 'Showing up has slipped — goals may stall without a steady rhythm. A tiny daily check-in restarts momentum.',
+    low: 'Showing up has slipped. Goals may stall without a steady rhythm. A tiny daily check-in restarts momentum.',
     mid: 'You\u2019re showing up fairly often. Locking in a daily habit would make your progress compound.',
-    high: 'Strong consistency — this is powering everything else. Your other stats rise on the back of it.',
+    high: 'Strong consistency. This is powering everything else. Your other stats rise on the back of it.',
   },
   happiness: {
     low: 'Low mood drains motivation and makes focus harder. Small wins and support can lift the whole system.',
     mid: 'Mood is steady. Protecting what lifts you keeps energy and focus from dipping.',
-    high: 'Good mood is fueling your drive — you\u2019ll find focus and energy easier to sustain.',
+    high: 'Good mood is fueling your drive. You\u2019ll find focus and energy easier to sustain.',
   },
   focus: {
-    low: 'Plans aren\u2019t turning into done tasks — milestones drift further away. Finish one small thing to break the stall.',
+    low: 'Plans aren\u2019t turning into done tasks. Milestones drift further away. Finish one small thing to break the stall.',
     mid: 'You\u2019re completing a fair share of what you plan. Tightening follow-through speeds up your races.',
-    high: 'You finish what you start — milestones are arriving on time and dreams are getting closer.',
+    high: 'You finish what you start. Milestones are arriving on time and dreams are getting closer.',
   },
   energy: {
     low: 'Low momentum and connection make everything feel heavier. Rest and one social nudge can reset it.',
     mid: 'Momentum is okay. Regular small actions and leaning on your people keeps it from sliding.',
-    high: 'High momentum — you have capacity to push a race forward or support someone else right now.',
+    high: 'High momentum. You have capacity to push a race forward or support someone else right now.',
   },  commitment: {
     low: 'There have been quiet weeks lately. One small visit a week is enough to turn this around \u2014 it counts the weeks you show up, not how hard you go.',
     mid: 'You come back most weeks. Closing the gaps is what turns steady effort into finished milestones.',
@@ -137,7 +137,7 @@ function StreakDetail() {
           {longest} <span className="text-sm font-medium text-slate-500">day{longest === 1 ? '' : 's'}</span>
         </div>
         <div className="text-[11px] text-slate-500">
-          {longest > 0 && current >= longest ? 'Your best run — right now' : 'Your best run so far'}
+          {longest > 0 && current >= longest ? 'Your best run. Right now' : 'Your best run so far'}
         </div>
       </div>
     </div>

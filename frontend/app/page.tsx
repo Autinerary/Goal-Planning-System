@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Sparkles, Target, Calendar, Brain, Users, Shield, TrendingUp, Trophy, Zap } from 'lucide-react'
+import { ArrowRight, Target, Calendar, Brain, Users, Shield, TrendingUp, Trophy, Zap } from 'lucide-react'
 
 const sunsetStyles = `
   @keyframes float {
@@ -84,25 +84,32 @@ export default function HomePage() {
         {/* Hero Content */}
         <div className="relative max-w-6xl mx-auto px-4 py-12 md:py-20">
           <div className="text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/30 shadow-lg">
-              <Sparkles className="w-4 h-4 text-yellow-300" />
-              <span className="text-sm font-semibold">Powered by Multi-Agent AI</span>
-            </div>
+            {/*
+              Removed the pill that sat above this headline reading "Powered
+              by Multi-Agent AI". A rounded badge over the hero is one of the
+              most recognisable signs of a template, and the sentence inside
+              it was about our architecture rather than about the reader.
+              Nobody arrives here wanting a multi-agent system; they arrive
+              wanting a plan that fits them.
+
+              The second line also used bg-clip-text over a three-stop
+              gradient. Against a photographic background that costs
+              legibility for the exact contrast the headline needs, and it is
+              the single most copied hero treatment there is. Solid white
+              with a shadow reads better and looks chosen.
+            */}
 
             {/* Main Heading */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight drop-shadow-lg">
               Your Path to Success,
               <br />
-              <span className="bg-gradient-to-r from-blue-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Designed for You
-              </span>
+              <span className="text-white">Designed for You</span>
             </h1>
 
             {/* Subheading */}
             <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-10 drop-shadow-md">
               Life planning that actually works for people facing systematic barriers. 
-              Not generic advice — personalized paths based on what worked for people like you.
+              Not generic advice. Personalized paths based on what worked for people like you.
             </p>
 
             {/* CTA Buttons */}

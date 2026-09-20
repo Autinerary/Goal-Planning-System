@@ -278,7 +278,7 @@ export default function MilestoneTrail({
               aria-current={current ? 'step' : undefined}
               aria-disabled={locked}
               title={locked ? 'Finish your current area to unlock this' : m.name}
-              aria-label={`Step ${startIndex + i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked — finish your current area first)' : ''}`}
+              aria-label={`Step ${startIndex + i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked, finish your current area first)' : ''}`}
               className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 group rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-white ${
                 locked ? 'cursor-not-allowed' : 'cursor-pointer'
               }`}

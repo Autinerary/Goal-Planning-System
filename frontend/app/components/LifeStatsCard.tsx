@@ -110,7 +110,7 @@ export default function LifeStatsCard() {
         Life Stats
       </h2>
       <p className="text-xs text-slate-500 italic mb-4">
-        Computed from your activity over the last 7 days — Commitment over 4 weeks.
+        Computed from your activity over the last 7 days, and Commitment over 4 weeks.
       </p>
 
       {showCheckin && (
@@ -145,7 +145,7 @@ export default function LifeStatsCard() {
             const emptyReason = key === 'commitment'
               ? 'Needs a couple of weeks of history before this means anything.'
               : key === 'happiness'
-                ? 'No mood check-ins yet — tap "How are you today?" to start this off.'
+                ? 'No mood check-ins yet. Tap "How are you today?" to start this off.'
                 : key === 'focus'
                   ? 'Nothing scheduled or completed this week yet.'
                   : key === 'energy'
@@ -202,7 +202,7 @@ export default function LifeStatsCard() {
                       <p className="text-[10px] text-slate-400 mt-0.5">
                         {payload.stats.happiness?.source === 'checkin'
                           ? 'from your mood check-ins'
-                          : 'estimated — check in to make it exact'}
+                          : 'estimated, check in to make it exact'}
                       </p>
                     )}
                   </div>

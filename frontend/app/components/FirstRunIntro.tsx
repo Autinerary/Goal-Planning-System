@@ -36,7 +36,7 @@ const STEPS: Step[] = [
   {
     emoji: '🗺️',
     title: 'Your Path',
-    body: 'All your goals live on one map as races. This is your home base — start simple, and more appears as you go.',
+    body: 'All your goals live on one map as races. This is your home base. Start simple, and more appears as you go.',
   },
   {
     emoji: '🪧',

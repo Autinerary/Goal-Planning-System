@@ -22,14 +22,14 @@ export default function StreakBadge({ className = '' }: { className?: string }) 
       className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 ${className}`}
       title={
         (activeToday
-          ? `On a ${current} day streak — counted today!`
-          : `On a ${current} day streak — open the app today to keep it going`) + freezeNote
+          ? `On a ${current} day streak. Counted today!`
+          : `On a ${current} day streak. Open the app today to keep it going`) + freezeNote
       }
     >
       <Flame className="w-3.5 h-3.5 text-orange-500" />
       On a {current} day streak!
       {freezesAvailable > 0 && (
-        <span className="ml-0.5 inline-flex items-center gap-0.5 text-sky-500" title={`${freezesAvailable} streak freeze${freezesAvailable > 1 ? 's' : ''} — auto-protects a missed day`}>
+        <span className="ml-0.5 inline-flex items-center gap-0.5 text-sky-500" title={`${freezesAvailable} streak freeze${freezesAvailable > 1 ? 's' : ''}, auto-protects a missed day`}>
           ❄️{freezesAvailable}
         </span>
       )}

@@ -71,7 +71,7 @@ export default function StreakCelebration({
           {milestone >= 30
             ? "Incredible dedication. You're unstoppable."
             : milestone >= 7
-              ? 'A whole week strong — keep the fire going!'
+              ? 'A whole week strong. Keep the fire going!'
               : "You're building a habit. Nice work!"}
         </p>
         <button
