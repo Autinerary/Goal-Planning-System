@@ -11,7 +11,9 @@ import { usePreferences } from '../context/usePreferences'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 
 type Portrait = { imageUrl: string; prompt?: string; style?: string; updatedAt?: string }
-type Stat = { name: string; value: number; max: number }
+// value is null when the API has no signal for that stat yet. The bar
+// renders as a dash rather than an empty-but-scored-looking zero.
+type Stat = { name: string; value: number | null; max: number }
 
 export default function IdealSelfPage() {
   const router = useRouter()
@@ -58,11 +60,15 @@ export default function IdealSelfPage() {
         const j = await res.json()
         if (cancelled) return
         if (!j?.stats) { setStatsFailed(true); return }
+        // Any stat the API returns as null has no data behind it. Pass the
+        // null straight through — the bar below already renders "—" for it.
+        const val = (raw: any): number | null =>
+          raw && typeof raw.value === 'number' ? raw.value : null
         setStats([
-          { name: 'Mentality', value: j.stats.mentality.value, max: 10 },
-          { name: 'Happiness', value: j.stats.happiness.value, max: 10 },
-          { name: 'Focus', value: j.stats.focus.value, max: 10 },
-          { name: 'Energy', value: j.stats.energy.value, max: 10 },
+          { name: 'Mentality', value: val(j.stats.mentality), max: 10 },
+          { name: 'Happiness', value: val(j.stats.happiness), max: 10 },
+          { name: 'Focus', value: val(j.stats.focus), max: 10 },
+          { name: 'Energy', value: val(j.stats.energy), max: 10 },
         ])
       } catch {
         if (!cancelled) setStatsFailed(true)
@@ -242,6 +248,10 @@ export default function IdealSelfPage() {
               <div className="mt-3 text-[11px] text-slate-400">Couldn&apos;t load your stats just now.</div>
             ) : !stats ? (
               <div className="mt-3 text-[11px] text-slate-400">Loading your stats…</div>
+            ) : stats.every((s) => s.value === null) ? (
+              <div className="mt-3 text-[11px] text-slate-400">
+                No stats yet — check in with your mood or complete a milestone to start them off.
+              </div>
             ) : null}
           </div>
         </div>

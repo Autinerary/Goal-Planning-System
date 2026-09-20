@@ -11,7 +11,15 @@ type Part = { label: string; value: number; weight: number }
 type Stat = { value: number; change: number | null; score: number; parts: Part[]; source?: string }
 type Payload = {
   asOf: string
-  stats: { mentality: Stat; happiness: Stat & { source: string }; focus: Stat; energy: Stat; commitment: Stat | null }
+  // All five are nullable: the API returns null for any stat with no signal
+  // behind it, so a new account is not shown numbers it did nothing to earn.
+  stats: {
+    mentality: Stat | null
+    happiness: (Stat & { source: string }) | null
+    focus: Stat | null
+    energy: Stat | null
+    commitment: Stat | null
+  }
   checkinPromptedToday: boolean
 }
 
@@ -263,6 +271,18 @@ export default function StatsBreakdownPage() {
 
         {!loading && isSignedIn && payload && (
           <div className="space-y-4">
+            {order.length === 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-sm text-slate-600">
+                <p className="font-semibold text-slate-800 mb-1">Nothing to score yet</p>
+                <p>
+                  These stats are built from what you actually do: mood check-ins, reflections, completed
+                  calendar items and milestones. You haven&apos;t logged any of those in the last 7 days, so
+                  there is nothing here to measure. Check in with your mood or tick off one task and this
+                  page fills in.
+                </p>
+              </div>
+            )}
+
             {/* Ramifications — combined picture + knock-on effects */}
             <RamificationsBar stats={payload.stats} order={order} meta={META} />
 

@@ -15,10 +15,12 @@ interface HappinessResponse extends StatResponse { source: 'checkin' | 'inferred
 interface LifeStatsPayload {
   asOf: string
   stats: {
-    mentality: StatResponse
-    happiness: HappinessResponse
-    focus: StatResponse
-    energy: StatResponse
+    // Every stat is nullable. Null means the API found no signal behind it,
+    // which is not the same as a low score and must never render as a digit.
+    mentality: StatResponse | null
+    happiness: HappinessResponse | null
+    focus: StatResponse | null
+    energy: StatResponse | null
     /** Null until the account has ~2 weeks of history — not the same as zero. */
     commitment: StatResponse | null
   }
@@ -136,9 +138,20 @@ export default function LifeStatsCard() {
             const meta = STAT_META[key]
             const Icon = meta.icon
 
-            // Commitment is null until there is enough history. Saying so is
-            // the point — a new user has not failed to commit, and a 0/10
-            // would read as a judgement we have not earned.
+            // A null stat means we have nothing to measure it with. Saying so
+            // is the point — a new user has not failed at anything, and a 0/10
+            // would read as a judgement we have not earned. Commitment needs
+            // history specifically; the rest just need a first signal.
+            const emptyReason = key === 'commitment'
+              ? 'Needs a couple of weeks of history before this means anything.'
+              : key === 'happiness'
+                ? 'No mood check-ins yet — tap "How are you today?" to start this off.'
+                : key === 'focus'
+                  ? 'Nothing scheduled or completed this week yet.'
+                  : key === 'energy'
+                    ? 'No activity logged in the last 7 days yet.'
+                    : 'No reflections written this week yet.'
+
             if (!stat) {
               return (
                 <div key={key} className="border-b border-slate-100 last:border-b-0 pb-3 last:pb-0">
@@ -148,9 +161,7 @@ export default function LifeStatsCard() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{meta.label}</p>
-                      <p className="text-xs text-slate-500">
-                        Needs a couple of weeks of history before this means anything.
-                      </p>
+                      <p className="text-xs text-slate-500">{emptyReason}</p>
                     </div>
                   </div>
                 </div>
@@ -189,7 +200,7 @@ export default function LifeStatsCard() {
                     </span>
                     {key === 'happiness' && (
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        {payload.stats.happiness.source === 'checkin'
+                        {payload.stats.happiness?.source === 'checkin'
                           ? 'from your mood check-ins'
                           : 'estimated — check in to make it exact'}
                       </p>
@@ -226,7 +237,7 @@ export default function LifeStatsCard() {
                         </span>
                       </p>
                     ))}
-                    {key === 'happiness' && payload.stats.happiness.source === 'inferred' && (
+                    {key === 'happiness' && payload.stats.happiness?.source === 'inferred' && (
                       <p className="pt-1 text-slate-500 italic">
                         Tip: Use today&apos;s mood check-in to switch this from an estimate to your real number.
                       </p>

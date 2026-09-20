@@ -56,6 +56,16 @@ export interface StatComponents {
   parts: { label: string; value: number; weight: number }[]
   // 0..100 raw score.
   score: number
+  /**
+   * False when NO signal in this stat's window actually exists for the user.
+   *
+   * The score is still computed (it comes out near 0) because the snapshot
+   * table needs a number, but a 0..100 computed over an empty input set is
+   * not a measurement of anything. Callers must render an empty state rather
+   * than the digit: a tester with no check-ins seeing "Happiness 6" reads it
+   * as invented, and they are right to.
+   */
+  hasData: boolean
 }
 
 // ---------- Helpers ----------
@@ -121,6 +131,8 @@ export function computeFocus(
 
   return {
     score: clamp(final),
+    // Nothing scheduled and nothing completed = nothing to score.
+    hasData: calScheduled > 0 || recentMilestones.length > 0,
     parts: [
       {
         label: calScheduled > 0
@@ -171,6 +183,8 @@ export function computeEnergy(pings: ActivityPing[], now: Date = new Date()): St
   const final = (activeRatio * 0.6 + streakRatio * 0.4) * 100
   return {
     score: clamp(final),
+    // Energy is entirely a function of activity. No activity, no reading.
+    hasData: activeCount > 0,
     parts: [
       { label: `${activeCount}/7 active days this week`, value: activeRatio, weight: 0.6 },
       { label: `${streak}-day streak`, value: streakRatio, weight: 0.4 },
@@ -215,6 +229,12 @@ export function computeMentality(
 
   return {
     score: clamp(final),
+    // Same rule as Happiness: Mentality is 50% reflection sentiment, and
+    // without any reflection the renormalised number is really just a
+    // milestone count wearing a mental-health label. Ticking boxes is
+    // already what Focus measures. The barrier multiplier is a property of
+    // the profile, not a signal about how the week went.
+    hasData: recentReflections.length > 0,
     parts: [
       {
         label: recentReflections.length > 0
@@ -286,6 +306,8 @@ export function computeCommitment(
 
   return {
     score: clamp(final),
+    // Reached only after the empty-pings and min-history guards above.
+    hasData: true,
     parts: [
       { label: `Active in ${weeksActive} of the last 4 weeks`, value: weeksRatio, weight: 0.6 },
       { label: `${recentMilestones.length} milestones completed in 28 days`, value: milestoneRatio, weight: 0.4 },
@@ -307,12 +329,19 @@ export function computeHappiness(
 ): HappinessResult {
   const recentCheckins = within7Days(checkins, (c) => c.checkinDate, now)
   if (recentCheckins.length > 0) {
-    // Mood is 1..10 → normalize to 0..1.
+    // Mood is already a 1..10 rating and the card displays "X/10", so the
+    // average IS the score. This previously min-max normalised with
+    // (avg - 1) / 9, which treats 1 as the floor of the scale: rating your
+    // mood 1/10 was shown back as "0.0/10", and a 9 became 8.9. Telling
+    // someone who reported their worst possible day that their happiness is
+    // zero is the wrong answer from a tool meant to support them, and the
+    // 8.9 read as a plain rounding bug.
     const moodAvg = recentCheckins.reduce((s, c) => s + c.mood, 0) / recentCheckins.length
-    const moodRatio = (moodAvg - 1) / 9
+    const moodRatio = moodAvg / 10
     return {
       source: 'checkin',
       score: clamp(moodRatio * 100),
+      hasData: true,
       parts: [
         { label: `Avg mood over ${recentCheckins.length} check-ins`, value: moodRatio, weight: 1.0 },
       ],
@@ -342,6 +371,16 @@ export function computeHappiness(
   return {
     source: 'inferred',
     score: clamp(final),
+    // Happiness needs a subjective signal: either a mood check-in (handled
+    // above) or something the person actually wrote. Social activity is a 30%
+    // supporting weight, never a basis on its own.
+    //
+    // Without this guard the renormalisation hands social 100% of the weight,
+    // so a freshly created child account linked to three family members was
+    // shown "Happiness 6/10" having never checked in once. A tester spotted
+    // that and read the number as invented, because it was: it measured how
+    // many relatives are on the account, not how the child feels.
+    hasData: recentReflections.length > 0,
     parts: [
       {
         label: recentReflections.length > 0

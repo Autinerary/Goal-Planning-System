@@ -40,11 +40,17 @@ export interface StatResponse extends StatComponents {
 
 export interface LifeStatsPayload {
   asOf: string                // ISO date YYYY-MM-DD
+  /**
+   * Every stat is nullable. Null means "we have no signal for this yet",
+   * which is different from a low score, and the UI must render it as an
+   * empty state rather than a number. A brand-new account gets null across
+   * the board instead of four digits it did nothing to earn.
+   */
   stats: {
-    mentality: StatResponse
-    happiness: StatResponse & { source: 'checkin' | 'inferred' }
-    focus: StatResponse
-    energy: StatResponse
+    mentality: StatResponse | null
+    happiness: (StatResponse & { source: 'checkin' | 'inferred' }) | null
+    focus: StatResponse | null
+    energy: StatResponse | null
     /** Null until the account has enough history to judge — not a zero. */
     commitment: StatResponse | null
   }
@@ -65,7 +71,10 @@ function twentyEightDaysAgo(now: Date): Date {
   return new Date(now.getTime() - 28 * MS_PER_DAY)
 }
 
-function toResponse(s: StatComponents, baseline: number | null): StatResponse {
+function toResponse(s: StatComponents, baseline: number | null): StatResponse | null {
+  // A score computed over an empty input set is arithmetic, not a
+  // measurement. Withhold it rather than dress it up as one.
+  if (!s.hasData) return null
   const value = Math.round((s.score / 10) * 10) / 10
   const change = baseline === null
     ? null
@@ -289,11 +298,15 @@ export async function loadAndComputeForUser(
       { onConflict: 'user_id,snapshot_date' }
     )
 
+  const happinessResponse = toResponse(happiness, baselineHappiness)
+
   return {
     asOf: todayDay,
     stats: {
       mentality: toResponse(mentality, baselineMentality),
-      happiness: { ...toResponse(happiness, baselineHappiness), source: happiness.source },
+      happiness: happinessResponse
+        ? { ...happinessResponse, source: happiness.source }
+        : null,
       focus:     toResponse(focus, baselineFocus),
       energy:    toResponse(energy, baselineEnergy),
       commitment: commitment ? toResponse(commitment, baselineCommitment) : null,

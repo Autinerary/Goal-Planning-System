@@ -105,12 +105,15 @@ function RacesContent() {
   // happiness, focus, energy computed from reflections + milestones + calendar
   // + check-ins). null until the first fetch resolves; falls back to a
   // profile-derived approximation below for guests.
+  // Each stat is individually nullable: the API returns null for any stat it
+  // has no signal for. A new account with no check-ins gets nulls, not zeros
+  // and not a computed-looking number it did nothing to earn.
   type LiveStat = { value: number; change: number | null }
   const [liveStats, setLiveStats] = useState<null | {
-    mentality: LiveStat
-    happiness: LiveStat
-    focus: LiveStat
-    energy: LiveStat
+    mentality: LiveStat | null
+    happiness: LiveStat | null
+    focus: LiveStat | null
+    energy: LiveStat | null
   }>(null)
 
   // On sign-in: replace local state with whatever Supabase has.
@@ -148,11 +151,17 @@ function RacesContent() {
         if (!res.ok) return
         const json = await res.json()
         if (cancelled || !json?.stats) return
+        // A null stat stays null. Coercing it to 0 here was how a user with
+        // no data ended up looking scored.
+        const pick = (raw: any): LiveStat | null =>
+          raw && typeof raw.value === 'number'
+            ? { value: raw.value, change: raw.change ?? null }
+            : null
         setLiveStats({
-          mentality: { value: Number(json.stats.mentality?.value ?? 0), change: json.stats.mentality?.change ?? null },
-          happiness: { value: Number(json.stats.happiness?.value ?? 0), change: json.stats.happiness?.change ?? null },
-          focus:     { value: Number(json.stats.focus?.value     ?? 0), change: json.stats.focus?.change     ?? null },
-          energy:    { value: Number(json.stats.energy?.value    ?? 0), change: json.stats.energy?.change    ?? null },
+          mentality: pick(json.stats.mentality),
+          happiness: pick(json.stats.happiness),
+          focus:     pick(json.stats.focus),
+          energy:    pick(json.stats.energy),
         })
       } catch {
         /* keep fallback */
@@ -233,12 +242,14 @@ function RacesContent() {
   // reflections + milestones + calendar + check-ins). For guests / pre-load,
   // fall back to a profile-derived approximation so the demo still has bars.
   const stats: { name: string; value: number; max: number; change: number | null }[] = liveStats
-    ? [
-        { name: 'Mentality', value: liveStats.mentality.value, max: 10, change: liveStats.mentality.change },
-        { name: 'Happiness', value: liveStats.happiness.value, max: 10, change: liveStats.happiness.change },
-        { name: 'Focus',     value: liveStats.focus.value,     max: 10, change: liveStats.focus.change },
-        { name: 'Energy',    value: liveStats.energy.value,    max: 10, change: liveStats.energy.change },
-      ]
+    ? ([
+        ['Mentality', liveStats.mentality],
+        ['Happiness', liveStats.happiness],
+        ['Focus',     liveStats.focus],
+        ['Energy',    liveStats.energy],
+      ] as [string, LiveStat | null][])
+        .filter((pair): pair is [string, LiveStat] => pair[1] !== null)
+        .map(([name, st]) => ({ name, value: st.value, max: 10, change: st.change }))
     : []
   const motivations = ['Focus on progress, not perfection', 'One small step at a time', 'Your differences are your superpowers', 'Rest is part of the journey', 'Celebrate every win', 'You are enough']
   // Recommended choices for the CURRENT milestone come from the
@@ -1046,6 +1057,11 @@ function RacesContent() {
                 <GamePanel tone="parchment" className="px-4 pt-6 pb-4">
                   <GameBanner tone="violet">✨ Your Stats</GameBanner>
                   {!liveStats && <p className="py-3 text-center text-sm text-slate-600">Live stats are not available yet.</p>}
+                  {liveStats && stats.length === 0 && (
+                    <p className="py-3 text-center text-sm text-slate-600">
+                      No stats yet — check in with your mood or tick off a milestone and they&apos;ll start filling in.
+                    </p>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {stats.map((st, i) => (
                       <GameMeter
