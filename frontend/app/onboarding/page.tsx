@@ -200,6 +200,12 @@ const barrierGoalSuggestions: Record<string, Partial<Record<string, string[]>>> 
   'Hard of Hearing': {
     barrier: ['Captioning & communication tools'],
   },
+  'English as an Additional Language': {
+    education: ['Improve language skills'],
+    barrier: ['Find translation & interpreter support'],
+  },
+  // Kept as an alias, not replaced: profiles saved under the old label are
+  // real user data and must keep resolving.
   'Language Barrier': {
     education: ['Improve language skills'],
     barrier: ['Find translation & interpreter support'],
@@ -270,10 +276,15 @@ const connectionTypes = [
   { id: 'medical', label: 'Medical Professional (coming soon)', icon: '🏥', disabled: true },
 ]
 
+// Autinerary is 18+ for now (Odosa), so the stages nobody over 18 can be in
+// are gone: Preschool, Elementary and Middle School. High School stays
+// because final-year students are commonly 18.
+//
+// People are also routinely in more than one of these at once — working
+// through a degree, studying while employed, retraining after retirement —
+// so this is a multi-select. Picking "Employment" used to mean unpicking
+// "University", which described almost nobody accurately.
 const lifeStages = [
-  { id: 'preschool', label: 'Preschool (Ages 3-5)' },
-  { id: 'elementary', label: 'Elementary School' },
-  { id: 'middle_school', label: 'Middle School' },
   { id: 'high_school', label: 'High School / Secondary' },
   { id: 'post_secondary', label: 'University / College / Trade School' },
   { id: 'post_graduate', label: 'Post-Graduate' },
@@ -294,8 +305,15 @@ const barrierCategories = [
   {
     name: 'Social & Cultural',
     subcategories: [
-      { name: 'Identity', items: ['Visible Minority', 'LGBTQ+', 'Gender Identity', 'Religious Minority'] },
-      { name: 'Circumstance', items: ['Language Barrier', 'First Generation', 'Immigrant / Refugee'] },
+      // "Visible Minority" is the Statistics Canada term, but a tester found
+      // it vague sitting next to a label as specific as LGBTQ+, so the
+      // plainer word leads and the official one stays in parentheses for
+      // anyone who recognises it from a form.
+      //
+      // "Language Barrier" is renamed on Odosa's standing instruction not to
+      // use that word anywhere in the product.
+      { name: 'Identity', items: ['Racialized Person (Visible Minority)', 'LGBTQ+', 'Gender Identity', 'Religious Minority'] },
+      { name: 'Circumstance', items: ['English as an Additional Language', 'First Generation', 'Immigrant / Refugee'] },
     ]
   },
   {
@@ -427,7 +445,11 @@ export default function OnboardingPage() {
       country: ''
     },
     additionalLocations: [] as Array<{ city: string; province: string; country: string }>,
+    // lifeStages is the real answer; lifeStage keeps the first selection so
+    // the recommendations call, which takes a single stage, still works.
+    // Same pattern as motivationType / motivationTypes below.
     lifeStage: '' as string,
+    lifeStages: [] as string[],
     barrierTypes: [] as string[],
     // Categorized goals with per-goal dreams and obstacles
     goalsByCategory: {} as Record<string, Array<{ goal: string; dreams: string; obstacles: string; idealRelationship?: string; selfDream?: string }>>,
@@ -602,6 +624,9 @@ export default function OnboardingPage() {
               barrierTypes: Array.isArray(c.barrierTypes) ? c.barrierTypes : prev.barrierTypes,
               location: c.location && typeof c.location === 'object' ? c.location : prev.location,
               lifeStage: c.lifeStage || prev.lifeStage,
+              lifeStages: Array.isArray(c.lifeStages)
+                ? c.lifeStages
+                : (c.lifeStage ? [c.lifeStage] : prev.lifeStages),
               motivationType: c.motivationType || prev.motivationType,
               motivationTypes: Array.isArray(c.motivationTypes) ? c.motivationTypes : prev.motivationTypes,
               ageRange: c.ageRange || prev.ageRange,
@@ -711,7 +736,7 @@ export default function OnboardingPage() {
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
         return hasGoal
       }
-      case 4: return formData.motivationTypes.length > 0 && formData.lifeStage !== ''
+      case 4: return formData.motivationTypes.length > 0 && formData.lifeStages.length > 0
       case 5: return formData.dreamSelf.trim() !== '' // Profile customization
       case 6: return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals — all slots for the chosen mode filled
       case 7: return true // Personalize — all optional, can always proceed
@@ -850,6 +875,11 @@ export default function OnboardingPage() {
       'Physical Impairment': { id: 'physical_mobility', category: 'disability', categoryLabel: 'Non-Neurodivergent Disabilities' },
       'Chronic Illness': { id: 'chronic_health', category: 'health', categoryLabel: 'Health' },
       'Chronic Pain': { id: 'chronic_health', category: 'health', categoryLabel: 'Health' },
+      'Racialized Person (Visible Minority)': { id: 'race_visible_minority', category: 'identity', categoryLabel: 'Identity & Background' },
+      'English as an Additional Language': { id: 'language', category: 'identity', categoryLabel: 'Identity & Background' },
+      // Old labels kept as aliases so previously saved selections still map
+      // to the same ids. Renaming what people see must not silently drop
+      // what they already told us.
       'Visible Minority': { id: 'race_visible_minority', category: 'identity', categoryLabel: 'Identity & Background' },
       'Language Barrier': { id: 'language', category: 'identity', categoryLabel: 'Identity & Background' },
       'First Generation': { id: 'ethnicity', category: 'identity', categoryLabel: 'Identity & Background' },
@@ -1134,6 +1164,7 @@ export default function OnboardingPage() {
         goalsByCategory: formData.goalsByCategory,
         barrierTypes: selectedBarrierTypes,
         lifeStage: formData.lifeStage,
+        lifeStages: formData.lifeStages,
         location: formData.location,
         role: formData.role,
         alternatePersona: {
@@ -1173,6 +1204,7 @@ export default function OnboardingPage() {
           skinColor: formData.skinColor,
           location: formData.location,
           lifeStage: formData.lifeStage,
+          lifeStages: formData.lifeStages,
           motivationType: formData.motivationType,
           motivationTypes: formData.motivationTypes,
           ageRange: formData.ageRange,
@@ -2258,23 +2290,42 @@ export default function OnboardingPage() {
               </div>
 
               <div className="pt-6 border-t border-slate-200">
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What&apos;s your current life stage?</h2>
-                <p className="text-slate-600 mb-6">This helps us match you with relevant resources.</p>
-                
+                <h2 className="text-2xl font-bold mb-2 text-slate-800">What life stage are you in?</h2>
+                <p className="text-slate-600 mb-6">
+                  Pick as many as apply. Plenty of people are studying and working at the same time.
+                </p>
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {lifeStages.map((stage) => (
-                    <button
-                      key={stage.id}
-                      onClick={() => setFormData(prev => ({ ...prev, lifeStage: stage.id }))}
-                      className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                        formData.lifeStage === stage.id
-                          ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                          : 'border-slate-200 hover:border-cyan-400 text-slate-700'
-                      }`}
-                    >
-                      {stage.label}
-                    </button>
-                  ))}
+                  {lifeStages.map((stage) => {
+                    const selected = formData.lifeStages.includes(stage.id)
+                    return (
+                      <button
+                        key={stage.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setFormData(prev => {
+                          // "I'm Not Sure" is the absence of an answer, so it
+                          // cannot sit alongside a real one.
+                          let next: string[]
+                          if (stage.id === 'not_sure') {
+                            next = selected ? [] : ['not_sure']
+                          } else {
+                            next = selected
+                              ? prev.lifeStages.filter(id => id !== stage.id)
+                              : [...prev.lifeStages.filter(id => id !== 'not_sure'), stage.id]
+                          }
+                          return { ...prev, lifeStages: next, lifeStage: next[0] || '' }
+                        })}
+                        className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                          selected
+                            ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
+                            : 'border-slate-200 hover:border-cyan-400 text-slate-700'
+                        }`}
+                      >
+                        {stage.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>

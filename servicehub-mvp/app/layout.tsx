@@ -8,6 +8,15 @@ import ProfileSync from '@/components/layout/ProfileSync'
 export const metadata: Metadata = {
   title: "ResourceHub",
   description: "Resource rating platform for the autism community",
+  // No icon was declared at all, so the tab fell back to the browser's
+  // blank-page glyph and /favicon.ico 404'd on every load.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32", type: "image/x-icon" },
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: [{ url: "/favicon.ico" }],
+  },
 };
 
 export default function RootLayout({

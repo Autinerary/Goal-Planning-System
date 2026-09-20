@@ -227,8 +227,30 @@ export default function DiagnosticProfileSection({
             <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
               <LockKeyhole className="h-4 w-4 text-cyan-700" /> Save these optional details privately
             </span>
-            <span className="mt-1 block text-xs text-slate-600">
-              Stored in your private account and used by Autinerary&apos;s recommendation AI to tailor resources and plans to functional support needs. Diagnosis status and medication history are not sent to AI. Not shared publicly and removable later.
+            {/*
+              A tester read this as contradicting itself: "used by
+              recommendation AI" and "not sent to AI" sat in the same
+              paragraph. Both are true, but which part is which was buried.
+              The split is the whole point of the section, so it is now the
+              shape of the text rather than a clause inside it.
+
+              These two lines are a promise. toRecommendationSupportContext()
+              in lib/diagnostic-profile.ts is what keeps it: it forwards the
+              support fields and omits diagnosis status, medication history
+              and therapy hours. Change one and change the other.
+            */}
+            <span className="mt-1 block space-y-1 text-xs text-slate-600">
+              <span className="block">
+                <strong className="font-semibold text-slate-700">Sent to the recommendation AI:</strong>{' '}
+                your functional support needs, so it can tailor resources and plans. That means sensory
+                needs, accommodations, what has and has not helped, and the challenges you describe.
+              </span>
+              <span className="block">
+                <strong className="font-semibold text-slate-700">Never sent to any AI:</strong>{' '}
+                your diagnosis status, medication history and therapy hours. Those are stored in your
+                private account only.
+              </span>
+              <span className="block">Nothing here is shared publicly, and you can remove it later.</span>
             </span>
           </span>
         </label>

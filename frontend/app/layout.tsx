@@ -27,10 +27,18 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
   },
   icons: {
+    // The tab icon was missing because the only sizes declared were 192px
+    // and 512px, with no favicon.ico at all. Browsers request /favicon.ico
+    // unprompted and that 404'd, and a 192px PNG downscaled to a 16px tab
+    // is mush. The .ico carries real 16 and 32 renders.
     icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
+      { url: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
+    shortcut: [{ url: '/favicon.ico' }],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 }

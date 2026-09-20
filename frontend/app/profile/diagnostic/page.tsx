@@ -128,8 +128,18 @@ export default function DiagnosticProfilePage() {
             <ShieldCheck className="mt-1 h-6 w-6 flex-none text-cyan-700" />
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Condition &amp; Support Profile</h1>
+              {/* Same split as the onboarding consent box, worded the same
+                  way on purpose. A reader who saw one should recognise the
+                  other rather than having to work out whether they agree. */}
               <p className="mt-1 text-sm text-slate-600">
-                Review private, self-reported details used to personalize resources and plans. Functional support needs may be processed by Autinerary&apos;s recommendation AI; diagnosis status and medication history are excluded. This is not a diagnostic test or medical record.
+                Private, self-reported details used to personalize your resources and plans. This is not a
+                diagnostic test and not a medical record.
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                <strong className="font-semibold text-slate-700">Sent to the recommendation AI:</strong>{' '}
+                your functional support needs.{' '}
+                <strong className="font-semibold text-slate-700">Never sent to any AI:</strong>{' '}
+                your diagnosis status, medication history and therapy hours.
               </p>
             </div>
           </div>
