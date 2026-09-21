@@ -150,6 +150,43 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
           />
         </section>
       )}
+
+      {/*
+        Where this listing came from.
+
+        Not decoration and not optional. An imported venue arrives under
+        a licence, and OpenStreetMap's ODbL makes crediting the source a
+        condition of using the data rather than a courtesy. It also tells
+        a reader that nobody from this community has checked the place
+        yet, which is the more useful half of the message.
+      */}
+      {(resource as any).source_attribution && (
+        <section className="border-t border-gray-200 pt-4 text-xs text-gray-500">
+          <p>
+            Listing from{' '}
+            {(resource as any).source_url ? (
+              <a
+                href={(resource as any).source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gray-700"
+              >
+                {(resource as any).source_attribution}
+              </a>
+            ) : (
+              (resource as any).source_attribution
+            )}
+            {(resource as any).last_verified_at && (
+              <> · last checked against the source on{' '}
+                {new Date((resource as any).last_verified_at).toLocaleDateString()}</>
+            )}
+          </p>
+          <p className="mt-1">
+            Details like hours and phone numbers come from that source and can go out of date.
+            Worth a call before travelling.
+          </p>
+        </section>
+      )}
     </div>
   )
 }

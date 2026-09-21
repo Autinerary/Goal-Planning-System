@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { MIN_SCANS_FOR_SUMMARY } from '@/lib/sensory/profile'
 
 /**
  * GET /api/venues/[id]/sensory
@@ -11,9 +12,6 @@ import { createClient } from '@/lib/supabase/server'
  * fifty readings must not be presented with the same confidence, and
  * the only way the UI can avoid that is if it knows.
  */
-
-/** Below this, a bucket is one person's afternoon, not a description of a place. */
-export const MIN_SCANS_FOR_SUMMARY = 3
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()

@@ -55,6 +55,12 @@ export interface SensoryReadout {
   caveat: string | null
 }
 
+/**
+ * Below this many scans in a time slot, a reading is one person's visit
+ * rather than a description of a place, and the UI has to say so.
+ */
+export const MIN_SCANS_FOR_SUMMARY = 3
+
 /** Sensible defaults for levels, used only when the person gave none. */
 const LOUD_DB = 75
 const VERY_LOUD_DB = 85
