@@ -3248,7 +3248,17 @@ COMMENT ON TABLE public.role_models IS
 -- stays complete. Trending/Rare/Highly-Requested badges.
 
 
-CREATE OR REPLACE FUNCTION public.get_resource_badges(p_resource_ids UUID[])
+-- STEP 34 redefines this function with two extra output columns
+-- (trending_tier, first_party). CREATE OR REPLACE cannot narrow a
+-- return shape back down, only widen or leave it alone -- Postgres
+-- error 42P13 if the OUT-parameter row shape changes at all. Running
+-- this file standalone against a database that already has STEP 34's
+-- wider version applied would hit exactly that. Drop first, same as
+-- STEP 34 already does before its own redefinition, so this file is
+-- safe to (re)run regardless of what came before it.
+DROP FUNCTION IF EXISTS public.get_resource_badges(UUID[]);
+
+CREATE FUNCTION public.get_resource_badges(p_resource_ids UUID[])
 RETURNS TABLE (
   resource_id       UUID,
   trending          BOOLEAN,
