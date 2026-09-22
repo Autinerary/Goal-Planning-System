@@ -45,12 +45,33 @@ const STATUS = 'https://overpass-api.de/api/status'
 const ATTRIBUTION = '© OpenStreetMap contributors (ODbL)'
 
 /** Bounding boxes: south, west, north, east. */
+// Major Canadian metro areas, roughly ordered by population. This is the
+// list "mass import" actually pulls from -- run without --city to cover
+// all of them in one pass. Bounding boxes are deliberately generous (they
+// overshoot into surrounding suburbs) since Overpass dedupes nothing and
+// the app's own source_ref unique index is what prevents double-counting
+// a venue that a box's edge clips twice.
 const CITIES = {
-  toronto:   [43.58, -79.64, 43.86, -79.12],
-  mississauga: [43.47, -79.82, 43.68, -79.52],
-  hamilton:  [43.18, -80.00, 43.34, -79.71],
-  ottawa:    [45.25, -75.93, 45.54, -75.49],
-  vancouver: [49.20, -123.27, 49.32, -123.02],
+  toronto:      [43.58, -79.64, 43.86, -79.12],
+  mississauga:  [43.47, -79.82, 43.68, -79.52],
+  brampton:     [43.65, -79.87, 43.79, -79.68],
+  hamilton:     [43.18, -80.00, 43.34, -79.71],
+  london_on:    [42.92, -81.35, 43.05, -81.14],
+  kitchener:    [43.38, -80.58, 43.48, -80.40],
+  windsor:      [42.26, -83.11, 42.36, -82.90],
+  ottawa:       [45.25, -75.93, 45.54, -75.49],
+  montreal:     [45.40, -73.98, 45.70, -73.47],
+  quebec_city:  [46.72, -71.42, 46.87, -71.14],
+  vancouver:    [49.20, -123.27, 49.32, -123.02],
+  surrey:       [49.05, -122.90, 49.22, -122.68],
+  victoria:     [48.40, -123.45, 48.52, -123.30],
+  calgary:      [50.85, -114.27, 51.18, -113.85],
+  edmonton:     [53.40, -113.70, 53.68, -113.30],
+  winnipeg:     [49.75, -97.30, 49.98, -97.00],
+  halifax:      [44.55, -63.75, 44.75, -63.45],
+  saskatoon:    [52.05, -106.78, 52.20, -106.55],
+  regina:       [50.38, -104.72, 50.52, -104.52],
+  st_johns:     [47.50, -52.80, 47.62, -52.60],
 }
 
 /**
@@ -89,7 +110,8 @@ const DRY_RUN = args.includes('--dry-run')
 const CITY = String(flag('city', 'toronto')).toLowerCase()
 const LIMIT = Number(flag('limit', 500))
 
-if (!CITIES[CITY]) {
+const RUN_ALL = !flag('city', null)
+if (!RUN_ALL && !CITIES[CITY]) {
   console.error(`Unknown city "${CITY}". Known: ${Object.keys(CITIES).join(', ')}`)
   process.exit(1)
 }
@@ -211,20 +233,34 @@ function toResource(el) {
   }
 }
 
-async function main() {
-  console.log(`OpenStreetMap import: ${CITY}${DRY_RUN ? ' (dry run)' : ''}`)
-  console.log(`Attribution: ${ATTRIBUTION}\n`)
-
+/**
+ * Query Overpass for one city and reduce the result to usable rows.
+ *
+ * 504s here are the shared public instance being overloaded, not a
+ * problem with the query -- a first full run showed roughly 45% of
+ * cities failing this way, and they succeeded on a second attempt once
+ * the instance had a moment. Worth two retries with backoff before
+ * giving up on a city; not worth retrying a 4xx, which means the query
+ * itself was rejected and will fail identically every time.
+ */
+async function fetchCity(cityKey, attempt = 1) {
   await waitForSlot()
-  const query = buildQuery(CITIES[CITY])
+  const query = buildQuery(CITIES[cityKey])
   const res = await fetch(OVERPASS, {
     method: 'POST',
     headers: { 'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ data: query }),
   })
-  if (!res.ok) throw new Error(`Overpass returned ${res.status}`)
+  if (!res.ok) {
+    if (res.status >= 500 && attempt < 3) {
+      const backoff = attempt * 20_000
+      process.stdout.write(`(${res.status}, retrying in ${backoff / 1000}s) `)
+      await sleep(backoff)
+      return fetchCity(cityKey, attempt + 1)
+    }
+    throw new Error(`Overpass returned ${res.status} for ${cityKey}`)
+  }
   const { elements = [] } = await res.json()
-  console.log(`Overpass returned ${elements.length} elements`)
 
   const rows = []
   const seen = new Set()
@@ -241,38 +277,93 @@ async function main() {
     rows.push(r)
     if (rows.length >= LIMIT) break
   }
+  return { elementCount: elements.length, rows, skippedNoName, skippedNoCategory }
+}
 
-  const byCat = rows.reduce((a, r) => ((a[r.category] = (a[r.category] || 0) + 1), a), {})
-  console.log(`\nusable: ${rows.length}`)
-  console.log(`skipped: ${skippedNoName} unnamed, ${skippedNoCategory} no category match`)
-  console.log('by category:', byCat)
-  console.log('\nsample:')
-  for (const r of rows.slice(0, 3)) {
-    console.log(`  ${r.name} [${r.category}] ${r.location.address || 'no address'} -> ${r.source_url}`)
-  }
-
-  if (DRY_RUN) { console.log('\nDry run, nothing written.'); return }
-
-  const { createClient } = await import(
-    path.resolve(process.cwd(), 'servicehub-mvp/node_modules/@supabase/supabase-js/dist/main/index.js')
-  ).catch(() => import('@supabase/supabase-js'))
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error('Missing Supabase credentials')
-  const supabase = createClient(url, key, { auth: { persistSession: false } })
-
-  // Upsert on source_ref, so re-running refreshes rather than duplicates
-  // and last_verified_at moves forward each time.
+/** Upsert one batch of rows. Chunked so one bad row can't sink the batch. */
+async function writeRows(supabase, rows) {
   let written = 0
   for (let i = 0; i < rows.length; i += 100) {
     const chunk = rows.slice(i, i + 100)
     const { error } = await supabase.from('resources').upsert(chunk, { onConflict: 'source_ref' })
     if (error) { console.error('  batch failed:', error.message); continue }
     written += chunk.length
-    process.stdout.write(`\r  written ${written}/${rows.length}`)
   }
-  console.log(`\n\nDone. ${written} venues staged as pending for review.`)
+  return written
+}
+
+async function main() {
+  const targets = RUN_ALL ? Object.keys(CITIES) : [CITY]
+  console.log(`OpenStreetMap import: ${RUN_ALL ? `all ${targets.length} cities` : CITY}${DRY_RUN ? ' (dry run)' : ''}`)
+  console.log(`Attribution: ${ATTRIBUTION}\n`)
+
+  let supabase = null
+  if (!DRY_RUN) {
+    // This script lives beside servicehub-mvp/, not inside it, so a bare
+    // `import('@supabase/supabase-js')` never finds it -- Node only walks
+    // node_modules directories above the IMPORTING file's own path. Import
+    // by the resolved absolute path to servicehub-mvp's copy instead. The
+    // .cjs vs .mjs entry point moved between package versions, so try both
+    // rather than hardcoding one.
+    const pkgRoot = path.resolve(process.cwd(), 'servicehub-mvp/node_modules/@supabase/supabase-js/dist')
+    let createClient
+    for (const entry of ['index.mjs', 'index.cjs', 'main/index.js']) {
+      try {
+        ({ createClient } = await import(path.join(pkgRoot, entry)))
+        break
+      } catch { /* try the next known entry point */ }
+    }
+    if (!createClient) {
+      throw new Error(
+        `Could not load @supabase/supabase-js from ${pkgRoot}. Run "npm install" in servicehub-mvp/ first.`
+      )
+    }
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) throw new Error('Missing Supabase credentials')
+    supabase = createClient(url, key, { auth: { persistSession: false } })
+  }
+
+  const totals = { elements: 0, usable: 0, written: 0, byCategory: {} }
+
+  for (const [idx, cityKey] of targets.entries()) {
+    process.stdout.write(`[${idx + 1}/${targets.length}] ${cityKey}: querying... `)
+    let result
+    try {
+      result = await fetchCity(cityKey)
+    } catch (e) {
+      console.log(`FAILED (${e.message})`)
+      continue
+    }
+    const { elementCount, rows, skippedNoName, skippedNoCategory } = result
+    totals.elements += elementCount
+    totals.usable += rows.length
+    for (const r of rows) totals.byCategory[r.category] = (totals.byCategory[r.category] || 0) + 1
+
+    let written = 0
+    if (!DRY_RUN && rows.length > 0) written = await writeRows(supabase, rows)
+    totals.written += written
+
+    console.log(
+      `${elementCount} elements -> ${rows.length} usable ` +
+      `(${skippedNoName} unnamed, ${skippedNoCategory} uncategorised)` +
+      (DRY_RUN ? '' : ` -> ${written} written`)
+    )
+
+    // A short pause between cities. Overpass's slot check already throttles
+    // individual requests; this just keeps a multi-city run from reading as
+    // a burst against a service run for everyone, not just this app.
+    if (idx < targets.length - 1) await sleep(2000)
+  }
+
+  console.log(`\n${'='.repeat(60)}`)
+  console.log(`Total: ${totals.elements} elements -> ${totals.usable} usable venues`)
+  console.log('By category:', totals.byCategory)
+  if (DRY_RUN) {
+    console.log('\nDry run, nothing written.')
+  } else {
+    console.log(`\n${totals.written} venues staged as pending for review.`)
+  }
 }
 
 main().catch((e) => { console.error('\nImport failed:', e.message); process.exit(1) })
