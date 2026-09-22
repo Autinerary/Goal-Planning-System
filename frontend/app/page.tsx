@@ -65,15 +65,31 @@ export default function HomePage() {
       {/* Sunset Background with Clouds - semi-transparent so global cloud bg shows through */}
       <div
         className="fixed inset-0 z-0 bg-white/20 backdrop-blur-sm"
-        /* This div is the decorative sunset/cloud backdrop the hero text and
-           buttons sit on -- not a card holding text, and not a sticky bar
-           with content scrolling under it. An earlier automated pass over
-           every bg-white/N + backdrop-blur combination in the app swept
-           this one into .surface-chrome (~85% opaque white) along with the
-           genuine UI chrome it was meant for, which washed out the sunset
-           gradient and made the white headline unreadable. Reverted to its
-           original light wash; the .surface-* tokens are for panels that
-           hold content, not for a page's own atmosphere. */
+        style={{
+          // This div is a full-viewport `fixed` layer, so it never needed
+          // to rely on the body's own background showing through it -- but
+          // it was written with no background-image of its own, meaning it
+          // implicitly did rely on that bleed-through, at 20% white wash
+          // calibrated against a plain, unscrimmed photo.
+          //
+          // A later, separate fix (for a mobile magnification problem on
+          // the journal page) added a 55-72% white scrim in FRONT of that
+          // photo at the body level, applied globally. That scrim now sits
+          // behind this hero too, so this div's own 20% wash was stacking
+          // on top of an already-washed backdrop -- two legitimate fixes
+          // compounding into a hero that read as almost entirely white.
+          //
+          // Painting the same photo + fallback gradient here directly,
+          // scrim-free, makes this hero immune to whatever body does for
+          // other pages: it repaints its own sky before the translucent
+          // wash and the sun/cloud children go on top, exactly as
+          // originally calibrated.
+          backgroundImage:
+            "url('/cloud-bg.png'), linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%)",
+          backgroundSize: 'cover, cover',
+          backgroundPosition: 'center, center',
+          backgroundRepeat: 'no-repeat, no-repeat',
+        }}
       >
         {/* Clouds */}
         <div className="absolute inset-0 overflow-hidden">
