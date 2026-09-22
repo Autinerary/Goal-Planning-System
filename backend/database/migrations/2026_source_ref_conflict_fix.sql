@@ -28,13 +28,26 @@
 -- UNIQUE constraint carrying the same name, so it is now a valid
 -- inference target for ON CONFLICT (source_ref).
 --
--- Idempotent. Safe to re-run.
+-- Idempotent from EITHER starting state: a bare partial index (never
+-- run before) or an existing real constraint (already run once). See
+-- the note below on why the order of the two DROPs matters -- getting
+-- it backwards is what broke re-running this file at all.
 -- =====================================================================
 
-DROP INDEX IF EXISTS public.resources_source_ref_key;
-
+-- Constraint first, index second. A UNIQUE constraint is backed by an
+-- index of the SAME NAME, and Postgres refuses `DROP INDEX` on an index
+-- a constraint owns -- "cannot drop index ... because constraint ...
+-- requires it, HINT: drop the constraint instead". That is exactly what
+-- running this file a second time hit: the first run had already turned
+-- resources_source_ref_key from a bare index into a real constraint, so
+-- the DROP INDEX line that worked the first time failed the second.
+-- Dropping the constraint first removes its backing index automatically,
+-- so this now succeeds whichever shape the object is currently in --
+-- and the second line's IF EXISTS makes it a no-op the rest of the time.
 ALTER TABLE public.resources
   DROP CONSTRAINT IF EXISTS resources_source_ref_key;
+
+DROP INDEX IF EXISTS public.resources_source_ref_key;
 
 ALTER TABLE public.resources
   ADD CONSTRAINT resources_source_ref_key UNIQUE (source_ref);

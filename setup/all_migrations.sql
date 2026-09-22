@@ -4167,19 +4167,72 @@ CREATE INDEX IF NOT EXISTS resources_last_verified_idx
 -- UNIQUE constraint carrying the same name, so it is now a valid
 -- inference target for ON CONFLICT (source_ref).
 --
--- Idempotent. Safe to re-run.
+-- Idempotent from EITHER starting state: a bare partial index (never
+-- run before) or an existing real constraint (already run once). See
+-- the note below on why the order of the two DROPs matters -- getting
+-- it backwards is what broke re-running this file at all.
 -- =====================================================================
 
-DROP INDEX IF EXISTS public.resources_source_ref_key;
-
+-- Constraint first, index second. A UNIQUE constraint is backed by an
+-- index of the SAME NAME, and Postgres refuses `DROP INDEX` on an index
+-- a constraint owns -- "cannot drop index ... because constraint ...
+-- requires it, HINT: drop the constraint instead". That is exactly what
+-- running this file a second time hit: the first run had already turned
+-- resources_source_ref_key from a bare index into a real constraint, so
+-- the DROP INDEX line that worked the first time failed the second.
+-- Dropping the constraint first removes its backing index automatically,
+-- so this now succeeds whichever shape the object is currently in --
+-- and the second line's IF EXISTS makes it a no-op the rest of the time.
 ALTER TABLE public.resources
   DROP CONSTRAINT IF EXISTS resources_source_ref_key;
+
+DROP INDEX IF EXISTS public.resources_source_ref_key;
 
 ALTER TABLE public.resources
   ADD CONSTRAINT resources_source_ref_key UNIQUE (source_ref);
 
 COMMENT ON CONSTRAINT resources_source_ref_key ON public.resources IS
   'Real unique constraint, not a partial index -- PostgREST upsert(onConflict: "source_ref") can only target a plain constraint, and NULL source_ref values already do not collide with each other under normal SQL semantics, so no partial predicate was needed.';
+
+
+-- STEP 41 — backend/database/migrations/2026_resource_photos.sql
+-- ==================================================================
+
+-- =====================================================================
+-- Resource photos: real where one exists, honestly generic where not
+--
+-- A survey of 1,440 venues in the same categories this app imports
+-- found direct OSM image tags on 0.1% of them -- essentially none.
+-- But 9.4% carry a `wikidata` tag, and of those, 75.6% resolve to a
+-- real photo via Wikidata's P18 (image) property, which is always
+-- sourced from Wikimedia Commons under a free licence. Net: about 7%
+-- of venues can get a genuine, correctly-licensed photo of the actual
+-- building at zero cost. The other ~93% get nothing real to show,
+-- because nothing real exists to show.
+--
+-- image_url already exists on resources and now carries either kind of
+-- image. The two columns below are what keep the difference honest:
+-- image_is_generic tells the UI whether it is looking at a photo of
+-- THIS venue or a category illustration, and image_attribution carries
+-- the credit a real photo's licence requires. Wikimedia Commons
+-- licences (CC-BY-SA, CC-BY, and outright public domain) all permit
+-- reuse, but several require attribution as a condition, so this is
+-- not optional for the real-photo rows.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+ALTER TABLE public.resources
+  ADD COLUMN IF NOT EXISTS image_is_generic BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS image_attribution TEXT;
+
+COMMENT ON COLUMN public.resources.image_is_generic IS
+  'TRUE when image_url is a category illustration, not a photo of this specific venue. The UI must never present a generic image as though it depicts the real place -- that would be the same fabrication this column exists to prevent.';
+COMMENT ON COLUMN public.resources.image_attribution IS
+  'Credit line for a real photo sourced from Wikimedia Commons. NULL for generic images, which need none. Several Commons licences make attribution a condition of reuse, not a courtesy.';
+
+CREATE INDEX IF NOT EXISTS resources_image_generic_idx
+  ON public.resources (image_is_generic);
 
 
 COMMIT;
