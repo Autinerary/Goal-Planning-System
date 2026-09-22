@@ -158,10 +158,23 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Help Text */}
-        <div className="mt-6 text-center">
-          <p className="text-slate-500 text-sm">
-            💡 <strong>First time?</strong> Click "Create one" to sign up.
+        {/*
+          This line sits outside the white card, directly on the cloud
+          photo background, so its contrast depends on which patch of sky
+          happens to be behind it -- text-slate-500 washed out against the
+          lighter parts. A tester flagged it as too light. Everything else
+          on this page sits on solid white inside the card and was fine;
+          this was the one line exposed to the raw background.
+
+          Fixed the same way other hints over this background already are
+          (see the .surface-veil pattern from the design pass): a small
+          opaque chip guarantees contrast no matter what the photo behind
+          it looks like, and text-slate-700 on it clears AA with room to
+          spare rather than sitting right at the edge.
+        */}
+        <div className="mt-6 flex justify-center">
+          <p className="surface-veil rounded-full px-4 py-2 text-sm text-slate-700">
+            💡 <strong>First time?</strong> Click &quot;Create one&quot; to sign up.
           </p>
         </div>
       </div>
