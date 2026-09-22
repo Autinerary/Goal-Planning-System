@@ -63,7 +63,18 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: sunsetStyles }} />
       
       {/* Sunset Background with Clouds - semi-transparent so global cloud bg shows through */}
-      <div className="fixed inset-0 z-0 surface-chrome">
+      <div
+        className="fixed inset-0 z-0 bg-white/20 backdrop-blur-sm"
+        /* This div is the decorative sunset/cloud backdrop the hero text and
+           buttons sit on -- not a card holding text, and not a sticky bar
+           with content scrolling under it. An earlier automated pass over
+           every bg-white/N + backdrop-blur combination in the app swept
+           this one into .surface-chrome (~85% opaque white) along with the
+           genuine UI chrome it was meant for, which washed out the sunset
+           gradient and made the white headline unreadable. Reverted to its
+           original light wash; the .surface-* tokens are for panels that
+           hold content, not for a page's own atmosphere. */
+      >
         {/* Clouds */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="cloud-move-1 absolute top-20 left-0 w-64 h-32 bg-white/30 rounded-full blur-xl cloud-float" />
