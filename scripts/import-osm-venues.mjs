@@ -199,6 +199,9 @@ function toResource(el) {
   const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ')
 
   const facts = []
+  // wikidata is not read here -- it drives a separate photo-resolution
+  // pass over the whole batch, added below, because it needs its own
+  // batched API calls rather than one lookup per element.
   if (tags.wheelchair === 'yes') facts.push('Mapped as step-free by an OpenStreetMap contributor.')
   else if (tags.wheelchair === 'limited') facts.push('Mapped as partially step-free by an OpenStreetMap contributor.')
   else if (tags.wheelchair === 'no') facts.push('Mapped as not step-free by an OpenStreetMap contributor.')
@@ -230,7 +233,98 @@ function toResource(el) {
     source_attribution: ATTRIBUTION,
     last_verified_at: new Date().toISOString(),
     is_first_party: false,
+    // These three are set explicitly on every row, not left absent for
+    // resolvePhotos() to add later. Supabase's upsert() builds one INSERT
+    // per batch from the UNION of keys across every object in it; a key
+    // present on some rows and absent on others gets an explicit NULL for
+    // the rows missing it rather than falling back to the column DEFAULT.
+    // image_is_generic is NOT NULL, so the first real run of this script
+    // failed every batch that contained at least one row with a resolved
+    // photo (the null went to the OTHER rows in that same batch) and only
+    // succeeded, by accident, on batches where no row resolved a photo at
+    // all. Explicit defaults here make every batch's keys identical
+    // regardless of what resolvePhotos() below does to individual rows.
+    image_url: null,
+    image_is_generic: false,
+    image_attribution: null,
+    // Carried through only so resolvePhotos() below can use it, then
+    // stripped before the row is written -- it is not a resources column.
+    _wikidata: tags.wikidata || null,
   }
+}
+
+/**
+ * Resolve real photos for a batch of rows via Wikidata.
+ *
+ * OSM's own image tags are essentially unused (0.1% coverage, measured
+ * against 1,440 venues in these same categories). But 9.4% of venues
+ * carry a wikidata id, and 75.6% of THOSE resolve to a real photo via
+ * Wikidata's P18 (image) property -- about 7% of venues overall, at
+ * zero cost, always correctly licensed because Commons requires it of
+ * every file it hosts.
+ *
+ * Rows with no wikidata id, or whose Wikidata item has no P18, are left
+ * with image_url unset. That is not a gap to paper over: the app's own
+ * imageOrPlaceholder() already renders a clean, honest generated tile
+ * for exactly this case, and inventing a stand-in photo here would be
+ * the same mistake this whole import exists to avoid.
+ */
+async function resolvePhotos(rows) {
+  const withWikidata = rows.filter((r) => r._wikidata)
+  if (withWikidata.length === 0) return { resolved: 0 }
+
+  const ids = [...new Set(withWikidata.map((r) => r._wikidata))]
+  const p18ByEntity = {}
+
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50)
+    const url = 'https://www.wikidata.org/w/api.php?' + new URLSearchParams({
+      action: 'wbgetentities', ids: chunk.join('|'), props: 'claims', format: 'json',
+    })
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': UA } })
+      const data = await res.json()
+      for (const [eid, ent] of Object.entries(data.entities || {})) {
+        const claim = ent.claims?.P18?.[0]?.mainsnak?.datavalue?.value
+        if (claim) p18ByEntity[eid] = claim // Commons filename, e.g. "Hart House Library.jpg"
+      }
+    } catch { /* this batch of photos is skipped, not the import */ }
+    await sleep(300) // Wikidata's own courtesy: stay well under any burst limit.
+  }
+
+  let resolved = 0
+  for (const row of withWikidata) {
+    const filename = p18ByEntity[row._wikidata]
+    if (!filename) continue
+
+    // Commons' own imageinfo API returns both a direct, stable file URL
+    // and the extmetadata a licence needs credited -- one request gets
+    // the actual pixels' location and the attribution text together,
+    // rather than guessing a Special:FilePath URL and a generic credit.
+    const infoUrl = 'https://commons.wikimedia.org/w/api.php?' + new URLSearchParams({
+      action: 'query', titles: `File:${filename}`, prop: 'imageinfo',
+      iiprop: 'url|extmetadata', iiurlwidth: '800', format: 'json',
+    })
+    try {
+      const res = await fetch(infoUrl, { headers: { 'User-Agent': UA } })
+      const data = await res.json()
+      const page = Object.values(data.query?.pages || {})[0]
+      const info = page?.imageinfo?.[0]
+      if (!info) continue
+
+      const meta = info.extmetadata || {}
+      const artist = (meta.Artist?.value || '').replace(/<[^>]+>/g, '').trim()
+      const license = meta.LicenseShortName?.value || 'Wikimedia Commons'
+      row.image_url = info.thumburl || info.url
+      row.image_attribution = artist
+        ? `${artist} via Wikimedia Commons (${license})`
+        : `Wikimedia Commons (${license})`
+      row.image_is_generic = false
+      resolved++
+    } catch { /* skip this one photo */ }
+    await sleep(300)
+  }
+  return { resolved }
 }
 
 /**
@@ -280,11 +374,18 @@ async function fetchCity(cityKey, attempt = 1) {
   return { elementCount: elements.length, rows, skippedNoName, skippedNoCategory }
 }
 
-/** Upsert one batch of rows. Chunked so one bad row can't sink the batch. */
+/**
+ * Upsert one batch of rows. Chunked so one bad row can't sink the batch.
+ *
+ * _wikidata is scratch space for resolvePhotos() above, not a resources
+ * column -- it is stripped here rather than at the point rows are built,
+ * so the same in-memory rows can still be inspected for how many photos
+ * resolved before this function ever runs (see the dry-run report below).
+ */
 async function writeRows(supabase, rows) {
   let written = 0
   for (let i = 0; i < rows.length; i += 100) {
-    const chunk = rows.slice(i, i + 100)
+    const chunk = rows.slice(i, i + 100).map(({ _wikidata, ...row }) => row)
     const { error } = await supabase.from('resources').upsert(chunk, { onConflict: 'source_ref' })
     if (error) { console.error('  batch failed:', error.message); continue }
     written += chunk.length
@@ -324,7 +425,7 @@ async function main() {
     supabase = createClient(url, key, { auth: { persistSession: false } })
   }
 
-  const totals = { elements: 0, usable: 0, written: 0, byCategory: {} }
+  const totals = { elements: 0, usable: 0, written: 0, withPhoto: 0, byCategory: {} }
 
   for (const [idx, cityKey] of targets.entries()) {
     process.stdout.write(`[${idx + 1}/${targets.length}] ${cityKey}: querying... `)
@@ -340,13 +441,18 @@ async function main() {
     totals.usable += rows.length
     for (const r of rows) totals.byCategory[r.category] = (totals.byCategory[r.category] || 0) + 1
 
+    // Run even on a dry run, so --dry-run reports an honest photo count
+    // instead of always showing zero.
+    const { resolved } = await resolvePhotos(rows)
+    totals.withPhoto += resolved
+
     let written = 0
     if (!DRY_RUN && rows.length > 0) written = await writeRows(supabase, rows)
     totals.written += written
 
     console.log(
       `${elementCount} elements -> ${rows.length} usable ` +
-      `(${skippedNoName} unnamed, ${skippedNoCategory} uncategorised)` +
+      `(${skippedNoName} unnamed, ${skippedNoCategory} uncategorised, ${resolved} with a real photo)` +
       (DRY_RUN ? '' : ` -> ${written} written`)
     )
 
@@ -358,6 +464,8 @@ async function main() {
 
   console.log(`\n${'='.repeat(60)}`)
   console.log(`Total: ${totals.elements} elements -> ${totals.usable} usable venues`)
+  console.log(`Real photos resolved via Wikidata -> Commons: ${totals.withPhoto} ` +
+    `(${totals.usable ? (100 * totals.withPhoto / totals.usable).toFixed(1) : 0}%)`)
   console.log('By category:', totals.byCategory)
   if (DRY_RUN) {
     console.log('\nDry run, nothing written.')
