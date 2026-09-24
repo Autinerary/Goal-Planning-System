@@ -71,6 +71,79 @@ function renderInline(escaped: string): string {
 }
 
 /**
+ * Turn heading text into a URL fragment.
+ *
+ * The text arriving here has already been HTML-escaped by renderMarkdown, and
+ * may still carry inline markdown (`**bold**`, a link). Both are stripped so
+ * the anchor reflects the words a reader sees rather than the punctuation that
+ * produced them.
+ */
+export function slugifyHeading(text: string): string {
+  const plain = text
+    .replace(/&(?:amp|lt|gt|quot|#39);/g, ' ')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1') // links -> their label
+    .replace(/[*_`]/g, '');
+  const slug = plain
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  // A heading of pure punctuation or non-Latin script would slugify to an
+  // empty string, which is not a usable anchor.
+  return slug || 'section';
+}
+
+function uniqueSlug(base: string, used: Map<string, number>): string {
+  const seen = used.get(base) ?? 0;
+  used.set(base, seen + 1);
+  return seen === 0 ? base : `${base}-${seen + 1}`;
+}
+
+export interface MarkdownHeading {
+  level: number;
+  text: string;
+  id: string;
+}
+
+/**
+ * The headings in a document, for the quick-links list (Odosa: "add the quick
+ * links that link to each section in the page. This itself should be a feature
+ * for Tidbits").
+ *
+ * Deliberately mirrors renderMarkdown's own walk rather than regexing the
+ * whole string: a `#` inside a fenced code block is code, not a heading, and a
+ * quick-links entry pointing at an anchor that was never emitted is a link
+ * that goes nowhere. Slug numbering therefore has to advance in the same order
+ * here as it does there, which is why both use the same helpers.
+ */
+export function extractHeadings(input: string): MarkdownHeading[] {
+  if (!input) return [];
+  const lines = input.replace(/\r\n/g, '\n').split('\n');
+  const used = new Map<string, number>();
+  const headings: MarkdownHeading[] = [];
+  let inFence = false;
+
+  for (const line of lines) {
+    if (/^```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const m = line.match(/^(#{1,3})\s+(.*)$/);
+    if (!m) continue;
+    const text = m[2]
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/[*_`]/g, '')
+      .trim();
+    headings.push({
+      level: m[1].length,
+      text,
+      id: uniqueSlug(slugifyHeading(m[2]), used),
+    });
+  }
+  return headings;
+}
+
+/**
  * Render a Markdown string to HTML. Caller is responsible for wrapping in
  * a container element. Output is safe to inject with dangerouslySetInnerHTML.
  */
@@ -80,6 +153,7 @@ export function renderMarkdown(input: string): string {
   const lines = escapeHtml(input).replace(/\r\n/g, '\n').split('\n');
 
   const out: string[] = [];
+  const usedSlugs = new Map<string, number>();
   let i = 0;
 
   // Stack of currently-open container types ('ul' | 'ol' | 'blockquote').
@@ -117,12 +191,17 @@ export function renderMarkdown(input: string): string {
       continue;
     }
 
-    // Headings.
+    // Headings. Each carries a stable id so the quick-links list can jump to
+    // it. The id is derived from the heading text, and a counter disambiguates
+    // repeats, so two sections called "Next steps" do not both claim the same
+    // anchor and send every link to the first one.
     const heading = line.match(/^(#{1,3})\s+(.*)$/);
     if (heading) {
       closeUntil(null);
       const level = heading[1].length;
-      out.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
+      const text = heading[2];
+      const id = uniqueSlug(slugifyHeading(text), usedSlugs);
+      out.push(`<h${level} id="${id}">${renderInline(text)}</h${level}>`);
       i++;
       continue;
     }

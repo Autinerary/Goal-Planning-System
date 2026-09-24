@@ -6,6 +6,7 @@ import LocationMap from './LocationMap'
 import ResourceBadgesLoader from '../ResourceBadgesLoader'
 import RelatedTidbits from '../RelatedTidbits'
 import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
+import ContactActions from './ContactActions'
 import type { Location, ContactInfo } from '@/types/database'
 
 interface ResourceContentProps {
@@ -99,6 +100,18 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
       {hasContact && (
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Details</h2>
+
+          {/* Call / email-draft buttons sit above the raw details: the common
+              case is wanting to make contact, not wanting to read an address. */}
+          <div className="mb-4">
+            <ContactActions
+              resourceName={resource.name}
+              category={resource.category}
+              phone={contactInfo.phone}
+              email={contactInfo.email}
+            />
+          </div>
+
           <div className="space-y-3">
             {contactInfo.phone && (
               <div className="flex items-center text-gray-700">

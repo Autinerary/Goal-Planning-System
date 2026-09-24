@@ -6,6 +6,7 @@ import Link from 'next/link'
 import ResourceCard from '@/components/resources/ResourceCard'
 import ResourceNote from './ResourceNote'
 import EmptyState from '@/components/feedback/EmptyState'
+import UnavailableNotice from './UnavailableNotice'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import { showToast } from '@/lib/toast'
 import type { Resource, SavedResource } from '@/types/database'
@@ -29,6 +30,8 @@ export default function SavedTab({ userId }: SavedTabProps) {
   const [sort, setSort] = useState<SortOption>('date')
   const [categoryFilter, setCategoryFilter] = useState<FilterOption>(null)
   const [categories, setCategories] = useState<string[]>([])
+  // Rows whose resource we are not allowed to read (see UnavailableNotice).
+  const [unavailable, setUnavailable] = useState(0)
 
   useEffect(() => {
     fetchSavedResources()
@@ -49,8 +52,15 @@ export default function SavedTab({ userId }: SavedTabProps) {
       }
 
       const data = await response.json()
-      setResources(data.resources || [])
+      // Belt and braces: the API already drops rows whose resource did
+      // not resolve, but this list must never be able to take the page
+      // down over one bad row again.
+      const rows = (data.resources || []).filter((r: any) => r && r.resource)
+      setResources(rows)
       setCategories(data.categories || [])
+      setUnavailable(
+        Number(data.unavailable) || Math.max(0, (data.resources || []).length - rows.length)
+      )
     } catch (error) {
       console.error('Error fetching saved resources:', error)
     } finally {
@@ -216,6 +226,8 @@ export default function SavedTab({ userId }: SavedTabProps) {
           </div>
         )}
       </div>
+
+      <UnavailableNotice count={unavailable} />
 
       {/* Filters and Sort */}
       {resources.length > 0 && (

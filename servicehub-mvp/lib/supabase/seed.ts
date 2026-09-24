@@ -1,18 +1,74 @@
 /**
  * Database Seeding Script
- * 
+ *
  * This script populates the ServiceHub database with test data for development and testing.
- * 
+ *
+ * *** THIS SCRIPT IS FICTION, NOT DATA. READ BEFORE RUNNING. ***
+ *
+ * Every resource it creates is invented: a templated name with a counter
+ * appended, a phone number built from random digits, a website built by
+ * lower-casing the fake name, a canned one-sentence description pasted
+ * onto every row in a category, and jittered coordinates around a city
+ * centre. None of it corresponds to a real place, and by default 75% of
+ * it (`randomItem(['approved','approved','approved','pending'])`) landed
+ * straight in the public directory with no review — the one path in the
+ * whole codebase that skipped the pending-review gate every other
+ * submission path goes through.
+ *
+ * This ran against the live database at some point before this comment
+ * was written. 94 fabricated businesses were live and publicly visible —
+ * things like a "Developmental Pediatric Clinic" at a phone number that
+ * connects to nobody, or a jittered address near a real city that isn't
+ * where anything actually is. For an audience for whom a wasted trip is
+ * a genuinely bad day, that is not a cosmetic bug. Those 94 (plus 37 more
+ * sitting in pending) have since been set to `rejected`, which is why
+ * this comment exists: to stop it from happening a second time. Nothing
+ * was deleted -- the rows keep their history -- but they are hidden from
+ * the public directory now, same as anything a human reviewer rejects.
+ *
+ * If you need throwaway data for local development, that is a legitimate
+ * use of this file. It becomes the same incident again the moment it
+ * touches a database real users can see. The guard below requires you to
+ * say so explicitly.
+ *
  * Usage:
- *   npx tsx lib/supabase/seed.ts
- * 
+ *   ALLOW_FABRICATED_SEED_DATA=yes-this-is-a-throwaway-database npx tsx lib/supabase/seed.ts
+ *
  * Or import and call from an API route:
  *   import { seedDatabase } from '@/lib/supabase/seed'
- *   await seedDatabase()
+ *   await seedDatabase()   // throws unless the env var above is set
  */
 
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+
+/**
+ * Refuse to run unless someone explicitly opts in. Calling into this module
+ * points admin.createUser() and 75% auto-approval at whatever
+ * SUPABASE_SERVICE_ROLE_KEY is in the environment -- which, on a shared
+ * project, can be production. That already happened once against real data;
+ * see the comment at the top of this file.
+ *
+ * This check is a function called from the seed entry points, NOT a bare
+ * `throw` at module scope. A module-scope throw fires on IMPORT, and
+ * `next build` imports every route module while collecting page data -- so
+ * the guard took down the entire production build (including Vercel's) rather
+ * than the thing it meant to stop. A guard that cannot ship is not protecting
+ * anything. Checking at call time refuses exactly the dangerous operation and
+ * nothing else.
+ */
+function assertSeedingAllowed(): void {
+  if (process.env.ALLOW_FABRICATED_SEED_DATA !== 'yes-this-is-a-throwaway-database') {
+    throw new Error(
+      'Refusing to run: this script writes entirely fabricated businesses, phone ' +
+      'numbers and websites, and previously auto-approved 75% of them straight into ' +
+      'the public directory. That already happened once against real data -- see the ' +
+      'comment at the top of this file. Set ALLOW_FABRICATED_SEED_DATA=' +
+      'yes-this-is-a-throwaway-database only when SUPABASE_SERVICE_ROLE_KEY in your ' +
+      'current environment points at a database no real user can see.'
+    )
+  }
+}
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -360,7 +416,11 @@ async function createTestResources(userIds: string[]) {
           email: `info@${template.name.toLowerCase().replace(/\s+/g, '')}${i}.com`,
           website: `https://www.${template.name.toLowerCase().replace(/\s+/g, '')}${i}.com`,
         },
-        status: randomItem(['approved', 'approved', 'approved', 'pending']), // 75% approved
+        // Always 'pending', never auto-approved -- even for throwaway local
+        // data, there is no reason fabricated content should skip the same
+        // review gate every real submission goes through. This is what let
+        // 94 fictional businesses reach the public directory unreviewed.
+        status: 'pending' as const,
         submitted_by: randomItem(userIds),
       }
 
@@ -529,6 +589,8 @@ async function createDemoSavedResources(demoUserId: string, resources: any[]) {
 
 // Main seeding function
 export async function seedDatabase() {
+  // Guard at call time, not import time -- see assertSeedingAllowed.
+  assertSeedingAllowed()
   console.log('🌱 Starting database seeding...\n')
 
   try {
@@ -610,6 +672,9 @@ export async function seedDatabase() {
 
 // Clear all test data
 export async function clearTestData() {
+  // Deleting rows with the service-role key is every bit as dangerous as
+  // writing them, so this is gated identically.
+  assertSeedingAllowed()
   console.log('🗑️  Clearing test data...\n')
 
   try {

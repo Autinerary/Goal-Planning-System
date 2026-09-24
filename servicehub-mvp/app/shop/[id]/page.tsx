@@ -174,6 +174,35 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </section>
           )}
 
+          {/*
+            With no reviews there is no breakdown, no insight and no profile
+            match, so all three sections above render nothing and the page
+            looks as though the feature was never built. It was -- it just has
+            nothing to describe yet.
+
+            The honest fix is to say what WILL appear and what it needs, not to
+            show an empty chart or a placeholder number. A zero-state that
+            explains itself is the difference between "this product has no
+            reviews" and "this app has no breakdown", which is exactly the
+            confusion a tester hit here.
+          */}
+          {breakdown.ratingCount === 0 && (
+            <section className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                <h3 className="text-base font-semibold text-gray-700">
+                  Rating breakdown and insights
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                Once people review this product you&apos;ll see the score broken down by norm and
+                by how strongly each reviewer relates to it, patterns across reviews, and how it
+                rated for people whose Diagnostics profile matches yours. None of that is shown
+                until there are real reviews behind it.
+              </p>
+            </section>
+          )}
+
           <section className="rounded-xl border border-gray-200 bg-white p-4">
             <h2 className="text-lg font-bold text-gray-900 mb-3">
               {myReview ? 'Your review' : 'Rate this product'}

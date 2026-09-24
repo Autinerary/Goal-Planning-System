@@ -103,24 +103,62 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for duplicate resources (same name + location)
+    // Check for duplicate resources (same name + location).
+    //
+    // This used to compare raw strings with === on name, city, province AND
+    // address, so it only ever caught a character-for-character repeat. In
+    // practice nobody types a place the same way twice: "St. Mary's Clinic"
+    // vs "St Marys Clinic", "123 Main St" vs "123 Main Street", a stray
+    // double space, or different capitalisation all sailed straight past and
+    // produced a second listing for the same place. That matters more now
+    // that the directory holds thousands of imported venues -- a duplicate
+    // splits a place's ratings in half, so neither copy shows what people
+    // actually said about it.
+    //
+    // Comparison is done on a normalised form: lowercased, punctuation and
+    // common street-type abbreviations folded, whitespace collapsed. The
+    // matching rule itself is unchanged -- name AND city AND province AND
+    // address must all agree -- so this only catches what the old check was
+    // already trying to catch and missed on formatting. It does not start
+    // rejecting genuinely different places, which would be the worse failure:
+    // a second branch of a chain on another street stays allowed.
+    const normalise = (v: unknown) =>
+      String(v ?? '')
+        .toLowerCase()
+        .replace(/[.,'’"()]/g, '')
+        .replace(/\b(street|st)\b/g, 'st')
+        .replace(/\b(avenue|ave)\b/g, 'ave')
+        .replace(/\b(road|rd)\b/g, 'rd')
+        .replace(/\b(drive|dr)\b/g, 'dr')
+        .replace(/\b(boulevard|blvd)\b/g, 'blvd')
+        .replace(/\b(suite|ste|unit)\b/g, 'unit')
+        .replace(/\s+/g, ' ')
+        .trim()
+
     let isDuplicate = false
+    let duplicateId: string | null = null
     if (name && location) {
+      // ilike with no wildcards is an exact match that ignores case, which
+      // widens the candidate set enough for the normalised comparison below
+      // to do the real work.
       const { data: existingResources } = await supabase
         .from('resources')
         .select('id, name, location')
-        .eq('name', name.trim())
-        .limit(10)
+        .ilike('name', name.trim())
+        .limit(25)
 
+      const candidateName = normalise(name)
       if (existingResources) {
         for (const resource of existingResources) {
           const resourceLocation = resource.location as Location | null
           if (
-            resourceLocation?.city === location?.city &&
-            resourceLocation?.province === location?.province &&
-            resourceLocation?.address === location?.address
+            normalise(resource.name) === candidateName &&
+            normalise(resourceLocation?.city) === normalise(location?.city) &&
+            normalise(resourceLocation?.province) === normalise(location?.province) &&
+            normalise(resourceLocation?.address) === normalise(location?.address)
           ) {
             isDuplicate = true
+            duplicateId = resource.id
             break
           }
         }
@@ -132,6 +170,11 @@ export async function POST(request: NextRequest) {
         {
           error: 'A resource with this name and location already exists',
           errors: { name: 'A resource with this name and location already exists' },
+          // So the form can link straight to the listing that already covers
+          // this place. Being told "this exists" without being shown where is
+          // a dead end -- people re-submit with a tweaked name to get past it,
+          // which produces exactly the duplicate this check exists to stop.
+          existingResourceId: duplicateId,
         },
         { status: 409 }
       )

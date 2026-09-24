@@ -126,8 +126,12 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Community Reviews</h2>
         <div className="flex flex-wrap items-center gap-3">
-          {userId && !userHasRated && (
-            <AddRatingButton resourceId={resourceId} onRatingAdded={handleRatingAdded} />
+          {userId && (
+            <AddRatingButton
+              resourceId={resourceId}
+              hasRated={userHasRated}
+              onRatingAdded={handleRatingAdded}
+            />
           )}
           <div className="relative">
             <select
@@ -294,7 +298,11 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
           />
           {userId && (
             <div className="mt-4">
-              <AddRatingButton resourceId={resourceId} onRatingAdded={handleRatingAdded} />
+              <AddRatingButton
+                resourceId={resourceId}
+                hasRated={userHasRated}
+                onRatingAdded={handleRatingAdded}
+              />
             </div>
           )}
         </div>

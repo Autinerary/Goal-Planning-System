@@ -43,13 +43,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (!ratings || ratings.length === 0) {
-      return NextResponse.json({ resources: [], categories: [] })
+      return NextResponse.json({ resources: [], categories: [], unavailable: 0 })
     }
 
+    // Drop ratings whose resource did not resolve -- same RLS mismatch as the
+    // saved route: your rating is always readable, the resource behind it is
+    // only readable while approved. A rating on a resource that has since gone
+    // back under review came through as `resource: null` and crashed the tab.
+    const resolved = ratings.filter((r: any) => r.resource)
+    const unavailable = ratings.length - resolved.length
+
     // Filter by category if provided
-    let filtered = ratings
+    let filtered = resolved
     if (categoryFilter) {
-      filtered = ratings.filter((r: any) => r.resource?.category === categoryFilter)
+      filtered = resolved.filter((r: any) => r.resource?.category === categoryFilter)
     }
 
     // Sort resources
@@ -74,9 +81,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get unique categories
-    const categories = [...new Set(ratings.map((r: any) => r.resource?.category).filter(Boolean))] as string[]
+    const categories = [...new Set(resolved.map((r: any) => r.resource?.category).filter(Boolean))] as string[]
 
-    return NextResponse.json({ resources: sorted, categories })
+    return NextResponse.json({ resources: sorted, categories, unavailable })
   } catch (error) {
     console.error('Error in rated resources API:', error)
     return NextResponse.json({ error: 'Failed to fetch rated resources' }, { status: 500 })

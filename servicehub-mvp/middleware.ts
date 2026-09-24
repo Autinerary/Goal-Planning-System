@@ -89,17 +89,25 @@ export async function middleware(request: NextRequest) {
   // here, not the security boundary.
   const AUTH_TIMEOUT_MS = 3000
   let user = null
+  // The timer is cleared in `finally` rather than left to fire on its own.
+  // An uncleared setTimeout keeps rejecting a race that has already been
+  // settled, which surfaces as an unhandled rejection, and a pending timer
+  // can hold the edge invocation open past the work it was waiting on --
+  // the opposite of what a timeout guard is for.
+  let timer: ReturnType<typeof setTimeout> | undefined
   try {
     const result = await Promise.race([
       supabase.auth.getUser(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('auth check timed out')), AUTH_TIMEOUT_MS)
-      ),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('auth check timed out')), AUTH_TIMEOUT_MS)
+      }),
     ])
     user = result?.data?.user ?? null
   } catch (e) {
     console.warn('[middleware] auth check skipped:', (e as Error).message)
     return response
+  } finally {
+    if (timer) clearTimeout(timer)
   }
 
   // If user is not authenticated and trying to access a protected route, redirect to Goal Planning login

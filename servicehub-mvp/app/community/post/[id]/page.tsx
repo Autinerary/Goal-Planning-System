@@ -16,6 +16,7 @@ import type { CommunityPostDetail, CommunityAnswerNode } from '@/types/community
 import VoteButton from '@/components/community/VoteButton'
 import Markdown from '@/components/community/Markdown'
 import SolvedBanner from '@/components/community/SolvedBanner'
+import QuickLinks from '@/components/community/QuickLinks'
 import BadgeList from '@/components/community/BadgeList'
 import ThreadedAnswer from '@/components/community/ThreadedAnswer'
 import AnswerComposer from '@/components/community/AnswerComposer'
@@ -228,6 +229,14 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                 <p className="text-sm text-rose-900 font-medium italic">“{post.what_didnt_work}”</p>
               </div>
             )}
+            {/* Quick links, built from the post's own headings. Sits above the
+                body so it works as a contents list rather than something you
+                only find after scrolling past what it was meant to help you
+                skip. Renders nothing on a post with fewer than two headings. */}
+            <div className="mb-4">
+              <QuickLinks source={post.body_markdown} />
+            </div>
+
             <div ref={bodyRef}>
               <Markdown source={post.body_markdown} />
             </div>

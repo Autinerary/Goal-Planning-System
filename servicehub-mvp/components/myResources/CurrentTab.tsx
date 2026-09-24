@@ -7,6 +7,7 @@ import ResourceCard from '@/components/resources/ResourceCard'
 import ResourceNote from './ResourceNote'
 import CategoryFilter, { type ResourceGroup, groupForCategory } from './CategoryFilter'
 import EmptyState from '@/components/feedback/EmptyState'
+import UnavailableNotice from './UnavailableNotice'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import { showToast } from '@/lib/toast'
 import type { Resource, SavedResource } from '@/types/database'
@@ -33,6 +34,8 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
   // API contract is unchanged — the server still only ever receives a category.
   const [group, setGroup] = useState<ResourceGroup>('all')
   const [categories, setCategories] = useState<string[]>([])
+  // Rows whose resource we are not allowed to read (see UnavailableNotice).
+  const [unavailable, setUnavailable] = useState(0)
 
   useEffect(() => {
     fetchCurrentResources()
@@ -54,8 +57,15 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
       }
 
       const data = await response.json()
-      setResources(data.resources || [])
+      // Belt and braces: the API already drops rows whose resource did
+      // not resolve, but this list must never be able to take the page
+      // down over one bad row again.
+      const rows = (data.resources || []).filter((r: any) => r && r.resource)
+      setResources(rows)
       setCategories(data.categories || [])
+      setUnavailable(
+        Number(data.unavailable) || Math.max(0, (data.resources || []).length - rows.length)
+      )
     } catch (error) {
       console.error('Error fetching current resources:', error)
     } finally {
@@ -170,6 +180,8 @@ export default function CurrentTab({ userId }: CurrentTabProps) {
 
   return (
     <div className="space-y-6">
+      <UnavailableNotice count={unavailable} />
+
       {/* Filters and Sort */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <CategoryFilter

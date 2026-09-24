@@ -53,13 +53,33 @@ export async function GET(request: NextRequest) {
     }
 
     if (!savedResources || savedResources.length === 0) {
-      return NextResponse.json({ resources: [], categories: [] })
+      return NextResponse.json({ resources: [], categories: [], unavailable: 0 })
     }
 
+    // Drop rows whose embedded resource did not resolve.
+    //
+    // saved_resources is readable whenever it is YOURS, but `resources` is
+    // only readable when status = 'approved' or you submitted it. Those two
+    // policies disagree the moment a resource you already saved stops being
+    // approved -- it goes back under review, or an admin removes it. Your
+    // saved row survives and the join comes back `resource: null`.
+    //
+    // That null reached the client, which did `resource.location` and took
+    // the whole page down with "Cannot read properties of null (reading
+    // 'location')" -- the error testers hit on Wishlist and My Resources.
+    // There is nothing to render for a resource we are not allowed to read,
+    // so it is dropped here rather than being handed onward as a hazard.
+    // The count travels with the response so the UI can say an item is
+    // missing instead of letting it vanish without explanation. Nothing is
+    // deleted: the saved_resources row is untouched and reappears by itself
+    // if the resource is approved again.
+    const resolved = savedResources.filter((sr: any) => sr.resource)
+    const unavailable = savedResources.length - resolved.length
+
     // Filter by category if provided
-    let filtered = savedResources
+    let filtered = resolved
     if (categoryFilter) {
-      filtered = savedResources.filter((sr: any) => sr.resource?.category === categoryFilter)
+      filtered = resolved.filter((sr: any) => sr.resource?.category === categoryFilter)
     }
 
     // Get rating data for each resource
@@ -97,10 +117,10 @@ export async function GET(request: NextRequest) {
 
     // Get unique categories
     const categories = [
-      ...new Set(savedResources.map((sr: any) => sr.resource?.category).filter(Boolean)),
+      ...new Set(resolved.map((sr: any) => sr.resource?.category).filter(Boolean)),
     ] as string[]
 
-    return NextResponse.json({ resources: sorted, categories })
+    return NextResponse.json({ resources: sorted, categories, unavailable })
   } catch (error) {
     console.error('Error in saved resources API:', error)
     return NextResponse.json({ error: 'Failed to fetch saved resources' }, { status: 500 })
