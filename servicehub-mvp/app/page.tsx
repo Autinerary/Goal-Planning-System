@@ -48,8 +48,12 @@ const categories = [
   { id: 'doctor', label: 'Doctors', icon: Stethoscope, color: 'bg-blue-500 hover:bg-blue-600' },
   { id: 'park', label: 'Parks', icon: Trees, color: 'bg-green-500 hover:bg-green-600' },
   { id: 'store', label: 'Stores', icon: ShoppingBag, color: 'bg-blue-500 hover:bg-blue-600' },
-  { id: 'app', label: 'Apps', icon: Smartphone, color: 'bg-purple-500 hover:bg-purple-600' },
-  { id: 'book', label: 'Books', icon: BookOpen, color: 'bg-blue-500 hover:bg-blue-600' },
+  // These two are SHOP categories, and their ids have to match
+  // SHOP_CATEGORIES exactly or the filter matches nothing. They were 'app'
+  // and 'book'; the shop vocabulary is 'apps' and 'books', so both chips
+  // returned an empty page.
+  { id: 'apps', label: 'Apps', icon: Smartphone, color: 'bg-purple-500 hover:bg-purple-600' },
+  { id: 'books', label: 'Books', icon: BookOpen, color: 'bg-blue-500 hover:bg-blue-600' },
 ]
 
 async function RecommendedSection() {
@@ -854,7 +858,7 @@ export default async function Home() {
                   return (
                     <Link
                       key={category.id}
-                      href={`/search?category=${category.id}`}
+                      href={`/search?categories=${encodeURIComponent(category.id)}`}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
                     >
                       <IconComponent className="w-4 h-4" aria-hidden="true" />

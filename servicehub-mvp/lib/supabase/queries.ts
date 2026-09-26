@@ -1025,9 +1025,26 @@ export async function searchResources(
     )
   }
 
-  // Category filter
+  // Category filter.
+  //
+  // Matched case-insensitively rather than with .in(), which is exact. The
+  // stored values are Title Case and sometimes multi-word -- 'Park',
+  // 'Community Center', 'Support Group' -- because that is what the importer
+  // and the submission form write. Everything that LINKS to a category uses a
+  // lowercase slug ('park'), so an exact .in() matched nothing and every
+  // category chip on the home page led to an empty page.
+  //
+  // Normalising the stored column instead would mean rewriting thousands of
+  // rows and changing what the admin queue displays, to fix what is really a
+  // comparison bug. ilike with no wildcards is an exact match that ignores
+  // case, so 'park', 'Park' and 'PARK' all find the same rows and no data has
+  // to move. The values are escaped for the PostgREST filter grammar because
+  // commas and parens are separators there.
   if (filters.categories && filters.categories.length > 0) {
-    query = query.in('category', filters.categories)
+    const escaped = filters.categories
+      .map((c) => String(c).replace(/["\\]/g, '\\$&'))
+      .map((c) => `category.ilike."${c}"`)
+    query = query.or(escaped.join(','))
   }
 
   // Age bands: overlaps() is an array-intersection test, so a resource
