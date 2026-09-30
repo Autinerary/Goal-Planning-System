@@ -12,8 +12,9 @@ classifiers as the Vector deck, so "real" means the same thing everywhere).
 
 Measures, all read-only:
   * agreement -- how much each pair of arms retrieves the same top-k people
-  * threshold sweep -- how many matches the production search would return at
-    each threshold, with and without its exact-string condition filter
+  * threshold sweep -- how many matches the search returns at each threshold,
+    unfiltered, with the exact-string condition filter production used until
+    d34f80a, and with spellings normalised
   * against human labels -- once pairs have been labelled with
     label_similar_pairs.py, how each arm ranks pairs judged similar (partner
     rank) and separates them from pairs judged not similar (AUC)
@@ -279,21 +280,24 @@ def run(args) -> Report:
     # ---- Threshold sweep -----------------------------------------------------
     norm_keys = {uid: {c.key for c in normalize_conditions(bs)[0]} for uid, bs in raw_barriers.items()}
 
-    def raw_gate(a, b):          # what production does: Postgres array overlap, exact strings
+    def raw_gate(a, b):          # production until d34f80a: Postgres array overlap, exact strings
         return bool(set(raw_barriers.get(a, [])) & set(raw_barriers.get(b, [])))
 
-    def norm_gate(a, b):         # the same filter after normalising spellings
+    def norm_gate(a, b):         # spellings normalised; not identical to production, see report text
         return bool(norm_keys.get(a, set()) & norm_keys.get(b, set()))
 
     r()
     r("## Threshold sweep (arm 1, capped at 10 like the RPC)")
     r()
-    r("Mean matches per user. The production search also requires at least one "
-      "**exact** condition string in common (`barriers_filter`, array overlap), "
-      "so `ADHD` never matches `adhd`. The last column applies the same filter "
-      "after normalising spellings.")
+    r("Mean matches per user. Until d34f80a the production search also required at "
+      "least one **exact** condition string in common (`barriers_filter`, array "
+      "overlap), so `ADHD` never matched `adhd`. Production now filters on normalised "
+      "conditions (`match_keys` in core/condition_taxonomy.py). The last column "
+      "normalises spellings but is not identical to production: it ignores free-text "
+      "conditions, and anyone without a recognised condition gets no matches, where "
+      "production leaves people with only placeholder answers (or none) unfiltered.")
     r()
-    r("| threshold | cosine only | + exact-string filter (production) | + normalised filter |")
+    r("| threshold | cosine only | + exact-string filter (production until d34f80a) | + normalised filter |")
     r("|---|---|---|---|")
     for t in THRESHOLDS:
         cols = []
@@ -305,7 +309,7 @@ def run(args) -> Report:
     at = [matches_at(u, pool, arms["1 text"], 0.70, cap=10, gate=raw_gate) for u in pool]
     if at:
         r()
-        r(f"At the production settings (0.70 + exact-string filter): "
+        r(f"At the old production settings (0.70 + exact-string filter, before d34f80a): "
           f"{sum(1 for x in at if x == 0)} users get **0** matches, "
           f"{sum(1 for x in at if x == 10)} get the full **10**, "
           f"{sum(1 for x in at if 0 < x < 10)} fall in between.")
@@ -331,17 +335,17 @@ def run(args) -> Report:
                 missed_on_spelling += 1
     total_pairs = n * (n - 1) // 2
     r()
-    r("## What the exact-string filter is actually matching on")
+    r("## What the exact-string filter was actually matching on")
     r()
-    r(f"Of {total_pairs} pairs, the production filter lets **{through}** through.")
+    r(f"Of {total_pairs} pairs, the old production filter let **{through}** through.")
     r(f"- **{through_on_placeholder_only}** of those share *only* a placeholder answer "
       f"(\"Prefer not to share\" / \"No current barriers\") — matched because both people "
       f"declined to say, not because they have anything in common.")
     r(f"- **{missed_on_spelling}** pairs share a real condition under a different spelling "
-      f"(e.g. `ADHD` / `adhd`) and are filtered **out**.")
+      f"(e.g. `ADHD` / `adhd`) and were filtered **out**.")
     r()
-    r("So the filter is wrong in both directions, and normalising it would give fewer but "
-      "real matches.")
+    r("So the filter was wrong in both directions. Production has filtered on "
+      "normalised conditions since d34f80a.")
 
     # ---- Near-duplicate vectors ----------------------------------------------
     dupes = [(a, b) for i, a in enumerate(pool) for b in pool[i + 1:]
