@@ -4235,4 +4235,150 @@ CREATE INDEX IF NOT EXISTS resources_image_generic_idx
   ON public.resources (image_is_generic);
 
 
+-- STEP 42 — backend/database/migrations/2026_embedding_text_version.sql
+-- ==================================================================
+
+-- =====================================================================
+-- Record which text each profile embedding was built from
+--
+-- Pattern Recognition used to embed the stringified onboarding dict,
+-- email and user id included. It now embeds an anonymised summary built
+-- by backend/core/embedding_privacy.py. Vectors built from the two texts
+-- live in different parts of the embedding space and are not comparable:
+-- cosine similarity between an old-text vector and a new-text vector
+-- measures the difference in the text, not the difference in the people.
+--
+-- This column says which text a row came from, so the backfill script
+-- can re-embed only the stale rows and the retrieval experiments can
+-- refuse to mix versions.
+--
+--   NULL       built from the original raw text (every row before this)
+--   'anon-v1'  built from build_embedding_text, first version
+--
+-- Nullable on purpose: existing rows genuinely do not have a version, and
+-- inventing one for them would hide exactly the thing this column exists
+-- to expose.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+ALTER TABLE public.pattern_user_embeddings
+  ADD COLUMN IF NOT EXISTS embedding_text_version TEXT;
+
+COMMENT ON COLUMN public.pattern_user_embeddings.embedding_text_version IS
+  'Which outbound text the embedding was built from. NULL = legacy raw text (included email and id); anon-v1 = anonymised summary from core/embedding_privacy.py. Vectors from different versions are not comparable.';
+
+CREATE INDEX IF NOT EXISTS pattern_user_embeddings_text_version_idx
+  ON public.pattern_user_embeddings (embedding_text_version);
+
+
+-- STEP 43 — backend/database/migrations/2026_pattern_field_embeddings.sql
+-- ==================================================================
+
+-- =====================================================================
+-- Per-field profile embeddings (Pattern Recognition experiment, arm 4)
+--
+-- pattern_user_embeddings holds ONE vector per user, built from goals and
+-- conditions joined into a single string. This table holds one vector per
+-- user PER FIELD -- goals and conditions embedded separately -- so the two
+-- approaches can be compared side by side. It adds to the existing table;
+-- nothing reads or writes pattern_user_embeddings differently because of it.
+--
+-- Experiment-only. Production retrieval does not use this table, and
+-- onboarding does not write to it: scripts/embed_pattern_fields.py fills
+-- it, and is re-run before each experiment.
+--
+-- Two things the existing table lacks, added here on purpose:
+--
+--   * A foreign key with ON DELETE CASCADE. pattern_user_embeddings.user_id
+--     has none, so nothing removes a vector when its account is deleted --
+--     the orphaned-vector risk on the data-quality slide. This table does
+--     not repeat that.
+--
+--   * text_sha256, a hash of the exact text that was embedded. Re-running
+--     the generator skips unchanged rows and rebuilds changed ones, so a
+--     profile edit cannot leave a stale vector here unnoticed -- the other
+--     index-health problem on that slide.
+--
+-- No ANN index: at two rows per user an exact scan is instant, and an
+-- ivfflat index on a table this small would return approximate results
+-- for no benefit.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.pattern_user_field_embeddings (
+  user_id                UUID         NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  field                  TEXT         NOT NULL CHECK (field IN ('goals', 'barriers')),
+  embedding              VECTOR(1536) NOT NULL,
+  embedding_text_version TEXT         NOT NULL,
+  text_sha256            TEXT         NOT NULL,
+  model                  TEXT         NOT NULL DEFAULT 'text-embedding-ada-002',
+  created_at             TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at             TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, field)
+);
+
+-- Written only by the service-role script; no client ever reads it.
+ALTER TABLE public.pattern_user_field_embeddings ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE public.pattern_user_field_embeddings IS
+  'Experiment arm 4: goals and conditions embedded separately, from the anonymised per-field text in core/embedding_privacy.py. Not used by production retrieval.';
+COMMENT ON COLUMN public.pattern_user_field_embeddings.text_sha256 IS
+  'SHA-256 of the exact text embedded. Lets the generator skip unchanged rows and rebuild stale ones.';
+
+
+-- STEP 44 — backend/database/migrations/2026_pattern_similarity_labels.sql
+-- ==================================================================
+
+-- =====================================================================
+-- Human judgements of "are these two people genuinely similar?"
+--
+-- Pattern Recognition decides who counts as similar by cosine similarity
+-- between embeddings. Nothing has ever checked that against a person's
+-- judgement -- the open question on the deck. This table holds that
+-- judgement: team members look at two de-identified profile summaries and
+-- say similar or not similar. The experiment then asks which
+-- representation (text, engineered features, concatenated, split) agrees
+-- with them.
+--
+-- Negatives are stored as well as positives on purpose. With only
+-- "similar" labels you can measure whether an arm finds those pairs, but
+-- not whether it also rates dissimilar pairs highly; an arm that calls
+-- everyone similar would score perfectly.
+--
+-- Pairs are stored in a canonical order (user_a < user_b) so (x, y) and
+-- (y, x) are the same pair. Several team members may label the same pair,
+-- which makes inter-rater agreement measurable; the same person labelling
+-- it twice is prevented.
+--
+-- labeled_by is a team member's name or initials, not an account: the
+-- labelling script runs with the service role. Nothing about the labelled
+-- users beyond their ids is stored here.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.pattern_similarity_labels (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_a      UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_b      UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  label       TEXT        NOT NULL CHECK (label IN ('similar', 'not_similar')),
+  labeled_by  TEXT        NOT NULL CHECK (length(trim(labeled_by)) BETWEEN 1 AND 60),
+  note        TEXT        CHECK (note IS NULL OR length(note) <= 500),
+  -- How the pair was proposed (e.g. 'spread:high', 'disagree:text>features'),
+  -- so a skew in what got labelled can be seen afterwards.
+  source      TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT pattern_similarity_labels_ordered CHECK (user_a < user_b),
+  CONSTRAINT pattern_similarity_labels_once UNIQUE (user_a, user_b, labeled_by)
+);
+
+-- Service role only. No policies: no client should read or write this.
+ALTER TABLE public.pattern_similarity_labels ENABLE ROW LEVEL SECURITY;
+
+COMMENT ON TABLE public.pattern_similarity_labels IS
+  'Ground truth for Pattern Recognition: team judgements of whether two real users are genuinely similar. Used to test which representation tracks human judgement.';
+
+
 COMMIT;
