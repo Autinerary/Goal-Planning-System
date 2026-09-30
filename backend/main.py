@@ -43,6 +43,18 @@ def _cors_origins() -> list:
     return list(dict.fromkeys(defaults + configured))
 
 
+def _deployed_commit():
+    """Short SHA of the commit this server was built from, or None.
+
+    Render sets RENDER_GIT_COMMIT on Git-backed services. Without it, the only
+    way to tell whether a push had deployed was a trip to the dashboard. None
+    (not a guess) when the variable is absent: local runs, or a deploy that did
+    not come from Git.
+    """
+    sha = os.getenv("RENDER_GIT_COMMIT", "").strip()
+    return sha[:7] or None
+
+
 # Choose orchestrator based on environment
 USE_AUTOGEN = os.getenv("USE_AUTOGEN", "false").lower() == "true"
 
@@ -148,6 +160,7 @@ async def health_check():
 
     return {
         "status": "healthy",
+        "commit": _deployed_commit(),
         "capability": capability,
         "note": note,
         "llm_enabled": llm_on,
