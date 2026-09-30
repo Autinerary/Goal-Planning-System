@@ -20,6 +20,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string, dateOfBirth?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   completeOnboarding: (pathId: string) => Promise<void>
+  fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response> // 👈 Add this line
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -51,7 +52,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Helper function to make authenticated requests to backend/Next API routes
+  const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    const headers = new Headers(options.headers || {})
+    
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+
+    return fetch(url, {
+      ...options,
+      headers,
+    })
+  }, [])
+
   useEffect(() => {
+    // 1. Check if we have a locally stored custom session first
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('app_user') : null
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch (e) {
+        localStorage.removeItem('app_user')
+      }
+    }
+
     if (!supabase) {
       setIsLoading(false)
       return
@@ -88,12 +114,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (isInitRef.current) return
+      
+      // Only clear user on SIGNED_OUT if we don't have a custom bearer token stored
       if (session?.user) {
         setSupabaseUser(session.user)
         setUser(profileFromSupabase(session.user))
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' && !localStorage.getItem('access_token')) {
         setSupabaseUser(null)
         setUser(null)
+        localStorage.removeItem('app_user')
       }
       setIsLoading(false)
     })
@@ -126,17 +155,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const normalizedEmail = email.trim().toLowerCase()
 
-      // Server-side signup with auto-confirm via admin API
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail, password, name, dateOfBirth }),
       })
       const body = await res.json()
-      // Prefer the friendly `message` (e.g. the under-18 explanation) over `error`.
       if (!res.ok) return { success: false, error: body.message || body.error || 'Signup failed' }
 
-      // Now sign in to get a real session
       const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (signInErr) return { success: false, error: signInErr.message }
 
@@ -148,50 +174,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    if (!supabase) return { success: false, error: 'Auth not available' }
-
     try {
       const normalizedEmail = email.trim().toLowerCase()
-      const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-      if (error) return { success: false, error: error.message }
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail, password }),
+      })
+
+      const body = await res.json()
+
+      if (!res.ok) {
+        return { success: false, error: body.message || body.detail || body.error || 'Login failed' }
+      }
+
+      // Store JWT token if returned
+      const token = body.access_token || body.token || body.session?.access_token
+      if (token) {
+        localStorage.setItem('access_token', token)
+      }
+
+      // Build user profile object
+      const userData = body.user || body
+      const userProfile: User = {
+        id: userData.id || 'user_id',
+        email: userData.email || normalizedEmail,
+        name: userData.name || userData.full_name,
+        hasCompletedOnboarding: Boolean(userData.hasCompletedOnboarding ?? true),
+      }
+
+      // Persist user profile to state and localStorage to preserve session across reloads
+      localStorage.setItem('app_user', JSON.stringify(userProfile))
+      setUser(userProfile)
+
       return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)
       return { success: false, error: 'Network error during login' }
     }
-  }, [supabase])
+  }, [])
 
   const logout = useCallback(async () => {
     try {
       if (supabase) await supabase.auth.signOut()
     } catch {}
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('app_user')
     setUser(null)
     setSupabaseUser(null)
     router.push('/')
   }, [supabase, router])
 
   const completeOnboarding = useCallback(async (pathId: string) => {
-    if (!user || !supabase) return
+    if (!user) return
 
     const updatedUser = { ...user, hasCompletedOnboarding: true }
     setUser(updatedUser)
+    localStorage.setItem('app_user', JSON.stringify(updatedUser))
 
-    try {
-      const { data } = await supabase.auth.updateUser({
-        data: { has_completed_onboarding: true, path_id: pathId },
-      })
-      if (data?.user) {
-        setSupabaseUser(data.user)
-        setUser(profileFromSupabase(data.user))
-        void fetch('/api/me/welcome', { method: 'POST' }).catch(() => {})
+    if (supabase) {
+      try {
+        const { data } = await supabase.auth.updateUser({
+          data: { has_completed_onboarding: true, path_id: pathId },
+        })
+        if (data?.user) {
+          setSupabaseUser(data.user)
+          void fetch('/api/me/welcome', { method: 'POST' }).catch(() => {})
+        }
+      } catch (err) {
+        console.error('Error saving onboarding status:', err)
       }
-    } catch (err) {
-      console.error('Error saving onboarding status:', err)
     }
   }, [user, supabase])
 
   return (
-    <AuthContext.Provider value={{ user, supabaseUser, isLoading, login, signup, logout, completeOnboarding }}>
+    <AuthContext.Provider value={{ user, supabaseUser, isLoading, login, signup, logout, completeOnboarding, fetchWithAuth }}>
       {children}
     </AuthContext.Provider>
   )
