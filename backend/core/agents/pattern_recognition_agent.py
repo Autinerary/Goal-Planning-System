@@ -16,6 +16,7 @@ import os
 from typing import List, Dict, Any, Optional
 
 from core.agents.base_agent import BaseAgent
+from core.condition_taxonomy import match_keys
 from core.embedding_privacy import EMBEDDING_TEXT_VERSION, build_embedding_text
 from database.supabase_client import get_supabase
 
@@ -23,6 +24,34 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Must match the VECTOR(N) declaration in the SQL migration.
 EMBEDDING_DIM = 1536
+
+# How many threshold-passing candidates to pull before the condition filter.
+# The filter used to run in SQL as an exact-string array overlap; matching on
+# normalised conditions needs the taxonomy, which lives in Python, so the RPC
+# is called unfiltered and the rows are filtered here. That is exact while
+# fewer rows than this pass the threshold (pattern_user_embeddings holds 61
+# today). Past that, the filter only sees the best-ranked CANDIDATE_POOL rows,
+# and _vector_search logs when that happens. Kept under PostgREST's 1000-row
+# response cap.
+CANDIDATE_POOL = 500
+
+
+def apply_condition_filter(
+    rows: List[Dict[str, Any]],
+    query_barriers: List[str],
+    top_k: int,
+) -> List[Dict[str, Any]]:
+    """Keep rows that share a real condition with the query, in RPC order.
+
+    Conditions are compared by condition_taxonomy.match_keys, so spelling
+    variants match and placeholder answers ("Prefer not to share", "No current
+    barriers") never count as something in common. A query with no matchable
+    condition is not filtered, the same as a query with no barriers at all.
+    """
+    query_keys = match_keys(query_barriers)
+    if not query_keys:
+        return list(rows)[:top_k]
+    return [r for r in rows if match_keys(r.get('barriers')) & query_keys][:top_k]
 
 
 class PatternRecognitionAgent(BaseAgent):
@@ -189,17 +218,19 @@ class PatternRecognitionAgent(BaseAgent):
         """
         if self.supabase is not None:
             try:
-                barriers_filter = None
-                if filters and filters.get('barriers'):
-                    # Array overlap on the SQL side: return users that share at
-                    # least one barrier with the query. NULL = no filter.
-                    barriers_filter = [str(b) for b in filters['barriers']]
+                query_barriers = [str(b) for b in ((filters or {}).get('barriers') or [])]
+                filtered = bool(match_keys(query_barriers))
 
                 rpc_args: Dict[str, Any] = {
                     'query_embedding': embedding,
                     'match_threshold': 0.7,
-                    'match_count': top_k,
-                    'barriers_filter': barriers_filter,
+                    # Over-fetch when filtering, so the filter below has the
+                    # whole threshold-passing set to choose from.
+                    'match_count': CANDIDATE_POOL if filtered else top_k,
+                    # The condition filter runs in apply_condition_filter, not
+                    # in SQL: the SQL version compared raw strings, so "ADHD"
+                    # missed "adhd" and "Prefer not to share" matched itself.
+                    'barriers_filter': None,
                     # ALWAYS pass query_user_id (None → SQL NULL). Two overloads
                     # of find_similar_pattern_users exist in the DB (4-arg legacy
                     # + 5-arg), and omitting the param makes the call ambiguous —
@@ -217,6 +248,11 @@ class PatternRecognitionAgent(BaseAgent):
                 ).execute()
 
                 rows = response.data or []
+                if filtered and len(rows) >= CANDIDATE_POOL:
+                    print(f"[pattern_recognition] {len(rows)} candidates reached "
+                          f"CANDIDATE_POOL; the condition filter only saw the "
+                          f"top {CANDIDATE_POOL} by score")
+                rows = apply_condition_filter(rows, query_barriers, top_k)
                 return [
                     {
                         'user_id': row['user_id'],
