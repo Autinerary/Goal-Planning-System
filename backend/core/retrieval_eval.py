@@ -201,6 +201,122 @@ def chance_jaccard(n: int, k: int) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Human-labelled pairs (item 4)
+# ---------------------------------------------------------------------------
+
+def canonical_pair(a: str, b: str) -> Tuple[str, str]:
+    """(x, y) and (y, x) are the same pair; stored smallest id first."""
+    return (a, b) if a < b else (b, a)
+
+
+def _percentiles(pairs: List[Tuple[str, str]], sim: SimFn) -> Dict[Tuple[str, str], float]:
+    """Each pair's position within one arm, 0.0 = least similar, 1.0 = most."""
+    scored = sorted(pairs, key=lambda p: (sim(*p) if sim(*p) is not None else -1e9, p))
+    last = max(len(scored) - 1, 1)
+    return {p: i / last for i, p in enumerate(scored)}
+
+
+def propose_pairs(pool: Sequence[str], sim_a: SimFn, sim_b: SimFn, combined: SimFn,
+                  n: int, seed: int = 0,
+                  exclude: Optional[Set[Tuple[str, str]]] = None,
+                  names: Tuple[str, str] = ("a", "b")) -> List[Tuple[str, str, str]]:
+    """Choose which pairs to ask a human about.
+
+    With 5-10 labels, which pairs are asked about matters more than how many.
+    Only showing pairs one arm already rates highly would make the "ground
+    truth" inherit that arm's notion of similar. So half the budget goes to
+    pairs where the two arms DISAGREE most -- the only pairs that can tell the
+    arms apart -- split between each direction of disagreement. The rest is
+    spread across the high, middle and low thirds of the combined similarity,
+    so labels also cover clearly-similar and clearly-not pairs.
+
+    Each person appears in at most one proposed pair, so a handful of labels
+    covers as many different people as possible. Deterministic for a seed.
+
+    Returns (user_a, user_b, source) with the pair in canonical order.
+    """
+    import random
+
+    exclude = exclude or set()
+    rng = random.Random(seed)
+    pairs = [canonical_pair(a, b) for i, a in enumerate(pool) for b in pool[i + 1:]]
+    pairs = [p for p in pairs if p not in exclude]
+    if not pairs or n <= 0:
+        return []
+
+    pa, pb = _percentiles(pairs, sim_a), _percentiles(pairs, sim_b)
+    pc = _percentiles(pairs, combined)
+    used: Set[str] = set()
+    out: List[Tuple[str, str, str]] = []
+
+    def take(candidates: List[Tuple[str, str]], source: str, k: int) -> None:
+        for p in candidates:
+            if k <= 0:
+                return
+            if p[0] in used or p[1] in used:
+                continue
+            used.update(p)
+            out.append((p[0], p[1], source))
+            k -= 1
+
+    n_disagree = n // 2
+    a_over_b = sorted(pairs, key=lambda p: (-(pa[p] - pb[p]), p))
+    b_over_a = sorted(pairs, key=lambda p: (-(pb[p] - pa[p]), p))
+    take(a_over_b, f"disagree:{names[0]}>{names[1]}", (n_disagree + 1) // 2)
+    take(b_over_a, f"disagree:{names[1]}>{names[0]}", n_disagree // 2)
+
+    thirds = {"high": [], "mid": [], "low": []}
+    for p in pairs:
+        band = "high" if pc[p] >= 2 / 3 else "mid" if pc[p] >= 1 / 3 else "low"
+        thirds[band].append(p)
+    for band in thirds.values():
+        rng.shuffle(band)
+    remaining = n - len(out)
+    for i, band in enumerate(["high", "mid", "low"]):
+        share = remaining // 3 + (1 if i < remaining % 3 else 0)
+        take(thirds[band], f"spread:{band}", share)
+
+    # A band can run out of pairs whose people are both still unused, which
+    # would silently return fewer pairs than asked for. Fill from anything
+    # left, still one appearance per person.
+    if len(out) < n:
+        rest = [p for band in ("high", "mid", "low") for p in thirds[band]]
+        take(rest, "spread:fill", n - len(out))
+    return out
+
+
+def partner_rank(a: str, b: str, pool: Sequence[str], sim: SimFn) -> Optional[float]:
+    """Where each person of a pair ranks the other among everyone, averaged.
+
+    1.0 means they are each other's single nearest neighbour; (len(pool)-1)
+    means each is the other's least similar. Lower is better for a pair a
+    human called similar.
+    """
+    ranks = []
+    for x, y in ((a, b), (b, a)):
+        order = [u for u, _ in ranked_neighbours(x, pool, sim)]
+        if y not in order:
+            return None
+        ranks.append(order.index(y) + 1)
+    return sum(ranks) / 2
+
+
+def auc(positive: Sequence[float], negative: Sequence[float]) -> Optional[float]:
+    """Probability a pair labelled similar scores above one labelled not.
+
+    Mann-Whitney form, ties counted as half. 0.5 = no better than chance.
+    Needs at least one of each; returns None otherwise.
+    """
+    if not positive or not negative:
+        return None
+    wins = 0.0
+    for p in positive:
+        for q in negative:
+            wins += 1.0 if p > q else 0.5 if p == q else 0.0
+    return wins / (len(positive) * len(negative))
+
+
+# ---------------------------------------------------------------------------
 # Threshold sweep
 # ---------------------------------------------------------------------------
 

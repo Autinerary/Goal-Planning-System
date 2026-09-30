@@ -14,6 +14,9 @@ Measures, all read-only:
   * agreement -- how much each pair of arms retrieves the same top-k people
   * threshold sweep -- how many matches the production search would return at
     each threshold, with and without its exact-string condition filter
+  * against human labels -- once pairs have been labelled with
+    label_similar_pairs.py, how each arm ranks pairs judged similar (partner
+    rank) and separates them from pairs judged not similar (AUC)
 
 Nothing here calls OpenAI or writes anything.
 
@@ -37,11 +40,13 @@ from core.condition_taxonomy import normalize_conditions  # noqa: E402
 from core.embedding_privacy import AGE_BANDS  # noqa: E402
 from core.retrieval_eval import (  # noqa: E402
     arm_agreement,
+    auc,
     chance_jaccard,
     engineered_features,
     feature_sim,
     matches_at,
     mean_sim,
+    partner_rank,
     standardized_mean_sim,
     vector_sim,
 )
@@ -106,6 +111,64 @@ def load(sb):
                                    if missing else f"could not read field embeddings: {str(e)[:80]}")
     fields = [r for r in fields if r["user_id"] in real]
     return real, emb, prefs, fields, fields_note
+
+
+def score_against_labels(r: Report, sb, pool: List[str], arms: Dict) -> None:
+    """How well each arm agrees with pairs a team member judged similar or not.
+
+    Two numbers per arm:
+      * partner rank -- for pairs labelled similar, where each person ranks
+        the other among everyone (1 = nearest). Lower is better.
+      * AUC -- the chance a similar pair scores above a not-similar pair.
+        0.5 is chance. Needs both kinds of label.
+    """
+    r()
+    r("## Against human labels")
+    r()
+    try:
+        labels = fetch_all(sb, "pattern_similarity_labels", "user_a, user_b, label, labeled_by")
+    except Exception:
+        r("Not run: `pattern_similarity_labels` does not exist yet (STEP 44). Label pairs with "
+          "`python -m scripts.label_similar_pairs --labeler <name>` once it is applied.")
+        return
+    in_pool = set(pool)
+    usable = [x for x in labels if x["user_a"] in in_pool and x["user_b"] in in_pool]
+    if not usable:
+        r(f"Not run: {len(labels)} label(s) stored, none for pairs in the current pool. "
+          "Label pairs with `python -m scripts.label_similar_pairs --labeler <name>`.")
+        return
+
+    pos = [(x["user_a"], x["user_b"]) for x in usable if x["label"] == "similar"]
+    neg = [(x["user_a"], x["user_b"]) for x in usable if x["label"] == "not_similar"]
+    labelers = Counter(x["labeled_by"] for x in usable)
+    r(f"{len(usable)} usable labels ({len(pos)} similar, {len(neg)} not similar) from "
+      f"{len(labelers)} labeller(s); {len(labels) - len(usable)} skipped (pair not in pool).")
+
+    # Inter-rater agreement, where more than one person labelled the same pair.
+    labels_by_pair: Dict[tuple, List[str]] = {}
+    for x in usable:
+        labels_by_pair.setdefault((x["user_a"], x["user_b"]), []).append(x["label"])
+    shared = {p: ls for p, ls in labels_by_pair.items() if len(ls) >= 2}
+    if shared:
+        agree = sum(1 for ls in shared.values() if len(set(ls)) == 1)
+        r(f"Pairs labelled by more than one person: {len(shared)}; they agreed on {agree}.")
+
+    r()
+    r("| arm | mean partner rank, similar pairs (1 = nearest) | AUC similar vs not |")
+    r("|---|---|---|")
+    for name, sim in arms.items():
+        ranks = [x for x in (partner_rank(a, b, pool, sim) for a, b in pos) if x is not None]
+        pos_s = [s for s in (sim(a, b) for a, b in pos) if s is not None]
+        neg_s = [s for s in (sim(a, b) for a, b in neg) if s is not None]
+        area = auc(pos_s, neg_s)
+        rank_cell = f"{sum(ranks) / len(ranks):.1f} of {len(pool) - 1}" if ranks else "—"
+        auc_cell = f"{area:.2f}" if area is not None else "— (needs both labels)"
+        r(f"| {name} | {rank_cell} | {auc_cell} |")
+    r()
+    r(f"**Read with care:** with {len(usable)} labels, differences between arms are "
+      "not statistically meaningful. One pair changing its label can reorder the table. "
+      "Treat this as a sanity check on direction, and grow the label set before "
+      "choosing a representation on it.")
 
 
 def run(args) -> Report:
@@ -195,6 +258,9 @@ def run(args) -> Report:
       "0.84–1.0 while feature cosines span 0–1, the feature arm dominates it. "
       "*3 concat (scaled)* z-scores each arm over the pool first so both have an equal "
       "say. Compare arms against the scaled version.")
+
+    # ---- Against human labels (item 4) ---------------------------------------
+    score_against_labels(r, sb, pool, arms)
 
     # ---- Similarity range of the stored vectors ------------------------------
     pair_sims = [arms["1 text"](a, b) for i, a in enumerate(pool) for b in pool[i + 1:]]
