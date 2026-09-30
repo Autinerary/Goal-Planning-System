@@ -2,19 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
- * GET /api/me/movement
- * Returns the signed-in user's stored movement log (navigation order) so it can
- * be restored on a new device. Returns null when not authenticated.
+ * Helper to get user from Authorization header OR cookie session.
  */
-export async function GET() {
+async function getAuthenticatedUser(req: NextRequest) {
   const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  
+  // 1. Try reading standard cookie session first
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  if (cookieUser) return { user: cookieUser, supabase }
 
-  if (authError || !user) {
-    return NextResponse.json({ movement: null })
+  // 2. Fall back to Authorization: Bearer <token> header from fetchWithAuth
+  const authHeader = req.headers.get('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1]
+    const { data: { user: tokenUser }, error } = await supabase.auth.getUser(token)
+    if (!error && tokenUser) {
+      return { user: tokenUser, supabase }
+    }
+  }
+
+  return { user: null, supabase }
+}
+
+/**
+ * GET /api/me/movement
+ */
+export async function GET(req: NextRequest) {
+  const { user, supabase } = await getAuthenticatedUser(req)
+
+  if (!user) {
+    return NextResponse.json({ movement: null }, { status: 401 })
   }
 
   const { data, error } = await supabase
@@ -32,20 +49,11 @@ export async function GET() {
 
 /**
  * POST /api/me/movement
- * Persist the signed-in user's movement log to their profiles row for
- * cross-device analytics. The client sends the full (trimmed) visit list; we
- * store the latest snapshot plus a readable summary and timestamp.
- *
- * Body: { visits: [{ path, label, at }], summary?: string }
  */
 export async function POST(req: NextRequest) {
-  const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { user, supabase } = await getAuthenticatedUser(req)
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
 
-  // Keep the payload bounded to protect the row size.
+  // Keep payload bounded to protect row size
   const trimmed = visits.slice(-500)
   const summary =
     typeof body.summary === 'string'
