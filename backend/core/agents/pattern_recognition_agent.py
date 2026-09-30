@@ -16,6 +16,7 @@ import os
 from typing import List, Dict, Any, Optional
 
 from core.agents.base_agent import BaseAgent
+from core.embedding_privacy import EMBEDDING_TEXT_VERSION, build_embedding_text
 from database.supabase_client import get_supabase
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -82,13 +83,17 @@ class PatternRecognitionAgent(BaseAgent):
         # the number quietly wrong.
         requested = 10
 
-        # Search for similar users in the vector database
-        similar_users = await self._vector_search(
-            embedding=user_embedding,
-            top_k=requested,
-            filters={'barriers': barriers},
-            query_user_id=user_id,
-        )
+        # No embedding means no search. Querying with a placeholder vector
+        # returns matches that have nothing to do with this person.
+        if user_embedding is None:
+            similar_users = []
+        else:
+            similar_users = await self._vector_search(
+                embedding=user_embedding,
+                top_k=requested,
+                filters={'barriers': barriers},
+                query_user_id=user_id,
+            )
 
         # Keep retrieved ids for auditing only. They are not rewarded from a
         # broad reflection because that would not establish causality.
@@ -136,21 +141,37 @@ class PatternRecognitionAgent(BaseAgent):
         profile: dict,
         goals: List[str],
         barriers: List[str],
-    ) -> List[float]:
-        """Generate embedding vector for a user profile."""
-        if self._openai_client:
-            try:
-                text = f"barriers: {', '.join(barriers)}. goals: {', '.join(goals)}. profile: {profile}"
-                response = await self._openai_client.embeddings.create(
-                    model="text-embedding-ada-002",
-                    input=text,
-                )
-                return response.data[0].embedding
-            except Exception:
-                pass
-        # Fallback: mock embedding (matches ada-002 dimension so writes/queries
-        # against the pgvector column still succeed in simulation mode).
-        return [0.1] * EMBEDDING_DIM
+    ) -> Optional[List[float]]:
+        """Embed a profile, or return None if that is not possible.
+
+        The text sent to OpenAI comes from build_embedding_text, which uses
+        only normalised conditions, allow-listed goal words, a coarse age band
+        and the motivation option. It used to be the stringified onboarding
+        dict, which carried the user's email and id to a third party on every
+        call. Raw fields are still stored in our own database unchanged.
+
+        On failure this returns None rather than a placeholder vector. The old
+        fallback returned [0.1] * 1536 and upsert stored it: every user indexed
+        that way would sit at cosine 1.0 from every other one, a cluster of
+        perfect matches that are not similar at all. None of the 61 stored
+        vectors is that placeholder today; this keeps it that way.
+        """
+        if not self._openai_client:
+            return None
+        text = build_embedding_text(barriers=barriers, goals=goals, profile=profile)
+        try:
+            response = await self._openai_client.embeddings.create(
+                model="text-embedding-ada-002",
+                input=text,
+            )
+            vector = response.data[0].embedding
+        except Exception as e:
+            print(f"[pattern_recognition] embedding failed: {e}")
+            return None
+        if len(vector) != EMBEDDING_DIM:
+            print(f"[pattern_recognition] unexpected embedding size {len(vector)}")
+            return None
+        return vector
 
     async def _vector_search(
         self,
@@ -257,7 +278,14 @@ class PatternRecognitionAgent(BaseAgent):
                 goals=goals,
                 barriers=barriers,
             )
+            if embedding is None:
+                # Leave any existing row alone rather than overwrite it with
+                # nothing useful; the user can be re-indexed later.
+                print(f"[pattern_recognition] not indexing {user_id}: no embedding")
+                return False
 
+            # Raw barriers and goals are stored exactly as before -- only the
+            # text sent out for embedding was anonymised.
             row: Dict[str, Any] = {
                 'user_id': str(user_id),
                 'embedding': embedding,
@@ -265,15 +293,30 @@ class PatternRecognitionAgent(BaseAgent):
                 'goals': [str(g) for g in goals],
                 'success_rate': float(success_rate),
                 'journey': journey or f"Goals: {', '.join(goals)}",
+                # Which text the vector was built from. Vectors from different
+                # text versions are not comparable; this is how the backfill
+                # and the experiments tell them apart.
+                'embedding_text_version': EMBEDDING_TEXT_VERSION,
             }
             motivation = user_profile.get('motivationType')
             if motivation:
                 row['motivation_type'] = str(motivation)
 
-            self.supabase.table('pattern_user_embeddings').upsert(
-                row,
-                on_conflict='user_id',
-            ).execute()
+            try:
+                self.supabase.table('pattern_user_embeddings').upsert(
+                    row,
+                    on_conflict='user_id',
+                ).execute()
+            except Exception as e:
+                # Deployed before STEP 42 added the column: still index the
+                # user rather than fail onboarding over a bookkeeping field.
+                if 'embedding_text_version' not in str(e):
+                    raise
+                row.pop('embedding_text_version')
+                self.supabase.table('pattern_user_embeddings').upsert(
+                    row,
+                    on_conflict='user_id',
+                ).execute()
             print(f"   \u2713 Indexed user {user_id} in pgvector")
             return True
         except Exception as e:
