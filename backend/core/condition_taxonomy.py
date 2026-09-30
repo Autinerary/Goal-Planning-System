@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 # Category -> the phrase used for it when the specific condition is withheld.
 CATEGORY_PHRASES: Dict[str, str] = {
@@ -273,3 +273,30 @@ def normalize_conditions(raw_list) -> Tuple[List[Condition], Dict[str, int]]:
             out.append(r.condition)
     out.sort(key=lambda c: c.key)
     return out, counts
+
+
+# Prefix for free-text keys, so a typed label can never collide with a
+# canonical key (e.g. a user typing "eds" is not the same as the key "eds").
+FREE_TEXT_KEY_PREFIX = "text:"
+
+
+def match_keys(raw_list) -> Set[str]:
+    """Keys two people must share to count as having a condition in common.
+
+    Known conditions map to their canonical key, so "ADHD", "adhd" and
+    "Attention Deficit Hyperactivity Disorder" all match each other. Free text
+    matches only the same text after normalising case and spacing, which is
+    what the exact-string filter did before, minus the case sensitivity.
+
+    Placeholders ("Prefer not to share", "No current barriers") and blanks
+    produce no key: two people who both declined to answer have nothing in
+    common on this basis.
+    """
+    keys: Set[str] = set()
+    for raw in raw_list or []:
+        r = normalize_condition(raw)
+        if r.condition:
+            keys.add(r.condition.key)
+        elif r.kind == "free_text":
+            keys.add(FREE_TEXT_KEY_PREFIX + _norm(str(raw)))
+    return keys
