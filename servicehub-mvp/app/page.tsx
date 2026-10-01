@@ -21,6 +21,7 @@ import {
   getRecommendedResources
 } from '@/lib/resources/recommendations'
 import DiscoveryCard from '@/components/agents/DiscoveryCard'
+import SetLocationPrompt from '@/components/resources/SetLocationPrompt'
 import PersonalizedBanner from '@/components/agents/PersonalizedBanner'
 import type { Location } from '@/types/database'
 import Link from 'next/link'
@@ -378,6 +379,9 @@ async function RecommendedSection() {
     // RecommendationResult component handles empty state
     return (
       <section className="mb-12" aria-labelledby="recommended-heading">
+        {/* No coordinates means "near you" cannot work. 0,0 counts as none:
+            ResourceHub onboarding writes it when geocoding fails. */}
+        {!(location?.lat && location?.lng) && <SetLocationPrompt />}
         <RecommendationResult
           resources={finalResources}
           explanations={finalExplanations}
