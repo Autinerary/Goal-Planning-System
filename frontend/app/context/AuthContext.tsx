@@ -189,20 +189,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: body.message || body.detail || body.error || 'Login failed' }
       }
 
+      // The route signs in on the server, which leaves the browser's Supabase
+      // client with no session. Path generation, reflections and model usage
+      // all read their backend token from that client (getSession), so without
+      // this step a freshly logged-in user reached the backend with no token
+      // and got "Sign-in required." Hand the route's session to the client;
+      // when the route answered from FastAPI instead (not a Supabase session),
+      // sign the browser in directly, the same way signup does.
+      let sessionUser: SupabaseUser | null = null
+      if (supabase) {
+        const s = body.session
+        if (s?.access_token && s?.refresh_token) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: s.access_token,
+            refresh_token: s.refresh_token,
+          })
+          if (!error) sessionUser = data.user
+        }
+        if (!sessionUser) {
+          const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
+          if (error) return { success: false, error: error.message }
+          sessionUser = data.user
+        }
+      }
+
       // Store JWT token if returned
       const token = body.access_token || body.token || body.session?.access_token
       if (token) {
         localStorage.setItem('access_token', token)
       }
 
-      // Build user profile object
+      // Build user profile object. Prefer the real Supabase user: the route's
+      // fallbacks ('user_id', onboarding defaulting to done) are guesses.
       const userData = body.user || body
-      const userProfile: User = {
-        id: userData.id || 'user_id',
-        email: userData.email || normalizedEmail,
-        name: userData.name || userData.full_name,
-        hasCompletedOnboarding: Boolean(userData.hasCompletedOnboarding ?? true),
-      }
+      const userProfile: User = sessionUser
+        ? profileFromSupabase(sessionUser)
+        : {
+            id: userData.id || 'user_id',
+            email: userData.email || normalizedEmail,
+            name: userData.name || userData.full_name,
+            hasCompletedOnboarding: Boolean(userData.hasCompletedOnboarding ?? true),
+          }
 
       // Persist user profile to state and localStorage to preserve session across reloads
       localStorage.setItem('app_user', JSON.stringify(userProfile))
@@ -213,7 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', err)
       return { success: false, error: 'Network error during login' }
     }
-  }, [])
+  }, [supabase])
 
   const logout = useCallback(async () => {
     try {
