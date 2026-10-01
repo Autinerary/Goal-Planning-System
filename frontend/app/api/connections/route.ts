@@ -9,28 +9,36 @@ function isCategory(value: unknown): value is Category {
 }
 
 /**
+ * Helper to get user from Authorization header OR cookie session.
+ */
+async function getAuthenticatedUser(req: NextRequest) {
+  const supabase = createServerSupabase()
+
+  // 1. Try reading standard cookie session first
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  if (cookieUser) return { user: cookieUser, supabase }
+
+  // 2. Fall back to Authorization: Bearer <token> header from fetchWithAuth
+  const authHeader = req.headers.get('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1]
+    const { data: { user: tokenUser }, error } = await supabase.auth.getUser(token)
+    if (!error && tokenUser) {
+      return { user: tokenUser, supabase }
+    }
+  }
+
+  return { user: null, supabase }
+}
+
+/**
  * GET /api/connections
  * Returns the signed-in user's social connections grouped by category.
- *
- * Includes BOTH:
- *   (a) rows the user created themselves (owner_id = me) — free-form or
- *       outgoing-pending or matched
- *   (b) rows where someone else added the user as their friend and the user
- *       has accepted (target_user_id = me AND status = 'connected') — so
- *       Facebook-style accepted friendships appear in both peoples' lists
- *       from a single canonical row.
- *
- * For (b) we flip the perspective: the friend card displays the OTHER user's
- * profile (display_name / avatar / dream) rather than the row's stored name.
  */
-export async function GET(_req: NextRequest) {
-  const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+export async function GET(req: NextRequest) {
+  const { user, supabase } = await getAuthenticatedUser(req)
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
@@ -76,8 +84,7 @@ export async function GET(_req: NextRequest) {
 
   const grouped: Record<Category, any[]> = { friends: [], mentors: [], rolemodels: [] }
 
-  // (a) own rows: prefer the linked profile's display name/avatar when present,
-  // otherwise show the free-form name/icon the user typed.
+  // (a) own rows
   for (const row of ownRows || []) {
     if (!isCategory(row.category)) continue
     const linkedProfile = row.target_user_id ? profilesById[row.target_user_id] : null
@@ -94,7 +101,7 @@ export async function GET(_req: NextRequest) {
     })
   }
 
-  // (b) inbound connected rows: render the requester's profile
+  // (b) inbound connected rows
   for (const row of inboundRows || []) {
     if (!isCategory(row.category)) continue
     const requesterProfile = row.owner_id ? profilesById[row.owner_id] : null
@@ -104,7 +111,7 @@ export async function GET(_req: NextRequest) {
       role: row.role,
       status: row.status,
       icon: requesterProfile?.avatar_emoji || row.icon,
-      target_user_id: row.owner_id, // from THIS user's perspective the other person is the requester
+      target_user_id: row.owner_id,
       match_dream: row.match_dream,
       friend_dream: requesterProfile?.dream || null,
       direction: 'incoming',
@@ -116,16 +123,11 @@ export async function GET(_req: NextRequest) {
 
 /**
  * POST /api/connections
- * Body: { category, name, role?, status?, icon?, target_user_id?, match_dream? }
  */
 export async function POST(req: NextRequest) {
-  const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { user, supabase } = await getAuthenticatedUser(req)
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
@@ -150,10 +152,6 @@ export async function POST(req: NextRequest) {
 
   const hasRealTarget = typeof target_user_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target_user_id)
 
-  // Default status logic:
-  //   - request to a real user  -> 'pending' (they must accept)
-  //   - free-form / manual entry -> 'connected' (no acceptance flow)
-  //   - explicit 'matched' from the Match modal -> preserved as 'matched'
   const defaultStatus = status === 'matched' ? 'matched' : hasRealTarget ? 'pending' : 'connected'
 
   const insertRow = {
@@ -167,7 +165,6 @@ export async function POST(req: NextRequest) {
     match_dream: typeof match_dream === 'string' ? match_dream.slice(0, 500) : null,
   }
 
-  // Prevent duplicate outgoing requests to the same real user
   if (hasRealTarget) {
     const { data: existing } = await supabase
       .from('social_connections')

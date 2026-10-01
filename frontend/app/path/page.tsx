@@ -36,7 +36,7 @@ interface PathData {
 
 export default function PathView() {
   const router = useRouter()
-  const { supabaseUser } = useAuth()
+  const { supabaseUser, fetchWithAuth } = useAuth()
   const { isSimple, level, setOverride } = useDisclosure()
   // Reshuffle the motivational message on every visit (new mount = new seed),
   // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
@@ -113,18 +113,20 @@ export default function PathView() {
         //    of the Next.js app) and holds the path the backend already wrote,
         //    so the Path renders even when FastAPI is asleep/down (Render free
         //    tier sleeps) or not running locally — matching AgentPathContext.
-        try {
-          const meRes = await fetch('/api/me/path', { cache: 'no-store', credentials: 'include' })
-          if (meRes.ok) {
-            const json = await meRes.json()
-            if (json?.payload) {
-              setPathData(json.payload)
-              return
-            }
-          }
-        } catch {
-          /* fall through to FastAPI */
-        }
+        
+try {
+  // Replace standard fetch with fetchWithAuth (token attached automatically)
+  const meRes = await fetchWithAuth('/api/me/path', { cache: 'no-store' })
+  if (meRes.ok) {
+    const json = await meRes.json()
+    if (json?.payload) {
+      setPathData(json.payload)
+      return
+    }
+  }
+} catch {
+  /* fall through to FastAPI */
+}
 
         // 2. FastAPI fallback (local dev with the backend up, or a path not yet
         //    mirrored into Supabase).
@@ -272,14 +274,17 @@ export default function PathView() {
   // the same source Pit Stop / Hare World manages. No sample people.
   const rm0 = { friends: [], mentors: [], rolemodels: [] } as Record<string, any[]>
   const [connections, setConnections] = useState<Record<string, any[]>>(rm0)
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/connections', { credentials: 'include', cache: 'no-store' })
-      .then(r => (r.ok ? r.json() : null))
-      .then(j => { if (!cancelled && j?.connections) setConnections(j.connections) })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+  // NEW CODE
+useEffect(() => {
+  let cancelled = false
+
+  fetchWithAuth('/api/connections', { cache: 'no-store' })
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => { if (!cancelled && j?.connections) setConnections(j.connections) })
+    .catch(() => {})
+
+  return () => { cancelled = true }
+}, [fetchWithAuth])
   const roleModels = connections.rolemodels || []
   const mentors = connections.mentors || []
   const friendsFam = connections.friends || []

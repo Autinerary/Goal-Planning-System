@@ -2,21 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
+ * Helper to get user from Authorization header OR cookie session.
+ */
+async function getAuthenticatedUser(req: NextRequest) {
+  const supabase = createServerSupabase()
+
+  // 1. Try reading standard cookie session first
+  const { data: { user: cookieUser } } = await supabase.auth.getUser()
+  if (cookieUser) return { user: cookieUser, supabase }
+
+  // 2. Fall back to Authorization: Bearer <token> header from fetchWithAuth
+  const authHeader = req.headers.get('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1]
+    const { data: { user: tokenUser }, error } = await supabase.auth.getUser(token)
+    if (!error && tokenUser) {
+      return { user: tokenUser, supabase }
+    }
+  }
+
+  return { user: null, supabase }
+}
+
+/**
  * GET /api/me/path
  * Returns the signed-in user's multi-agent path payload from public.user_paths.
- * This is the direct-from-Supabase replacement for the FastAPI /api/onboarding/*
- * endpoints, which aren't deployed alongside the Next.js app on Vercel.
- *
- * Response: { payload: <jsonb> | null, path_id: string | null, updated_at: string | null }
  */
-export async function GET(_req: NextRequest) {
-  const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+export async function GET(req: NextRequest) {
+  const { user, supabase } = await getAuthenticatedUser(req)
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
@@ -48,19 +63,12 @@ export async function GET(_req: NextRequest) {
 
 /**
  * PUT /api/me/path
- * Upserts the caller's path payload. Used when a path is generated client-side
- * or when we want to mirror what FastAPI wrote.
- *
- * Body: { path_id: string, payload: any }
+ * Upserts the caller's path payload.
  */
 export async function PUT(req: NextRequest) {
-  const supabase = createServerSupabase()
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { user, supabase } = await getAuthenticatedUser(req)
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
