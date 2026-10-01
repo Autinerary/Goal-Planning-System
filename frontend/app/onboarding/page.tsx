@@ -1275,6 +1275,10 @@ export default function OnboardingPage() {
         dreamAppearance: formData.dreamAppearance,
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
       }).catch(() => {})
+      // Save the location to the profile so ResourceHub can recommend places
+      // near this person. The ResourceHub hand-off above is unauthenticated
+      // and never saved it. Bounded and best-effort: never holds up the path.
+      await axios.post('/api/me/location', formData.location, { timeout: 8000 }).catch(() => {})
       clearAutosave()
       router.push('/onboarding-confirmation')
     } catch (error: any) {
