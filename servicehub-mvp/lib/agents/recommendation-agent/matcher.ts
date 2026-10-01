@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getRatingsByResource } from '@/lib/supabase/queries'
 import type { SimilarUser, CandidateResource, Resource, Location } from './types'
+import { fetchNearbyApprovedResources, NEARBY_FETCH_LIMIT } from './nearby'
 
 /**
  * Get candidate resources rated highly by similar users
@@ -115,13 +116,24 @@ export async function getFallbackCandidateResources(
   const supabase = createClient()
 
   try {
-    const { data: resources, error } = await supabase
-      .from('resources')
-      .select('*')
-      .eq('status', 'approved')
-      .limit(200)
+    // With coordinates, fetch from around the user. Without them (or when
+    // nothing approved is within NEARBY_RADII_KM) there is no "near" to use,
+    // so take approved resources unfiltered as before.
+    let resources: any[] = []
+    if (location?.lat && location?.lng) {
+      resources = (await fetchNearbyApprovedResources(supabase, location)).resources
+    }
+    if (resources.length === 0) {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .eq('status', 'approved')
+        .limit(NEARBY_FETCH_LIMIT)
+      if (error || !data) return []
+      resources = data
+    }
 
-    if (error || !resources || resources.length === 0) {
+    if (resources.length === 0) {
       return []
     }
 
