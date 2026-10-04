@@ -3,6 +3,7 @@ import { createClient } from './server'
 import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
+import { searchWords, cleanTerm, inNameDescriptionOrCategory } from '@/lib/search/words'
 import { weightFor, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
 
 type SupabaseLike = SupabaseClient<any, any, any>
@@ -959,10 +960,9 @@ function calculateDistance(
   return R * c
 }
 
-// PostgREST takes a list of ids in the URL, and a long list fails outright:
-// 712 ids (one category's worth) came back HTTP 400, so ratings were silently
-// missing from big searches and the norms filters matched nothing. 200 ids is
-// about 7 KB, well under the limit with the session cookie included.
+// PostgREST takes lists of ids in the URL, and a long list fails outright:
+// 712 ids (one category's worth) came back HTTP 400. 200 ids is about 7 KB,
+// well under the limit with the session cookie included.
 const ID_BATCH = 200
 
 /** Run a lookup over many ids in parallel batches, and join the rows. */
@@ -972,44 +972,89 @@ async function inBatches<T>(ids: string[], fetchRows: (batch: string[]) => Promi
   return (await Promise.all(batches.map(fetchRows))).flat()
 }
 
-/**
- * Get aggregated rating statistics for resources. Throws if any batch fails,
- * so a partial answer is never mistaken for a complete one.
- */
-async function getResourceRatings(resourceIds: string[]): Promise<Map<string, { averageRating: number; ratingCount: number }>> {
-  if (resourceIds.length === 0) return new Map()
+// PostgREST returns at most 1,000 rows per request, and search used to stop
+// there: with 9,542 venues, every filter applied after that saw a tenth of the
+// catalogue, so a condition filter on its own usually found nothing. Matches
+// are now read in pages of 1,000, in id order so pages never overlap.
+const PAGE_ROWS = 1000
+const MAX_MATCHES = 20000
 
-  const supabase = createClient()
-  const ratings = await inBatches(resourceIds, async (batch) => {
-    const { data, error } = await supabase
-      .from('ratings')
-      .select('resource_id, overall_score')
-      .in('resource_id', batch)
-    if (error) throw error
-    return data || []
-  })
+type Page = PromiseLike<{ data: any[] | null; error: unknown; count?: number | null }>
 
-  const ratingMap = new Map<string, { averageRating: number; ratingCount: number }>()
+async function readAll(page: (from: number, to: number, withCount: boolean) => Page): Promise<any[]> {
+  const first = await page(0, PAGE_ROWS - 1, true)
+  if (first.error) throw first.error
+  const rows = [...(first.data || [])]
+  const total = Math.min(first.count ?? rows.length, MAX_MATCHES)
+  if (rows.length >= total) return rows
+  const rest: Page[] = []
+  for (let from = PAGE_ROWS; from < total; from += PAGE_ROWS) {
+    rest.push(page(from, Math.min(from + PAGE_ROWS, total) - 1, false))
+  }
+  for (const next of await Promise.all(rest)) {
+    if (next.error) throw next.error
+    rows.push(...(next.data || []))
+  }
+  return rows
+}
 
-  // Group ratings by resource
-  const resourceRatings = new Map<string, number[]>()
-  for (const rating of ratings) {
-    if (!resourceRatings.has(rating.resource_id)) {
-      resourceRatings.set(rating.resource_id, [])
+interface RatingIndex {
+  /** Average score and number of ratings, per resource. */
+  stats: Map<string, { averageRating: number; ratingCount: number }>
+  /** The norm keys in each resource's ratings (barrier_scores), as stored. */
+  normKeys: Map<string, Set<string>>
+}
+
+// Every rating is read once a minute and shared, instead of looking up ratings
+// for each search's matches (521 ratings today).
+const ratingIndexCache = sharedCache<RatingIndex>({ ttlMs: 60_000, maxEntries: 1 })
+
+function ratingIndex(): Promise<RatingIndex> {
+  return ratingIndexCache('all', async () => {
+    const supabase = createClient()
+    const rows = await readAll((from, to, withCount) =>
+      supabase
+        .from('ratings')
+        .select('resource_id, overall_score, barrier_scores', withCount ? { count: 'exact' } : undefined)
+        .order('id')
+        .range(from, to)
+    )
+    const sums = new Map<string, { sum: number; count: number }>()
+    const normKeys = new Map<string, Set<string>>()
+    for (const r of rows) {
+      const s = sums.get(r.resource_id) || { sum: 0, count: 0 }
+      s.sum += r.overall_score
+      s.count += 1
+      sums.set(r.resource_id, s)
+      if (r.barrier_scores) {
+        const keys = normKeys.get(r.resource_id) || new Set<string>()
+        for (const key of Object.keys(r.barrier_scores)) keys.add(key)
+        normKeys.set(r.resource_id, keys)
+      }
     }
-    resourceRatings.get(rating.resource_id)!.push(rating.overall_score)
-  }
+    const stats = new Map<string, { averageRating: number; ratingCount: number }>()
+    for (const [id, s] of sums) stats.set(id, { averageRating: s.sum / s.count, ratingCount: s.count })
+    return { stats, normKeys }
+  })
+}
 
-  // Calculate averages
-  for (const [resourceId, scores] of resourceRatings.entries()) {
-    const averageRating = scores.reduce((a, b) => a + b, 0) / scores.length
-    ratingMap.set(resourceId, {
-      averageRating,
-      ratingCount: scores.length,
-    })
+/**
+ * The keys a condition filter matches: 'autism:level_2' matches 'autism',
+ * 'level_2' and 'autism_level_2'.
+ */
+function conditionKeys(tokens: string[]): Set<string> {
+  const keys = new Set<string>()
+  for (const token of tokens) {
+    const colon = token.indexOf(':')
+    const id = colon === -1 ? token : token.slice(0, colon)
+    const sub = colon === -1 ? undefined : token.slice(colon + 1)
+    keys.add(id.toLowerCase())
+    if (sub) {
+      keys.add(sub.toLowerCase())
+      keys.add(`${id}_${sub}`.toLowerCase())
+    }
   }
-
-  return ratingMap
+  return keys
 }
 
 /**
@@ -1027,13 +1072,14 @@ export async function searchResources(
 ): Promise<{ results: SearchResult[]; total: number; page: number; pageSize: number }> {
   const offset = (page - 1) * pageSize
   const { userLocation, maxDistance, ...shared } = filters
+  const words = searchWords(filters.query)
 
   // Which venues match, with their ratings, is the same for everyone with the
   // same filters and is the slow part, so it is shared (lib/cache/shared.ts).
   // Only distance depends on the person, and it is added after.
   let matched: SearchResult[]
   try {
-    matched = await matchCache(cacheKey(shared), (dontKeep) => matchResources(shared, dontKeep))
+    matched = await matchCache(cacheKey(shared), () => matchResources(shared))
   } catch (error) {
     console.error('Error searching resources:', error)
     return { results: [], total: 0, page, pageSize }
@@ -1105,12 +1151,12 @@ export async function searchResources(
         // Relevance scoring: name match > description match > rating > reviews.
         let aScore = 0
         let bScore = 0
-        if (filters.query) {
-          const q = filters.query.toLowerCase()
-          aScore += a.name.toLowerCase().includes(q) ? 10 : 0
-          bScore += b.name.toLowerCase().includes(q) ? 10 : 0
-          aScore += a.description?.toLowerCase().includes(q) ? 5 : 0
-          bScore += b.description?.toLowerCase().includes(q) ? 5 : 0
+        // Each search word in the name counts more than in the description.
+        for (const w of words) {
+          aScore += a.name.toLowerCase().includes(w) ? 10 : 0
+          bScore += b.name.toLowerCase().includes(w) ? 10 : 0
+          aScore += a.description?.toLowerCase().includes(w) ? 5 : 0
+          bScore += b.description?.toLowerCase().includes(w) ? 5 : 0
         }
         aScore += a.averageRating
         bScore += b.averageRating
@@ -1128,9 +1174,17 @@ export async function searchResources(
     return 0
   })
 
-  // Apply pagination
+  // Apply pagination. Matching reads only the columns needed to filter and
+  // sort; the full rows are read for the page being shown.
   const total = results.length
-  const paginatedResults = results.slice(offset, offset + pageSize)
+  const pageRows = results.slice(offset, offset + pageSize)
+  let full: Record<string, Resource> = {}
+  try {
+    full = await fullRows(pageRows.map((r) => r.id))
+  } catch (error) {
+    console.error('Error loading resources for the page:', error)
+  }
+  const paginatedResults = pageRows.map((r) => ({ ...(full[r.id] || {}), ...r }) as SearchResult)
 
   return {
     results: paginatedResults,
@@ -1142,238 +1196,203 @@ export async function searchResources(
 
 type SharedSearchFilters = Omit<SearchFilters, 'userLocation' | 'maxDistance'>
 
-// A minute is short enough that new venues and ratings show up quickly, and
-// long enough to absorb a burst. 40 entries of up to 1,000 rows (about 1 MB
-// each as JSON) bounds the memory.
-const matchCache = sharedCache<SearchResult[]>({ ttlMs: 60_000, maxEntries: 40 })
+// Columns needed to filter, sort and work out distance.
+const MATCH_COLUMNS = 'id, name, description, category, location, price, created_at'
 
-/** Rating rows with norm scores for these resources (batched). */
-async function barrierScoresFor(
-  resourceIds: string[],
-  dontKeep: () => void
-): Promise<{ resource_id: string; barrier_scores: unknown }[]> {
-  const supabase = createClient()
-  try {
-    return await inBatches(resourceIds, async (batch) => {
-      const { data, error } = await supabase
-        .from('ratings')
-        .select('resource_id, barrier_scores')
-        .in('resource_id', batch)
-        .not('barrier_scores', 'is', null)
+// Light rows (MATCH_COLUMNS), so even a match on every venue is a few MB.
+const matchCache = sharedCache<SearchResult[]>({ ttlMs: 60_000, maxEntries: 20 })
+
+// Full rows for the pages being shown.
+const rowCache = sharedCache<Record<string, Resource>>({ ttlMs: 60_000, maxEntries: 300 })
+
+function fullRows(ids: string[]): Promise<Record<string, Resource>> {
+  if (ids.length === 0) return Promise.resolve({})
+  return rowCache(cacheKey([...ids].sort()), async () => {
+    const supabase = createClient()
+    const rows = await inBatches(ids, async (batch) => {
+      const { data, error } = await supabase.from('resources').select('*').in('id', batch)
       if (error) throw error
       return data || []
     })
-  } catch (error) {
-    // As before, a failed lookup matches nothing; it is just not cached.
-    console.error('Error loading norm scores:', error)
-    dontKeep()
-    return []
-  }
+    return Object.fromEntries(rows.map((r) => [r.id, r as Resource]))
+  })
 }
 
 /**
- * The venues matching everything except distance, with their ratings. The same
- * for everyone (approved venues and ratings are public), so it is cached.
- * Throws if the venue query itself fails.
+ * The venues matching everything except distance, with their ratings. The
+ * same for everyone (approved venues and ratings are public), so it is
+ * cached. Every filter runs in the database, so all matches are found, not
+ * just those among the first 1,000 rows. Throws if a query fails.
  */
-async function matchResources(filters: SharedSearchFilters, dontKeep: () => void): Promise<SearchResult[]> {
-  const supabase = createClient()
+async function matchResources(filters: SharedSearchFilters): Promise<SearchResult[]> {
+  const index = await ratingIndex()
+  const words = searchWords(filters.query)
 
-  // Start with base query - only approved resources by default
-  let query = supabase
-    .from('resources')
-    .select('*')
-    .eq('status', filters.status || 'approved')
+  // Filters that come from ratings narrow the venues to a list of ids.
+  let allowed: Set<string> | null = null
+  const narrow = (ids: string[]) => {
+    const next = new Set(ids)
+    allowed = allowed ? new Set(Array.from(allowed).filter((id) => next.has(id))) : next
+  }
 
-  // Text search - search in name, description, and category
-  if (filters.query && filters.query.trim()) {
-    const searchTerm = filters.query.trim()
-    query = query.or(
-      `name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`
+  // Minimum rating: explicit minRating wins, else the lowest selected
+  // rating-star bucket. Unrated venues only pass a minimum of 1 or less.
+  const effectiveMinRating =
+    filters.minRating ??
+    (filters.ratingStars && filters.ratingStars.length > 0 ? Math.min(...filters.ratingStars) : undefined)
+  if (effectiveMinRating && effectiveMinRating > 1) {
+    narrow(
+      Array.from(index.stats)
+        .filter(([, s]) => s.averageRating >= effectiveMinRating)
+        .map(([id]) => id)
     )
   }
 
-  // Category filter.
-  //
-  // Matched case-insensitively rather than with .in(), which is exact. The
-  // stored values are Title Case and sometimes multi-word -- 'Park',
-  // 'Community Center', 'Support Group' -- because that is what the importer
-  // and the submission form write. Everything that LINKS to a category uses a
-  // lowercase slug ('park'), so an exact .in() matched nothing and every
-  // category chip on the home page led to an empty page.
-  //
-  // Normalising the stored column instead would mean rewriting thousands of
-  // rows and changing what the admin queue displays, to fix what is really a
-  // comparison bug. ilike with no wildcards is an exact match that ignores
-  // case, so 'park', 'Park' and 'PARK' all find the same rows and no data has
-  // to move. The values are escaped for the PostgREST filter grammar because
-  // commas and parens are separators there.
-  if (filters.categories && filters.categories.length > 0) {
-    const escaped = filters.categories
-      .map((c) => String(c).replace(/["\\]/g, '\\$&'))
-      .map((c) => `category.ilike."${c}"`)
-    query = query.or(escaped.join(','))
-  }
-
-  // Age bands: overlaps() is an array-intersection test, so a resource
-  // matches if it serves ANY selected band. Resources with an empty
-  // age_ranges do not match — unknown is not the same as universal.
-  if (filters.ageRanges && filters.ageRanges.length > 0) {
-    query = query.overlaps('age_ranges', filters.ageRanges)
-  }
-
-  // "Autinerary's Own" is a plain column so it filters in the base query.
-  // rare / highly_requested come from save counts and are applied below,
-  // after the badge lookup.
-  if (filters.specialTags?.includes('first_party')) {
-    query = query.eq('is_first_party', true)
-  }
-
-  if (filters.sourceTypes && filters.sourceTypes.length > 0) {
-    query = query.in('source_type', filters.sourceTypes)
-  }
-
-  const { data: resourcesData, error } = await query
-  if (error) throw error
-  if (!resourcesData || resourcesData.length === 0) return []
-
-  let resources = resourcesData
-  let resourceIds = resources.map((r) => r.id)
-
-  // Get rating statistics. If they cannot be loaded, show the venues without
-  // ratings rather than nothing, and do not cache that.
-  let ratingMap = new Map<string, { averageRating: number; ratingCount: number }>()
-  try {
-    ratingMap = await getResourceRatings(resourceIds)
-  } catch (error) {
-    console.error('Error loading ratings:', error)
-    dontKeep()
-  }
-
-  // Filter by barrier types (if specified)
+  // Norms: at least one rating scored the venue for a selected norm.
   if (filters.barriers && filters.barriers.length > 0) {
-    // Get resources that have ratings with the specified barrier scores
-    const barrierRatings = await barrierScoresFor(resourceIds, dontKeep)
+    narrow(
+      Array.from(index.normKeys)
+        .filter(([, keys]) => filters.barriers!.some((b) => keys.has(b)))
+        .map(([id]) => id)
+    )
+  }
+  if (allowed !== null && (allowed as Set<string>).size === 0) return []
 
-    // Filter resources that have at least one rating with the specified barriers
-    const resourcesWithBarriers = new Set<string>()
-    barrierRatings?.forEach((rating) => {
-      if (rating.barrier_scores) {
-        const scores = rating.barrier_scores as { [key: string]: number }
-        // Check if any of the selected barriers exist in this rating's barrier_scores
-        const hasBarrier = filters.barriers!.some((barrier) => barrier in scores)
-        if (hasBarrier) {
-          resourcesWithBarriers.add(rating.resource_id)
-        }
-      }
-    })
+  // Conditions match a venue's own text, or the norm keys in its ratings.
+  const condKeys = filters.conditions && filters.conditions.length > 0 ? conditionKeys(filters.conditions) : null
+  const condIds = condKeys
+    ? Array.from(index.normKeys)
+        .filter(([, keys]) => Array.from(keys).some((k) => condKeys.has(k.toLowerCase())))
+        .map(([id]) => id)
+    : []
 
-    // Only keep resources that have ratings with the specified barriers
-    resources = resources.filter((r) => resourcesWithBarriers.has(r.id))
-    resourceIds = resources.map((r) => r.id)
+  let rows = await queryMatches(filters, words, 'all', allowed, condKeys, condIds)
+  // Nothing has every word: show venues with any of them, most words first.
+  if (rows.length === 0 && words.length > 1) {
+    rows = await queryMatches(filters, words, 'any', allowed, condKeys, condIds)
   }
 
-  // Filter by Conditions (static taxonomy tokens: 'autism', 'autism:level_2', …)
-  if (filters.conditions && filters.conditions.length > 0) {
-    // Build the flat set of match keys for all selected condition tokens.
-    const matchKeys = new Set<string>()
-    for (const token of filters.conditions) {
-      const colon = token.indexOf(':')
-      const id = colon === -1 ? token : token.slice(0, colon)
-      const sub = colon === -1 ? undefined : token.slice(colon + 1)
-      matchKeys.add(id.toLowerCase())
-      if (sub) {
-        matchKeys.add(sub.toLowerCase())
-        matchKeys.add(`${id}_${sub}`.toLowerCase())
-      }
-    }
-
-    // A resource matches if (a) one of its rating's barrier_scores keys hits
-    // the match set, OR (b) its name/description text contains a match key.
-    const barrierRatings = await barrierScoresFor(resourceIds, dontKeep)
-
-    const matchedByRatings = new Set<string>()
-    barrierRatings?.forEach((rating) => {
-      if (!rating.barrier_scores) return
-      const scores = rating.barrier_scores as { [key: string]: number }
-      const lowerKeys = Object.keys(scores).map((k) => k.toLowerCase())
-      if (lowerKeys.some((k) => matchKeys.has(k))) {
-        matchedByRatings.add(rating.resource_id)
-      }
-    })
-
-    resources = resources.filter((r) => {
-      if (matchedByRatings.has(r.id)) return true
-      const haystack = `${r.name || ''} ${r.description || ''} ${r.category || ''}`.toLowerCase()
-      for (const key of matchKeys) {
-        if (haystack.includes(key.replace(/_/g, ' '))) return true
-        if (haystack.includes(key)) return true
-      }
-      return false
-    })
-    resourceIds = resources.map((r) => r.id)
-  }
-
-  // Filter by Life area (folded-in Resource Roadmap domains). Best-effort:
-  // a resource matches if its name/description/category/tags text contains any
-  // keyword for the selected areas. Not-yet-tagged domains may match nothing.
-  if (filters.lifeAreas && filters.lifeAreas.length > 0) {
-    const keywords = lifeAreaKeywords(filters.lifeAreas)
-    if (keywords.length > 0) {
-      resources = resources.filter((r) => {
-        const tags = Array.isArray((r as any).tags) ? (r as any).tags.join(' ') : ''
-        const cats = Array.isArray((r as any).category_tags)
-          ? (r as any).category_tags.join(' ')
-          : ''
-        const haystack =
-          `${r.name || ''} ${r.description || ''} ${r.category || ''} ${tags} ${cats}`.toLowerCase()
-        return keywords.some((k) => haystack.includes(k))
-      })
-      resourceIds = resources.map((r) => r.id)
-    }
-  }
-
-  // Resolve effective minimum rating: explicit minRating wins, else the
-  // lowest selected rating-star bucket.
-  const effectiveMinRating =
-    filters.minRating ??
-    (filters.ratingStars && filters.ratingStars.length > 0
-      ? Math.min(...filters.ratingStars)
-      : undefined)
-
-  // Filter by minimum rating
-  let filteredResources = resources.filter((resource) => {
-    const ratings = ratingMap.get(resource.id)
-    if (!ratings) {
-      return !effectiveMinRating || effectiveMinRating <= 1 // Include unrated if min is 1 or less
-    }
-    return !effectiveMinRating || ratings.averageRating >= effectiveMinRating
-  })
-
-  // Filter by price range. NULL price (free / unspecified) is always shown
-  // when no minPrice is set; if minPrice > 0, NULL prices are excluded.
-  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    filteredResources = filteredResources.filter((resource) => {
-      const price = (resource as any).price as number | null | undefined
-      if (price === null || price === undefined) {
-        // Unpriced resource: only include when there's no min restriction (or min is 0)
-        return !filters.minPrice || filters.minPrice <= 0
-      }
-      if (filters.minPrice !== undefined && price < filters.minPrice) return false
-      if (filters.maxPrice !== undefined && price > filters.maxPrice) return false
-      return true
-    })
-  }
-
-  return filteredResources.map((resource) => {
-    const ratings = ratingMap.get(resource.id)
+  return rows.map((r) => {
+    const s = index.stats.get(r.id)
     return {
-      ...resource,
-      averageRating: ratings?.averageRating || 0,
-      ratingCount: ratings?.ratingCount || 0,
+      ...r,
+      averageRating: s?.averageRating || 0,
+      ratingCount: s?.ratingCount || 0,
       distance: undefined,
-    }
+    } as SearchResult
   })
+}
+
+/** All venues matching the filters, as light rows. */
+async function queryMatches(
+  filters: SharedSearchFilters,
+  words: string[],
+  mode: 'all' | 'any',
+  allowed: Set<string> | null,
+  condKeys: Set<string> | null,
+  condIds: string[]
+): Promise<any[]> {
+  const supabase = createClient()
+
+  const base = (withCount: boolean) => {
+    let query = supabase
+      .from('resources')
+      .select(MATCH_COLUMNS, withCount ? { count: 'exact' } : undefined)
+      .eq('status', filters.status || 'approved')
+
+    // Text: every word somewhere in the name, description or category (or,
+    // as the fallback, any of them).
+    if (words.length > 0) {
+      if (mode === 'all') {
+        for (const word of words) query = query.or(inNameDescriptionOrCategory([word]))
+      } else {
+        query = query.or(inNameDescriptionOrCategory(words))
+      }
+    }
+
+    // Category filter.
+    //
+    // Matched case-insensitively rather than with .in(), which is exact. The
+    // stored values are Title Case and sometimes multi-word -- 'Park',
+    // 'Community Center', 'Support Group' -- while everything that LINKS to a
+    // category uses a lowercase slug ('park'). ilike with no wildcards is an
+    // exact match that ignores case. Values are escaped for the PostgREST
+    // filter grammar because commas and parens are separators there.
+    if (filters.categories && filters.categories.length > 0) {
+      const escaped = filters.categories
+        .map((c) => String(c).replace(/["\\]/g, '\\$&'))
+        .map((c) => `category.ilike."${c}"`)
+      query = query.or(escaped.join(','))
+    }
+
+    // Age bands: a resource matches if it serves ANY selected band. Resources
+    // with an empty age_ranges do not match -- unknown is not universal.
+    if (filters.ageRanges && filters.ageRanges.length > 0) {
+      query = query.overlaps('age_ranges', filters.ageRanges)
+    }
+
+    // "Autinerary's Own" is a plain column.
+    if (filters.specialTags?.includes('first_party')) {
+      query = query.eq('is_first_party', true)
+    }
+
+    if (filters.sourceTypes && filters.sourceTypes.length > 0) {
+      query = query.in('source_type', filters.sourceTypes)
+    }
+
+    // Price. A venue with no price (free or not given) is shown unless a
+    // minimum above 0 is set.
+    const minPrice = Number.isFinite(filters.minPrice) ? (filters.minPrice as number) : undefined
+    const maxPrice = Number.isFinite(filters.maxPrice) ? (filters.maxPrice as number) : undefined
+    if (minPrice !== undefined && minPrice > 0) query = query.gte('price', minPrice)
+    if (maxPrice !== undefined) {
+      query = minPrice !== undefined && minPrice > 0 ? query.lte('price', maxPrice) : query.or(`price.is.null,price.lte.${maxPrice}`)
+    }
+
+    // Life areas (folded-in Resource Roadmap domains), best-effort: any of the
+    // area's keywords in the name, description or category.
+    if (filters.lifeAreas && filters.lifeAreas.length > 0) {
+      const keywords = lifeAreaKeywords(filters.lifeAreas).map(cleanTerm).filter(Boolean)
+      if (keywords.length > 0) query = query.or(inNameDescriptionOrCategory(keywords))
+    }
+
+    return query
+  }
+
+  // A condition filter is a union: venues whose text matches, plus venues
+  // whose ratings carry the condition (in batches of ids). Rating-based
+  // filters narrow every query to their ids, also in batches.
+  const variants: { keys?: string[]; ids?: string[] }[] = condKeys
+    ? [
+        { keys: Array.from(condKeys).map(cleanTerm).filter(Boolean) },
+        ...Array.from({ length: Math.ceil(condIds.length / ID_BATCH) }, (_, i) => ({
+          ids: condIds.slice(i * ID_BATCH, (i + 1) * ID_BATCH),
+        })),
+      ]
+    : [{}]
+  const allowedIds = allowed ? Array.from(allowed) : null
+  const allowedBatches: (string[] | null)[] = allowedIds
+    ? Array.from({ length: Math.ceil(allowedIds.length / ID_BATCH) }, (_, i) =>
+        allowedIds.slice(i * ID_BATCH, (i + 1) * ID_BATCH)
+      )
+    : [null]
+
+  const found = new Map<string, any>()
+  await Promise.all(
+    allowedBatches.flatMap((batch) =>
+      variants.map(async (variant) => {
+        const rows = await readAll((from, to, withCount) => {
+          let query = base(withCount)
+          if (batch) query = query.in('id', batch)
+          if (variant.keys && variant.keys.length > 0) query = query.or(inNameDescriptionOrCategory(variant.keys))
+          if (variant.ids) query = query.in('id', variant.ids)
+          return query.order('id').range(from, to)
+        })
+        for (const row of rows) found.set(row.id, row)
+      })
+    )
+  )
+  return Array.from(found.values())
 }
 
 /**

@@ -16,7 +16,7 @@ export default function Footer() {
               Resource rating platform for the autism community. Rated BY people like you, FOR
               people like you.
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               © {currentYear} ResourceHub. All rights reserved.
             </p>
           </div>
@@ -35,18 +35,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/submit"
+                  href="/resources/new"
                   className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
                 >
                   Recommend Resource
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
-                >
-                  About
                 </Link>
               </li>
             </ul>
@@ -57,12 +49,12 @@ export default function Footer() {
             <h4 className="text-white text-sm font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link
-                  href="/help"
+                <a
+                  href="mailto:aayush@autinerary.ca"
                   className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
                 >
-                  Help Center
-                </Link>
+                  Contact us
+                </a>
               </li>
               <li>
                 <Link
@@ -72,22 +64,14 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
-                >
-                  Terms of Service
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="mt-8 pt-8 border-t border-gray-800">
-          <p className="text-xs text-gray-500 text-center">
-            Community-verified resource ratings for barrier communities
+          <p className="text-xs text-gray-400 text-center">
+            Community-verified resource ratings, by people with similar norms
           </p>
         </div>
       </div>

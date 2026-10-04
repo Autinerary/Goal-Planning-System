@@ -111,7 +111,7 @@ export default function FilterSidebar({
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Resource Type</h3>
 
         <div className="space-y-2 max-h-64 overflow-y-auto">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 px-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 px-2">
             Services &amp; Places
           </p>
           {availableCategories.length > 0 ? (
@@ -135,7 +135,7 @@ export default function FilterSidebar({
         </div>
 
         <div className="space-y-2 max-h-64 overflow-y-auto mt-3 pt-3 border-t border-gray-200">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 px-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 px-2">
             Shop
           </p>
           {SHOP_CATEGORIES.map((c) => {

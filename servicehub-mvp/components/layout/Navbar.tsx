@@ -136,7 +136,7 @@ function NavbarInner() {
           <div className="hidden md:flex items-center">
             <a
               href={backHref}
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all shadow-sm"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 hover:from-blue-800 hover:via-purple-800 hover:to-pink-800 transition-all shadow-sm"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               {backLabel}

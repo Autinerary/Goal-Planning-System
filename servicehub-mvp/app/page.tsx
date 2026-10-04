@@ -853,7 +853,7 @@ export default async function Home() {
 
             {/* Quick Category Filters */}
             <div className="max-w-4xl mx-auto">
-              <p className="text-center text-white/80 mb-5 text-sm font-medium uppercase tracking-wide">
+              <p className="text-center text-white mb-5 text-sm font-medium uppercase tracking-wide">
                 Browse by Category
               </p>
               <div className="flex flex-wrap justify-center gap-3">
@@ -876,7 +876,7 @@ export default async function Home() {
             {/* Browse by Norms — derived from the real conditions taxonomy so
                 every chip links to a filter that actually exists (Odosa). */}
             <div className="max-w-4xl mx-auto mt-8">
-              <p className="text-center text-white/80 mb-5 text-sm font-medium uppercase tracking-wide">
+              <p className="text-center text-white mb-5 text-sm font-medium uppercase tracking-wide">
                 Browse by Norms
               </p>
               <div className="flex flex-wrap justify-center gap-3">
@@ -900,7 +900,7 @@ export default async function Home() {
             {/* Browse by Life Categories — the folded-in Resource Roadmap
                 domains, linking to the lifeAreas search filter (Odosa). */}
             <div className="max-w-4xl mx-auto mt-8">
-              <p className="text-center text-white/80 mb-5 text-sm font-medium uppercase tracking-wide">
+              <p className="text-center text-white mb-5 text-sm font-medium uppercase tracking-wide">
                 Browse by Life Categories
               </p>
               <div className="flex flex-wrap justify-center gap-3">

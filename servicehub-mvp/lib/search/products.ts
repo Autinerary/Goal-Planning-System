@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
+import { searchWords, inNameDescriptionOrCategory } from '@/lib/search/words'
 
 /**
  * Products in general search (Odosa: "the store was added separately; the items
@@ -37,9 +38,10 @@ async function findProducts(filters: ProductSearchFilters, limit: number, dontKe
     .select('id, name, description, category, price, currency, image_urls, created_at')
     .eq('status', 'active')
 
-  if (filters.query && filters.query.trim()) {
-    const term = filters.query.trim()
-    q = q.or(`name.ilike.%${term}%,description.ilike.%${term}%,category.ilike.%${term}%`)
+  // Every word somewhere in the name, description or category, as in venue
+  // search (lib/search/words.ts).
+  for (const word of searchWords(filters.query)) {
+    q = q.or(inNameDescriptionOrCategory([word]))
   }
   if (filters.categories && filters.categories.length > 0) {
     q = q.in('category', filters.categories)

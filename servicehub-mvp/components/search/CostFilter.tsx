@@ -94,7 +94,7 @@ export default function CostFilter({
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-        <span className="text-gray-400">—</span>
+        <span className="text-gray-600" aria-hidden="true">—</span>
         <div className="flex-1">
           <label htmlFor="cost-max" className="sr-only">
             Maximum cost
