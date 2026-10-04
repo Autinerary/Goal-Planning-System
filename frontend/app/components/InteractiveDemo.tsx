@@ -217,6 +217,21 @@ export default function InteractiveDemo() {
         <h2 className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
         <p className="text-slate-600 text-sm mb-4">{s.overview}</p>
 
+        {/* The voice-guided intro (narration plus spoken "next"/"back"),
+            offered instead of shown as a second tour. It lives on the Path. */}
+        {step === 0 && pathname === '/path' && (
+          <button
+            type="button"
+            onClick={() => {
+              finish()
+              window.dispatchEvent(new CustomEvent('autinerary:start-voice-intro'))
+            }}
+            className="-mt-2 mb-4 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+          >
+            Prefer it read aloud? Use the voice-guided intro
+          </button>
+        )}
+
         {s.features && s.features.length > 0 && (
           <div className="mb-6 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What the buttons do</p>

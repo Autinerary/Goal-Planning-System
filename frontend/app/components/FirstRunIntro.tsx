@@ -79,13 +79,19 @@ export default function FirstRunIntro() {
     typeof window !== 'undefined' &&
     ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
 
-  // First-run gate (after mount, SSR-safe).
+  // Opened on request, not by itself. The app tour (InteractiveDemo) is the
+  // one first-run tour; when both opened on their own on the first visit to
+  // the Path, a brand-new user got two walkthroughs stacked on top of each
+  // other, and skipping one left the other in place (found in a live
+  // end-to-end test). The app tour's first card offers this voice-guided
+  // version instead: "Prefer it read aloud?"
   useEffect(() => {
-    try {
-      if (!localStorage.getItem(SEEN_KEY)) setVisible(true)
-    } catch {
-      /* ignore */
+    const open = () => {
+      setStep(0)
+      setVisible(true)
     }
+    window.addEventListener('autinerary:start-voice-intro', open)
+    return () => window.removeEventListener('autinerary:start-voice-intro', open)
   }, [])
 
   const stopSpeaking = useCallback(() => {

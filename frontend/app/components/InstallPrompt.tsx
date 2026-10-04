@@ -78,7 +78,11 @@ export default function InstallPrompt() {
     dismiss()
   }
 
-  if (!show || FIRST_RUN_ROUTES.includes(pathname)) return null
+  // Also held until the first-run tour is done, so a new user's first look
+  // at the Path is not a tour with an install banner under it.
+  let tourDone = false
+  try { tourDone = Boolean(localStorage.getItem('autinerary_demo_seen_v1')) } catch {}
+  if (!show || FIRST_RUN_ROUTES.includes(pathname) || !tourDone) return null
 
   return (
     <div className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-cyan-300 bg-white shadow-xl p-4">
