@@ -200,10 +200,18 @@ export async function GET(request: NextRequest) {
     // ignore the filter the user set. But shop categories now live in the
     // Resource Type list, so an explicit shop tick is a direct request for
     // products and outranks a filter the catalog cannot honour.
+    // The same goes for the other filters only venues carry: who rated them,
+    // the special tags, age bands and commentary sources (Riipen Labs, Group
+    // 3's functional check: those filters used to be ignored, and products
+    // still showed under them).
     const normFilterActive =
       (barriers && barriers.length > 0) ||
       (conditions && conditions.length > 0) ||
-      (lifeAreas && lifeAreas.length > 0)
+      (lifeAreas && lifeAreas.length > 0) ||
+      (connectionTypes && connectionTypes.length > 0) ||
+      (specialTags && specialTags.length > 0) ||
+      (ageRanges && ageRanges.length > 0) ||
+      (sourceTypes && sourceTypes.length > 0)
     const shopCategorySelected =
       Array.isArray(categories) &&
       categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))

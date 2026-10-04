@@ -62,11 +62,16 @@ export default function AccessibilitySettingsPage() {
                 <button
                   key={w.id}
                   onClick={() => update({ layout: { ...prefs.layout, widgetSize: w.id } })}
+                  aria-pressed={prefs.layout.widgetSize === w.id}
                   className={`px-4 py-3 rounded-xl border-2 text-center transition-all ${
                     prefs.layout.widgetSize === w.id ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className={`font-bold ${w.id === 'small' ? 'text-sm' : w.id === 'medium' ? 'text-base' : 'text-lg'} ${prefs.layout.widgetSize === w.id ? 'text-cyan-700' : 'text-slate-700'}`}>Aa</div>
+                  {/* A box, not "Aa": this is the size of buttons and cards; text size is below. */}
+                  <div
+                    aria-hidden="true"
+                    className={`mx-auto rounded-md border-2 ${w.id === 'small' ? 'h-4 w-6' : w.id === 'medium' ? 'h-5 w-8' : 'h-6 w-10'} ${prefs.layout.widgetSize === w.id ? 'border-cyan-700 bg-cyan-100' : 'border-slate-500 bg-slate-100'}`}
+                  />
                   <div className="text-xs text-slate-500 mt-0.5">{w.label}</div>
                 </button>
               ))}
@@ -104,6 +109,7 @@ export default function AccessibilitySettingsPage() {
                 <button
                   key={f.id}
                   onClick={() => setA11y({ fontScale: f.id })}
+                  aria-pressed={a11y.fontScale === f.id}
                   className={`px-4 py-4 rounded-xl border-2 text-center transition-all ${
                     a11y.fontScale === f.id
                       ? 'border-cyan-500 bg-cyan-50'

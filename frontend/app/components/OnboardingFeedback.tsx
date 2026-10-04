@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { ONBOARDING_VERSION } from '@/lib/funnel'
+import { usePreferences } from '../context/usePreferences'
 
 /**
  * Two quick questions after setup (Riipen Labs: survey whether people got the
@@ -23,10 +24,30 @@ const INFO_OPTIONS = [
 
 const EASE_LABELS = ['Very hard', 'Hard', 'Okay', 'Easy', 'Very easy']
 
+// Riipen Labs, Group 3: "an area for the individual to indicate which platform
+// they have come from". Tracked links (utm_source) only cover people who used
+// one; this covers word of mouth too. Saved to profiles.preferences.heardFrom
+// and counted by backend/scripts/onboarding_funnel.py.
+export const HEARD_FROM = [
+  { id: 'friend', label: 'A friend or family member' },
+  { id: 'community-org', label: 'A community organization' },
+  { id: 'school', label: 'A school or teacher' },
+  { id: 'riipen', label: 'Riipen' },
+  { id: 'reddit', label: 'Reddit' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'facebook', label: 'Facebook' },
+  { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'search', label: 'A search engine' },
+  { id: 'other', label: 'Somewhere else' },
+]
+
 export default function OnboardingFeedback() {
   const [hidden, setHidden] = useState(true)
   const [info, setInfo] = useState('')
   const [ease, setEase] = useState(0)
+  const [heardFrom, setHeardFrom] = useState('')
+  const { update } = usePreferences()
   const [comment, setComment] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
@@ -45,20 +66,24 @@ export default function OnboardingFeedback() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!info && !ease && !comment.trim()) return
+    if (!info && !ease && !comment.trim() && !heardFrom) return
     setStatus('saving')
     try {
-      const res = await fetch('/api/onboarding-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          infoBeforeSignup: info || undefined,
-          setupEase: ease || undefined,
-          comment: comment.trim() || undefined,
-          version: ONBOARDING_VERSION,
-        }),
-      })
-      if (!res.ok) throw new Error(String(res.status))
+      if (info || ease || comment.trim()) {
+        const res = await fetch('/api/onboarding-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            infoBeforeSignup: info || undefined,
+            setupEase: ease || undefined,
+            comment: comment.trim() || undefined,
+            version: ONBOARDING_VERSION,
+          }),
+        })
+        if (!res.ok) throw new Error(String(res.status))
+      }
+      // Saved with the person's preferences rather than the survey.
+      if (heardFrom && !(await update({ heardFrom }))) throw new Error('preferences')
       try { localStorage.setItem(DONE_KEY, '1') } catch {}
       setStatus('saved')
     } catch {
@@ -76,13 +101,13 @@ export default function OnboardingFeedback() {
     )
   }
 
-  const canSubmit = Boolean(info || ease || comment.trim()) && status !== 'saving'
+  const canSubmit = Boolean(info || ease || comment.trim() || heardFrom) && status !== 'saving'
 
   return (
     <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-200 p-6 surface" aria-labelledby="feedback-heading">
       <div className="mb-1 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-indigo-700" aria-hidden="true" />
-        <h2 id="feedback-heading" className="font-bold text-slate-900">Two quick questions (optional)</h2>
+        <h2 id="feedback-heading" className="font-bold text-slate-900">Three quick questions (optional)</h2>
       </div>
       <p className="mb-5 text-sm text-slate-700">Autinerary is in beta. This tells us what to fix in setup.</p>
 
@@ -131,6 +156,30 @@ export default function OnboardingFeedback() {
                 className="sr-only"
               />
               {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="mb-5">
+        <legend className="mb-2 text-sm font-semibold text-slate-900">Where did you hear about Autinerary?</legend>
+        <div className="flex flex-wrap gap-2">
+          {HEARD_FROM.map((o) => (
+            <label
+              key={o.id}
+              className={`cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1 ${
+                heardFrom === o.id ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+              }`}
+            >
+              <input
+                type="radio"
+                name="heard_from"
+                value={o.id}
+                checked={heardFrom === o.id}
+                onChange={() => setHeardFrom(o.id)}
+                className="sr-only"
+              />
+              {o.label}
             </label>
           ))}
         </div>

@@ -357,7 +357,20 @@ function SearchResults() {
     minRating !== undefined ||
     minPrice !== undefined ||
     maxPrice !== undefined ||
-    maxDistance !== undefined
+    maxDistance !== undefined ||
+    connectionTypes.length > 0 ||
+    ageRanges.length > 0 ||
+    specialTags.length > 0 ||
+    sourceTypes.length > 0
+
+  // Filters that depend on what people have rated or saved find little until
+  // more places are rated; say so instead of a bare "no results".
+  const communityFilterActive =
+    barriers.length > 0 ||
+    connectionTypes.length > 0 ||
+    ratingStars.length > 0 ||
+    minRating !== undefined ||
+    specialTags.some((t) => t === 'rare' || t === 'highly_requested')
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -616,6 +629,11 @@ function SearchResults() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
                   <EmptyState
                     type="search"
+                    message={
+                      communityFilterActive
+                        ? 'Some of these filters use ratings and saves from the community, and few places have been rated yet. Try fewer filters, or rate a place you know to help others.'
+                        : undefined
+                    }
                     actionLabel={hasActiveFilters ? 'Clear all filters' : undefined}
                     onAction={hasActiveFilters ? clearFilters : undefined}
                   />

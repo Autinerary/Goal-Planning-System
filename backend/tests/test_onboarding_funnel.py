@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.onboarding_funnel import (  # noqa: E402
     CURRENT_VERSION,
+    render_heard_from,
+    summarize_heard_from,
     STOP_REASONS,
     USEFULNESS,
     compute_funnel,
@@ -203,4 +205,53 @@ class SmallGroupTests(unittest.TestCase):
         c = summarize_checkins(rows)
         self.assertEqual(c["stopped"], 1)
         self.assertEqual(dict(c["reasons"]), {"too_much": 1})
+
+
+class GroupThreeMeasureTests(unittest.TestCase):
+    """Riipen Labs, Group 3: return within 7 to 14 days, time to first
+    meaningful action, and the self-reported channel."""
+
+    def _ev(self, visitor, event, at, user=None):
+        e = ev(visitor, event, at)
+        e["user_id"] = user
+        return e
+
+    def test_returns_within_7_and_14_days(self):
+        events = [
+            self._ev("a", "signup_complete", "2026-10-01T10:00:00+00:00", "ua"),
+            self._ev("a", "app_open", "2026-10-05T10:00:00+00:00", "ua"),   # day 4: counts for both
+            self._ev("b", "signup_complete", "2026-10-01T10:00:00+00:00", "ub"),
+            self._ev("b", "app_open", "2026-10-12T10:00:00+00:00", "ub"),   # day 11: 14-day only
+            self._ev("c", "signup_complete", "2026-10-01T10:00:00+00:00", "uc"),
+            self._ev("c", "app_open", "2026-10-20T10:00:00+00:00", "uc"),   # day 19: neither
+        ]
+        o = compute_funnel(events)["overall"]
+        self.assertEqual((o["returned"], o["returned_14"]), (1, 2))
+
+    def test_time_to_first_step(self):
+        events = [
+            self._ev("a", "signup_complete", "2026-10-01T10:00:00+00:00", "ua"),
+            self._ev("b", "signup_complete", "2026-10-01T10:00:00+00:00", "ub"),
+            self._ev("c", "signup_complete", "2026-10-01T10:00:00+00:00", "uc"),
+        ]
+        first_done = {
+            "ua": "2026-10-01T12:00:00+00:00",   # 2 h
+            "ub": "2026-10-02T14:00:00+00:00",   # 28 h
+            "uc": "2026-09-30T10:00:00+00:00",   # before sign-up (an older path): ignored
+        }
+        o = compute_funnel(events, first_done_by_user=first_done)["overall"]
+        self.assertEqual(o["first_step"], 2)
+        self.assertAlmostEqual(o["first_step_median_hours"], 15.0)
+        self.assertIn("marked a first step done        2", render(compute_funnel(events, first_done_by_user=first_done), summarize_feedback([]), False))
+
+    def test_heard_from_counts_accounts_and_hides_small_groups(self):
+        people = [{"user_id": f"u{i}", "account": True} for i in range(7)] + [{"user_id": "x", "account": False}]
+        heard = {f"u{i}": "reddit" for i in range(5)}
+        heard.update({"u5": "friend", "u6": "friend", "x": "tiktok"})
+        counts = summarize_heard_from(people, heard)
+        self.assertEqual(dict(counts), {"reddit": 5, "friend": 2})   # x never made an account
+        text = render_heard_from(counts)
+        self.assertIn("reddit                   5", text)
+        self.assertIn("friend                  <5", text)
+        self.assertNotIn("tiktok", text)
 

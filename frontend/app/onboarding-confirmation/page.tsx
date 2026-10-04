@@ -39,12 +39,21 @@ const INTERESTS: Record<string, StartItem> = {
   tools: { title: 'Browse tools, apps and products.', body: 'Things other people found useful, in the ResourceHub shop.', href: '/go/servicehub?next=/shop', cta: 'Browse tools' },
 }
 
+// A first step that fits who someone is here for (Riipen Labs, Group 3: "a
+// short personalized starter pathway for each user").
+const FOR_ROLE: Record<string, StartItem> = {
+  child: { title: 'Add your child, if they are under 18.', body: 'On the Family page you can add a family member and manage their path.', href: '/family', cta: 'Open Family' },
+  family: { title: 'Planning with a family member under 18?', body: 'On the Family page you can add them and manage their path.', href: '/family', cta: 'Open Family' },
+  work: { title: 'Find tools and services to recommend.', body: 'Search ResourceHub for what has helped others, with ratings from people with similar norms.', href: '/go/servicehub?next=/search', cta: 'Find tools and services' },
+  ally: { title: 'Learn from people with lived experience.', body: 'Questions and answers in Tidbits, from neurodivergent people and their families.', href: '/go/servicehub?next=/community', cta: 'Read Tidbits' },
+}
+
 export default function OnboardingConfirmationPage() {
   const router = useRouter()
   const { payload, pathPlanning } = useAgentPath()
   const [launching, setLaunching] = useState(false)
   const { prefs, update } = usePreferences()
-  const [choices, setChoices] = useState<{ lookingFor?: string[] }>({})
+  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null }>({})
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || 'null')
@@ -77,9 +86,14 @@ export default function OnboardingConfirmationPage() {
       body: 'Opening it shows tools that can help with it.',
     },
   ]
-  const startItems: StartItem[] = (primaryInterest
+  const roleItem = FOR_ROLE[choices.audience || prefs.audience || '']
+  const ordered = primaryInterest
     ? [...interestItems, ...pathItems]
     : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
+  // The role's step goes second, after the one thing they came for; never twice.
+  const startItems: StartItem[] = (roleItem && !ordered.some((i) => i.href && i.href === roleItem.href)
+    ? [ordered[0], roleItem, ...ordered.slice(1)]
+    : ordered
   ).slice(0, 4)
 
   return (

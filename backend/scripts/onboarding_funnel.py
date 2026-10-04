@@ -13,6 +13,13 @@ returned within 7 days, and the post-setup survey's clarity question ("how
 much did you know before making an account?") and effort question ("how
 easy was setup?").
 
+Group 3 measured success as "onboarding completion rates, time to first
+meaningful action, and whether new users return within their first 7 to 14
+days", and suggested asking where people heard about Autinerary. So the
+funnel also shows returns within 14 days, how long after sign-up people mark
+their first step done (race_progress), and the self-reported channel
+(profiles.preferences.heardFrom), next to the tracked one.
+
 Group 2 also asked to "ask active users about usefulness and inactive users
 why they disengaged". Those answers (public.checkin_responses, STEP 46) are
 summarized at the end: why people stopped, from the check-in email and the
@@ -81,6 +88,7 @@ STOP_REASONS = [
 USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "not yet")]
 
 RETURN_WINDOW = timedelta(days=7)
+RETURN_WINDOW_LONG = timedelta(days=14)
 
 # Rows for groups smaller than this show "<5" instead of counts and rates, so
 # a shared copy of the report cannot single anyone out. Totals are unaffected.
@@ -100,14 +108,18 @@ def keep_version(version: str, wanted: str) -> bool:
 
 
 def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
-                   audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
+                   audience_by_user: Optional[Dict[str, str]] = None,
+                   first_done_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Aggregate raw event rows into funnel counts. Pure: no I/O.
 
     A "person" is a visitor id (one browser). Stages count distinct visitors.
-    Returned within 7 days: created an account, then an app_open on a later
-    calendar day no more than 7 days after the account was created.
+    Returned within 7 (14) days: created an account, then an app_open on a
+    later calendar day no more than 7 (14) days after the account was created.
+    First step: the first milestone they marked done (first_done_by_user, the
+    earliest race_progress completion per user), and how long after sign-up.
     """
     audience_by_user = audience_by_user or {}
+    first_done_by_user = first_done_by_user or {}
     by_visitor: Dict[str, List[dict]] = defaultdict(list)
     for e in events:
         if keep_version(e.get("onboarding_version", ""), wanted_version):
@@ -121,15 +133,21 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         channel = next((e.get("channel") for e in evs if e.get("channel")), None) or "(none)"
         user_id = next((e.get("user_id") for e in evs if e.get("user_id")), None)
         signup_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "signup_complete"), None)
-        returned = False
+        returned = returned_long = False
         if signup_at is not None:
             for e in evs:
                 if e["event"] != "app_open":
                     continue
                 t = _ts(e["created_at"])
-                if t.date() > signup_at.date() and t - signup_at <= RETURN_WINDOW:
-                    returned = True
-                    break
+                if t.date() > signup_at.date() and t - signup_at <= RETURN_WINDOW_LONG:
+                    returned_long = True
+                    if t - signup_at <= RETURN_WINDOW:
+                        returned = True
+        first_step_hours = None
+        if signup_at is not None and user_id and first_done_by_user.get(user_id):
+            done_at = _ts(first_done_by_user[user_id])
+            if done_at >= signup_at:
+                first_step_hours = (done_at - signup_at).total_seconds() / 3600
         audience = audience_by_user.get(user_id) if user_id else None
         people.append({
             "user_id": user_id,
@@ -141,6 +159,8 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "steps": steps,
             "finished": "onboarding_complete" in names,
             "returned": returned,
+            "returned_14": returned_long,
+            "first_step_hours": first_step_hours,
         })
 
     def stage_counts(group: List[dict]) -> Dict:
@@ -151,6 +171,9 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "steps": {sid: sum(sid in p["steps"] for p in group) for sid, _ in STEPS},
             "finished": sum(p["finished"] for p in group),
             "returned": sum(p["returned"] for p in group),
+            "returned_14": sum(p["returned_14"] for p in group),
+            "first_step": sum(p["first_step_hours"] is not None for p in group),
+            "first_step_median_hours": median(h) if (h := [p["first_step_hours"] for p in group if p["first_step_hours"] is not None]) else None,
             "accounts_from_landing": sum(p["landing"] and p["account"] for p in group),
         }
 
@@ -220,6 +243,30 @@ def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[
     return out
 
 
+def _duration(hours: float) -> str:
+    if hours < 1:
+        return f"{round(hours * 60)} min"
+    if hours < 48:
+        return f"{hours:.1f} h"
+    return f"{hours / 24:.1f} days"
+
+
+def summarize_heard_from(people: List[dict], heard_from_by_user: Dict[str, str]) -> Counter:
+    """Self-reported channel, for accounts in this funnel that answered."""
+    return Counter(heard_from_by_user[p["user_id"]] for p in people
+                   if p.get("account") and p.get("user_id") in heard_from_by_user)
+
+
+def render_heard_from(counts: Counter) -> str:
+    total = sum(counts.values())
+    out = [f"== Where they heard about us (self-reported, {total} accounts answered)"]
+    for source, n in counts.most_common():
+        shown = SMALL if n < MIN_CELL else str(n)
+        share = "-" if n < MIN_CELL else pct(n, total)
+        out.append(f"  {source:<20} {shown:>5}  ({share})")
+    return "\n".join(out)
+
+
 def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out: List[str] = []
     o = funnel["overall"]
@@ -238,6 +285,9 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
         prev = n
     out.append(f"  finished setup                  {o['finished']}   ({pct(o['finished'], o['accounts'])} of accounts)")
     out.append(f"  returned within 7 days          {o['returned']}   ({pct(o['returned'], o['accounts'])} of accounts)")
+    out.append(f"  returned within 14 days         {o['returned_14']}   ({pct(o['returned_14'], o['accounts'])} of accounts)")
+    out.append(f"  marked a first step done        {o['first_step']}   ({pct(o['first_step'], o['accounts'])} of accounts)"
+               + (f", median {_duration(o['first_step_median_hours'])} after sign-up" if o['first_step_median_hours'] is not None else ""))
     out.append("")
     out.extend(_comparison("By who they are here for", funnel.get("by_audience", {}), feedback.get("by_audience", {})))
     out.append("")
@@ -358,12 +408,26 @@ def main() -> int:
         print(f"Could not read the funnel tables ({str(e)[:90]}). Has STEP 45 been applied?")
         return 1
     audience_by_user = {}
+    heard_from_by_user = {}
     for p in fetch_all(sb, "profiles", "id, preferences"):
+        heard = (p.get("preferences") or {}).get("heardFrom")
+        if heard:
+            heard_from_by_user[p["id"]] = heard
         aud = (p.get("preferences") or {}).get("audience")
         if aud:
             audience_by_user[p["id"]] = aud
-    funnel = compute_funnel(events, args.version, audience_by_user)
+    first_done_by_user: Dict[str, str] = {}
+    try:
+        for r in fetch_all(sb, "race_progress", "user_id, kind, completed_at"):
+            if r.get("kind") == "completed" and r.get("completed_at"):
+                if r["user_id"] not in first_done_by_user or r["completed_at"] < first_done_by_user[r["user_id"]]:
+                    first_done_by_user[r["user_id"]] = r["completed_at"]
+    except Exception:
+        pass  # without it, the first-step line just shows 0
+    funnel = compute_funnel(events, args.version, audience_by_user, first_done_by_user)
     print(render(funnel, summarize_feedback(feedback, args.version, funnel["people"]), args.show_comments))
+    print()
+    print(render_heard_from(summarize_heard_from(funnel["people"], heard_from_by_user)))
     print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version")

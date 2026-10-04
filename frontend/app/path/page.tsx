@@ -19,6 +19,7 @@ import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
 import AskLaterCard from '../components/AskLaterCard'
 import CheckinPrompt from '../components/CheckinPrompt'
+import { usePreferences } from '../context/usePreferences'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -40,6 +41,7 @@ export default function PathView() {
   const router = useRouter()
   const { supabaseUser, fetchWithAuth } = useAuth()
   const { isSimple, level, setOverride } = useDisclosure()
+  const { prefs } = usePreferences()
   // Reshuffle the motivational message on every visit (new mount = new seed),
   // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
   const [quoteSeed] = useState(() => Math.floor(Math.random() * 1000))
@@ -227,6 +229,13 @@ try {
     if (p !== null) r.progress = p
   })
 
+  // A clear "step one" (Riipen Labs, Group 3): the first step of the plan not
+  // done yet, shown first.
+  const nextMilestone = pathMilestones.find((m) => !completedMilestoneIds.has(m.id)) as
+    | (ProgressMilestone & { name?: string; title?: string })
+    | undefined
+  const doneSteps = pathMilestones.filter((m) => completedMilestoneIds.has(m.id)).length
+
   const ultimateDream = pathData?.userProfile?.ultimateDream || 'Become a successful professional who thrives with my unique strengths'
   const overallProgress = races.length > 0
     ? Math.round(races.reduce((sum: number, r: any) => sum + r.progress, 0) / races.length)
@@ -394,6 +403,11 @@ useEffect(() => {
               <Map className="w-4 h-4 pref-icon-anim" />
               {isSimple ? 'Show more' : 'Simplify'}
             </button>
+            {/* Everything else waits for "Show more", so the first screen offers one
+                choice (Riipen Labs, Group 3: fewer actions at once, and no Reset
+                next to everything). */}
+            {!isSimple && (
+              <>
             <button
               onClick={() => {
                 const snap = saveSnapshot(`${userName}'s Path, ${new Date().toLocaleDateString()}`, {
@@ -433,6 +447,8 @@ useEffect(() => {
               <Settings className="w-4 h-4 pref-icon-anim" />
               Re-do Onboarding
             </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -481,6 +497,31 @@ useEffect(() => {
           )
         )}
 
+        {/* ── Your next step: the clear "step one" ── */}
+        {pathMilestones.length > 0 && (
+          <section aria-labelledby="next-step-heading" className="mb-6 rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm">
+            <h2 id="next-step-heading" className="text-xs font-semibold uppercase tracking-wide text-cyan-800">
+              {nextMilestone ? 'Your next step' : 'Every step done'}
+            </h2>
+            {nextMilestone ? (
+              <>
+                <p className="mt-1 text-lg font-bold text-slate-900">{nextMilestone.name || nextMilestone.title || 'Your next milestone'}</p>
+                <p className="mt-1 text-sm text-slate-700">
+                  {doneSteps} of {pathMilestones.length} steps done.
+                </p>
+                <Link
+                  href={`/milestones/${encodeURIComponent(nextMilestone.id)}`}
+                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800"
+                >
+                  Open this step <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-slate-700">You have done every step in this plan. Well done.</p>
+            )}
+          </section>
+        )}
+
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
         <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
@@ -498,10 +539,11 @@ useEffect(() => {
 
           {/* ── Card 1: Races ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-lg text-slate-800 mb-1 flex items-center gap-2">
               <Target className="w-5 h-5 text-cyan-500" />
               Races
             </h2>
+            <p className="text-sm text-slate-600 mb-4">Your goals, broken into small steps.</p>
 
             {/* Ultimate Dream & Overall */}
             <div className="bg-gradient-to-r from-cyan-50 to-purple-50 rounded-xl p-4 mb-4 border border-slate-100">
@@ -571,6 +613,8 @@ useEffect(() => {
             </Link>
           </div>
 
+          {!isSimple && (
+          <>
           {/* ── Card 2: Life Stats ── */}
           <div>
             <LifeStatsCard />
@@ -643,6 +687,9 @@ useEffect(() => {
             )}
           </div>
 
+          </>
+          )}
+
           {/* ── Card 4: Your Resources ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
@@ -654,9 +701,9 @@ useEffect(() => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100 to-purple-100 flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-cyan-500" />
               </div>
-              <p className="text-sm text-slate-600 mb-1 font-medium">Same as ResourceHub</p>
+              <p className="text-sm text-slate-700 mb-1 font-medium">Services and places for your goals</p>
               <p className="text-xs text-slate-600 mb-4 max-w-[250px]">
-                Your saved resources, community-rated services, and AI recommendations: all in one place.
+                Search places near you, rated by people with similar norms, and find the ones you saved. They open in ResourceHub.
               </p>
             </div>
 
@@ -666,11 +713,13 @@ useEffect(() => {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1 text-sm text-cyan-800 hover:text-cyan-900 font-medium py-2 rounded-lg hover:bg-cyan-50 transition-colors"
             >
-              See all resources <ChevronRight className="w-4 h-4" />
+              Open ResourceHub <ChevronRight className="w-4 h-4" />
             </a>
           </div>
         </div>
 
+        {!isSimple && (
+          <>
         {/* ── Life Path Models ── */}
         <div id="life-path-models" className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8 scroll-mt-6">
           <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
@@ -733,70 +782,71 @@ useEffect(() => {
             Path Market
           </Link>
         </div>
+          </>
 
-        {/* ── Quick Links ── */}
+        )}
+
+        {/* ── Quick Links. Each themed name says plainly what it is (Riipen
+             Labs, Group 3: "unfamiliar terms such as Pit Stop"). ── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
           <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-500" /> Quick Links
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Link href="/races" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <Target className="w-4 h-4 text-cyan-500" />
-            Races
-          </Link>
-          <Link href="/pit-stop?tab=haveworld" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <Wrench className="w-4 h-4 text-purple-500" />
-            Pit Stop
-          </Link>
-          {/* Stats Breakdown now sits with Life Stats, where the numbers are. */}
-          <Link href="/reflection?contextType=path" className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-            <BookOpen className="w-4 h-4 text-amber-500" />
-            Journal
-          </Link>
-          <a
-            href={goHubHref('/community?from=hare-world&context=path')}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="View Related posts"
-            data-info="Opens Tidbits. Posts and questions from other people working on similar goals."
-            className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-500" />
-            Tidbits
-          </a>
-          <a
-            href={goHubHref('/search')}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Find relevant resources"
-            data-info="Opens ResourceHub. Search services, tools and support matched to your goals."
-            className="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
-          >
-            <Map className="w-4 h-4 text-cyan-500" />
-            ResourceHub
-          </a>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { href: '/races', Icon: Target, color: 'text-cyan-600', name: 'Races', what: 'Your goals, step by step' },
+              { href: '/pit-stop?tab=haveworld', Icon: Wrench, color: 'text-purple-600', name: 'Pit Stop', what: 'Your tools and the people helping you' },
+              { href: '/reflection?contextType=path', Icon: BookOpen, color: 'text-amber-600', name: 'Journal', what: 'Write down how it is going' },
+              { href: goHubHref('/community?from=hare-world&context=path'), Icon: Sparkles, color: 'text-emerald-600', name: 'Tidbits', what: 'Questions and answers from people like you', external: true },
+              { href: goHubHref('/search'), Icon: Map, color: 'text-cyan-600', name: 'ResourceHub', what: 'Find services and places near you', external: true },
+            ].map(({ href, Icon, color, name, what, external }) => {
+              const body = (
+                <>
+                  <Icon className={`w-5 h-5 shrink-0 ${color}`} aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-slate-800">{name}</span>
+                    <span className="block text-xs text-slate-600">{what}</span>
+                  </span>
+                </>
+              )
+              const cls = 'flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm'
+              return external ? (
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
+              ) : (
+                <Link key={name} href={href} className={cls}>{body}</Link>
+              )
+            })}
           </div>
         </div>
 
-        {/* ── Unlock Multi-Path Management ── */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
-                <Lock className="w-6 h-6 text-white" />
+        {/* ── Planning for someone else? The Family page is where a parent or
+             guardian adds a family member and manages their path. Shown to
+             everyone in the fuller view, and in Simple view to people who said
+             they are here for a child or family member. (This card's old
+             "Learn More" button did nothing; Riipen Labs, Group 3.) ── */}
+        {(!isSimple || prefs.audience === 'child' || prefs.audience === 'family') && (
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
+                  <Users className="w-6 h-6 text-white" aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg">Planning for someone else?</h2>
+                  <p className="text-sm text-slate-300">
+                    Parents and guardians can add a family member and manage their path, from the Family page.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-lg">Unlock Multi-Path Management</h3>
-                <p className="text-sm text-slate-400">
-                  For Mentors, Employers, Educators &amp; Parents. Manage multiple paths in one place.
-                </p>
-              </div>
+              <Link
+                href="/family"
+                className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-xl hover:shadow-lg transition-all text-sm whitespace-nowrap"
+              >
+                Open Family
+              </Link>
             </div>
-            <button className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-xl hover:shadow-lg transition-all text-sm whitespace-nowrap">
-              Learn More
-            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

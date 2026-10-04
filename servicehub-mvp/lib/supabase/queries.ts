@@ -1003,6 +1003,8 @@ interface RatingIndex {
   stats: Map<string, { averageRating: number; ratingCount: number }>
   /** The norm keys in each resource's ratings (barrier_scores), as stored. */
   normKeys: Map<string, Set<string>>
+  /** Connection types of the people who rated each resource. */
+  raterTypes: Map<string, Set<string>>
 }
 
 // Every rating is read once a minute and shared, instead of looking up ratings
@@ -1015,13 +1017,19 @@ function ratingIndex(): Promise<RatingIndex> {
     const rows = await readAll((from, to, withCount) =>
       supabase
         .from('ratings')
-        .select('resource_id, overall_score, barrier_scores', withCount ? { count: 'exact' } : undefined)
+        .select('resource_id, overall_score, barrier_scores, rater_connection_types', withCount ? { count: 'exact' } : undefined)
         .order('id')
         .range(from, to)
     )
     const sums = new Map<string, { sum: number; count: number }>()
     const normKeys = new Map<string, Set<string>>()
+    const raterTypes = new Map<string, Set<string>>()
     for (const r of rows) {
+      if (Array.isArray(r.rater_connection_types) && r.rater_connection_types.length > 0) {
+        const types = raterTypes.get(r.resource_id) || new Set<string>()
+        for (const t of r.rater_connection_types) types.add(t)
+        raterTypes.set(r.resource_id, types)
+      }
       const s = sums.get(r.resource_id) || { sum: 0, count: 0 }
       s.sum += r.overall_score
       s.count += 1
@@ -1034,7 +1042,7 @@ function ratingIndex(): Promise<RatingIndex> {
     }
     const stats = new Map<string, { averageRating: number; ratingCount: number }>()
     for (const [id, s] of sums) stats.set(id, { averageRating: s.sum / s.count, ratingCount: s.count })
-    return { stats, normKeys }
+    return { stats, normKeys, raterTypes }
   })
 }
 
@@ -1256,6 +1264,15 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
         .map(([id]) => id)
     )
   }
+  // Connection types: at least one rating by someone with a chosen connection
+  // (the rater_connection_types snapshot taken when they rated).
+  if (filters.connectionTypes && filters.connectionTypes.length > 0) {
+    narrow(
+      Array.from(index.raterTypes)
+        .filter(([, types]) => filters.connectionTypes!.some((t) => types.has(t)))
+        .map(([id]) => id)
+    )
+  }
   if (allowed !== null && (allowed as Set<string>).size === 0) return []
 
   // Conditions match a venue's own text, or the norm keys in its ratings.
@@ -1270,6 +1287,24 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
   // Nothing has every word: show venues with any of them, most words first.
   if (rows.length === 0 && words.length > 1) {
     rows = await queryMatches(filters, words, 'any', allowed, condKeys, condIds)
+  }
+
+  // "Rare" and "Highly requested" come from real save counts
+  // (get_resource_badges), so they are checked on the matches. Either one
+  // keeps a venue; "Autinerary's Own" is a column, filtered in the query.
+  const badgeTags = (filters.specialTags || []).filter((t) => t === 'rare' || t === 'highly_requested')
+  if (badgeTags.length > 0 && rows.length > 0) {
+    const supabase = createClient()
+    const keep = new Set<string>()
+    const ids = rows.map((r) => r.id as string)
+    for (let i = 0; i < ids.length; i += 1000) {
+      const { data, error } = await supabase.rpc('get_resource_badges', { p_resource_ids: ids.slice(i, i + 1000) })
+      if (error) throw error
+      for (const b of (data || []) as Record<string, any>[]) {
+        if (badgeTags.some((t) => b[t])) keep.add(b.resource_id)
+      }
+    }
+    rows = rows.filter((r) => keep.has(r.id))
   }
 
   return rows.map((r) => {

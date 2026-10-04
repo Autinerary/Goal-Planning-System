@@ -854,6 +854,27 @@ export default function OnboardingPage() {
   // one go instead of one at a time.
   const requiredDone = canAccessOnboarding && canProceed(stepIndex('about')) && canProceed(stepIndex('goalsAndDreams'))
 
+  // "Start here" on the home page (Riipen Labs, Group 3) may already have
+  // asked who this is for: use that answer unless setup has one (from a draft).
+  useEffect(() => {
+    let pre: string | null = null
+    try {
+      pre = localStorage.getItem('autinerary_start_for')
+    } catch {}
+    const conn = AUDIENCES.find((a) => a.id === pre)
+    if (!pre || !conn) return
+    setFormData((prev) => {
+      if (prev.audience) return prev
+      const untouched = prev.barrierTypes.length === 0
+      return {
+        ...prev,
+        audience: pre as string,
+        barrierConnections: untouched ? (conn.connection ? { [conn.connection]: [] } : {}) : prev.barrierConnections,
+        role: untouched ? (conn.connection === 'self' ? 'self_advocate' : conn.connection || '') : prev.role,
+      }
+    })
+  }, [])
+
   // Picking who this is for pre-selects the matching connection on the
   // Norms step, only while no norms are chosen, so it never wipes answers.
   const chooseAudience = (id: string) => {

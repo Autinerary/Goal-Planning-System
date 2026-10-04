@@ -12,7 +12,7 @@ const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://local
  * rather than a dead anchor.
  */
 export function resolveToolLink(url?: string | null, name?: string): { href: string; usable: boolean } {
-  const clean = (url || '').trim()
+  const clean = fromDevHost((url || '').trim())
   if (clean && clean !== '#' && /^https?:\/\//i.test(clean)) {
     return { href: clean, usable: true }
   }
@@ -21,3 +21,16 @@ export function resolveToolLink(url?: string | null, name?: string): { href: str
   // Not a real external URL — routed to ResourceHub search as a useful fallback.
   return { href, usable: false }
 }
+
+/**
+ * Paths generated while the backend had no SERVICE_HUB_URL set link venues to
+ * http://localhost:3001/resources/<id>, which only works on a developer's
+ * machine (found by the functional check, Riipen Labs Group 3). Those links,
+ * already stored in people's paths, are pointed at the real ResourceHub.
+ */
+function fromDevHost(url: string): string {
+  const m = url.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i)
+  if (!m) return url
+  return `${SERVICE_HUB_URL.replace(/\/$/, '')}${m[3] || '/'}`
+}
+

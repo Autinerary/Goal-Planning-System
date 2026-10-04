@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import FunnelPing from './components/FunnelPing'
+import StartHere from './components/StartHere'
 
 /**
  * Landing page: what a visitor needs before deciding to make an account.
@@ -146,8 +147,10 @@ export default function HomePage() {
         </div>
       </section>
 
+      <StartHere />
+
       {/* What you get */}
-      <section className="bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
+      <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="what-heading" className="text-2xl font-bold md:text-3xl">What you get</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
