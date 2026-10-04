@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { createClient } from '@/lib/supabase/client'
@@ -75,7 +76,8 @@ export default function DateOfBirthPage() {
           <h1 className="mb-2 text-2xl font-bold text-slate-900">One question before setup</h1>
           <p className="mb-6 text-sm text-slate-700">
             {user.name ? `Welcome, ${user.name}. ` : 'Welcome. '}
-            Autinerary is for adults (18+) for now, so we need your date of birth. It is only used for that.
+            Autinerary is for adults (18+) for now, so we need your date of birth. It is only used for that (see{' '}
+            <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>).
           </p>
 
           <label htmlFor="dob" className="mb-2 block text-sm font-medium text-slate-800">

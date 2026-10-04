@@ -266,6 +266,11 @@ export default function SignupPage() {
             </div>
           </div>
 
+          <p className="mb-4 text-center text-sm text-slate-700">
+            How we handle your information:{' '}
+            <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>
+          </p>
+
           {/* Login Link */}
           <p className="text-center text-slate-600">
             Already have an account?{' '}

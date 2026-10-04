@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Eye, EyeOff, Save, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route, ShieldCheck } from 'lucide-react'
@@ -335,6 +336,8 @@ export default function ProfileSettingsPage() {
           <h2 className="text-xl font-bold mb-1">Data &amp; Progress</h2>
           <p className="text-slate-600 mb-6 text-sm">
             Back up your data before testing, restore it later, or start over with a clean slate.
+            To see, correct or delete anything else, see{' '}
+            <Link href="/privacy#choices" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>.
           </p>
 
           {dataMsg && (

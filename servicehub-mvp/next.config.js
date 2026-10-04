@@ -10,6 +10,17 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_GOAL_PLANNING_URL: process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000',
   },
+  // One privacy policy covers both apps (they share an account) and lives in
+  // the Autinerary app; the footer's Privacy Policy link lands on it.
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: `${process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'}/privacy`,
+        permanent: false,
+      },
+    ]
+  },
   webpack: (config, { isServer, dev }) => {
     if (dev) {
       config.watchOptions = {

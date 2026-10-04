@@ -323,6 +323,7 @@ export default function HomePage() {
       <footer className="border-t border-slate-200 bg-slate-50 px-4 py-6">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 text-sm text-slate-700 sm:flex-row">
           <span className="font-semibold text-slate-900">Autinerary</span>
+          <Link href="/privacy" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">Privacy</Link>
           <span>© 2026 Autinerary Corp. All rights reserved.</span>
         </div>
       </footer>

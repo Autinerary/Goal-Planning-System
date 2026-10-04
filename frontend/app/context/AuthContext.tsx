@@ -30,7 +30,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const publicRoutes = ['/', '/login', '/signup', '/checkin']
+const publicRoutes = ['/', '/login', '/signup', '/checkin', '/privacy']
 const AGE_ROUTE = '/auth/age'
 
 function profileFromSupabase(su: SupabaseUser): User {
