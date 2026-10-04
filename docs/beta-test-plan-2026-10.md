@@ -28,9 +28,9 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Apply STEP 46 (`setup/all_migrations.sql`) | Stores check-in answers | Done 4 October |
 | Email: Resend with autinerary.ca verified, `RESEND_API_KEY`, `NEXT_PUBLIC_APP_URL`, `REMINDER_FROM_EMAIL` | Welcome, reminder and check-in emails | Done 4 October (test email delivered) |
 | `CRON_SECRET` in Vercel | Only Vercel can trigger the daily email jobs | Done |
-| Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Live; needs one real sign-in to confirm |
+| Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Done; confirmed with a real Google account 4 October |
 | Privacy page | What testers are told about their information | Live at /privacy |
-| Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device (keys already set in Vercel) | To do |
+| Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device | Done 4 October; tested live (on, delivered, off) |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |

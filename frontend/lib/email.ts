@@ -64,6 +64,24 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
 }
 
 
+/** Sent once, when someone finishes setup (app/api/me/welcome). */
+export function welcomeEmail(appUrl: string): { subject: string; html: string; text: string } {
+  const link = `${appUrl.replace(/\/$/, '')}/path`
+  return {
+    subject: 'Welcome to Autinerary',
+    text: `Welcome to Autinerary!\n\nYour account and first Path are ready. Open it to see your first milestone:\n${link}\n\nYou can explore resources and people whenever you are ready.\n\n- Autinerary`,
+    html: `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
+        <h1 style="font-size:24px;margin:0 0 16px">Welcome to Autinerary</h1>
+        <p style="font-size:16px;line-height:1.5">Your account and first Path are ready. Open it to see your first milestone.</p>
+        <p style="margin:24px 0">
+          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
+        </p>
+        <p style="font-size:16px;line-height:1.5">You can explore resources and people whenever you are ready.</p>
+      </div>`,
+  }
+}
+
 /**
  * The inactive-user check-in (Riipen Labs, Group 2): one question, sent only to
  * people who opted in, after two weeks away. The links work without signing

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { emailEnabled, sendEmail } from '@/lib/email'
+import { emailEnabled, sendEmail, welcomeEmail } from '@/lib/email'
 
-export async function POST() {
+export async function POST(req: Request) {
   const supabase = createServerSupabase()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
@@ -21,13 +21,9 @@ export async function POST() {
   }
   if (!emailEnabled()) return NextResponse.json({ sent: false, reason: 'Email delivery is not configured' }, { status: 503 })
 
-  const result = await sendEmail({
-    to: user.email,
-    subject: 'Welcome to Autinerary',
-    text: 'Welcome to Autinerary! Your account and first Path are ready. Sign in to review your first milestone. You can explore resources and people whenever you are ready.',
-    html: '<h1>Welcome to Autinerary</h1><p>Your account and first Path are ready.</p><p>Sign in to review your first milestone. You can explore resources and people whenever you are ready.</p>',
-    idempotencyKey: `welcome-v1-${user.id}`,
-  })
+  // With a button to the Path, like the reminder and check-in emails.
+  const { subject, html, text } = welcomeEmail(process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin)
+  const result = await sendEmail({ to: user.email, subject, html, text, idempotencyKey: `welcome-v1-${user.id}` })
   if (!result.ok) return NextResponse.json({ sent: false, error: 'Email delivery failed' }, { status: 502 })
 
   const { error: receiptError } = await admin.auth.admin.updateUserById(user.id, {
