@@ -265,7 +265,8 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
     """Why people stopped (email and welcome-back answers) and whether active
     users find it useful, overall and by who they are here for. Pure."""
     audience_by_user = audience_by_user or {}
-    rows = list(rows)
+    # Test answers ('qa-...' versions) never count, as in the funnel.
+    rows = [r for r in rows if not str(r.get("onboarding_version") or "").startswith("qa")]
 
     def audience(r: dict) -> str:
         return AUDIENCE_LABELS.get(audience_by_user.get(r.get("user_id")), NOT_ANSWERED)
@@ -365,7 +366,7 @@ def main() -> int:
     print(render(funnel, summarize_feedback(feedback, args.version, funnel["people"]), args.show_comments))
     print()
     try:
-        checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment")
+        checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version")
     except Exception:
         print("== Check-ins: not available yet (apply STEP 46).")
         return 0

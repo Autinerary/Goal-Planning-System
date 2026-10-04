@@ -193,3 +193,14 @@ class SmallGroupTests(unittest.TestCase):
         self.assertIn("<5", child)
         self.assertNotIn("didn't have time", child)
 
+    def test_qa_checkins_are_left_out(self):
+        rows = [
+            {"user_id": "u1", "kind": "welcome_back", "reason": "no_time", "usefulness": None, "comment": None,
+             "onboarding_version": "qa-e2e"},
+            {"user_id": "u2", "kind": "welcome_back", "reason": "too_much", "usefulness": None, "comment": None,
+             "onboarding_version": "goalfirst-2026-10"},
+        ]
+        c = summarize_checkins(rows)
+        self.assertEqual(c["stopped"], 1)
+        self.assertEqual(dict(c["reasons"]), {"too_much": 1})
+
