@@ -63,6 +63,12 @@ export interface UserPreferences {
   language: string
   /** Daily goal-reminder opt-in (storage/consent only; delivery not yet wired). */
   reminders: ReminderPreferences
+  /** Onboarding's first question: who this person is here for. */
+  audience?: string | null
+  /** Onboarding: what they came for (plan, services, community, tools, learning). */
+  lookingFor?: string[]
+  /** Consent to one short email check-in after two weeks away (default off). */
+  checkin?: { optIn: boolean; updatedAt: string }
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }

@@ -7,6 +7,7 @@ import { Sparkles, Rocket, PlayCircle, ArrowRight } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import OnboardingFeedback from '../components/OnboardingFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
+import { usePreferences } from '../context/usePreferences'
 
 /**
  * Post-onboarding: what was built, and what to do first.
@@ -26,10 +27,29 @@ import { useAgentPath } from '../context/AgentPathContext'
 
 const CONNECTIONS = ['Your path', 'Milestones', 'Tools & ResourceHub', 'Calendar', 'Journal']
 
+// What each "What are you looking for today?" answer leads to first (Riipen
+// Labs, Group 2: people who arrive with a specific need "may want to reach
+// useful content quickly"). Community and learning both lead to Tidbits.
+type StartItem = { title: string; body: string; href?: string; cta?: string }
+const INTERESTS: Record<string, StartItem> = {
+  services: { title: 'Find services in ResourceHub.', body: 'Search places and services, with ratings from people with similar norms. If you skipped your location, it will ask for your city so it can show places near you.', href: '/go/servicehub?next=/search', cta: 'Find services now' },
+  community: { title: 'Read and ask in Tidbits.', body: 'Questions and answers from people with similar experiences.', href: '/go/servicehub?next=/community', cta: 'See what people say' },
+  learning: { title: 'Learn from others in Tidbits.', body: 'Questions and answers from people with similar experiences.', href: '/go/servicehub?next=/community', cta: 'Start learning' },
+  tools: { title: 'Browse tools, apps and products.', body: 'Things other people found useful, in the ResourceHub shop.', href: '/go/servicehub?next=/shop', cta: 'Browse tools' },
+}
+
 export default function OnboardingConfirmationPage() {
   const router = useRouter()
   const { payload, pathPlanning } = useAgentPath()
   const [launching, setLaunching] = useState(false)
+  const { prefs, update } = usePreferences()
+  const [choices, setChoices] = useState<{ lookingFor?: string[] }>({})
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || 'null')
+      if (saved) setChoices(saved)
+    } catch {}
+  }, [])
 
   useEffect(() => {
     if (!launching) return
@@ -41,6 +61,25 @@ export default function OnboardingConfirmationPage() {
   const norms: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
   const firstMilestone = pathPlanning?.milestones?.[0]?.name
   const milestoneCount = (pathPlanning?.milestones || []).length
+
+  // Lead with what they came for, in the order they picked it; a plan (or no
+  // answer) leads with the Path as before.
+  const lookingFor = choices.lookingFor?.length ? choices.lookingFor : prefs.lookingFor || []
+  const interestItems = Array.from(new Map(
+    lookingFor.filter((k) => INTERESTS[k]).map((k) => [INTERESTS[k].href, INTERESTS[k]] as const),
+  ).values())
+  const primaryInterest = lookingFor.length > 0 && lookingFor[0] !== 'plan' ? interestItems[0] : undefined
+  const pathItems: StartItem[] = [
+    { title: 'Open your Path.', body: 'Each goal is shown as a race with its milestones.' },
+    {
+      title: firstMilestone ? `Begin with your first milestone: \u201c${firstMilestone}\u201d.` : 'Begin with your first milestone.',
+      body: 'Opening it shows tools that can help with it.',
+    },
+  ]
+  const startItems: StartItem[] = (primaryInterest
+    ? [...interestItems, ...pathItems]
+    : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
+  ).slice(0, 4)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-purple-50">
@@ -85,45 +124,59 @@ export default function OnboardingConfirmationPage() {
           </div>
         )}
 
-        {/* Start here: one ordered list, one primary button. */}
+        {/* Start here: one ordered list, one primary button. The button is
+            whatever they said they came for first. */}
         <div className="border border-indigo-200 rounded-2xl p-6 mb-6 surface">
           <h2 className="font-bold text-slate-900 mb-3">Start here</h2>
           <ol className="space-y-3 text-slate-800">
-            <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-xs font-bold text-white" aria-hidden="true">1</span>
-              <span><span className="font-semibold">Open your Path.</span> Each goal is shown as a race with its milestones.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-xs font-bold text-white" aria-hidden="true">2</span>
-              <span>
-                <span className="font-semibold">Begin with your first milestone</span>
-                {firstMilestone ? <>: &ldquo;{firstMilestone}&rdquo;.</> : '.'} Opening it shows tools that can help with it.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-xs font-bold text-white" aria-hidden="true">3</span>
-              <span>
-                <span className="font-semibold">Find services in </span>
-                <Link href="/go/servicehub" className="font-semibold text-indigo-800 underline underline-offset-2">ResourceHub</Link>
-                <span className="font-semibold">.</span> If you skipped your location, it will ask for your city so it can show places near you.
-              </span>
-            </li>
+            {startItems.map((item, i) => (
+              <li key={item.title} className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-xs font-bold text-white" aria-hidden="true">{i + 1}</span>
+                <span>
+                  {item.href ? (
+                    <Link href={item.href} className="font-semibold text-indigo-800 underline underline-offset-2">{item.title}</Link>
+                  ) : (
+                    <span className="font-semibold">{item.title}</span>
+                  )}{' '}
+                  {item.body}
+                </span>
+              </li>
+            ))}
           </ol>
 
           <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <button
-              onClick={() => setLaunching(true)}
-              disabled={launching}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-lg font-bold transition-colors"
-            >
-              <Rocket className="w-5 h-5" aria-hidden="true" /> Go to my Path
-            </button>
+            {primaryInterest ? (
+              <>
+                <Link
+                  href={primaryInterest.href!}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-lg font-bold transition-colors"
+                >
+                  {primaryInterest.cta} <ArrowRight className="w-5 h-5" aria-hidden="true" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setLaunching(true)}
+                  disabled={launching}
+                  className="inline-flex items-center gap-2 px-2 py-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+                >
+                  <Rocket className="w-4 h-4" aria-hidden="true" /> Go to my Path
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setLaunching(true)}
+                disabled={launching}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-lg font-bold transition-colors"
+              >
+                <Rocket className="w-5 h-5" aria-hidden="true" /> Go to my Path
+              </button>
+            )}
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
               className="inline-flex items-center gap-2 px-2 py-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
             >
-              <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the one-minute tour first
+              <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the one-minute tour
             </button>
           </div>
         </div>
@@ -146,6 +199,25 @@ export default function OnboardingConfirmationPage() {
         </div>
 
         <OnboardingFeedback />
+
+        {/* Riipen Labs, Group 2: "add email and notification opt-in so a
+            check-in can reach users who stop opening the app". Off unless
+            chosen; the same switch is in Settings. */}
+        <div className="border border-slate-200 rounded-2xl p-6 mb-6 surface">
+          <h2 className="font-bold text-slate-900 mb-2">If you stop using Autinerary</h2>
+          <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={Boolean(prefs.checkin?.optIn)}
+              onChange={(e) => update({ checkin: { optIn: e.target.checked, updatedAt: new Date().toISOString() } })}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+            />
+            <span>
+              Email me one short question if I haven&apos;t opened Autinerary for two weeks, so the team can fix
+              what got in the way. You can turn this off anytime in Settings.
+            </span>
+          </label>
+        </div>
 
         {/* Later: people. Secondary, so it sits last. */}
         <p className="text-sm text-slate-700 text-center">

@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react'
-import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check } from 'lucide-react'
+import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check, Mail } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
@@ -237,6 +237,23 @@ export default function SettingsPreferences() {
             />
           ))}
         </div>
+      </section>
+
+      {/* The post-setup page says this can be turned off "anytime in
+          Settings"; this is that switch. */}
+      <section>
+        <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+          <Mail className="w-4 h-4 text-cyan-700" /> Check-in email
+        </label>
+        <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={Boolean(prefs.checkin?.optIn)}
+            onChange={(e) => update({ checkin: { optIn: e.target.checked, updatedAt: new Date().toISOString() } })}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+          />
+          <span>If I haven&apos;t opened Autinerary for two weeks, email me one short question about why.</span>
+        </label>
       </section>
     </div>
   )
