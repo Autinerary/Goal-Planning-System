@@ -97,7 +97,9 @@ export default function SignupPage() {
               <UserPlus className="w-8 h-8 text-purple-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
-            <p className="text-slate-600 text-sm mt-1">Start building your path to success</p>
+            <p className="text-slate-700 text-sm mt-1">
+              Next comes a short setup that builds your plan. Three questions are required; you can skip the rest.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
