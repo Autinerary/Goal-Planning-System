@@ -82,6 +82,11 @@ USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "no
 
 RETURN_WINDOW = timedelta(days=7)
 
+# Rows for groups smaller than this show "<5" instead of counts and rates, so
+# a shared copy of the report cannot single anyone out. Totals are unaffected.
+MIN_CELL = 5
+SMALL = f"<{MIN_CELL}"
+
 
 def _ts(value: str) -> datetime:
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
@@ -205,6 +210,9 @@ def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[
     for g in list(funnel_groups) + [g for g in survey_groups if g not in funnel_groups]:
         f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0})
         s = survey_groups.get(g)
+        if max(f["accounts"], s["responses"] if s else 0) < MIN_CELL:
+            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>10} {'-':>8} {'-':>10} {'-':>10}")
+            continue
         clarity = f"{100 * s['about_right_share']:.0f}%" if s and s["about_right_share"] is not None else "-"
         ease = f"{s['ease_median']}" if s and s["ease_median"] is not None else "-"
         out.append(f"  {g[:20]:<20} {f['accounts']:>8} {pct(f['finished'], f['accounts']):>9} "
@@ -234,7 +242,8 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.extend(_comparison("By who they are here for", funnel.get("by_audience", {}), feedback.get("by_audience", {})))
     out.append("")
     out.extend(_comparison("By channel (utm_source of the first visit)", funnel["by_channel"], feedback.get("by_channel", {})))
-    out.append("  (clarity ok = answered \"about right\" to how much they knew before making an account)")
+    out.append("  (clarity ok = answered \"about right\" to how much they knew before making an account;")
+    out.append(f"   groups smaller than {MIN_CELL} show {SMALL})")
     out.append("")
     out.append(f"== Post-setup survey: {feedback['responses']} responses")
     info = feedback["info_before_signup"]
@@ -300,6 +309,9 @@ def render_checkins(c: Dict, show_comments: bool) -> str:
         out.append(f"  {'group':<20} {'stopped':>7}  {'most common reason':<30} {'useful?':>7}  very/somewhat/not yet")
         for g, m in sorted(c["by_audience"].items(), key=lambda kv: -sum(kv[1]["reasons"].values()) - sum(kv[1]["usefulness"].values())):
             n_stop = sum(m["reasons"].values())
+            if n_stop + sum(m["usefulness"].values()) < MIN_CELL:
+                out.append(f"  {g[:20]:<20} {SMALL:>7}  {'-':<30} {'-':>7}  -")
+                continue
             top = m["reasons"].most_common(1)
             top_label = f"{labels[top[0][0]]} ({top[0][1]})" if top else "-"
             u = m["usefulness"]

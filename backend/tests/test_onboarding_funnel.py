@@ -173,3 +173,23 @@ class CheckinTests(unittest.TestCase):
             self.assertIn(f"id: '{key}'", ts)
             self.assertIn(f"'{key}'", sql)
 
+
+class SmallGroupTests(unittest.TestCase):
+    def test_groups_under_five_are_not_shown_as_counts(self):
+        # One person from tiktok, six from reddit.
+        events = [ev("t1", "signup_complete", "2026-10-01T10:00:00+00:00", channel="tiktok")]
+        events += [ev(f"r{i}", "signup_complete", "2026-10-01T10:00:00+00:00", channel="reddit") for i in range(6)]
+        text = render(compute_funnel(events), summarize_feedback([]), show_comments=False)
+        tiktok = next(line for line in text.splitlines() if line.strip().startswith("tiktok"))
+        reddit = next(line for line in text.splitlines() if line.strip().startswith("reddit"))
+        self.assertIn("<5", tiktok)
+        self.assertNotIn("%", tiktok)
+        self.assertIn(" 6 ", reddit)
+
+    def test_checkin_groups_under_five_are_not_shown(self):
+        rows = [{"user_id": "u1", "kind": "welcome_back", "reason": "no_time", "usefulness": None, "comment": None}]
+        text = render_checkins(summarize_checkins(rows, {"u1": "child"}), show_comments=False)
+        child = next(line for line in text.splitlines() if line.strip().startswith("my child"))
+        self.assertIn("<5", child)
+        self.assertNotIn("didn't have time", child)
+
