@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -35,7 +35,7 @@ const STEPS: DemoStep[] = [
     emoji: '👋',
     title: 'Welcome to Autinerary',
     overview:
-      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime.',
+      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime. How it fits together: your goals become races, each milestone suggests tools, the calendar schedules your next steps, and the journal is where you look back.',
   },
   {
     emoji: '🧭',
@@ -128,6 +128,7 @@ const SEEN_KEY = 'autinerary_demo_seen_v1'
 
 export default function InteractiveDemo() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
@@ -136,6 +137,10 @@ export default function InteractiveDemo() {
     // Auto-start once for brand-new users — but only when signed in and onboarded
     // (the tour walks real, logged-in screens; it shouldn't pop over login/signup).
     if (!user || !user.hasCompletedOnboarding) return
+    // Not over the post-setup summary: someone who has just finished nine
+    // steps of setup gets a page of next steps there, with the tour offered
+    // as a button. It still starts by itself once, on the next page.
+    if (pathname === '/onboarding-confirmation') return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.
@@ -145,7 +150,7 @@ export default function InteractiveDemo() {
     } catch {
       /* ignore */
     }
-  }, [user])
+  }, [user, pathname])
 
   useEffect(() => {
     const start = () => {
