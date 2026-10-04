@@ -13,10 +13,17 @@ returned within 7 days, and the post-setup survey's clarity question ("how
 much did you know before making an account?") and effort question ("how
 easy was setup?").
 
-Reads public.onboarding_events and public.onboarding_feedback (STEP 45) and
-profiles.preferences. Counts only: no user ids, emails or visitor ids are
-printed. Survey comments are free text and may contain personal details, so
-they are only printed with --show-comments, for reading locally.
+Group 2 also asked to "ask active users about usefulness and inactive users
+why they disengaged". Those answers (public.checkin_responses, STEP 46) are
+summarized at the end: why people stopped, from the check-in email and the
+welcome-back question, and whether active users find it useful, each split by
+who they are here for. Check-ins are not split by onboarding version.
+
+Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
+public.checkin_responses (STEP 46) and profiles.preferences. Counts only: no
+user ids, emails or visitor ids are printed. Survey and check-in comments are
+free text and may contain personal details, so they are only printed with
+--show-comments, for reading locally.
 
 Run (from backend/):
   python -m scripts.onboarding_funnel                    # current version
@@ -60,6 +67,18 @@ AUDIENCE_LABELS = {
     "ally": "ally / learning",
 }
 NOT_ANSWERED = "(not answered)"
+
+# Check-in answers, as in frontend/lib/checkin.ts.
+STOP_REASONS = [
+    ("too_much", "too much to set up or learn"),
+    ("not_what_i_needed", "not what I needed"),
+    ("hard_to_find", "couldn't find what I wanted"),
+    ("no_time", "didn't have time"),
+    ("not_useful_yet", "not useful yet"),
+    ("just_exploring", "just exploring"),
+    ("other", "something else"),
+]
+USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "not yet")]
 
 RETURN_WINDOW = timedelta(days=7)
 
@@ -233,6 +252,66 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     return "\n".join(out)
 
 
+def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
+    """Why people stopped (email and welcome-back answers) and whether active
+    users find it useful, overall and by who they are here for. Pure."""
+    audience_by_user = audience_by_user or {}
+    rows = list(rows)
+
+    def audience(r: dict) -> str:
+        return AUDIENCE_LABELS.get(audience_by_user.get(r.get("user_id")), NOT_ANSWERED)
+
+    stopped = [r for r in rows if r.get("kind") in ("inactive_email", "welcome_back")]
+    useful = [r for r in rows if r.get("kind") == "usefulness"]
+    by_audience: Dict[str, Dict[str, Counter]] = defaultdict(lambda: {"reasons": Counter(), "usefulness": Counter()})
+    for r in stopped:
+        if r.get("reason"):
+            by_audience[audience(r)]["reasons"][r["reason"]] += 1
+    for r in useful:
+        if r.get("usefulness"):
+            by_audience[audience(r)]["usefulness"][r["usefulness"]] += 1
+    return {
+        "stopped": len(stopped),
+        "from_email": sum(r["kind"] == "inactive_email" for r in stopped),
+        "on_return": sum(r["kind"] == "welcome_back" for r in stopped),
+        "reasons": Counter(r["reason"] for r in stopped if r.get("reason")),
+        "useful": len(useful),
+        "usefulness": Counter(r["usefulness"] for r in useful if r.get("usefulness")),
+        "by_audience": dict(by_audience),
+        "comments": [(r["kind"], r["comment"]) for r in rows if r.get("comment")],
+    }
+
+
+def render_checkins(c: Dict, show_comments: bool) -> str:
+    labels = dict(STOP_REASONS)
+    out = [f"== Why people stopped (check-ins, all versions): {c['stopped']} answers "
+           f"({c['from_email']} from the email, {c['on_return']} on coming back)"]
+    total = sum(c["reasons"].values())
+    for key, label in STOP_REASONS:
+        out.append(f"  {label:<30} {c['reasons'].get(key, 0):>4}  ({pct(c['reasons'].get(key, 0), total)})")
+    out.append("")
+    useful_total = sum(c["usefulness"].values())
+    out.append(f"== Useful so far? (active users, after 5 days of use): {c['useful']} answers")
+    out.append("  " + "   ".join(f"{label}: {c['usefulness'].get(key, 0)} ({pct(c['usefulness'].get(key, 0), useful_total)})"
+                                for key, label in USEFULNESS))
+    if c["by_audience"]:
+        out.append("")
+        out.append("== Check-ins by who they are here for")
+        out.append(f"  {'group':<20} {'stopped':>7}  {'most common reason':<30} {'useful?':>7}  very/somewhat/not yet")
+        for g, m in sorted(c["by_audience"].items(), key=lambda kv: -sum(kv[1]["reasons"].values()) - sum(kv[1]["usefulness"].values())):
+            n_stop = sum(m["reasons"].values())
+            top = m["reasons"].most_common(1)
+            top_label = f"{labels[top[0][0]]} ({top[0][1]})" if top else "-"
+            u = m["usefulness"]
+            out.append(f"  {g[:20]:<20} {n_stop:>7}  {top_label[:30]:<30} {sum(u.values()):>7}  "
+                       f"{u.get('very', 0)}/{u.get('somewhat', 0)}/{u.get('not_yet', 0)}")
+    out.append(f"  comments: {len(c['comments'])}" + ("" if show_comments else "  (use --show-comments to read them)"))
+    if show_comments:
+        for kind, text in c["comments"]:
+            out.append(f"    - [{kind}] {text}")
+    return "\n".join(out)
+
+
 def fetch_all(sb, table: str, cols: str) -> List[dict]:
     rows, start = [], 0
     while True:
@@ -272,6 +351,13 @@ def main() -> int:
             audience_by_user[p["id"]] = aud
     funnel = compute_funnel(events, args.version, audience_by_user)
     print(render(funnel, summarize_feedback(feedback, args.version, funnel["people"]), args.show_comments))
+    print()
+    try:
+        checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment")
+    except Exception:
+        print("== Check-ins: not available yet (apply STEP 46).")
+        return 0
+    print(render_checkins(summarize_checkins(checkins, audience_by_user), args.show_comments))
     return 0
 
 

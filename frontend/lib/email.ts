@@ -62,3 +62,27 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
       </div>`,
   }
 }
+
+
+/**
+ * The inactive-user check-in (Riipen Labs, Group 2): one question, sent only to
+ * people who opted in, after two weeks away. The links work without signing
+ * in: one answers the question, the other turns these emails off.
+ */
+export function checkinEmail(appUrl: string, token: string): { subject: string; html: string; text: string } {
+  const base = `${appUrl.replace(/\/$/, '')}/checkin?t=${encodeURIComponent(token)}`
+  const stop = `${base}&stop=1`
+  return {
+    subject: 'One quick question from Autinerary',
+    text: `Hi,\n\nYou haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way:\n${base}\n\nYou're getting this because you asked us to check in if you stopped using Autinerary. To stop these emails: ${stop}\n\n- Autinerary`,
+    html: `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
+        <p style="font-size:16px">Hi,</p>
+        <p style="font-size:16px;line-height:1.5">You haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way.</p>
+        <p style="margin:24px 0">
+          <a href="${base}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Answer one question</a>
+        </p>
+        <p style="font-size:13px;color:#475569;line-height:1.5">You're getting this because you asked us to check in if you stopped using Autinerary. <a href="${stop}" style="color:#334155">Stop these emails</a>.</p>
+      </div>`,
+  }
+}

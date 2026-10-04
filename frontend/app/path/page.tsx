@@ -18,6 +18,7 @@ import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
 import AskLaterCard from '../components/AskLaterCard'
+import CheckinPrompt from '../components/CheckinPrompt'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -488,8 +489,9 @@ useEffect(() => {
           <p className="text-lg md:text-xl font-semibold text-indigo-950 leading-snug">{motivationalQuote}</p>
         </div>
 
-        {/* ── Ask later: the optional setup questions they skipped ── */}
-        <AskLaterCard />
+        {/* ── A check-in question when one is due; otherwise the optional
+             setup questions they skipped. One card at a time. ── */}
+        <CheckinPrompt fallback={<AskLaterCard />} />
 
         {/* ── 2x2 Dashboard Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

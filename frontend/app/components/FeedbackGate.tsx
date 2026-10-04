@@ -29,7 +29,7 @@ const FORM_URL = process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || DEFAULT_FORM_URL
 
 // Routes where the gate must NOT block (auth/onboarding entry — otherwise
 // brand-new users could be locked out before they have an account).
-const SKIP_PREFIXES = ['/login', '/signup', '/auth', '/onboarding', '/onboarding-confirmation']
+const SKIP_PREFIXES = ['/login', '/signup', '/auth', '/onboarding', '/onboarding-confirmation', '/checkin']
 
 /**
  * How much use has to happen before we are entitled to ask.
@@ -92,7 +92,11 @@ export default function FeedbackGate() {
   if (!earnedTheRight) return null
 
   const handleConfirm = () => {
-    try { window.localStorage.setItem(FEEDBACK_KEY, 'true') } catch {}
+    try {
+      window.localStorage.setItem(FEEDBACK_KEY, 'true')
+      // CheckinPrompt waits for another day before asking anything else.
+      window.localStorage.setItem(`${FEEDBACK_KEY}_on`, new Date().toISOString().slice(0, 10))
+    } catch {}
     setDone(true)
   }
 

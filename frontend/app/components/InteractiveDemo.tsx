@@ -141,6 +141,8 @@ export default function InteractiveDemo() {
     // steps of setup gets a page of next steps there, with the tour offered
     // as a button. It still starts by itself once, on the next page.
     if (pathname === '/onboarding-confirmation') return
+    // Nor over the one-question check-in someone opened from an email.
+    if (pathname === '/checkin') return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.

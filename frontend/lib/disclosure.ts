@@ -22,7 +22,7 @@ const MAX_VISIT_DAYS = 60
 
 const LEVEL_RANK: Record<DisclosureLevel, number> = { simple: 0, standard: 1, full: 2 }
 
-function dayKey(d: Date): string {
+export function dayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
@@ -55,6 +55,22 @@ export function recordVisit(): void {
 
 export function getVisitDayCount(): number {
   return readVisitDays().length
+}
+
+/** The most recent day before today this browser opened the app (local YYYY-MM-DD), or null. */
+export function getPreviousVisitDay(): string | null {
+  const today = dayKey(new Date())
+  const earlier = readVisitDays().filter((d) => d < today).sort()
+  return earlier.length ? earlier[earlier.length - 1] : null
+}
+
+/** Whole days from a local YYYY-MM-DD day to today. */
+export function daysSince(day: string): number {
+  const [y, m, d] = day.split('-').map(Number)
+  const then = new Date(y, m - 1, d)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((today.getTime() - then.getTime()) / 86_400_000)
 }
 
 function getOverride(): DisclosureLevel | null {

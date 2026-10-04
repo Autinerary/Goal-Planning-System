@@ -11,10 +11,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.onboarding_funnel import (  # noqa: E402
     CURRENT_VERSION,
+    STOP_REASONS,
+    USEFULNESS,
     compute_funnel,
     render,
+    render_checkins,
+    summarize_checkins,
     summarize_feedback,
 )
+
+REPO = Path(__file__).resolve().parents[2]
 
 V = CURRENT_VERSION
 
@@ -127,3 +133,43 @@ class FeedbackTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckinTests(unittest.TestCase):
+    ROWS = [
+        {"user_id": "u1", "kind": "inactive_email", "reason": "too_much", "usefulness": None, "comment": None},
+        {"user_id": "u2", "kind": "welcome_back", "reason": "too_much", "usefulness": None, "comment": "hard to start"},
+        {"user_id": "u3", "kind": "welcome_back", "reason": "no_time", "usefulness": None, "comment": None},
+        {"user_id": "u1", "kind": "usefulness", "reason": None, "usefulness": "somewhat", "comment": None},
+        {"user_id": "u4", "kind": "usefulness", "reason": None, "usefulness": "very", "comment": None},
+    ]
+
+    def test_counts_reasons_and_usefulness_separately(self):
+        c = summarize_checkins(self.ROWS, {"u1": "child", "u2": "child", "u3": "self"})
+        self.assertEqual(c["stopped"], 3)
+        self.assertEqual((c["from_email"], c["on_return"]), (1, 2))
+        self.assertEqual(c["reasons"]["too_much"], 2)
+        self.assertEqual(c["useful"], 2)
+        self.assertEqual(c["usefulness"]["very"], 1)
+        self.assertEqual(c["by_audience"]["my child"]["reasons"]["too_much"], 2)
+        self.assertEqual(c["by_audience"]["my child"]["usefulness"]["somewhat"], 1)
+        # u4 never said who they are here for.
+        self.assertEqual(c["by_audience"]["(not answered)"]["usefulness"]["very"], 1)
+
+    def test_comments_only_with_flag(self):
+        c = summarize_checkins(self.ROWS)
+        self.assertNotIn("hard to start", render_checkins(c, show_comments=False))
+        self.assertIn("hard to start", render_checkins(c, show_comments=True))
+
+    def test_report_prints_no_ids(self):
+        text = render_checkins(summarize_checkins(self.ROWS, {"u1": "child"}), show_comments=True)
+        for uid in ("u1", "u2", "u3", "u4"):
+            self.assertNotIn(uid, text)
+
+    def test_answer_lists_match_the_app_and_the_database(self):
+        ts = (REPO / "frontend/lib/checkin.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_checkins.sql").read_text()
+        for key, _ in STOP_REASONS + USEFULNESS:
+            self.assertIn(f"id: '{key}'", ts)
+            self.assertIn(f"'{key}'", sql)
+

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { trackDailyOpen } from '@/lib/funnel'
+import { markSeenToday } from '@/lib/checkin'
 
 interface User {
   id: string
@@ -26,7 +27,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const publicRoutes = ['/', '/login', '/signup']
+const publicRoutes = ['/', '/login', '/signup', '/checkin']
 
 function profileFromSupabase(su: SupabaseUser): User {
   return {
@@ -136,9 +137,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   // Funnel: one "app_open" per day per signed-in browser, for the
-  // returned-within-7-days measure.
+  // returned-within-7-days measure; and the last-seen day the check-in email
+  // uses to tell who has been away.
   useEffect(() => {
-    if (user) trackDailyOpen()
+    if (!user) return
+    trackDailyOpen()
+    markSeenToday()
   }, [user])
 
   // Redirect logic
