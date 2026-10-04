@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       tag: 'push-on',
     }
   )
-  return NextResponse.json({ ok: true, confirmation })
+  return NextResponse.json({ ok: true, confirmation: confirmation.result, status: confirmation.status })
 }
 
 export async function DELETE(req: NextRequest) {

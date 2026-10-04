@@ -42,23 +42,35 @@ function configure() {
   configured = true
 }
 
-/** 'gone' means the device turned notifications off or was reset: forget it. */
-export async function sendPush(device: PushDevice, message: PushMessage): Promise<'sent' | 'gone' | 'failed'> {
-  if (!pushEnabled()) return 'failed'
+export interface PushResult {
+  /** 'gone': the device turned notifications off or was reset, so forget it. */
+  result: 'sent' | 'gone' | 'failed'
+  /** The push service's HTTP status, when it answered. */
+  status?: number
+}
+
+export async function sendPush(device: PushDevice, message: PushMessage): Promise<PushResult> {
+  if (!pushEnabled()) return { result: 'failed' }
   configure()
   try {
-    await webpush.sendNotification(
+    const res = await webpush.sendNotification(
       { endpoint: device.endpoint, keys: { p256dh: device.p256dh, auth: device.auth } },
       JSON.stringify(message),
       // Kept for a day if the device is offline; a check-in is not urgent.
       { TTL: 86_400, urgency: 'normal' }
     )
-    return 'sent'
+    return { result: 'sent', status: res.statusCode }
   } catch (error: any) {
-    const status = error?.statusCode
-    if (status === 404 || status === 410) return 'gone'
-    console.warn('[push] send failed:', status || error?.message)
-    return 'failed'
+    const status: number | undefined = error?.statusCode
+    const host = (() => {
+      try {
+        return new URL(device.endpoint).host
+      } catch {
+        return '?'
+      }
+    })()
+    console.warn('[push] send failed:', host, status || error?.message, String(error?.body || '').slice(0, 200))
+    return { result: status === 404 || status === 410 ? 'gone' : 'failed', status }
   }
 }
 
@@ -74,7 +86,7 @@ export async function pushToUser(admin: SupabaseClient, userId: string, message:
   if (error || !devices?.length) return 0
   let sent = 0
   for (const device of devices) {
-    const result = await sendPush(device as PushDevice, message)
+    const { result } = await sendPush(device as PushDevice, message)
     if (result === 'sent') {
       sent++
       await admin.from('push_subscriptions').update({ last_sent_at: new Date().toISOString() }).eq('endpoint', device.endpoint)
