@@ -19,14 +19,20 @@ October trial should lead with that.
 
 ## Before the trial starts
 
-| Item | Why | Owner |
+Everything for recruiting and running sessions is in the
+[beta testing kit](beta/README.md): outreach posts with each channel's tracked
+link, the sign-up questions, the consent text and the facilitator's script.
+
+| Item | Why | Status |
 | --- | --- | --- |
-| Apply STEP 46 (`setup/all_migrations.sql`) | Stores check-in answers | Aayush |
-| Set `RESEND_API_KEY` and `NEXT_PUBLIC_APP_URL` in Vercel, with a verified sending domain | Without it no welcome, reminder or check-in email is sent | Aayush |
-| Set `CRON_SECRET` in Vercel | Only Vercel can trigger the daily email jobs | Aayush |
-| Optional: turn on Google in Supabase, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` | Sign up with Google | Aayush |
-| Create one tracked link per channel (below) | Results by channel | Outreach lead |
-| Book 2 pilot sessions | Fix the script before the real sessions | Research lead |
+| Apply STEP 46 (`setup/all_migrations.sql`) | Stores check-in answers | Done 4 October |
+| Email: Resend with autinerary.ca verified, `RESEND_API_KEY`, `NEXT_PUBLIC_APP_URL`, `REMINDER_FROM_EMAIL` | Welcome, reminder and check-in emails | Done 4 October (test email delivered) |
+| `CRON_SECRET` in Vercel | Only Vercel can trigger the daily email jobs | Done |
+| Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Live; needs one real sign-in to confirm |
+| Privacy page | What testers are told about their information | Live at /privacy |
+| Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
+| Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
+| Book 2 pilot sessions | Fix the script before the real sessions | To do |
 
 ## Who takes part
 
@@ -62,6 +68,7 @@ minutes, and notes success, time and where they hesitated.
 | 4 | "Mark something as done." | Completes a milestone or task |
 | 5 | "Make the app easier on your eyes." | Changes a display setting |
 | 6 | "You want to stop the app sending you emails. Do that." | Finds the email setting |
+| 7 | "Find a place you've been to, or would like to go, and rate it." | Submits a rating |
 
 After each task, ask: "How easy or hard was that?" (1 very hard to 5 very
 easy, the same scale as the in-app survey). At the end, ask: "What would you
@@ -69,7 +76,14 @@ use this for, if anything?" and "What nearly made you give up?"
 
 Record per task: success (yes / with help / no), time, ease 1 to 5, and
 quotes. Compare ND and NT participants, and the five groups above, on task
-success and ease.
+success and ease. The full wording, prompts and notes template are in
+[session-script.md](beta/session-script.md).
+
+Task 7 matters beyond the sessions: ResourceHub's norm and minimum-rating
+filters only find places once people have rated them, and today the only
+rated, approved place is Autinerary itself (the other ratings belong to
+rejected seed entries). The outreach posts and trial emails should ask
+testers to rate places they know, too.
 
 ## Part 2: the 30-day trial (12 October to 10 November)
 
@@ -90,7 +104,8 @@ https://goal-planning-app.vercel.app/?utm_source=school
 
 `utm_campaign` can name a post or partner (for example
 `?utm_source=instagram&utm_campaign=adhd-month-reel`). Don't put anything
-personal in either value.
+personal in either value. The ready-made links and posts, all using
+`utm_campaign=beta-oct-2026`, are in [outreach.md](beta/outreach.md).
 
 What participants will see, in order:
 
