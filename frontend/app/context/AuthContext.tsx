@@ -12,6 +12,9 @@ interface User {
   email: string
   name?: string
   hasCompletedOnboarding: boolean
+  /** No date of birth yet (a new Google account, or one made before the 18+
+   *  rule) and setup not finished: asked at /auth/age first. */
+  needsDateOfBirth?: boolean
 }
 
 interface AuthContextType {
@@ -28,13 +31,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const publicRoutes = ['/', '/login', '/signup', '/checkin']
+const AGE_ROUTE = '/auth/age'
 
 function profileFromSupabase(su: SupabaseUser): User {
+  const hasCompletedOnboarding = su.user_metadata?.has_completed_onboarding === true
   return {
     id: su.id,
     email: su.email || '',
     name: su.user_metadata?.full_name || su.user_metadata?.name || undefined,
-    hasCompletedOnboarding: su.user_metadata?.has_completed_onboarding === true,
+    hasCompletedOnboarding,
+    needsDateOfBirth:
+      !hasCompletedOnboarding &&
+      !su.app_metadata?.date_of_birth &&
+      !su.user_metadata?.date_of_birth &&
+      !su.app_metadata?.managed_by_guardian,
   }
 }
 
@@ -153,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!user && !isPublic && !isOnboarding) {
       router.push('/login')
+    } else if (user && user.needsDateOfBirth && !isPublic) {
+      if (pathname !== AGE_ROUTE) router.push(AGE_ROUTE)
     } else if (user && !user.hasCompletedOnboarding && !isOnboarding && !isPublic) {
       router.push('/onboarding')
     } else if (user && user.hasCompletedOnboarding && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {

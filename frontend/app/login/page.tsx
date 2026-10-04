@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
+import GoogleSignIn from '../components/GoogleSignIn'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -81,6 +82,8 @@ export default function LoginPage() {
             <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
             <p className="text-slate-600 text-sm mt-1">Sign in to continue your journey</p>
           </div>
+
+          <GoogleSignIn label="Sign in with Google" />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}

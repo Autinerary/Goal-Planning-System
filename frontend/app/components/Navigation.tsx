@@ -17,7 +17,7 @@ function goToServiceHub() {
   window.location.href = goHubHref('/')
 }
 
-const hideNavRoutes = ['/', '/login', '/signup', '/onboarding', '/checkin']
+const hideNavRoutes = ['/', '/login', '/signup', '/auth/age', '/onboarding', '/checkin']
 
 export default function Navigation() {
   const { user, supabaseUser, logout, isLoading } = useAuth()

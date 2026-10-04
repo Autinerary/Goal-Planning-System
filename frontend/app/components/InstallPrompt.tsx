@@ -10,7 +10,7 @@ const DISMISSED_KEY = 'autinerary_install_dismissed'
 // through setup: on a phone it sat over the Continue button at the bottom of
 // every onboarding step, and it is a second call to action competing with the
 // one that matters there. It still appears on the first page after setup.
-const FIRST_RUN_ROUTES = ['/', '/login', '/signup', '/onboarding', '/onboarding-confirmation', '/checkin']
+const FIRST_RUN_ROUTES = ['/', '/login', '/signup', '/auth/age', '/onboarding', '/onboarding-confirmation', '/checkin']
 
 /**
  * "Add Autinerary to your home screen."

@@ -43,10 +43,17 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/login?error=auth_error`)
     }
     
-    // After successful email confirmation, redirect to onboarding
-    // The client-side AuthContext will handle checking if onboarding is complete
+    // Email confirmations and Google sign-ins both land here. Google does not
+    // share a date of birth, so a new Google account answers that first
+    // (the 18+ rule; setup cannot finish without it). Everyone else goes on
+    // to setup, or to their Path if setup is done.
     if (data?.user) {
-      return NextResponse.redirect(`${origin}/onboarding`)
+      const u = data.user
+      const onboarded = u.user_metadata?.has_completed_onboarding === true
+      if (!onboarded && !u.app_metadata?.date_of_birth && !u.user_metadata?.date_of_birth) {
+        return NextResponse.redirect(`${origin}/auth/age`)
+      }
+      return NextResponse.redirect(`${origin}${onboarded ? '/path' : '/onboarding'}`)
     }
   }
 

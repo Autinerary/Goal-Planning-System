@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, UserPlus, Loader2, Check } from 'lucide-react'
 import { computeAge, isAdult, MIN_SIGNUP_AGE } from '@/lib/age'
 import { track } from '@/lib/funnel'
+import GoogleSignIn from '../components/GoogleSignIn'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -107,6 +108,8 @@ export default function SignupPage() {
               Next: three quick steps (who you&apos;re here for, one goal, and an optional question about norms), then your path is ready.
             </p>
           </div>
+
+          <GoogleSignIn label="Sign up with Google" />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
