@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, UserPlus, Loader2, Check } from 'lucide-react'
 import { computeAge, isAdult, MIN_SIGNUP_AGE } from '@/lib/age'
+import { track } from '@/lib/funnel'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -18,6 +19,10 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    track('signup_view')
+  }, [])
 
   // Under-18 flagged live once a full DOB is entered.
   const dobAge = dob ? computeAge(dob) : null
@@ -60,6 +65,7 @@ export default function SignupPage() {
     const result = await signup(email.trim().toLowerCase(), password, name, dob)
     
     if (result.success) {
+      track('signup_complete')
       router.push('/onboarding')
     } else {
       setError(result.error || 'An account with this email already exists.')

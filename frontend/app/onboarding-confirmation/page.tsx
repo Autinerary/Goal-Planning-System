@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Rocket, PlayCircle, ArrowRight } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import OnboardingFeedback from '../components/OnboardingFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
 
 /**
@@ -143,6 +144,8 @@ export default function OnboardingConfirmationPage() {
             journal is where you look back. You can replay the tour anytime with &ldquo;How it works&rdquo; (the &#9654; button) in the top bar.
           </p>
         </div>
+
+        <OnboardingFeedback />
 
         {/* Later: people. Secondary, so it sits last. */}
         <p className="text-sm text-slate-700 text-center">

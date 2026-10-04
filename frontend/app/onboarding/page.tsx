@@ -20,6 +20,7 @@ import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
+import { track } from '@/lib/funnel'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -698,6 +699,14 @@ export default function OnboardingPage() {
       }
   }, [currentStep, formData, draftReady])
 
+  // Funnel: which steps people reach, to see where setup loses them.
+  const stepsSeen = useRef(new Set<number>())
+  useEffect(() => {
+    if (!draftReady || stepsSeen.current.has(currentStep)) return
+    stepsSeen.current.add(currentStep)
+    track('onboarding_step_view', steps[currentStep].id)
+  }, [currentStep, draftReady])
+
   // Clear autosave + consumed path seed on successful submission
   const clearAutosave = () => {
     draftSubmitted.current = true
@@ -1306,6 +1315,7 @@ export default function OnboardingPage() {
       } catch {}
 
       await completeOnboarding(response.data.pathId)
+      track('onboarding_complete')
       await axios.post('/api/me/preferences', {
         dreamAppearance: formData.dreamAppearance,
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },

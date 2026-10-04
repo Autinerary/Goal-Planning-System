@@ -12,6 +12,7 @@ import {
   HeartHandshake,
   Sparkles,
 } from 'lucide-react'
+import FunnelPing from './components/FunnelPing'
 
 /**
  * Landing page: what a visitor needs before deciding to make an account.
@@ -95,6 +96,7 @@ const NORM_EXAMPLES = [
 export default function HomePage() {
   return (
     <div className="min-h-screen text-slate-900">
+      <FunnelPing event="landing_view" />
       {/* Top bar: brand, beta status, and sign-in as a quiet link so it does
           not compete with the one primary action. */}
       <header className="relative z-10 bg-white/95 border-b border-slate-200">
@@ -270,6 +272,18 @@ export default function HomePage() {
                 Your path is generated in about a minute. You land on a summary that shows your first
                 milestone and what to do next, with an optional one-minute tour of each screen. You can
                 replay the tour anytime from “How it works”.
+              </p>
+            </details>
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                What does Autinerary count?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="mt-3 text-slate-700">
+                To find where setup is confusing, we count page visits, sign-ups, which setup step people reach,
+                and return visits, plus which link someone first arrived from (for example TikTok or Facebook).
+                These counts never include anything you type. There are no advertising trackers on this site, and if
+                your browser sends Do Not Track or Global Privacy Control, you are not counted.
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
