@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
+import { sharedCache, cacheKey } from '@/lib/cache/shared'
 import type { Database, ResourceEmbedding, UserEmbedding } from '@/types/database'
 import {
   generateEmbedding,
@@ -260,27 +261,38 @@ export async function semanticSearchResources(
  * Semantic search for resources using a text query
  * Generates embedding from query text and searches for similar resources
  */
+type SemanticMatch = { resource_id: string; similarity: number; id?: string; name?: string; category?: string; description?: string }
+
+// The same query always gets the same matches, and each one costs an embedding
+// call plus a vector search, so matches are shared for a minute
+// (lib/cache/shared.ts). A failed embedding is not kept.
+const semanticCache = sharedCache<SemanticMatch[]>({ ttlMs: 60_000, maxEntries: 200 })
+
 export async function semanticResourceSearch(
   query: string,
   limit: number = 20,
   threshold: number = 0.5,
   category?: string
-): Promise<Array<{ resource_id: string; similarity: number; id?: string; name?: string; category?: string; description?: string }>> {
-  // Generate embedding for search query
-  const queryEmbedding = await generateEmbedding(query)
+): Promise<SemanticMatch[]> {
+  const matches = await semanticCache(cacheKey([query.trim(), limit, threshold, category ?? null]), async () => {
+    // Generate embedding for search query
+    const queryEmbedding = await generateEmbedding(query)
 
-  // Search using vector similarity
-  const results = await semanticSearchResources(queryEmbedding, {
-    limit,
-    threshold,
-    category,
+    // Search using vector similarity
+    const results = await semanticSearchResources(queryEmbedding, {
+      limit,
+      threshold,
+      category,
+    })
+
+    // Normalize format - add id alias for convenience
+    return results.map((r: any) => ({
+      ...r,
+      id: r.resource_id, // Add id alias
+    }))
   })
-
-  // Normalize format - add id alias for convenience
-  return results.map((r: any) => ({
-    ...r,
-    id: r.resource_id, // Add id alias
-  }))
+  // Copies: the cached matches are shared between requests.
+  return matches.map((match) => ({ ...match }))
 }
 
 /**

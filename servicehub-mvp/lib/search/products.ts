@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { sharedCache, cacheKey } from '@/lib/cache/shared'
 
 /**
  * Products in general search (Odosa: "the store was added separately; the items
@@ -19,7 +20,17 @@ export interface ProductSearchFilters {
   maxPrice?: number
 }
 
+// Products are public and the same for everyone, so a search's matches are
+// shared for a minute (lib/cache/shared.ts).
+const productCache = sharedCache<any[]>({ ttlMs: 60_000, maxEntries: 100 })
+
 export async function searchProducts(filters: ProductSearchFilters = {}, limit = 24) {
+  const rows = await productCache(cacheKey([filters, limit]), (dontKeep) => findProducts(filters, limit, dontKeep))
+  // Copies: the cached rows are shared between requests.
+  return rows.map((row) => ({ ...row }))
+}
+
+async function findProducts(filters: ProductSearchFilters, limit: number, dontKeep: () => void) {
   const supabase = createClient()
   let q = supabase
     .from('products')
@@ -41,6 +52,7 @@ export async function searchProducts(filters: ProductSearchFilters = {}, limit =
     // The products table may not exist yet (migration not run). Never let that
     // break resource search.
     console.warn('[search] products unavailable:', error.message)
+    dontKeep()
     return []
   }
 
