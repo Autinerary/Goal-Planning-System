@@ -54,14 +54,14 @@ export default function ViewTabs() {
                       ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
                       : isDone
                         ? 'text-slate-700 hover:bg-white/70'
-                        : 'text-slate-500 hover:bg-white/70'
+                        : 'text-slate-700 hover:bg-white/70'
                   }`}
                 >
                   <tab.Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
                 </Link>
                 {i < visibleTabs.length - 1 && (
-                  <span className="mx-0.5 text-slate-300 select-none" aria-hidden="true">›</span>
+                  <span className="mx-0.5 text-slate-600 select-none" aria-hidden="true">›</span>
                 )}
               </div>
             )
@@ -76,7 +76,7 @@ export default function ViewTabs() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
               pathname.startsWith('/paths/compare')
                 ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
-                : 'text-slate-500 hover:bg-white/70'
+                : 'text-slate-700 hover:bg-white/70'
             }`}
           >
             <GitCompare className="w-3.5 h-3.5" />

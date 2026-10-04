@@ -17,6 +17,7 @@ import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/l
 import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
+import AskLaterCard from '../components/AskLaterCard'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -370,7 +371,7 @@ useEffect(() => {
             <div>
               <h1 className="break-words text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                <p className="text-sm text-slate-500">Your journey snapshot</p>
+                <p className="text-sm text-slate-600">Your journey snapshot</p>
                 <StreakBadge />
                 {pathData && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
@@ -480,12 +481,15 @@ useEffect(() => {
         )}
 
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
-        <div className="mb-6 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 border border-purple-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
+        <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
-            <Quote className="w-6 h-6 text-purple-500" />
+            <Quote className="w-6 h-6 text-indigo-700" />
           </div>
-          <p className="text-lg md:text-xl font-semibold text-slate-800 leading-snug">{motivationalQuote}</p>
+          <p className="text-lg md:text-xl font-semibold text-indigo-950 leading-snug">{motivationalQuote}</p>
         </div>
+
+        {/* ── Ask later: the optional setup questions they skipped ── */}
+        <AskLaterCard />
 
         {/* ── 2x2 Dashboard Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -508,7 +512,7 @@ useEffect(() => {
               <div className="mt-3">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-500">Overall Progress</span>
-                  <span className="font-bold text-cyan-600">{overallProgress}%</span>
+                  <span className="font-bold text-cyan-800">{overallProgress}%</span>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-full transition-all" style={{ width: `${overallProgress}%` }} />
@@ -520,19 +524,19 @@ useEffect(() => {
             {races.length === 0 && (
               <div className="text-center py-6">
                 <p className="text-sm text-slate-500 mb-3">No races yet: your goals become races once your path is generated.</p>
-                <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
+                <Link href="/onboarding" className="text-sm font-semibold text-cyan-800 hover:underline">Complete onboarding →</Link>
               </div>
             )}
 
             {/* Career Races */}
             {careerRaces.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Career Race(s)</p>
+                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Career Race(s)</p>
                 {careerRaces.map((race: any) => (
                   <Link key={race.id} href="/races" className="block mb-2">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm text-slate-700">{race.name}</span>
-                      <span className="text-xs font-bold text-cyan-600">{race.progress}%</span>
+                      <span className="text-xs font-bold text-cyan-800">{race.progress}%</span>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-full bg-gradient-to-r ${race.color} rounded-full`} style={{ width: `${race.progress}%` }} />
@@ -545,7 +549,7 @@ useEffect(() => {
             {/* Education Races */}
             {educationRaces.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Education Race(s)</p>
+                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Education Race(s)</p>
                 {educationRaces.map((race: any) => (
                   <Link key={race.id} href="/races" className="block mb-2">
                     <div className="flex justify-between items-center mb-1">
@@ -560,7 +564,7 @@ useEffect(() => {
               </div>
             )}
 
-            <Link href="/races" className="flex items-center justify-center gap-1 text-sm text-cyan-600 hover:text-cyan-700 font-medium mt-2 py-2 rounded-lg hover:bg-cyan-50 transition-colors">
+            <Link href="/races" className="flex items-center justify-center gap-1 text-sm text-cyan-800 hover:text-cyan-900 font-medium mt-2 py-2 rounded-lg hover:bg-cyan-50 transition-colors">
               See all races&apos; progress <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -602,7 +606,7 @@ useEffect(() => {
               { label: 'Friends / Family', list: friendsFam, chip: 'bg-pink-50 border-pink-100', av: 'from-pink-400 to-rose-400' },
             ] as const).map(group => group.list.length > 0 && (
               <div key={group.label} className="mb-4">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{group.label}</p>
+                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">{group.label}</p>
                 <div className="flex gap-3 flex-wrap">
                   {group.list.slice(0, 4).map((p: any) => {
                     const inner = (
@@ -649,7 +653,7 @@ useEffect(() => {
                 <Sparkles className="w-8 h-8 text-cyan-500" />
               </div>
               <p className="text-sm text-slate-600 mb-1 font-medium">Same as ResourceHub</p>
-              <p className="text-xs text-slate-400 mb-4 max-w-[250px]">
+              <p className="text-xs text-slate-600 mb-4 max-w-[250px]">
                 Your saved resources, community-rated services, and AI recommendations: all in one place.
               </p>
             </div>
@@ -658,7 +662,7 @@ useEffect(() => {
               href={goHubHref('/')}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1 text-sm text-cyan-600 hover:text-cyan-700 font-medium py-2 rounded-lg hover:bg-cyan-50 transition-colors"
+              className="flex items-center justify-center gap-1 text-sm text-cyan-800 hover:text-cyan-900 font-medium py-2 rounded-lg hover:bg-cyan-50 transition-colors"
             >
               See all resources <ChevronRight className="w-4 h-4" />
             </a>

@@ -109,7 +109,7 @@ export default function LifeStatsCard() {
         <TrendingUp className="w-5 h-5 text-emerald-500" />
         Life Stats
       </h2>
-      <p className="text-xs text-slate-500 italic mb-4">
+      <p className="text-xs text-slate-600 italic mb-4">
         Computed from your activity over the last 7 days, and Commitment over 4 weeks.
       </p>
 
