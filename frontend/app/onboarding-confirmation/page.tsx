@@ -8,6 +8,7 @@ import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import OnboardingFeedback from '../components/OnboardingFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
+import PushOptIn from '../components/PushOptIn'
 
 /**
  * Post-onboarding: what was built, and what to do first.
@@ -217,6 +218,9 @@ export default function OnboardingConfirmationPage() {
               what got in the way. You can turn this off anytime in Settings.
             </span>
           </label>
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <PushOptIn />
+          </div>
         </div>
 
         {/* Later: people. Secondary, so it sits last. */}

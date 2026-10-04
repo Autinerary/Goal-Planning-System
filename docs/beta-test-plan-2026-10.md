@@ -30,6 +30,7 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | `CRON_SECRET` in Vercel | Only Vercel can trigger the daily email jobs | Done |
 | Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Live; needs one real sign-in to confirm |
 | Privacy page | What testers are told about their information | Live at /privacy |
+| Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device (keys already set in Vercel) | To do |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -112,12 +113,13 @@ What participants will see, in order:
 1. Setup in three steps (who you're here for, one goal, and an optional
    question about norms), then an optional "What are you looking for today?"
 2. Two optional questions after setup (how much they knew before signing up,
-   how easy setup was), and an opt-in to a check-in email.
+   how easy setup was), and an opt-in to a check-in by email, by a
+   notification on their device, or both.
 3. After five days of use (and after the existing feedback form): "Is
    Autinerary useful to you so far?"
 4. Anyone who comes back after two weeks away: "Welcome back, what got in the
-   way?" Anyone who opted in and stays away two weeks gets one email with the
-   same question, answerable without signing in.
+   way?" Anyone who opted in and stays away two weeks gets the same question
+   once, by email and/or notification, answerable without signing in.
 
 ## Measures
 

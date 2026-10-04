@@ -22,6 +22,11 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
+  {
+    name: 'Your browser’s notification service (for example Google, Apple or Mozilla)',
+    does: 'Delivers notifications, if you turn them on for a device',
+    gets: 'An address for your device and the notification, which is encrypted so the service cannot read it',
+  },
   { name: 'Google', does: 'Sign in with Google, and our feedback form (Google Forms)', gets: 'Only what you share through them, if you use them' },
   { name: 'OpenStreetMap (Nominatim)', does: 'Finds the map position of the city you enter', gets: 'The place name, not who you are' },
   { name: 'Open-Meteo', does: 'Weather forecasts, if you turn weather on', gets: 'Your approximate location' },
@@ -119,7 +124,7 @@ export default function PrivacyPage() {
           <Sub title="Feedback and check-ins">
             <List>
               <li>Your answers to our questions in the app: after setup, and the occasional check-in.</li>
-              <li>If you opt in to check-in emails: the last day you opened the app, so we only email people who have been away.</li>
+              <li>If you opt in to check-in emails or notifications: the last day you opened the app, so we only check in with people who have been away.</li>
               <li>Our feedback form is a Google Form, so your answers to it are stored by Google.</li>
             </List>
           </Sub>
@@ -152,6 +157,10 @@ export default function PrivacyPage() {
             <li>
               To send email: a welcome email when you finish setup, daily reminders if you turn them on, and a check-in if you
               opt in. Each reminder and check-in email tells you how to turn them off.
+            </li>
+            <li>
+              To send notifications, only to devices you turn them on for: one when you turn them on, and a check-in if you
+              haven’t opened Autinerary for two weeks. Turn them off in Settings, or in your browser.
             </li>
             <li>To find out where people get stuck and fix it. These reports show totals only, and leave out any group smaller than five people.</li>
             <li>To keep Autinerary safe: moderating community posts, preventing abuse, and limiting very heavy use.</li>
@@ -196,7 +205,7 @@ export default function PrivacyPage() {
           <List>
             <li>Skip any optional question, and change your answers later in Settings.</li>
             <li>In Settings you can download a copy of your plan and progress, or erase them.</li>
-            <li>Turn emails off from any reminder or check-in email, or in Settings.</li>
+            <li>Turn emails off from any reminder or check-in email, or in Settings. Turn notifications off in Settings, or in your browser.</li>
             <li>To see, correct or delete anything else, or to close your account, email {mail}. We will reply within 30 days.</li>
             <li>You can withdraw your consent for optional information at any time.</li>
             <li>

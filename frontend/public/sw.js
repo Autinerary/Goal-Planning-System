@@ -83,3 +83,39 @@ self.addEventListener('fetch', (event) => {
       })
   )
 })
+
+// Push notifications: lib/push.ts sends them, app/components/PushOptIn.tsx
+// turns them on. The message is { title, body, url, tag }; tapping it opens
+// `url` on this site, reusing an open tab when there is one.
+self.addEventListener('push', (event) => {
+  let message = {}
+  try {
+    message = event.data ? event.data.json() : {}
+  } catch {
+    message = { body: event.data ? event.data.text() : '' }
+  }
+  event.waitUntil(
+    self.registration.showNotification(message.title || 'Autinerary', {
+      body: message.body || '',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: message.tag,
+      data: { url: message.url || '/path' },
+    })
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = new URL((event.notification.data && event.notification.data.url) || '/path', self.location.origin)
+  // Only ever open pages on this site.
+  const url = target.origin === self.location.origin ? target.href : self.location.origin + '/path'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      for (const w of windows) {
+        if (w.url === url && 'focus' in w) return w.focus()
+      }
+      return self.clients.openWindow(url)
+    })
+  )
+})

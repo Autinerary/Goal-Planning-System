@@ -15,6 +15,7 @@ import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
 import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, type ViewPreference } from '@/lib/preferences'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
+import PushOptIn from './PushOptIn'
 
 /** Odosa's wording for the four artistic levels, in her order. */
 const VIEW_LEVEL_COPY: Record<ViewPreference, string> = {
@@ -254,6 +255,9 @@ export default function SettingsPreferences() {
           />
           <span>If I haven&apos;t opened Autinerary for two weeks, email me one short question about why.</span>
         </label>
+        <div className="mt-4">
+          <PushOptIn />
+        </div>
       </section>
     </div>
   )
