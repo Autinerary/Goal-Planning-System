@@ -1379,7 +1379,7 @@ export default function OnboardingPage() {
           {carriedOver && (
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
               <Check className="w-4 h-4" />
-              Welcome back. We kept your barriers and location. Just set goals for this path.
+              Welcome back. We kept your norms and location. Just set goals for this path.
             </div>
           )}
         </div>
@@ -1478,7 +1478,7 @@ export default function OnboardingPage() {
                       grows downward into whatever sits directly beneath it.
                       leading-tight plus a wider box keeps two short words on
                       one or two tidy lines instead of a ragged stack. */}
-                  <span className={`text-[11px] leading-tight mt-3 text-center w-full max-w-[72px] ${isActive ? 'text-slate-800 font-bold' : isCompleted ? 'text-green-600' : 'text-slate-500'}`}>
+                  <span className={`text-xs leading-tight mt-3 text-center w-full max-w-[76px] ${isActive ? 'text-slate-900 font-bold' : isCompleted ? 'text-green-800 font-medium' : 'text-slate-700'}`}>
                     {step.short}
                   </span>
                 </button>
@@ -1566,7 +1566,7 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     {HAIR_GROUPS.map((group) => (
                       <div key={group.name}>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{group.name}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">{group.name}</p>
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                           {group.options.map((hs) => (
                             <button
@@ -1589,9 +1589,9 @@ export default function OnboardingPage() {
                                 clothing={formData.clothing}
                                 size={44}
                               />
-                              <span className="text-[10px] leading-tight text-center text-slate-600">{hs.label}</span>
+                              <span className="text-xs leading-tight text-center text-slate-700">{hs.label}</span>
                               {formData.hairStyle === hs.id && (
-                                <Check className="absolute top-1 right-1 w-3.5 h-3.5 text-cyan-500" />
+                                <Check className="absolute top-1 right-1 w-3.5 h-3.5 text-cyan-700" />
                               )}
                             </button>
                           ))}
@@ -1721,7 +1721,7 @@ export default function OnboardingPage() {
                         clothing={formData.clothing}
                         size={120}
                       />
-                      <p className="text-[10px] text-slate-500 font-medium mt-1 text-center px-2">
+                      <p className="text-xs text-slate-600 font-medium mt-1 text-center px-2">
                         {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
                         {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${HAIR_OPTIONS.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
                       </p>
@@ -1801,11 +1801,11 @@ export default function OnboardingPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, barrierConnectionText: e.target.value }))}
                     placeholder="Describe your barrier connections in a sentence..."
                     rows={3}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                   <button
                     onClick={() => setFormData(prev => ({ ...prev, barrierConnectionText: '' }))}
-                    className="text-sm text-slate-400 hover:text-red-400 transition-colors"
+                    className="text-sm text-slate-600 hover:text-red-700 transition-colors"
                   >
                     Reset text
                   </button>
@@ -1839,7 +1839,7 @@ export default function OnboardingPage() {
                           }}
                           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                             'disabled' in conn && conn.disabled
-                              ? 'bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed'
+                              ? 'bg-slate-100 border border-slate-200 text-slate-600 cursor-not-allowed'
                               : formData.barrierConnections[conn.id] !== undefined
                                 ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                                 : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
@@ -1874,7 +1874,7 @@ export default function OnboardingPage() {
                               return { ...prev, barrierConnections: current, role, barrierTypes: allBarriers }
                             })
                           }}
-                          className="w-4 h-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-400"
+                          className="w-4 h-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
                         />
                         <span>👤 These barriers also apply to me (add yourself)</span>
                       </label>
@@ -1915,7 +1915,7 @@ export default function OnboardingPage() {
                                   <div className="space-y-2 ml-2">
                                     {category.subcategories.map((sub) => (
                                       <div key={sub.name}>
-                                        <p className="text-xs text-slate-400 mb-1">{sub.name}</p>
+                                        <p className="text-xs text-slate-600 mb-1">{sub.name}</p>
                                         <div className="flex flex-wrap gap-1.5 mb-2">
                                           {sub.items.map((barrier) => {
                                             const isSelected = formData.barrierConnections[connId]?.includes(barrier)
@@ -1941,7 +1941,7 @@ export default function OnboardingPage() {
                                                     return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
                                                   })
                                                 }}
-                                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                                                   isSelected
                                                     ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
                                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
@@ -1963,7 +1963,7 @@ export default function OnboardingPage() {
                             {/* Add your own — custom / more specific barriers */}
                             <div className="mt-4 pt-3 border-t border-slate-200">
                               <p className="text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Add your own</p>
-                              <p className="text-xs text-slate-400 mb-2">Don&apos;t see a barrier that fits? Add something specific: e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
+                              <p className="text-xs text-slate-600 mb-2">Don&apos;t see a norm that fits? Add something specific: e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
                               {/* Chips for already-added custom barriers on this connection */}
                               {(formData.barrierConnections[connId] || []).filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b)))).length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -2009,7 +2009,7 @@ export default function OnboardingPage() {
                                   }}
                                   placeholder="Type a specific barrier and press Enter"
                                   maxLength={60}
-                                  className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                                  className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                                 />
                                 <button
                                   onClick={() => {
@@ -2060,7 +2060,7 @@ export default function OnboardingPage() {
                     value={formData.location.city}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
                     placeholder="e.g., Toronto"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
                 <div>
@@ -2070,7 +2070,7 @@ export default function OnboardingPage() {
                     value={formData.location.province}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, province: e.target.value } }))}
                     placeholder="e.g., Ontario"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
                 <div>
@@ -2080,14 +2080,14 @@ export default function OnboardingPage() {
                     value={formData.location.country}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
                     placeholder="e.g., Canada"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
               </div>
 
               {/* Additional resource locations */}
               <div className="mt-8 border-t border-slate-200 pt-6">
-                <h3 className="text-sm font-medium text-slate-700 mb-1">Where else can you access resources? <span className="text-slate-400 font-normal">(optional)</span></h3>
+                <h3 className="text-sm font-medium text-slate-700 mb-1">Where else can you access resources? <span className="text-slate-600 font-normal">(optional)</span></h3>
                 <p className="text-xs text-slate-500 mb-4">For example, dual citizenship, family in another city, etc. Not including online.</p>
 
                 {formData.additionalLocations.map((loc, idx) => (
@@ -2099,7 +2099,7 @@ export default function OnboardingPage() {
                           ...prev,
                           additionalLocations: prev.additionalLocations.filter((_, i) => i !== idx)
                         }))}
-                        className="text-slate-400 hover:text-red-400 text-sm"
+                        className="text-slate-600 hover:text-red-700 text-sm"
                       >
                         Remove
                       </button>
@@ -2114,7 +2114,7 @@ export default function OnboardingPage() {
                           return { ...prev, additionalLocations: updated }
                         })}
                         placeholder="City"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                       <input
                         type="text"
@@ -2125,7 +2125,7 @@ export default function OnboardingPage() {
                           return { ...prev, additionalLocations: updated }
                         })}
                         placeholder="Province/State"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                       <input
                         type="text"
@@ -2136,7 +2136,7 @@ export default function OnboardingPage() {
                           return { ...prev, additionalLocations: updated }
                         })}
                         placeholder="Country"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                     </div>
                   </div>
@@ -2147,7 +2147,7 @@ export default function OnboardingPage() {
                     ...prev,
                     additionalLocations: [...prev.additionalLocations, { city: '', province: '', country: '' }]
                   }))}
-                  className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+                  className="text-cyan-800 hover:text-cyan-900 text-sm font-medium"
                 >
                   + Add another location
                 </button>
@@ -2190,7 +2190,7 @@ export default function OnboardingPage() {
                     >
                       <span>{cat.emoji}</span>
                       {cat.label}
-                      {count > 0 && <span className="bg-cyan-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{count}</span>}
+                      {count > 0 && <span className="bg-cyan-700 text-white text-xs px-1.5 py-0.5 rounded-full">{count}</span>}
                     </button>
                   )
                 })}
@@ -2215,8 +2215,8 @@ export default function OnboardingPage() {
                         if (pathSuggestions.length === 0) return null
                         return (
                           <div className="mb-3">
-                            <p className="text-xs text-cyan-600 mb-2 flex items-center gap-1">
-                              <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
+                            <p className="text-xs text-cyan-800 mb-2 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-cyan-700" />
                               Ideas for your {pathSeed.title} path
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -2238,7 +2238,7 @@ export default function OnboardingPage() {
                                       return { ...prev, goalsByCategory: updated }
                                     })
                                   }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 transition-all"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-800 border border-cyan-200 hover:bg-cyan-100 transition-all"
                                 >
                                   + {sug}
                                 </button>
@@ -2279,7 +2279,7 @@ export default function OnboardingPage() {
                                       return { ...prev, goalsByCategory: updated }
                                     })
                                   }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-all"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-all"
                                 >
                                   + {sug}
                                 </button>
@@ -2305,7 +2305,7 @@ export default function OnboardingPage() {
                                 })
                               }}
                               placeholder={cat.placeholder}
-                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                             />
                             <button
                               onClick={() => {
@@ -2316,7 +2316,7 @@ export default function OnboardingPage() {
                                   return { ...prev, goalsByCategory: updated }
                                 })
                               }}
-                              className="px-2 text-slate-400 hover:text-red-400 text-sm"
+                              className="px-2 text-slate-600 hover:text-red-700 text-sm"
                             >
                               ×
                             </button>
@@ -2344,7 +2344,7 @@ export default function OnboardingPage() {
                           {hasOtherPerson && (
                             <div className="ml-4 mb-1">
                               <label className="text-xs text-indigo-500 font-medium">
-                                Ideal relationship with {otherPersonLabel} <span className="text-slate-400">(optional: instead of, or as well as, the dream)</span>
+                                Ideal relationship with {otherPersonLabel} <span className="text-slate-600">(optional: instead of, or as well as, the dream)</span>
                               </label>
                               <input
                                 type="text"
@@ -2359,14 +2359,14 @@ export default function OnboardingPage() {
                                   })
                                 }}
                                 placeholder={`What does a good relationship with ${otherPersonLabel} look like?`}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 mt-1"
+                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 mt-1"
                               />
                             </div>
                           )}
 
                           {/* Per-goal obstacle */}
                           <div className="ml-4">
-                            <label className="text-xs text-pink-500 font-medium">Obstacle <span className="text-slate-400">(optional)</span></label>
+                            <label className="text-xs text-pink-700 font-medium">Obstacle <span className="text-slate-600">(optional)</span></label>
                             <input
                               type="text"
                               value={entry.obstacles}
@@ -2380,7 +2380,7 @@ export default function OnboardingPage() {
                                 })
                               }}
                               placeholder="What's stopping you from achieving this?"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 mt-1"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 mt-1"
                             />
                           </div>
                         </div>
@@ -2394,7 +2394,7 @@ export default function OnboardingPage() {
                             return { ...prev, goalsByCategory: updated }
                           })
                         }}
-                        className="text-cyan-600 hover:text-cyan-700 text-xs font-medium"
+                        className="text-cyan-800 hover:text-cyan-900 text-xs font-medium"
                       >
                         + Add a {cat.label.toLowerCase()} goal
                       </button>
@@ -2414,7 +2414,7 @@ export default function OnboardingPage() {
                   value={formData.ultimateDream}
                   onChange={(e) => setFormData(prev => ({ ...prev, ultimateDream: e.target.value }))}
                   placeholder='e.g., "Create a world where neurodivergent people thrive"'
-                  className="w-full bg-white border border-purple-200 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+                  className="w-full bg-white border border-purple-200 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
                 />
               </div>
             </div>
@@ -2556,7 +2556,7 @@ export default function OnboardingPage() {
 
                 {/* Alternate Persona (optional) — a named alter-ego for the Dream Self */}
                 <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-lg font-bold text-slate-800 mb-1">Alternate Persona <span className="text-xs font-normal text-slate-400">(optional)</span></h3>
+                  <h3 className="text-lg font-bold text-slate-800 mb-1">Alternate Persona <span className="text-xs font-normal text-slate-600">(optional)</span></h3>
                   <p className="text-slate-600 text-sm mb-4">Some people picture their Dream Self as a named alter-ego: a confident version of them they can step into. Give yours a name if you like.</p>
                   <div className="space-y-4">
                     <div>
@@ -2567,18 +2567,18 @@ export default function OnboardingPage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaName: e.target.value }))}
                         placeholder="e.g. Nova, Captain Focus, Future Me"
                         maxLength={60}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">What are they like? <span className="text-slate-400">(optional)</span></label>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">What are they like? <span className="text-slate-600">(optional)</span></label>
                       <textarea
                         value={formData.alternatePersonaNote}
                         onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaNote: e.target.value }))}
                         placeholder="Bold, calm under pressure, speaks up in meetings, takes the first step..."
                         rows={3}
                         maxLength={400}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                       />
                     </div>
                     <AppearanceEditor title="Alternate Persona appearance" value={formData.personaAppearance} onChange={value => setFormData(previous => ({ ...previous, personaAppearance: value }))} />
@@ -2618,7 +2618,7 @@ export default function OnboardingPage() {
                     <div className="flex items-center gap-2 font-medium text-slate-800">
                       <span className="text-lg">{m.emoji}</span> {m.label}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{m.desc}</p>
+                    <p className="text-xs text-slate-600 mt-1">{m.desc}</p>
                   </button>
                 ))}
               </div>
@@ -2749,10 +2749,10 @@ export default function OnboardingPage() {
               {formData.spiritAnimals.length < slotCount && (
                 <button
                   onClick={addSpiritAnimal}
-                  className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-500 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
+                  className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-700 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
                 >
                   {formData.spiritAnimalMode === 'general' ? 'Choose your spirit animal' : `Choose ${spiritAnimalSlotLabel(formData.spiritAnimalMode, formData.spiritAnimals.length).replace(/^(?:🐾|⚡|🌙)\s*/u, '')}`}
-                  {slotCount > 1 && <span className="text-purple-400 text-sm"> ({formData.spiritAnimals.length + 1}/{slotCount})</span>}
+                  {slotCount > 1 && <span className="text-purple-700 text-sm"> ({formData.spiritAnimals.length + 1}/{slotCount})</span>}
                 </button>
               )}
               
@@ -2845,7 +2845,7 @@ export default function OnboardingPage() {
                     >
                       <div className="text-2xl mb-1">{o.emoji}</div>
                       <div className={`font-medium text-sm ${formData.viewPreference === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
-                      <div className="text-[11px] text-slate-500 leading-tight mt-0.5">{o.hint}</div>
+                      <div className="text-xs text-slate-600 leading-tight mt-0.5">{o.hint}</div>
                     </button>
                   ))}
                 </div>
@@ -2927,7 +2927,7 @@ export default function OnboardingPage() {
                         value={formData.reminders.contact}
                         onChange={(e) => updateReminders({ contact: e.target.value })}
                         placeholder={formData.reminders.channel === 'email' ? 'you@example.com' : '+1 555 123 4567'}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                     </div>
 
@@ -2971,7 +2971,7 @@ export default function OnboardingPage() {
                     )}
 
                     {/* Honest note: we store the preference now; delivery isn't live yet. */}
-                    <p className="text-[11px] text-slate-400 italic">
+                    <p className="text-xs text-slate-600 italic">
                       We&apos;ll save this to your profile now. Reminder delivery is rolling out soon. 
                       we won&apos;t message you until it&apos;s switched on.
                     </p>
@@ -2979,7 +2979,7 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              <p className="text-xs text-slate-400 mt-4">
+              <p className="text-xs text-slate-600 mt-4">
                 You can fine-tune placement, size, and colors later in Settings and on each screen.
               </p>
             </div>
@@ -3021,7 +3021,7 @@ export default function OnboardingPage() {
                 </div>
               ) : recommendations.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
-                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-500" />
                   <p className="text-slate-700 mb-2 font-medium">No recommendations available yet</p>
                   <p className="text-sm text-slate-500 mb-4">
                     {recommendationExplanation || 'Sign in to ResourceHub to get personalized recommendations based on your profile.'}
@@ -3081,7 +3081,7 @@ export default function OnboardingPage() {
                                 <span>⭐ {resource.averageRating.toFixed(1)} ({resource.ratingCount} reviews)</span>
                               )}
                               {resource.score > 0 && (
-                                <span className="text-cyan-600 font-medium">{resource.score}% match</span>
+                                <span className="text-cyan-800 font-medium">{resource.score}% match</span>
                               )}
                             </div>
                           </div>
@@ -3123,7 +3123,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:invisible transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
               Back
@@ -3133,7 +3133,7 @@ export default function OnboardingPage() {
               {skippableSteps.has(currentStep) && currentStep < steps.length - 1 && (
                 <button
                   onClick={handleSkip}
-                  className="px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-all"
+                  className="px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 underline underline-offset-2 transition-all"
                 >
                   Skip for now
                 </button>
@@ -3143,7 +3143,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {currentStep === 7 ? 'View Recommendations' : 'Continue'}
                   <ChevronRight className="w-5 h-5" />
@@ -3152,7 +3152,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={!canProceed() || isSubmitting}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {isSubmitting ? (
                     <>
@@ -3177,7 +3177,7 @@ export default function OnboardingPage() {
                 <p className="text-xs text-slate-500 mt-1">
                   {elapsed}s elapsed · usually about a minute, longer if others are starting at the same time
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-600 mt-1">
                   Please keep this tab open. Refreshing starts it over.
                 </p>
               </div>
@@ -3186,7 +3186,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step indicator for mobile */}
-        <div className="text-center mt-4 text-slate-500 text-sm">
+        <div className="text-center mt-4 text-slate-700 text-sm">
           Step {currentStep + 1} of {steps.length}
         </div>
       </div>

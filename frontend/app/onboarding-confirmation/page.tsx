@@ -97,7 +97,7 @@ export default function OnboardingConfirmationPage() {
           >
             <Rocket className="w-5 h-5" /> Go to my Path
           </button>
-          <p className="text-xs text-slate-400 mt-3">You can find people and fine-tune everything later.</p>
+          <p className="text-xs text-slate-600 mt-3">You can find people and fine-tune everything later.</p>
         </div>
       </div>
     </div>

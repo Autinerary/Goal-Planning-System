@@ -1,9 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Download, Share, X } from 'lucide-react'
 
 const DISMISSED_KEY = 'autinerary_install_dismissed'
+
+// Not offered while someone is still deciding whether to sign up or working
+// through setup: on a phone it sat over the Continue button at the bottom of
+// every onboarding step, and it is a second call to action competing with the
+// one that matters there. It still appears on the first page after setup.
+const FIRST_RUN_ROUTES = ['/', '/login', '/signup', '/onboarding', '/onboarding-confirmation']
 
 /**
  * "Add Autinerary to your home screen."
@@ -21,6 +28,7 @@ const DISMISSED_KEY = 'autinerary_install_dismissed'
  * dismissed, so it never becomes the nagging banner everyone hates.
  */
 export default function InstallPrompt() {
+  const pathname = usePathname()
   const [deferred, setDeferred] = useState<any>(null)
   const [show, setShow] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -70,14 +78,14 @@ export default function InstallPrompt() {
     dismiss()
   }
 
-  if (!show) return null
+  if (!show || FIRST_RUN_ROUTES.includes(pathname)) return null
 
   return (
     <div className="fixed bottom-4 inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-cyan-300 bg-white shadow-xl p-4">
       <button
         onClick={dismiss}
         aria-label="Not now"
-        className="absolute top-2 right-2 text-slate-400 hover:text-slate-600"
+        className="absolute top-2 right-2 text-slate-500 hover:text-slate-800"
       >
         <X className="w-4 h-4" />
       </button>
@@ -89,7 +97,7 @@ export default function InstallPrompt() {
           <p className="font-bold text-slate-900 text-sm">Add Autinerary to your phone</p>
           {isIOS ? (
             <p className="text-xs text-slate-600 mt-1 flex items-center gap-1 flex-wrap">
-              Tap <Share className="w-3.5 h-3.5 inline text-cyan-600" aria-label="the Share button" />
+              Tap <Share className="w-3.5 h-3.5 inline text-cyan-700" aria-label="the Share button" />
               below, then <strong>Add to Home Screen</strong>.
             </p>
           ) : (
@@ -99,7 +107,7 @@ export default function InstallPrompt() {
               </p>
               <button
                 onClick={install}
-                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 text-white text-xs font-bold hover:bg-cyan-700"
+                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-800"
               >
                 <Download className="w-3.5 h-3.5" /> Install
               </button>
