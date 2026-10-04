@@ -55,9 +55,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Role is required' }, { status: 400 })
     }
 
-    if (!body.location.city || !body.location.province || !body.location.country) {
-      return NextResponse.json({ error: 'Location is required' }, { status: 400 })
-    }
+    // Location is optional. Goal Planning's onboarding tells people it is,
+    // and a missing location just means "near you" sorting cannot apply.
+    const hasLocation = Boolean(body.location?.city?.trim())
 
     if (!body.barriers || body.barriers.length === 0) {
       return NextResponse.json(
@@ -84,22 +84,26 @@ export async function POST(request: NextRequest) {
     // Geocode the city/province/country to lat/lng so the 'nearest to you'
     // distance features work for goal-planning users (whose onboarding only
     // collects location as plain text). Falls back to null on failure.
-    const coords = await geocodeLocation({
-      city: body.location.city,
-      province: body.location.province,
-      country: body.location.country,
-    })
+    const coords = hasLocation
+      ? await geocodeLocation({
+          city: body.location.city,
+          province: body.location.province,
+          country: body.location.country,
+        })
+      : null
 
-    // Convert location to Location type
-    const location: Location = {
-      city: body.location.city,
-      province: body.location.province,
-      country: body.location.country,
-      address: '',
-      lat: coords?.lat ?? 0,
-      lng: coords?.lng ?? 0,
-      postal_code: '',
-    }
+    // Convert location to Location type (none when the person skipped it)
+    const location: Location | undefined = hasLocation
+      ? {
+          city: body.location.city,
+          province: body.location.province,
+          country: body.location.country,
+          address: '',
+          lat: coords?.lat ?? 0,
+          lng: coords?.lng ?? 0,
+          postal_code: '',
+        }
+      : undefined
 
     // Only persist data if user is authenticated
     let userId = user?.id || 'anonymous'
@@ -107,9 +111,10 @@ export async function POST(request: NextRequest) {
 
     if (isAuthenticated && user) {
       // Update user profile (with geocoded coords so distance search works)
+      // A skipped location must not blank one the person already saved.
       const profileUpdate = await updateProfile(user.id, {
         role: body.role as any,
-        location,
+        ...(location ? { location } : {}),
       })
 
       if (!profileUpdate) {
@@ -154,7 +159,7 @@ export async function POST(request: NextRequest) {
       // Log data for unauthenticated users (for analytics/debugging)
       console.log('Onboarding data received from unauthenticated user:', {
         role: body.role,
-        location: body.location,
+        hasLocation,
         barriersCount: body.barriers.length,
         lifeStage: body.lifeStage,
         goalsCount: body.goals.length,

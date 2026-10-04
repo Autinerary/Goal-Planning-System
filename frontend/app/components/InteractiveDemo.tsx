@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -35,7 +35,7 @@ const STEPS: DemoStep[] = [
     emoji: '👋',
     title: 'Welcome to Autinerary',
     overview:
-      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime.',
+      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime. How it fits together: your goals become races, each milestone suggests tools, the calendar schedules your next steps, and the journal is where you look back.',
   },
   {
     emoji: '🧭',
@@ -128,6 +128,7 @@ const SEEN_KEY = 'autinerary_demo_seen_v1'
 
 export default function InteractiveDemo() {
   const router = useRouter()
+  const pathname = usePathname()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
@@ -136,6 +137,10 @@ export default function InteractiveDemo() {
     // Auto-start once for brand-new users — but only when signed in and onboarded
     // (the tour walks real, logged-in screens; it shouldn't pop over login/signup).
     if (!user || !user.hasCompletedOnboarding) return
+    // Not over the post-setup summary: someone who has just finished nine
+    // steps of setup gets a page of next steps there, with the tour offered
+    // as a button. It still starts by itself once, on the next page.
+    if (pathname === '/onboarding-confirmation') return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.
@@ -145,7 +150,7 @@ export default function InteractiveDemo() {
     } catch {
       /* ignore */
     }
-  }, [user])
+  }, [user, pathname])
 
   useEffect(() => {
     const start = () => {
@@ -195,15 +200,15 @@ export default function InteractiveDemo() {
       <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
         <button
           onClick={finish}
-          className="absolute top-3 right-3 text-slate-400 hover:text-slate-700"
+          className="absolute top-3 right-3 text-slate-500 hover:text-slate-800"
           aria-label="Close tour"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-cyan-500" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-cyan-600">
+          <Sparkles className="w-4 h-4 text-cyan-700" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-cyan-800">
             Interactive tour
           </span>
         </div>
@@ -214,7 +219,7 @@ export default function InteractiveDemo() {
 
         {s.features && s.features.length > 0 && (
           <div className="mb-6 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">What the buttons do</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What the buttons do</p>
             {s.features.map((f) => (
               <div key={f.name} className="flex gap-2 text-sm">
                 <span className="font-semibold text-slate-800 whitespace-nowrap">{f.name}</span>
@@ -240,14 +245,14 @@ export default function InteractiveDemo() {
           <button
             onClick={() => go(step - 1)}
             disabled={step === 0}
-            className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-30"
+            className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 disabled:invisible"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
           <button
             onClick={finish}
-            className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2"
+            className="text-xs text-slate-600 hover:text-slate-900 underline underline-offset-2"
           >
             Skip tour
           </button>

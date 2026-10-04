@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { trackDailyOpen } from '@/lib/funnel'
 
 interface User {
   id: string
@@ -133,6 +134,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe()
     }
   }, [supabase])
+
+  // Funnel: one "app_open" per day per signed-in browser, for the
+  // returned-within-7-days measure.
+  useEffect(() => {
+    if (user) trackDailyOpen()
+  }, [user])
 
   // Redirect logic
   useEffect(() => {

@@ -1,350 +1,327 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Target, Calendar, Brain, Users, Shield, TrendingUp, Trophy, Zap } from 'lucide-react'
+import {
+  ArrowRight,
+  Flag,
+  CalendarDays,
+  Wrench,
+  PenLine,
+  UserPlus,
+  ListChecks,
+  Rocket,
+  ChevronDown,
+  HeartHandshake,
+  Sparkles,
+} from 'lucide-react'
+import FunnelPing from './components/FunnelPing'
 
-const sunsetStyles = `
-  @keyframes float {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    33% { transform: translateY(-10px) translateX(5px); }
-    66% { transform: translateY(-5px) translateX(-5px); }
-  }
-  @keyframes cloudMove {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(100vw); }
-  }
-  @keyframes cloudMoveSlow {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(100vw); }
-  }
-  .cloud-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  .cloud-move-1 {
-    animation: cloudMove 30s linear infinite;
-  }
-  .cloud-move-2 {
-    animation: cloudMoveSlow 40s linear infinite;
-  }
-  .cloud-move-3 {
-    animation: cloudMove 35s linear infinite;
-  }
-`
+/**
+ * Landing page: what a visitor needs before deciding to make an account.
+ *
+ * Rebuilt from Riipen Labs' onboarding review (Team 1, Sept 2026). Their
+ * findings for this page: text over the sky photo was hard to read (measured:
+ * 45 of 50 text elements below WCAG AA, most at about 1.1:1, white on
+ * near-white), it did not say what Autinerary offers before asking for an
+ * account, and there was no single obvious first step. Recommendations: one
+ * clear primary call to action, fewer secondary visual elements, simple
+ * guidance on what users can do and how the features connect, and introduce
+ * information gradually rather than all at once.
+ *
+ * So: dark text on solid panels, one button label used everywhere ("Create
+ * your free account"), sign-in demoted to a text link, no animated clouds,
+ * and the longer details folded into expandable sections.
+ *
+ * Every statement here describes something the app actually does. The old
+ * page claimed "thousands of journeys" (there are about a hundred real
+ * users) and "5 minutes" (never measured); both are gone.
+ */
+
+const PRIMARY_CTA =
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-7 py-4 text-lg font-semibold text-white shadow-md transition-colors hover:bg-indigo-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300'
+
+const WHAT_YOU_GET = [
+  {
+    icon: Flag,
+    title: 'Your goals, broken into steps',
+    body: 'Each goal becomes a “race” with small milestones you tick off, so you can see progress instead of holding it in your head.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'A schedule that fits your energy',
+    body: 'Your calendar has low, balanced and high-energy versions of the day, so a hard day still has a plan.',
+  },
+  {
+    icon: Wrench,
+    title: 'Tools and services for each step',
+    body: 'Milestones come with tools and supports, and ResourceHub lets you find services rated by people with similar norms.',
+  },
+  {
+    icon: PenLine,
+    title: 'A journal to look back on',
+    body: 'Write how things went and notice what is working. Streak freezes mean one missed day does not undo the weeks before it.',
+  },
+]
+
+const STEPS = [
+  {
+    icon: UserPlus,
+    title: 'Create your account',
+    body: 'Your name, email, a password and your date of birth. Autinerary is for adults 18 and over for now.',
+  },
+  {
+    icon: ListChecks,
+    title: 'Answer a short setup',
+    body: 'Three things are required: confirm you are 18+, tell us your norms (or choose “Prefer not to share”), and add at least one goal. Everything else can be skipped.',
+  },
+  {
+    icon: Rocket,
+    title: 'Get your path and start',
+    body: 'Your plan is built in about a minute. Then you start with your first milestone, and a short tour shows you around.',
+  },
+]
+
+const CONNECTIONS = [
+  { label: 'Your answers', detail: 'norms, goals, what motivates you' },
+  { label: 'Your path', detail: 'goals become races with milestones' },
+  { label: 'Tools & ResourceHub', detail: 'supports for each milestone' },
+  { label: 'Your calendar', detail: 'next steps scheduled around your energy' },
+  { label: 'Your journal', detail: 'look back, adjust your goals' },
+]
+
+const NORM_EXAMPLES = [
+  'Autism', 'ADHD', 'OCD', 'Bipolar', 'Anxiety', 'Learning differences',
+  'Chronic illness', 'Physical disability', 'First-generation',
+  'Visible minority', 'LGBTQ+', 'English as an additional language',
+]
 
 export default function HomePage() {
-  const router = useRouter()
-
-  const features = [
-    {
-      icon: Brain,
-      title: 'Barrier-Aware Planning',
-      description: 'AI that understands autism, ADHD, OCD, and other systematic barriers'
-    },
-    {
-      icon: Target,
-      title: 'Personalized Paths',
-      description: 'Custom roadmaps based on what worked for people like you'
-    },
-    {
-      icon: Calendar,
-      title: 'Adaptive Scheduling',
-      description: 'Schedules that adjust to your energy levels and good/bad days'
-    },
-    {
-      icon: Users,
-      title: 'Community Insights',
-      description: 'Learn from thousands of journeys from people who faced similar challenges'
-    },
-  ]
-
   return (
-    <div className="min-h-screen text-white relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{ __html: sunsetStyles }} />
-      
-      {/* Sunset Background with Clouds - semi-transparent so global cloud bg shows through */}
-      <div
-        className="fixed inset-0 z-0 bg-white/20 backdrop-blur-sm"
+    <div className="min-h-screen text-slate-900">
+      <FunnelPing event="landing_view" />
+      {/* Top bar: brand, beta status, and sign-in as a quiet link so it does
+          not compete with the one primary action. */}
+      <header className="relative z-10 bg-white/95 border-b border-slate-200">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold">Autinerary</span>
+            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900">
+              Beta
+            </span>
+          </div>
+          <Link href="/login" className="text-sm font-medium text-indigo-800 underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </div>
+      </header>
+
+      {/* Hero. The sky stays as the backdrop, but the words sit on a solid
+          panel so they are readable whatever the photo does behind them. */}
+      <section
+        className="relative px-4 py-10 md:py-16"
         style={{
-          // This div is a full-viewport `fixed` layer, so it never needed
-          // to rely on the body's own background showing through it -- but
-          // it was written with no background-image of its own, meaning it
-          // implicitly did rely on that bleed-through, at 20% white wash
-          // calibrated against a plain, unscrimmed photo.
-          //
-          // A later, separate fix (for a mobile magnification problem on
-          // the journal page) added a 55-72% white scrim in FRONT of that
-          // photo at the body level, applied globally. That scrim now sits
-          // behind this hero too, so this div's own 20% wash was stacking
-          // on top of an already-washed backdrop -- two legitimate fixes
-          // compounding into a hero that read as almost entirely white.
-          //
-          // Painting the same photo + fallback gradient here directly,
-          // scrim-free, makes this hero immune to whatever body does for
-          // other pages: it repaints its own sky before the translucent
-          // wash and the sun/cloud children go on top, exactly as
-          // originally calibrated.
           backgroundImage:
             "url('/cloud-bg.png'), linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%)",
           backgroundSize: 'cover, cover',
           backgroundPosition: 'center, center',
-          backgroundRepeat: 'no-repeat, no-repeat',
         }}
       >
-        {/* Clouds */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="cloud-move-1 absolute top-20 left-0 w-64 h-32 bg-white/30 rounded-full blur-xl cloud-float" />
-          <div className="cloud-move-2 absolute top-40 left-0 w-80 h-40 bg-white/25 rounded-full blur-2xl cloud-float" style={{ animationDelay: '2s' }} />
-          <div className="cloud-move-3 absolute top-60 left-0 w-72 h-36 bg-white/35 rounded-full blur-xl cloud-float" style={{ animationDelay: '4s' }} />
-          <div className="cloud-move-1 absolute top-80 left-0 w-56 h-28 bg-white/30 rounded-full blur-xl cloud-float" style={{ animationDelay: '1s' }} />
-          <div className="cloud-move-2 absolute top-32 left-0 w-96 h-48 bg-white/20 rounded-full blur-3xl cloud-float" style={{ animationDelay: '3s' }} />
-        </div>
-        
-        {/* Sun */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 bg-yellow-300 rounded-full blur-2xl opacity-80" />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-48 h-48 bg-orange-400 rounded-full blur-xl opacity-90" />
-      </div>
+        <div className="mx-auto max-w-3xl rounded-2xl bg-white/95 p-6 shadow-lg md:p-10">
+          <h1 className="text-3xl font-bold leading-tight md:text-5xl">
+            A life plan built around how you work
+          </h1>
+          <p className="mt-4 text-lg text-slate-700 md:text-xl">
+            Autinerary turns your goals into small, clear steps, schedules them around your energy,
+            and points you to tools and services rated by people with similar norms. Made for
+            neurodivergent adults and the people who support them.
+          </p>
 
-      {/* Hero Section */}
-      <div className="relative z-10">
-
-        {/* Hero Content */}
-        <div className="relative max-w-6xl mx-auto px-4 py-12 md:py-20">
-          <div className="text-center">
-            {/*
-              Removed the pill that sat above this headline reading "Powered
-              by Multi-Agent AI". A rounded badge over the hero is one of the
-              most recognisable signs of a template, and the sentence inside
-              it was about our architecture rather than about the reader.
-              Nobody arrives here wanting a multi-agent system; they arrive
-              wanting a plan that fits them.
-
-              The second line also used bg-clip-text over a three-stop
-              gradient. Against a photographic background that costs
-              legibility for the exact contrast the headline needs, and it is
-              the single most copied hero treatment there is. Solid white
-              with a shadow reads better and looks chosen.
-            */}
-
-            {/* Main Heading */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight drop-shadow-lg">
-              Your Path to Success,
-              <br />
-              <span className="text-white">Designed for You</span>
-            </h1>
-
-            {/* Subheading */}
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 drop-shadow-md">
-              Life planning that actually works for people facing systematic barriers. 
-              Not generic advice. Personalized paths based on what worked for people like you.
+          <div className="mt-8 flex flex-col items-start gap-3">
+            <Link href="/signup" className={PRIMARY_CTA}>
+              Create your free account
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <p className="text-sm text-slate-700">
+              Free to start · No credit card required · For adults 18+
             </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => router.push('/signup')}
-                className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
-              >
-                Start Your Journey
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 hover:bg-white/30 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all border border-white/30 shadow-lg surface-veil"
-              >
-                Sign In
-              </Link>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="mt-12 flex items-center justify-center gap-6 text-white/80 text-sm drop-shadow-md">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                <span>Privacy-first</span>
-              </div>
-              <div className="hidden sm:block w-1 h-1 rounded-full bg-white/60" />
-              <div>No credit card required</div>
-              <div className="hidden sm:block w-1 h-1 rounded-full bg-white/60" />
-              <div>Free to start</div>
-            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Stats/Races Section with Gradient */}
-      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
-        <div className="max-w-6xl mx-auto px-4">
-          {/*
-            This was three identical gradient boxes in a row, each with an
-            icon tile and a number: 12 Active Races, 48 Milestones, 7 Day
-            Streak, under lines like "You're making great progress!".
-
-            Two problems. The triplet of icon boxes is the most copied
-            section on the web and says nothing that the words beneath it
-            do not. Worse, the numbers were invented and addressed to a
-            visitor who does not have an account yet, so the page opened by
-            congratulating a stranger on progress they had not made. A
-            product whose whole pitch is that it will not hand you generic
-            advice should not fabricate your statistics on the way in.
-
-            One panel, no figures, describing what the app actually keeps
-            track of.
-          */}
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3 drop-shadow-lg">
-              What Autinerary keeps track of
-            </h2>
-            <p className="text-white/80 mb-8">
-              Everything here is built from what you do, and nothing is filled in on your behalf.
-            </p>
-
-            <div className="surface-veil-dark rounded-2xl p-6 divide-y divide-white/15">
-              <div className="flex items-start gap-4 pb-4">
-                <Trophy className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
+      {/* What you get */}
+      <section className="bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
+        <div className="mx-auto max-w-5xl">
+          <h2 id="what-heading" className="text-2xl font-bold md:text-3xl">What you get</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {WHAT_YOU_GET.map(({ icon: Icon, title, body }) => (
+              <div key={title} className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <Icon className="mt-0.5 h-6 w-6 shrink-0 text-indigo-700" aria-hidden="true" />
                 <div>
-                  <h3 className="font-semibold text-white">Your goals, as races</h3>
-                  <p className="text-white/75 text-sm">
-                    Each goal becomes a route with its own milestones, so progress is something you
-                    can see rather than something you have to remember.
-                  </p>
+                  <h3 className="font-semibold">{title}</h3>
+                  <p className="mt-1 text-slate-700">{body}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 py-4">
-                <Target className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
-                <div>
-                  <h3 className="font-semibold text-white">Milestones you have actually finished</h3>
-                  <p className="text-white/75 text-sm">
-                    Counted from what you tick off. If you have not done anything yet, it says so
-                    instead of showing you a number.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 pt-4">
-                <Zap className="w-6 h-6 shrink-0 text-white/80 mt-0.5" aria-hidden="true" />
-                <div>
-                  <h3 className="font-semibold text-white">Streaks that survive a bad week</h3>
-                  <p className="text-white/75 text-sm">
-                    Turning up counts. Streak freezes mean missing a day does not wipe out the
-                    weeks behind it.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg text-white">
-              Built for Neurodivergent Minds
-            </h2>
-            <p className="text-white/80 max-w-xl mx-auto">
-              Six specialized AI agents work together to create plans that actually work for your unique brain.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, idx) => {
-              const Icon = feature.icon
-              const gradients = [
-                'from-blue-500/20 to-blue-600/20 border-blue-400/30',
-                'from-pink-500/20 to-pink-600/20 border-pink-400/30',
-                'from-purple-500/20 to-purple-600/20 border-purple-400/30',
-                'from-blue-500/20 via-pink-500/20 to-purple-500/20 border-purple-400/30',
-              ]
-              const iconColors = [
-                'text-blue-300',
-                'text-pink-300',
-                'text-purple-300',
-                'text-purple-300',
-              ]
-              return (
-                <div 
-                  key={idx}
-                  className={`bg-gradient-to-br ${gradients[idx % gradients.length]} backdrop-blur-lg border-2 rounded-2xl p-6 hover:scale-105 transition-all group shadow-xl`}
-                >
-                  <div className={`w-12 h-12 bg-gradient-to-br ${gradients[idx % gradients.length]} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-6 h-6 ${iconColors[idx % iconColors.length]}`} />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 text-white">{feature.title}</h3>
-                  <p className="text-white/70 text-sm">{feature.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Who It's For Section */}
-      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg text-white">
-              Made for People Like You
-            </h2>
-            <p className="text-white/80 max-w-xl mx-auto">
-              Everyone deserves a path designed for them.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            {[
-              'Autism', 'ADHD', 'OCD', 'Bipolar', 'Anxiety',
-              'Visible Minority', 'First-Generation', 'LGBTQ+',
-              'Physical Disability', 'Learning Differences',
-              'English as Second Language', 'Chronic Illness'
-            ].map((barrier) => (
-              <span
-                key={barrier}
-                className="px-4 py-2 border border-white/30 rounded-full text-sm text-white hover:bg-white/30 transition-colors shadow-lg surface-veil"
-              >
-                {barrier}
-              </span>
             ))}
           </div>
-
-          <p className="text-center text-white/70 mt-8 text-sm">
-            ...and any combination of barriers. We understand intersectionality.
-          </p>
         </div>
-      </div>
+      </section>
 
-      {/* Final CTA */}
-      <div className="relative z-10 py-20 border-t border-white/20 surface-veil-dark">
-        <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 drop-shadow-lg text-white">
-            Ready to Find Your Path?
-          </h2>
-          <p className="text-white/80 mb-8">
-            It takes just 5 minutes to get started. We'll create a personalized plan based on your goals and the barriers you face.
-          </p>
-          <button
-            onClick={() => router.push('/signup')}
-            className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-blue-600 hover:via-pink-600 hover:to-purple-600 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60"
-          >
-            Create Your Account
-            <ArrowRight className="w-5 h-5" />
-          </button>
+      {/* How it works: the clear first step, and what happens after it. */}
+      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="how-heading">
+        <div className="mx-auto max-w-5xl">
+          <h2 id="how-heading" className="text-2xl font-bold md:text-3xl">How it works</h2>
+          <ol className="mt-6 grid gap-4 md:grid-cols-3">
+            {STEPS.map(({ icon: Icon, title, body }, i) => (
+              <li key={title} className="rounded-xl border border-slate-200 bg-white p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-700 text-sm font-bold text-white" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <Icon className="h-5 w-5 text-indigo-700" aria-hidden="true" />
+                </div>
+                <h3 className="mt-3 font-semibold">{title}</h3>
+                <p className="mt-1 text-slate-700">{body}</p>
+              </li>
+            ))}
+          </ol>
+
+          {/* How the pieces connect. A plain ordered list, so it reads in
+              order for screen readers and stacks cleanly on a phone. */}
+          <h3 className="mt-10 text-xl font-bold">How the pieces connect</h3>
+          <ol className="mt-4 flex flex-col gap-2 md:flex-row md:items-stretch md:gap-0">
+            {CONNECTIONS.map((c, i) => (
+              <li key={c.label} className="flex items-center md:flex-1">
+                <div className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3">
+                  <p className="font-semibold">{c.label}</p>
+                  <p className="text-sm text-slate-700">{c.detail}</p>
+                </div>
+                {i < CONNECTIONS.length - 1 && (
+                  <ArrowRight className="mx-2 hidden h-5 w-5 shrink-0 text-slate-500 md:block" aria-hidden="true" />
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/20 py-8 surface-veil-dark">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded flex items-center justify-center">
-                <span className="font-bold text-xs text-white">A</span>
+      {/* Who it's for: two short paths, one per kind of visitor. */}
+      <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="who-heading">
+        <div className="mx-auto max-w-5xl">
+          <h2 id="who-heading" className="text-2xl font-bold md:text-3xl">Who it&apos;s for</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-indigo-700" aria-hidden="true" />
+                <h3 className="font-semibold">If you&apos;re planning for yourself</h3>
               </div>
-              <span className="font-semibold text-white">Autinerary</span>
+              <p className="mt-2 text-slate-700">
+                Tell us the norms you navigate and the goals you have. Your plan, schedule and tool
+                suggestions are built from those answers, not from generic advice.
+              </p>
             </div>
-            <div className="text-sm text-white/70">
-              © 2026 Autinerary Corp. All rights reserved.
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="flex items-center gap-2">
+                <HeartHandshake className="h-5 w-5 text-indigo-700" aria-hidden="true" />
+                <h3 className="font-semibold">If you support someone</h3>
+              </div>
+              <p className="mt-2 text-slate-700">
+                Parents, caregivers, partners and educators can sign up too, and say how they are
+                connected to each norm. Accounts for people under 18 are not available yet.
+              </p>
             </div>
           </div>
+
+          <p className="mt-6 text-slate-700">Some of the norms people plan around:</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {NORM_EXAMPLES.map((n) => (
+              <li key={n} className="rounded-full border border-slate-300 bg-white px-3 py-1 text-sm text-slate-800">
+                {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Details people asked for, folded away until wanted so the page does
+          not front-load everything (the review's main risk to avoid). */}
+      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="details-heading">
+        <div className="mx-auto max-w-3xl">
+          <h2 id="details-heading" className="text-2xl font-bold md:text-3xl">Before you sign up</h2>
+          <div className="mt-6 space-y-3">
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                What will setup ask me?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <div className="mt-3 space-y-2 text-slate-700">
+                <p>
+                  <span className="font-semibold text-slate-900">Required:</span> confirming you are 18 or older,
+                  the norms you navigate (you can choose “Prefer not to share”), and at least one goal.
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-900">Optional:</span> your location (to find services
+                  near you), what motivates you, your character and spirit animals, and how the app looks.
+                  Each optional step has a “Skip for now” button.
+                </p>
+              </div>
+            </details>
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                What happens after setup?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="mt-3 text-slate-700">
+                Your path is generated in about a minute. You land on a summary that shows your first
+                milestone and what to do next, with an optional one-minute tour of each screen. You can
+                replay the tour anytime from “How it works”.
+              </p>
+            </details>
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                What does Autinerary count?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="mt-3 text-slate-700">
+                To find where setup is confusing, we count page visits, sign-ups, which setup step people reach,
+                and return visits, plus which link someone first arrived from (for example TikTok or Facebook).
+                These counts never include anything you type. There are no advertising trackers on this site, and if
+                your browser sends Do Not Track or Global Privacy Control, you are not counted.
+              </p>
+            </details>
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                What does “beta” mean?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="mt-3 text-slate-700">
+                Autinerary is still being built and tested with early users, so some things will change and
+                some features are not finished. After setup we ask two quick questions about how it went, and
+                your answers decide what we fix next.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* Final call to action: same label as the top, one decision. */}
+      <section className="border-t border-slate-200 bg-white px-4 py-12 text-center md:py-16">
+        <h2 className="text-2xl font-bold md:text-3xl">Ready to build your path?</h2>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <Link href="/signup" className={PRIMARY_CTA}>
+            Create your free account
+            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </Link>
+          <p className="text-sm text-slate-700">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-4">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      <footer className="border-t border-slate-200 bg-slate-50 px-4 py-6">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 text-sm text-slate-700 sm:flex-row">
+          <span className="font-semibold text-slate-900">Autinerary</span>
+          <span>© 2026 Autinerary Corp. All rights reserved.</span>
         </div>
       </footer>
     </div>
