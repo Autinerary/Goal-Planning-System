@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 import { 
-  User, Check, ChevronRight, ChevronLeft, Loader2,
+  User, Check, ChevronRight, ChevronLeft, ChevronDown, Loader2,
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 import {
@@ -119,9 +119,26 @@ const steps = [
   { id: 'recommendations', title: 'AI Recommendations', short: 'Resources', icon: Sparkles },
 ]
 
-// Steps the user is allowed to skip without filling anything in. The core
-// steps (barriers, location, goals) stay required.
-const skippableSteps = new Set([4, 5, 6, 7])
+// Steps the user is allowed to skip without filling anything in. Only the
+// core steps (age, norms, goals) stay required. Location joined the
+// optional set after Riipen Labs' review ("reduce mandatory questions"):
+// its own copy already called it optional while the form required it.
+const skippableSteps = new Set([2, 4, 5, 6, 7])
+
+// One line per step on what the answer is used for, so people can see how
+// setup connects to the plan they get (Riipen: "show how key features
+// connect"). Each line was checked against where the app reads it.
+const STEP_PURPOSE: Record<string, string> = {
+  character: 'Your avatar in Dream Land.',
+  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms.',
+  location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
+  goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
+  motivation: 'Matching you with people who are motivated in similar ways.',
+  profile: 'Your Ideal Self page: a picture of who you are working toward.',
+  spiritAnimal: 'The guides shown on your Path.',
+  personalize: 'How the app looks and how much it shows at once. You can change this later in Settings.',
+  recommendations: 'Anything you save goes to My Resources in ResourceHub.',
+}
 
 const goalCategories = [
   { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
@@ -750,7 +767,7 @@ export default function OnboardingPage() {
     switch (step) {
       case 0: return true
       case 1: return selectedBarrierTypes.length > 0 // Barrier Connections. Selection or free-text description
-      case 2: return formData.location.city.trim() !== '' && formData.location.province.trim() !== '' && formData.location.country.trim() !== ''
+      case 2: return true // Location is optional (the step says so); skipping it only turns off "near you" sorting
       case 3: { // Goals & Dreams, at least one goal in any category
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
         return hasGoal
@@ -764,6 +781,24 @@ export default function OnboardingPage() {
     }
   }
   
+  // What a disabled Continue is waiting for, in plain words. A greyed-out
+  // button alone does not say what to do next.
+  const continueHint = (): string => {
+    if (canProceed()) return ''
+    if (!canAccessOnboarding) return 'Confirm your age at the top of this step to continue.'
+    switch (currentStep) {
+      case 1: return 'Choose at least one norm, or “Prefer not to share”, to continue.'
+      case 3: return 'Add at least one goal to continue.'
+      case 4: return 'Pick at least one motivation and one life stage, or skip this step.'
+      case 5: return 'Describe your dream self, or skip this step.'
+      case 6: return 'Choose an animal and colour for each guide, or skip this step.'
+      default: return ''
+    }
+  }
+  // Once age, norms and goals are in, the optional steps can be skipped in
+  // one go instead of one at a time.
+  const requiredDone = canAccessOnboarding && canProceed(1) && canProceed(3)
+
   // Fetch AI recommendations when reaching the recommendations step.
   //
   // The guard is a ref, not the isLoadingRecommendations state. This effect
@@ -1278,7 +1313,9 @@ export default function OnboardingPage() {
       // Save the location to the profile so ResourceHub can recommend places
       // near this person. The ResourceHub hand-off above is unauthenticated
       // and never saved it. Bounded and best-effort: never holds up the path.
-      await axios.post('/api/me/location', formData.location, { timeout: 8000 }).catch(() => {})
+      if (formData.location.city.trim()) {
+        await axios.post('/api/me/location', formData.location, { timeout: 8000 }).catch(() => {})
+      }
       clearAutosave()
       router.push('/onboarding-confirmation')
     } catch (error: any) {
@@ -1500,11 +1537,29 @@ export default function OnboardingPage() {
             </div>
           )}
 
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-sm">
+            {skippableSteps.has(currentStep) && (
+              <span className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-0.5 font-semibold text-slate-700">Optional step</span>
+            )}
+            {STEP_PURPOSE[steps[currentStep].id] && (
+              <p className="text-slate-700"><span className="font-semibold text-slate-900">How this is used:</span> {STEP_PURPOSE[steps[currentStep].id]}</p>
+            )}
+          </div>
+
           {/* Step 0: Character Select */}
           {currentStep === 0 && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
-              <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land.</p>
+              <p className="text-slate-600 mb-4">Design an avatar to represent you on your journey through Dream Land.</p>
+
+              <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-800">
+                <p className="font-semibold text-slate-900">How setup works</p>
+                <p className="mt-1">
+                  There are {steps.length} short steps. Only three things are required: confirming your age (just below), your
+                  norms, and at least one goal. Optional steps have a &ldquo;Skip for now&rdquo; button, and once the required
+                  answers are in you can skip straight to the end.
+                </p>
+              </div>
 
               <label className="block mb-6 font-medium">
                 Confirm your age
@@ -1523,8 +1578,20 @@ export default function OnboardingPage() {
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
               )}
 
-              {/* Avatar Customization */}
+              {/* Avatar Customization: folded by default. It is entirely optional,
+                  and laid open it made the very first screen of setup a ~40-option
+                  designer to scroll past before reaching Continue (Riipen: simplify
+                  the starting experience, introduce information gradually). */}
               <div className="space-y-6">
+                <details className="group rounded-xl border border-slate-200 bg-white">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+                    <span>
+                      <span className="block font-semibold text-slate-900">Customize your character (optional)</span>
+                      <span className="block text-sm text-slate-700">Hair, outfit, colours. You can also change this later on your Ideal Self page.</span>
+                    </span>
+                    <ChevronDown className="h-5 w-5 shrink-0 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+                  </summary>
+                  <div className="space-y-6 border-t border-slate-200 p-4">
                 {/* Body Type */}
                 <div>
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
@@ -1562,7 +1629,7 @@ export default function OnboardingPage() {
                     own colours rather than as a generic thumbnail. */}
                 <div>
                   <h3 className="text-sm font-medium text-slate-700 mb-1">Hair &amp; headwear</h3>
-                  <p className="text-xs text-slate-500 mb-3">Tap any option to try it. You can change it later.</p>
+                  <p className="text-xs text-slate-600 mb-3">Tap any option to try it. You can change it later.</p>
                   <div className="space-y-4">
                     {HAIR_GROUPS.map((group) => (
                       <div key={group.name}>
@@ -1707,6 +1774,9 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
+                  </div>
+                </details>
+
                 {/* Live Character Preview */}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
@@ -1784,7 +1854,8 @@ export default function OnboardingPage() {
                       }`}
                     >
                       {selected && <Check className="mr-1 inline h-4 w-4" />}
-                      {choice}
+                      {/* Shown as "norms" (Odosa); the saved value is unchanged so existing data still matches. */}
+                      {choice === 'No current barriers' ? 'No current norms' : choice}
                     </button>
                   )
                 })}
@@ -2054,7 +2125,7 @@ export default function OnboardingPage() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">City *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">City</label>
                   <input
                     type="text"
                     value={formData.location.city}
@@ -2064,7 +2135,7 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Province/State *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Province/State</label>
                   <input
                     type="text"
                     value={formData.location.province}
@@ -2074,7 +2145,7 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Country *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Country</label>
                   <input
                     type="text"
                     value={formData.location.country}
@@ -3119,7 +3190,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-200">
+          <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t border-slate-200">
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
@@ -3129,7 +3200,16 @@ export default function OnboardingPage() {
               Back
             </button>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {requiredDone && currentStep >= 3 && currentStep < steps.length - 2 && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(steps.length - 1)}
+                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+                >
+                  Skip the optional steps
+                </button>
+              )}
               {skippableSteps.has(currentStep) && currentStep < steps.length - 1 && (
                 <button
                   onClick={handleSkip}
@@ -3143,6 +3223,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
+                  aria-describedby={continueHint() ? 'continue-hint' : undefined}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {currentStep === 7 ? 'View Recommendations' : 'Continue'}
@@ -3168,6 +3249,12 @@ export default function OnboardingPage() {
                 </button>
               )}
             </div>
+
+            {continueHint() && (
+              <p id="continue-hint" className="mt-3 w-full text-right text-sm text-slate-700" role="status">
+                {continueHint()}
+              </p>
+            )}
 
             {/* Honest waiting state. No progress bar — we cannot see inside the
                 pipeline, and a bar that stalls at 80% is worse than a clock. */}
