@@ -70,7 +70,7 @@ const STEPS = [
   {
     icon: ListChecks,
     title: 'Answer a short setup',
-    body: 'Three things are required: confirm you are 18+, tell us your norms (or choose “Prefer not to share”), and add at least one goal. Everything else can be skipped.',
+    body: 'Three short steps: who you are here for, one goal, and an optional question about norms. Then your path is ready. Everything else is optional and can wait.',
   },
   {
     icon: Rocket,
@@ -223,8 +223,9 @@ export default function HomePage() {
                 <h3 className="font-semibold">If you support someone</h3>
               </div>
               <p className="mt-2 text-slate-700">
-                Parents, caregivers, partners and educators can sign up too, and say how they are
-                connected to each norm. Accounts for people under 18 are not available yet.
+                Parents, caregivers, siblings, partners, educators, employers and allies can sign up too.
+                Setup starts by asking who you are here for, so the questions fit. Accounts for people under 18
+                are not available yet.
               </p>
             </div>
           </div>
@@ -254,12 +255,13 @@ export default function HomePage() {
               <div className="mt-3 space-y-2 text-slate-700">
                 <p>
                   <span className="font-semibold text-slate-900">Required:</span> confirming you are 18 or older,
-                  the norms you navigate (you can choose “Prefer not to share”), and at least one goal.
+                  who you are here for, and one goal. You can create your path as soon as those are done.
                 </p>
                 <p>
-                  <span className="font-semibold text-slate-900">Optional:</span> your location (to find services
-                  near you), what motivates you, your character and spirit animals, and how the app looks.
-                  Each optional step has a “Skip for now” button.
+                  <span className="font-semibold text-slate-900">Optional:</span> the norms you navigate (or
+                  &ldquo;Prefer not to share&rdquo;), what you are looking for, your location (to find services near
+                  you), what motivates you, your character and spirit animals, and how the app looks. You can add
+                  any of these later.
                 </p>
               </div>
             </details>
@@ -269,9 +271,9 @@ export default function HomePage() {
                 <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
               <p className="mt-3 text-slate-700">
-                Your path is generated in about a minute. You land on a summary that shows your first
-                milestone and what to do next, with an optional one-minute tour of each screen. You can
-                replay the tour anytime from “How it works”.
+                Your path is generated in about a minute. You land on a summary that starts with what you said
+                you were looking for (a plan, services, or advice from others) and shows your first milestone, with
+                an optional one-minute tour of each screen. You can replay the tour anytime from “How it works”.
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">

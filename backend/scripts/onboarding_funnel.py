@@ -1,17 +1,22 @@
 """Onboarding funnel and post-setup survey report.
 
-The success measures from Riipen Labs' onboarding review (Sept 2026):
-  * the share of visitors who go on to create an account
-  * where people leave during onboarding (drop-off per step)
-  * the share who finish setup
-  * the share who return within 7 days
-broken down by acquisition channel (utm_source, e.g. tiktok / facebook), plus
-the two-question survey shown after setup.
+Success measures from Riipen Labs' onboarding reviews (Sept 2026):
+  * Group 1: the share of visitors who create an account, where people leave
+    during onboarding (drop-off per step), the share who return within 7 days
+  * Group 2: "compare goal completion, clarity and perceived effort across
+    representative user types and acquisition channels"
 
-Reads public.onboarding_events and public.onboarding_feedback (STEP 45).
-Counts only: no user ids, emails or visitor ids are printed. Survey comments
-are free text and may contain personal details, so they are only printed with
---show-comments, for reading locally.
+So, besides the funnel, people are compared by who they are here for (the
+first onboarding question, saved to profiles.preferences.audience) and by
+acquisition channel (utm_source of the first visit), on: finished setup,
+returned within 7 days, and the post-setup survey's clarity question ("how
+much did you know before making an account?") and effort question ("how
+easy was setup?").
+
+Reads public.onboarding_events and public.onboarding_feedback (STEP 45) and
+profiles.preferences. Counts only: no user ids, emails or visitor ids are
+printed. Survey comments are free text and may contain personal details, so
+they are only printed with --show-comments, for reading locally.
 
 Run (from backend/):
   python -m scripts.onboarding_funnel                    # current version
@@ -28,20 +33,33 @@ from statistics import median
 from typing import Dict, Iterable, List, Optional
 
 # Must match ONBOARDING_VERSION in frontend/lib/funnel.ts.
-CURRENT_VERSION = "riipen-2026-10"
+CURRENT_VERSION = "goalfirst-2026-10"
 
-# Onboarding step ids in order, as in frontend/app/onboarding/page.tsx.
+# Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
+# first three are the required start; the rest are optional extras.
 STEPS = [
-    ("character", "Character & age"),
-    ("barrierConnections", "Norms"),
-    ("location", "Location (optional)"),
-    ("goalsAndDreams", "Goals"),
-    ("motivation", "Motivation (optional)"),
-    ("profile", "Dream Self (optional)"),
-    ("spiritAnimal", "Spirit animals (optional)"),
-    ("personalize", "Personalize (optional)"),
-    ("recommendations", "Resources"),
+    ("about", "About you (age, who for)"),
+    ("goalsAndDreams", "One goal"),
+    ("barrierConnections", "Norms (optional)"),
+    ("location", "extra: Location"),
+    ("motivation", "extra: Motivation"),
+    ("character", "extra: Character"),
+    ("profile", "extra: Dream Self"),
+    ("spiritAnimal", "extra: Spirit animals"),
+    ("personalize", "extra: Personalize"),
+    ("recommendations", "extra: Resources"),
 ]
+CORE_STEPS = 3
+
+AUDIENCE_LABELS = {
+    "self": "myself",
+    "child": "my child",
+    "family": "family member",
+    "friend": "a friend",
+    "work": "teach / work with",
+    "ally": "ally / learning",
+}
+NOT_ANSWERED = "(not answered)"
 
 RETURN_WINDOW = timedelta(days=7)
 
@@ -57,13 +75,15 @@ def keep_version(version: str, wanted: str) -> bool:
     return wanted == "all" or version == wanted
 
 
-def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
+                   audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Aggregate raw event rows into funnel counts. Pure: no I/O.
 
     A "person" is a visitor id (one browser). Stages count distinct visitors.
     Returned within 7 days: created an account, then an app_open on a later
     calendar day no more than 7 days after the account was created.
     """
+    audience_by_user = audience_by_user or {}
     by_visitor: Dict[str, List[dict]] = defaultdict(list)
     for e in events:
         if keep_version(e.get("onboarding_version", ""), wanted_version):
@@ -75,6 +95,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         names = {e["event"] for e in evs}
         steps = {e.get("step") for e in evs if e["event"] == "onboarding_step_view"}
         channel = next((e.get("channel") for e in evs if e.get("channel")), None) or "(none)"
+        user_id = next((e.get("user_id") for e in evs if e.get("user_id")), None)
         signup_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "signup_complete"), None)
         returned = False
         if signup_at is not None:
@@ -85,8 +106,11 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
                 if t.date() > signup_at.date() and t - signup_at <= RETURN_WINDOW:
                     returned = True
                     break
+        audience = audience_by_user.get(user_id) if user_id else None
         people.append({
+            "user_id": user_id,
             "channel": channel,
+            "audience": AUDIENCE_LABELS.get(audience, NOT_ANSWERED),
             "landing": "landing_view" in names,
             "signup_view": "signup_view" in names,
             "account": signup_at is not None,
@@ -106,33 +130,67 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "accounts_from_landing": sum(p["landing"] and p["account"] for p in group),
         }
 
-    channels: Dict[str, List[dict]] = defaultdict(list)
-    for p in people:
-        channels[p["channel"]].append(p)
+    def grouped(key: str) -> Dict[str, Dict]:
+        groups: Dict[str, List[dict]] = defaultdict(list)
+        for p in people:
+            groups[p[key]].append(p)
+        return {g: stage_counts(m) for g, m in sorted(groups.items(), key=lambda kv: -len(kv[1]))}
 
     all_times = [e["created_at"] for evs in by_visitor.values() for e in evs]
     return {
         "overall": stage_counts(people),
-        "by_channel": {c: stage_counts(g) for c, g in sorted(channels.items(), key=lambda kv: -len(kv[1]))},
+        "by_channel": grouped("channel"),
+        "by_audience": grouped("audience"),
+        "people": people,
         "first_event": min(all_times) if all_times else None,
         "last_event": max(all_times) if all_times else None,
     }
 
 
-def summarize_feedback(rows: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
-    rows = [r for r in rows if keep_version(r.get("onboarding_version", ""), wanted_version)]
+def _survey_stats(rows: List[dict]) -> Dict:
     eases = [r["setup_ease"] for r in rows if r.get("setup_ease")]
+    infos = [r["info_before_signup"] for r in rows if r.get("info_before_signup")]
     return {
         "responses": len(rows),
-        "info_before_signup": Counter(r["info_before_signup"] for r in rows if r.get("info_before_signup")),
+        "info_before_signup": Counter(infos),
+        "about_right_share": (sum(1 for i in infos if i == "about_right") / len(infos)) if infos else None,
         "ease": Counter(eases),
         "ease_median": median(eases) if eases else None,
-        "comments": [r["comment"] for r in rows if r.get("comment")],
     }
+
+
+def summarize_feedback(rows: Iterable[dict], wanted_version: str = CURRENT_VERSION,
+                       people: Optional[List[dict]] = None) -> Dict:
+    """Survey totals, and the same split by user type and channel when the
+    funnel's people (which carry user ids) are given."""
+    rows = [r for r in rows if keep_version(r.get("onboarding_version", ""), wanted_version)]
+    out = _survey_stats(rows)
+    out["comments"] = [r["comment"] for r in rows if r.get("comment")]
+    person = {p["user_id"]: p for p in (people or []) if p.get("user_id")}
+    for key in ("audience", "channel"):
+        groups: Dict[str, List[dict]] = defaultdict(list)
+        for r in rows:
+            p = person.get(r.get("user_id"))
+            groups[p[key] if p else NOT_ANSWERED if key == "audience" else "(none)"].append(r)
+        out[f"by_{key}"] = {g: _survey_stats(m) for g, m in groups.items()}
+    return out
 
 
 def pct(n: int, d: int) -> str:
     return f"{100 * n / d:.0f}%" if d else "n/a"
+
+
+def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[str, Dict]) -> List[str]:
+    out = [f"== {title}",
+           f"  {'group':<20} {'accounts':>8} {'finished':>9} {'back in 7d':>10} {'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10}"]
+    for g in list(funnel_groups) + [g for g in survey_groups if g not in funnel_groups]:
+        f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0})
+        s = survey_groups.get(g)
+        clarity = f"{100 * s['about_right_share']:.0f}%" if s and s["about_right_share"] is not None else "-"
+        ease = f"{s['ease_median']}" if s and s["ease_median"] is not None else "-"
+        out.append(f"  {g[:20]:<20} {f['accounts']:>8} {pct(f['finished'], f['accounts']):>9} "
+                   f"{pct(f['returned'], f['accounts']):>10} {(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10}")
+    return out
 
 
 def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
@@ -146,18 +204,18 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append(f"  created an account              {o['accounts']}   "
                f"({pct(o['accounts_from_landing'], o['visitors'])} of landing visitors)")
     prev: Optional[int] = None
-    for sid, label in STEPS:
+    for i, (sid, label) in enumerate(STEPS):
         n = o["steps"][sid]
-        drop = f"   (-{prev - n} from the step before)" if prev is not None and prev > n else ""
+        drop = f"   (-{prev - n} from the step before)" if prev is not None and prev > n and i < CORE_STEPS else ""
         out.append(f"  reached setup: {label:<27} {n}{drop}")
         prev = n
     out.append(f"  finished setup                  {o['finished']}   ({pct(o['finished'], o['accounts'])} of accounts)")
     out.append(f"  returned within 7 days          {o['returned']}   ({pct(o['returned'], o['accounts'])} of accounts)")
     out.append("")
-    out.append("== By channel (utm_source of the first visit)")
-    out.append(f"  {'channel':<14} {'visitors':>8} {'accounts':>9} {'finished':>9} {'returned 7d':>12}")
-    for c, s in funnel["by_channel"].items():
-        out.append(f"  {c[:14]:<14} {s['visitors']:>8} {s['accounts']:>9} {s['finished']:>9} {s['returned']:>12}")
+    out.extend(_comparison("By who they are here for", funnel.get("by_audience", {}), feedback.get("by_audience", {})))
+    out.append("")
+    out.extend(_comparison("By channel (utm_source of the first visit)", funnel["by_channel"], feedback.get("by_channel", {})))
+    out.append("  (clarity ok = answered \"about right\" to how much they knew before making an account)")
     out.append("")
     out.append(f"== Post-setup survey: {feedback['responses']} responses")
     info = feedback["info_before_signup"]
@@ -201,13 +259,19 @@ def main() -> int:
         return 1
     try:
         events = fetch_all(sb, "onboarding_events",
-                           "visitor_id, event, step, channel, onboarding_version, created_at")
+                           "visitor_id, user_id, event, step, channel, onboarding_version, created_at")
         feedback = fetch_all(sb, "onboarding_feedback",
-                             "info_before_signup, setup_ease, comment, onboarding_version")
+                             "user_id, info_before_signup, setup_ease, comment, onboarding_version")
     except Exception as e:
         print(f"Could not read the funnel tables ({str(e)[:90]}). Has STEP 45 been applied?")
         return 1
-    print(render(compute_funnel(events, args.version), summarize_feedback(feedback, args.version), args.show_comments))
+    audience_by_user = {}
+    for p in fetch_all(sb, "profiles", "id, preferences"):
+        aud = (p.get("preferences") or {}).get("audience")
+        if aud:
+            audience_by_user[p["id"]] = aud
+    funnel = compute_funnel(events, args.version, audience_by_user)
+    print(render(funnel, summarize_feedback(feedback, args.version, funnel["people"]), args.show_comments))
     return 0
 
 

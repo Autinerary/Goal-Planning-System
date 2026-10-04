@@ -25,8 +25,8 @@ const EVENTS = new Set([
 
 // Onboarding step ids, as defined in app/onboarding/page.tsx.
 const STEPS = new Set([
-  'character', 'barrierConnections', 'location', 'goalsAndDreams', 'motivation',
-  'profile', 'spiritAnimal', 'personalize', 'recommendations',
+  'about', 'goalsAndDreams', 'barrierConnections', 'location', 'motivation',
+  'character', 'profile', 'spiritAnimal', 'personalize', 'recommendations',
 ])
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

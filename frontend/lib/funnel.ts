@@ -16,8 +16,10 @@
  */
 
 // Bump when onboarding changes enough that its numbers should be compared
-// separately (Riipen: "create a revised onboarding group").
-export const ONBOARDING_VERSION = 'riipen-2026-10'
+// separately (Riipen: "create a revised onboarding group"). riipen-2026-10 was
+// the first revision (readability, info before sign-up); goalfirst-2026-10 is
+// the goal-first, three-step start.
+export const ONBOARDING_VERSION = 'goalfirst-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'

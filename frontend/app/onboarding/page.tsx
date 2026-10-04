@@ -108,30 +108,65 @@ function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: num
 // "Character Select" and "AI Recommendations" wrapped to three lines each,
 // pushed their neighbours out of line and collided with the circle above.
 // `title` stays the full name and remains the accessible label.
+//
+// Goal-first order (Riipen Labs, Group 2): "sort the questions into need now
+// and ask later" and "build the short branching start that asks who the user
+// is here for, then one goal, then an optional condition question". The
+// first CORE_STEP_COUNT steps are the whole required start; the path can be
+// created at the end of them. Everything after is an optional extra.
 const steps = [
-  { id: 'character', title: 'Character Select', short: 'Character', icon: User },
+  { id: 'about', title: 'About you', short: 'About you', icon: User },
+  { id: 'goalsAndDreams', title: 'Your goal', short: 'Goal', icon: Target },
   { id: 'barrierConnections', title: 'Your Norms', short: 'Norms', icon: AlertCircle },
   { id: 'location', title: 'Location', short: 'Location', icon: User },
-  { id: 'goalsAndDreams', title: 'Goals & Dreams', short: 'Goals', icon: Target },
   { id: 'motivation', title: 'Motivation Style', short: 'Motivation', icon: Zap },
+  { id: 'character', title: 'Character', short: 'Character', icon: User },
   { id: 'profile', title: 'Dream Self', short: 'Dream Self', icon: Palette },
   { id: 'spiritAnimal', title: 'Spirit Animals', short: 'Animals', icon: Heart },
   { id: 'personalize', title: 'Personalize', short: 'Personalize', icon: Palette },
   { id: 'recommendations', title: 'AI Recommendations', short: 'Resources', icon: Sparkles },
+]
+const CORE_STEP_COUNT = 3
+const stepIndex = (id: string) => steps.findIndex((s) => s.id === id)
+// Only these must be answered (age is confirmed inside 'about').
+const REQUIRED_STEP_IDS = new Set(['about', 'goalsAndDreams'])
+// Drafts saved before the reorder stored a position in this order; position 0
+// held the age question, which now lives in 'about'.
+const LEGACY_STEP_ORDER = ['about', 'barrierConnections', 'location', 'goalsAndDreams', 'motivation', 'profile', 'spiritAnimal', 'personalize', 'recommendations']
+
+// "Who are you here for?" `connection` is the Norms step connection type it
+// pre-selects; null where the right one is ambiguous (the person picks it).
+const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
+  { id: 'self', label: 'Myself', connection: 'self' },
+  { id: 'child', label: 'My child', connection: 'parent' },
+  { id: 'family', label: 'Another family member', connection: null },
+  { id: 'friend', label: 'A friend', connection: 'friend' },
+  { id: 'work', label: 'Someone I teach, support or work with', connection: null },
+  { id: 'ally', label: "I'm an ally, or just learning", connection: 'ally' },
+]
+
+// "What are you looking for today?" decides what is shown first after setup.
+const LOOKING_FOR = [
+  { id: 'plan', label: 'A step-by-step plan for a goal' },
+  { id: 'services', label: 'Services or places that can help' },
+  { id: 'community', label: 'Advice from people with similar experiences' },
+  { id: 'tools', label: 'Tools, apps and products' },
+  { id: 'learning', label: 'To learn and understand more' },
 ]
 
 // Steps the user is allowed to skip without filling anything in. Only the
 // core steps (age, norms, goals) stay required. Location joined the
 // optional set after Riipen Labs' review ("reduce mandatory questions"):
 // its own copy already called it optional while the form required it.
-const skippableSteps = new Set([2, 4, 5, 6, 7])
+const skippableSteps = new Set(['location', 'motivation', 'character', 'profile', 'spiritAnimal', 'personalize'])
 
 // One line per step on what the answer is used for, so people can see how
 // setup connects to the plan they get (Riipen: "show how key features
 // connect"). Each line was checked against where the app reads it.
 const STEP_PURPOSE: Record<string, string> = {
+  about: 'The wording of the next questions, and what you see first once your path is ready.',
   character: 'Your avatar in Dream Land.',
-  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms.',
+  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms. Optional: skipped, it counts as “Prefer not to share”.',
   location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
   goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
   motivation: 'Matching you with people who are motivated in similar ways.',
@@ -435,6 +470,7 @@ export default function OnboardingPage() {
   const [guardianApproved, setGuardianApproved] = useState(false)
   const isManagedAccount = !!(supabaseUser?.app_metadata?.managed_by_guardian || supabaseUser?.user_metadata?.managed_by_guardian)
   const [currentStep, setCurrentStep] = useState(0)
+  const currentId = steps[currentStep]?.id ?? 'about'
   const [isSubmitting, setIsSubmitting] = useState(false)
   // Path generation takes ~55s alone and ~90s when a few people submit at once
   // (both measured against production). A static spinner for that long reads as
@@ -457,6 +493,9 @@ export default function OnboardingPage() {
     // Character select
     characterType: 'avatar' as string, // always avatar now (spirit animal selection at end)
     ageConfirmation: '' as '' | 'adult' | 'under18',
+    // Goal-first start: who this is for, and what they came for.
+    audience: '' as string,
+    lookingFor: [] as string[],
     bodyType: '' as string,
     hairStyle: '' as string,
     hairColor: DEFAULT_HAIR_COLOR as string,
@@ -556,11 +595,14 @@ export default function OnboardingPage() {
     supportContext: { ...EMPTY_DIAGNOSTIC_PROFILE.supportContext },
   }))
 
+  // Norms are optional now. Left unanswered, they are sent exactly as an
+  // explicit "Prefer not to share", the value existing rows and the condition
+  // taxonomy already use, so nothing downstream sees a new shape.
   const selectedBarrierTypes = formData.barrierTypes.length > 0
     ? formData.barrierTypes
     : formData.barrierConnectionText.trim()
       ? [formData.barrierConnectionText.trim()]
-      : []
+      : ['Prefer not to share']
   const recommendationSupportContext = toRecommendationSupportContext(diagnosticProfile)
   
   const [recommendations, setRecommendations] = useState<any[]>([])
@@ -588,10 +630,13 @@ export default function OnboardingPage() {
       const saved = localStorage.getItem(AUTOSAVE_KEY)
       let restoredDraft = false
       if (saved) {
-        const { step, data } = JSON.parse(saved)
+        const { step, stepId, data } = JSON.parse(saved)
         if (data && typeof step === 'number') {
           setFormData(prev => ({ ...prev, ...data }))
-          setCurrentStep(data.ageConfirmation === 'adult' ? Math.max(0, Math.min(steps.length - 1, step)) : 0)
+          // Restore by id; drafts from before the goal-first reorder only
+          // know their position in the old order.
+          const id = typeof stepId === 'string' ? stepId : LEGACY_STEP_ORDER[step]
+          setCurrentStep(data.ageConfirmation === 'adult' ? Math.max(0, stepIndex(id)) : 0)
           restoredDraft = true
         }
       }
@@ -692,7 +737,7 @@ export default function OnboardingPage() {
       try {
         localStorage.setItem(
           AUTOSAVE_KEY,
-          JSON.stringify({ step: currentStep, data: formData })
+          JSON.stringify({ step: currentStep, stepId: steps[currentStep].id, data: formData })
         )
       } catch {
         // quota exceeded — ignore
@@ -773,19 +818,20 @@ export default function OnboardingPage() {
 
   const canProceed = (step = currentStep) => {
     if (!canAccessOnboarding) return false
-    switch (step) {
-      case 0: return true
-      case 1: return selectedBarrierTypes.length > 0 // Barrier Connections. Selection or free-text description
-      case 2: return true // Location is optional (the step says so); skipping it only turns off "near you" sorting
-      case 3: { // Goals & Dreams, at least one goal in any category
+    switch (steps[step]?.id) {
+      case 'about': return formData.audience !== '' // who this is for (age is checked above)
+      case 'goalsAndDreams': { // at least one goal in any category
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
         return hasGoal
       }
-      case 4: return formData.motivationTypes.length > 0 && formData.lifeStages.length > 0
-      case 5: return formData.dreamSelf.trim() !== '' // Profile customization
-      case 6: return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // Spirit animals, all slots for the chosen mode filled
-      case 7: return true // Personalize, all optional, can always proceed
-      case 8: return true // Recommendations step - can always proceed (optional to save)
+      case 'barrierConnections': return true // optional (Riipen Group 2: "an optional condition question")
+      case 'location': return true // optional; skipping it only turns off "near you" sorting
+      case 'motivation': return formData.motivationTypes.length > 0 && formData.lifeStages.length > 0
+      case 'character': return true // optional
+      case 'profile': return formData.dreamSelf.trim() !== ''
+      case 'spiritAnimal': return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // every slot for the chosen mode filled
+      case 'personalize': return true // all optional
+      case 'recommendations': return true // optional to save
       default: return false
     }
   }
@@ -795,18 +841,44 @@ export default function OnboardingPage() {
   const continueHint = (): string => {
     if (canProceed()) return ''
     if (!canAccessOnboarding) return 'Confirm your age at the top of this step to continue.'
-    switch (currentStep) {
-      case 1: return 'Choose at least one norm, or “Prefer not to share”, to continue.'
-      case 3: return 'Add at least one goal to continue.'
-      case 4: return 'Pick at least one motivation and one life stage, or skip this step.'
-      case 5: return 'Describe your dream self, or skip this step.'
-      case 6: return 'Choose an animal and colour for each guide, or skip this step.'
+    switch (currentId) {
+      case 'about': return 'Choose who you are here for to continue.'
+      case 'goalsAndDreams': return 'Add one goal to continue.'
+      case 'motivation': return 'Pick at least one motivation and one life stage, or skip this step.'
+      case 'profile': return 'Describe your dream self, or skip this step.'
+      case 'spiritAnimal': return 'Choose an animal and colour for each guide, or skip this step.'
       default: return ''
     }
   }
   // Once age, norms and goals are in, the optional steps can be skipped in
   // one go instead of one at a time.
-  const requiredDone = canAccessOnboarding && canProceed(1) && canProceed(3)
+  const requiredDone = canAccessOnboarding && canProceed(stepIndex('about')) && canProceed(stepIndex('goalsAndDreams'))
+
+  // Picking who this is for pre-selects the matching connection on the
+  // Norms step, only while no norms are chosen, so it never wipes answers.
+  const chooseAudience = (id: string) => {
+    const conn = AUDIENCES.find((a) => a.id === id)?.connection ?? null
+    setFormData((prev) => {
+      const untouched = prev.barrierTypes.length === 0
+      const barrierConnections: Record<string, string[]> = untouched ? (conn ? { [conn]: [] } : {}) : prev.barrierConnections
+      const role = untouched ? (conn === 'self' ? 'self_advocate' : conn || '') : prev.role
+      return { ...prev, audience: id, barrierConnections, role }
+    })
+  }
+
+  // Wording that follows who the person is here for (Riipen: "a parent,
+  // sibling and a neurodivergent adult may need different first steps").
+  const supporting = ['child', 'family', 'friend', 'work'].includes(formData.audience)
+  const normsCopy = formData.audience === 'child'
+    ? { heading: 'Your child\u2019s norms', intro: 'Which norms does your child navigate? You can add your own too.' }
+    : supporting
+      ? { heading: 'Their norms', intro: 'Which norms does the person you support navigate? You can add your own too.' }
+      : formData.audience === 'ally'
+        ? { heading: 'Norms you care about', intro: 'Which norms would you like to understand or support?' }
+        : { heading: 'Your Norms', intro: 'Tell us about your norms: the systemic realities you navigate.' }
+  const goalIntro = supporting
+    ? 'Start with one goal. It can be yours, or something you are working on for the person you support (for example, \u201cFind an occupational therapist for my child\u201d). More goals, dreams and obstacles are optional.'
+    : 'Start with one goal. Pick a category and add it. More goals, dreams and obstacles are optional and can come later.'
 
   // Fetch AI recommendations when reaching the recommendations step.
   //
@@ -816,13 +888,13 @@ export default function OnboardingPage() {
   // went out and the loser's failure overwrote the winner's results.
   const recommendationsInFlight = useRef(false)
   useEffect(() => {
-    if (currentStep === 8 && recommendations.length === 0 && !recommendationsInFlight.current) {
+    if (steps[currentStep].id === 'recommendations' && recommendations.length === 0 && !recommendationsInFlight.current) {
       fetchRecommendations()
     }
   }, [currentStep]) // eslint-disable-line react-hooks/exhaustive-deps
   
   const fetchRecommendations = async () => {
-    const missing = [1, 2, 3].filter(index => !canProceed(index))
+    const missing = ['about', 'goalsAndDreams'].map(stepIndex).filter(index => !canProceed(index))
     if (missing.length > 0) {
       setRecommendations([])
       setRecommendationExplanation(`Complete ${missing.map(index => steps[index].title).join(', ')} before requesting recommendations.`)
@@ -838,7 +910,7 @@ export default function OnboardingPage() {
       
       // Derive role from barrierConnections (first key, or 'self' as fallback)
       const connectionKeys = Object.keys(formData.barrierConnections)
-      const derivedRole = connectionKeys.length > 0 ? connectionKeys[0] : 'self'
+      const derivedRole = connectionKeys.length > 0 ? connectionKeys[0] : (AUDIENCES.find(a => a.id === formData.audience)?.connection || 'self')
       
       // Flatten goalsByCategory into a goals array (goals live there now, not in formData.goals)
       const flattenedGoals: string[] = []
@@ -1062,7 +1134,7 @@ export default function OnboardingPage() {
       const approval = await fetch('/api/me/guardian-approval', { cache: 'no-store' }).then(response => response.ok ? response.json() : { approved: false }).catch(() => ({ approved: false }))
       if (!approval.approved) { setGuardianApproved(false); setCurrentStep(0); return }
     }
-    const missing = steps.flatMap((step, index) => !skippableSteps.has(index) && !canProceed(index) ? [index] : [])
+    const missing = steps.flatMap((step, index) => REQUIRED_STEP_IDS.has(step.id) && !canProceed(index) ? [index] : [])
     setMissingSections(missing)
     if (missing.length > 0) return
     // Paper/page-turn cue so the submission clearly registered (Liam).
@@ -1319,7 +1391,19 @@ export default function OnboardingPage() {
       await axios.post('/api/me/preferences', {
         dreamAppearance: formData.dreamAppearance,
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
+        // Who this is for and what they came for: drives what the next pages
+        // show first, and lets the funnel be compared by user type.
+        audience: formData.audience || null,
+        lookingFor: formData.lookingFor,
       }).catch(() => {})
+      try {
+        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor }))
+        // "Ask later": the optional extras this person did not get to, offered
+        // on the Path once they have something to use.
+        const askLater = ['location', 'character', 'spiritAnimal', 'personalize'].filter((id) =>
+          id === 'location' ? !formData.location.city.trim() : !stepsSeen.current.has(stepIndex(id)))
+        localStorage.setItem('autinerary_ask_later', JSON.stringify(askLater))
+      } catch {}
       // Save the location to the profile so ResourceHub can recommend places
       // near this person. The ResourceHub hand-off above is unauthenticated
       // and never saved it. Bounded and best-effort: never holds up the path.
@@ -1376,7 +1460,13 @@ export default function OnboardingPage() {
     : 'Laying out your schedule. Nearly there…'
   const displayStage = generationStage || localStage
 
-  const progressPercentage = (currentStep / (steps.length - 1)) * 100
+  // The rail shows one group at a time: the three-step start, or the
+  // optional extras once someone chooses to add more. Nine labels in a row
+  // read as "a lot"; three do not.
+  const inExtras = currentStep >= CORE_STEP_COUNT
+  const groupStart = inExtras ? CORE_STEP_COUNT : 0
+  const groupSteps = inExtras ? steps.slice(CORE_STEP_COUNT) : steps.slice(0, CORE_STEP_COUNT)
+  const progressPercentage = groupSteps.length > 1 ? ((currentStep - groupStart) / (groupSteps.length - 1)) * 100 : 100
   
   // Food items evenly spaced along the path
   const foodItems = [
@@ -1490,8 +1580,12 @@ export default function OnboardingPage() {
           </div>
           
           {/* Step Labels Below Path */}
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-4 mt-4 px-2">
-            {steps.map((step, idx) => {
+          {inExtras && (
+            <p className="mt-3 text-center text-sm text-slate-700">Optional extras: skip any of them, or create your path now.</p>
+          )}
+          <div className={`grid ${inExtras ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-3'} gap-4 mt-4 px-2`}>
+            {groupSteps.map((step, i) => {
+              const idx = groupStart + i
               const Icon = step.icon
               const isActive = idx === currentStep
               const isCompleted = canProceed(idx)
@@ -1548,7 +1642,7 @@ export default function OnboardingPage() {
           )}
 
           <div className="mb-5 flex flex-wrap items-center gap-2 text-sm">
-            {skippableSteps.has(currentStep) && (
+            {!REQUIRED_STEP_IDS.has(currentId) && (
               <span className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-0.5 font-semibold text-slate-700">Optional step</span>
             )}
             {STEP_PURPOSE[steps[currentStep].id] && (
@@ -1556,18 +1650,18 @@ export default function OnboardingPage() {
             )}
           </div>
 
-          {/* Step 0: Character Select */}
-          {currentStep === 0 && (
+          {/* About you: the short goal-first start. Age is required (18+ for
+              now); who this is for is one tap; what they came for is optional. */}
+          {currentId === 'about' && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
-              <p className="text-slate-600 mb-4">Design an avatar to represent you on your journey through Dream Land.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">About you</h2>
+              <p className="text-slate-600 mb-4">Three quick steps, then your path is ready.</p>
 
               <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-800">
                 <p className="font-semibold text-slate-900">How setup works</p>
                 <p className="mt-1">
-                  There are {steps.length} short steps. Only three things are required: confirming your age (just below), your
-                  norms, and at least one goal. Optional steps have a &ldquo;Skip for now&rdquo; button, and once the required
-                  answers are in you can skip straight to the end.
+                  This step, one goal, and an optional question about norms. Then we build your path. Everything else
+                  (location, your character, spirit animals, how the app looks) is optional, and you can add it later.
                 </p>
               </div>
 
@@ -1588,20 +1682,66 @@ export default function OnboardingPage() {
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
               )}
 
-              {/* Avatar Customization: folded by default. It is entirely optional,
-                  and laid open it made the very first screen of setup a ~40-option
-                  designer to scroll past before reaching Continue (Riipen: simplify
-                  the starting experience, introduce information gradually). */}
+              <fieldset className="mb-6" disabled={!canAccessOnboarding}>
+                <legend className="mb-2 font-medium text-slate-900">Who are you here for?</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {AUDIENCES.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => chooseAudience(a.id)}
+                      aria-pressed={formData.audience === a.id}
+                      className={`rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                        formData.audience === a.id
+                          ? 'border-indigo-700 bg-indigo-50 text-indigo-900'
+                          : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+                      }`}
+                    >
+                      {formData.audience === a.id && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset disabled={!canAccessOnboarding}>
+                <legend className="mb-1 font-medium text-slate-900">
+                  What are you looking for today? <span className="font-normal text-slate-700">(optional, pick any)</span>
+                </legend>
+                <p className="mb-2 text-sm text-slate-700">We&apos;ll show you that first once your path is ready.</p>
+                <div className="flex flex-wrap gap-2">
+                  {LOOKING_FOR.map((o) => {
+                    const on = formData.lookingFor.includes(o.id)
+                    return (
+                      <button
+                        key={o.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          lookingFor: on ? prev.lookingFor.filter(x => x !== o.id) : [...prev.lookingFor, o.id],
+                        }))}
+                        className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                          on ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+                        }`}
+                      >
+                        {on && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
+                        {o.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+            </div>
+          )}
+
+          {/* Character (optional extra): the avatar designer. */}
+          {currentId === 'character' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
+              <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land. You can change it later on your Ideal Self page.</p>
+
               <div className="space-y-6">
-                <details className="group rounded-xl border border-slate-200 bg-white">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
-                    <span>
-                      <span className="block font-semibold text-slate-900">Customize your character (optional)</span>
-                      <span className="block text-sm text-slate-700">Hair, outfit, colours. You can also change this later on your Ideal Self page.</span>
-                    </span>
-                    <ChevronDown className="h-5 w-5 shrink-0 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
-                  </summary>
-                  <div className="space-y-6 border-t border-slate-200 p-4">
                 {/* Body Type */}
                 <div>
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
@@ -1784,9 +1924,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                  </div>
-                </details>
-
                 {/* Live Character Preview */}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
@@ -1814,10 +1951,10 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 1: Role */}
-          {currentStep === 1 && (
+          {currentId === 'barrierConnections' && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Norms</h2>
-              <p className="text-slate-600 mb-2">Tell us about your norms: the systemic realities you navigate. Either describe them in your own words, or select manually below.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">{normsCopy.heading}</h2>
+              <p className="text-slate-600 mb-2">{normsCopy.intro} Either describe them in your own words, or select manually below. This step is optional: skip it and it counts as &ldquo;Prefer not to share&rdquo;.</p>
               <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves: the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
 
               {/* Mode toggle */}
@@ -1898,7 +2035,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   {/* Connection type multi-select */}
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to these systemic barriers (select all that apply)</h3>
+                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to these norms (select all that apply)</h3>
                     <div className="flex flex-wrap gap-2">
                       {connectionTypes.map((conn) => (
                         <button
@@ -1957,7 +2094,7 @@ export default function OnboardingPage() {
                           }}
                           className="w-4 h-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
                         />
-                        <span>👤 These barriers also apply to me (add yourself)</span>
+                        <span>👤 These norms also apply to me (add yourself)</span>
                       </label>
                     )}
                   </div>
@@ -2128,7 +2265,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 2: Location */}
-          {currentStep === 2 && (
+          {currentId === 'location' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Where are you located?</h2>
               <p className="text-slate-600 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
@@ -2237,7 +2374,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 3: Goals, Dreams & Obstacles (combined) */}
-          {currentStep === 3 && (() => {
+          {currentId === 'goalsAndDreams' && (() => {
             // Detect connections to another person (sibling, parent, etc.) so we
             // can offer an "ideal relationship" option alongside the dream — the
             // user answers whichever speaks to them (one optional out of two).
@@ -2248,8 +2385,8 @@ export default function OnboardingPage() {
               : 'them'
             return (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your Goals, Dreams & Obstacles</h2>
-              <p className="text-slate-600 mb-6">Pick a category, add your goals, and optionally add dreams and obstacles for each one.</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal</h2>
+              <p className="text-slate-600 mb-6">{goalIntro}</p>
               
               {/* Category tabs */}
               <div className="flex flex-wrap gap-2 mb-6">
@@ -2503,7 +2640,7 @@ export default function OnboardingPage() {
           })()}
 
           {/* Step 4: Motivation & Life Stage */}
-          {currentStep === 4 && (
+          {currentId === 'motivation' && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
@@ -2588,7 +2725,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 5: Profile Customization - Dreams & Dream Self */}
-          {currentStep === 5 && (
+          {currentId === 'profile' && (
             <div>
               <h2 className="text-2xl font-bold mb-6 text-slate-800">Dream Self &amp; Alternate Persona</h2>
               
@@ -2670,7 +2807,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 6: Spirit Animals */}
-          {currentStep === 6 && (() => {
+          {currentId === 'spiritAnimal' && (() => {
             const slotCount = spiritAnimalSlotCount(formData.spiritAnimalMode)
             // In simple view we hide the fast/slow + per-day modes behind a
             // "More options" toggle so new users just pick one guide.
@@ -2849,7 +2986,7 @@ export default function OnboardingPage() {
           })()}
 
           {/* Step 7: Personalize — view & interaction preferences */}
-          {currentStep === 7 && (
+          {currentId === 'personalize' && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Palette className="w-6 h-6 text-cyan-600" />
@@ -3067,7 +3204,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 8: AI Recommendations */}
-          {currentStep === 8 && (
+          {currentId === 'recommendations' && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-6 h-6 text-cyan-600" />
@@ -3211,16 +3348,19 @@ export default function OnboardingPage() {
             </button>
 
             <div className="flex flex-wrap items-center justify-end gap-3">
-              {requiredDone && currentStep >= 3 && currentStep < steps.length - 2 && (
+              {/* In the extras the path can be created at any point: everything
+                  required was answered in the first three steps. */}
+              {inExtras && currentId !== 'recommendations' && requiredDone && (
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(steps.length - 1)}
-                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950 disabled:text-slate-600"
                 >
-                  Skip the optional steps
+                  Create my path now
                 </button>
               )}
-              {skippableSteps.has(currentStep) && currentStep < steps.length - 1 && (
+              {skippableSteps.has(currentId) && currentStep < steps.length - 1 && (
                 <button
                   onClick={handleSkip}
                   className="px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 underline underline-offset-2 transition-all"
@@ -3228,21 +3368,22 @@ export default function OnboardingPage() {
                   Skip for now
                 </button>
               )}
-
-              {currentStep < steps.length - 1 ? (
+              {/* End of the short start: the extras are offered, not required. */}
+              {currentStep === CORE_STEP_COUNT - 1 && (
                 <button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  aria-describedby={continueHint() ? 'continue-hint' : undefined}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                  type="button"
+                  onClick={() => setCurrentStep(CORE_STEP_COUNT)}
+                  disabled={isSubmitting}
+                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950 disabled:text-slate-600"
                 >
-                  {currentStep === 7 ? 'View Recommendations' : 'Continue'}
-                  <ChevronRight className="w-5 h-5" />
+                  Add more details first (optional)
                 </button>
-              ) : (
+              )}
+
+              {currentStep === CORE_STEP_COUNT - 1 || currentStep === steps.length - 1 ? (
                 <button
                   onClick={handleSubmit}
-                  disabled={!canProceed() || isSubmitting}
+                  disabled={!requiredDone || isSubmitting}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
                   {isSubmitting ? (
@@ -3252,10 +3393,20 @@ export default function OnboardingPage() {
                     </>
                   ) : (
                     <>
-                      Create my Path
+                      Create my path
                       <Rocket className="w-5 h-5" />
                     </>
                   )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  aria-describedby={continueHint() ? 'continue-hint' : undefined}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
+                >
+                  {currentId === 'personalize' ? 'View Recommendations' : 'Continue'}
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -3284,7 +3435,9 @@ export default function OnboardingPage() {
 
         {/* Step indicator for mobile */}
         <div className="text-center mt-4 text-slate-700 text-sm">
-          Step {currentStep + 1} of {steps.length}
+          {inExtras
+            ? <>Optional extra {currentStep - CORE_STEP_COUNT + 1} of {steps.length - CORE_STEP_COUNT}</>
+            : <>Step {currentStep + 1} of {CORE_STEP_COUNT}</>}
         </div>
       </div>
     </div>

@@ -75,6 +75,28 @@ class FunnelTests(unittest.TestCase):
         self.assertEqual(compute_funnel(events)["overall"]["visitors"], 1)
         self.assertEqual(compute_funnel(events, "all")["overall"]["visitors"], 2)
 
+    def test_compares_by_who_they_are_here_for(self):
+        events = [
+            ev("a", "signup_complete", "2026-10-01T10:00:00+00:00"),
+            ev("a", "onboarding_complete", "2026-10-01T10:05:00+00:00"),
+            ev("b", "signup_complete", "2026-10-01T11:00:00+00:00"),
+        ]
+        events[0]["user_id"] = events[1]["user_id"] = "u-a"
+        events[2]["user_id"] = "u-b"
+        f = compute_funnel(events, audience_by_user={"u-a": "child"})
+        self.assertEqual(f["by_audience"]["my child"]["finished"], 1)
+        self.assertEqual(f["by_audience"]["(not answered)"]["accounts"], 1)
+
+    def test_survey_split_by_user_type(self):
+        events = [ev("a", "signup_complete", "2026-10-01T10:00:00+00:00", channel="tiktok")]
+        events[0]["user_id"] = "u-a"
+        f = compute_funnel(events, audience_by_user={"u-a": "self"})
+        rows = [{"user_id": "u-a", "info_before_signup": "about_right", "setup_ease": 5, "comment": None, "onboarding_version": V}]
+        s = summarize_feedback(rows, people=f["people"])
+        self.assertEqual(s["by_audience"]["myself"]["about_right_share"], 1.0)
+        self.assertEqual(s["by_channel"]["tiktok"]["ease_median"], 5)
+        self.assertIn("By who they are here for", render(f, s, show_comments=False))
+
     def test_empty_input_renders(self):
         text = render(compute_funnel([]), summarize_feedback([]), show_comments=False)
         self.assertIn("visited the landing page", text)
