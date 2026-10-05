@@ -16,12 +16,19 @@ measures by itself; the report is `python -m scripts.onboarding_funnel`
 
 ## Before anything goes out
 
-Search the files for `[[TEAM:` and fill in or delete each one:
+Filled in on 5 October 2026:
 
-- the thank-you for testers, if any (for example a gift card), and how it is sent
-- the link to the Google Form, once the screener is made
-- how people book a session (a booking link, or replying by email)
-- who facilitates
+- **Thank-you:** no incentive is promised; the posts thank people instead.
+  If the team adds one (for example a gift card), say so in the screener,
+  the consent text and the session script.
+- **Booking:** people reply with two or three times that suit them, then get
+  a calendar invitation with the video link.
+- **Facilitator:** Aayush Bhan. Change the session script and the email
+  sign-off if someone else runs sessions.
+- **Sign-up form:** make it with [make-screener-form.gs](make-screener-form.gs)
+  (paste it into https://script.google.com and click Run; it builds the
+  whole form and a responses sheet), then put its link in outreach.md where
+  it says `[[TEAM: Google Form link ...]]`.
 
 Decisions these files assume, to confirm:
 

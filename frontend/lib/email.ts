@@ -50,7 +50,7 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
   const link = `${appUrl.replace(/\/$/, '')}/path`
   return {
     subject: 'Your goals for today 🎯',
-    text: `${who}\n\nOpen your Path to see today's tasks and keep your streak going:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings.\n\n— Autinerary`,
+    text: `${who}\n\nOpen your Path to see today's tasks and keep your streak going:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.\n\n— Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
         <p style="font-size:16px">${who}</p>
@@ -58,7 +58,7 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
         <p style="margin:24px 0">
           <a href="${link}" style="background:linear-gradient(90deg,#06b6d4,#3b82f6);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path →</a>
         </p>
-        <p style="font-size:12px;color:#64748b">You're getting this because you turned on daily reminders. You can turn them off in Settings.</p>
+        <p style="font-size:12px;color:#64748b">You're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.</p>
       </div>`,
   }
 }

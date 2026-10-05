@@ -1,7 +1,8 @@
 # Session script (facilitator)
 
 About 40 minutes on a video call. Say the parts in quotes out loud; the rest
-is for you. Facilitator: [[TEAM: name]].
+is for you. Facilitator: Aayush Bhan (change this if someone else runs a
+session).
 
 ## Before the session (10 minutes)
 
@@ -89,8 +90,7 @@ Ask, and write their words down as closely as you can:
 4. "If you could change one thing, what would it be?"
 5. "How likely are you to keep using it, from 1, not at all, to 5, very?"
 
-"Thank you, this really helps. [[TEAM: Thank-you, if any, and how it's
-sent.]] If you'd like to keep going, you're welcome in the 30-day trial
+"Thank you, this really helps. If you'd like to keep going, you're welcome in the 30-day trial
 until 10 November; we'll email you the link. If you think of anything later,
 email aayush@autinerary.ca."
 

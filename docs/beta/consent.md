@@ -61,7 +61,6 @@ code only.
 ## What you get
 
 A chance to shape an app built for people like you.
-[[TEAM: As a thank-you, ... (or delete this line)]]
 
 ## Agreeing
 

@@ -240,11 +240,24 @@ export default function SettingsPreferences() {
         </div>
       </section>
 
-      {/* The post-setup page says this can be turned off "anytime in
-          Settings"; this is that switch. */}
-      <section>
-        <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
-          <Mail className="w-4 h-4 text-cyan-700" /> Check-in email
+      {/* Every email Autinerary can send on its own, with its switch. The
+          reminder email and the post-setup page both say these can be turned
+          off in Settings; this is where. (The beta session's task 7, "stop the
+          app sending you emails", had no answer for daily reminders.) */}
+      <section aria-labelledby="emails-heading">
+        <h3 id="emails-heading" className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+          <Mail className="w-4 h-4 text-cyan-700" aria-hidden="true" /> Emails
+        </h3>
+        <label className="mb-3 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={Boolean(prefs.reminders?.enabled && prefs.reminders?.consent)}
+            onChange={(e) => update({
+              reminders: { ...prefs.reminders, channel: 'email', enabled: e.target.checked, consent: e.target.checked },
+            })}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+          />
+          <span>Daily reminder: email me once a day to check my Path.</span>
         </label>
         <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
           <input

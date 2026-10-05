@@ -82,7 +82,7 @@ Before posting anywhere:
 > - Try it for 30 days: [Riipen link]
 > - Or join one 40-minute video session (12 to 23 October): [session form]
 >
-> [[TEAM: thank-you line, or delete]]
+> Thank you for helping make Autinerary work for the people it's for.
 > Questions: aayush@autinerary.ca
 
 ## Reddit
@@ -205,13 +205,14 @@ groups that are only for parents.
 > - Session sign-up: [session form]
 > - What the app collects: https://app.autinerary.ca/privacy
 >
-> [[TEAM: thank-you line, or delete]]
+> Your members' experience is exactly what will make it better, so thank you
+> for considering it.
 >
 > Happy to send a short description for a newsletter, or to answer any
 > questions.
 >
 > Thank you,
-> [[TEAM: name]], Autinerary
+> Aayush Bhan, Autinerary
 > aayush@autinerary.ca
 
 ## Schools and teachers

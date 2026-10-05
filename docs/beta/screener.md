@@ -1,7 +1,8 @@
 # Sign-up questions (screener)
 
-Copy these into a Google Form (Forms → Blank form), using the question
-types noted. Leave "Collect email addresses" and "Limit to 1 response" off:
+[make-screener-form.gs](make-screener-form.gs) builds this form for you in
+Google Forms. By hand: copy these into a Google Form (Forms → Blank form),
+using the question types noted. Leave "Collect email addresses" and "Limit to 1 response" off:
 question 11 asks for the email, and limiting responses makes people sign in
 to Google.
 
@@ -24,8 +25,6 @@ We are looking for testers aged 18 or over. You can:
 - **use Autinerary for 30 days** (12 October to 10 November), and answer a
   short question now and then, or
 - both.
-
-[[TEAM: As a thank-you, ... (or delete this line)]]
 
 This form takes about 3 minutes. Only your age, your email and the
 agreement at the end are required. How we handle your answers is at the end.
@@ -135,8 +134,9 @@ aayush@autinerary.ca
 ## After someone signs up
 
 1. Give them the next code (P01, P02, ...) in the research spreadsheet.
-2. Session: send the invitation with [consent.md](consent.md) and
-   [[TEAM: the booking link, or ask them to reply with times]].
+2. Session: send the invitation with [consent.md](consent.md), and ask them
+   to reply with two or three times that suit them (Eastern Time). Then send
+   a calendar invitation with the video link.
 3. 30-day trial: send them the trial link for the channel they came from
    (see [outreach.md](outreach.md)), from 12 October.
 4. Aim for the mix in the plan: 6 to 8 neurodivergent adults using it for
