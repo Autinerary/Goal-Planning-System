@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -14,8 +15,23 @@ import Pagination from '@/components/search/Pagination'
 import EmptyState from '@/components/feedback/EmptyState'
 import ErrorState from '@/components/feedback/ErrorState'
 import { findCondition, decodeCondition } from '@/lib/search/conditions'
-import { Search, Filter, X } from 'lucide-react'
+import { Search, Filter, X, MapPin } from 'lucide-react'
 import type { SearchResult } from '@/lib/supabase/queries'
+import AddTopicPrompt from '@/components/prompts/AddTopicPrompt'
+import { useMyProfile } from '@/lib/useMyProfile'
+import { findNorm, normForSearch } from '@/lib/onboarding/setup'
+import { track } from '@/lib/track'
+
+/** Where "near" is, as the search API reports it (Riipen Labs, Group 8). */
+interface NearInfo {
+  nearFirst: boolean
+  radiusKm?: number
+  nearCount?: number
+  place: string | null
+  signedIn: boolean
+}
+
+const isNear = (r: { distance?: number }, radiusKm: number) => r.distance !== undefined && r.distance <= radiusKm
 
 const RESULT_COUNT_PER_PAGE = 20
 
@@ -69,6 +85,10 @@ function SearchResults() {
   const [error, setError] = useState<{ message: string; type?: string } | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [nearInfo, setNearInfo] = useState<NearInfo | null>(null)
+  const { profile, setProfile } = useMyProfile()
+  // One rh_search event per search, not per render.
+  const trackedSearch = useRef<string>('')
 
   // Extract filters from URL
   const query = searchParams.get('q') || ''
@@ -158,6 +178,26 @@ function SearchResults() {
         setResults(data.results || [])
         setTotal(data.total || 0)
         setProductCount(data.productCount || 0)
+        const info: NearInfo = {
+          nearFirst: Boolean(data.nearFirst),
+          radiusKm: data.radiusKm,
+          nearCount: data.nearCount,
+          place: data.you?.place || null,
+          signedIn: Boolean(data.you?.signedIn),
+        }
+        setNearInfo(info)
+        // How many of the first page are near, for Group 8's measure
+        // "the percentage of search results returned within the user's
+        // stated radius". Places only: shop items have no address.
+        if (info.nearFirst && info.radiusKm && page === 1) {
+          const places = (data.results || []).filter((r: any) => r.kind !== 'product').slice(0, 20)
+          const signature = apiParams.toString()
+          if (places.length > 0 && trackedSearch.current !== signature) {
+            trackedSearch.current = signature
+            const near = places.filter((r: any) => isNear(r, info.radiusKm as number)).length
+            track('rh_search', `${near}/${places.length}`)
+          }
+        }
         setError(null)
       } catch (error) {
         console.error('Error fetching search results:', error)
@@ -363,6 +403,22 @@ function SearchResults() {
     specialTags.length > 0 ||
     sourceTypes.length > 0
 
+  // A search for one topic that is not on the profile: offer to add it
+  // (Riipen Labs, Group 8). From a condition filter, or the words searched.
+  const topicSearched = (() => {
+    for (const token of conditions) {
+      const norm = findNorm(decodeCondition(token).id)
+      if (norm) return norm
+    }
+    return query ? normForSearch(query) : undefined
+  })()
+
+  // Near first, split into "Near <place>" and "Broader options".
+  const radiusKm = nearInfo?.nearFirst ? nearInfo.radiusKm : undefined
+  const nearResults = radiusKm ? results.filter((r) => isNear(r, radiusKm)) : results
+  const broaderResults = radiusKm ? results.filter((r) => !isNear(r, radiusKm)) : []
+  const nearLabel = nearInfo?.place ? `Near ${nearInfo.place}` : 'Near you'
+
   // Filters that depend on what people have rated or saved find little until
   // more places are rated; say so instead of a bare "no results".
   const communityFilterActive =
@@ -565,6 +621,40 @@ function SearchResults() {
                 )}
               </div>
 
+              {/* Where results are measured from (Riipen Labs, Group 8) */}
+              {!error && !loading && radiusKm !== undefined && page === 1 && nearInfo?.nearCount === 0 && results.length > 0 && (
+                <div className="mb-6 rounded-lg border border-violet-200 bg-violet-50 p-4" role="status">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-violet-900">
+                    <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    Nothing within {radiusKm} km of {nearInfo?.place || 'you'} matches this search
+                  </p>
+                  <p className="mt-1 text-sm text-violet-900/80">
+                    Showing organisations for your province or all of Canada first, then the nearest places
+                    farther away.{' '}
+                    <Link href="/profile#location" className="font-medium underline">
+                      Change location
+                    </Link>
+                  </p>
+                </div>
+              )}
+              {!error && !loading && nearInfo?.signedIn && !nearInfo.place && results.length > 0 && (
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+                  <p className="flex items-center gap-2 text-sm text-blue-900">
+                    <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    Set your location to see places near you first. It is private and optional.
+                  </p>
+                  <Link
+                    href="/profile#location"
+                    className="rounded-md bg-white px-3 py-1.5 text-sm font-medium text-blue-700 border border-blue-200 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Set location
+                  </Link>
+                </div>
+              )}
+              {!loading && topicSearched && profile?.signedIn && (
+                <AddTopicPrompt norm={topicSearched} profile={profile} onSaved={setProfile} />
+              )}
+
               {/* Error State */}
               {error && !loading && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -598,25 +688,39 @@ function SearchResults() {
                 </div>
               ) : !error && results.length > 0 ? (
                 <>
-                  <div
-                    className={
-                      viewMode === 'grid'
-                        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'
-                        : 'space-y-4 mb-8'
-                    }
-                  >
-                    {results.map((resource) => (
-                      <ResourceCard
-                        key={resource.id}
-                        resource={resource}
-                        averageRating={resource.averageRating}
-                        ratingCount={resource.ratingCount}
-                        distance={resource.distance}
-                        showBadges={true}
-                        variant={viewMode}
-                      />
+                  {[
+                    { key: 'near', heading: radiusKm !== undefined ? nearLabel : null, items: nearResults },
+                    { key: 'broader', heading: 'Broader options', items: broaderResults },
+                  ]
+                    .filter((group) => group.items.length > 0)
+                    .map((group) => (
+                      <section key={group.key} aria-label={group.heading || undefined}>
+                        {group.heading && (
+                          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-600">
+                            {group.heading}
+                          </h2>
+                        )}
+                        <div
+                          className={
+                            viewMode === 'grid'
+                              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'
+                              : 'space-y-4 mb-8'
+                          }
+                        >
+                          {group.items.map((resource) => (
+                            <ResourceCard
+                              key={resource.id}
+                              resource={resource}
+                              averageRating={resource.averageRating}
+                              ratingCount={resource.ratingCount}
+                              distance={resource.distance}
+                              showBadges={true}
+                              variant={viewMode}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
-                  </div>
 
                   <Pagination
                     currentPage={page}

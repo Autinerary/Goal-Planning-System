@@ -11,6 +11,8 @@ import type { AgentContribution } from '@/lib/agents/synthesis-engine/types'
 
 interface RecommendationResultProps {
   resources: ScoredResource[]
+  /** The line under the heading; says what the list is based on. */
+  subtitle?: string
   explanations?: string[]
   confidence: number
   loading?: boolean
@@ -27,6 +29,7 @@ interface RecommendationResultProps {
 
 export default function RecommendationResult({
   resources,
+  subtitle = 'Matched to your norms, and to people who share them',
   explanations,
   confidence,
   loading = false,
@@ -75,9 +78,7 @@ export default function RecommendationResult({
           <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Recommended by AI Agent</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Personalized recommendations based on your barrier profile
-            </p>
+            <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
           </div>
         </div>
 
@@ -143,13 +144,15 @@ export default function RecommendationResult({
               showBadges={true}
             />
 
-            {/* Match Score Badge */}
-            <div className="flex items-center justify-between">
-              <div className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                <Sparkles className="w-3 h-3" aria-hidden="true" />
-                {resource.score}% match
+            {/* Match Score Badge: only for a score the agent gave. */}
+            {typeof resource.score === 'number' && (
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <Sparkles className="w-3 h-3" aria-hidden="true" />
+                  {resource.score}% match
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Why this was recommended (Odosa). Reasons are derived from real
                 signals on the resource — nothing is shown unless we have it. */}

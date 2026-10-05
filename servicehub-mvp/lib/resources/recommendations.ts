@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { findSimilarUsers } from '@/lib/supabase/vector-queries'
-import { getResources } from '@/lib/supabase/queries'
+import { getResources, calculateDistance } from '@/lib/supabase/queries'
+import { fetchNearbyApprovedResources } from '@/lib/agents/recommendation-agent/nearby'
+import type { Location } from '@/types/database'
 
 interface Recommendation {
   resource_id: string
@@ -422,95 +424,68 @@ export async function getHighestRatedByCategory(category: string, limit: number 
 }
 
 /**
- * Get resources in user's location, organized by category
+ * Places near someone, grouped by category, nearest first in each: "Near
+ * <city>" on the home page.
+ *
+ * It used to read the first 200 approved rows (of over 9,500) and keep those
+ * whose city or province name matched the profile's exactly, so it found
+ * little, and nothing when the names were written differently ("BC" and
+ * "British Columbia"). It now uses coordinates, through the same nearby
+ * lookup as recommendations (lib/agents/recommendation-agent/nearby.ts).
+ * Riipen Labs, Group 8: a location that is asked for should visibly shape
+ * what is shown.
  */
 export async function getLocationResources(
-  userLocation: { city?: string; province?: string },
+  userLocation: { lat?: number; lng?: number },
   limitPerCategory: number = 6
-) {
+): Promise<{ category: string; resources: any[] }[]> {
+  const lat = Number(userLocation?.lat)
+  const lng = Number(userLocation?.lng)
+  if (!lat || !lng) return []
   const supabase = createClient()
 
   try {
-    if (!userLocation.city && !userLocation.province) {
-      return []
-    }
+    const { resources } = await fetchNearbyApprovedResources(supabase, { lat, lng } as Location)
+    if (resources.length === 0) return []
 
-    // Get resources matching user's location
-    // Note: JSONB queries in Supabase need exact matches or text search
-    // We'll fetch all approved resources and filter client-side for now
-    const { data: allResources } = await supabase
-      .from('resources')
-      .select('*')
-      .eq('status', 'approved')
-      .limit(200)
+    const withDistance = resources
+      .map((resource: any) => {
+        const loc = resource.location as { lat?: number; lng?: number } | null
+        const distance =
+          loc?.lat && loc?.lng ? calculateDistance(lat, lng, loc.lat, loc.lng) : undefined
+        return { ...resource, distance }
+      })
+      .filter((r: any) => r.distance !== undefined)
+      .sort((a: any, b: any) => a.distance - b.distance)
 
-    if (!allResources || allResources.length === 0) {
-      return []
-    }
-
-    // Filter by location (client-side for JSONB matching)
-    const resources = allResources.filter((resource) => {
-      if (!resource.location) return false
-      const loc = resource.location as { city?: string; province?: string }
-      if (userLocation.city && loc.city?.toLowerCase() === userLocation.city.toLowerCase()) {
-        return true
-      }
-      if (userLocation.province && loc.province?.toLowerCase() === userLocation.province.toLowerCase()) {
-        return true
-      }
-      return false
-    })
-
-    if (!resources || resources.length === 0) {
-      return []
-    }
-
-    // Group by category
-    const byCategory: Map<string, typeof resources> = new Map()
-    for (const resource of resources) {
-      const category = resource.category
-      if (!byCategory.has(category)) {
-        byCategory.set(category, [])
-      }
-      byCategory.get(category)!.push(resource)
-    }
-
-    // Get ratings for all resources
-    const resourceIds = resources.map((r) => r.id)
+    // Ratings for these places.
+    const ids = withDistance.map((r: any) => r.id)
     const { data: ratings } = await supabase
       .from('ratings')
       .select('resource_id, overall_score')
-      .in('resource_id', resourceIds)
-
-    const ratingMap = new Map<string, number[]>()
-    ratings?.forEach((rating) => {
-      if (!ratingMap.has(rating.resource_id)) {
-        ratingMap.set(rating.resource_id, [])
-      }
-      ratingMap.get(rating.resource_id)!.push(rating.overall_score)
-    })
-
-    // Calculate averages and sort
-    const result: { category: string; resources: any[] }[] = []
-    for (const [category, categoryResources] of byCategory.entries()) {
-      const withRatings = categoryResources
-        .map((resource) => {
-          const scores = ratingMap.get(resource.id) || []
-          return {
-            ...resource,
-            averageRating: scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
-            ratingCount: scores.length,
-          }
-        })
-        .sort((a, b) => b.averageRating - a.averageRating)
-        .slice(0, limitPerCategory)
-
-      if (withRatings.length > 0) {
-        result.push({ category, resources: withRatings })
-      }
+      .in('resource_id', ids)
+    const scores = new Map<string, number[]>()
+    for (const r of ratings || []) {
+      const list = scores.get(r.resource_id) || []
+      list.push(r.overall_score)
+      scores.set(r.resource_id, list)
     }
 
-    return result
+    // Categories in order of their nearest place.
+    const byCategory = new Map<string, any[]>()
+    for (const resource of withDistance) {
+      const list = byCategory.get(resource.category) || []
+      if (list.length < limitPerCategory) {
+        const s = scores.get(resource.id) || []
+        list.push({
+          ...resource,
+          averageRating: s.length > 0 ? s.reduce((a, b) => a + b, 0) / s.length : 0,
+          ratingCount: s.length,
+        })
+      }
+      byCategory.set(resource.category, list)
+    }
+    return Array.from(byCategory, ([category, list]) => ({ category, resources: list }))
   } catch (error) {
     console.error('Error getting location resources:', error)
     return []

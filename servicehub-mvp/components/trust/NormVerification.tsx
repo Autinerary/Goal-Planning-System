@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ShieldCheck, Copy, Check, Loader2 } from 'lucide-react'
 import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
 import { RELATIONSHIP_META, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
+import { NOT_A_NORM } from '@/lib/onboarding/setup'
 
 interface Norm {
   type: string
@@ -44,7 +45,9 @@ export default function NormVerification() {
     fetch('/api/me/trust', { cache: 'no-store', credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
-        if (Array.isArray(j?.norms)) setNorms(j.norms)
+        // "Prefer not to share" is an answer, not a norm to verify or rate
+        // (as in the rating form, components/ratings/BarrierRatingInput.tsx).
+        if (Array.isArray(j?.norms)) setNorms(j.norms.filter((n: Norm) => !NOT_A_NORM.test((n.type || '').trim())))
         if (j?.trust) setTrust(j.trust)
         if (j?.userId) setUserId(j.userId)
       })

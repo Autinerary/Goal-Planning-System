@@ -9,8 +9,17 @@ import { MapPin, LocateFixed } from 'lucide-react'
  * so "Recommended" can be about places near them. Two ways in: type a city,
  * or let the browser share an approximate position (rounded to ~1 km on the
  * server before anything is stored).
+ *
+ * `bare` drops the heading and explanation, for the profile page, which
+ * says them itself; `onSaved` hears the place that was saved.
  */
-export default function SetLocationPrompt() {
+export default function SetLocationPrompt({
+  bare = false,
+  onSaved,
+}: {
+  bare?: boolean
+  onSaved?: (place: string) => void
+} = {}) {
   const router = useRouter()
   const [city, setCity] = useState('')
   const [province, setProvince] = useState('')
@@ -35,7 +44,11 @@ export default function SetLocationPrompt() {
       }
       const place = [data.location?.city, data.location?.province].filter(Boolean).join(', ')
       setSaved(place || 'your area')
-      router.refresh()
+      // A page that reloads its own data says so with onSaved. Refreshing
+      // it as well would show the loading screen and start it over (setup
+      // would go back to step 1).
+      if (onSaved) onSaved(place || 'your area')
+      else router.refresh()
     } catch {
       setError('Could not reach the server. Please try again.')
     } finally {
@@ -87,19 +100,24 @@ export default function SetLocationPrompt() {
 
   return (
     <section
-      className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-5"
-      aria-labelledby="set-location-heading"
+      className={bare ? '' : 'mb-6 rounded-lg border border-blue-200 bg-blue-50 p-5'}
+      aria-labelledby={bare ? undefined : 'set-location-heading'}
+      aria-label={bare ? 'Set your location' : undefined}
     >
-      <div className="mb-1 flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-blue-600" aria-hidden="true" />
-        <h2 id="set-location-heading" className="text-lg font-semibold text-gray-900">
-          Set your location to see places near you
-        </h2>
-      </div>
-      <p className="mb-4 text-sm text-gray-600">
-        Without it, recommendations can&apos;t tell which places are close to you. Your location is
-        private. If you use your device&apos;s location, we only keep an approximate point (within about 1 km).
-      </p>
+      {!bare && (
+        <>
+          <div className="mb-1 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-blue-600" aria-hidden="true" />
+            <h2 id="set-location-heading" className="text-lg font-semibold text-gray-900">
+              Set your location to see places near you
+            </h2>
+          </div>
+          <p className="mb-4 text-sm text-gray-600">
+            Without it, recommendations can&apos;t tell which places are close to you. Your location is
+            private and optional. If you use your device&apos;s location, we only keep an approximate point (within about 1 km).
+          </p>
+        </>
+      )}
 
       <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
         <div>

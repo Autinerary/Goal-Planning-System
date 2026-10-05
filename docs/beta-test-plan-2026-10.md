@@ -46,6 +46,14 @@ action and drop-off by step". Which questions are asked when is in
 is "Your next step", with one button. The feedback form no longer reaches
 people before they have used the app.
 
+Group 8's brief ("Customer Experience Brief") reviewed ResourceHub's sign-up
+and asked for three steps (role, one topic, a first resource), results sorted
+by distance, and more questions asked later, in context. ResourceHub's setup
+is now those three steps; search and the home page show places near you
+first; identity, health and more topics live on the profile; and three
+prompts ask for more when it is useful. Details are in
+[resourcehub-first-session.md](resourcehub-first-session.md).
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -67,7 +75,8 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures | Done 4 October; tested live |
 | The app's own address, app.autinerary.ca (Route 53, Vercel, Supabase sign-in redirect) | Printed QR codes and shared links never have to change ([campaign/README.md](campaign/README.md)) | Done 4 October |
 | Apply STEP 49 | Counts which parts of the app people open | Done 4 October; tested live |
-| Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | To do |
+| Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | To do (STEP 51 covers it) |
+| Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | To do |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -90,6 +99,12 @@ ND or NT status comes from the sign-up screener, with consent, and stays in
 the research spreadsheet under a participant code. It is never put into the
 app, a tracked link or analytics: it is health information, and with groups
 this small it would identify people.
+
+Group 8 wrote a short feedback form for neurodivergent club executives at
+Western (https://forms.gle/hRNpUKtBsA8B8RacA); the clubs had not replied by
+25 September. It can be reused, but it belongs to Group 8's Google account:
+ask them to add the team as an editor, or make a copy, before sending it, or
+the answers go to them.
 
 ## Part 1: moderated task sessions (weeks 1 and 2)
 
@@ -123,6 +138,12 @@ Record per task: success (yes / with help / no), time, ease 1 to 5, and
 quotes. Compare ND and NT participants, and the five groups above, on task
 success and ease. The full wording, prompts and notes template are in
 [session-script.md](beta/session-script.md).
+
+For participants who start in ResourceHub (Group 8 asked to "test the
+restructured 3-step flow with an expanded beta group"): "Sign up for
+ResourceHub and find one place that could help." Success means reaching a
+place at the end of setup; note whether they set a location, and what they
+make of "Near you" and "Broader options".
 
 Task 7 matters beyond the sessions: ResourceHub's norm and minimum-rating
 filters only find places once people have rated them, and today the only
@@ -211,6 +232,11 @@ Group 7's measures: completion and drop-off by step (above), **time to
 first action** (how long after sign-up people open their first step, and
 mark one done), and whether people **answer questions asked later**
 (shown, answered, closed, per group).
+
+Group 8's measures, for ResourceHub: setup completion, **time from first
+visit to the first place opened**, the **share of search results within the
+radius** for people with a location, and whether each prompt that asks for
+more is taken up (section "ResourceHub's first session").
 
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;

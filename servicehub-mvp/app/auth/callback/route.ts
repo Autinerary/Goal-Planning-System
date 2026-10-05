@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { getUserBarriers } from '@/lib/supabase/queries'
+import { needsSetup } from '@/lib/onboarding/profile'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -19,10 +19,8 @@ export async function GET(request: Request) {
     // After successful email confirmation, check if user needs onboarding
     if (data?.user) {
       try {
-        const barriers = await getUserBarriers(data.user.id)
-        
-        // If user has no barriers, they haven't completed onboarding - redirect to onboarding
-        if (barriers.length === 0) {
+        // No role and no norms yet: setup has not been done.
+        if (await needsSetup(supabase, data.user.id)) {
           return NextResponse.redirect(`${origin}/onboarding`)
         }
       } catch (err) {

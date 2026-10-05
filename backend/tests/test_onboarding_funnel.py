@@ -28,6 +28,11 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_ask_later,
     render_heard_from,
     summarize_heard_from,
+    RH_PROMPTS,
+    RH_SETUP_STEPS,
+    is_resourcehub,
+    render_resourcehub,
+    summarize_resourcehub,
     STOP_REASONS,
     USEFULNESS,
     compute_funnel,
@@ -487,3 +492,98 @@ class Group7Tests(unittest.TestCase):
         for group in ("location", "aboutYou", "makeItYours"):
             self.assertIn(f"id: '{group}'", ts)
         self.assertIn("'ask_later'", sql)
+
+
+class Group8Tests(unittest.TestCase):
+    """Riipen Labs, Group 8: ResourceHub's three-step setup, the first place
+    opened, results within the radius, and prompts that ask for more later."""
+
+    RH = "rh-3step-2026-10"
+
+    def rh(self, visitor, event, at, step=None, version=None):
+        return ev(visitor, event, at, step=step, version=version or self.RH)
+
+    def test_setup_completion_and_first_place(self):
+        events = []
+        for i in range(6):
+            v = f"p{i}"
+            events.append(self.rh(v, "rh_visit", "2026-10-06T10:00:00+00:00"))
+            events.append(self.rh(v, "rh_setup_step", "2026-10-06T10:01:00+00:00", "role"))
+            if i < 5:
+                events.append(self.rh(v, "rh_setup_step", "2026-10-06T10:02:00+00:00", "topic"))
+            if i < 4:
+                events.append(self.rh(v, "rh_setup_complete", "2026-10-06T10:03:00+00:00", "topic" if i < 3 else "no_topic"))
+                events.append(self.rh(v, "rh_setup_step", "2026-10-06T10:03:00+00:00", "first"))
+                events.append(self.rh(v, "rh_first_resource", "2026-10-06T12:00:00+00:00", "setup"))
+                # A later "first" from the same browser does not count twice.
+                events.append(self.rh(v, "rh_first_resource", "2026-10-07T12:00:00+00:00", "browse"))
+        events.append(self.rh("x", "rh_first_resource", "2026-10-06T12:00:00+00:00", "browse"))
+        s = summarize_resourcehub(events)
+        self.assertEqual(s["visits"], 6)
+        self.assertEqual(s["steps"], {"role": 6, "topic": 5, "first": 4})
+        self.assertEqual(s["finished"], 4)
+        self.assertEqual(s["finished_with_topic"], 3)
+        self.assertEqual(s["opened"], 5)
+        self.assertEqual(s["opened_from_setup"], 4)
+        self.assertAlmostEqual(s["first_open_median_hours"], 2.0)
+        self.assertAlmostEqual(s["setup_to_open_median_hours"], 119 / 60)
+        text = render_resourcehub(s)
+        self.assertIn("finished setup                     4 (67% of those who started)", text)
+        self.assertIn("median 2.0 h after their first visit", text)
+
+    def test_results_within_the_radius_and_prompts(self):
+        events = [self.rh("a", "rh_search", "2026-10-06T10:00:00+00:00", "12/20"),
+                  self.rh("a", "rh_search", "2026-10-06T10:01:00+00:00", "0/20"),
+                  self.rh("b", "rh_search", "2026-10-06T10:02:00+00:00", "8/10"),
+                  self.rh("b", "rh_search", "2026-10-06T10:03:00+00:00", "20/20"),
+                  self.rh("c", "rh_search", "2026-10-06T10:04:00+00:00", "0/10"),
+                  self.rh("c", "rh_search", "2026-10-06T10:05:00+00:00", "9/3")]  # impossible: dropped
+        for i in range(5):
+            v = f"q{i}"
+            events.append(self.rh(v, "rh_prompt", "2026-10-06T10:00:00+00:00", "shown.add_topic"))
+            events.append(self.rh(v, "rh_prompt", "2026-10-06T10:01:00+00:00", "yes.add_topic" if i < 2 else "no.add_topic"))
+        events.append(self.rh("z", "rh_prompt", "2026-10-06T10:00:00+00:00", "shown.sharpen"))
+        s = summarize_resourcehub(events)
+        self.assertEqual((s["searches"], s["near"], s["shown"]), (5, 40, 80))
+        self.assertEqual(s["prompts"]["add_topic"], {"shown": 5, "yes": 2, "no": 3, "later": 0})
+        text = render_resourcehub(s)
+        self.assertIn("50% of first-page places within the radius", text)
+        add = next(l for l in text.splitlines() if l.strip().startswith("Add a searched topic"))
+        self.assertIn("40%", add)
+        sharpen = next(l for l in text.splitlines() if l.strip().startswith("Welcome back"))
+        self.assertIn("<5", sharpen)
+
+    def test_test_traffic_and_small_groups(self):
+        events = [self.rh("t", "rh_visit", "2026-10-06T10:00:00+00:00", version="qa-rh"),
+                  self.rh("u", "rh_setup_step", "2026-10-06T10:00:00+00:00", "role")]
+        s = summarize_resourcehub(events)
+        self.assertEqual(s["visits"], 0)
+        self.assertIn("started setup                      <5", render_resourcehub(s))
+
+    def test_kept_out_of_goal_plannings_funnel(self):
+        rh = self.rh("a", "rh_visit", "2026-10-06T10:00:00+00:00", version=V)
+        self.assertTrue(is_resourcehub(rh))
+        self.assertFalse(is_resourcehub(ev("a", "landing_view", "2026-10-06T10:00:00+00:00")))
+
+    def test_vocabulary_matches_resourcehub_and_the_database(self):
+        setup = (REPO / "servicehub-mvp/lib/onboarding/setup.ts").read_text()
+        track = (REPO / "servicehub-mvp/lib/track.ts").read_text()
+        api = (REPO / "servicehub-mvp/app/api/events/route.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_resourcehub_events.sql").read_text()
+        self.assertIn(f"SETUP_STEPS = [{', '.join(repr(x) for x in RH_SETUP_STEPS)}] as const", setup)
+        self.assertIn(f"PROMPT_IDS = [{', '.join(repr(p) for p, _ in RH_PROMPTS)}] as const", track)
+        self.assertIn(f"SETUP_VERSION = '{self.RH}'", setup)
+        for event in ("rh_visit", "rh_setup_step", "rh_setup_complete", "rh_first_resource", "rh_search", "rh_prompt"):
+            self.assertIn(f"'{event}'", sql)
+            self.assertIn(f"{event}:", api)
+        # STEP 51 keeps every earlier event, so it can replace STEP 50.
+        for event in ("landing_view", "feature_use", "ask_later"):
+            self.assertIn(f"'{event}'", sql)
+
+    def test_needs_match_start_here(self):
+        setup = (REPO / "servicehub-mvp/lib/onboarding/setup.ts").read_text()
+        start = (REPO / "frontend/lib/startHere.ts").read_text()
+        for need in ("services", "community", "school_work", "sensory"):
+            self.assertIn(f"id: '{need}'", setup)
+            self.assertIn(f"id: '{need}'", start)
+

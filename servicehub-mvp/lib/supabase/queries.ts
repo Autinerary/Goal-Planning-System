@@ -1,3 +1,4 @@
+import { provinceKey } from '@/lib/places/province'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
@@ -921,7 +922,9 @@ export interface SearchFilters {
    */
   sourceTypes?: string[]
   maxDistance?: number // Maximum distance in km
-  userLocation?: { lat: number; lng: number } // User's location for distance calculation
+  // User's location for distance calculation; the province orders
+  // organisations that serve a whole province (compareNearFirst).
+  userLocation?: { lat: number; lng: number; province?: string }
   status?: Resource['status'] // Resource status (default: 'approved')
 }
 
@@ -939,9 +942,47 @@ export interface SearchResult extends Resource {
 }
 
 /**
+ * How far counts as near, when no distance is chosen: the radius for "Near
+ * you" in search, and for the fallback message when nothing is that close.
+ */
+export const NEAR_KM = 50
+
+type Placed = { distance?: number; location?: unknown }
+
+const provinceOf = (r: Placed) => provinceKey((r.location as { province?: unknown } | null)?.province)
+
+/**
+ * 0: within the radius. 1: no map point, and serving the person's province or
+ * all of Canada (provincial and national organisations have a province, or
+ * none, but no point). 2: everything else, farther away.
+ */
+export function nearGroup(r: Placed, radiusKm: number, province?: string | null): 0 | 1 | 2 {
+  if (r.distance !== undefined) return r.distance <= radiusKm ? 0 : 2
+  const theirs = provinceOf(r)
+  if (!theirs) return 1
+  return province && theirs === provinceKey(province) ? 1 : 2
+}
+
+/**
+ * Near first: places within the radius, nearest first; then organisations for
+ * the person's own province, then national ones; then farther places, nearest
+ * first, and other provinces' organisations last. 0 when equally placed.
+ */
+export function compareNearFirst(a: Placed, b: Placed, radiusKm: number, province?: string | null): number {
+  const ga = nearGroup(a, radiusKm, province)
+  const gb = nearGroup(b, radiusKm, province)
+  if (ga !== gb) return ga - gb
+  if (ga === 1) return (provinceOf(a) ? 0 : 1) - (provinceOf(b) ? 0 : 1)
+  if (a.distance === undefined || b.distance === undefined) {
+    return (a.distance === undefined ? 1 : 0) - (b.distance === undefined ? 1 : 0)
+  }
+  return a.distance - b.distance
+}
+
+/**
  * Calculate distance between two coordinates using Haversine formula
  */
-function calculateDistance(
+export function calculateDistance(
   lat1: number,
   lng1: number,
   lat2: number,
@@ -1003,6 +1044,8 @@ interface RatingIndex {
   stats: Map<string, { averageRating: number; ratingCount: number }>
   /** The norm keys in each resource's ratings (barrier_scores), as stored. */
   normKeys: Map<string, Set<string>>
+  /** How many of each resource's ratings scored it for each norm key. */
+  normCounts: Map<string, Map<string, number>>
   /** Connection types of the people who rated each resource. */
   raterTypes: Map<string, Set<string>>
 }
@@ -1023,6 +1066,7 @@ function ratingIndex(): Promise<RatingIndex> {
     )
     const sums = new Map<string, { sum: number; count: number }>()
     const normKeys = new Map<string, Set<string>>()
+    const normCounts = new Map<string, Map<string, number>>()
     const raterTypes = new Map<string, Set<string>>()
     for (const r of rows) {
       if (Array.isArray(r.rater_connection_types) && r.rater_connection_types.length > 0) {
@@ -1036,14 +1080,33 @@ function ratingIndex(): Promise<RatingIndex> {
       sums.set(r.resource_id, s)
       if (r.barrier_scores) {
         const keys = normKeys.get(r.resource_id) || new Set<string>()
-        for (const key of Object.keys(r.barrier_scores)) keys.add(key)
+        const counts = normCounts.get(r.resource_id) || new Map<string, number>()
+        for (const key of Object.keys(r.barrier_scores)) {
+          keys.add(key)
+          counts.set(key, (counts.get(key) || 0) + 1)
+        }
         normKeys.set(r.resource_id, keys)
+        normCounts.set(r.resource_id, counts)
       }
     }
     const stats = new Map<string, { averageRating: number; ratingCount: number }>()
     for (const [id, s] of sums) stats.set(id, { averageRating: s.sum / s.count, ratingCount: s.count })
-    return { stats, normKeys, raterTypes }
+    return { stats, normKeys, normCounts, raterTypes }
   })
+}
+
+/**
+ * How many ratings scored each of these resources for a norm (its key in
+ * barrier_scores, e.g. 'adhd'). Resources with none are left out.
+ */
+export async function ratingCountsForNorm(ids: string[], norm: string): Promise<Map<string, number>> {
+  const index = await ratingIndex()
+  const out = new Map<string, number>()
+  for (const id of ids) {
+    const n = index.normCounts.get(id)?.get(norm)
+    if (n) out.set(id, n)
+  }
+  return out
 }
 
 /**
@@ -1077,7 +1140,18 @@ export async function searchResources(
   sort: SortOption | SortRule[] = 'relevance',
   page: number = 1,
   pageSize: number = 20
-): Promise<{ results: SearchResult[]; total: number; page: number; pageSize: number }> {
+): Promise<{
+  results: SearchResult[]
+  total: number
+  page: number
+  pageSize: number
+  /** Ordered near first (a location, and no sort chosen). */
+  nearFirst?: boolean
+  /** The radius "near" means, in km. */
+  radiusKm?: number
+  /** How many of all the results are within the radius. */
+  nearCount?: number
+}> {
   const offset = (page - 1) * pageSize
   const { userLocation, maxDistance, ...shared } = filters
   const words = searchWords(filters.query)
@@ -1120,6 +1194,14 @@ export async function searchResources(
   const sortRules: SortRule[] = Array.isArray(sort)
     ? sort
     : [{ key: sort, direction: sort === 'cost' ? 'asc' : 'desc' }]
+
+  // Near first (Riipen Labs, Group 8): with a location and no sort chosen,
+  // places within the radius come first, nearest first. The default order
+  // used to ignore distance, so a search from Surrey, BC put a school in
+  // Montreal, 3,675 km away, among the ones in Vancouver. A distance filter
+  // still removes everything beyond it; without one, farther places follow.
+  const nearFirst = Boolean(userLocation) && !Array.isArray(sort) && sort === 'relevance'
+  const radiusKm = maxDistance || NEAR_KM
 
   const compareByRule = (a: SearchResult, b: SearchResult, rule: SortRule): number => {
     const factor = rule.direction === 'asc' ? 1 : -1
@@ -1175,6 +1257,10 @@ export async function searchResources(
   }
 
   results.sort((a, b) => {
+    if (nearFirst) {
+      const near = compareNearFirst(a, b, radiusKm, userLocation?.province)
+      if (near !== 0) return near
+    }
     for (const rule of sortRules) {
       const cmp = compareByRule(a, b, rule)
       if (cmp !== 0) return cmp
@@ -1199,6 +1285,9 @@ export async function searchResources(
     total,
     page,
     pageSize,
+    ...(nearFirst
+      ? { nearFirst, radiusKm, nearCount: results.filter((r) => nearGroup(r, radiusKm, userLocation?.province) === 0).length }
+      : {}),
   }
 }
 

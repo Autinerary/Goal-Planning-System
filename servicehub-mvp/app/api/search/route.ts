@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isAgeRange, isSpecialTag, isConnectionType, isSourceType } from '@/lib/filters/taxonomy'
 import {
   searchResources,
+  calculateDistance,
+  compareNearFirst,
+  nearGroup,
+  NEAR_KM,
   type SearchFilters,
   type SortOption,
   type SortRule,
@@ -103,7 +107,11 @@ export async function GET(request: NextRequest) {
     const pageSize = Number(searchParams.get('pageSize') || '20')
 
     // Get user location from profile if authenticated
-    let userLocation: { lat: number; lng: number } | undefined = undefined
+    let userLocation: { lat: number; lng: number; province?: string } | undefined = undefined
+    // Who is searching, so the page can say "Near Surrey, BC", or offer to
+    // set a location (Riipen Labs, Group 8).
+    let signedIn = false
+    let place: string | null = null
 
     try {
       const supabase = createClient()
@@ -112,6 +120,7 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser()
 
       if (user) {
+        signedIn = true
         const profile = await supabase
           .from('profiles')
           .select('location')
@@ -121,7 +130,12 @@ export async function GET(request: NextRequest) {
         if (profile.data?.location) {
           const location = profile.data.location as any
           if (location?.lat && location?.lng) {
-            userLocation = { lat: location.lat, lng: location.lng }
+            userLocation = {
+              lat: location.lat,
+              lng: location.lng,
+              province: typeof location.province === 'string' ? location.province : undefined,
+            }
+            place = [location.city, location.province].map((v: unknown) => (typeof v === 'string' ? v.trim() : '')).filter(Boolean).join(', ') || null
           }
         }
       }
@@ -254,13 +268,28 @@ export async function GET(request: NextRequest) {
       }
 
       // Merge results
-      const combinedResults = [
+      let merged: any[] = [
         ...filteredSemantic.map((r) => {
           const semanticMatch = semanticResults.find((s: any) => (s.resource_id || s.id) === r.id)
           return { ...r, similarity: semanticMatch?.similarity || 0 }
         }),
         ...uniqueKeywordResults,
-      ].slice(0, pageSize)
+      ]
+      // The same near-first order as keyword search, when it applies.
+      const nearFirst = Boolean(keywordResult.nearFirst && userLocation)
+      const radiusKm = keywordResult.radiusKm || maxDistance || NEAR_KM
+      if (nearFirst && userLocation) {
+        const here = userLocation
+        merged = merged
+          .map((r) => {
+            const loc = r.location as any
+            const distance = r.distance ?? (loc?.lat && loc?.lng ? calculateDistance(here.lat, here.lng, loc.lat, loc.lng) : undefined)
+            return { ...r, distance }
+          })
+          .filter((r) => !maxDistance || r.distance === undefined || r.distance <= maxDistance)
+        merged.sort((a, b) => compareNearFirst(a, b, radiusKm, here.province))
+      }
+      const combinedResults = merged.slice(0, pageSize)
 
       // Products belong here as much as in the keyword path. This branch used
       // to return before products were resolved, so searching text AND ticking
@@ -273,6 +302,13 @@ export async function GET(request: NextRequest) {
         semanticCount: semanticResults.length,
         keywordCount: uniqueKeywordResults.length,
         productCount: products.length,
+        nearFirst,
+        radiusKm,
+        // Keyword search counted every match; the merged list is one page.
+        nearCount: nearFirst
+          ? Math.max(keywordResult.nearCount || 0, merged.filter((r) => nearGroup(r, radiusKm, userLocation?.province) === 0).length)
+          : undefined,
+        you: { signedIn, place },
       })
     }
 
@@ -282,6 +318,7 @@ export async function GET(request: NextRequest) {
       results: [...keywordResult.results, ...products],
       total: (keywordResult.total || 0) + products.length,
       productCount: products.length,
+      you: { signedIn, place },
     })
   } catch (error) {
     console.error('Error in search API:', error)

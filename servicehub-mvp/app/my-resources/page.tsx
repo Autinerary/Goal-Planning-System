@@ -12,6 +12,7 @@ import PastTab from '@/components/myResources/PastTab'
 import RatedTab from '@/components/myResources/RatedTab'
 import SubmittedTab from '@/components/myResources/SubmittedTab'
 import BuildTeamTab from '@/components/myResources/BuildTeamTab'
+import MoreLikeThesePrompt from '@/components/prompts/MoreLikeThesePrompt'
 import { Bookmark, Star, FileText, Calendar, History, Plus, Users } from 'lucide-react'
 import Link from 'next/link'
 
@@ -93,6 +94,9 @@ export default function MyResourcesPage() {
               Add a resource
             </Link>
           </div>
+
+          {/* "Want more like these?" after a few saves of one kind (Group 8) */}
+          <MoreLikeThesePrompt />
 
           {/* Tabs */}
           <div className="mt-8 border-b border-gray-200">

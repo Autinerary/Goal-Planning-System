@@ -47,6 +47,13 @@ more?"). Nothing changes by itself.
 - "Is Autinerary useful so far?": after five days of use, or on a return
   visit in the second week.
 
+## ResourceHub
+
+ResourceHub's own setup, for people who sign up there, asks three things:
+who you are, one topic and what you hope to find. Location, identity, health
+and more topics are asked later, where they are used. See
+[resourcehub-first-session.md](resourcehub-first-session.md) (Group 8).
+
 ## Testing the assumption
 
 Group 7: "Assumption to test, not assume: users will actually engage ...

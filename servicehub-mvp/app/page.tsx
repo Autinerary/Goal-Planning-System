@@ -23,6 +23,7 @@ import {
 import DiscoveryCard from '@/components/agents/DiscoveryCard'
 import SetLocationPrompt from '@/components/resources/SetLocationPrompt'
 import PersonalizedBanner from '@/components/agents/PersonalizedBanner'
+import ForYou from '@/components/home/ForYou'
 import type { Location } from '@/types/database'
 import Link from 'next/link'
 import { 
@@ -69,26 +70,15 @@ async function RecommendedSection() {
     try {
       const popularResources = await getPopularResources(8)
       if (popularResources && popularResources.length > 0) {
-        const finalResources = popularResources.map((resource: any, index: number) => {
-          const avgRating = resource.averageRating || 0
-          let matchPercentage = 0
-          if (avgRating > 0) {
-            matchPercentage = Math.min(85, Math.max(60, 60 + ((avgRating - 1) / 4) * 25))
-          } else {
-            matchPercentage = Math.max(65, 75 - (index * 1.5))
-          }
-          return {
-            ...resource,
-            score: Math.round(matchPercentage),
-          }
-        })
+        // Popular, not matched to anyone: no match score or confidence.
         return (
           <section className="mb-12" aria-labelledby="recommended-heading">
             <RecommendationResult
-              resources={finalResources}
+              resources={popularResources}
+              subtitle="Popular in the community. Sign in to see places matched to you."
               explanations={['Showing popular community resources. Sign in for personalized recommendations.']}
-              confidence={0.65}
-              showConfidence={true}
+              confidence={0}
+              showConfidence={false}
               showExplanations={false}
               synthesisExplanation="These are popular resources from our community. Sign in to get personalized recommendations based on your norms."
               showSynthesis={true}
@@ -117,7 +107,8 @@ async function RecommendedSection() {
               </h2>
             </div>
             <p className="text-sm text-gray-600">
-              Complete your barrier profile in onboarding to get personalized AI-powered recommendations.
+              Add a topic to <Link href="/profile" className="underline">your profile</Link> to see places
+              rated by people who share it.
             </p>
           </div>
         </section>
@@ -180,7 +171,14 @@ async function RecommendedSection() {
       ? barrierTypesFormatted.slice(0, 3).join(', ') + (barrierTypesFormatted.length > 3 ? ', and more' : '')
       : 'your profile'
 
+    // Only the agent's own list carries a match score, a confidence and the
+    // agents' notes. The fallbacks below used to invent all three, and gave
+    // places with no reviews random star ratings and review counts. They now
+    // say only what is true (Riipen Labs, Group 8: "personalization claims
+    // match what the product can actually deliver").
+    let fromAgent = false
     if (recommendationOutput?.resources && recommendationOutput.resources.length > 0) {
+      fromAgent = true
       // Use agent results - ensure scores are percentages (0-100)
       finalResources = recommendationOutput.resources.map((resource: any) => ({
         ...resource,
@@ -194,32 +192,14 @@ async function RecommendedSection() {
       finalAgentContributions = synthesis?.agentContributions
       finalMemory = recommendationOutput.memory || null
     } else {
-      // Fallback: Use simple recommendation algorithm based on barrier matching
+      // Fallback: places rated by people who share these norms, then what is
+      // popular, then any places.
       console.log('Agent returned no recommendations, using fallback algorithm...')
       try {
         const fallbackResources = await getRecommendedResources(user.id, 8)
-        
+
         if (fallbackResources && fallbackResources.length > 0) {
-          // Calculate match percentages: normalize recommendationScore (0-5 scale) or averageRating (1-5 scale) to 0-100%
-          const maxScore = Math.max(...fallbackResources.map((r: any) => r.recommendationScore || r.averageRating || 0))
-          finalResources = fallbackResources.map((resource: any, index: number) => {
-            const baseScore = resource.recommendationScore || resource.averageRating || 0
-            // Convert to percentage: if score is 0-5 scale, multiply by 20; if 1-5 scale, subtract 1 then multiply by 25
-            // For barrier-matched resources, use recommendationScore if available (0-5 scale)
-            let matchPercentage = 0
-            if (resource.recommendationScore) {
-              matchPercentage = Math.min(100, Math.max(65, (resource.recommendationScore / 5) * 100)) // 65-100% range
-            } else if (resource.averageRating) {
-              matchPercentage = Math.min(100, Math.max(60, ((resource.averageRating - 1) / 4) * 100)) // 60-100% range
-            } else {
-              // Default: decreasing match for lower-ranked items (75% down to 65%)
-              matchPercentage = Math.max(65, 75 - (index * 2))
-            }
-            return {
-              ...resource,
-              score: Math.round(matchPercentage),
-            }
-          })
+          finalResources = fallbackResources
           finalExplanations = finalResources.map((resource: any) => {
             const parts: string[] = [
               `Based on those who matched your Diagnostics profile (${barrierTypesList})`,
@@ -234,144 +214,26 @@ async function RecommendedSection() {
             }
             return parts.join(' • ')
           })
-          finalConfidence = 0.82
-          finalSynthesisExplanation = `These ${finalResources.length} resources were recommended because users with similar norms (${barrierTypesList}) rated them highly. Each resource has an average rating of ${(finalResources.reduce((sum, r) => sum + (r.averageRating || 0), 0) / finalResources.length).toFixed(1)} stars based on ${finalResources.reduce((sum, r) => sum + (r.ratingCount || 0), 0)} community reviews.`
-          // Create realistic agent contributions for fallback
-          finalAgentContributions = [
-            {
-              agentName: 'Recommendation Agent',
-              contribution: `Matched ${finalResources.length} resources to your norms by matching people with similar norms.`,
-              confidence: 0.78,
-              outputCount: finalResources.length,
-            },
-            {
-              agentName: 'Pattern Recognition Agent',
-              contribution: `Analyzed community patterns and found ${Math.floor(finalResources.length * 0.6)} relevant connections.`,
-              confidence: 0.65,
-              outputCount: Math.floor(finalResources.length * 0.6),
-            },
-          ]
+          finalSynthesisExplanation = `These were rated highly by people with similar norms (${barrierTypesList}).`
         } else {
-          // Fallback 2: Show popular resources
           const popularResources = await getPopularResources(8)
           if (popularResources && popularResources.length > 0) {
-            // Calculate match percentages based on average rating (convert 1-5 stars to 60-85% match)
-            finalResources = popularResources.map((resource: any, index: number) => {
-              const avgRating = resource.averageRating || 0
-              let matchPercentage = 0
-              if (avgRating > 0) {
-                // Convert 1-5 stars to 60-85% match range
-                matchPercentage = Math.min(85, Math.max(60, 60 + ((avgRating - 1) / 4) * 25))
-              } else {
-                // Default: 65-75% for popular resources
-                matchPercentage = Math.max(65, 75 - (index * 1.5))
-              }
-              return {
-                ...resource,
-                score: Math.round(matchPercentage),
-              }
-            })
-            finalExplanations = finalResources.map((resource: any) => {
-              const parts = [`Based on those who matched your Diagnostics profile (${barrierTypesList})`]
-              if (resource.averageRating >= 4) parts.push(`popular pick at ${resource.averageRating.toFixed(1)}★`)
-              else parts.push('popular in the community')
-              return parts.join(' • ')
-            })
-            finalConfidence = 0.65
-            finalSynthesisExplanation = `These are ${finalResources.length} of the most popular resources in our community, selected based on high ratings and review counts. As more users with similar norms (${barrierTypesList}) rate resources, we'll be able to provide more personalized recommendations.`
-            // Create realistic agent contributions
-            finalAgentContributions = [
-              {
-                agentName: 'Recommendation Agent',
-                contribution: `Selected ${finalResources.length} popular resources based on community ratings.`,
-                confidence: 0.62,
-                outputCount: finalResources.length,
-              },
-              {
-                agentName: 'Pattern Recognition Agent',
-                contribution: `Identified trending resources that may be relevant to your norms.`,
-                confidence: 0.55,
-                outputCount: Math.floor(finalResources.length * 0.7),
-              },
-            ]
+            finalResources = popularResources
+            finalExplanations = finalResources.map((resource: any) =>
+              resource.averageRating >= 4
+                ? `Popular in the community • ${resource.averageRating.toFixed(1)}★`
+                : 'Popular in the community'
+            )
+            finalSynthesisExplanation = `Nothing has been rated for your norms (${barrierTypesList}) yet, so these are popular in the community. Rating a place you know helps people like you.`
           } else {
-            // Fallback 3: Show any approved resources (demo fallback)
             const anyResources = await getResources({ status: 'approved', limit: 8 })
-            if (anyResources && anyResources.length > 0) {
-              finalResources = anyResources.map((resource: any, index: number) => {
-                const demoRating = resource.averageRating || 4.2 + Math.random() * 0.8
-                // Calculate match percentage: 55-70% range for general resources
-                const matchPercentage = Math.min(70, Math.max(55, 55 + ((demoRating - 1) / 4) * 15))
-                return {
-                  ...resource,
-                  averageRating: demoRating,
-                  ratingCount: resource.ratingCount || Math.floor(5 + Math.random() * 20),
-                  score: Math.round(matchPercentage),
-                }
-              })
-              finalExplanations = finalResources.map(
-                () => `Based on those who matched your Diagnostics profile (${barrierTypesList}) • exploring relevant options`
-              )
-              finalConfidence = 0.55
-              finalSynthesisExplanation = `We're showing ${finalResources.length} resources from our database that may be relevant to your norms (${barrierTypesList}). As our community grows and more users share their experiences, we'll refine these recommendations.`
-              // Create realistic agent contributions
-              finalAgentContributions = [
-                {
-                  agentName: 'Recommendation Agent',
-                  contribution: `Found ${finalResources.length} resources from our database that may match your needs.`,
-                  confidence: 0.52,
-                  outputCount: finalResources.length,
-                },
-                {
-                  agentName: 'Pattern Recognition Agent',
-                  contribution: `Limited pattern data available. Showing general resources while we learn more.`,
-                  confidence: 0.40,
-                  outputCount: 0,
-                },
-              ]
-            }
+            finalResources = anyResources || []
+            finalExplanations = finalResources.map(() => 'From ResourceHub')
+            finalSynthesisExplanation = `Nothing has been rated for your norms (${barrierTypesList}) yet. These are places in ResourceHub to start with.`
           }
         }
       } catch (fallbackError) {
         console.error('Fallback recommendation error:', fallbackError)
-        // Final fallback: Show any approved resources
-        try {
-          const anyResources = await getResources({ status: 'approved', limit: 8 })
-          if (anyResources && anyResources.length > 0) {
-            finalResources = anyResources.map((resource: any, index: number) => {
-              const demoRating = resource.averageRating || 4.0 + Math.random() * 1.0
-              // Calculate match percentage: 50-65% range for final fallback
-              const matchPercentage = Math.min(65, Math.max(50, 50 + ((demoRating - 1) / 4) * 15))
-              return {
-                ...resource,
-                averageRating: demoRating,
-                ratingCount: resource.ratingCount || Math.floor(3 + Math.random() * 15),
-                score: Math.round(matchPercentage),
-              }
-            })
-            finalExplanations = finalResources.map(
-              () => `Based on those who matched your Diagnostics profile (${barrierTypesList}) • exploring relevant options`
-            )
-            finalConfidence = 0.55
-            finalSynthesisExplanation = `These ${finalResources.length} resources are from our database and may be relevant to your needs. Complete your profile and interact with resources to get more personalized recommendations.`
-            finalAgentContributions = [
-              {
-                agentName: 'Recommendation Agent',
-                contribution: `Displaying ${finalResources.length} resources from our database.`,
-                confidence: 0.50,
-                outputCount: finalResources.length,
-              },
-              {
-                agentName: 'Pattern Recognition Agent',
-                contribution: `Community data is still growing. Recommendations will improve as more users contribute.`,
-                confidence: 0.35,
-                outputCount: 0,
-              },
-            ]
-          }
-        } catch (error) {
-          console.error('Error fetching any resources:', error)
-        }
       }
     }
 
@@ -386,10 +248,10 @@ async function RecommendedSection() {
           resources={finalResources}
           explanations={finalExplanations}
           confidence={finalConfidence}
-          showConfidence={true}
+          showConfidence={fromAgent}
           showExplanations={true}
           synthesisExplanation={finalSynthesisExplanation || orchestrationResult?.explanation}
-          agentContributions={finalAgentContributions || synthesis?.agentContributions}
+          agentContributions={fromAgent ? finalAgentContributions || synthesis?.agentContributions : undefined}
           showSynthesis={true}
           memory={finalMemory}
         />
@@ -620,7 +482,9 @@ async function LocationCollectionsSection() {
   const profile = await getProfile(user.id)
   const userLocation = (profile?.location as Location) || undefined
 
-  if (!userLocation || (!userLocation.city && !userLocation.province)) {
+  // Coordinates are what make "near" work; the prompt to set a location is
+  // above, in Recommended.
+  if (!userLocation?.lat || !userLocation?.lng) {
     return null
   }
 
@@ -629,6 +493,7 @@ async function LocationCollectionsSection() {
   if (locationResources.length === 0) {
     return null
   }
+  const placeName = [userLocation.city, userLocation.province].filter(Boolean).join(', ')
 
   return (
     <section className="mb-12" aria-labelledby="location-collections-heading">
@@ -636,14 +501,14 @@ async function LocationCollectionsSection() {
         <div className="flex items-center">
           <MapPin className="w-6 h-6 text-blue-600 mr-2" aria-hidden="true" />
           <h2 id="location-collections-heading" className="text-2xl font-bold text-gray-900">
-            In Your Location
+            {placeName ? `Near ${placeName}` : 'In Your Location'}
           </h2>
         </div>
         <Link
-          href={`/search?location=${userLocation.city || userLocation.province}`}
+          href="/search"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
-          View all
+          See everything near you
         </Link>
       </div>
 
@@ -658,6 +523,7 @@ async function LocationCollectionsSection() {
                   resource={resource}
                   averageRating={resource.averageRating || 0}
                   ratingCount={resource.ratingCount || 0}
+                  distance={resource.distance}
                 />
               ))}
             </div>
@@ -921,6 +787,9 @@ export default async function Home() {
         {/* Content Sections - Organized per Architecture */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <PersonalizedBanner />
+          {/* Matched to the person's topic and what they hope to find, and
+              "Welcome back" when it is time to ask for more (Group 8). */}
+          <ForYou />
           {/* 1. Recommended for You - AI/Agent-based (works without login) */}
           <Suspense
             fallback={

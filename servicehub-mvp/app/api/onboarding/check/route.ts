@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getUserBarriers } from '@/lib/supabase/queries'
+import { needsSetup } from '@/lib/onboarding/profile'
 
 /**
  * Check if the current user needs to complete onboarding
@@ -18,11 +18,10 @@ export async function GET() {
       return NextResponse.json({ needsOnboarding: false }, { status: 200 })
     }
 
-    // Check if user has barriers (indicates onboarding is complete)
-    const barriers = await getUserBarriers(user.id)
-
+    // A chosen role, or any norm from an older setup, means setup is done.
+    // The topic can be skipped now, so norms alone cannot say (Group 8).
     return NextResponse.json({
-      needsOnboarding: barriers.length === 0,
+      needsOnboarding: await needsSetup(supabase, user.id),
     })
   } catch (error) {
     console.error('Error checking onboarding status:', error)

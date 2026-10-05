@@ -4,7 +4,14 @@ import Link from 'next/link'
 import type { Resource } from '@/types/database'
 import BarrierBadge from './BarrierBadge'
 import { MapPin, Star, Users } from 'lucide-react'
-import { imageOrPlaceholder } from '@/lib/images/placeholder'
+import CategoryIcon from './CategoryIcon'
+
+/** "Under 1 km", "4.2 km", "31 km", "3,675 km". */
+export function formatDistance(km: number): string {
+  if (km < 1) return 'Under 1 km'
+  if (km < 10) return `${km.toFixed(1)} km`
+  return `${Math.round(km).toLocaleString('en-CA')} km`
+}
 
 interface ResourceCardProps {
   resource: Resource
@@ -26,10 +33,12 @@ export default function ResourceCard({
   variant = 'grid',
 }: ResourceCardProps) {
   const location = resource.location as any
-  const city = location?.city || 'Location not specified'
-  // Services get images too (Odosa). Falls back to a generated placeholder so
-  // the layout reads correctly before a real photo is uploaded.
-  const imageSrc = imageOrPlaceholder((resource as any).image_url, resource.name, resource.category)
+  // With a distance, a missing city needs no apology.
+  const city = location?.city || (distance === undefined ? 'Location not specified' : '')
+  // A real photo when there is one (Odosa). Most places have none, and the
+  // initials that stood in for them told people nothing, so the category's
+  // icon does instead (Riipen Labs, Group 8).
+  const photo: string = ((resource as any).image_url || (resource as any).image_urls?.[0] || '').trim()
   // Shop items appear in general search too; they live under /shop (Odosa).
   const isProduct = (resource as any).kind === 'product'
   const href = isProduct ? `/shop/${resource.id}` : `/resources/${resource.id}`
@@ -45,8 +54,12 @@ export default function ResourceCard({
         <div className="p-6 flex flex-col sm:flex-row gap-6">
           {/* Thumbnail */}
           <div className="sm:w-40 sm:h-40 w-full aspect-[16/9] sm:aspect-auto flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageSrc} alt={resource.name} className="w-full h-full object-cover" loading="lazy" />
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt={resource.name} className="w-full h-full object-cover" loading="lazy" />
+            ) : (
+              <CategoryIcon category={resource.category} size="lg" />
+            )}
           </div>
 
           {/* Left side - Main content */}
@@ -93,7 +106,7 @@ export default function ResourceCard({
                   <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
                   <span className="truncate">{city}</span>
                   {distance !== undefined && (
-                    <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
+                    <span className={`${city ? 'ml-2 ' : ''}text-gray-500 whitespace-nowrap`}>{formatDistance(distance)} away</span>
                   )}
                 </div>
               )}
@@ -124,13 +137,17 @@ export default function ResourceCard({
     >
       {/* Image banner */}
       <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageSrc}
-          alt={resource.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
-        />
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photo}
+            alt={resource.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        ) : (
+          <CategoryIcon category={resource.category} size="lg" />
+        )}
       </div>
 
       <div className="p-6">
@@ -187,7 +204,7 @@ export default function ResourceCard({
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
             <span className="truncate">{city}</span>
             {distance !== undefined && (
-              <span className="ml-2 text-gray-500">{distance.toFixed(1)} km away</span>
+              <span className={`${city ? 'ml-2 ' : ''}text-gray-500 whitespace-nowrap`}>{formatDistance(distance)} away</span>
             )}
           </div>
         )}

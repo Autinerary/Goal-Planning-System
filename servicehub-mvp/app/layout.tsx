@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth/AuthContext";
 import { Toaster } from 'react-hot-toast'
 import { Suspense } from 'react'
 import ProfileSync from '@/components/layout/ProfileSync'
+import VisitTracker from '@/components/layout/VisitTracker'
 
 export const metadata: Metadata = {
   title: "ResourceHub",
@@ -37,6 +38,7 @@ export default function RootLayout({
         </a>
         <AuthProvider>
           <Suspense fallback={null}><ProfileSync /></Suspense>
+          <VisitTracker />
           {children}
         </AuthProvider>
         <Toaster

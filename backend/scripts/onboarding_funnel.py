@@ -141,6 +141,16 @@ ASK_LATER = [
     ("makeItYours", "Character, spirit animals, look", ["character", "spiritAnimal", "personalize"]),
 ]
 
+# ResourceHub's first session (Riipen Labs, Group 8), as sent by
+# servicehub-mvp/app/api/events/route.ts: setup steps (lib/onboarding/setup.ts)
+# and the prompts that ask for more later (lib/track.ts).
+RH_SETUP_STEPS = ["role", "topic", "first"]
+RH_PROMPTS = [
+    ("sharpen", "Welcome back: sharpen matches"),
+    ("more_like_these", "Want more like these?"),
+    ("add_topic", "Add a searched topic"),
+]
+
 RETURN_WINDOW = timedelta(days=7)
 RETURN_WINDOW_LONG = timedelta(days=14)
 FIRST_WEEKS = timedelta(days=14)
@@ -629,6 +639,126 @@ def render_ask_later(s: Dict) -> str:
     return "\n".join(out)
 
 
+def is_resourcehub(e: dict) -> bool:
+    """ResourceHub's events, kept out of Goal Planning's funnel."""
+    return str(e.get("event", "")).startswith("rh_")
+
+
+def summarize_resourcehub(events: Iterable[dict]) -> Dict:
+    """ResourceHub's first session (Group 8): setup completion, time from the
+    first visit to the first place opened, how many search results were
+    within the radius, and whether each prompt is taken up. A "person" is a
+    visitor id (one browser). Test traffic ('qa-...') never counts. Pure."""
+    by_visitor: Dict[str, List[dict]] = defaultdict(list)
+    for e in events:
+        if is_resourcehub(e) and not str(e.get("onboarding_version") or "").startswith("qa"):
+            by_visitor[e["visitor_id"]].append(e)
+
+    visits: set = set()
+    steps: Dict[str, set] = {s: set() for s in RH_SETUP_STEPS}
+    finished: set = set()
+    with_topic: set = set()
+    opened: set = set()
+    from_setup: set = set()
+    hours_from_visit: List[float] = []
+    hours_from_setup: List[float] = []
+    near = shown = searches = 0
+    prompts: Dict[str, Dict[str, set]] = {p: {"shown": set(), "yes": set(), "no": set(), "later": set()} for p, _ in RH_PROMPTS}
+
+    for vid, evs in by_visitor.items():
+        evs.sort(key=lambda e: e["created_at"])
+        first_visit = next((_ts(e["created_at"]) for e in evs if e["event"] == "rh_visit"), None)
+        setup_start = next((_ts(e["created_at"]) for e in evs
+                            if e["event"] == "rh_setup_step" and e.get("step") == "role"), None)
+        if first_visit:
+            visits.add(vid)
+        for e in evs:
+            name, step = e["event"], str(e.get("step") or "")
+            if name == "rh_setup_step" and step in steps:
+                steps[step].add(vid)
+            elif name == "rh_setup_complete":
+                finished.add(vid)
+                if step == "topic":
+                    with_topic.add(vid)
+            elif name == "rh_search":
+                a, _, b = step.partition("/")
+                if a.isdigit() and b.isdigit() and 0 < int(b) and int(a) <= int(b):
+                    near += int(a)
+                    shown += int(b)
+                    searches += 1
+            elif name == "rh_prompt":
+                action, _, prompt = step.partition(".")
+                if prompt in prompts and action in prompts[prompt]:
+                    prompts[prompt][action].add(vid)
+        first = next((e for e in evs if e["event"] == "rh_first_resource"), None)
+        if first:
+            opened.add(vid)
+            at = _ts(first["created_at"])
+            if first.get("step") == "setup":
+                from_setup.add(vid)
+            if first_visit and at >= first_visit:
+                hours_from_visit.append((at - first_visit).total_seconds() / 3600)
+            if setup_start and at >= setup_start:
+                hours_from_setup.append((at - setup_start).total_seconds() / 3600)
+
+    return {
+        "visits": len(visits),
+        "steps": {s: len(v) for s, v in steps.items()},
+        "finished": len(finished & steps["role"]),
+        "finished_with_topic": len(with_topic & finished & steps["role"]),
+        "opened": len(opened),
+        "opened_from_setup": len(from_setup),
+        "first_open_median_hours": median(hours_from_visit) if hours_from_visit else None,
+        "setup_to_open_median_hours": median(hours_from_setup) if hours_from_setup else None,
+        "searches": searches,
+        "near": near,
+        "shown": shown,
+        "prompts": {p: {k: len(v) for k, v in a.items()} for p, a in prompts.items()},
+    }
+
+
+def render_resourcehub(s: Dict) -> str:
+    def count(n: int) -> str:
+        return SMALL if 0 < n < MIN_CELL else str(n)
+
+    started = s["steps"]["role"]
+    out = ["== ResourceHub's first session (Group 8: three-step setup, results near you)",
+           f"  first visits (browsers)            {count(s['visits'])}"]
+    if started < MIN_CELL:
+        out.append(f"  started setup                      {count(started)}")
+    else:
+        out += [
+            f"  started setup                      {started}",
+            f"  reached step 2 (topic)             {s['steps']['topic']} ({pct(s['steps']['topic'], started)})",
+            f"  finished setup                     {s['finished']} ({pct(s['finished'], started)} of those who started)",
+            f"    and chose a topic                {pct(s['finished_with_topic'], s['finished'])} of those who finished",
+        ]
+    line = f"  opened a first place               {count(s['opened'])}"
+    if s["opened"] >= MIN_CELL:
+        if s["first_open_median_hours"] is not None:
+            line += f", median {_duration(s['first_open_median_hours'])} after their first visit"
+        out.append(line)
+        if s["opened_from_setup"] >= MIN_CELL and s["setup_to_open_median_hours"] is not None:
+            out.append(f"    from setup's last step           {s['opened_from_setup']}, "
+                       f"median {_duration(s['setup_to_open_median_hours'])} after starting setup")
+    else:
+        out.append(line)
+    if s["searches"] < MIN_CELL:
+        out.append(f"  searches with a location           {count(s['searches'])}")
+    else:
+        out.append(f"  searches with a location           {s['searches']}: "
+                   f"{pct(s['near'], s['shown'])} of first-page places within the radius")
+    out.append(f"  {'prompts that ask for more later':<34} {'shown':>6} {'yes':>6} {'no':>6} {'later':>6}")
+    for prompt, label in RH_PROMPTS:
+        a = s["prompts"][prompt]
+        if a["shown"] < MIN_CELL:
+            out.append(f"  {label:<34} {count(a['shown']):>6} {'-':>6} {'-':>6} {'-':>6}")
+            continue
+        out.append(f"  {label:<34} {a['shown']:>6} {pct(a['yes'], a['shown']):>6} "
+                   f"{pct(a['no'], a['shown']):>6} {pct(a['later'], a['shown']):>6}")
+    return "\n".join(out)
+
+
 def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None,
                        joined_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
@@ -736,6 +866,9 @@ def main() -> int:
     except Exception as e:
         print(f"Could not read the funnel tables ({str(e)[:90]}). Has STEP 45 been applied?")
         return 1
+    # ResourceHub's events (STEP 51) have their own section, at the end.
+    rh_events = [e for e in events if is_resourcehub(e)]
+    events = [e for e in events if not is_resourcehub(e)]
     audience_by_user = {}
     heard_from_by_user = {}
     joined_by_user = {}
@@ -770,6 +903,8 @@ def main() -> int:
     print(render_last_seen(summarize_last_seen(events, args.version)))
     print()
     print(render_ask_later(summarize_ask_later(events, args.version)))
+    print()
+    print(render_resourcehub(summarize_resourcehub(rh_events)))
     print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version, created_at")

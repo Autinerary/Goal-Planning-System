@@ -1,543 +1,373 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth/AuthContext'
-import StepIndicator from '@/components/onboarding/StepIndicator'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Search } from 'lucide-react'
 import RoleSelector from '@/components/onboarding/RoleSelector'
-import BarrierSelector, { SelectedBarrier } from '@/components/onboarding/BarrierSelector'
-import IntersectionalityBadge from '@/components/onboarding/IntersectionalityBadge'
+import MatchedPlaceCard, { nearbyNote } from '@/components/onboarding/MatchedPlaceCard'
+import SetLocationPrompt from '@/components/resources/SetLocationPrompt'
+import { useMyProfile } from '@/lib/useMyProfile'
+import {
+  MAX_SETUP_NEEDS,
+  SETUP_NEEDS,
+  SETUP_STEPS,
+  TOPIC_CHOICES,
+  findNeed,
+  findNorm,
+  findRole,
+  isOtherNorm,
+  normsMatching,
+  searchHref,
+} from '@/lib/onboarding/setup'
+import type { MatchedPlace } from '@/lib/onboarding/first'
+import { track } from '@/lib/track'
 
-const steps = ['Welcome', 'Location', 'Norms', 'Impact', 'Context']
+/**
+ * ResourceHub setup: who you are, one topic and what you hope to find, then
+ * a first place to start (Riipen Labs, Group 8). It was five steps (Welcome,
+ * Location, Norms, Impact, Context) before anything useful appeared. Location,
+ * identity, health and more topics are asked later, where they are used:
+ * the home page, search and the profile (lib/onboarding/setup.ts).
+ */
 
-interface OnboardingData {
-  role: string | null
-  location: {
-    city: string
-    province: string
-    country: string
-  }
-  barriers: SelectedBarrier[]
-  lifeStage: string
-  goals: string[]
-  culturalNotes: string
-  additionalNotes: string
+interface FirstPlaces {
+  places: MatchedPlace[]
+  topic: { id: string; label: string } | null
+  needs: string[]
+  place: string | null
 }
 
+const chip = (on: boolean) =>
+  `rounded-full border px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+    on ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 bg-white text-gray-800 hover:border-blue-400'
+  }`
+
 export default function OnboardingPage() {
-  const { user } = useAuth()
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const { profile } = useMyProfile()
+  const [step, setStep] = useState(0)
+  const [role, setRole] = useState<string | null>(null)
+  const [topic, setTopic] = useState<string | null>(null)
+  const [topicNote, setTopicNote] = useState('')
+  const [topicQuery, setTopicQuery] = useState('')
+  const [needs, setNeeds] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [first, setFirst] = useState<FirstPlaces | null>(null)
+  const [prefilled, setPrefilled] = useState(false)
+  const [locating, setLocating] = useState(false)
 
-  const [formData, setFormData] = useState<OnboardingData>({
-    role: null,
-    location: {
-      city: '',
-      province: '',
-      country: '',
-    },
-    barriers: [],
-    lifeStage: '',
-    goals: [],
-    culturalNotes: '',
-    additionalNotes: '',
-  })
+  // Someone setting up again starts from their answers.
+  useEffect(() => {
+    if (prefilled || !profile?.signedIn) return
+    setPrefilled(true)
+    if (profile.role && findRole(profile.role)) setRole(profile.role)
+    if (profile.needs?.length) setNeeds(profile.needs.slice(0, MAX_SETUP_NEEDS))
+    const known = (profile.norms || []).find((n) => n.group === 'neurodivergence' && findNorm(n.type))
+    if (known) setTopic(known.type)
+  }, [profile, prefilled])
 
-  const lifeStages = [
-    { id: 'preschool', label: 'Preschool' },
-    { id: 'school_age', label: 'School-age' },
-    { id: 'university', label: 'University' },
-    { id: 'employment', label: 'Employment' },
-    { id: 'retirement', label: 'Retirement' },
-  ]
+  useEffect(() => {
+    track('rh_setup_step', SETUP_STEPS[step])
+  }, [step])
 
-  const goals = [
-    { id: 'education', label: 'Education' },
-    { id: 'employment', label: 'Employment' },
-    { id: 'independence', label: 'Independence' },
-    { id: 'relationships', label: 'Relationships' },
-    { id: 'health', label: 'Health' },
-  ]
+  const forSomeoneElse = Boolean(findRole(role)?.forSomeoneElse)
+  const topicChoices = topicQuery.trim() ? normsMatching(topicQuery).slice(0, 10) : TOPIC_CHOICES
+  const chosenTopic = findNorm(topic)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  function toggleNeed(id: string) {
+    setNeeds((prev) =>
+      prev.includes(id) ? prev.filter((n) => n !== id) : prev.length >= MAX_SETUP_NEEDS ? [...prev.slice(1), id] : [...prev, id]
+    )
+  }
 
-    if (!user) {
-      setError('You must be logged in to complete onboarding')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-
+  async function loadFirst() {
+    setFirst(null)
     try {
-      // Save onboarding data via API
-      const response = await fetch('/api/onboarding/complete', {
+      const found = await fetch('/api/onboarding/first?limit=3', { credentials: 'include', cache: 'no-store' })
+      setFirst(found.ok ? await found.json() : { places: [], topic: null, needs: [], place: null })
+    } catch {
+      setFirst({ places: [], topic: null, needs: [], place: null })
+    }
+  }
+
+  async function save(skip: boolean) {
+    if (!role) return
+    setSaving(true)
+    setError(null)
+    const body = skip ? { role } : { role, topic, topicNote, needs }
+    try {
+      const res = await fetch('/api/onboarding/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        credentials: 'include',
+        body: JSON.stringify(body),
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to complete onboarding')
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data?.error || 'Could not save that. Please try again.')
+        return
       }
-
-      // Redirect to home page
-      window.location.href = '/'
-    } catch (err) {
-      console.error('Error completing onboarding:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      setLoading(false)
+      track('rh_setup_complete', !skip && topic ? 'topic' : 'no_topic')
+      setStep(2)
+      await loadFirst()
+    } catch {
+      setError('Could not reach ResourceHub. Please try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
-  function nextStep() {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  function prevStep() {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-  function canProceed(): boolean {
-    switch (currentStep) {
-      case 1:
-        return formData.role !== null
-      case 2:
-        return (
-          formData.location.city.trim() !== '' &&
-          formData.location.province.trim() !== '' &&
-          formData.location.country.trim() !== ''
-        )
-      case 3:
-        return formData.barriers.length > 0
-      case 4:
-        return true // Severity already set in barrier selector
-      case 5:
-        return formData.lifeStage !== '' && formData.goals.length > 0
-      default:
-        return false
-    }
-  }
+  const firstNeed = first?.needs?.length ? findNeed(first.needs[0]) : undefined
+  const moreHref = firstNeed
+    ? searchHref(firstNeed.searches[0])
+    : first?.topic
+    ? searchHref({ conditions: first.topic.id })
+    : '/search'
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">Welcome to ResourceHub</h1>
-          <p className="mt-2 text-lg text-gray-600">
-            Help us understand your experiences to find resources that work for you
+    <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+      <main id="main-content" className="mx-auto max-w-xl">
+        {/* Step 1 of 3, as a short bar per step */}
+        <div className="mb-6">
+          <div className="flex gap-2" aria-hidden="true">
+            {SETUP_STEPS.map((s, i) => (
+              <span key={s} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-blue-600' : 'bg-gray-200'}`} />
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-gray-500" aria-live="polite">
+            Step {step + 1} of {SETUP_STEPS.length}
           </p>
         </div>
 
-        {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={steps.length} steps={steps} />
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-8">
-          <div className="bg-white shadow rounded-lg p-6 sm:p-8">
-            {/* Step 1: Welcome + Role */}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Tell us about yourself</h2>
-                  <p className="text-gray-600">
-                    Your role helps us personalize your experience and match you with relevant
-                    resources.
-                  </p>
-                </div>
-
-                <RoleSelector
-                  selectedRole={formData.role}
-                  onSelectRole={(role) => setFormData({ ...formData, role })}
-                />
-
-                {/* Patent Compliance Notice */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-900">
-                    <strong className="font-semibold">Your ratings will help others in your community.</strong>
-                    <br />
-                    <span className="mt-1 block">
-                      Rated BY people like you, FOR people like you. You control what you share.
-                    </span>
-                  </p>
-                </div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+          {step === 0 && (
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Welcome to ResourceHub</h1>
+                <p className="mt-2 text-gray-600">Tell us who you are, so we can start you off in the right place.</p>
               </div>
-            )}
-
-            {/* Step 2: Location */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Where are you located?</h2>
-                  <p className="text-gray-600">
-                    This helps us find resources in your area. All location data is private and optional.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      required
-                      value={formData.location.city}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          location: { ...formData.location, city: e.target.value },
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="e.g., Toronto"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="province" className="block text-sm font-medium text-gray-700">
-                      Province/State *
-                    </label>
-                    <input
-                      type="text"
-                      id="province"
-                      required
-                      value={formData.location.province}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          location: { ...formData.location, province: e.target.value },
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="e.g., Ontario"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                      Country *
-                    </label>
-                    <input
-                      type="text"
-                      id="country"
-                      required
-                      value={formData.location.country}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          location: { ...formData.location, country: e.target.value },
-                        })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="e.g., Canada"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Norms — the heart of the product, so make the filters
-                visually unmistakable rather than just another form step (Odosa). */}
-            {currentStep === 3 && (
-              <div className="space-y-5">
-                <div className="text-center">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wide mb-3">
-                    ★ The heart of ResourceHub
-                  </span>
-                  <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
-                    Choose your Norms
-                  </h2>
-                  <p className="text-gray-600 max-w-xl mx-auto">
-                    These are the systemic realities you navigate. Everything else keys off
-                    them — we surface resources <strong>rated by people who share your norms</strong>,
-                    so what you see is filtered for you, not for the average person.
-                  </p>
-                </div>
-
-                {/* Highlighted container so the selector reads as the main event */}
-                <div className="rounded-2xl border-2 border-blue-300 bg-gradient-to-b from-blue-50/70 to-white p-4 sm:p-5 shadow-md ring-4 ring-blue-100">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <p className="text-sm font-semibold text-blue-900">
-                      Select every norm that applies to you
-                    </p>
-                    <span className="text-xs font-bold text-blue-700 bg-white border border-blue-200 rounded-full px-2.5 py-1 whitespace-nowrap">
-                      {formData.barriers.length} selected
-                    </span>
-                  </div>
-
-                  <BarrierSelector
-                    selectedBarriers={formData.barriers}
-                    onBarriersChange={(barriers) => setFormData({ ...formData, barriers })}
-                  />
-
-                  {formData.barriers.length === 0 && (
-                    <p className="mt-3 text-xs text-blue-800/80">
-                      Pick at least one to continue — you can always change these later in your profile.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Impact Rating */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Impact on Daily Life</h2>
-                  <p className="text-gray-600">
-                    For each barrier you selected, indicate how much it impacts your daily life. You
-                    can adjust these in the previous step if needed.
-                  </p>
-                </div>
-
-                {formData.barriers.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No barriers selected. Please go back to select at least one barrier.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {formData.barriers.map((barrier) => (
-                      <div key={barrier.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="font-medium text-gray-900">{barrier.label}</h3>
-                            <p className="text-sm text-gray-500">{barrier.categoryLabel}</p>
-                          </div>
-                          <span className="text-lg font-semibold text-blue-600">
-                            {barrier.severity || 3}/5
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={barrier.severity || 3}
-                          onChange={(e) => {
-                            const updated = formData.barriers.map((b) =>
-                              b.id === barrier.id
-                                ? { ...b, severity: parseInt(e.target.value) }
-                                : b
-                            )
-                            setFormData({ ...formData, barriers: updated })
-                          }}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                          aria-label={`Impact rating for ${barrier.label}`}
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>Low impact</span>
-                          <span>High impact</span>
-                        </div>
-                        {barrier.notes && (
-                          <p className="mt-2 text-sm text-gray-600">
-                            <strong>Notes:</strong> {barrier.notes}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <IntersectionalityBadge
-                  count={formData.barriers.length}
-                  barriers={formData.barriers.map((b) => b.label)}
-                />
-              </div>
-            )}
-
-            {/* Step 5: Additional Context */}
-            {currentStep === 5 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Additional Context</h2>
-                  <p className="text-gray-600">
-                    Help us better understand your situation and goals. All fields are optional.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Life Stage *
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {lifeStages.map((stage) => (
-                        <button
-                          key={stage.id}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, lifeStage: stage.id })}
-                          className={`px-4 py-2 rounded-md border-2 text-sm font-medium transition-colors ${
-                            formData.lifeStage === stage.id
-                              ? 'border-blue-600 bg-blue-50 text-blue-900'
-                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                          } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                        >
-                          {stage.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Current Goals * (select all that apply)
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {goals.map((goal) => {
-                        const isSelected = formData.goals.includes(goal.id)
-                        return (
-                          <button
-                            key={goal.id}
-                            type="button"
-                            onClick={() => {
-                              const updated = isSelected
-                                ? formData.goals.filter((g) => g !== goal.id)
-                                : [...formData.goals, goal.id]
-                              setFormData({ ...formData, goals: updated })
-                            }}
-                            className={`px-4 py-2 rounded-md border-2 text-sm font-medium transition-colors ${
-                              isSelected
-                                ? 'border-blue-600 bg-blue-50 text-blue-900'
-                                : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                          >
-                            {goal.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="culturalNotes" className="block text-sm font-medium text-gray-700">
-                      Cultural/Religious Considerations (optional)
-                    </label>
-                    <textarea
-                      id="culturalNotes"
-                      rows={3}
-                      value={formData.culturalNotes}
-                      onChange={(e) =>
-                        setFormData({ ...formData, culturalNotes: e.target.value })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Any cultural or religious considerations that are important to you..."
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="additionalNotes" className="block text-sm font-medium text-gray-700">
-                      Additional Notes (optional)
-                    </label>
-                    <textarea
-                      id="additionalNotes"
-                      rows={4}
-                      value={formData.additionalNotes}
-                      onChange={(e) =>
-                        setFormData({ ...formData, additionalNotes: e.target.value })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Anything else you'd like us to know..."
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Error Display */}
-            {error && (
-              <div className="mt-4 rounded-md bg-red-50 p-4" role="alert">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-red-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="mt-6 flex justify-between">
-            <button
-              type="button"
-              onClick={prevStep}
-              disabled={currentStep === 1 || loading}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-
-            {currentStep < steps.length ? (
+              <RoleSelector selectedRole={role} onSelectRole={setRole} />
+              <p className="text-sm text-gray-600">
+                ResourceHub is places and services rated by people with similar experiences. It is not a clinical
+                directory, and not medical advice.
+              </p>
+              <p className="text-xs text-gray-500">
+                We don&apos;t sell your information, show ads, or use it to train AI.{' '}
+                <a href="/privacy" className="underline">
+                  Privacy
+                </a>
+              </p>
               <button
                 type="button"
-                onClick={nextStep}
-                disabled={!canProceed() || loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setStep(1)}
+                disabled={!role}
+                className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Next
+                Continue
               </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!canProceed() || loading}
-                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">What would you like resources for?</h1>
+                <p className="mt-2 text-gray-600">
+                  {forSomeoneElse
+                    ? 'Pick what the person you support navigates. Your matches are about them. '
+                    : 'Pick one to start. '}
+                  You can add more anytime from your profile.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="topic-search" className="block text-sm font-semibold text-gray-900">
+                  Search
+                </label>
+                <div className="relative mt-1">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <input
+                    id="topic-search"
+                    type="search"
+                    value={topicQuery}
+                    onChange={(e) => setTopicQuery(e.target.value)}
+                    placeholder="For example, ADHD or hearing"
+                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-3 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Topic">
+                  {topicChoices.map((n) => (
+                    <button
+                      key={n.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={topic === n.id}
+                      onClick={() => setTopic(topic === n.id ? null : n.id)}
+                      className={chip(topic === n.id)}
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Completing...
-                  </span>
-                ) : (
-                  'Complete Onboarding'
+                      {isOtherNorm(n.id) ? 'Other' : n.label}
+                    </button>
+                  ))}
+                  {topicChoices.length === 0 && (
+                    <p className="text-sm text-gray-600">
+                      Nothing by that name yet. Try another word, or pick Other.
+                    </p>
+                  )}
+                  {chosenTopic && !topicChoices.some((n) => n.id === chosenTopic.id) && (
+                    <button type="button" role="radio" aria-checked onClick={() => setTopic(null)} className={chip(true)}>
+                      {chosenTopic.label}
+                    </button>
+                  )}
+                </div>
+                {chosenTopic && isOtherNorm(chosenTopic.id) && (
+                  <div className="mt-3">
+                    <label htmlFor="topic-note" className="block text-sm text-gray-700">
+                      What is it? (optional)
+                    </label>
+                    <input
+                      id="topic-note"
+                      value={topicNote}
+                      onChange={(e) => setTopicNote(e.target.value)}
+                      maxLength={200}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 )}
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+              </div>
+
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">What are you hoping to find right now? Pick 1–2.</h2>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {SETUP_NEEDS.map((n) => {
+                    const on = needs.includes(n.id)
+                    return (
+                      <button
+                        key={n.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => toggleNeed(n.id)}
+                        className={`rounded-xl border p-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          on ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200' : 'border-gray-200 bg-white hover:border-blue-300'
+                        }`}
+                      >
+                        <span className="block font-medium text-gray-900">{n.label}</span>
+                        <span className="mt-0.5 block text-sm text-gray-600">{n.hint}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {error && (
+                <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(0)}
+                  disabled={saving}
+                  className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 font-medium text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => save(false)}
+                  disabled={saving || (!topic && needs.length === 0)}
+                  className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Continue'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => save(true)}
+                  disabled={saving}
+                  className="text-sm font-medium text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                >
+                  Skip this step
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Here&apos;s a place to start</h1>
+                <p className="mt-2 text-gray-600">
+                  {first?.places.length
+                    ? `Matched to what you told us${nearbyNote(first.places, first.place)}.`
+                    : first
+                    ? "We couldn't find a close match yet. Everything in ResourceHub is a search away."
+                    : 'Finding places for you...'}
+                </p>
+              </div>
+
+              {/* Location is not a setup question, but this is where it pays
+                  off: offered, in one line, and only if wanted (Group 8). */}
+              {first && !first.place && (
+                locating ? (
+                  <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                    <p className="mb-3 text-sm text-blue-900">
+                      Your location is private and optional. We use it to show places near you first.
+                    </p>
+                    <SetLocationPrompt
+                      bare
+                      onSaved={() => {
+                        setLocating(false)
+                        loadFirst()
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    Want places near you first?{' '}
+                    <button type="button" onClick={() => setLocating(true)} className="font-medium text-blue-700 underline">
+                      Add your location
+                    </button>{' '}
+                    (optional).
+                  </p>
+                )
+              )}
+
+              {!first && (
+                <div className="space-y-3" aria-hidden="true">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-100" />
+                  ))}
+                </div>
+              )}
+              {first?.places.map((place) => (
+                <MatchedPlaceCard key={place.id} place={place} topicLabel={first.topic?.label} fromSetup />
+              ))}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/"
+                  className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Go to ResourceHub
+                </Link>
+                {first && (
+                  <Link href={moreHref} className="text-sm font-medium text-blue-700 underline">
+                    {firstNeed ? `See more: ${firstNeed.label.toLowerCase()}` : 'Search ResourceHub'}
+                  </Link>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                You can add more about yourself anytime from{' '}
+                <Link href="/profile" className="underline">
+                  your profile
+                </Link>
+                . Nothing else is needed right now.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   )
 }
