@@ -14,8 +14,11 @@ import { dayKey, daysSince, getPreviousVisitDay, getVisitDayCount } from '@/lib/
  *
  *   welcome back  first visit after two weeks or more away (on this browser):
  *                 what got in the way? Asked once per absence.
- *   usefulness    after five days of use, once the feedback form is done:
- *                 is it useful so far? Asked once.
+ *   usefulness    after five days of use, or from the second week after
+ *                 sign-up for anyone who has come back at least once (Group 5:
+ *                 "low-friction in-app check-ins ... to track user sentiment
+ *                 during week two"), once the feedback form is done: is it
+ *                 useful so far? Asked once.
  *
  * Both are optional and can be put off with "Not now", which counts as
  * answered so the question does not come back.
@@ -25,6 +28,7 @@ const WELCOME_BACK_KEY = 'autinerary_checkin_welcome_back' // the absence (last 
 const USEFULNESS_KEY = 'autinerary_checkin_usefulness_v1'
 const FEEDBACK_KEY = 'autinerary_feedback_completed_v1' // FeedbackGate
 const USEFULNESS_AFTER_DAYS = 5
+const WEEK_TWO_FROM_DAY = 7
 
 type Due = { kind: 'welcome_back'; lastVisit: string } | { kind: 'usefulness' } | null
 
@@ -45,7 +49,8 @@ export default function CheckinPrompt({ fallback }: { fallback?: ReactNode }) {
       } else if (
         localStorage.getItem(FEEDBACK_KEY) === 'true' &&
         localStorage.getItem(`${FEEDBACK_KEY}_on`) !== today &&
-        getVisitDayCount() >= USEFULNESS_AFTER_DAYS &&
+        (getVisitDayCount() >= USEFULNESS_AFTER_DAYS ||
+          (joined !== null && daysSince(joined) >= WEEK_TWO_FROM_DAY && getVisitDayCount() >= 2)) &&
         !localStorage.getItem(USEFULNESS_KEY)
       ) {
         setDue({ kind: 'usefulness' })
@@ -92,7 +97,7 @@ export default function CheckinPrompt({ fallback }: { fallback?: ReactNode }) {
     <CheckinQuestion
       kind="usefulness"
       heading="One quick question (optional)"
-      intro="You've been using Autinerary for a few days. Your answer shapes what we improve next."
+      intro="You've been using Autinerary for a little while. Your answer shapes what we improve next."
       legend="Is Autinerary useful to you so far?"
       options={USEFULNESS}
       layout="chips"

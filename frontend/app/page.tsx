@@ -82,7 +82,7 @@ const STEPS = [
   {
     icon: ListChecks,
     title: 'Answer a short setup',
-    body: 'Three short steps: who you are here for, one goal, and an optional question about norms. Then your path is ready. Everything else is optional and can wait.',
+    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Everything else is optional and can wait.',
   },
   {
     icon: Rocket,
@@ -157,7 +157,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="text-sm text-slate-700">
-              Free to start · No credit card required · For adults 18+
+              Free during the beta · No credit card · For adults 18+
             </p>
             <p className="text-sm">
               <a href={`${SERVICE_HUB_URL}/search`} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
@@ -300,8 +300,10 @@ export default function HomePage() {
               </summary>
               <p className="mt-3 text-slate-700">
                 Your path is generated in about a minute. You land on a summary that starts with what you said
-                you were looking for (a plan, services, or advice from others) and shows your first milestone, with
-                an optional one-minute tour of each screen. You can replay the tour anytime from “How it works”.
+                you were looking for (a plan, services, or advice from others), with starter resources picked from
+                your answers, and shows your first milestone, with an optional one-minute tour of each screen. You can
+                replay the tour anytime from “How it works”. Optional questions, like your location or sensory needs,
+                come back gently over your first two weeks.
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
@@ -313,7 +315,8 @@ export default function HomePage() {
                 To find where setup is confusing, we count page visits, sign-ups, which setup step people reach,
                 and return visits, plus which link someone first arrived from (for example TikTok or Facebook).
                 In &ldquo;Start here&rdquo; we count the answers chosen, which starter resources are opened, and
-                whether people found them useful. These counts never include anything you type. There are no advertising trackers on this site, and if
+                whether people found them useful. Once you have an account, we count which parts of the app you
+                open. These counts never include anything you type. There are no advertising trackers on this site, and if
                 your browser sends Do Not Track or Global Privacy Control, you are not counted.
               </p>
             </details>
@@ -326,6 +329,20 @@ export default function HomePage() {
                 Autinerary is still being built and tested with early users, so some things will change and
                 some features are not finished. After setup we ask two quick questions about how it went, and
                 your answers decide what we fix next.
+              </p>
+            </details>
+            {/* Riipen Labs, Group 5 found "confusion between free vs. paid
+                features". Only what is true today: nothing in the app costs
+                anything. What may cost something after the beta is the team's
+                decision (docs/free-and-paid.md); say it here once decided. */}
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                Is Autinerary free?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="mt-3 text-slate-700">
+                Yes. Everything in Autinerary is free during the beta, including ResourceHub, Tidbits and family
+                accounts. There is nothing to pay for in the app, and no credit card is needed.
               </p>
             </details>
           </div>

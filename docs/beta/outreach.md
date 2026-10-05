@@ -19,7 +19,9 @@ schools link answers both (`need=`). People can change either answer.
 | Channel | Mostly reaches | Try the app (tracked) |
 | --- | --- | --- |
 | Riipen | Everyone | https://goal-planning-app.vercel.app/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
-| Reddit | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&utm_source=reddit&utm_campaign=beta-oct-2026 |
+| Reddit | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&need=community&utm_source=reddit&utm_campaign=beta-oct-2026 |
+| TikTok | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&need=community&utm_source=tiktok&utm_campaign=beta-oct-2026 |
+| Facebook parent groups | Parents | https://goal-planning-app.vercel.app/start?for=child&need=learn&utm_source=facebook&utm_campaign=beta-oct-2026 |
 | Instagram | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&utm_source=instagram&utm_campaign=beta-oct-2026 |
 | LinkedIn | Teachers, employers, support workers | https://goal-planning-app.vercel.app/start?for=work&utm_source=linkedin&utm_campaign=beta-oct-2026 |
 | Community organizations | Everyone (adults and parents) | https://goal-planning-app.vercel.app/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
@@ -35,7 +37,18 @@ To make another targeted link, add to `/start?`:
   `community` (people with similar experiences), `school_work`, `sensory`
 
 Leave both out when a post reaches mixed groups: a wrong first answer is
-worse than one more question. The home page address
+worse than one more question.
+
+Riipen Labs' Group 5 found that adults from fast channels (TikTok, Reddit)
+look for "peer tools", so those links open on people with similar
+experiences (Tidbits first). Parents from Facebook look for "trust & safety",
+so theirs opens on starter information, with a line on privacy under "Save
+this path".
+
+For print (merch, the comic, research posts) and anywhere a long link is
+awkward, use the short links and QR codes in
+[../campaign/README.md](../campaign/README.md), for example
+`goal-planning-app.vercel.app/c/comic`. They are tracked the same way. The home page address
 (`https://goal-planning-app.vercel.app/?utm_source=...`) still works, and
 also starts with Start here.
 
@@ -59,8 +72,8 @@ Before posting anywhere:
 > **Subject:** Help test Autinerary this October
 >
 > Hi everyone, Autinerary is running its first beta this October, and the
-> changes from Riipen Labs' reviews are now live: a three-step start, Google
-> sign-in, and short check-ins.
+> changes from Riipen Labs' reviews are now live: a guided Start here, a
+> two-question setup, Google sign-in, and short check-ins.
 >
 > We're looking for testers aged 18 or over: neurodivergent adults, parents,
 > family members, teachers and support workers, and people who are
@@ -96,6 +109,20 @@ use the community's flair for research or feedback if it has one.
 >
 > Happy to answer questions in the comments.
 
+## TikTok
+
+**Caption** (turn on auto-captions for the video, and no flashing or
+fast-moving visuals):
+
+> October is #ADHDAwarenessMonth. We're testing Autinerary, a free app that
+> turns one goal into small steps, with Tidbits, where people with similar
+> experiences ask and answer. Two quick questions and you get a few starter
+> resources, no account needed. 18+. Link in bio.
+>
+> #ADHD #Autism #Neurodiversity #BetaTesters
+
+**Link in bio:** the TikTok link above.
+
 ## Instagram
 
 **Caption:**
@@ -113,8 +140,26 @@ use the community's flair for research or feedback if it has one.
 
 **Link in bio:** the Instagram link above.
 
-**Alt text for the image:** "Phone showing Autinerary's three-step start:
-who you're here for, one goal, and an optional question about norms."
+**Alt text for the image:** "Phone showing Autinerary's Start here: two
+questions, who you're here for and what you need, then a few starter
+resources."
+
+## Facebook parent groups
+
+Ask the group's admins before posting, as with Reddit.
+
+> **Are you a parent of a neurodivergent child?** We're testing Autinerary,
+> a free app for neurodivergent people and the people who support them.
+> Answer two quick questions and you get a few starter resources for
+> parents, no account needed. If you want to keep going, it turns a goal
+> you're working on together into small steps.
+>
+> We don't sell your information, show ads, or use it to train AI, and
+> accounts are for adults: you can add your child from your own Family page.
+> What it collects: https://goal-planning-app.vercel.app/privacy
+>
+> Try it: [Facebook link]
+> Or join one 40-minute video session (12 to 23 October): [session form]
 
 ## LinkedIn
 

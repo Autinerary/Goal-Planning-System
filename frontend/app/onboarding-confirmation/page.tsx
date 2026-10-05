@@ -54,7 +54,8 @@ export default function OnboardingConfirmationPage() {
   const { payload, pathPlanning } = useAgentPath()
   const [launching, setLaunching] = useState(false)
   const { prefs, update } = usePreferences()
-  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: { for: string; need: string } | null }>({})
+  type Start = { for: string; need: string }
+  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: Start | null; suggestedStart?: Start | null }>({})
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || 'null')
@@ -76,23 +77,38 @@ export default function OnboardingConfirmationPage() {
   // Lead with what they came for, in the order they picked it; a plan (or no
   // answer) leads with the Path as before.
   const lookingFor = choices.lookingFor?.length ? choices.lookingFor : prefs.lookingFor || []
-  // The "Start here" pathway they saw before signing up (Riipen Labs, Group
-  // 4: "Save this path") is the most specific thing they came for, so it
-  // leads, in place of the general link for the same need.
-  const startPath = choices.startPath || prefs.startPath
-  const starterItem: StartItem | undefined = startPath && isStartRole(startPath.for) && isStartGoal(startPath.need)
-    ? {
-        title: 'Open your starter resources.',
-        body: `${pathwayTitle(startPath.for, startPath.need)}, saved from before you signed up.`,
-        href: '/start',
-        cta: 'See your starter resources',
-      }
+  // Starter resources (Riipen Labs, Group 4's "Start here"). The pathway saved
+  // before signing up ("Save this path") is the most specific thing they came
+  // for, so it leads. Without one, a pathway picked from their setup answers
+  // is offered (Group 5: a personalized "Start Here" resource right after the
+  // short start); it leads only when they came for something other than a
+  // plan. Either way it replaces the general link for the same need.
+  const valid = (s?: Start | null): s is Start => Boolean(s && isStartRole(s.for) && isStartGoal(s.need))
+  const savedStart = valid(choices.startPath) ? choices.startPath : valid(prefs.startPath) ? prefs.startPath : null
+  const suggested = valid(choices.suggestedStart) ? choices.suggestedStart : null
+  const start = savedStart || suggested
+  const starterItem: StartItem | undefined = start
+    ? savedStart
+      ? {
+          title: 'Open your starter resources.',
+          body: `${pathwayTitle(start.for, start.need)}, saved from before you signed up.`,
+          href: '/start',
+          cta: 'See your starter resources',
+        }
+      : {
+          title: 'See your starter resources.',
+          body: `${pathwayTitle(start.for, start.need)}, picked from your answers.`,
+          href: `/start?for=${start.for}&need=${start.need}`,
+          cta: 'See your starter resources',
+        }
     : undefined
-  const starterCovers = starterItem ? START_GOALS.find((g) => g.id === startPath?.need)?.lookingFor : null
+  const starterCovers = start ? START_GOALS.find((g) => g.id === start.need)?.lookingFor : null
   const interestItems = Array.from(new Map(
     lookingFor.filter((k) => INTERESTS[k] && k !== starterCovers).map((k) => [INTERESTS[k].href, INTERESTS[k]] as const),
   ).values())
-  const primaryInterest = starterItem || (lookingFor.length > 0 && lookingFor[0] !== 'plan' ? interestItems[0] : undefined)
+  const cameForMoreThanAPlan = lookingFor.length > 0 && lookingFor[0] !== 'plan'
+  const starterLeads = Boolean(starterItem && (savedStart || cameForMoreThanAPlan))
+  const primaryInterest = starterLeads ? starterItem : cameForMoreThanAPlan ? interestItems[0] : undefined
   const pathItems: StartItem[] = [
     { title: 'Open your Path.', body: 'Each goal is shown as a race with its milestones.' },
     {
@@ -101,11 +117,13 @@ export default function OnboardingConfirmationPage() {
     },
   ]
   const roleItem = FOR_ROLE[choices.audience || prefs.audience || '']
-  const ordered = starterItem
+  const ordered = starterLeads && starterItem
     ? [starterItem, ...pathItems, ...interestItems]
     : primaryInterest
       ? [...interestItems, ...pathItems]
-      : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
+      : starterItem
+        ? [...pathItems, starterItem, ...interestItems]
+        : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
   // The role's step goes second, after the one thing they came for; never twice.
   const startItems: StartItem[] = (roleItem && !ordered.some((i) => i.href && i.href === roleItem.href)
     ? [ordered[0], roleItem, ...ordered.slice(1)]
@@ -121,10 +139,6 @@ export default function OnboardingConfirmationPage() {
         </div>
       )}
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="space-y-3 mb-6">
-          <AgentInsightsBanner agent="path_planning" />
-          <AgentInsightsBanner agent="pattern_recognition" />
-        </div>
 
         {/* Header */}
         <div className="text-center mb-8">
@@ -227,6 +241,15 @@ export default function OnboardingConfirmationPage() {
             Milestones suggest tools, ResourceHub finds services, the calendar schedules the next steps, and the
             journal is where you look back. You can replay the tour anytime with &ldquo;How it works&rdquo; (the &#9654; button) in the top bar.
           </p>
+        </div>
+
+        {/* What the AI did, after the essentials instead of above them
+            (Riipen Labs, Group 5: keep AI personalization "running behind the
+            scenes until basic onboarding is fully completed"). Each renders
+            nothing when it has nothing to say. */}
+        <div className="space-y-3 mb-6">
+          <AgentInsightsBanner agent="path_planning" />
+          <AgentInsightsBanner agent="pattern_recognition" />
         </div>
 
         <OnboardingFeedback />

@@ -20,6 +20,15 @@ next campaign push. Start here is live (see [start-here.md](start-here.md));
 its first task and its measures (clarity, completion, relevance and
 confidence) are part of this plan too.
 
+Group 5's report recommended a shorter, persona-based start: "reduce initial
+sign-up to 3 core steps (account setup, primary role, immediate goal)", a
+personalized "Start Here" resource right after it, deeper questions
+(sensory needs, conditions) over days 7 to 14, a week-two check-in, and a
+clear path from the October campaign (merch, comic, research) to sign-ups.
+All of that is live. Their measures are below: drop-off (target: 40% less),
+returns within 7 to 14 days, and satisfaction in the first weeks. The
+campaign's links and QR codes are in [campaign/README.md](campaign/README.md).
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -38,7 +47,9 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Done; confirmed with a real Google account 4 October |
 | Privacy page | What testers are told about their information | Live at /privacy |
 | Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device | Done 4 October; tested live (on, delivered, off) |
-| Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures; until then those events are dropped | To do |
+| Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures | Done 4 October; tested live |
+| Apply STEP 49 (`backend/database/migrations/2026_feature_use_events.sql`) | Counts which parts of the app people open; until then those events are dropped | To do |
+| If the app will get its own address (for example app.autinerary.ca), set it up before printing QR codes | Printed codes cannot be changed ([campaign/README.md](campaign/README.md)) | To decide |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -130,15 +141,18 @@ What participants will see, in order:
 
 1. Start here, before any account: who they are here for, what they need
    today, then a few starter resources and "Save this path".
-2. Setup in three steps (who you're here for, one goal, and an optional
-   question about norms), starting with their Start here answers, then an
-   optional "What are you looking for today?"
-3. Two optional questions after setup (how much they knew before signing up,
-   how easy setup was), and an opt-in to a check-in by email, by a
-   notification on their device, or both.
-4. After five days of use (and after the existing feedback form): "Is
-   Autinerary useful to you so far?"
-5. Anyone who comes back after two weeks away: "Welcome back, what got in the
+2. Setup in two questions (who you're here for, and one goal), starting with
+   their Start here answers, with an optional "What are you looking for
+   today?". Norms and the other extras are optional.
+3. Starter resources picked from their answers, two optional questions about
+   setup (how much they knew before signing up, how easy setup was), and an
+   opt-in to a check-in by email, by a notification on their device, or both.
+4. Optional questions they skipped come back on the Path, one group at a
+   time: location first, sensory needs and conditions from day 7, the
+   personal touches from day 10.
+5. After five days of use, or on a return visit in the second week (and
+   after the existing feedback form): "Is Autinerary useful to you so far?"
+6. Anyone who comes back after two weeks away: "Welcome back, what got in the
    way?" Anyone who opted in and stays away two weeks gets the same question
    once, by email and/or notification, answerable without signing in.
 
@@ -166,6 +180,15 @@ Group 4's measures for Start here, from the same report:
 | Relevance: "users mark results as useful or save the path" | "Was this useful?" yes and not really, and saves, by need and by who for | Start here events; session task 1 |
 | Confidence: "choose a next action" | Share of pathways followed by opening a resource or saving | Start here events; session task 1 |
 
+Group 5's measures:
+
+| Group 5 asked for | What we report | Where it comes from |
+| --- | --- | --- |
+| "Reduce drop-off by 40%+ (completion rate)" | Setup completion and drop-off for each onboarding version, and the change between the last two | Funnel events |
+| "Track 7-14 day retention" | Share of new accounts back within 7 and within 14 days | Funnel events |
+| "Monitor first-week satisfaction scores" | Usefulness answers given in the first two weeks after sign-up; setup ease | In-app check-in; post-setup survey |
+| "Which features different user groups actually use" | Share of accounts that open each part of the app, by who they are here for | feature_use events (STEP 49) |
+
 Proposed targets, for the team to agree before the trial starts:
 
 - at least 70% of new accounts finish setup
@@ -175,6 +198,8 @@ Proposed targets, for the team to agree before the trial starts:
 - at least 70% of people who start Start here reach a pathway, and at least
   half of pathways lead to a next action
 - more people say starter resources were useful than not, for each need
+- drop-off at least 40% lower in `twostep-2026-10` than in
+  `goalfirst-2026-10`, once each has at least 5 accounts
 
 Groups with fewer than 5 people are shown as "<5", with no percentages.
 Browsers that send Do Not Track or Global Privacy Control are left out of the
@@ -183,8 +208,8 @@ kept.
 
 ## After the trial (week of 10 November)
 
-1. Run the report for the trial version (`goalfirst-2026-10`) and export the
-   session notes.
+1. Run the report for the trial version (`twostep-2026-10`, the default) and
+   export the session notes.
 2. For each measure, compare user groups and channels; mark anything below
    target.
 3. List the three most common reasons people stopped, with quotes.

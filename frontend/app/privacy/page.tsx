@@ -132,7 +132,8 @@ export default function PrivacyPage() {
             <List>
               <li>
                 When you view the home page, open the sign-up form, create an account, reach each setup step, finish setup,
-                and open the app (at most once a day). With each: a random ID kept in your browser, the website that sent
+                and open the app (at most once a day), and which parts of the app you open, such as the calendar or the
+                journal (each at most once a day). With each: a random ID kept in your browser, the website that sent
                 you, and the campaign link you used, if any.
               </li>
               <li>

@@ -17,9 +17,10 @@
 
 // Bump when onboarding changes enough that its numbers should be compared
 // separately (Riipen: "create a revised onboarding group"). riipen-2026-10 was
-// the first revision (readability, info before sign-up); goalfirst-2026-10 is
-// the goal-first, three-step start.
-export const ONBOARDING_VERSION = 'goalfirst-2026-10'
+// the first revision (readability, info before sign-up); goalfirst-2026-10 the
+// goal-first start of three steps; twostep-2026-10 the two-question start (who
+// for, one goal) with norms optional and asked again later (Group 5).
+export const ONBOARDING_VERSION = 'twostep-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'
@@ -37,8 +38,42 @@ export type FunnelEvent =
   | 'start_open'
   | 'start_useful'
   | 'start_save'
+  // Which parts of the app people open (Riipen Labs, Group 5: track "which
+  // features different user groups actually use"). Step: the area, below.
+  // At most once a day per area per browser, signed in only.
+  | 'feature_use'
+
+// Parts of the app, by address. ResourceHub is opened through /go/servicehub,
+// so its destination decides between Tidbits and the rest of ResourceHub.
+const AREAS: [RegExp, string][] = [
+  [/^\/path(\/|$)/, 'path'],
+  [/^\/races(\/|$)/, 'races'],
+  [/^\/milestones(\/|$)/, 'milestones'],
+  [/^\/calendar(\/|$)/, 'calendar'],
+  [/^\/tasks(\/|$)/, 'tasks'],
+  [/^\/pit-stop(\/|$)/, 'pit_stop'],
+  [/^\/tools(\/|$)/, 'tools'],
+  [/^\/reflection(\/|$)/, 'journal'],
+  [/^\/assistant(\/|$)/, 'assistant'],
+  [/^\/family(\/|$)/, 'family'],
+  [/^\/ideal-self(\/|$)/, 'dream_self'],
+  [/^\/(profile|settings)(\/|$)/, 'settings'],
+  [/^\/start(\/|$)/, 'start'],
+  [/^\/path-market(\/|$)/, 'path_market'],
+  [/^\/paths\/compare(\/|$)/, 'compare'],
+]
+export const AREA_IDS = [...AREAS.map(([, id]) => id), 'tidbits', 'resourcehub']
+
+export function areaFor(pathname: string, search = ''): string | null {
+  if (pathname === '/go/servicehub') {
+    const next = new URLSearchParams(search).get('next') || '/'
+    return next.startsWith('/community') ? 'tidbits' : 'resourcehub'
+  }
+  return AREAS.find(([pattern]) => pattern.test(pathname))?.[1] ?? null
+}
 
 const VISITOR_KEY = 'autinerary_visitor_id'
+const AREA_DAYS_KEY = 'autinerary_area_days'
 const FIRST_TOUCH_KEY = 'autinerary_first_touch'
 const DAILY_OPEN_KEY = 'autinerary_last_open_day'
 
@@ -105,6 +140,22 @@ export function track(event: FunnelEvent, step?: string): void {
       body: JSON.stringify({ visitorId: id, event, step: step ?? null, ...touch, version: ONBOARDING_VERSION }),
     }).catch(() => {})
   } catch {}
+}
+
+/** One "feature_use" per area per calendar day per browser. */
+export function trackArea(pathname: string, search = ''): void {
+  const area = areaFor(pathname, search)
+  if (!area) return
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const days = JSON.parse(localStorage.getItem(AREA_DAYS_KEY) || '{}')
+    if (days[area] === today) return
+    days[area] = today
+    localStorage.setItem(AREA_DAYS_KEY, JSON.stringify(days))
+  } catch {
+    return
+  }
+  track('feature_use', area)
 }
 
 /** One "app_open" per calendar day per browser, for the 7-day return measure. */

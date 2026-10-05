@@ -32,6 +32,16 @@ looking for today?"), saves the path to the account, and the page after
 setup opens with it. Signed in, it saves straight to the account. Either
 way it reopens from **Quick Links > Starter resources** on the Path.
 
+**After setup, for everyone** (Riipen Labs, Group 5: a personalized "Start
+Here" resource right after the short start): people who signed up without
+using Start here get a pathway picked from their setup answers. Who it is
+for comes from "Who are you here for?". The need comes from "What are you
+looking for today?" (services, community, learning), or else from the
+goal's category (education or career: school or work; health: services;
+relationships: people with similar experiences; norms: starter
+information). It leads the page after setup when they came for something
+other than a plan, and is listed after the Path otherwise.
+
 ## What each pathway shows
 
 Everything comes live from ResourceHub, so names and counts stay current.
@@ -76,7 +86,8 @@ These gaps shaped the pathways, and are the best places to add content:
 `child`, `family`, `work` or `ally`; `need=` is `learn`, `services`,
 `community`, `school_work` or `sensory`. Add the usual `utm_source` and
 `utm_campaign`. The links for this October's beta are in
-[beta/outreach.md](beta/outreach.md).
+[beta/outreach.md](beta/outreach.md); short links and QR codes for print
+(`/c/comic`, `/c/merch`, ...) are in [campaign/README.md](campaign/README.md).
 
 ## Measures
 

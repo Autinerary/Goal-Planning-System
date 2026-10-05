@@ -194,6 +194,23 @@ export function searchPath(params: Record<string, string>): string {
   return qs ? `/search?${qs}` : '/search'
 }
 
+// Setup's answers, read as Start here answers, so everyone gets starter
+// resources straight after setup (Riipen Labs, Group 5: "a personalized
+// 'Start Here' resource on Screen 3 before asking for detailed info").
+const ROLE_FOR_AUDIENCE: Record<string, string> = {
+  self: 'self', child: 'child', family: 'family', friend: 'family', work: 'work', ally: 'ally', unsure: 'unsure',
+}
+// "What are you looking for today?" first, then the goal's category.
+const NEED_FOR_LOOKING_FOR: Record<string, string> = { services: 'services', community: 'community', learning: 'learn' }
+const NEED_FOR_GOAL_CATEGORY: Record<string, string> = {
+  education: 'school_work', career: 'school_work', health: 'services', relationships: 'community', barrier: 'learn',
+}
+
+export function suggestedStart(audience: string, lookingFor: string[], goalCategory?: string): { for: string; need: string } {
+  const need = lookingFor.map((k) => NEED_FOR_LOOKING_FOR[k]).find(Boolean) || NEED_FOR_GOAL_CATEGORY[goalCategory || ''] || 'unsure'
+  return { for: ROLE_FOR_AUDIENCE[audience] || 'unsure', need }
+}
+
 export const START_FOR_KEY = 'autinerary_start_for'
 export const START_NEED_KEY = 'autinerary_start_need'
 

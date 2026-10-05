@@ -17,6 +17,11 @@ from scripts.onboarding_funnel import (  # noqa: E402
     START_ROLES,
     compute_start_here,
     render_start_here,
+    AREAS,
+    compare_versions,
+    render_versions,
+    render_feature_use,
+    summarize_feature_use,
     render_heard_from,
     summarize_heard_from,
     STOP_REASONS,
@@ -338,3 +343,75 @@ class StartHereTests(unittest.TestCase):
             self.assertIn(f"'{event}'", route)
             self.assertIn(f"'{event}'", sql)
         self.assertIn("unsure", AUDIENCE_LABELS)
+
+
+class Group5Tests(unittest.TestCase):
+    """Riipen Labs, Group 5's measures."""
+
+    def accounts(self, version, n, finished):
+        rows = []
+        for i in range(n):
+            v = f"{version}-{i}"
+            rows.append(ev(v, "signup_complete", "2026-10-05T10:00:00+00:00", version=version))
+            if i < finished:
+                rows.append(ev(v, "onboarding_complete", "2026-10-05T10:05:00+00:00", version=version))
+        return rows
+
+    def test_drop_off_by_version_and_the_40_percent_target(self):
+        old = self.accounts("goalfirst-2026-10", 10, 5)     # 50% dropped off
+        new = self.accounts("twostep-2026-10", 10, 8)       # 20%: 60% less
+        for row in old:
+            row["created_at"] = row["created_at"].replace("10-05", "10-01")
+        rows = compare_versions(new + old + self.accounts("qa-x", 6, 0))
+        self.assertEqual([r["version"] for r in rows], ["goalfirst-2026-10", "twostep-2026-10"])
+        text = render_versions(rows)
+        self.assertIn("-60%", text)
+        self.assertIn("target met", text)
+
+    def test_small_versions_hide_their_numbers(self):
+        text = render_versions(compare_versions(self.accounts("twostep-2026-10", 3, 1)))
+        line = next(l for l in text.splitlines() if "twostep" in l)
+        self.assertIn("<5", line)
+        self.assertNotIn("%", line)
+        self.assertNotIn("drop-off twostep", text)
+
+    def test_feature_use_counts_accounts_by_group(self):
+        rows = []
+        for i in range(6):
+            uid = f"u{i}"
+            rows.append({**ev(f"v{i}", "feature_use", "2026-10-05T10:00:00+00:00", step="calendar"), "user_id": uid})
+            if i < 3:
+                rows.append({**ev(f"v{i}", "feature_use", "2026-10-06T10:00:00+00:00", step="tidbits"), "user_id": uid})
+        rows.append({**ev("w", "feature_use", "2026-10-05T10:00:00+00:00", step="journal"), "user_id": "parent1"})
+        audience = {f"u{i}": "self" for i in range(6)} | {"parent1": "child"}
+        f = summarize_feature_use(rows, V, audience)
+        self.assertEqual(f["all"]["accounts"], 7)
+        self.assertEqual(f["myself"]["areas"]["calendar"], 6)
+        self.assertEqual(f["myself"]["areas"]["tidbits"], 3)
+        text = render_feature_use(f)
+        self.assertIn("myself", text)
+        self.assertNotIn("my child", text)          # one account: not shown separately
+        self.assertIn("1 group(s)", text)
+        calendar = next(l for l in text.splitlines() if l.strip().startswith("Calendar"))
+        self.assertIn("86%", calendar)               # 6 of 7 accounts
+        self.assertNotIn("u0", text)
+
+    def test_areas_match_the_app(self):
+        ts = (REPO / "frontend/lib/funnel.ts").read_text()
+        for area, _ in AREAS:
+            self.assertIn(f"'{area}'", ts)
+        sql = (REPO / "backend/database/migrations/2026_feature_use_events.sql").read_text()
+        self.assertIn("'feature_use'", sql)
+
+    def test_usefulness_in_the_first_two_weeks(self):
+        rows = [
+            {"user_id": "a", "kind": "usefulness", "usefulness": "very", "reason": None, "comment": None,
+             "created_at": "2026-10-10T10:00:00+00:00"},
+            {"user_id": "b", "kind": "usefulness", "usefulness": "not_yet", "reason": None, "comment": None,
+             "created_at": "2026-11-30T10:00:00+00:00"},
+        ]
+        joined = {"a": "2026-10-01T09:00:00+00:00", "b": "2026-10-01T09:00:00+00:00"}
+        c = summarize_checkins(rows, {}, joined)
+        self.assertEqual(c["usefulness_early"]["very"], 1)
+        self.assertEqual(sum(c["usefulness_early"].values()), 1)
+        self.assertIn("first two weeks after sign-up (1 answers)", render_checkins(c, show_comments=False))

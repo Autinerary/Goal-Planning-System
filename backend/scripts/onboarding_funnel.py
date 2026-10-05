@@ -27,6 +27,13 @@ completion ("select a role and goal, then reach a resource list"), relevance
 next action"). Those come from the start_* events (STEP 48), split by need
 and by who it is for, with the resources opened most.
 
+Group 5 set targets: "reduce drop-off by 40%+ (completion rate), track 7-14
+day retention, and monitor first-week satisfaction scores", and suggested
+tracking "which features different user groups actually use". So the report
+also compares setup completion across onboarding versions, shows usefulness
+answers given in the first two weeks, and which parts of the app each group
+opens (feature_use events, STEP 49).
+
 Group 2 also asked to "ask active users about usefulness and inactive users
 why they disengaged". Those answers (public.checkin_responses, STEP 46) are
 summarized at the end: why people stopped, from the check-in email and the
@@ -54,23 +61,24 @@ from statistics import median
 from typing import Dict, Iterable, List, Optional
 
 # Must match ONBOARDING_VERSION in frontend/lib/funnel.ts.
-CURRENT_VERSION = "goalfirst-2026-10"
+CURRENT_VERSION = "twostep-2026-10"
 
 # Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
-# first three are the required start; the rest are optional extras.
+# first two are the required start; the rest are optional extras. (Before
+# twostep-2026-10, norms were the third step of the start, and there was an
+# AI recommendations step at the end.)
 STEPS = [
     ("about", "About you (age, who for)"),
     ("goalsAndDreams", "One goal"),
-    ("barrierConnections", "Norms (optional)"),
+    ("barrierConnections", "extra: Norms"),
     ("location", "extra: Location"),
     ("motivation", "extra: Motivation"),
     ("character", "extra: Character"),
     ("profile", "extra: Dream Self"),
     ("spiritAnimal", "extra: Spirit animals"),
     ("personalize", "extra: Personalize"),
-    ("recommendations", "extra: Resources"),
 ]
-CORE_STEPS = 3
+CORE_STEPS = 2
 
 AUDIENCE_LABELS = {
     "self": "myself",
@@ -117,6 +125,16 @@ USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "no
 
 RETURN_WINDOW = timedelta(days=7)
 RETURN_WINDOW_LONG = timedelta(days=14)
+FIRST_WEEKS = timedelta(days=14)
+
+# Parts of the app counted by feature_use, as in frontend/lib/funnel.ts.
+AREAS = [
+    ("path", "Path"), ("races", "Races"), ("milestones", "Milestones"), ("calendar", "Calendar"),
+    ("tasks", "Tasks"), ("pit_stop", "Pit Stop"), ("tools", "Tools"), ("journal", "Journal"),
+    ("assistant", "Assistant"), ("family", "Family"), ("dream_self", "Dream Self"),
+    ("settings", "Settings"), ("start", "Start here"), ("path_market", "Path Market"),
+    ("compare", "Compare paths"), ("tidbits", "Tidbits"), ("resourcehub", "ResourceHub"),
+]
 
 # Rows for groups smaller than this show "<5" instead of counts and rates, so
 # a shared copy of the report cannot single anyone out. Totals are unaffected.
@@ -435,7 +453,93 @@ def render_start_here(s: Dict) -> str:
     return "\n".join(out)
 
 
-def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
+def compare_versions(events: Iterable[dict]) -> List[Dict]:
+    """Setup completion for each onboarding version, oldest first. Group 5's
+    target is 40% less drop-off: accounts that did not finish setup. Pure."""
+    by_version: Dict[str, Dict] = defaultdict(lambda: {"accounts": set(), "finished": set(), "first": None})
+    for e in events:
+        version = str(e.get("onboarding_version", ""))
+        if version.startswith("qa"):
+            continue
+        g = by_version[version]
+        if g["first"] is None or e["created_at"] < g["first"]:
+            g["first"] = e["created_at"]
+        if e["event"] == "signup_complete":
+            g["accounts"].add(e["visitor_id"])
+        elif e["event"] == "onboarding_complete":
+            g["finished"].add(e["visitor_id"])
+    rows = []
+    for version, g in sorted(by_version.items(), key=lambda kv: kv[1]["first"] or ""):
+        if not g["accounts"]:
+            continue
+        rows.append({"version": version, "accounts": len(g["accounts"]),
+                     "finished": len(g["finished"] & g["accounts"])})
+    return rows
+
+
+def render_versions(rows: List[Dict]) -> str:
+    out = ["== Setup completion by onboarding version (Group 5's target: 40% less drop-off)",
+           f"  {'version':<22} {'accounts':>8} {'finished':>9} {'dropped off':>11}"]
+    for r in rows:
+        if r["accounts"] < MIN_CELL:
+            out.append(f"  {r['version'][:22]:<22} {SMALL:>8} {'-':>9} {'-':>11}")
+            continue
+        out.append(f"  {r['version'][:22]:<22} {r['accounts']:>8} {pct(r['finished'], r['accounts']):>9} "
+                   f"{pct(r['accounts'] - r['finished'], r['accounts']):>11}")
+    big = [r for r in rows if r["accounts"] >= MIN_CELL]
+    if len(big) >= 2:
+        before, after = big[-2], big[-1]
+        drop_before = (before["accounts"] - before["finished"]) / before["accounts"]
+        drop_after = (after["accounts"] - after["finished"]) / after["accounts"]
+        if drop_before > 0:
+            change = (drop_after - drop_before) / drop_before
+            out.append(f"  drop-off {after['version']} vs {before['version']}: {100 * change:+.0f}%"
+                       + ("  (target met)" if change <= -0.40 else ""))
+    if not rows:
+        out.append("  (no accounts yet)")
+    return "\n".join(out)
+
+
+def summarize_feature_use(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
+                          audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
+    """Which parts of the app each account opened, by who they are here for.
+    Counts accounts (signed-in people), not visits. Pure."""
+    audience_by_user = audience_by_user or {}
+    used: Dict[str, set] = defaultdict(set)
+    for e in events:
+        if e["event"] == "feature_use" and e.get("user_id") and e.get("step") \
+                and keep_version(e.get("onboarding_version", ""), wanted_version):
+            used[e["user_id"]].add(e["step"])
+    groups: Dict[str, List[set]] = defaultdict(list)
+    for user_id, areas in used.items():
+        groups["all"].append(areas)
+        groups[AUDIENCE_LABELS.get(audience_by_user.get(user_id), NOT_ANSWERED)].append(areas)
+    return {g: {"accounts": len(members), "areas": Counter(a for areas in members for a in areas)}
+            for g, members in groups.items()}
+
+
+def render_feature_use(f: Dict) -> str:
+    out = ["== Parts of the app people open (share of accounts that opened each)"]
+    if not f:
+        out.append("  (none yet: apply STEP 49)")
+        return "\n".join(out)
+    shown = ["all"] + sorted((g for g in f if g != "all" and f[g]["accounts"] >= MIN_CELL),
+                             key=lambda g: -f[g]["accounts"])
+    hidden = sum(1 for g in f if g != "all" and f[g]["accounts"] < MIN_CELL)
+    out.append(f"  {'part':<16}" + "".join(f"{g[:14]:>16}" for g in shown))
+    out.append(f"  {'accounts':<16}" + "".join(f"{f[g]['accounts']:>16}" for g in shown))
+    labels = dict(AREAS)
+    order = sorted(labels, key=lambda a: -f["all"]["areas"].get(a, 0))
+    for area in order:
+        out.append(f"  {labels[area]:<16}" + "".join(
+            f"{pct(f[g]['areas'].get(area, 0), f[g]['accounts']):>16}" for g in shown))
+    if hidden:
+        out.append(f"  ({hidden} group(s) with fewer than {MIN_CELL} accounts not shown separately)")
+    return "\n".join(out)
+
+
+def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None,
+                       joined_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
     users find it useful, overall and by who they are here for. Pure."""
     audience_by_user = audience_by_user or {}
@@ -447,6 +551,11 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
 
     stopped = [r for r in rows if r.get("kind") in ("inactive_email", "welcome_back")]
     useful = [r for r in rows if r.get("kind") == "usefulness"]
+    joined_by_user = joined_by_user or {}
+
+    def early(r: dict) -> bool:
+        joined = joined_by_user.get(r.get("user_id"))
+        return bool(joined and r.get("created_at") and _ts(r["created_at"]) - _ts(joined) <= FIRST_WEEKS)
     by_audience: Dict[str, Dict[str, Counter]] = defaultdict(lambda: {"reasons": Counter(), "usefulness": Counter()})
     for r in stopped:
         if r.get("reason"):
@@ -461,6 +570,7 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
         "reasons": Counter(r["reason"] for r in stopped if r.get("reason")),
         "useful": len(useful),
         "usefulness": Counter(r["usefulness"] for r in useful if r.get("usefulness")),
+        "usefulness_early": Counter(r["usefulness"] for r in useful if r.get("usefulness") and early(r)),
         "by_audience": dict(by_audience),
         "comments": [(r["kind"], r["comment"]) for r in rows if r.get("comment")],
     }
@@ -475,9 +585,13 @@ def render_checkins(c: Dict, show_comments: bool) -> str:
         out.append(f"  {label:<30} {c['reasons'].get(key, 0):>4}  ({pct(c['reasons'].get(key, 0), total)})")
     out.append("")
     useful_total = sum(c["usefulness"].values())
-    out.append(f"== Useful so far? (active users, after 5 days of use): {c['useful']} answers")
+    out.append(f"== Useful so far? (after 5 days of use, or from the second week): {c['useful']} answers")
     out.append("  " + "   ".join(f"{label}: {c['usefulness'].get(key, 0)} ({pct(c['usefulness'].get(key, 0), useful_total)})"
                                 for key, label in USEFULNESS))
+    early_total = sum(c["usefulness_early"].values())
+    out.append(f"  in the first two weeks after sign-up ({early_total} answers): " + "   ".join(
+        f"{label}: {c['usefulness_early'].get(key, 0)} ({pct(c['usefulness_early'].get(key, 0), early_total)})"
+        for key, label in USEFULNESS))
     if c["by_audience"]:
         out.append("")
         out.append("== Check-ins by who they are here for")
@@ -533,7 +647,10 @@ def main() -> int:
         return 1
     audience_by_user = {}
     heard_from_by_user = {}
-    for p in fetch_all(sb, "profiles", "id, preferences"):
+    joined_by_user = {}
+    for p in fetch_all(sb, "profiles", "id, preferences, created_at"):
+        if p.get("created_at"):
+            joined_by_user[p["id"]] = p["created_at"]
         heard = (p.get("preferences") or {}).get("heardFrom")
         if heard:
             heard_from_by_user[p["id"]] = heard
@@ -555,12 +672,16 @@ def main() -> int:
     print()
     print(render_start_here(compute_start_here(events, args.version)))
     print()
+    print(render_versions(compare_versions(events)))
+    print()
+    print(render_feature_use(summarize_feature_use(events, args.version, audience_by_user)))
+    print()
     try:
-        checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version")
+        checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version, created_at")
     except Exception:
         print("== Check-ins: not available yet (apply STEP 46).")
         return 0
-    print(render_checkins(summarize_checkins(checkins, audience_by_user), args.show_comments))
+    print(render_checkins(summarize_checkins(checkins, audience_by_user, joined_by_user), args.show_comments))
     return 0
 
 

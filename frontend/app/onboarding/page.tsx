@@ -21,7 +21,7 @@ import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
-import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole } from '@/lib/startHere'
+import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -31,7 +31,6 @@ import {
 } from '@/lib/diagnostic-profile'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 // Character avatar options — spirit animal selection is done later in the Spirit Animals step
 const characterTypes = [
   { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
@@ -105,16 +104,22 @@ function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: num
 }
 
 // Step components
-// `short` is what the progress rail shows. Nine labels share one row, so
-// "Character Select" and "AI Recommendations" wrapped to three lines each,
+// `short` is what the progress rail shows. Up to seven labels share one row,
+// so "Character Select" and "AI Recommendations" wrapped to three lines each,
 // pushed their neighbours out of line and collided with the circle above.
 // `title` stays the full name and remains the accessible label.
 //
 // Goal-first order (Riipen Labs, Group 2): "sort the questions into need now
-// and ask later" and "build the short branching start that asks who the user
-// is here for, then one goal, then an optional condition question". The
-// first CORE_STEP_COUNT steps are the whole required start; the path can be
-// created at the end of them. Everything after is an optional extra.
+// and ask later", then an optional condition question. Group 5 then asked to
+// "reduce initial sign-up to 3 core steps (account setup, primary role,
+// immediate goal)" and to ask about conditions and sensory needs later. So
+// the first CORE_STEP_COUNT steps (after the account) are the whole start,
+// and the path is created at the end of them. Norms are the first optional
+// extra; if nothing about the person was shared, the Path asks about sensory
+// needs and conditions in the second week (app/components/AskLaterCard.tsx).
+// The AI recommendations step was dropped from setup (Group 5: keep the AI
+// "running behind the scenes until basic onboarding is fully completed");
+// Start here's resources follow setup instead.
 const steps = [
   { id: 'about', title: 'About you', short: 'About you', icon: User },
   { id: 'goalsAndDreams', title: 'Your goal', short: 'Goal', icon: Target },
@@ -125,9 +130,8 @@ const steps = [
   { id: 'profile', title: 'Dream Self', short: 'Dream Self', icon: Palette },
   { id: 'spiritAnimal', title: 'Spirit Animals', short: 'Animals', icon: Heart },
   { id: 'personalize', title: 'Personalize', short: 'Personalize', icon: Palette },
-  { id: 'recommendations', title: 'AI Recommendations', short: 'Resources', icon: Sparkles },
 ]
-const CORE_STEP_COUNT = 3
+const CORE_STEP_COUNT = 2
 const stepIndex = (id: string) => steps.findIndex((s) => s.id === id)
 // Only these must be answered (age is confirmed inside 'about').
 const REQUIRED_STEP_IDS = new Set(['about', 'goalsAndDreams'])
@@ -148,6 +152,19 @@ const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
   // Setup then reads as if for themselves, the default.
   { id: 'unsure', label: 'Not sure yet', connection: null },
 ]
+
+// What Autinerary does for each of them, shown once they choose (Riipen Labs,
+// Group 5: "make the value of Autinerary clearer for each user group during
+// onboarding"). Matches what "Start here" says for the same answer.
+const AUDIENCE_VALUE: Record<string, string> = {
+  self: 'You\u2019ll turn your goal into small, clear steps planned around your energy, and find services rated by people with similar norms.',
+  child: 'You\u2019ll plan a goal you are working on together in small, clear steps, and find services and places for families. If your child is under 18, you can add them from the Family page.',
+  family: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find services and ideas that fit how they work.',
+  friend: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find services and ideas that fit how they work.',
+  work: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find tools and services to recommend.',
+  ally: 'You\u2019ll learn from questions and answers in Tidbits, browse services, and can start a plan of your own.',
+  unsure: 'That\u2019s fine. You\u2019ll get one goal turned into small, clear steps, and can explore the rest whenever you like.',
+}
 
 // The "Start here" answers kept in this browser, if both were given.
 function keptStartPath(): { for: string; need: string; savedAt: string } | null {
@@ -172,7 +189,7 @@ const LOOKING_FOR = [
 // core steps (age, norms, goals) stay required. Location joined the
 // optional set after Riipen Labs' review ("reduce mandatory questions"):
 // its own copy already called it optional while the form required it.
-const skippableSteps = new Set(['location', 'motivation', 'character', 'profile', 'spiritAnimal', 'personalize'])
+const skippableSteps = new Set(['barrierConnections', 'location', 'motivation', 'character', 'profile', 'spiritAnimal', 'personalize'])
 
 // One line per step on what the answer is used for, so people can see how
 // setup connects to the plan they get (Riipen: "show how key features
@@ -187,7 +204,6 @@ const STEP_PURPOSE: Record<string, string> = {
   profile: 'Your Ideal Self page: a picture of who you are working toward.',
   spiritAnimal: 'The guides shown on your Path.',
   personalize: 'How the app looks and how much it shows at once. You can change this later in Settings.',
-  recommendations: 'Anything you save goes to My Resources in ResourceHub.',
 }
 
 const goalCategories = [
@@ -386,7 +402,7 @@ const barrierCategories = [
     name: 'Economic & Access',
     subcategories: [
       { name: 'Economic', items: ['Limited Income', 'Food Insecurity', 'Housing Instability'] },
-      { name: 'Access', items: ['Limited Technology Access', 'Rural / Remote Area', 'Transportation Barrier'] },
+      { name: 'Access', items: ['Limited Technology Access', 'Rural / Remote Area', 'Limited Transportation'] },
     ]
   },
 ]
@@ -617,15 +633,9 @@ export default function OnboardingPage() {
     : formData.barrierConnectionText.trim()
       ? [formData.barrierConnectionText.trim()]
       : ['Prefer not to share']
-  const recommendationSupportContext = toRecommendationSupportContext(diagnosticProfile)
-  
-  const [recommendations, setRecommendations] = useState<any[]>([])
-  const [savedResources, setSavedResources] = useState<Set<string>>(new Set())
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
-  const [recommendationExplanation, setRecommendationExplanation] = useState('')
-  // True while we are retrying a cold-starting recommendation service, so
-  // the spinner can say why it is taking a while instead of just spinning.
-  const [recommendationsWaking, setRecommendationsWaking] = useState(false)
+  // The consented, non-clinical part of the detailed profile, sent with the
+  // path request. Empty when nothing was shared.
+  const agentSupportContext = toRecommendationSupportContext(diagnosticProfile)
 
   // ─── Autosave: persist progress to localStorage so it survives page reloads ───
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
@@ -650,7 +660,10 @@ export default function OnboardingPage() {
           // Restore by id; drafts from before the goal-first reorder only
           // know their position in the old order.
           const id = typeof stepId === 'string' ? stepId : LEGACY_STEP_ORDER[step]
-          setCurrentStep(data.ageConfirmation === 'adult' ? Math.max(0, stepIndex(id)) : 0)
+          // A step that no longer exists (AI recommendations, the last one)
+          // resumes at the last step there is.
+          const at = stepIndex(id)
+          setCurrentStep(data.ageConfirmation === 'adult' ? (at >= 0 ? at : steps.length - 1) : 0)
           restoredDraft = true
         }
       }
@@ -845,7 +858,6 @@ export default function OnboardingPage() {
       case 'profile': return formData.dreamSelf.trim() !== ''
       case 'spiritAnimal': return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // every slot for the chosen mode filled
       case 'personalize': return true // all optional
-      case 'recommendations': return true // optional to save
       default: return false
     }
   }
@@ -921,154 +933,6 @@ export default function OnboardingPage() {
   const goalIntro = supporting
     ? 'Start with one goal. It can be yours, or something you are working on for the person you support (for example, \u201cFind an occupational therapist for my child\u201d). More goals, dreams and obstacles are optional.'
     : 'Start with one goal. Pick a category and add it. More goals, dreams and obstacles are optional and can come later.'
-
-  // Fetch AI recommendations when reaching the recommendations step.
-  //
-  // The guard is a ref, not the isLoadingRecommendations state. This effect
-  // only depends on currentStep, so under React StrictMode it runs twice
-  // with the same closure, where that state is still false — two requests
-  // went out and the loser's failure overwrote the winner's results.
-  const recommendationsInFlight = useRef(false)
-  useEffect(() => {
-    if (steps[currentStep].id === 'recommendations' && recommendations.length === 0 && !recommendationsInFlight.current) {
-      fetchRecommendations()
-    }
-  }, [currentStep]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  const fetchRecommendations = async () => {
-    const missing = ['about', 'goalsAndDreams'].map(stepIndex).filter(index => !canProceed(index))
-    if (missing.length > 0) {
-      setRecommendations([])
-      setRecommendationExplanation(`Complete ${missing.map(index => steps[index].title).join(', ')} before requesting recommendations.`)
-      return
-    }
-    if (recommendationsInFlight.current) return
-    recommendationsInFlight.current = true
-    setIsLoadingRecommendations(true)
-    setRecommendationExplanation('')
-    setRecommendationsWaking(false)
-    try {
-      const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
-      
-      // Derive role from barrierConnections (first key, or 'self' as fallback)
-      const connectionKeys = Object.keys(formData.barrierConnections)
-      const derivedRole = connectionKeys.length > 0 ? connectionKeys[0] : (AUDIENCES.find(a => a.id === formData.audience)?.connection || 'self')
-      
-      // Flatten goalsByCategory into a goals array (goals live there now, not in formData.goals)
-      const flattenedGoals: string[] = []
-      const flattenedChallenges: string[] = []
-      Object.values(formData.goalsByCategory).forEach(entries => {
-        entries.forEach(entry => {
-          if (entry.goal.trim()) flattenedGoals.push(entry.goal.trim())
-          if (entry.obstacles.trim()) flattenedChallenges.push(entry.obstacles.trim())
-        })
-      })
-      // Fallback to old goals array if goalsByCategory is empty
-      const goalsToSend = flattenedGoals.length > 0 
-        ? flattenedGoals 
-        : formData.goals.filter(g => g.trim())
-      const challengesToSend = flattenedChallenges.length > 0
-        ? flattenedChallenges
-        : formData.currentChallenges.filter(c => c.trim())
-      
-      // Same-origin proxy — a direct cross-origin POST to ServiceHub was blocked
-      // by CORS preflight, which is why this step never worked (Odosa).
-      const payload = {
-        role: derivedRole,
-        location: formData.location,
-        barriers: serviceHubBarriers,
-        lifeStage: formData.lifeStage || 'not_sure',
-        goals: goalsToSend.length > 0 ? goalsToSend : ['General wellbeing'],
-        culturalNotes: '',
-        additionalNotes: challengesToSend.join('; '),
-        supportContext: recommendationSupportContext,
-      }
-
-      // Testers hit an error on the FIRST load of this step and success on a
-      // retry. That is the recommendation service cold-starting: it sleeps
-      // when idle and the first request after that can take most of a
-      // minute, coming back as a gateway error or a timeout. One attempt
-      // turned a slow start into a failure the user had to notice and work
-      // around. Retry the transient statuses, and say what is happening
-      // rather than leaving them looking at a spinner.
-      const TRANSIENT = [408, 429, 502, 503, 504]
-      const MAX_ATTEMPTS = 3
-      let serviceHubResponse: any = null
-
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        serviceHubResponse = await axios.post('/api/recommendations', payload, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 45_000,
-          validateStatus: () => true, // Don't throw on any status
-        })
-
-        const retryable = serviceHubResponse.status === 0 || TRANSIENT.includes(serviceHubResponse.status)
-        if (!retryable || attempt === MAX_ATTEMPTS) break
-
-        setRecommendationsWaking(true)
-        await new Promise(resolve => setTimeout(resolve, attempt * 2000))
-      }
-
-      if (serviceHubResponse.status === 200 && serviceHubResponse.data.recommendations) {
-        setRecommendations(serviceHubResponse.data.recommendations || [])
-        setRecommendationExplanation(serviceHubResponse.data.recommendationExplanation || '')
-      } else {
-        console.warn('Recommendations API returned:', serviceHubResponse.status, serviceHubResponse.data)
-        setRecommendations([])
-        setRecommendationExplanation(
-          serviceHubResponse.data?.error || 'Recommendations will be available after you sign in to ResourceHub.'
-        )
-      }
-    } catch (error) {
-      console.error('Error fetching recommendations:', error)
-      setRecommendations([])
-      setRecommendationExplanation('Unable to load recommendations at this time. Please try again later.')
-    } finally {
-      recommendationsInFlight.current = false
-      setIsLoadingRecommendations(false)
-      setRecommendationsWaking(false)
-    }
-  }
-
-  const handleSaveResource = async (resourceId: string) => {
-    // Toggle save state
-    if (savedResources.has(resourceId)) {
-      setSavedResources(prev => {
-        const next = new Set(prev)
-        next.delete(resourceId)
-        return next
-      })
-      
-      // Try to unsave from ServiceHub if authenticated
-      try {
-        await axios.delete(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {
-          validateStatus: () => true
-        })
-      } catch (error) {
-        // Silent fail
-      }
-    } else {
-      setSavedResources(prev => new Set([...prev, resourceId]))
-      
-      // Try to save to ServiceHub if user is authenticated
-      // Since both apps now use Supabase Auth, the user should be authenticated
-      try {
-        const response = await axios.post(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {}, {
-          validateStatus: () => true
-        })
-        
-        if (response.status === 200 || response.status === 201) {
-          console.log('Resource saved to ServiceHub')
-        } else if (response.status === 401) {
-          // User not authenticated in ServiceHub - will save after sign-in
-          console.log('Resource will be saved after ServiceHub sign-in')
-        }
-      } catch (error) {
-        // Silent fail - will be saved when user signs into ServiceHub
-        console.log('Resource will be saved after ServiceHub sign-in')
-      }
-    }
-  }
 
   // Map Goal Planning barriers to ServiceHub format
   const mapBarriersToServiceHub = (barriers: string[]) => {
@@ -1259,7 +1123,7 @@ export default function OnboardingPage() {
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         motivationType: formData.motivationType,
-        supportContext: recommendationSupportContext,
+        supportContext: agentSupportContext,
         preferences: {
           pathModel: chosenModel,
           ageRange: formData.ageRange,
@@ -1323,31 +1187,6 @@ export default function OnboardingPage() {
           timeout: 360000,
         })
       }
-
-      // Save saved resources to ServiceHub if user is authenticated
-      // Since both apps use Supabase Auth, try to save directly
-      if (savedResources.size > 0) {
-        const resourcesToSave = Array.from(savedResources)
-        
-        // Try to save each resource to ServiceHub
-        for (const resourceId of resourcesToSave) {
-          try {
-            await axios.post(`${SERVICE_HUB_URL}/api/resources/${resourceId}/save`, {}, {
-              validateStatus: () => true
-            })
-          } catch (error) {
-            // If save fails, store in localStorage for later sync
-            const pendingResources = JSON.parse(localStorage.getItem('pendingSavedResources') || '[]')
-            if (!pendingResources.includes(resourceId)) {
-              pendingResources.push(resourceId)
-              localStorage.setItem('pendingSavedResources', JSON.stringify(pendingResources))
-            }
-          }
-        }
-      }
-
-      // Note: ServiceHub sync already happened in step 7 (recommendations step)
-      // We don't need to sync onboarding data again here
 
       // Check if response has pathId
       if (!response.data || !response.data.pathId) {
@@ -1443,7 +1282,13 @@ export default function OnboardingPage() {
         ...(startPath ? { startPath } : {}),
       }).then(() => true, () => false)
       try {
-        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor, startPath }))
+        // Without a saved Start here pathway, the page after setup still opens
+        // with starter resources, picked from who this is for, what they are
+        // looking for and their goal (Riipen Labs, Group 5).
+        const goalCategory = Object.keys(formData.goalsByCategory).find((id) =>
+          formData.goalsByCategory[id].some((e) => e.goal.trim()))
+        const suggested = suggestedStart(formData.audience, formData.lookingFor, goalCategory)
+        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor, startPath, suggestedStart: suggested }))
         // Saved with the account now, so not left for whoever uses this
         // browser next.
         if (prefsSaved && startPath) {
@@ -1451,14 +1296,20 @@ export default function OnboardingPage() {
           localStorage.removeItem(START_NEED_KEY)
         }
         // "Ask later": the optional extras this person did not get to, offered
-        // on the Path once they have something to use.
-        const askLater = ['location', 'character', 'spiritAnimal', 'personalize'].filter((id) =>
-          id === 'location' ? !formData.location.city.trim() : !stepsSeen.current.has(stepIndex(id)))
+        // on the Path later (app/components/AskLaterCard.tsx). "aboutYou" is
+        // sensory needs and conditions (the detailed profile), asked in the
+        // second week when nothing about them was shared (Group 5: "gradually
+        // prompt for secondary preferences ... over Days 7 to 14").
+        const sharedAboutThem = formData.barrierTypes.length > 0 || formData.barrierConnectionText.trim() !== '' ||
+          diagnosticProfile.conditions.length > 0 || agentSupportContext !== undefined
+        const askLater = ['location', 'aboutYou', 'character', 'spiritAnimal', 'personalize'].filter((id) =>
+          id === 'location' ? !formData.location.city.trim()
+            : id === 'aboutYou' ? !sharedAboutThem
+            : !stepsSeen.current.has(stepIndex(id)))
         localStorage.setItem('autinerary_ask_later', JSON.stringify(askLater))
       } catch {}
       // Save the location to the profile so ResourceHub can recommend places
-      // near this person. The ResourceHub hand-off above is unauthenticated
-      // and never saved it. Bounded and best-effort: never holds up the path.
+      // near this person. Bounded and best-effort: never holds up the path.
       if (formData.location.city.trim()) {
         await axios.post('/api/me/location', formData.location, { timeout: 8000 }).catch(() => {})
       }
@@ -1512,9 +1363,9 @@ export default function OnboardingPage() {
     : 'Laying out your schedule. Nearly there…'
   const displayStage = generationStage || localStage
 
-  // The rail shows one group at a time: the three-step start, or the
+  // The rail shows one group at a time: the two-step start, or the
   // optional extras once someone chooses to add more. Nine labels in a row
-  // read as "a lot"; three do not.
+  // read as "a lot"; two do not.
   const inExtras = currentStep >= CORE_STEP_COUNT
   const groupStart = inExtras ? CORE_STEP_COUNT : 0
   const groupSteps = inExtras ? steps.slice(CORE_STEP_COUNT) : steps.slice(0, CORE_STEP_COUNT)
@@ -1635,7 +1486,7 @@ export default function OnboardingPage() {
           {inExtras && (
             <p className="mt-3 text-center text-sm text-slate-700">Optional extras: skip any of them, or create your path now.</p>
           )}
-          <div className={`grid ${inExtras ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-3'} gap-4 mt-4 px-2`}>
+          <div className={`grid ${inExtras ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-2'} gap-4 mt-4 px-2`}>
             {groupSteps.map((step, i) => {
               const idx = groupStart + i
               const Icon = step.icon
@@ -1707,13 +1558,13 @@ export default function OnboardingPage() {
           {currentId === 'about' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">About you</h2>
-              <p className="text-slate-600 mb-4">Three quick steps, then your path is ready.</p>
+              <p className="text-slate-600 mb-4">Two quick questions, then your path is ready.</p>
 
               <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-800">
                 <p className="font-semibold text-slate-900">How setup works</p>
                 <p className="mt-1">
-                  This step, one goal, and an optional question about norms. Then we build your path. Everything else
-                  (location, your character, spirit animals, how the app looks) is optional, and you can add it later.
+                  This step and one goal. Then we build your path, with starter resources for what you need. Everything
+                  else (norms, location, your character, spirit animals, how the app looks) is optional, and you can add it later.
                 </p>
               </div>
 
@@ -1754,6 +1605,11 @@ export default function OnboardingPage() {
                     </button>
                   ))}
                 </div>
+                {AUDIENCE_VALUE[formData.audience] && (
+                  <p role="status" className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+                    {AUDIENCE_VALUE[formData.audience]}
+                  </p>
+                )}
               </fieldset>
 
               <fieldset disabled={!canAccessOnboarding}>
@@ -2007,7 +1863,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">{normsCopy.heading}</h2>
               <p className="text-slate-600 mb-2">{normsCopy.intro} Either describe them in your own words, or select manually below. This step is optional: skip it and it counts as &ldquo;Prefer not to share&rdquo;.</p>
-              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not a barrier. Things like your disability, ethnicity, or gender aren&apos;t barriers themselves: the barriers are the systemic obstacles society puts in the way. We use this only to find support built for those obstacles.</p>
+              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not the problem. Things like your disability, ethnicity, or gender aren&apos;t obstacles themselves: the obstacles are the systemic ones society puts in the way. We use this only to find support built for them.</p>
 
               {/* Mode toggle */}
               <div className="flex gap-2 mb-6">
@@ -2069,7 +1925,7 @@ export default function OnboardingPage() {
                   <textarea
                     value={formData.barrierConnectionText}
                     onChange={(e) => setFormData(prev => ({ ...prev, barrierConnectionText: e.target.value }))}
-                    placeholder="Describe your barrier connections in a sentence..."
+                    placeholder="Describe the norms you navigate in a sentence..."
                     rows={3}
                     className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
@@ -2277,7 +2133,7 @@ export default function OnboardingPage() {
                                       setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
                                     }
                                   }}
-                                  placeholder="Type a specific barrier and press Enter"
+                                  placeholder="Type a specific norm and press Enter"
                                   maxLength={60}
                                   className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                                 />
@@ -3255,139 +3111,6 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 8: AI Recommendations */}
-          {currentId === 'recommendations' && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-cyan-600" />
-                <h2 className="text-2xl font-bold text-slate-800">AI-Recommended Services</h2>
-              </div>
-              <p className="text-slate-600 mb-4">
-                Based on your profile, we&apos;ve found resources that may help you achieve your goals.
-                Free and lower-cost options are listed first. Save any that interest you to access
-                them later in ResourceHub.
-              </p>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-                <p className="text-sm text-blue-700">
-                  💡 <strong>Note:</strong> To save resources permanently and access &quot;My Resources&quot; in ResourceHub, 
-                  you&apos;ll need to sign in to ResourceHub with the same email. Your saved selections will be synced automatically.
-                </p>
-              </div>
-
-              {isLoadingRecommendations ? (
-                <div role="status" className="flex flex-col items-center justify-center gap-2 py-12 text-slate-600">
-                  <span className="flex items-center gap-3">
-                    <Loader2 aria-hidden="true" className="h-5 w-5 motion-safe:animate-spin" />
-                    Finding relevant resources...
-                  </span>
-                  {/* Only shown once a retry is under way, so a slow cold
-                      start reads as slow rather than broken. */}
-                  {recommendationsWaking && (
-                    <span className="text-xs text-slate-500">
-                      The recommendation service is waking up. This can take up to a minute the first time.
-                    </span>
-                  )}
-                </div>
-              ) : recommendations.length === 0 ? (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
-                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-                  <p className="text-slate-700 mb-2 font-medium">No recommendations available yet</p>
-                  <p className="text-sm text-slate-500 mb-4">
-                    {recommendationExplanation || 'Sign in to ResourceHub to get personalized recommendations based on your profile.'}
-                  </p>
-                  <button
-                    onClick={() => { setRecommendations([]); fetchRecommendations() }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
-                  >
-                    <Sparkles className="w-4 h-4" /> Try again
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recommendationExplanation && (
-                    <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-cyan-700">{recommendationExplanation}</p>
-                    </div>
-                  )}
-                  
-                  <div className="grid gap-4 max-h-[500px] overflow-y-auto pr-2">
-                    {recommendations.map((resource) => (
-                      <div
-                        key={resource.id}
-                        className="bg-white border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-all"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg text-slate-800">{resource.name}</h3>
-                              {resource.category && (
-                                <span className="px-2 py-1 text-xs bg-cyan-100 text-cyan-700 rounded">
-                                  {resource.category}
-                                </span>
-                              )}
-                              {/* Cost up front (Chi): free options are surfaced
-                                  first and labelled, so you know before clicking. */}
-                              {resource.price === 0 ? (
-                                <span className="px-2 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded">
-                                  Free
-                                </span>
-                              ) : typeof resource.price === 'number' ? (
-                                <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded">
-                                  ${resource.price}
-                                </span>
-                              ) : <span className="text-xs text-slate-500">Price not listed</span>}
-                            </div>
-                            <p className="text-sm text-slate-600 mb-2 line-clamp-2">
-                              {resource.description}
-                            </p>
-                            {resource.location && (
-                              <p className="text-xs text-slate-500 mb-2">
-                                📍 {resource.location.city}, {resource.location.province}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 text-xs text-slate-500">
-                              {resource.averageRating > 0 && (
-                                <span>⭐ {resource.averageRating.toFixed(1)} ({resource.ratingCount} reviews)</span>
-                              )}
-                              {resource.score > 0 && (
-                                <span className="text-cyan-800 font-medium">{resource.score}% match</span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleSaveResource(resource.id)}
-                            className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                              savedResources.has(resource.id)
-                                ? 'bg-green-100 text-green-700 border border-green-300'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {savedResources.has(resource.id) ? (
-                              <>
-                                <Check className="w-4 h-4 inline mr-1" />
-                                Saved
-                              </>
-                            ) : (
-                              'Save'
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                    <p className="text-sm text-blue-700">
-                      💡 <strong>Tip:</strong> You can always find these resources later in ResourceHub&apos;s &quot;My Resources&quot; section. 
-                      You can also recommend new resources to help others in the community.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Navigation Buttons */}
           <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t border-slate-200">
             <button
@@ -3401,8 +3124,8 @@ export default function OnboardingPage() {
 
             <div className="flex flex-wrap items-center justify-end gap-3">
               {/* In the extras the path can be created at any point: everything
-                  required was answered in the first three steps. */}
-              {inExtras && currentId !== 'recommendations' && requiredDone && (
+                  required was answered in the first two steps. */}
+              {inExtras && requiredDone && (
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -3457,7 +3180,7 @@ export default function OnboardingPage() {
                   aria-describedby={continueHint() ? 'continue-hint' : undefined}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
-                  {currentId === 'personalize' ? 'View Recommendations' : 'Continue'}
+                  Continue
                   <ChevronRight className="w-5 h-5" />
                 </button>
               )}

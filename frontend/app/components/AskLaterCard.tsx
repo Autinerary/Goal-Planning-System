@@ -2,25 +2,33 @@
 
 import { useEffect, useState, FormEvent } from 'react'
 import Link from 'next/link'
-import { MapPin, Palette, Heart, SlidersHorizontal, X } from 'lucide-react'
+import { MapPin, Palette, Heart, SlidersHorizontal, Ear, X } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { dayKey, daysSince } from '@/lib/disclosure'
+import { dueAskLaterGroup } from '@/lib/askLater'
 
 /**
  * "Ask later" (Riipen Labs, Group 2: "sort the questions into need now and ask
- * later"). Onboarding now ends after three steps; the optional setup questions
- * this person did not get to are offered here, once they have a path to use,
- * instead of before. Onboarding writes the list at submit; links go to where
- * each one already lives, and location can be added right here.
+ * later"). Setup ends after two questions; the optional ones this person did
+ * not get to are offered here instead. Onboarding writes the list at submit;
+ * links go to where each one already lives, and location can be added right
+ * here.
+ *
+ * Group 5 asked for them to come back gradually, over days 7 to 14: one
+ * group at a time, by days since sign-up (lib/askLater.ts).
  */
 
 const KEY = 'autinerary_ask_later'
 
 const LINKS: Record<string, { icon: typeof Palette; title: string; body: string; href: string }> = {
+  aboutYou: { icon: Ear, title: 'Sensory needs and conditions', body: 'So plans and suggestions can fit how you work. Private.', href: '/profile/diagnostic' },
   character: { icon: Palette, title: 'Design your character', body: 'Your avatar in Dream Land.', href: '/ideal-self' },
   spiritAnimal: { icon: Heart, title: 'Choose your spirit animals', body: 'The guides shown on your Path.', href: '/profile/settings' },
   personalize: { icon: SlidersHorizontal, title: 'Adjust how the app looks', body: 'Layout, colours, and how much it shows at once.', href: '/profile/settings' },
 }
 
 export default function AskLaterCard() {
+  const { supabaseUser } = useAuth()
   const [items, setItems] = useState<string[]>([])
   const [loc, setLoc] = useState({ city: '', province: '', country: '' })
   const [locState, setLocState] = useState<'idle' | 'saving' | 'error'>('idle')
@@ -69,19 +77,22 @@ export default function AskLaterCard() {
     }
   }
 
-  if (items.length === 0) return null
-  const links = ['character', 'spiritAnimal', 'personalize'].filter((id) => items.includes(id))
+  // Days since the account was made; unknown counts as day 0.
+  const day = supabaseUser?.created_at ? daysSince(dayKey(new Date(supabaseUser.created_at))) : 0
+  const group = dueAskLaterGroup(items, day)
+  if (!group) return null
+  const links = group.ids.filter((id) => id !== 'location' && items.includes(id))
 
   return (
     <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="ask-later-heading">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 id="ask-later-heading" className="font-bold text-slate-900">Make it yours (optional)</h2>
-          <p className="text-sm text-slate-700">You skipped these during setup. Add any of them whenever you like.</p>
+          <h2 id="ask-later-heading" className="font-bold text-slate-900">{group.title}</h2>
+          <p className="text-sm text-slate-700">{group.intro}</p>
         </div>
         <button
           type="button"
-          onClick={() => save([])}
+          onClick={() => save(items.filter((id) => !group.ids.includes(id)))}
           aria-label="Hide these suggestions"
           className="text-slate-500 hover:text-slate-800"
         >
@@ -90,7 +101,7 @@ export default function AskLaterCard() {
       </div>
 
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-        {items.includes('location') && (
+        {group.ids.includes('location') && items.includes('location') && (
           <li className="rounded-xl border border-slate-200 p-3 sm:col-span-2">
             <form onSubmit={saveLocation}>
               <p className="flex items-center gap-2 font-semibold text-slate-900">

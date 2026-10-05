@@ -401,6 +401,16 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
               <p className="mt-2 text-sm text-slate-800" role={saveNote ? 'status' : undefined}>
                 {saveNote || (user ? 'Saved paths open from Quick Links on your Path.' : roleInfo.account)}
               </p>
+              {/* Trust before the account (Riipen Labs, Group 5: parents "prioritize
+                  trust & safety"). Each claim is on the privacy page. */}
+              {!user && (
+                <p className="mt-2 text-sm text-slate-800">
+                  No ads, and we don&apos;t sell your information or use it to train AI.{' '}
+                  <Link href="/privacy" className={TEXT_BUTTON}>
+                    What we collect
+                  </Link>
+                </p>
+              )}
               <p className="mt-3 text-sm">
                 <a href={hubHref(searchPath(pathway.more.params))} target="_blank" rel="noopener noreferrer" className={TEXT_BUTTON}>
                   {pathway.more.label}

@@ -105,7 +105,7 @@ export default function SignupPage() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
             <p className="text-slate-700 text-sm mt-1">
-              Next: three quick steps (who you&apos;re here for, one goal, and an optional question about norms), then your path is ready.
+              Next: two quick questions (who you&apos;re here for, and one goal), then your path is ready.
             </p>
           </div>
 

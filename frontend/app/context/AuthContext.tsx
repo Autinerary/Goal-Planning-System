@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import { trackDailyOpen } from '@/lib/funnel'
+import { trackArea, trackDailyOpen } from '@/lib/funnel'
 import { markSeenToday } from '@/lib/checkin'
 
 interface User {
@@ -155,6 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     trackDailyOpen()
     markSeenToday()
   }, [user])
+
+  // Which parts of the app people use, once they have a path (lib/funnel.ts;
+  // Riipen Labs, Group 5).
+  useEffect(() => {
+    if (!user?.hasCompletedOnboarding) return
+    trackArea(pathname, window.location.search)
+  }, [user, pathname])
 
   // Redirect logic
   useEffect(() => {
