@@ -1433,23 +1433,29 @@ async function queryMatches(
 /**
  * Get all unique categories from approved resources
  */
-export async function getResourceCategories(): Promise<string[]> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('resources')
-    .select('category')
-    .eq('status', 'approved')
+// Read every approved place, not just the first 1000 rows the database sends
+// by default: with about 9,700 places, small categories (Child Care, with 4)
+// were missing from the filter list. Shared for a minute.
+const categoriesCache = sharedCache<string[]>({ ttlMs: 60_000, maxEntries: 1 })
 
-  if (error) {
+export async function getResourceCategories(): Promise<string[]> {
+  try {
+    return await categoriesCache('all', async () => {
+      const supabase = createClient()
+      const rows = await readAll((from, to, withCount) =>
+        supabase
+          .from('resources')
+          .select('category', withCount ? { count: 'exact' } : undefined)
+          .eq('status', 'approved')
+          .order('id')
+          .range(from, to),
+      )
+      return [...new Set(rows.map((r) => r.category).filter(Boolean))].sort()
+    })
+  } catch (error) {
     console.error('Error fetching categories:', error)
     return []
   }
-
-  if (!data) return []
-
-  // Get unique categories
-  const categories = [...new Set(data.map((r) => r.category))]
-  return categories.sort()
 }
 
 /**
