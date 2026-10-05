@@ -1557,8 +1557,10 @@ export default function OnboardingPage() {
               now); who this is for is one tap; what they came for is optional. */}
           {currentId === 'about' && (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">About you</h2>
-              <p className="text-slate-600 mb-4">Two quick questions, then your path is ready.</p>
+              {/* A welcoming, plain first screen (Riipen Labs, Group 6: "a cohesive
+                  and empathetic voice to build immediate trust"; docs/voice.md). */}
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Welcome. Let&apos;s start with you</h2>
+              <p className="text-slate-600 mb-4">Two quick questions, then your path is ready. There are no wrong answers.</p>
 
               <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-800">
                 <p className="font-semibold text-slate-900">How setup works</p>
@@ -1566,6 +1568,7 @@ export default function OnboardingPage() {
                   This step and one goal. Then we build your path, with starter resources for what you need. Everything
                   else (norms, location, your character, spirit animals, how the app looks) is optional, and you can add it later.
                 </p>
+                <p className="mt-2">We don&apos;t sell your information, show ads, or use it to train AI.</p>
               </div>
 
               <label className="block mb-6 font-medium">

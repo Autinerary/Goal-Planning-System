@@ -34,6 +34,11 @@ also compares setup completion across onboarding versions, shows usefulness
 answers given in the first two weeks, and which parts of the app each group
 opens (feature_use events, STEP 49).
 
+Group 6 asked to "track user behaviour of where they click, leave, and whether
+they return". Where they click and whether they return are above; where
+they leave is the parts of the app people opened on their last day, for
+those who have now been away two weeks or more.
+
 Group 2 also asked to "ask active users about usefulness and inactive users
 why they disengaged". Those answers (public.checkin_responses, STEP 46) are
 summarized at the end: why people stopped, from the check-in email and the
@@ -538,6 +543,40 @@ def render_feature_use(f: Dict) -> str:
     return "\n".join(out)
 
 
+def summarize_last_seen(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
+                        now: Optional[datetime] = None, away_days: int = 14) -> Dict:
+    """Where people leave: for accounts whose last day in the app (feature_use)
+    was `away_days` or more ago, the parts they opened that day. Pure."""
+    last: Dict[str, tuple] = {}
+    for e in events:
+        if e["event"] != "feature_use" or not e.get("user_id") or not e.get("step") \
+                or not keep_version(e.get("onboarding_version", ""), wanted_version):
+            continue
+        day = _ts(e["created_at"]).date()
+        seen = last.get(e["user_id"])
+        if seen is None or day > seen[0]:
+            last[e["user_id"]] = (day, {e["step"]})
+        elif day == seen[0]:
+            seen[1].add(e["step"])
+    today = (now or datetime.now().astimezone()).date()
+    away = [areas for day, areas in last.values() if (today - day).days >= away_days]
+    return {"accounts": len(last), "away": len(away), "areas": Counter(a for areas in away for a in areas),
+            "away_days": away_days}
+
+
+def render_last_seen(s: Dict) -> str:
+    out = [f"== Where people leave: parts opened on their last day, for accounts away {s['away_days']}+ days",
+           f"  accounts that opened the app: {s['accounts']}; away {s['away_days']}+ days: {s['away']}"]
+    if s["away"] < MIN_CELL:
+        out.append(f"  (fewer than {MIN_CELL} so far)")
+        return "\n".join(out)
+    labels = dict(AREAS)
+    for area, n in s["areas"].most_common():
+        shown = SMALL if n < MIN_CELL else str(n)
+        out.append(f"  {labels.get(area, area):<16} {shown:>5}  ({'-' if n < MIN_CELL else pct(n, s['away'])})")
+    return "\n".join(out)
+
+
 def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None,
                        joined_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
@@ -675,6 +714,8 @@ def main() -> int:
     print(render_versions(compare_versions(events)))
     print()
     print(render_feature_use(summarize_feature_use(events, args.version, audience_by_user)))
+    print()
+    print(render_last_seen(summarize_last_seen(events, args.version)))
     print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version, created_at")

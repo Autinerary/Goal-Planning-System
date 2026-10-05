@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useState, FormEvent, type ReactNode } from 'react'
 import Link from 'next/link'
 import { MapPin, Palette, Heart, SlidersHorizontal, Ear, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -27,18 +27,22 @@ const LINKS: Record<string, { icon: typeof Palette; title: string; body: string;
   personalize: { icon: SlidersHorizontal, title: 'Adjust how the app looks', body: 'Layout, colours, and how much it shows at once.', href: '/profile/settings' },
 }
 
-export default function AskLaterCard() {
+export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
   const { supabaseUser } = useAuth()
   const [items, setItems] = useState<string[]>([])
   const [loc, setLoc] = useState({ city: '', province: '', country: '' })
   const [locState, setLocState] = useState<'idle' | 'saving' | 'error'>('idle')
   const [locError, setLocError] = useState('')
 
+  // Nothing (not even the fallback) until the saved list is read, so the
+  // fallback never flashes up before a question that is due.
+  const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || '[]')
       if (Array.isArray(saved)) setItems(saved.filter((x) => typeof x === 'string'))
     } catch {}
+    setLoaded(true)
   }, [])
 
   const save = (next: string[]) => {
@@ -80,7 +84,8 @@ export default function AskLaterCard() {
   // Days since the account was made; unknown counts as day 0.
   const day = supabaseUser?.created_at ? daysSince(dayKey(new Date(supabaseUser.created_at))) : 0
   const group = dueAskLaterGroup(items, day)
-  if (!group) return null
+  if (!loaded) return null
+  if (!group) return <>{fallback}</>
   const links = group.ids.filter((id) => id !== 'location' && items.includes(id))
 
   return (

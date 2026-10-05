@@ -103,7 +103,7 @@ export default function SignupPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-500/20 rounded-full mb-4">
               <UserPlus className="w-8 h-8 text-purple-600" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Create your free account</h2>
             <p className="text-slate-700 text-sm mt-1">
               Next: two quick questions (who you&apos;re here for, and one goal), then your path is ready.
             </p>
@@ -251,7 +251,7 @@ export default function SignupPage() {
                   Creating account...
                 </>
               ) : (
-                'Create Account'
+                'Create your free account'
               )}
             </button>
           </form>

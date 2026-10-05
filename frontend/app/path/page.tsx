@@ -18,6 +18,7 @@ import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
 import AskLaterCard from '../components/AskLaterCard'
+import MoreFeaturesOffer from '../components/MoreFeaturesOffer'
 import CheckinPrompt from '../components/CheckinPrompt'
 import { usePreferences } from '../context/usePreferences'
 
@@ -531,8 +532,9 @@ useEffect(() => {
         </div>
 
         {/* ── A check-in question when one is due; otherwise the optional
-             setup questions they skipped. One card at a time. ── */}
-        <CheckinPrompt fallback={<AskLaterCard />} />
+             setup questions they skipped; otherwise, from the second day, an
+             offer to show the rest of the Path. One card at a time. ── */}
+        <CheckinPrompt fallback={<AskLaterCard fallback={<MoreFeaturesOffer />} />} />
 
         {/* ── 2x2 Dashboard Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

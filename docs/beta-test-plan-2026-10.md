@@ -29,6 +29,15 @@ All of that is live. Their measures are below: drop-off (target: 40% less),
 returns within 7 to 14 days, and satisfaction in the first weeks. The
 campaign's links and QR codes are in [campaign/README.md](campaign/README.md).
 
+Group 6's report ("Optimizing User Experience") recommended a short welcome
+survey that leads to relevant starting points, features introduced
+gradually, an empathetic voice, tracking "where they click, leave, and
+whether they return", and testing "with a small group of users from
+different customer groups". The survey and starting points are Start here
+and the two-question setup. From the second day, the Path offers its fuller
+view instead of switching by itself. The voice is in
+[voice.md](voice.md), and the report now shows where people leave.
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -188,6 +197,12 @@ Group 5's measures:
 | "Track 7-14 day retention" | Share of new accounts back within 7 and within 14 days | Funnel events |
 | "Monitor first-week satisfaction scores" | Usefulness answers given in the first two weeks after sign-up; setup ease | In-app check-in; post-setup survey |
 | "Which features different user groups actually use" | Share of accounts that open each part of the app, by who they are here for | feature_use events (STEP 49) |
+
+Group 6's measure: "where they click, leave, and whether they return". Clicks
+are the parts of the app opened and the Start here resources opened;
+returns are the 7 and 14 day returns above; **where they leave** is the
+parts of the app people opened on their last day, for those away two weeks
+or more (feature_use events).
 
 Proposed targets, for the team to agree before the trial starts:
 

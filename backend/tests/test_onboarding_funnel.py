@@ -22,6 +22,8 @@ from scripts.onboarding_funnel import (  # noqa: E402
     render_versions,
     render_feature_use,
     summarize_feature_use,
+    render_last_seen,
+    summarize_last_seen,
     render_heard_from,
     summarize_heard_from,
     STOP_REASONS,
@@ -415,3 +417,30 @@ class Group5Tests(unittest.TestCase):
         self.assertEqual(c["usefulness_early"]["very"], 1)
         self.assertEqual(sum(c["usefulness_early"].values()), 1)
         self.assertIn("first two weeks after sign-up (1 answers)", render_checkins(c, show_comments=False))
+
+
+class WhereTheyLeaveTests(unittest.TestCase):
+    """Riipen Labs, Group 6: track "where they click, leave, and whether they return"."""
+
+    def use(self, uid, day, area):
+        return {**ev(uid, "feature_use", f"2026-10-{day:02d}T10:00:00+00:00", step=area), "user_id": uid}
+
+    def test_last_day_areas_for_people_away_two_weeks(self):
+        from datetime import datetime, timezone
+        now = datetime(2026, 10, 30, tzinfo=timezone.utc)
+        events = []
+        for i in range(6):                        # six people last seen on 10 Oct, on the calendar
+            events += [self.use(f"a{i}", 5, "path"), self.use(f"a{i}", 10, "calendar")]
+        events += [self.use("b", 10, "journal"), self.use("b", 25, "path")]   # back recently: not away
+        s = summarize_last_seen(events, V, now)
+        self.assertEqual((s["accounts"], s["away"]), (7, 6))
+        self.assertEqual(s["areas"]["calendar"], 6)
+        self.assertNotIn("path", s["areas"])      # only their last day counts
+        text = render_last_seen(s)
+        self.assertIn("Calendar", text)
+        self.assertNotIn("a0", text)
+
+    def test_few_people_away_shows_no_breakdown(self):
+        from datetime import datetime, timezone
+        s = summarize_last_seen([self.use("a", 1, "path")], V, datetime(2026, 10, 30, tzinfo=timezone.utc))
+        self.assertIn("fewer than 5 so far", render_last_seen(s))
