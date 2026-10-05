@@ -65,9 +65,9 @@ async function generateBarrierCombinationInsight(pattern: DiscoveredPattern): Pr
   if (frequency >= 20 && confidence >= 80) {
     return `Strong pattern: ${frequency} users have ${barrierNames.join(' + ')} together. This combination is more common than expected.`
   } else if (frequency >= 10) {
-    return `Common pattern: ${frequency} users share the combination ${barrierNames.join(' + ')}. Resources addressing multiple barriers may be particularly helpful.`
+    return `Common pattern: ${frequency} users share the combination ${barrierNames.join(' + ')}. Resources that help with several norms at once may be particularly helpful.`
   } else {
-    return `Discovered: ${frequency} users have the barrier combination ${barrierNames.join(' + ')}. Consider resources that address these together.`
+    return `Discovered: ${frequency} users share the norms ${barrierNames.join(' + ')}. Consider resources that address these together.`
   }
 }
 

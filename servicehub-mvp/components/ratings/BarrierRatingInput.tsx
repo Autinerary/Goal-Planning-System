@@ -5,6 +5,11 @@ import { CheckCircle } from 'lucide-react'
 import StarRating from './StarRating'
 import type { UserBarrier } from '@/types/database'
 
+// Answers that mean "nothing to rate": skipping norms in setup is stored as
+// "Prefer not to share", and the rating form used to ask how well a place
+// "helped with Prefer not to share".
+const NOT_A_NORM = /^(prefer not to (share|say)|no current (barriers|norms))$/i
+
 interface BarrierRatingInputProps {
   barriers: UserBarrier[]
   values: { [barrierKey: string]: { enabled: boolean; rating: number } }
@@ -16,6 +21,8 @@ export default function BarrierRatingInput({
   values,
   onChange,
 }: BarrierRatingInputProps) {
+  const norms = barriers.filter((b) => !NOT_A_NORM.test((b.barrier_type || '').trim()))
+
   const handleToggle = (barrierKey: string) => {
     const current = values[barrierKey] || { enabled: false, rating: 0 }
     onChange(barrierKey, !current.enabled, current.rating || 3)
@@ -30,15 +37,15 @@ export default function BarrierRatingInput({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-3">
-          Barrier-Specific Ratings <span className="text-gray-500 text-xs">(Optional)</span>
+          Ratings for your norms <span className="text-gray-500 text-xs">(Optional)</span>
         </label>
         <p className="text-sm text-gray-600 mb-4">
-          Rate how well this resource addresses each of your specific barriers
+          Rate how well this place worked for each of the norms you navigate
         </p>
       </div>
 
       <div className="space-y-4">
-        {barriers.map((barrier) => {
+        {norms.map((barrier) => {
           const barrierKey = `${barrier.barrier_category}:${barrier.barrier_type}`
           const current = values[barrierKey] || { enabled: false, rating: 0 }
           const barrierLabel = `${barrier.barrier_category}: ${barrier.barrier_type}`
@@ -89,10 +96,10 @@ export default function BarrierRatingInput({
         })}
       </div>
 
-      {barriers.length === 0 && (
+      {norms.length === 0 && (
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-          Complete your profile to enable barrier-specific ratings. This helps others find
-          resources that address similar barriers.
+          Add the norms you navigate to your profile to rate places for them. It helps people with
+          similar norms find places that work for them.
         </div>
       )}
     </div>

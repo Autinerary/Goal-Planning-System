@@ -254,8 +254,8 @@ export async function analyzeClusterPreferences(
     // Generate insight
     const topCategory = sortedCategories[0]
     const insight = topCategory
-      ? `Cluster of ${cluster.size} users with similar barriers prefers ${topCategory[0]} resources (${topCategory[1]} high ratings)`
-      : `Cluster of ${cluster.size} users with similar barriers - preferences emerging`
+      ? `Cluster of ${cluster.size} users with similar norms prefers ${topCategory[0]} resources (${topCategory[1]} high ratings)`
+      : `Cluster of ${cluster.size} users with similar norms - preferences emerging`
 
     return {
       clusterSize: cluster.size,

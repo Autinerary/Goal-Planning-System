@@ -101,7 +101,7 @@ export default function ResourceCard({
 
             {/* Barrier Badges */}
             {showBadges && barriers.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label="Barriers this resource helps with">
+              <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label="Norms this resource helps with">
                 {barriers.slice(0, 5).map((barrier, index) => (
                   <BarrierBadge key={index} barrier={barrier} variant="small" />
                 ))}
@@ -194,7 +194,7 @@ export default function ResourceCard({
 
         {/* Barrier Badges */}
         {showBadges && barriers.length > 0 && (
-          <div className="flex flex-wrap gap-2" role="list" aria-label="Barriers this resource helps with">
+          <div className="flex flex-wrap gap-2" role="list" aria-label="Norms this resource helps with">
             {barriers.slice(0, 3).map((barrier, index) => (
               <BarrierBadge key={index} barrier={barrier} variant="small" />
             ))}

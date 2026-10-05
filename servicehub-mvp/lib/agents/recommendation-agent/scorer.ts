@@ -184,7 +184,7 @@ function generateMatchReason(
   // Similar users count
   if (candidate.similarUsersCount > 0) {
     parts.push(
-      `Recommended by ${candidate.similarUsersCount} ${candidate.similarUsersCount === 1 ? 'user' : 'users'} with similar barriers`
+      `Recommended by ${candidate.similarUsersCount} ${candidate.similarUsersCount === 1 ? 'user' : 'users'} with similar norms`
     )
   }
 

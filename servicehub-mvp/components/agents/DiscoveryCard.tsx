@@ -127,7 +127,7 @@ export default function DiscoveryCard({
 
 function getTypeLabel(type: string): string {
   const labels: { [key: string]: string } = {
-    barrier_combination: 'Barrier Pattern',
+    barrier_combination: 'Norms Pattern',
     resource_affinity: 'Resource Affinity',
     intersectionality: 'Intersectionality',
     non_obvious: 'Surprising Discovery',

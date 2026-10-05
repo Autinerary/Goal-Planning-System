@@ -54,7 +54,7 @@ function ruleBasedExplanation(
   const recommendations = agentOutputs.RecommendationAgent
   if (recommendations && resource.similarUsersCount) {
     parts.push(
-      `Recommended based on ${resource.similarUsersCount} ${resource.similarUsersCount === 1 ? 'user' : 'users'} with similar barriers`
+      `Recommended based on ${resource.similarUsersCount} ${resource.similarUsersCount === 1 ? 'user' : 'users'} with similar norms`
     )
   } else if (recommendations && recommendations.confidence) {
     parts.push(`Recommended with ${recommendations.confidence}% confidence`)
@@ -96,7 +96,7 @@ function ruleBasedExplanation(
       .filter(Boolean)
 
     if (barrierMatches.length > 0) {
-      parts.push(`High scores for your barriers: ${barrierMatches.join(', ')}`)
+      parts.push(`High scores for your norms: ${barrierMatches.join(', ')}`)
     }
   }
 
@@ -172,7 +172,7 @@ export function generateAgentContributions(agentOutputs: AgentOutputs): Array<{
   if (recommendations) {
     contributions.push({
       agentName: 'Recommendation Agent',
-      contribution: `Matched ${recommendations.resources?.length || 0} resources to your barriers using vector similarity`,
+      contribution: `Matched ${recommendations.resources?.length || 0} resources to your norms using vector similarity`,
       confidence: recommendations.confidence || 0,
       outputCount: recommendations.resources?.length || 0,
     })

@@ -224,7 +224,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
           {/* Barrier-Specific Scores (Optional) */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-3">
-              Barrier-Specific Ratings <span className="text-gray-500 text-xs">(Optional)</span>
+              Ratings for your norms <span className="text-gray-500 text-xs">(Optional)</span>
             </label>
             <div className="space-y-4">
               {barrierTypes.map((barrier) => (

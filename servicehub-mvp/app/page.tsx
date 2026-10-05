@@ -90,7 +90,7 @@ async function RecommendedSection() {
               confidence={0.65}
               showConfidence={true}
               showExplanations={false}
-              synthesisExplanation="These are popular resources from our community. Sign in to get personalized recommendations based on your barriers."
+              synthesisExplanation="These are popular resources from our community. Sign in to get personalized recommendations based on your norms."
               showSynthesis={true}
             />
           </section>
@@ -235,12 +235,12 @@ async function RecommendedSection() {
             return parts.join(' • ')
           })
           finalConfidence = 0.82
-          finalSynthesisExplanation = `These ${finalResources.length} resources were recommended because users with similar barriers (${barrierTypesList}) rated them highly. Each resource has an average rating of ${(finalResources.reduce((sum, r) => sum + (r.averageRating || 0), 0) / finalResources.length).toFixed(1)} stars based on ${finalResources.reduce((sum, r) => sum + (r.ratingCount || 0), 0)} community reviews.`
+          finalSynthesisExplanation = `These ${finalResources.length} resources were recommended because users with similar norms (${barrierTypesList}) rated them highly. Each resource has an average rating of ${(finalResources.reduce((sum, r) => sum + (r.averageRating || 0), 0) / finalResources.length).toFixed(1)} stars based on ${finalResources.reduce((sum, r) => sum + (r.ratingCount || 0), 0)} community reviews.`
           // Create realistic agent contributions for fallback
           finalAgentContributions = [
             {
               agentName: 'Recommendation Agent',
-              contribution: `Matched ${finalResources.length} resources to your barriers using barrier similarity matching.`,
+              contribution: `Matched ${finalResources.length} resources to your norms by matching people with similar norms.`,
               confidence: 0.78,
               outputCount: finalResources.length,
             },
@@ -278,7 +278,7 @@ async function RecommendedSection() {
               return parts.join(' • ')
             })
             finalConfidence = 0.65
-            finalSynthesisExplanation = `These are ${finalResources.length} of the most popular resources in our community, selected based on high ratings and review counts. As more users with similar barriers (${barrierTypesList}) rate resources, we'll be able to provide more personalized recommendations.`
+            finalSynthesisExplanation = `These are ${finalResources.length} of the most popular resources in our community, selected based on high ratings and review counts. As more users with similar norms (${barrierTypesList}) rate resources, we'll be able to provide more personalized recommendations.`
             // Create realistic agent contributions
             finalAgentContributions = [
               {
@@ -289,7 +289,7 @@ async function RecommendedSection() {
               },
               {
                 agentName: 'Pattern Recognition Agent',
-                contribution: `Identified trending resources that may be relevant to your barrier profile.`,
+                contribution: `Identified trending resources that may be relevant to your norms.`,
                 confidence: 0.55,
                 outputCount: Math.floor(finalResources.length * 0.7),
               },
@@ -313,7 +313,7 @@ async function RecommendedSection() {
                 () => `Based on those who matched your Diagnostics profile (${barrierTypesList}) • exploring relevant options`
               )
               finalConfidence = 0.55
-              finalSynthesisExplanation = `We're showing ${finalResources.length} resources from our database that may be relevant to your barrier profile (${barrierTypesList}). As our community grows and more users share their experiences, we'll refine these recommendations.`
+              finalSynthesisExplanation = `We're showing ${finalResources.length} resources from our database that may be relevant to your norms (${barrierTypesList}). As our community grows and more users share their experiences, we'll refine these recommendations.`
               // Create realistic agent contributions
               finalAgentContributions = [
                 {
