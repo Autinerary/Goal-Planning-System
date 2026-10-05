@@ -332,17 +332,18 @@ export default function HomePage() {
               </p>
             </details>
             {/* Riipen Labs, Group 5 found "confusion between free vs. paid
-                features". Only what is true today: nothing in the app costs
-                anything. What may cost something after the beta is the team's
-                decision (docs/free-and-paid.md); say it here once decided. */}
+                features". The line, decided 4 October 2026, is in
+                docs/free-and-paid.md; keep the two in step. */}
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
                 Is Autinerary free?
                 <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
               <p className="mt-3 text-slate-700">
-                Yes. Everything in Autinerary is free during the beta, including ResourceHub, Tidbits and family
-                accounts. There is nothing to pay for in the app, and no credit card is needed.
+                Yes. Everything in Autinerary is free during the beta, and no credit card is needed. After the beta,
+                the core stays free: making and following your plan, Start here, ResourceHub, Tidbits, check-ins,
+                and a parent supervising their child&apos;s account. Paid extras may come later, mainly for
+                organisations such as schools and employers, and we will tell you before anything you use changes.
               </p>
             </details>
           </div>

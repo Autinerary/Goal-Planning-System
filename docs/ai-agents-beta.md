@@ -6,9 +6,11 @@ processes risk overcomplicating MVP or creating cognitive overload if
 introduced early", and suggested keeping "AI personalization running behind
 the scenes until basic onboarding is fully completed".
 
-This note gives the facts and a recommendation. Turning an agent off is
-still the team's call: as Group 5 says, it "may mean giving up features some
-stakeholders want to keep".
+This note gives the facts and a recommendation.
+
+**Decided 4 October 2026: keep all six agents for the beta.** Revisit pattern
+recognition once there are a few hundred real users, using the report of
+which parts of the app people open.
 
 ## What each agent does, and what it costs
 

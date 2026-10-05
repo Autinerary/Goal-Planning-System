@@ -104,6 +104,8 @@ app.add_middleware(
         # the literal "app" never appears, and a pattern built around the
         # production hostname rejects every preview it was meant to allow.
         r"https://(goal-planning|servicehub)[a-z0-9\-]*\.vercel\.app"
+        # The app's own address (docs/campaign/README.md).
+        r"|https://app\.autinerary\.ca"
         r"|http://(localhost|127\.0\.0\.1):\d+"
     ),
     allow_credentials=True,

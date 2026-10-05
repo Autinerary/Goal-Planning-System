@@ -1,4 +1,4 @@
-# What stays free: a decision for the team
+# What stays free
 
 Riipen Labs' Group 5 found "confusion between free vs. paid features". They
 asked the team to "decide which features should stay free and which can be
@@ -16,23 +16,25 @@ potential to carry both trust and revenue".
   accounts "the paid tier". No billing exists, and the Family page no
   longer shows a "Family plan" badge, because a tester read it as a
   subscription.
-- **What people are told now:** the home page says "Free during the beta".
-  Its "Is Autinerary free?" answer says everything is free during the beta,
-  including ResourceHub, Tidbits and family accounts.
+- **What people are told:** the home page says "Free during the beta". Its
+  "Is Autinerary free?" answer gives the line below: everything is free
+  during the beta, the core stays free after it, and paid extras may come
+  later, mainly for organisations.
 
-## The decision
+## The decision (4 October 2026)
 
-Before anything is paid, the team needs to agree where the line is, and say
-so in the app. A starting point, following Group 5's principle:
+Following Group 5's principle, the line is below. The home page's "Is
+Autinerary free?" answer says the same.
 
-**Keep free, always** (what builds trust, and what people who need it most
-rely on):
+**Free, always** (what builds trust, and what people who need it most rely
+on):
 
 - making a plan and working through it (the Path, races, milestones,
   calendar, journal)
 - Start here, ResourceHub search, ratings and Tidbits
 - accessibility settings, check-ins, and seeing, correcting or deleting
   your information
+- a parent or guardian supervising their child's account (family accounts)
 
 **Could be paid later** (extra, not essential):
 
@@ -42,18 +44,17 @@ rely on):
   example, one person supporting many people)
 - premium content or courses, if they are made
 
-**The open question: family accounts.** They were planned as the paid
-tier. But parents of neurodivergent children are among the people who "need
-it most", and many parents arrive through the campaign (Facebook parent
-groups). One option is to keep one supervised child free, and charge for
-organisations instead.
+**Family accounts stay free.** They were planned as the paid tier
+(`profiles.plan` is still a placeholder), but parents of neurodivergent
+children are among the people who "need it most", and many arrive through
+the campaign (Facebook parent groups). Organisations, which support many
+people at once, are where paid accounts fit instead.
 
-Whatever is decided:
+Before anything is paid:
 
-1. Write the line down here and on the home page's "Is Autinerary free?"
-   answer, before any paid feature appears.
-2. Tell beta testers before anything they use changes. What they made
-   should stay theirs.
-3. Check comparable apps' free tiers first (Group 5: "needs research into
+1. Tell beta testers and users before anything they use changes. What they
+   made stays theirs.
+2. Check comparable apps' free tiers first (Group 5: "needs research into
    what similar apps keep free to set a fair line"). Their pricing changes
    often, so look it up at the time rather than relying on old notes.
+3. Keep this page and the home page's answer in step.
