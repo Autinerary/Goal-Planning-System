@@ -4,7 +4,7 @@ Riipen Labs' Group 8 ("Customer Experience Brief", 25 September 2026)
 walked through ResourceHub's sign-up, from Welcome to a first resource. Their
 guiding question was: "does each screen ask something proportionate to the
 value the user has received so far, or does it ask for trust before earning
-it?" This page covers what they found, what changed on 6 October 2026, and
+it?" This page covers what they found, what changed on 5 October 2026, and
 how it is measured.
 
 ## What they found, and what changed

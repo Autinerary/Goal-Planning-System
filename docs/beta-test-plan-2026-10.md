@@ -75,8 +75,8 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures | Done 4 October; tested live |
 | The app's own address, app.autinerary.ca (Route 53, Vercel, Supabase sign-in redirect) | Printed QR codes and shared links never have to change ([campaign/README.md](campaign/README.md)) | Done 4 October |
 | Apply STEP 49 | Counts which parts of the app people open | Done 4 October; tested live |
-| Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | To do (STEP 51 covers it) |
-| Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | To do |
+| Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | Done 5 October, with STEP 51; tested live |
+| Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | Done 5 October; tested live |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
