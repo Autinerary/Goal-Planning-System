@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import {
+  ArrowDown,
   ArrowRight,
   Flag,
   CalendarDays,
@@ -34,10 +35,20 @@ import StartHere from './components/StartHere'
  * Every statement here describes something the app actually does. The old
  * page claimed "thousands of journeys" (there are about a hundred real
  * users) and "5 minutes" (never measured); both are gone.
+ *
+ * Riipen Labs, Group 4 then recommended a guided "Start Here" before the full
+ * ecosystem, and specific action words ("Find starter resources", "Explore
+ * services", "Learn what to expect") instead of broad ones. So the hero's one
+ * primary button now leads into Start Here, which ends in "Save this path"
+ * (the free account); creating an account straight away stays one click
+ * away, as the secondary button.
  */
 
 const PRIMARY_CTA =
   'inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-700 px-7 py-4 text-lg font-semibold text-white shadow-md transition-colors hover:bg-indigo-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300'
+const SECONDARY_CTA =
+  'inline-flex items-center justify-center gap-2 rounded-xl border-2 border-indigo-700 bg-white px-6 py-3.5 text-lg font-semibold text-indigo-800 transition-colors hover:bg-indigo-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300'
+const SERVICE_HUB_URL = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
 
 const WHAT_YOU_GET = [
   {
@@ -136,12 +147,26 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8 flex flex-col items-start gap-3">
-            <Link href="/signup" className={PRIMARY_CTA}>
-              Create your free account
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
-            </Link>
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <a href="#start" className={PRIMARY_CTA}>
+                Find starter resources
+                <ArrowDown className="h-5 w-5" aria-hidden="true" />
+              </a>
+              <Link href="/signup" className={SECONDARY_CTA}>
+                Create your free account
+              </Link>
+            </div>
             <p className="text-sm text-slate-700">
               Free to start · No credit card required · For adults 18+
+            </p>
+            <p className="text-sm">
+              <a href={`${SERVICE_HUB_URL}/search`} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                Explore services
+              </a>
+              <span aria-hidden="true" className="text-slate-500"> · </span>
+              <a href="#how" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                Learn what to expect
+              </a>
             </p>
           </div>
         </div>
@@ -168,7 +193,7 @@ export default function HomePage() {
       </section>
 
       {/* How it works: the clear first step, and what happens after it. */}
-      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="how-heading">
+      <section id="how" className="scroll-mt-4 border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="how-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="how-heading" className="text-2xl font-bold md:text-3xl">How it works</h2>
           <ol className="mt-6 grid gap-4 md:grid-cols-3">
@@ -287,7 +312,8 @@ export default function HomePage() {
               <p className="mt-3 text-slate-700">
                 To find where setup is confusing, we count page visits, sign-ups, which setup step people reach,
                 and return visits, plus which link someone first arrived from (for example TikTok or Facebook).
-                These counts never include anything you type. There are no advertising trackers on this site, and if
+                In &ldquo;Start here&rdquo; we count the answers chosen, which starter resources are opened, and
+                whether people found them useful. These counts never include anything you type. There are no advertising trackers on this site, and if
                 your browser sends Do Not Track or Global Privacy Control, you are not counted.
               </p>
             </details>

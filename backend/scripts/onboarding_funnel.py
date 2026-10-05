@@ -20,6 +20,13 @@ funnel also shows returns within 14 days, how long after sign-up people mark
 their first step done (race_progress), and the self-reported channel
 (profiles.preferences.heardFrom), next to the tracked one.
 
+Group 4 recommended a guided "Start here" (who you are here for, what you
+need today, then a first pathway of resources) and measures for it:
+completion ("select a role and goal, then reach a resource list"), relevance
+("users mark results as useful or save the path") and confidence ("choose a
+next action"). Those come from the start_* events (STEP 48), split by need
+and by who it is for, with the resources opened most.
+
 Group 2 also asked to "ask active users about usefulness and inactive users
 why they disengaged". Those answers (public.checkin_responses, STEP 46) are
 summarized at the end: why people stopped, from the check-in email and the
@@ -72,8 +79,29 @@ AUDIENCE_LABELS = {
     "friend": "a friend",
     "work": "teach / work with",
     "ally": "ally / learning",
+    "unsure": "not sure yet",
 }
 NOT_ANSWERED = "(not answered)"
+
+# "Start here" answers, as in frontend/lib/startHere.ts. Its "family" covers
+# friends too.
+START_EVENTS = ("start_role", "start_pathway", "start_open", "start_useful", "start_save")
+START_ROLES = [
+    ("self", "myself"),
+    ("child", "my child"),
+    ("family", "family or friend"),
+    ("work", "teach / work with"),
+    ("ally", "ally / learning"),
+    ("unsure", "not sure yet"),
+]
+START_NEEDS = [
+    ("learn", "starter information"),
+    ("services", "services"),
+    ("community", "similar experiences"),
+    ("school_work", "school or work"),
+    ("sensory", "sensory tools"),
+    ("unsure", "not sure yet"),
+]
 
 # Check-in answers, as in frontend/lib/checkin.ts.
 STOP_REASONS = [
@@ -311,6 +339,102 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     return "\n".join(out)
 
 
+def compute_start_here(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """Group 4's measures for "Start here", counting distinct browsers. Pure.
+
+    Steps carry the answers: "child", "child.services",
+    "child.services.therapists" (opened), "child.services.yes" (useful).
+    A browser that looked at two pathways counts once in each of their groups.
+    """
+    by_visitor: Dict[str, List[dict]] = defaultdict(list)
+    for e in events:
+        if keep_version(e.get("onboarding_version", ""), wanted_version):
+            by_visitor[e["visitor_id"]].append(e)
+
+    overall: Counter = Counter()
+    groups: Dict[str, Dict[str, Counter]] = {"need": defaultdict(Counter), "role": defaultdict(Counter)}
+    opened: Counter = Counter()
+    for evs in by_visitor.values():
+        start = [e for e in evs if e["event"] in START_EVENTS and e.get("step")]
+        if not start:
+            continue
+        names = {e["event"] for e in start}
+        acts: Dict[tuple, set] = defaultdict(set)  # (role, need) -> what they did there
+        items = set()
+        for e in start:
+            parts = str(e["step"]).split(".")
+            if e["event"] == "start_role" or len(parts) < 2:
+                continue
+            key = (parts[0], parts[1])
+            if e["event"] == "start_pathway":
+                acts[key].add("pathway")
+            elif e["event"] == "start_open":
+                acts[key].add("opened")
+                if len(parts) == 3:
+                    items.add((parts[1], parts[2]))
+            elif e["event"] == "start_useful" and len(parts) == 3:
+                acts[key].add("yes" if parts[2] == "yes" else "no")
+            elif e["event"] == "start_save":
+                acts[key].add("saved")
+        everything = set().union(*acts.values()) if acts else set()
+        overall["started"] += 1
+        overall["chose_role"] += "start_role" in names
+        for a in ("pathway", "opened", "saved", "yes", "no"):
+            overall[a] += a in everything
+        overall["next_action"] += bool(everything & {"opened", "saved"})
+        pathway_times = [_ts(e["created_at"]) for e in start if e["event"] == "start_pathway"]
+        if pathway_times:
+            first = min(pathway_times)
+            overall["account_after"] += any(
+                e["event"] == "signup_complete" and _ts(e["created_at"]) >= first for e in evs)
+        for dim, i in (("role", 0), ("need", 1)):
+            merged: Dict[str, set] = defaultdict(set)
+            for key, done in acts.items():
+                merged[key[i]] |= done
+            for value, done in merged.items():
+                g = groups[dim][value]
+                g["people"] += 1
+                for a in ("pathway", "opened", "saved", "yes", "no"):
+                    g[a] += a in done
+        opened.update(items)
+    return {"overall": overall, "by_need": dict(groups["need"]), "by_role": dict(groups["role"]), "opened": opened}
+
+
+def render_start_here(s: Dict) -> str:
+    o = s["overall"]
+    out = ["== Start here (home page and /start; distinct browsers)",
+           f"  used it                         {o['started']}",
+           f"  chose who they are here for     {o['chose_role']}",
+           f"  reached a pathway               {o['pathway']}   ({pct(o['pathway'], o['started'])} of those who used it)",
+           f"  opened a resource               {o['opened']}   ({pct(o['opened'], o['pathway'])} of pathways)",
+           f"  saved the path                  {o['saved']}   ({pct(o['saved'], o['pathway'])} of pathways)",
+           f"  chose a next action             {o['next_action']}   ({pct(o['next_action'], o['pathway'])} of pathways: opened or saved)",
+           f"  said it was useful              yes {o['yes']}, not really {o['no']}",
+           f"  then created an account         {o['account_after']}   ({pct(o['account_after'], o['pathway'])} of pathways)"]
+    for title, key, labels in (("By what they need", "by_need", START_NEEDS), ("By who it is for", "by_role", START_ROLES)):
+        out.append("")
+        out.append(f"== Start here: {title.lower()}")
+        out.append(f"  {'group':<20} {'browsers':>8} {'opened':>7} {'saved':>6} {'useful':>7} {'not useful':>10}")
+        for value, label in labels:
+            g = s[key].get(value)
+            if not g:
+                continue
+            if g["people"] < MIN_CELL:
+                out.append(f"  {label:<20} {SMALL:>8} {'-':>7} {'-':>6} {'-':>7} {'-':>10}")
+                continue
+            out.append(f"  {label:<20} {g['people']:>8} {pct(g['opened'], g['people']):>7} {pct(g['saved'], g['people']):>6} "
+                       f"{g['yes']:>7} {g['no']:>10}")
+    needs = dict(START_NEEDS)
+    shown = [(k, n) for k, n in s["opened"].most_common() if n >= MIN_CELL][:10]
+    out.append("")
+    out.append(f"== Start here: resources opened most (by need; fewer than {MIN_CELL} not listed)")
+    for (need, item), n in shown:
+        out.append(f"  {item:<14} ({needs.get(need, need)})  {n}")
+    if not shown:
+        out.append("  (none yet)")
+    return "\n".join(out)
+
+
 def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
     users find it useful, overall and by who they are here for. Pure."""
@@ -428,6 +552,8 @@ def main() -> int:
     print(render(funnel, summarize_feedback(feedback, args.version, funnel["people"]), args.show_comments))
     print()
     print(render_heard_from(summarize_heard_from(funnel["people"], heard_from_by_user)))
+    print()
+    print(render_start_here(compute_start_here(events, args.version)))
     print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version")

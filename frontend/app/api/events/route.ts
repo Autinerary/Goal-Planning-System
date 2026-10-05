@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { START_ROLES, START_GOALS, PATHWAY_ITEM_IDS } from '@/lib/startHere'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,12 +16,14 @@ export const dynamic = 'force-dynamic'
  *
  * Everything is validated against a fixed vocabulary; anything else is
  * dropped. Always answers 204: analytics must never break or slow a page,
- * including before STEP 45 has been applied.
+ * including before STEP 45 has been applied (or STEP 48, which allows the
+ * "Start here" events).
  */
 
 const EVENTS = new Set([
   'landing_view', 'signup_view', 'signup_complete',
   'onboarding_step_view', 'onboarding_complete', 'app_open',
+  'start_role', 'start_pathway', 'start_open', 'start_useful', 'start_save',
 ])
 
 // Onboarding step ids, as defined in app/onboarding/page.tsx.
@@ -28,6 +31,25 @@ const STEPS = new Set([
   'about', 'goalsAndDreams', 'barrierConnections', 'location', 'motivation',
   'character', 'profile', 'spiritAnimal', 'personalize', 'recommendations',
 ])
+
+// "Start here" events carry the answers as their step (lib/startHere.ts):
+// "child", "child.services", "child.services.therapists", "child.services.yes".
+const anyOf = (ids: string[]) => `(${ids.join('|')})`
+const ROLE = anyOf(START_ROLES.map((r) => r.id))
+const ROLE_GOAL = `${ROLE}\\.${anyOf(START_GOALS.map((g) => g.id))}`
+const START_STEPS: Record<string, RegExp> = {
+  start_role: new RegExp(`^${ROLE}$`),
+  start_pathway: new RegExp(`^${ROLE_GOAL}$`),
+  start_open: new RegExp(`^${ROLE_GOAL}\\.${anyOf(PATHWAY_ITEM_IDS)}$`),
+  start_useful: new RegExp(`^${ROLE_GOAL}\\.(yes|no)$`),
+  start_save: new RegExp(`^${ROLE_GOAL}$`),
+}
+
+function stepFor(event: string, step: unknown): string | null {
+  if (typeof step !== 'string') return null
+  if (event === 'onboarding_step_view') return STEPS.has(step) ? step : null
+  return START_STEPS[event]?.test(step) ? step : null
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 // utm values and host names: letters, digits and a few separators only.
@@ -54,8 +76,9 @@ export async function POST(req: NextRequest) {
   const version = clean(body?.version, TOKEN)
   if (!event || !visitorId || !version) return done()
 
-  const step = event === 'onboarding_step_view' && STEPS.has(body?.step) ? body.step : null
-  if (event === 'onboarding_step_view' && !step) return done()
+  // These events mean nothing without their step.
+  const step = stepFor(event, body?.step)
+  if ((event === 'onboarding_step_view' || event in START_STEPS) && !step) return done()
 
   let userId: string | null = null
   try {

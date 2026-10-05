@@ -9,6 +9,7 @@ import OnboardingFeedback from '../components/OnboardingFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
 import PushOptIn from '../components/PushOptIn'
+import { START_GOALS, isStartGoal, isStartRole, pathwayTitle } from '@/lib/startHere'
 
 /**
  * Post-onboarding: what was built, and what to do first.
@@ -53,7 +54,7 @@ export default function OnboardingConfirmationPage() {
   const { payload, pathPlanning } = useAgentPath()
   const [launching, setLaunching] = useState(false)
   const { prefs, update } = usePreferences()
-  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null }>({})
+  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: { for: string; need: string } | null }>({})
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || 'null')
@@ -75,10 +76,23 @@ export default function OnboardingConfirmationPage() {
   // Lead with what they came for, in the order they picked it; a plan (or no
   // answer) leads with the Path as before.
   const lookingFor = choices.lookingFor?.length ? choices.lookingFor : prefs.lookingFor || []
+  // The "Start here" pathway they saw before signing up (Riipen Labs, Group
+  // 4: "Save this path") is the most specific thing they came for, so it
+  // leads, in place of the general link for the same need.
+  const startPath = choices.startPath || prefs.startPath
+  const starterItem: StartItem | undefined = startPath && isStartRole(startPath.for) && isStartGoal(startPath.need)
+    ? {
+        title: 'Open your starter resources.',
+        body: `${pathwayTitle(startPath.for, startPath.need)}, saved from before you signed up.`,
+        href: '/start',
+        cta: 'See your starter resources',
+      }
+    : undefined
+  const starterCovers = starterItem ? START_GOALS.find((g) => g.id === startPath?.need)?.lookingFor : null
   const interestItems = Array.from(new Map(
-    lookingFor.filter((k) => INTERESTS[k]).map((k) => [INTERESTS[k].href, INTERESTS[k]] as const),
+    lookingFor.filter((k) => INTERESTS[k] && k !== starterCovers).map((k) => [INTERESTS[k].href, INTERESTS[k]] as const),
   ).values())
-  const primaryInterest = lookingFor.length > 0 && lookingFor[0] !== 'plan' ? interestItems[0] : undefined
+  const primaryInterest = starterItem || (lookingFor.length > 0 && lookingFor[0] !== 'plan' ? interestItems[0] : undefined)
   const pathItems: StartItem[] = [
     { title: 'Open your Path.', body: 'Each goal is shown as a race with its milestones.' },
     {
@@ -87,9 +101,11 @@ export default function OnboardingConfirmationPage() {
     },
   ]
   const roleItem = FOR_ROLE[choices.audience || prefs.audience || '']
-  const ordered = primaryInterest
-    ? [...interestItems, ...pathItems]
-    : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
+  const ordered = starterItem
+    ? [starterItem, ...pathItems, ...interestItems]
+    : primaryInterest
+      ? [...interestItems, ...pathItems]
+      : [...pathItems, ...(interestItems.length ? interestItems : [INTERESTS.services])]
   // The role's step goes second, after the one thing they came for; never twice.
   const startItems: StartItem[] = (roleItem && !ordered.some((i) => i.href && i.href === roleItem.href)
     ? [ordered[0], roleItem, ...ordered.slice(1)]

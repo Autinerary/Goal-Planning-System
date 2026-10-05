@@ -135,6 +135,11 @@ export default function PrivacyPage() {
                 and open the app (at most once a day). With each: a random ID kept in your browser, the website that sent
                 you, and the campaign link you used, if any.
               </li>
+              <li>
+                In &ldquo;Start here&rdquo;: the answers you choose (who you are here for and what you need), which starter
+                resources you open, whether you said they were useful, and when you save the path. Your answers are also
+                kept in your browser, so setup can start with them, and saved to your account when you save the path.
+              </li>
               <li>We don’t record anything you type in these, and your browser sends none of them if it has Do Not Track or Global Privacy Control turned on.</li>
               <li>How much AI processing your account uses, to keep use fair.</li>
             </List>

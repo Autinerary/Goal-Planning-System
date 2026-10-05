@@ -30,7 +30,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const publicRoutes = ['/', '/login', '/signup', '/checkin', '/privacy']
+// '/start' is the guided "Start here", open to everyone (campaign links land there).
+const publicRoutes = ['/', '/start', '/login', '/signup', '/checkin', '/privacy']
 const AGE_ROUTE = '/auth/age'
 
 function profileFromSupabase(su: SupabaseUser): User {

@@ -69,6 +69,8 @@ export interface UserPreferences {
   lookingFor?: string[]
   /** Where they heard about Autinerary, from the post-setup questions (optional). */
   heardFrom?: string
+  /** The "Start here" pathway they saved: who for and what they need (lib/startHere.ts). */
+  startPath?: { for: string; need: string; savedAt?: string }
   /** Consent to one short email check-in after two weeks away (default off). */
   checkin?: { optIn: boolean; updatedAt: string }
   /** ISO timestamp of last update — useful for analytics. */

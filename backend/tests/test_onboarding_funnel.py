@@ -10,7 +10,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.onboarding_funnel import (  # noqa: E402
+    AUDIENCE_LABELS,
     CURRENT_VERSION,
+    START_EVENTS,
+    START_NEEDS,
+    START_ROLES,
+    compute_start_here,
+    render_start_here,
     render_heard_from,
     summarize_heard_from,
     STOP_REASONS,
@@ -255,3 +261,80 @@ class GroupThreeMeasureTests(unittest.TestCase):
         self.assertIn("friend                  <5", text)
         self.assertNotIn("tiktok", text)
 
+
+
+class StartHereTests(unittest.TestCase):
+    """Riipen Labs, Group 4's measures for the guided "Start here"."""
+
+    def journey(self, v, role="child", need="services", opened=("therapists",), useful=None, saved=False,
+                signup=False, version=V):
+        t = "2026-10-05T10:00:{:02d}+00:00"
+        rows = [ev(v, "landing_view", t.format(0), version=version),
+                ev(v, "start_role", t.format(1), step=role, version=version),
+                ev(v, "start_pathway", t.format(2), step=f"{role}.{need}", version=version)]
+        rows += [ev(v, "start_open", t.format(3), step=f"{role}.{need}.{item}", version=version) for item in opened]
+        if useful:
+            rows.append(ev(v, "start_useful", t.format(4), step=f"{role}.{need}.{useful}", version=version))
+        if saved:
+            rows.append(ev(v, "start_save", t.format(5), step=f"{role}.{need}", version=version))
+        if signup:
+            rows.append(ev(v, "signup_complete", t.format(6), version=version))
+        return rows
+
+    def test_completion_relevance_and_next_action(self):
+        events = (self.journey("a", useful="yes", saved=True, signup=True)
+                  + self.journey("b", opened=(), useful="no")
+                  + [ev("c", "start_role", "2026-10-05T11:00:00+00:00", step="self")]
+                  + [ev("d", "landing_view", "2026-10-05T11:00:00+00:00")])
+        o = compute_start_here(events)["overall"]
+        self.assertEqual(o["started"], 3)          # d never used it
+        self.assertEqual(o["chose_role"], 3)
+        self.assertEqual(o["pathway"], 2)          # c stopped after the first question
+        self.assertEqual(o["opened"], 1)
+        self.assertEqual(o["saved"], 1)
+        self.assertEqual(o["next_action"], 1)      # b neither opened nor saved
+        self.assertEqual((o["yes"], o["no"]), (1, 1))
+        self.assertEqual(o["account_after"], 1)
+
+    def test_a_sign_up_before_the_pathway_does_not_count(self):
+        events = [ev("a", "signup_complete", "2026-10-05T09:00:00+00:00")] + self.journey("a")
+        self.assertEqual(compute_start_here(events)["overall"]["account_after"], 0)
+
+    def test_groups_count_each_browser_once(self):
+        events = self.journey("a", need="services") + self.journey("a", need="learn", opened=("book",))
+        s = compute_start_here(events)
+        self.assertEqual(s["by_role"]["child"]["people"], 1)
+        self.assertEqual(s["by_need"]["services"]["people"], 1)
+        self.assertEqual(s["by_need"]["learn"]["opened"], 1)
+        self.assertEqual(s["opened"][("services", "therapists")], 1)
+
+    def test_test_traffic_is_left_out(self):
+        events = self.journey("q", version="qa-start") + self.journey("a")
+        self.assertEqual(compute_start_here(events)["overall"]["started"], 1)
+
+    def test_small_groups_hidden(self):
+        events = [row for i in range(6) for row in self.journey(f"p{i}", need="services")]
+        events += self.journey("x", role="ally", need="sensory", opened=("sensory",))
+        text = render_start_here(compute_start_here(events))
+        services = next(line for line in text.splitlines() if line.strip().startswith("services"))
+        sensory = next(line for line in text.splitlines() if line.strip().startswith("sensory tools"))
+        self.assertIn(" 6 ", services)
+        self.assertIn("<5", sensory)
+        self.assertNotIn("%", sensory)
+        self.assertIn("therapists", text)        # opened by 6
+        self.assertNotIn("sensory  ", text.split("resources opened most")[1])
+
+    def test_report_prints_no_ids(self):
+        text = render_start_here(compute_start_here(self.journey("visitor-123")))
+        self.assertNotIn("visitor-123", text)
+
+    def test_answers_match_the_app_and_the_database(self):
+        ts = (REPO / "frontend/lib/startHere.ts").read_text()
+        route = (REPO / "frontend/app/api/events/route.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_start_here_events.sql").read_text()
+        for key, _ in START_ROLES + START_NEEDS:
+            self.assertIn(f"id: '{key}'", ts)
+        for event in START_EVENTS:
+            self.assertIn(f"'{event}'", route)
+            self.assertIn(f"'{event}'", sql)
+        self.assertIn("unsure", AUDIENCE_LABELS)

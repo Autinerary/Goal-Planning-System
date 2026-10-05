@@ -108,6 +108,7 @@ Times are in Eastern Time.
 - Instagram
 - LinkedIn
 - A community organization
+- A parent group
 - A school or teacher
 - A friend or family member
 
@@ -140,3 +141,8 @@ aayush@autinerary.ca
    themselves, 4 to 6 parents, 3 to 4 other family members, 3 to 4 people who
    teach or support someone, and 4 to 6 neurotypical adults using it for
    themselves.
+5. Across the sessions, include people with different support needs
+   (question 8), not only people who asked for nothing: for example someone
+   who wants written instructions, someone who needs more time, and someone
+   who brings a support person. Riipen Labs' Group 4 named this as a risk to
+   manage: the first screens have to work for all of them.

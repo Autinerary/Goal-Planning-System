@@ -21,7 +21,7 @@ is for you. Facilitator: [[TEAM: name]].
 "Thanks for doing this. We're testing the app, not you. If something is hard,
 that's the app's fault and exactly what we want to find.
 
-I'll ask you to try seven things. While you do, please say out loud what
+I'll ask you to try eight things. While you do, please say out loud what
 you're thinking: what you're looking for, what you expect, what surprises
 you. It feels odd at first, that's normal.
 
@@ -38,6 +38,16 @@ If recording: "I'm starting the recording now."
 
 ## 2. The tasks (about 30 minutes)
 
+**First, the first screen (Group 4's clarity measure).** Ask them to open
+https://goal-planning-app.vercel.app on their own device, then:
+
+"Take a moment to look at this page, without clicking anything. In your own
+words, what is Autinerary for? Who is it for?"
+
+Write their answer down as closely as you can. Afterwards, mark whether
+they described it in a way that matches what it does (planning goals in
+small steps, and finding resources), partly, or not.
+
 Paste each task into the chat as you read it. Start the timer when they
 start. Don't explain the app.
 
@@ -53,13 +63,18 @@ little at a time and note it as "with help":
 
 | # | Read this | Success means | Watch for |
 | --- | --- | --- | --- |
-| 1 | "Make an account and get to your plan." | Reaches the Path, with email or "Sign in with Google" | Which sign-up they pick; the date-of-birth question; which of the three setup steps slows them down; whether they understand "norms" |
-| 2 | "What is the first thing your plan suggests you do?" | Says the first milestone | Whether the first screen makes the next step obvious |
-| 3 | "Find a service near you that could help with that." | Opens a relevant ResourceHub result | Whether they find ResourceHub; the location question; whether the results feel relevant |
-| 4 | "Mark something as done." | Completes a milestone or task | What they expect to happen after; how they feel about the celebration |
-| 5 | "Make the app easier on your eyes." | Changes a display setting | Where they look first; whether they find Settings |
-| 6 | "You want the app to stop sending you emails. Do that." | Finds the email settings | Whether they expect it in Settings or in an email |
-| 7 | "Find a place you've been to, or would like to go, and rate it." | Submits a rating | Whether the rating questions make sense; whether rating by norms feels useful |
+| 1 | "Without making an account, find something that could help with your situation today." | Answers both Start here questions and opens one starter resource | Which answers they pick, and whether they use "Not sure yet"; whether the resources fit what they need; whether "Free account" and "Save this path" are clear |
+| 2 | "Make an account and get to your plan." | Reaches the Path, with email or "Sign in with Google" | Which sign-up they pick; whether setup starts with their Start here answers; the date-of-birth question; which setup step slows them down; whether they understand "norms" |
+| 3 | "What is the first thing your plan suggests you do?" | Says the first milestone | Whether the first screen makes the next step obvious |
+| 4 | "Find a service near you that could help with that." | Opens a relevant ResourceHub result | Whether they find ResourceHub; the location question; whether the results feel relevant |
+| 5 | "Mark something as done." | Completes a milestone or task | What they expect to happen after; how they feel about the celebration |
+| 6 | "Make the app easier on your eyes." | Changes a display setting | Where they look first; whether they find Settings |
+| 7 | "You want the app to stop sending you emails. Do that." | Finds the email settings | Whether they expect it in Settings or in an email |
+| 8 | "Find a place you've been to, or would like to go, and rate it." | Submits a rating | Whether the rating questions make sense; whether rating by norms feels useful |
+
+**After task 1** also ask (Group 4's relevance and confidence measures):
+"Did those resources fit what you need: yes, partly or no?" and "What would
+you do next?" Note whether they name a next step without help.
 
 Ratings matter beyond the session: the norm and rating filters in
 ResourceHub only work once people have rated real places.
@@ -99,13 +114,21 @@ tablet · **Recording:** yes / no · **Quotes OK:** yes / no
 
 | # | Task | Success (yes / with help / no) | Time (min:sec) | Ease (1-5) | Where they hesitated, and what they said |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Make an account, get to the plan | | | | |
-| 2 | First suggested step | | | | |
-| 3 | Find a service nearby | | | | |
-| 4 | Mark something done | | | | |
-| 5 | Easier on the eyes | | | | |
-| 6 | Stop emails | | | | |
-| 7 | Rate a place | | | | |
+| 1 | Start here, no account: find something useful | | | | |
+| 2 | Make an account, get to the plan | | | | |
+| 3 | First suggested step | | | | |
+| 4 | Find a service nearby | | | | |
+| 5 | Mark something done | | | | |
+| 6 | Easier on the eyes | | | | |
+| 7 | Stop emails | | | | |
+| 8 | Rate a place | | | | |
+
+**First screen:** what they said Autinerary is for (their words):
+
+Matches what it does? yes / partly / no
+
+**Task 1:** answers chosen (who for, need): ____ · Resources fit the need?
+yes / partly / no · Next step they named, without help: ____
 
 **Wrap-up**
 

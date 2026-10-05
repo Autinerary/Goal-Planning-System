@@ -9,15 +9,35 @@ written.
 
 Two links per post: one to try the app, one to sign up for a session.
 
-| Channel | Try the app (tracked) |
-| --- | --- |
-| Riipen | https://goal-planning-app.vercel.app/?utm_source=riipen&utm_campaign=beta-oct-2026 |
-| Reddit | https://goal-planning-app.vercel.app/?utm_source=reddit&utm_campaign=beta-oct-2026 |
-| Instagram | https://goal-planning-app.vercel.app/?utm_source=instagram&utm_campaign=beta-oct-2026 |
-| LinkedIn | https://goal-planning-app.vercel.app/?utm_source=linkedin&utm_campaign=beta-oct-2026 |
-| Community organizations | https://goal-planning-app.vercel.app/?utm_source=community-org&utm_campaign=beta-oct-2026 |
-| Schools and teachers | https://goal-planning-app.vercel.app/?utm_source=school&utm_campaign=beta-oct-2026 |
-| Friends and family | https://goal-planning-app.vercel.app/?utm_source=friends&utm_campaign=beta-oct-2026 |
+Riipen Labs' Group 4 recommended sending each campaign "to targeted landing
+paths instead of a general destination". So each link opens **Start here**
+(`/start`): two quick questions, then a few starter resources and "Save this
+path", which is the free account. Where a channel mostly reaches one kind of
+person, its link answers the first question for them (`for=`), and the
+schools link answers both (`need=`). People can change either answer.
+
+| Channel | Mostly reaches | Try the app (tracked) |
+| --- | --- | --- |
+| Riipen | Everyone | https://goal-planning-app.vercel.app/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
+| Reddit | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&utm_source=reddit&utm_campaign=beta-oct-2026 |
+| Instagram | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&utm_source=instagram&utm_campaign=beta-oct-2026 |
+| LinkedIn | Teachers, employers, support workers | https://goal-planning-app.vercel.app/start?for=work&utm_source=linkedin&utm_campaign=beta-oct-2026 |
+| Community organizations | Everyone (adults and parents) | https://goal-planning-app.vercel.app/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
+| Parent groups | Parents | https://goal-planning-app.vercel.app/start?for=child&utm_source=parent-group&utm_campaign=beta-oct-2026 |
+| Schools and teachers | School staff | https://goal-planning-app.vercel.app/start?for=work&need=school_work&utm_source=school&utm_campaign=beta-oct-2026 |
+| Friends and family | Everyone | https://goal-planning-app.vercel.app/start?utm_source=friends&utm_campaign=beta-oct-2026 |
+
+To make another targeted link, add to `/start?`:
+
+- `for=` who they are here for: `self`, `child`, `family` (family member or
+  friend), `work` (someone they teach, support or work with), `ally`
+- `need=` what they need today: `learn` (starter information), `services`,
+  `community` (people with similar experiences), `school_work`, `sensory`
+
+Leave both out when a post reaches mixed groups: a wrong first answer is
+worse than one more question. The home page address
+(`https://goal-planning-app.vercel.app/?utm_source=...`) still works, and
+also starts with Start here.
 
 Session sign-up form: [[TEAM: Google Form link, once the screener is made]]
 
@@ -119,7 +139,8 @@ For teachers, employers, support workers and allies.
 ## Email to community organizations
 
 Send to autism and ADHD organizations, parent groups and disability support
-services. Ask before posting in their spaces.
+services. Ask before posting in their spaces. Use the parent-group link for
+groups that are only for parents.
 
 > **Subject:** Could your members help test a free planning app? (October)
 >

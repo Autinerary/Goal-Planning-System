@@ -799,6 +799,8 @@ useEffect(() => {
               { href: '/reflection?contextType=path', Icon: BookOpen, color: 'text-amber-600', name: 'Journal', what: 'Write down how it is going' },
               { href: goHubHref('/community?from=hare-world&context=path'), Icon: Sparkles, color: 'text-emerald-600', name: 'Tidbits', what: 'Questions and answers from people like you', external: true },
               { href: goHubHref('/search'), Icon: Map, color: 'text-cyan-600', name: 'ResourceHub', what: 'Find services and places near you', external: true },
+              // The guided "Start here" (Riipen Labs, Group 4), and the path saved from it.
+              { href: '/start', Icon: Compass, color: 'text-indigo-600', name: 'Starter resources', what: prefs.startPath ? 'The starter path you saved' : 'A few places to start, for what you need' },
             ].map(({ href, Icon, color, name, what, external }) => {
               const body = (
                 <>

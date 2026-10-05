@@ -13,6 +13,13 @@ For the Autinerary team and Riipen Labs reviewers. Group 2's report
 This plan covers all four. It uses only measures the app already records
 (see "Measures" below), plus notes from moderated sessions.
 
+Group 4's report ("Customer Experience Optimization Report") recommended a
+guided "Start Here" before the full app, campaign links that land on it, and
+testing it with "5-8 task-based tests with representative users" before the
+next campaign push. Start here is live (see [start-here.md](start-here.md));
+its first task and its measures (clarity, completion, relevance and
+confidence) are part of this plan too.
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -31,6 +38,7 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Google sign-in (provider on in Supabase, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`) | Sign up with Google | Done; confirmed with a real Google account 4 October |
 | Privacy page | What testers are told about their information | Live at /privacy |
 | Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device | Done 4 October; tested live (on, delivered, off) |
+| Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures; until then those events are dropped | To do |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -61,19 +69,26 @@ consent. The participant uses their own phone or computer. The facilitator
 reads each task, does not help unless the participant is stuck for two
 minutes, and notes success, time and where they hesitated.
 
+Before the first task, the participant looks at the home page without
+clicking, and says in their own words what Autinerary is for (Group 4's
+clarity measure).
+
 | # | Task (as read to the participant) | Success means |
 | --- | --- | --- |
-| 1 | "Make an account and get to your plan." | Reaches the Path, with or without Google |
-| 2 | "What is the first thing your plan suggests you do?" | Names the first milestone |
-| 3 | "Find a service near you that could help with that." | Opens a relevant ResourceHub result |
-| 4 | "Mark something as done." | Completes a milestone or task |
-| 5 | "Make the app easier on your eyes." | Changes a display setting |
-| 6 | "You want to stop the app sending you emails. Do that." | Finds the email setting |
-| 7 | "Find a place you've been to, or would like to go, and rate it." | Submits a rating |
+| 1 | "Without making an account, find something that could help with your situation today." | Answers both Start here questions and opens one starter resource |
+| 2 | "Make an account and get to your plan." | Reaches the Path, with or without Google |
+| 3 | "What is the first thing your plan suggests you do?" | Names the first milestone |
+| 4 | "Find a service near you that could help with that." | Opens a relevant ResourceHub result |
+| 5 | "Mark something as done." | Completes a milestone or task |
+| 6 | "Make the app easier on your eyes." | Changes a display setting |
+| 7 | "You want to stop the app sending you emails. Do that." | Finds the email setting |
+| 8 | "Find a place you've been to, or would like to go, and rate it." | Submits a rating |
 
 After each task, ask: "How easy or hard was that?" (1 very hard to 5 very
-easy, the same scale as the in-app survey). At the end, ask: "What would you
-use this for, if anything?" and "What nearly made you give up?"
+easy, the same scale as the in-app survey). After task 1, also ask whether
+the resources fit what they need, and what they would do next. At the end,
+ask: "What would you use this for, if anything?" and "What nearly made you
+give up?"
 
 Record per task: success (yes / with help / no), time, ease 1 to 5, and
 quotes. Compare ND and NT participants, and the five groups above, on task
@@ -91,8 +106,11 @@ testers to rate places they know, too.
 Open to anyone 18+ who reaches the app through a tracked link. No
 facilitator. The app collects everything below by itself.
 
-Tracked links: add `?utm_source=<channel>` to the landing page address, one
-value per channel, lower case, for example:
+Tracked links: add `?utm_source=<channel>` to the address, one value per
+channel, lower case. Campaign links open Start here (`/start`), and can
+answer its first question for the people a channel reaches (Group 4's
+"targeted landing paths"); [outreach.md](beta/outreach.md) has one for each
+channel. The home page works too, for example:
 
 ```
 https://goal-planning-app.vercel.app/?utm_source=riipen
@@ -110,14 +128,17 @@ personal in either value. The ready-made links and posts, all using
 
 What participants will see, in order:
 
-1. Setup in three steps (who you're here for, one goal, and an optional
-   question about norms), then an optional "What are you looking for today?"
-2. Two optional questions after setup (how much they knew before signing up,
+1. Start here, before any account: who they are here for, what they need
+   today, then a few starter resources and "Save this path".
+2. Setup in three steps (who you're here for, one goal, and an optional
+   question about norms), starting with their Start here answers, then an
+   optional "What are you looking for today?"
+3. Two optional questions after setup (how much they knew before signing up,
    how easy setup was), and an opt-in to a check-in by email, by a
    notification on their device, or both.
-3. After five days of use (and after the existing feedback form): "Is
+4. After five days of use (and after the existing feedback form): "Is
    Autinerary useful to you so far?"
-4. Anyone who comes back after two weeks away: "Welcome back, what got in the
+5. Anyone who comes back after two weeks away: "Welcome back, what got in the
    way?" Anyone who opted in and stays away two weeks gets the same question
    once, by email and/or notification, answerable without signing in.
 
@@ -136,12 +157,24 @@ splits each by who people are here for and by channel:
 | Usefulness (active users) | Very / somewhat / not yet | In-app check-in |
 | Why people stop (inactive users) | Reasons, from the email and the welcome-back question | Check-ins |
 
+Group 4's measures for Start here, from the same report:
+
+| Group 4 asked for | What we report | Where it comes from |
+| --- | --- | --- |
+| Clarity: "explain what Autinerary is for after the first screen" | Share of participants whose description matches what it does | Session notes (first screen) |
+| Completion: "select a role and goal, then reach a resource list" | Share of people who start Start here and reach a pathway | Start here events |
+| Relevance: "users mark results as useful or save the path" | "Was this useful?" yes and not really, and saves, by need and by who for | Start here events; session task 1 |
+| Confidence: "choose a next action" | Share of pathways followed by opening a resource or saving | Start here events; session task 1 |
+
 Proposed targets, for the team to agree before the trial starts:
 
 - at least 70% of new accounts finish setup
 - at least 60% say they knew "about right" before signing up
 - setup ease median of 4 or more
 - at least 40% come back within 7 days
+- at least 70% of people who start Start here reach a pathway, and at least
+  half of pathways lead to a next action
+- more people say starter resources were useful than not, for each need
 
 Groups with fewer than 5 people are shown as "<5", with no percentages.
 Browsers that send Do Not Track or Global Privacy Control are left out of the

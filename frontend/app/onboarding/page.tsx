@@ -21,6 +21,7 @@ import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
+import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole } from '@/lib/startHere'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
   CONDITION_GROUPS,
@@ -143,7 +144,20 @@ const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
   { id: 'friend', label: 'A friend', connection: 'friend' },
   { id: 'work', label: 'Someone I teach, support or work with', connection: null },
   { id: 'ally', label: "I'm an ally, or just learning", connection: 'ally' },
+  // Riipen Labs, Group 4: "Include 'not sure' to avoid blocking progress".
+  // Setup then reads as if for themselves, the default.
+  { id: 'unsure', label: 'Not sure yet', connection: null },
 ]
+
+// The "Start here" answers kept in this browser, if both were given.
+function keptStartPath(): { for: string; need: string; savedAt: string } | null {
+  try {
+    const role = localStorage.getItem(START_FOR_KEY)
+    const need = localStorage.getItem(START_NEED_KEY)
+    if (isStartRole(role) && isStartGoal(need)) return { for: role, need, savedAt: new Date().toISOString() }
+  } catch {}
+  return null
+}
 
 // "What are you looking for today?" decides what is shown first after setup.
 const LOOKING_FOR = [
@@ -854,24 +868,31 @@ export default function OnboardingPage() {
   // one go instead of one at a time.
   const requiredDone = canAccessOnboarding && canProceed(stepIndex('about')) && canProceed(stepIndex('goalsAndDreams'))
 
-  // "Start here" on the home page (Riipen Labs, Group 3) may already have
-  // asked who this is for: use that answer unless setup has one (from a draft).
+  // "Start here" (Riipen Labs, Groups 3 and 4) may already have asked who this
+  // is for and what they need: use those answers unless setup has its own
+  // (from a draft).
   useEffect(() => {
     let pre: string | null = null
+    let need: string | null = null
     try {
-      pre = localStorage.getItem('autinerary_start_for')
+      pre = localStorage.getItem(START_FOR_KEY)
+      need = localStorage.getItem(START_NEED_KEY)
     } catch {}
     const conn = AUDIENCES.find((a) => a.id === pre)
-    if (!pre || !conn) return
+    const lookingFor = START_GOALS.find((g) => g.id === need)?.lookingFor
+    if (!conn && !lookingFor) return
     setFormData((prev) => {
-      if (prev.audience) return prev
-      const untouched = prev.barrierTypes.length === 0
-      return {
-        ...prev,
-        audience: pre as string,
-        barrierConnections: untouched ? (conn.connection ? { [conn.connection]: [] } : {}) : prev.barrierConnections,
-        role: untouched ? (conn.connection === 'self' ? 'self_advocate' : conn.connection || '') : prev.role,
+      const next = { ...prev }
+      if (conn && !prev.audience) {
+        const untouched = prev.barrierTypes.length === 0
+        next.audience = conn.id
+        if (untouched) {
+          next.barrierConnections = conn.connection ? { [conn.connection]: [] } : {}
+          next.role = conn.connection === 'self' ? 'self_advocate' : conn.connection || ''
+        }
       }
+      if (lookingFor && prev.lookingFor.length === 0) next.lookingFor = [lookingFor]
+      return next
     })
   }, [])
 
@@ -1409,16 +1430,26 @@ export default function OnboardingPage() {
 
       await completeOnboarding(response.data.pathId)
       track('onboarding_complete')
-      await axios.post('/api/me/preferences', {
+      // The "Start here" pathway chosen before signing up ("Save this path"),
+      // kept with the account so it can be reopened from the Path.
+      const startPath = keptStartPath()
+      const prefsSaved = await axios.post('/api/me/preferences', {
         dreamAppearance: formData.dreamAppearance,
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
         // Who this is for and what they came for: drives what the next pages
         // show first, and lets the funnel be compared by user type.
         audience: formData.audience || null,
         lookingFor: formData.lookingFor,
-      }).catch(() => {})
+        ...(startPath ? { startPath } : {}),
+      }).then(() => true, () => false)
       try {
-        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor }))
+        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor, startPath }))
+        // Saved with the account now, so not left for whoever uses this
+        // browser next.
+        if (prefsSaved && startPath) {
+          localStorage.removeItem(START_FOR_KEY)
+          localStorage.removeItem(START_NEED_KEY)
+        }
         // "Ask later": the optional extras this person did not get to, offered
         // on the Path once they have something to use.
         const askLater = ['location', 'character', 'spiritAnimal', 'personalize'].filter((id) =>

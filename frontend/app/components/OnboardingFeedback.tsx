@@ -31,6 +31,7 @@ const EASE_LABELS = ['Very hard', 'Hard', 'Okay', 'Easy', 'Very easy']
 export const HEARD_FROM = [
   { id: 'friend', label: 'A friend or family member' },
   { id: 'community-org', label: 'A community organization' },
+  { id: 'parent-group', label: 'A parent group' },
   { id: 'school', label: 'A school or teacher' },
   { id: 'riipen', label: 'Riipen' },
   { id: 'reddit', label: 'Reddit' },

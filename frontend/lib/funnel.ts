@@ -28,6 +28,15 @@ export type FunnelEvent =
   | 'onboarding_step_view'
   | 'onboarding_complete'
   | 'app_open'
+  // "Start here" (Riipen Labs, Group 4's measures): chose who for, reached a
+  // pathway (completion), opened a resource, said whether it was useful
+  // (relevance), saved the path (a next action). Steps carry the answers,
+  // e.g. "child.services", never anything typed.
+  | 'start_role'
+  | 'start_pathway'
+  | 'start_open'
+  | 'start_useful'
+  | 'start_save'
 
 const VISITOR_KEY = 'autinerary_visitor_id'
 const FIRST_TOUCH_KEY = 'autinerary_first_touch'
