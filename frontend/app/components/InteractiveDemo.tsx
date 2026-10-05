@@ -66,11 +66,11 @@ const STEPS: DemoStep[] = [
     emoji: '🪧',
     title: 'Milestone View',
     overview:
-      'This is the Milestone View. It pairs the tools you can use with the barriers you’re unlocking for the current milestone.',
+      'This is the Milestone View. It pairs the tools you can use with the norms they help with, for the current milestone.',
     features: [
-      { name: 'Tools & Barriers dropdown', desc: 'Collapse or expand the list to keep the page tidy.' },
+      { name: 'Tools to Use dropdown', desc: 'Collapse or expand the list to keep the page tidy.' },
       { name: 'Wishlist / Currently Using', desc: 'Save a tool to your ResourceHub list or mark that you’re using it.' },
-      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked. This also clears the barrier.' },
+      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked. This also marks that norm as unlocked.' },
     ],
     route: '/milestones',
   },

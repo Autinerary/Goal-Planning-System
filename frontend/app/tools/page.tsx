@@ -154,7 +154,7 @@ function ToolsContent() {
             onChange={(e) => setSelectedBarrier(e.target.value || null)}
             className="border-2 border-black rounded px-3 py-2"
           >
-            <option value="">All barriers</option>
+            <option value="">All norms</option>
             {availableBarriers.map(b => (
               <option key={b} value={b}>{b.toUpperCase()}</option>
             ))}
@@ -278,7 +278,7 @@ function ToolsContent() {
         <h3 className="font-bold text-lg mb-2">About {activeCategory === '(tool x)' ? 'Communities' : activeCategory}</h3>
         <p className="text-gray-600">
           {activeCategory === 'services' && 
-            "Professional services and organizations that provide support, resources, and advocacy for people facing systematic barriers."}
+            "Professional services and organizations that provide support, resources, and advocacy for people navigating systemic norms."}
           {activeCategory === 'commentaries' && 
             "Articles, videos, and perspectives from people with lived experience - sharing relatable content and education."}
           {activeCategory === 'products' && 

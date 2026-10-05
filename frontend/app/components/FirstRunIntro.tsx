@@ -41,7 +41,7 @@ const STEPS: Step[] = [
   {
     emoji: '🪧',
     title: 'Milestones',
-    body: 'Each milestone pairs the tools you use with the barriers you unlock. Rate what helps as you go.',
+    body: 'Each milestone pairs the tools you use with the norms they help with. Rate what helps as you go.',
   },
   {
     emoji: '🛒',

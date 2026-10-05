@@ -345,7 +345,7 @@ function RacesContent() {
         { emoji: '📚', name: 'Study Guide', cost: '15 coins' },
         { emoji: '🎧', name: 'Headphones', cost: '20 coins' },
         { emoji: '⚡', name: 'Speed Boost', cost: '25 coins' },
-        { emoji: '🛡️', name: 'Barrier Shield', cost: '30 coins' },
+        { emoji: '🛡️', name: 'Norm Shield', cost: '30 coins' },
         { emoji: '✨', name: 'Motivation Spark', cost: '18 coins' },
       ]
   // Real agent-derived milestones (fallback to mock if no path data yet).
@@ -1197,7 +1197,7 @@ function RacesContent() {
                 status: (idx === 0 ? 'active' : idx < 3 ? 'upcoming' : 'far') as 'active' | 'upcoming' | 'far',
               }))
             if (barrierSteps.length > 0) {
-              dimSubRaces.barrier = [{ id: 'barrier-main', name: 'Barrier Support', steps: barrierSteps }]
+              dimSubRaces.barrier = [{ id: 'barrier-main', name: 'Norms Support', steps: barrierSteps }]
             }
 
             const activeDim = dimOrder.find(d => d.key === activeDimension) || dimOrder[0]
@@ -1341,7 +1341,7 @@ function RacesContent() {
                               setNewBarrierText(''); setAddingBarrier(false)
                             }
                           }}
-                          placeholder="Add barrier…"
+                          placeholder="Add norm…"
                           className={`text-[8px] px-1.5 py-0.5 rounded-full border w-24 focus:outline-none ${day ? 'bg-white border-slate-300 text-slate-700' : 'bg-indigo-950 border-indigo-600 text-indigo-200'}`}
                         />
                         <button
@@ -1359,7 +1359,7 @@ function RacesContent() {
                       <button
                         onClick={() => setAddingBarrier(true)}
                         className={`text-[8px] px-1.5 py-0.5 rounded-full border border-dashed font-bold ${day ? 'border-slate-300 text-slate-500 hover:bg-white/70' : 'border-indigo-600 text-indigo-300 hover:bg-indigo-900/40'}`}
-                        title="Add a barrier/condition to consider here"
+                        title="Add a norm or condition to consider here"
                       >
                         + Add
                       </button>

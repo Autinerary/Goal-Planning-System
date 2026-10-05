@@ -14,7 +14,7 @@ interface Msg {
 const INTRO: Msg = {
   role: 'assistant',
   content:
-    "Hi, I'm your assistant. Stuck on a goal, a milestone, or a barrier? Tell me what's going on and I'll help you think through practical next steps.",
+    "Hi, I'm your assistant. Stuck on a goal or a milestone? Tell me what's going on and I'll help you think through practical next steps.",
 }
 
 const STARTERS = [

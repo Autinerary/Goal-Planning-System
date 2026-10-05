@@ -244,7 +244,7 @@ export function computeMentality(
         weight: 0.5,
       },
       { label: `${recentMilestones.length} milestones completed this week`, value: milestoneRatio, weight: 0.3 },
-      { label: `${barrierCount} known barriers (small penalty)`, value: barrierMultiplier, weight: 0.2 },
+      { label: `${barrierCount} known norms (small penalty)`, value: barrierMultiplier, weight: 0.2 },
     ],
   }
 }

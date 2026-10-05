@@ -48,7 +48,7 @@ const bodyFont = Atkinson_Hyperlegible({
 
 export const metadata: Metadata = {
   title: 'Autinerary - Goal Planning System',
-  description: 'Personalized life planning for individuals facing systematic barriers',
+  description: 'Personalized life planning for neurodivergent people and the people who support them',
   manifest: '/manifest.json',
   // Apple ignores the web manifest when installing to the home screen, so
   // the icon and standalone behaviour have to be declared separately or an

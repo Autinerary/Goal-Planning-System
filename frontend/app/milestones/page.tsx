@@ -226,7 +226,7 @@ export default function MilestoneView() {
 
   /* Tool symbols - keys, hammers, lift, spray boots, etc. */
   const toolSymbols = [
-    { emoji: '🔑', name: 'Key', desc: 'Unlocks access barriers' },
+    { emoji: '🔑', name: 'Key', desc: 'Unlocks access' },
     { emoji: '🔨', name: 'Hammer', desc: 'Breaks through blockers' },
     { emoji: '🏋️', name: 'Lift', desc: 'Builds strength over time' },
     { emoji: '👢', name: 'Spray Boots', desc: 'Speeds through obstacles' },
@@ -337,7 +337,7 @@ export default function MilestoneView() {
               <Sparkles className="w-5 h-5 text-emerald-600" aria-hidden="true" />
             </div>
             <div>
-              <span className="text-sm font-bold text-slate-800">Stuck on a barrier?</span>
+              <span className="text-sm font-bold text-slate-800">Stuck on something?</span>
               <p className="text-xs text-slate-600">Get help three ways: from the community, a role model, or the assistant.</p>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function MilestoneView() {
         <div className="mb-4 border border-amber-300 rounded-2xl p-4 surface">
           <h3 className="font-bold text-amber-900 mb-1 flex items-center gap-2"><ClipboardList className="w-4 h-4" aria-hidden="true" />Summary</h3>
           <p className="text-sm text-slate-600">Current Milestone: <strong>{pathPlanning?.milestones?.[0]?.name || races[0]?.name || 'Your current milestone'}</strong></p>
-          <p className="text-sm text-slate-500 mt-1">Each individual task is YOU using TOOLS to REMOVE BARRIERS. Choose your tools wisely. Barriers get bigger but so do you!</p>
+          <p className="text-sm text-slate-500 mt-1">Each task is you using tools to move forward. Choose your tools wisely. Steps get bigger, but so do you!</p>
         </div>
 
         {/* Tools to Use — each tool shows what it helps with (Odosa redesign) */}
@@ -586,7 +586,7 @@ export default function MilestoneView() {
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 pointer-events-none">
             <div className="text-center" style={{ animation: 'unlockPop 1s ease-out' }}>
               <div className="text-8xl mb-2">🔓</div>
-              <div className="text-2xl font-bold text-white drop-shadow-lg">Barrier Unlocked!</div>
+              <div className="text-2xl font-bold text-white drop-shadow-lg">Norm Unlocked!</div>
             </div>
           </div>
         )}

@@ -235,16 +235,16 @@ export default function MilestoneDetailView() {
             <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">🛡️</span>
-                <h3 className="text-lg font-semibold text-violet-900">Barriers Unlocked</h3>
+                <h3 className="text-lg font-semibold text-violet-900">Norms Unlocked</h3>
               </div>
-              <p className="text-sm text-violet-700 mb-3">Each tool below addresses specific barriers. Complete them to unlock progress.</p>
+              <p className="text-sm text-violet-700 mb-3">Each tool below helps with specific norms. Complete them to unlock progress.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-violet-200">
                       <th className="text-left py-2 pr-4 text-violet-800 font-bold">Tool</th>
                       <th className="text-left py-2 pr-4 text-violet-800 font-bold">Type</th>
-                      <th className="text-left py-2 text-violet-800 font-bold">Barriers Unlocked</th>
+                      <th className="text-left py-2 text-violet-800 font-bold">Norms Unlocked</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -269,7 +269,6 @@ export default function MilestoneDetailView() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-violet-500 mt-2 italic">Could add gifts of barriers fully unlocked</p>
             </div>
           )}
 
