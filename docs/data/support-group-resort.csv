@@ -1,0 +1,713 @@
+id,name,source_ref,osm_social_facility,osm_for,old_category,new_category
+001d7279-5f15-4f70-aef1-09452e520d20,City of Calgary Youth Employment Centre,osm:node/4242983476,,,Support Group,Employment
+00cfa4ce-3ef6-4c0c-afd7-bd4db07939cc,Dartmouth North Christian Food Bank,osm:node/12152174818,food_bank,,Support Group,Food Support
+01521ec0-2758-4720-9f7d-99894e096911,Canadian Progress Club,osm:node/6477124021,,,Support Group,Social Services
+01579cc9-b89b-4e42-bbd8-b7321fcdbe5d,Élisabeth Bruyère Residence,osm:node/5599541309,nursing_home,senior,Support Group,Senior Care
+01b025a8-f348-457c-b69c-b0265c082631,Columbian Village,osm:way/1460262607,group_home,senior,Support Group,Senior Care
+01f6c471-8f31-4482-87f0-62fa0e1a6cb7,Regency at Chene,osm:way/1268635827,nursing_home,senior,Support Group,Senior Care
+02204f5e-4531-4c30-ab7b-bed567792711,The Osborn,osm:node/8648824642,shelter,homeless,Support Group,Shelter
+025bdb1f-bcc4-460c-9598-ab982f6d53cb,Canadian Mental Health Association Winnipeg Region,osm:way/101914166,,,Support Group,Support Group
+0278d283-1cd9-4422-8037-51ce20277a21,Food Banks Mississauga,osm:node/3728550200,food_bank,,Support Group,Food Support
+02fcfc90-2fab-4b5c-9f7b-27130a28698a,Catholic Charities Men's Hostel,osm:node/8301398119,shelter,homeless;men,Support Group,Shelter
+030428af-f0f1-4476-bd64-3000e8fcfa85,Alternatives for Girls,osm:way/656066275,,juvenile,Support Group,Social Services
+0319d14c-d1cf-4771-93da-1e6d018c86e5,Woodhall Park Retirement Village,osm:way/97335853,group_home,senior,Support Group,Senior Care
+0342bd0d-21bc-46fd-9728-d9b842a8ef2b,Glenbrook Villa,osm:way/653696871,group_home,senior,Support Group,Senior Care
+0393caf0-46d5-44b5-8dcd-ccae08ca4500,Silver Threads Service,osm:way/302986926,,senior,Support Group,Senior Care
+03dc9b38-5c0a-4f54-a4ae-8d65216d6731,Kinsmen Lodge,osm:way/390956652,nursing_home,senior,Support Group,Senior Care
+04154807-3eb7-4383-be32-dc4a326cef62,Jennings Senior Living,osm:way/734543849,nursing_home,senior,Support Group,Senior Care
+042a4120-d612-4c6e-b87a-33a2b51b4a57,Edith Gunning Court,osm:way/138811691,assisted_living,mental_health,Support Group,Senior Care
+049219e1-10e4-45e3-a048-6b4962d0f611,Triptyque,osm:node/10926521851,shelter,juvenile,Support Group,Shelter
+04dd8988-98d7-4d95-8f6f-99b521610b1b,Habitations Sainte-Germaine-Cousin,osm:node/5317360308,group_home,senior,Support Group,Senior Care
+05584a1b-bdc3-4e0e-b773-0b364aa9b385,Vancouver Family Preservation & Reunification Services,osm:node/7714943031,,,Support Group,Social Services
+05684a74-7d95-4402-8899-fb86475783a7,Fort Clarence Place,osm:way/358576678,assisted_living,,Support Group,Senior Care
+05bbd8e3-c37d-45ab-b05a-777788310497,Rise N Shine Child Care Centre,osm:node/1102716288,,,Support Group,Child Care
+068492c7-09c3-48d4-8b82-53fc18e29af0,Renaissance,osm:way/155644121,group_home,senior,Support Group,Senior Care
+069cb0f5-84a8-4198-899e-96977e30775d,Résidence Les Marronniers,osm:node/7454843072,group_home,senior,Support Group,Senior Care
+070e4bb7-574a-447a-9470-f13662ba950d,Comité de base pour l’action et l’information sur le logement social d’Hochelaga-Maisonneuve,osm:node/2444571769,outreach,,Support Group,Social Services
+0734d982-07aa-41d6-aaaf-27aa63cfb245,CHSLD de la Rive,osm:node/7010155257,nursing_home,disabled,Support Group,Senior Care
+078164cf-344d-4d8b-85ca-7484b316e79f,Le Prévert,osm:node/6511561419,group_home,senior,Support Group,Senior Care
+085cdb3a-3671-4398-95e4-472d1b8e001f,Amos Ferguson Manor,osm:way/673374663,group_home,senior,Support Group,Senior Care
+086527fc-6af6-47cb-8b32-666a56ef860c,Northcrest Care Centre,osm:way/548780393,nursing_home,senior,Support Group,Senior Care
+09a52489-9479-44c8-aca5-67279777273d,Camino Wellbeing + Mental Health,osm:node/13982083825,,,Support Group,Support Group
+0a02cd8b-69c7-4551-9a63-016469d5328f,Cuisines Collectives du Grand Plateau,osm:node/2967908330,,,Support Group,Food Support
+0a520e1f-1504-4db6-8e11-51c758627f05,Productions Limoilou en Vrac,osm:node/2520382430,outreach,,Support Group,Social Services
+0ab09473-fdfc-4f73-a065-dbc890811a5e,Centre d'hébergement du Boisé,osm:node/7502171577,,,Support Group,Senior Care
+0acc1dfc-619b-4d2d-af72-753c449da3bf,Déclic Action - pavillon La Maisonnée,osm:node/4946070301,,,Support Group,Social Services
+0b2f5a27-0c9c-4591-9aff-26acf5525b98,Edith Gunning Court,osm:way/138811696,assisted_living,mental_health,Support Group,Senior Care
+0b38ee8c-b973-49d5-9c1f-51c8bb29fc80,Résidence Les Jardins Gordon,osm:node/7418255484,group_home,senior,Support Group,Senior Care
+0ba95091-1250-497e-85f5-2741dc50151c,CHSLD Saint-Jude,osm:node/7450262668,nursing_home,disabled,Support Group,Senior Care
+0da7f3c0-8924-4594-8340-d906057dfe78,Résidences havre Joie de Vivre,osm:node/12509879228,group_home,senior,Support Group,Senior Care
+0e14ebf2-dfeb-4d1f-9cb0-c310a6b9a4ca,Montclair,osm:node/5267972319,group_home,senior,Support Group,Senior Care
+0e38fb4c-972e-45f3-a3f9-ca55aa414905,Manoir De La Giraudière,osm:node/6151135174,group_home,senior,Support Group,Senior Care
+0e66c7a2-4aa7-45d7-add0-3dc2a3bb5735,The Haven,osm:node/12535303417,shelter,homeless,Support Group,Shelter
+0ea6ae86-591e-4d22-919e-333018775705,CHSLD Résidence Riviera,osm:node/6832336397,nursing_home,disabled,Support Group,Senior Care
+0ec91ae4-263a-4183-b414-1520704a6737,Centre jeunesse de Québec,osm:node/13879136440,,,Support Group,Social Services
+0ef491c7-8b21-4255-9cc4-376f11e65cb3,Les Résidences Soleil Manoir Saint-Léonard,osm:node/7449429004,group_home,senior,Support Group,Senior Care
+0f3450e1-5cb0-4fdf-89f2-459bf605b17a,Hornby Shelter,osm:node/12536653130,shelter,homeless,Support Group,Shelter
+0f5f7b3b-7052-4f69-af94-ac46a7c0b32f,Adult Guardianship,osm:node/12549861452,financial_services,,Support Group,Social Services
+0faf3281-b067-46ee-87fb-c5923ac468dc,Dundurn Place Care Centre,osm:way/131158488,nursing_home,senior,Support Group,Senior Care
+10b2b1b1-3691-4cdc-a050-8c9d9efc7a59,Golden Links Lodge,osm:way/73681858,assisted_living,senior,Support Group,Senior Care
+10b84581-8c73-4407-8989-a5dc0ec11b68,Respite Space,osm:node/8986936785,shelter,homeless;women,Support Group,Shelter
+10eed879-e6eb-42f8-a56a-de5e4c142c8b,Woodlyn Manor,osm:way/460641851,group_home,senior,Support Group,Senior Care
+10f04b4c-f1a4-4a18-8103-a47452fc7f4e,Barry House,osm:way/463454730,shelter,homeless,Support Group,Shelter
+10f16c69-8893-4a56-9f61-8b02b3401cd5,Le Château BeauRivage,osm:node/7449429005,group_home,senior,Support Group,Senior Care
+12bb8471-3899-4101-a854-ed4ed4043f84,Chartwell Le Wellesley,osm:node/7409259050,group_home,senior,Support Group,Senior Care
+12cc16d2-cdf5-4ee8-b037-696f913b107a,Ontario Works,osm:node/14022688201,,,Support Group,Social Services
+12d182c1-823e-4b0a-9e42-d3810a83b926,Maison de Soins Palliatifs de Laval,osm:node/5552274137,,,Support Group,Social Services
+12f4dc16-55fb-456a-805a-cb1bf45f5eba,Parkville Manor,osm:way/556220671,group_home,senior,Support Group,Senior Care
+135cb7df-103d-45c7-b05d-1bc05233bbdc,Preston Park Retirement Residence,osm:way/645147192,group_home,senior,Support Group,Senior Care
+13effc87-a941-44cc-920a-825888e9d542,Chartwell Royal Park Retirement Residence,osm:node/7700852388,group_home,senior,Support Group,Senior Care
+14297cb2-f511-4342-9b01-e88d9bbe6013,ACOMI Resource Centre,osm:node/13518401419,,,Support Group,Social Services
+14937a3b-81bb-4b89-8cca-eef0be881383,Nantucket Place,osm:way/463558424,group_home,senior,Support Group,Senior Care
+14b0ff63-9cc6-4e28-b13d-71302c7bdba3,Windsor Essex Community Health Center (WECHC),osm:way/787837163,,,Support Group,Social Services
+14ce837e-91d3-4a2b-9982-fc4a3a953631,Family Services,osm:node/914191009,,,Support Group,Social Services
+14d543e3-cacc-4328-877d-196556e2d5c2,Arbor Trace,osm:way/747954460,group_home,senior,Support Group,Senior Care
+14ead940-21c1-4074-a841-1dfac0b79c63,411 Seniors Centre Society,osm:node/11169969274,day_care,senior,Support Group,Senior Care
+14f4f644-3a96-45b5-9126-91e44ce51f92,St. Joe's Supper Table,osm:node/6016058837,food_bank,,Support Group,Food Support
+15114e7f-c0ec-473c-9263-ab6866be59a3,Selkirk Place,osm:way/138970545,assisted_living,senior,Support Group,Senior Care
+15527bfa-bf5a-4260-bcbc-06645dbbbdb3,Crathorne Place II,osm:way/465432155,group_home,senior,Support Group,Senior Care
+15c107b7-342e-4fd9-b674-ac8467858b17,Esquimalt Neighbourhood House,osm:way/849628198,outreach,,Support Group,Social Services
+15f266e0-c7b5-4e90-898b-4a64fe60f395,Mustard Seed,osm:node/13315390171,shelter,homeless,Support Group,Shelter
+161c27d2-1e1d-41c1-841f-a698fba866b9,West Neighbourhood House,osm:node/902314183,outreach,,Support Group,Social Services
+163600b9-bbb8-4936-8e11-deb65d45316a,Résidence La Luciole,osm:node/6957446765,group_home,senior,Support Group,Senior Care
+16c0721d-c675-4d53-bc86-96d10403b3df,Résidence Laval Ouest,osm:node/7455551669,group_home,senior,Support Group,Senior Care
+16ea251f-dfd4-4c3c-b91b-35877037f143,Pennsylvania Supported Suites,osm:node/12639455854,assisted_living,addiction,Support Group,Senior Care
+1773a828-269e-4010-904f-e7dd39b31e61,Timberlea Manor,osm:way/493560194,group_home,senior,Support Group,Senior Care
+178b5169-2bd2-4206-b96e-64e564eec5ea,Centre de Pédiatrie Sociale de Gatineau,osm:node/3690704532,outreach,,Support Group,Social Services
+17e2d53a-ef1d-4436-8567-d6c8beefa379,The Residences on Augusta,osm:way/131163295,,senior,Support Group,Senior Care
+180f33e4-08ec-482f-a185-135c2110baf5,Marrion Village,osm:way/956954187,assisted_living,senior,Support Group,Senior Care
+1887761d-d42a-4f2d-822e-b2d7442432ce,Residence Berthiaume-Du Tremblay,osm:node/5314074391,nursing_home,senior,Support Group,Senior Care
+1942fcf1-4000-4525-93a7-5f4b421c1233,Windermere on the Mount,osm:way/126565077,assisted_living,senior,Support Group,Senior Care
+195f5ad6-2c21-4c54-9473-53e483b3ff74,The Manor Village at Fish Creek Park,osm:node/12542087562,nursing_home,senior,Support Group,Senior Care
+197b095a-d9de-4289-a1e3-99409da52b90,Heron Terrace,osm:way/753592100,nursing_home,senior,Support Group,Senior Care
+1a7d3ba2-ab17-45f8-946d-eff33561a158,Bramalea Retirement Residence,osm:way/56009254,group_home,senior,Support Group,Senior Care
+1a8c1471-adea-4d92-bc25-4ab47a86b93a,The Berkeley,osm:way/433093387,assisted_living,,Support Group,Senior Care
+1bae84de-885c-4524-8ceb-06d94aff1a42,CHSLD Argyle,osm:node/7442402239,nursing_home,disabled,Support Group,Senior Care
+1c8cc343-c378-4d38-94df-d5e57bc52354,TNG Community Services,osm:node/3460769256,,,Support Group,Social Services
+1cf85df1-f9be-4cd7-accf-605f1eaac075,Centre D'Hébergement Saint-Vincent-Marie,osm:node/4402756507,nursing_home,senior,Support Group,Senior Care
+1d6e0fab-7d71-4b97-8baa-0baa27e329ca,Résidence pour retraités L'Orée du Faubourg,osm:node/4897138125,,senior,Support Group,Senior Care
+1d74ccee-1e95-4e83-8559-f5ad30725715,Ukrainian Youth Association,osm:node/4834662365,,,Support Group,Social Services
+1da5e627-e148-49f3-a004-d581e1017501,Manoir Royal Saint-Eustache,osm:node/7468489561,group_home,senior,Support Group,Senior Care
+1de10927-452e-4f35-a37d-dbd5231f6839,Extendicare Poseidon,osm:way/72942227,,,Support Group,Senior Care
+1e15e894-a8ec-48c2-a469-b07617948b30,Warming & Respite Space,osm:node/12533335025,shelter,homeless;women,Support Group,Shelter
+1e4a2d86-4493-4551-8e31-7ab4f0be4979,Mulgrave Park Tenants Association Food Bank,osm:node/11689679223,food_bank,,Support Group,Food Support
+1e51114b-8e9b-40af-9a11-7bcb877e7e35,CAMA Woodlands Nursing Home,osm:way/182951362,nursing_home,senior,Support Group,Senior Care
+1e7fb993-4547-4146-a8ae-ece52c27ddfb,The Residence at Clayton Heights,osm:way/675294341,nursing_home,senior,Support Group,Senior Care
+1edf6cf3-ac88-4640-bb02-8eeea16ef3eb,Dopamine,osm:node/2504513082,ambulatory_care,drug_addicted,Support Group,Social Services
+1f5ee4e1-99f8-47c8-9f30-b4da75168bea,Legacy Senior Living,osm:node/13926966208,assisted_living,senior,Support Group,Senior Care
+1fed28b5-24ff-4e36-bdbf-5b253ed12b1c,Manoir de l'Ormière,osm:way/184624077,assisted_living,senior,Support Group,Senior Care
+20a66afe-0d0a-4cb2-91a2-14e4c3a8db8a,Chartwell Oak Park Terrace Retirement Residence,osm:way/783673679,assisted_living,senior,Support Group,Senior Care
+20f5dfb6-8a54-46a8-8922-2966a8dbc85c,Brightwater Senior Living of Capital Crossing,osm:way/662359792,group_home,senior,Support Group,Senior Care
+21095fc4-ff80-4009-856e-642528d1bc16,Boréa,osm:node/6919310842,group_home,senior,Support Group,Senior Care
+217dedbc-e298-432e-9c39-bed75652becc,Aboriginal Friendship Centre,osm:way/161621504,outreach,,Support Group,Social Services
+21aef6b9-2851-49a8-bd4e-8c65869c30ee,Résidence Monseigneur-Bourget,osm:node/10926521852,nursing_home,senior,Support Group,Senior Care
+21c5f6c4-8490-4a80-95c8-ddc474dc4268,Résidence Le Château Royal,osm:node/7459630224,group_home,senior,Support Group,Senior Care
+2203ef41-07f2-43b0-9e9d-5df58ec446bd,Spectre de Rue,osm:node/2422279646,outreach,drug_addicted,Support Group,Social Services
+2235a635-a557-44e3-83b8-380ae6bfbe38,Fonds d'Aide de l'Ouest-de-l'Île,osm:node/7417842781,,,Support Group,Social Services
+2246df96-e44d-4a63-9067-d4512806cfa7,Appartements de La Rive,osm:node/6915459959,group_home,senior,Support Group,Senior Care
+22801840-688e-4a24-a841-56a0627f2ff8,Centre d'hébergement Floralies de Lachine,osm:node/7454877692,nursing_home,,Support Group,Senior Care
+22a86716-7472-4b1b-a6db-231ef59ed6f5,Metson Shelters,osm:node/11357181076,shelter,homeless,Support Group,Shelter
+22b1fc4b-b88f-4991-b45a-4e2c5b95845b,Street Help,osm:way/1295780608,shelter,homeless,Support Group,Shelter
+22f5f367-2220-4499-9ab2-88dbcd2f9c7b,The Family Centre,osm:node/3060993089,,child,Support Group,Social Services
+22f77417-dd80-4056-a8cd-15bf8a4b5bce,Autism Calgary,osm:node/12092824114,outreach,mental_health,Support Group,Support Group
+23278c01-2d44-4e12-a115-b220ebf7faff,Centre d’hébergement Henri-Bradet,osm:node/7450262654,nursing_home,,Support Group,Senior Care
+23704a4c-0740-4231-b759-355b51c83e59,Detroit Care Center,osm:way/1016950031,nursing_home,senior,Support Group,Senior Care
+23abaff0-1bcd-4739-85ae-b56012da4a77,Island View Apartments,osm:way/461950710,,,Support Group,Social Services
+23b58210-ca14-4e53-9f93-0300502f6d6c,Château Pierrefonds,osm:node/5569616217,group_home,senior,Support Group,Senior Care
+24983479-00f3-4eff-b3e0-13fdf4c914cb,Centre jeunesse de Laval,osm:node/6151135214,,,Support Group,Social Services
+24b76585-07ee-4e1d-9e8b-440e3511d85a,Bill Reid Place,osm:way/747919072,shelter,homeless,Support Group,Shelter
+24c7a67f-55dd-4f23-8114-4cc737b6e301,St. Mary's Hospital,osm:way/683745535,group_home,senior,Support Group,Senior Care
+24eebbcc-1465-4ce7-a4e1-b694afecbaab,Regina Food Bank,osm:way/267473438,,underprivileged,Support Group,Food Support
+252b5b4b-13c2-4a80-b55a-e1414b99dadd,St. Joseph's Hospice,osm:way/138202524,nursing_home,,Support Group,Senior Care
+25d1bde8-d142-492e-8297-547878ea3a27,Dîners Saint-Louis,osm:node/2429684992,,underprivileged,Support Group,Social Services
+25e743ce-2b51-4510-a5f6-ffc8b30ecb53,Drop-In Centre,osm:node/12535067755,,women;homeless,Support Group,Shelter
+260024db-7b2d-4949-8460-1abaa2349a32,Surrey Urban Outreach Society,osm:node/1101524883,outreach,underprivileged,Support Group,Social Services
+260a8bde-642d-425a-8e25-b12f150c201f,Erin Mills Lodge Nursing Home,osm:node/7320201663,nursing_home,senior,Support Group,Senior Care
+261f6975-ac10-4279-98a4-a5badb25218f,Samaritas,osm:node/11432349156,,,Support Group,Social Services
+26fbd07f-5bf1-432c-b7df-db411ff9c881,Domaine des forges,osm:node/4341383692,group_home,senior,Support Group,Senior Care
+26fe8068-a5bf-4c56-8755-74f0eac8072c,Eden Food for Change,osm:node/5156202650,food_bank,,Support Group,Food Support
+282b471a-53a2-4303-b570-31a4566e8520,House of Hesed,osm:way/73318882,,,Support Group,Social Services
+29f0771e-0df3-411c-a65d-fb8ae1955201,Manoir du Ruisseau,osm:node/6967682000,group_home,senior,Support Group,Senior Care
+2acf2cb8-a48b-46ab-ab81-7ce3303ff85c,Turtle Bay Elder Lodge,osm:node/5298309199,group_home,senior,Support Group,Senior Care
+2bd8ba68-279d-4d0f-a516-928b3cc14c1c,Edmonton Food Bank - Hope Mission,osm:node/14047452182,food_bank,,Support Group,Food Support
+2bf80e6d-4758-408b-9c6e-c7de78f89023,Autism Society of Newfoundland and Labrador,osm:way/269170868,,autist,Support Group,Support Group
+2c142c26-a40f-4950-82ff-83553182b9c9,Berkshire Care Centre,osm:way/787827915,nursing_home,senior,Support Group,Senior Care
+2c472cf7-7899-42bc-b321-ecaa1d2d5704,Maison Paul-Triquet,osm:node/7398924434,nursing_home,senior,Support Group,Senior Care
+2cb3cfa7-f220-4df3-a718-95e8cc6c5403,CHSLD Éloria-Lepage,osm:node/7418324085,nursing_home,disabled,Support Group,Senior Care
+2ce6ac6d-9e99-4e16-8c27-a4e954662881,Diversity Community Resources Society,osm:way/550373666,,,Support Group,Social Services
+2d78cfb5-d33a-4218-928d-842e1208639c,Harbour Landing Village,osm:way/488792559,group_home,senior,Support Group,Senior Care
+2d849175-a64b-40f5-9ee2-52d3c5b2f290,Winnipeg Child and Family Services,osm:way/120354387,outreach,,Support Group,Social Services
+2d94847b-aea0-4a88-b90f-5cec1cb4ba5b,Lu’ma Native Housing Society,osm:node/4956157780,group_home,indigenous,Support Group,Supported Housing
+2dae515e-8ece-4eed-8555-f6ab3c46ff41,Oakwood Terrace,osm:way/358576666,group_home,senior,Support Group,Senior Care
+2e12b7d3-68c5-403b-8fc8-d8758f6b3112,Epic Opportunities,osm:node/13115791376,,,Support Group,Social Services
+2e8ac221-4d59-4518-b3c1-e18afad9017e,Gordon B. Isnor Manor,osm:way/462355213,group_home,senior,Support Group,Senior Care
+3031ee7b-b1a1-4dc1-963d-c4f6bd739f06,Résidence L'image d'Outremont,osm:node/7443770815,group_home,senior,Support Group,Senior Care
+303f8ba1-a12e-4b5c-947a-4e52cfce591f,Career Coaching,osm:node/13912570903,,,Support Group,Employment
+305804a6-dfc0-442d-8ecd-9984dc296d66,Quibble Creek Sobering And Assessment Centre,osm:way/550318998,assisted_living,drug_addicted,Support Group,Senior Care
+307f7fdc-5e19-4868-8610-51a2aef87407,Résidence les Cascades,osm:node/5308387120,group_home,senior,Support Group,Senior Care
+30827ce2-0567-4018-b645-e2aedcf4eb3d,Résidence Demeure au Coeur de Marie,osm:node/6173299242,group_home,senior,Support Group,Senior Care
+30d23c49-5ada-4d47-a10b-6ea25e727f6f,The Village at University Gates,osm:way/502224327,nursing_home,senior,Support Group,Senior Care
+30f1db01-8e7e-43d6-8cd1-9b03cd3ef8f7,Diversité des Sourds du Québec,osm:node/4480955073,,,Support Group,Social Services
+3113b8ef-5203-44ab-bdec-f0fe2f32c5ea,Welcome Housing & Support Services,osm:node/12152133345,,,Support Group,Social Services
+3254d93b-c01e-4132-8133-a4072bb63ef1,Le Havre du Trait-Carré,osm:node/7523233997,group_home,senior,Support Group,Senior Care
+32837a33-02e0-4d46-ba24-3289eee0f627,Sunnyside Home Long-Term Care,osm:way/172173436,group_home,senior,Support Group,Senior Care
+33112275-e897-4ca2-beba-75cd69eb3d51,Our Place Therapeutic Recovery Community,osm:way/251717359,group_home,,Support Group,Supported Housing
+33840e80-ad9b-4eb1-a181-819effe07036,Amica Jubilee House,osm:way/1186227167,assisted_living,senior,Support Group,Senior Care
+33ccb9cf-080b-4991-acb2-0743e7a7dd94,Elizabeth Fry Community of Hope Women's Shelter,osm:node/12838640625,shelter,homeless,Support Group,Shelter
+351e1774-3ae0-4f81-870e-6d6ec60bdae2,Centre jeunesse Chaudière-Apalaches,osm:node/6178710646,,,Support Group,Social Services
+35a835ba-213e-4d29-a474-ec75459878da,CareFor,osm:node/6049954369,outreach,,Support Group,Social Services
+3622bd67-827a-4590-b69c-33be6f0e1bd4,Cosmo Industries,osm:node/13894470334,workshop,,Support Group,Social Services
+377d4792-3b4b-4eae-92cc-d81ff2d67509,L'Entraide Les Saules,osm:node/10210593130,outreach,senior,Support Group,Support Group
+37c34273-8835-4c53-bc2f-0bbaf461daa8,The Franklin Retirement Community,osm:way/427484087,group_home,senior,Support Group,Senior Care
+37c4f9a2-4217-4ad7-85b0-a382ac92d05c,Place Kensington,osm:node/7446655259,group_home,senior,Support Group,Senior Care
+3812fbb9-0e46-4401-b7b8-bd5036c694be,Misericordia Place,osm:way/108383991,nursing_home,senior,Support Group,Senior Care
+38412be5-3b2a-4774-9ec0-87e6c11824a5,Acadia Square Lodge North,osm:way/358578640,group_home,senior,Support Group,Senior Care
+3897d4c3-3701-4c04-abdd-563a9da51e5a,Jennings Senior Living,osm:way/632588009,nursing_home,senior,Support Group,Senior Care
+38fc2f5a-6943-4c8e-9f26-f64a5e149036,The Aris Kaplanis Centre for Youth / Springboard,osm:node/3473924070,,,Support Group,Social Services
+39966dd5-16ca-401e-9b60-76a7b96a5209,Operation Come Home,osm:node/6104060085,outreach,,Support Group,Social Services
+39e6e876-ba7f-4db4-a8b6-923570f272fa,Delray Senior Pavillion,osm:way/60725180,group_home,senior,Support Group,Senior Care
+3b01e9a5-eb7e-47e0-997c-4ac5ff1cd7da,AgeCare Glenmore,osm:node/13323167577,nursing_home,senior,Support Group,Senior Care
+3b26f867-512b-4914-8f51-c2a1469f6a7a,Sources Enrichment Services Centre,osm:node/11184017597,employment_services,unemployed,Support Group,Employment
+3b86a56b-d985-471a-9730-5385f635084c,Alderney Manor,osm:way/459090400,group_home,senior,Support Group,Senior Care
+3bc30d40-20fc-4457-8c65-ec965cdbbc30,Chancellor Park,osm:way/110776620,,,Support Group,Social Services
+3be04bce-fbac-46f6-adb8-12443654dedc,La Maison de Lauberivière,osm:node/2538725219,shelter,homeless,Support Group,Shelter
+3c58f11d-dd2e-47ab-8ce7-346dcc4fcb69,Joseph Howe Manor,osm:way/316630940,group_home,senior,Support Group,Senior Care
+3cd64c40-b905-42ff-864f-8e0caef3116b,Café Graffiti,osm:node/2503416385,,,Support Group,Social Services
+3d14f4b8-1716-4b6a-892e-5f1f07f436cd,Chartwell Westmount Long Term Care Residence,osm:way/116231854,nursing_home,senior,Support Group,Senior Care
+3d733c79-189d-4281-9dd5-ebc5f5434917,De Mazenod Door,osm:node/12058198509,food_bank,,Support Group,Food Support
+3e114a93-5085-4878-93ca-dce1985ea3bf,The Waverley,osm:way/61603090,assisted_living,senior,Support Group,Senior Care
+3ecf6e8f-d8c8-4244-8604-86253d0711c9,96th Street Building,osm:node/11747316931,food_bank,,Support Group,Food Support
+3fb8db31-715c-43fe-a2b7-4f77b51b553a,Advocacy and Migrant Worker Programs,osm:node/12560334722,,immigrants,Support Group,Social Services
+40694c50-7d71-4594-92bd-6bc07638138e,The Kensington,osm:way/1078923274,assisted_living,senior,Support Group,Senior Care
+415754be-62e5-405c-9b4d-df15d9e7d0f6,Carlton House of Oak Bay,osm:way/917445998,nursing_home,senior,Support Group,Senior Care
+41d2de9c-b612-451a-a156-9d34d87fb35b,The Berkeley,osm:way/505336799,group_home,senior,Support Group,Senior Care
+41d3dfda-a151-47ad-8943-a97a0084907a,Manoir Claudette Barré,osm:node/7450262657,group_home,senior,Support Group,Senior Care
+41f982f4-39b4-4873-9a56-5e2240e81f2f,Sélection Panorama,osm:node/7450262656,group_home,senior,Support Group,Senior Care
+426d5154-eb8e-43e0-a458-639d159f11b3,Clubhouse Winnipeg,osm:way/73320223,,,Support Group,Social Services
+42c954fa-87e5-442a-ae7c-ea54d2763886,Perfect Daycare Center (opening soon),osm:node/13946274101,,,Support Group,Child Care
+42d06f75-43bd-4beb-a89d-fc38bc30c642,North East Family Connections,osm:node/4454157768,,,Support Group,Social Services
+4425601c-7532-487a-95ab-902311d8ce62,Manoir Fleury,osm:node/5308450962,group_home,senior,Support Group,Senior Care
+443af053-4366-4b6e-9677-4f60e3ba2033,Manoir Saint-Joseph,osm:node/7444921229,group_home,senior,Support Group,Senior Care
+44555533-e2c6-4797-848d-6cad9efd33fb,Heritage Green Nursing Home,osm:way/183630104,nursing_home,senior,Support Group,Senior Care
+447c77c4-0e99-4b29-abc0-66312da4a8c2,Elmwood Place,osm:way/127985163,nursing_home,senior,Support Group,Senior Care
+44916191-7f63-4b70-b30d-5728e917d321,Chartwell Greenfield Park,osm:node/7449429007,group_home,senior,Support Group,Senior Care
+45035269-9912-463b-abb1-661d9be07deb,Peace Immigration and Refugee Welcome Centre,osm:node/5524767660,,,Support Group,Shelter
+452c0fd4-4d13-41dd-9158-8103336b86fa,The Elizabeth Fry Society Of Greater Vancouver,osm:node/13348500047,,,Support Group,Social Services
+452e1cb9-bb9c-44b9-be90-5f1f1f1b281e,Fondation Le Pilier,osm:node/4946070292,,,Support Group,Social Services
+45b060ba-7255-4959-afae-25af37bb6046,TCCSA,osm:node/3748570017,outreach,migrant,Support Group,Social Services
+45dfd7ab-4cf1-44fd-882f-d7eb9489a248,Fort Garry Kiwanis Plaza,osm:way/89383552,assisted_living,,Support Group,Senior Care
+461058f8-03c0-44b7-b382-334b45424211,FCJ Retreat & Conference Centre,osm:node/3690396678,advice,,Support Group,Social Services
+46198ff1-ebaf-4d82-a7e2-a3370e5788f5,Centre d’hébergement Idola-Saint-Jean,osm:node/6151135173,group_home,senior,Support Group,Senior Care
+4620d66c-8569-4a8b-bd2e-c2b4418fe4d1,peopleCare Oakcrossing London,osm:way/749637554,nursing_home,senior,Support Group,Senior Care
+46e631cb-fb3a-4a25-bfc3-2afb22eab3a6,Résidence Villa de Jouvence,osm:node/7459630231,group_home,senior,Support Group,Senior Care
+46e75c25-a184-4322-b0ef-5cde19b0a00c,St. Patrick's Mercy Home,osm:way/124659812,nursing_home,senior,Support Group,Senior Care
+46ff6ffb-e94d-4807-b3d4-9a536298fe56,Crocus Co-operative,osm:way/1489339449,outreach,,Support Group,Social Services
+4a04648b-8a0a-49dc-a0d9-b84b2377d851,Caritas,osm:way/358578659,,,Support Group,Social Services
+4aa76a0e-bad2-4fb3-a130-4bcb798ba7d6,Our Lady of Lourdes Food Bank,osm:node/3306925572,food_bank,,Support Group,Food Support
+4be1024d-6d44-4bca-b536-7ff04d8222ad,Gleaners Community Food Bank,osm:way/292133316,food_bank,,Support Group,Food Support
+4be6d471-a583-4296-bd67-27a5d74fcb78,Metro Turning Point Shelter,osm:way/461571532,shelter,,Support Group,Shelter
+4cf24e0f-1f12-4d48-a052-0451aebd1e05,Sir Sanford Fleming House,osm:node/12668665717,shelter,homeless,Support Group,Shelter
+4cf40239-aae5-4d34-b71e-d7fe1e0ea048,Atira,osm:node/13140141878,,,Support Group,Social Services
+4d5b8a50-1048-4fbd-bc12-87dcb77e19c4,Shaftesbury Park Retirement Residence,osm:way/103747262,assisted_living,senior,Support Group,Senior Care
+4e47a0fa-d375-46e3-9087-bf91b04562fe,Manoir Joie de vivre,osm:node/7418255482,group_home,senior,Support Group,Senior Care
+4e9b6010-e207-421a-8d15-7ac6e8c3028e,YWCA,osm:node/3801064262,,,Support Group,Social Services
+4ed3232d-cfd3-451d-ab98-f7b0fac9b2bc,Le 55,osm:node/11805018927,shelter,,Support Group,Shelter
+4ee5a8e3-e28d-411e-9fb0-00dbf77e2493,Prostate Cancer Society NS,osm:node/3798660557,,,Support Group,Social Services
+4f16160e-25b2-42a1-a2ec-3ba4a9d04b74,Résidence Parc Jarry,osm:node/7446655257,group_home,senior,Support Group,Senior Care
+4f59f855-a8f4-4b5f-8e3e-487892d8c154,Evanston Grand Village,osm:node/4453726877,assisted_living,senior,Support Group,Senior Care
+4f9caae4-642b-4eea-9761-a43d6d1016fa,Social Development Centre Waterloo Region,osm:node/6160219550,outreach,"senior,_disabled,_homeless,_refugees,_community,_mental_health,_underprivileged,",Support Group,Senior Care
+505acce9-ff05-4c98-ba3e-2a256bbf5a9b,Bedford House,osm:node/10229410103,,,Support Group,Social Services
+50ca2617-179d-43c3-a7fd-a8d8ba14bd90,Downtown Outreach Housing Resource Services,osm:node/13306905258,outreach,,Support Group,Social Services
+510b4cb3-a4e3-4679-aa0e-a70bc1dd9161,Saskatoon Tribal Council Emergency Wellness Center,osm:way/298618627,shelter,homeless,Support Group,Shelter
+51b6f64e-2162-4f6a-93c9-d9e5b941268a,Résidence des Trembles,osm:node/5699762706,group_home,senior,Support Group,Senior Care
+522f8ada-833a-4370-98ec-8dcf5340f670,CHSLD Saint-Georges,osm:node/7443770817,nursing_home,,Support Group,Senior Care
+5277fb00-c75f-4595-b206-603a21ebac89,Les Résidences Kirouac,osm:node/12500999596,group_home,senior,Support Group,Senior Care
+528a031b-46af-4a68-8abc-6dd03912d9ad,Centre d'hébergement Les Cèdres,osm:node/7402277912,nursing_home,disabled,Support Group,Senior Care
+52c22bb8-bbac-4bbb-ae4a-c0455f1552df,Ivany Place,osm:node/7105975056,nursing_home,senior,Support Group,Senior Care
+52f11fc3-fa83-4474-b265-8854632cf75e,Parkview Nursing Centre,osm:way/121190116,nursing_home,senior,Support Group,Senior Care
+542e3eee-f105-40bc-99a7-69c8775b4255,AgeCare London,osm:way/161082604,group_home,senior,Support Group,Senior Care
+544eb86b-6900-471a-94be-fb2ff8393aa0,Dixie Bloor Neighbourhood Centre,osm:node/13186846782,,,Support Group,Social Services
+54589610-83bd-492a-9157-0c2716ad751f,Résidence Calla,osm:way/129737649,nursing_home,senior,Support Group,Senior Care
+54d0a976-e270-4022-baef-b67721311fd0,Centre D'Hébergement Le Faubourg,osm:way/163426257,nursing_home,senior,Support Group,Senior Care
+557c5e28-7136-496d-9c6f-5daca567ff8f,New Directions Adult Day Services,osm:way/82347621,,,Support Group,Social Services
+55c5eaf7-f85c-4a1b-9128-a7b0cc277868,James Bay Community Project,osm:node/13952853860,,,Support Group,Social Services
+560effd9-be91-4eb6-b8ff-2623f253bd1e,The Village of Glendale Crossing,osm:way/487422264,nursing_home,senior,Support Group,Senior Care
+56495880-f066-4bad-b431-bd3ee84458da,Robert Holmes Manor,osm:way/587593407,group_home,senior,Support Group,Senior Care
+56aa7b24-b6f0-4e3c-993d-700e431ef33e,Résidence Jazz Levis,osm:node/6164974986,group_home,senior,Support Group,Senior Care
+572f8b66-4da6-4e5a-8344-0fab40aeea7a,Restorative Justice Victoria,osm:node/11433465046,,,Support Group,Social Services
+575ab5a1-87c7-43c7-8db2-a933f76f6ceb,Tyndall Nursing Home,osm:node/7320201672,nursing_home,senior,Support Group,Senior Care
+57d74146-155c-44c9-905b-b0bb03d27b80,Child Witness Centre,osm:way/194652918,,,Support Group,Social Services
+58471fe0-9f02-4b88-87b4-017f5e37118a,Pine Villa Nursing Home,osm:way/97922928,nursing_home,senior,Support Group,Senior Care
+586b58b3-7e2d-4883-9d32-492e49d100cf,Al Mitchell Shelter,osm:node/12418036640,shelter,homeless,Support Group,Shelter
+589a61ca-01fc-4a35-bc4f-8654177217eb,IWC - Immigrants Working Centre,osm:node/13825078601,,,Support Group,Social Services
+589cfb6e-0e5c-46ce-be6c-166baf4b0236,The Aris Kaplanis Centre for Youth / Springboard,osm:node/3473930597,,,Support Group,Social Services
+58d36e7a-c3d9-4100-babb-7cb48519809e,MDHHS Southwest Service Center,osm:node/6314343217,,,Support Group,Social Services
+58f4f6b0-a5c6-4cb6-b387-d6da2ca0a3e5,Cornwallis Morreau Lodge,osm:way/453524382,group_home,senior,Support Group,Senior Care
+5abb0d9f-b5c2-4eff-b3dd-46b679b47a2e,Play 'N Learn Child Care,osm:node/1446046923,,child,Support Group,Child Care
+5affed48-27be-496d-84e8-ce8b69731839,The Berkeley,osm:way/181685916,assisted_living,,Support Group,Senior Care
+5b0dc65a-2dde-42d3-ad30-27325ce0f009,Revera Grand Wood Park Retirement Residence,osm:way/134470529,group_home,senior,Support Group,Senior Care
+5b1c09ab-944c-4a71-bbce-5d6630b21825,Overdose Prevention Society,osm:node/12536690773,,,Support Group,Social Services
+5bc0a592-98e9-46e9-89c7-a91b6a66ea50,Northwood Towers,osm:way/462588062,nursing_home,senior,Support Group,Senior Care
+5bd3c1ef-cc58-458b-b8d7-1d81d60abd6a,Résidence Lacordaire Iléana,osm:node/7417935210,group_home,senior,Support Group,Senior Care
+5bfdea24-6ae1-4411-b301-8ad42b8ce023,Good Shepherd Note Dame House School,osm:node/12879201988,,,Support Group,Social Services
+5c0e8385-a005-487b-9320-11ae23163340,Choices for Youth Social Enterprise & Employment Centre,osm:node/11350180405,outreach,youth,Support Group,Employment
+5ce79ff5-ca60-4d3a-9a27-6c94d7f6020e,North Shore Shelter,osm:node/12421049679,shelter,homeless,Support Group,Shelter
+5d38e2c1-fc7d-4513-8a6f-c4f508f53ee2,Maison Dessercom,osm:node/10926527837,,family,Support Group,Social Services
+5d6d7ddf-eb25-445e-b59e-819f3b5d42a9,Resource Assistance for Youth,osm:way/73320262,,,Support Group,Social Services
+5dcf0e37-85e9-4118-8820-5f8d44edc5ee,Henley Place,osm:way/611603293,nursing_home,senior,Support Group,Senior Care
+5ea2098b-33b0-4aae-9fb1-8ae41bf45c7a,CHSLD Saint-Joseph-de-la-Providence,osm:node/5763792161,nursing_home,disabled,Support Group,Senior Care
+5ea3d22e-e8a4-482b-80aa-ae6805c533f5,Hillside Seniors Health Centre,osm:way/140025131,nursing_home,senior,Support Group,Senior Care
+5effd93b-4214-46fb-a5fa-6bb845cf9f95,Bridge Street Pathways Shelter,osm:way/695837685,shelter,,Support Group,Shelter
+5f0fb2cf-eab7-439f-9038-7999b9dcb42a,Kids CAN Social Centre,osm:node/1328150328,,,Support Group,Social Services
+5f7a29be-c5b5-4771-b937-7e1882e0a970,Victoria Place,osm:way/154801318,group_home,senior,Support Group,Senior Care
+5fa4ec22-7c1d-4d5b-9d3d-5cb45e85eba0,Hancock Residential Center,osm:way/816880863,nursing_home,senior,Support Group,Senior Care
+5ff5df31-bfb3-44ab-8df4-1fdcf6dd2ce9,Heritage Place at Magnolia,osm:way/593842643,group_home,senior,Support Group,Senior Care
+5ffca9f5-c920-4c6f-b392-83bc4468aa34,Service Canada,osm:node/14022758303,,,Support Group,Social Services
+6025471c-3aba-4bf9-93fd-b6d847df7a57,Harriet House,osm:way/682164476,assisted_living,,Support Group,Senior Care
+60a96c87-46bd-4285-aad3-b4d2f2357c0a,Four Healing Roads Lodge,osm:node/13521158827,,,Support Group,Senior Care
+6156b1e1-afd1-4325-afe7-99c5f60d8294,Centre d'hébergement de La Pinière,osm:node/5564021110,nursing_home,disabled,Support Group,Senior Care
+6160056d-fdcb-4c79-8863-3b85e4d46604,Cole Harbour - Woodside United Church Food Bank,osm:node/11765941950,food_bank,general_public,Support Group,Food Support
+6173695d-b464-456a-9c49-d89ef4127169,Saint Brigid's Home,osm:node/1597536433,nursing_home,senior,Support Group,Senior Care
+61ace67d-2e60-4eab-a22f-a2592e3ef5b3,Skipping Stone,osm:node/12250723496,outreach,lgbtq,Support Group,Social Services
+61d0e7f0-1a06-4e94-9fbe-c4a18606e422,Aberdeen Hospital,osm:way/251826977,nursing_home,,Support Group,Senior Care
+61e08fd3-25d3-4f22-bb04-fd5243f3337d,Vancouver Aboriginal Community Policing Centre,osm:node/10854008187,outreach,,Support Group,Social Services
+61ee08a0-a7ef-4531-a703-c8e9142e25c1,Three Links Care Centre,osm:node/5746206600,nursing_home,,Support Group,Senior Care
+62c31525-0d5b-4dca-9189-b78089b24f3d,Vent de l’Ouest,osm:node/7450262665,group_home,senior,Support Group,Senior Care
+633b8a4c-915d-41a8-8e98-16539eeabbaf,AgeCare Midnapore,osm:node/8143455002,nursing_home,senior,Support Group,Senior Care
+6369f29e-00e7-4cf9-8f31-876202a976ef,Ukrainian Canadian Social Services,osm:node/2288606544,,,Support Group,Social Services
+6369fc9e-38f6-4d12-9fee-ae5503f196f0,Glenbrook Lodge,osm:way/653701681,group_home,senior,Support Group,Senior Care
+645d7b99-491d-492b-8f30-e3df65368279,"CRDI de Québec, Point de service de la Jacques-Cartier",osm:way/104094370,,disabled,Support Group,Social Services
+64839465-53b1-42b3-b9d5-02622c93c2f8,Hamilton Centre for Personal Development,osm:node/12879274759,,,Support Group,Social Services
+650ca0d3-0cf3-4e0c-8982-3e19f1fd4585,CHSLD Manoir Saint-Patrice,osm:node/6833991050,nursing_home,disabled,Support Group,Senior Care
+652e138c-d0d5-4459-81e0-c9478cec83d5,Rainbow Kitchen,osm:node/9953633323,outreach,,Support Group,Food Support
+65314190-5915-4ff7-8528-fc72d840811c,Jardin des Saules,osm:node/6151135065,group_home,senior,Support Group,Senior Care
+653a609c-7f7d-43b6-bd24-464e38da96f3,Midnight's Kitchen,osm:node/3358766747,food_bank,,Support Group,Food Support
+65544ba4-b5f2-412a-ae1f-7ceb0406a22e,Résidence 1313 Chomedey,osm:node/7459630225,group_home,senior,Support Group,Senior Care
+66038751-6e64-48a6-8c71-c93343c0e4fb,Eby Village,osm:way/189631510,assisted_living,,Support Group,Senior Care
+6696788f-378d-4989-aae4-66b429486976,The North Grove,osm:node/12157109723,,,Support Group,Social Services
+66cba32f-8668-4c05-9ac9-3d3e6e0bd9a7,Résidence Bellerive,osm:node/7465157226,group_home,senior,Support Group,Senior Care
+66f4dc0b-ca38-4dbe-8491-ea282c384db7,Wellington Park Care Centre,osm:way/43940434,nursing_home,senior,Support Group,Senior Care
+67d1a1d7-bd24-4209-82c8-cb8285000222,Jamieson Hall,osm:way/358577226,nursing_home,senior,Support Group,Senior Care
+685425a3-dcdb-4cae-8ed4-537b2435e46b,Acadia Place,osm:way/358576629,assisted_living/nursing_home/group_home,senior,Support Group,Senior Care
+68f6d18d-c36b-42ce-abcb-03a3a791e90b,Forest Heights,osm:way/67379267,nursing_home,senior,Support Group,Senior Care
+69b84859-fd4a-4bd5-a762-9171a5ee1b5e,Hamilton Nursing Home,osm:way/1016950030,nursing_home,senior,Support Group,Senior Care
+69ccf93c-fb0a-4bbf-873b-c2cf4d6ce8cf,Meadow Park,osm:way/125548979,nursing_home,senior,Support Group,Senior Care
+6a03aa54-ad69-4fc7-ba74-eb248bf87e0a,Good Shepherd Venture Centre Food Bank,osm:way/43940371,food_bank,,Support Group,Food Support
+6a973986-83f0-4217-bf60-3a7e54853f5c,Unity spiritual centre,osm:way/787955202,,child,Support Group,Social Services
+6af6fec9-6064-456e-81f9-485bca7a7730,Lewis Hall,osm:way/358577225,group_home,senior,Support Group,Senior Care
+6b10e30d-51fb-4fba-b3af-82d98beac5f2,Esmar Nursing,osm:node/12777256794,ambulatory_care,,Support Group,Social Services
+6b33b629-824b-4e28-b2b1-bfaf49df35d4,Dearness Home for Senior Citizens,osm:way/129932705,nursing_home,senior,Support Group,Senior Care
+6b355de4-52c4-436a-ac0e-bf6575073630,Sunnyside Home,osm:way/206388647,nursing_home,senior,Support Group,Senior Care
+6b4f7cf2-a7fd-48a9-b3ae-8235f700a1ef,Blessing Home Care,osm:node/14129929640,,,Support Group,Social Services
+6ca99c92-1ec1-4953-aae3-94011c487260,Alpha Manor Nursing Home,osm:way/1016950027,nursing_home,senior,Support Group,Senior Care
+6caa31ed-db39-42b4-97b3-01f77b239795,John McGivney Children's Centre,osm:node/4503122089,,,Support Group,Social Services
+6d066e93-1418-4f2b-81c8-f9d6e1c4078e,Sage Seniors Association,osm:node/12958821995,assisted_living,senior,Support Group,Senior Care
+6d3b4c25-c47e-47e5-af3a-c0531e74c418,Chartwell Manoir Kirkland,osm:node/7450262666,group_home,senior,Support Group,Senior Care
+6dc3df1d-4bab-4a1a-bf20-570910823243,Tapestry Foundation for Health Care,osm:node/6710406855,group_home,senior,Support Group,Senior Care
+6e7d21c8-c266-49a1-9120-83cc23be775a,Second Harvest,osm:node/9907999033,food_bank,,Support Group,Food Support
+6e96dd69-98a8-4696-a74b-601f9231e21d,Mosaic Newcomer Family Resource Network,osm:node/13565727652,,,Support Group,Support Group
+6f05a9cf-6512-40ef-ac05-44070188fb8a,CareFor,osm:node/6049954368,outreach,,Support Group,Social Services
+6f0ba403-fbef-49e8-b092-4ccdce11ab57,Comité d'éducation aux adultes de la Petite-Bourgogne et St-Henri (CÉDA),osm:node/6217108304,,,Support Group,Social Services
+6f7c86ad-90cb-42aa-b10b-c2be648969b1,Sterling House,osm:way/97052968,assisted_living,,Support Group,Senior Care
+6f9f444c-d335-49d0-a3c3-0472f85b40b0,Greenway Retirement Village,osm:way/212023720,group_home,senior,Support Group,Senior Care
+7063436c-f53b-449e-aa66-84e63e37f135,River East Personal Care Home,osm:way/83576925,nursing_home,senior,Support Group,Senior Care
+71543dd5-07d8-4a54-9885-e298eca21c11,OATC Vanier Clinic,osm:node/5931809922,outreach,,Support Group,Social Services
+71647d02-82cd-45ad-bd6c-39a901acfb79,Arbour Creek Long-Term Care Centre,osm:way/184098781,nursing_home,senior,Support Group,Senior Care
+71e54751-fd2a-4b24-9564-084702b6220c,Orleans Cumberland Food Bank,osm:node/5891852134,food_bank,,Support Group,Food Support
+71f8e016-2646-4fc7-ba09-7f7f91c97f33,Kensington Village,osm:way/160384210,nursing_home,senior,Support Group,Senior Care
+72367201-0094-4f34-85db-74728e15bd0b,The Birches,osm:way/1064626321,assisted_living,senior,Support Group,Senior Care
+7301c6a9-b91b-45b5-abce-c35ed7db1c20,Acadia Square Lodge South,osm:way/358578717,group_home,senior,Support Group,Senior Care
+735cf6b7-09cd-48e2-ada7-77f6958831aa,Broadway Terrace,osm:way/288117960,group_home,senior,Support Group,Senior Care
+7366e1e3-02e1-454c-94b3-5b186a0c4355,Heartwood House,osm:node/5993769417,outreach,,Support Group,Social Services
+737438c8-aa71-4b20-8ca6-3993f5f1c879,Résidence Jardins intérieurs,osm:node/7459111441,group_home,senior,Support Group,Senior Care
+7376d8e3-6799-4180-9d41-9bbafc2dd32e,Uniacke Square Community Food Bank,osm:node/12959992331,food_bank,,Support Group,Food Support
+7457b13a-c90b-4a49-be49-3c40aed85444,May Wah Hotel,osm:node/11566576118,assisted_living,senior,Support Group,Senior Care
+74aa1eb0-f1d2-4a2d-96dc-cd10220a5701,Saskatoon Food Bank and Learning Center,osm:node/2705704233,food_bank,homeless,Support Group,Food Support
+751599b1-81c5-49b1-a6af-95ecc3616c92,Centre de protection de l'enfance et de la jeunesse Henri-Bourassa Est,osm:node/7422304828,healthcare,child,Support Group,Social Services
+753cf3c0-9079-400b-bebe-ee184702e4ad,Auto-Psy,osm:node/3142488680,,,Support Group,Social Services
+75687836-0f5e-4251-99c4-8e846ec36e40,Southbrook Retirement Community,osm:way/47397609,group_home,senior,Support Group,Senior Care
+75854fb3-7990-495a-9fdc-1a9dfedaa524,Calgary John Howard Society,osm:node/10229410102,,,Support Group,Social Services
+75bbc676-0600-4ab7-baf4-43d81b8163bb,Centre d’hébergement Rose-de-Lima,osm:node/7204710909,nursing_home,disabled,Support Group,Senior Care
+75c1a7d6-34b3-44c3-aeb6-d7ecba4ca593,Country Living Estates,osm:node/7064457976,nursing_home,senior,Support Group,Senior Care
+75f60646-f1c7-4159-808b-89a892ccea58,Excelsoins Ste-Geneviève,osm:node/7403380118,group_home,senior,Support Group,Senior Care
+76e88b8e-988c-4486-81ea-4a7965ee7ae1,Lion's Gate Children's Centre,osm:way/112935977,day_care,,Support Group,Social Services
+77e5adae-9363-4045-a463-20aec505d01e,Child and Parent Resource Institute,osm:way/749660232,healthcare,,Support Group,Support Group
+78a7534a-81ea-4c36-bd4d-e89e144595a2,CHSLD des Patriotes,osm:node/7396074383,nursing_home,disabled,Support Group,Senior Care
+7ad12753-05d4-4a18-bd22-c3ad28f8c5d4,Beacon Community Services,osm:way/583405642,outreach,,Support Group,Social Services
+7b0f8aa6-27b4-4b7e-9213-f46b7a356ace,The Salvation Army,osm:node/12959991526,shelter,homeless,Support Group,Shelter
+7b707ca1-a0cc-43f7-8a31-326ca9d251bb,Ottawa Food Bank,osm:node/1011497751,food_bank,,Support Group,Food Support
+7b8582e2-51db-45a8-9a8d-f981c083e47f,Résidence Le Saint-Michel,osm:node/7450262655,group_home,senior,Support Group,Senior Care
+7c94c78b-c9d6-4cb0-a9ce-6e8b01e02a55,St. John's Kitchen,osm:node/616459323,soup_kitchen,homeless,Support Group,Food Support
+7c9952e9-e6a0-48eb-914f-b25982c719fd,Eastwood Manor,osm:way/463018625,,,Support Group,Senior Care
+7cf5bc8f-19be-4f66-8895-1a7f2f6134e8,The Village of Winston Park,osm:way/177176480,nursing_home,senior,Support Group,Senior Care
+7d0dcba4-9491-46f5-94bf-49f9e4315857,Kinross Hall,osm:way/358577216,group_home,senior,Support Group,Senior Care
+7d96ac98-40bc-4b3c-91f7-04d17e266270,Résidence Le Marc-Aurèle,osm:node/9658666558,group_home,senior,Support Group,Senior Care
+7df63e87-04e4-4660-b7c5-30cbad58a6d1,Burlington Food Bank,osm:node/7483312977,food_bank,,Support Group,Food Support
+7e2b8bff-1f19-4e49-87f1-25c141419df7,McClure Place,osm:way/427484086,,,Support Group,Social Services
+7ea66ca6-6272-4780-a31d-049adc82d720,Amica at Villa de Vinci,osm:node/383551018,assisted_living,senior,Support Group,Senior Care
+7ead385a-ee9e-495c-bb84-3d0ac84174c4,Innovative Community Support Services,osm:node/5961955285,outreach,,Support Group,Social Services
+7f4d387d-ebf3-4553-a3c0-e9b5c3c796b8,Bishops Gardens,osm:way/776314835,assisted_living,senior,Support Group,Senior Care
+7f9143aa-c7c6-478e-8ad4-baaab2a08567,Parker Street Food & Furniture Bank,osm:node/11419489434,food_bank,,Support Group,Food Support
+8004b9b3-4bbe-4bd1-a0c4-621211561e2b,New Fountain Shelter,osm:node/12536612070,shelter,homeless,Support Group,Shelter
+810f74af-e524-4d30-8e0d-eea66c86d2c9,Maple Square Lofts,osm:node/12104693488,,,Support Group,Social Services
+811265bd-7a43-44ff-8b1b-28f2d75933f3,Café rencontre du centre-Ville,osm:node/2531494517,,,Support Group,Social Services
+8119fb02-1214-4025-87d2-95ca0fb8a1ad,Le Phare,osm:node/7347040421,food_bank,,Support Group,Food Support
+81586433-93ed-4d2d-9676-0e36988730aa,North End Women's Centre,osm:node/14095675702,,women,Support Group,Social Services
+81833c35-eca2-43c3-984c-69c0b3c040c4,Vancouver Language and Assessment Centre,osm:node/12560334723,,immigrants,Support Group,Social Services
+81b3a130-da7c-471b-8732-d42abf7f949e,Ontario Works,osm:node/13850662912,,,Support Group,Social Services
+820e42db-9112-4e06-99bb-2626252fae4d,Centre d'Hébergement Judith-Jasmin,osm:node/2496131057,nursing_home,disabled,Support Group,Senior Care
+826cf1ec-0598-4b4a-98ca-049499b4f17b,Water Street Hospitality House,osm:way/189631125,shelter,,Support Group,Shelter
+8296f997-4143-481f-9327-d9cae4f4783b,The Erinview Retirement Residence,osm:node/7320201662,group_home,senior,Support Group,Senior Care
+8312b588-8fb3-4907-8de1-9a9e0554f0d8,Résidence L'Éden,osm:node/6502210577,nursing_home,senior,Support Group,Senior Care
+846a147e-10da-4751-a84d-593bd7f5c3e9,Ottawa West Community Support,osm:node/6135930945,outreach,,Support Group,Social Services
+84dce4d1-e9ff-40d9-8a10-d249e7e91ae3,The Sherwood,osm:node/1713471322,,,Support Group,Social Services
+8508bc79-3f94-4971-95f9-dcc1427177b3,Children's Center,osm:way/804343715,childrens_centre,child,Support Group,Social Services
+85570651-6a62-403c-9ffd-4ad5ead831a9,St. Marguerite Manor,osm:node/5732388100,nursing_home,,Support Group,Senior Care
+866e0530-050d-43ac-b860-15defe5bbea4,Pavillon des Milles Îles,osm:node/7459630232,group_home,senior,Support Group,Senior Care
+86b0b13f-1a1d-429a-a062-32179f8c3ac1,Lindenwood Terrace,osm:node/10881605927,assisted_living,senior,Support Group,Senior Care
+86e3bd4b-656a-4336-9093-e7ccbd4dc6f1,Carewest Royal Park,osm:node/7700852387,nursing_home,senior,Support Group,Senior Care
+8741d5a5-a7a9-43ac-85db-66186f4a0076,Luther Heights,osm:way/1445319763,group_home,senior,Support Group,Senior Care
+87604e64-2cfb-46f1-9bd9-6baf6d658b86,The Village of Aspen Lake,osm:way/782839107,nursing_home,senior,Support Group,Senior Care
+88331e62-bb59-4f9c-82d9-4f61f2921853,Harmony in Action,osm:way/783466534,outreach,,Support Group,Social Services
+88392c9e-2f96-4137-8f3d-7bd8d858a0ef,Centre social d'aide aux immigrants,osm:node/4907813908,outreach,migrant,Support Group,Social Services
+888abe23-d9e0-4fba-b690-cf69c455310f,Brampton Caledon Community Living,osm:node/6547925930,outreach,,Support Group,Social Services
+88bb1323-9908-489e-81a5-5e10096164a2,Résidence Anjou,osm:node/7459630226,group_home,,Support Group,Supported Housing
+88f60317-90d3-46c2-8aee-5d0e1e17a072,Amica at City Centre,osm:node/432784803,,,Support Group,Senior Care
+8919158d-1d54-4f53-9fd7-5e26c387f404,Centre de réadaptation en dépendance de Montréal,osm:node/5568680001,group_home,drug_addicted,Support Group,Supported Housing
+892319f6-5347-4582-b3cf-1f7c24ac5bae,Résidence Maxwell,osm:node/6376802016,group_home,senior,Support Group,Senior Care
+894a2fc3-6897-49b9-8eab-a3fb010a59f2,Caroline Place Retirement Residence,osm:way/43939963,group_home,senior,Support Group,Senior Care
+8a6cb0ad-6573-4443-942d-1997b180d4c6,Victoria Child Abuse Prevention & Counselling Centre,osm:node/13971547162,outreach,,Support Group,Social Services
+8b4db491-37d0-47e1-a49c-19f26280f369,Résidence Marie-Victorin,osm:node/6501205142,group_home,senior,Support Group,Senior Care
+8bbc3ace-a5e7-419b-96be-ce36ce0b2674,Salvation Army,osm:way/462384769,,,Support Group,Social Services
+8be3d5f3-1df5-4616-9e67-43d8905eaa6b,The Berkeley,osm:node/6450891050,assisted_living,,Support Group,Senior Care
+8c1ba023-8b11-4e3c-bddb-28accc3a6ac8,Colibri Learning Foundation,osm:node/11583471385,,,Support Group,Social Services
+8c310e84-41ce-4978-ad9d-944049d3cb0d,Preston Park II Retirement Residence,osm:way/645147191,group_home,senior,Support Group,Senior Care
+8c6915d7-ae20-4c76-b373-2f5a8eff4206,Queen Victoria Estates,osm:way/249654305,group_home,senior,Support Group,Senior Care
+8c91279e-f65f-4540-bbfe-6036d1e04538,Reaching Our Outdoor Friends,osm:way/133645712,group_home,juvenile,Support Group,Supported Housing
+8ca6e121-f31b-4fbf-8b79-3e8f8aee4953,CSHLD du Château-sur-le-Lac,osm:node/7357344309,nursing_home,senior,Support Group,Senior Care
+8d0ebbc2-f5a4-4068-8e28-233b920fb172,Bedford Manor,osm:way/433461098,group_home,senior,Support Group,Senior Care
+8d54b1e6-6312-42e4-b9ac-4966f43ffce4,Orange Hall,osm:node/13638630730,assisted_living,homeless,Support Group,Senior Care
+8d6b5aa2-3907-4038-8f6f-dbf54f9092ac,Canoe Club Senior Living,osm:way/129853394,assisted_living,senior,Support Group,Senior Care
+8dbd4ab5-3f7d-4271-a66f-1a66902dd3b2,KidsAbility,osm:node/3061501779,,child,Support Group,Social Services
+8de097b2-c5c0-4ba2-a4f6-9e23c0f02d40,Men's Hostel,osm:way/221151037,shelter,man,Support Group,Shelter
+8e430d37-257e-47a5-a946-1559afbccdbc,Le 15 Lesage,osm:node/7459111442,group_home,senior,Support Group,Senior Care
+8e6944b6-a2b8-43a9-9c6e-dd3c291461a7,Elim Village,osm:way/737755460,group_home,senior,Support Group,Senior Care
+8edc56bb-8a35-488e-acf2-f5f57f252820,CHSLD Auclair,osm:node/7444921234,nursing_home,disabled,Support Group,Senior Care
+8f8f84bb-3c47-44d9-bd20-9f3f522aaa0d,Lanark Heights Long Term Care Centre,osm:way/177926207,nursing_home,senior,Support Group,Senior Care
+90357a94-8f5e-43fe-8931-f659693e8a42,St. Patrick's Mercy Home,osm:way/234367319,nursing_home,social_facility:for,Support Group,Senior Care
+9086b570-a5b0-4cff-90de-4292f8cdc0a2,MacDonald Laurier Place,osm:way/365734470,group_home,senior,Support Group,Senior Care
+90c1928d-c527-486b-b8dd-502d255458ff,Banque Alimentaire FDOI,osm:node/7417842780,,,Support Group,Food Support
+90cde27e-69e4-42a5-a325-60efc887b0ae,La Villa Bellevue,osm:node/10121657954,group_home,senior,Support Group,Senior Care
+90fe6473-d85e-4dd7-ba3d-dba20056599a,Grace Villa Nursing Home,osm:way/95169639,nursing_home,senior,Support Group,Senior Care
+92558ee5-e74c-4522-a698-335ac00fde7c,Royal Marquis Retirement Residence,osm:way/751183126,group_home,senior,Support Group,Senior Care
+9268f39a-b1d9-42da-9d61-575b6a06fdbb,Résidence Sainte-Rose,osm:node/6970409124,group_home,senior,Support Group,Senior Care
+9317392c-15ce-4d07-8f43-80c9445004e7,Bouffe pour tous Organisme d'entraide alimentaire,osm:node/6731876165,food_bank,,Support Group,Food Support
+935d1516-3f88-44c6-a438-a5490d9e4a5b,Devonshire Seniors Community,osm:node/12547924120,,,Support Group,Senior Care
+93df6d0d-398c-49a5-83f2-8b390dd0af5d,Riverview Health and Rehab Center,osm:way/591909272,assisted_living,senior,Support Group,Senior Care
+93f6d9ab-db57-48c9-9b5e-e6d6d43e768d,Habitations Paul Pratt,osm:node/6217625230,group_home,senior,Support Group,Senior Care
+94569489-2bd2-4a7d-93df-b44941aa4378,Sunrise Manor,osm:way/461564264,group_home,senior,Support Group,Senior Care
+949219fa-4683-40bd-936a-99e07497d42b,Milieu Family Services,osm:node/8093235033,,,Support Group,Social Services
+94f4556a-b46a-4ce2-8719-72235b33d626,Centre d'hébergement Ernest-Routhier,osm:node/7459630230,nursing_home,,Support Group,Senior Care
+955ba7d8-6b69-4129-b864-2f40cd022058,Addiction Prevention Services,osm:node/3798655657,,,Support Group,Social Services
+95634814-57e3-4d70-8d35-6e627f358c38,Passion and Caring Home for the Elderly,osm:way/1016950029,nursing_home,senior,Support Group,Senior Care
+95c99adf-8393-439f-ba14-713025ce1b01,N'Dinawemak,osm:node/13014225907,,,Support Group,Social Services
+95e92159-eec9-4341-8e98-f9edfd5c3e68,Little Free Pantry,osm:node/11135211423,little_free_pantry,,Support Group,Food Support
+960e0611-efb9-4232-bac9-438ff508a1fd,Centre d'hébergement Yvonne-Sylvain,osm:way/244291583,nursing_home,,Support Group,Senior Care
+9658ab68-4d0c-4ea3-ae7a-b50ee7809782,Centre Le Cardinal,osm:node/5699762705,nursing_home,senior,Support Group,Senior Care
+96c53cae-d9cd-40b2-aba0-97a478384d65,Pantry N More,osm:node/13458835125,food_bank,,Support Group,Food Support
+96e0a150-366f-4544-9960-ba5160b3c921,Résidence L'Aubier,osm:node/13733754105,assisted_living,senior,Support Group,Senior Care
+97135a9a-3350-4116-83d5-c9b2eea500f0,Evangel Hall,osm:node/343276984,,,Support Group,Social Services
+9713c39e-1738-423e-9473-b8e765798a71,Nightshift,osm:node/9339484019,food_bank,,Support Group,Food Support
+9746cdbb-2081-4dda-b195-f5368964f54c,Employment Ontario,osm:node/13874847306,,,Support Group,Employment
+97a3f52e-e239-44dd-be4b-9d088d08bf54,Santa Maria Senior Citizens Home,osm:way/251871229,group_home,senior,Support Group,Senior Care
+98024db7-9954-4622-b11a-b8606deab2f3,NEEDS Centre,osm:node/10802186511,outreach,migrant,Support Group,Social Services
+988920cd-d126-42d2-901a-f6b74205decd,Huddle,osm:node/11280084354,,juvenile,Support Group,Social Services
+98d5746a-08fe-415a-b61b-ed9043d8c721,Regency Park Long Term Care Home,osm:way/787821068,nursing_home,senior,Support Group,Senior Care
+9912062a-19aa-41eb-9f68-4107895fdc21,Native Child & Family Centre of Toronto,osm:node/748721422,,indigenous,Support Group,Social Services
+995a0a2d-e59a-4db0-b5ca-fd9fa9877ef5,CHSLD Le Boisé,osm:node/5137670807,nursing_home,disabled,Support Group,Senior Care
+996c554a-926f-47c2-8568-4c06554a7e29,Canadian Cancer Society- Nova Scotia,osm:node/5150409322,,,Support Group,Social Services
+9a1d555d-e22b-4c2e-8c76-ab100a824bdc,Hope Cottage,osm:way/554764860,soup_kitchen,,Support Group,Food Support
+9bc1d73b-ce8f-4fb3-8134-5417d493e2da,Triage,osm:node/12535076649,shelter,homeless,Support Group,Shelter
+9c0004a2-9524-4409-8456-be9bea4e9a3a,Centre d'Hébergement Pierre-Joseph-Triest,osm:node/2496131059,nursing_home,senior,Support Group,Senior Care
+9c069c7a-3515-4d02-9084-ae347a9cdc00,St. Vincent's Heather Campus of Care,osm:node/6710406854,group_home,senior,Support Group,Senior Care
+9c9b7037-aeb6-4e40-a1d5-a189de2ecfc8,Calgary Catholic Immigration Society (CCIS),osm:node/4998182086,outreach,migrant;refugee,Support Group,Social Services
+9ca56347-8829-4e51-8391-4f6ec9f79e9b,Beacon Hill Lodge,osm:way/73316695,nursing_home,,Support Group,Senior Care
+9cc540dc-c4f6-48c7-9b7e-47d9b6f4e4a2,Victoria Manor,osm:way/787820830,assisted_living,senior,Support Group,Senior Care
+9d420ebf-77ba-40b0-a9f3-dfa271ce438d,Community Door,osm:node/13093255111,,,Support Group,Social Services
+9dd5eab9-e377-429f-b989-acb7ffb7392b,MPA Resource Centre,osm:node/5732391159,,,Support Group,Social Services
+9e6e2c3c-343b-4c74-858c-65d9208ac39d,Les Résidences Soleil Manoir Laval,osm:node/5763648341,group_home,senior,Support Group,Senior Care
+9f281ed6-87a5-4a3e-938f-175bcc57734b,Chartwell Brant Centre Long Term Care Residence,osm:way/150709217,nursing_home,senior,Support Group,Senior Care
+9f73fa8d-3db9-4756-a7af-d02e0c16b618,Walden Circle Retirement Community by Signature,osm:node/13000148632,nursing_home,senior,Support Group,Senior Care
+9fa41d9a-ebb9-4ed6-bf4b-3dbfbc6c2fdd,Fort Garry Women's Resource Centre,osm:node/10565103331,,,Support Group,Social Services
+9fefaf71-6089-4ecb-80e9-64ccf5f28e00,Haven Manor,osm:way/477059833,care_home,,Support Group,Senior Care
+9ff37a18-842d-4816-9c6c-8f070bfe2b2b,Laurel Place,osm:way/390956649,nursing_home,senior,Support Group,Senior Care
+a1afa4d5-49c6-435f-96ce-552f92c0d1e7,peopleCare A.R. Goudie Kitchener,osm:way/157643855,nursing_home,senior,Support Group,Senior Care
+a201cb39-7789-4db9-87b2-1180d93e973f,Admiral,osm:way/475886175,nursing_home,senior,Support Group,Senior Care
+a2ae11cd-1635-492d-afa0-0119c9719104,Résidence J.A. De Sève,osm:node/7424056431,group_home,senior,Support Group,Senior Care
+a30a4026-90b0-43ce-bfe5-549c6f12abf0,Phoenix- Prevention Program,osm:node/3789827758,,,Support Group,Social Services
+a3142279-67eb-46cf-945e-0019ad497b54,Margaret Latter Manor,osm:way/460317175,group_home,senior,Support Group,Senior Care
+a34dadd7-80d6-47b4-bb03-45141cbd6afa,A Place of Our Own Clubhouse,osm:node/11914075184,clubhouse,mental_health,Support Group,Social Services
+a3d325a7-3ccc-4a47-bfac-89ca639a4762,SMU Community Food Room,osm:node/11766856060,food_bank,students_only,Support Group,Food Support
+a3de0c58-3370-4633-8c73-e6265fc435c5,Action Commitment Transformation Vancouver Service Centre,osm:node/3957621981,,immigrants,Support Group,Social Services
+a43478fa-5f30-4fae-b95a-311ef49e6619,Emergency Shelter,osm:node/12533323534,shelter,homeless;women,Support Group,Shelter
+a48381c6-1dba-4e78-b19a-dcae4f84a747,West End Community Food Bank,osm:node/11765941948,food_bank,general_public,Support Group,Food Support
+a4cbf5ca-d607-496a-b454-da32c456ace5,Maison Jésus Marie,osm:node/5696500716,group_home,senior,Support Group,Senior Care
+a56a9324-cf09-44b0-9015-d0b4512e7206,Les résidences Le Tournesol,osm:node/7467928256,group_home,senior,Support Group,Senior Care
+a589bb02-83c6-48de-8ce6-7af24c56d279,Parkridge Centre,osm:way/292386114,group_home,,Support Group,Supported Housing
+a594b8aa-3ff7-4c83-bfe9-03081b6110ea,Villa Mon Domaine,osm:node/6164901016,group_home,senior,Support Group,Senior Care
+a6ee77c3-1c25-4c15-83ca-dc8dbebaba6a,Lu’ma Native Housing,osm:node/9505862799,assisted_living,indegenous,Support Group,Senior Care
+a756490c-fd5b-4bfb-864c-ddc228821d96,Centre d'Hébergement François-Séguenot,osm:node/2496131066,nursing_home,senior,Support Group,Senior Care
+a7a8ded6-c971-44d5-af10-177ba3d05cda,Immigration Hall,osm:way/77244937,outreach,,Support Group,Social Services
+a88e895d-2252-4124-808d-e78bb45603e1,Chateau Park,osm:way/432953542,nursing_home,senior,Support Group,Senior Care
+a97ad5e2-0081-45bb-90bf-86c5b55b0b91,Résidence Gingras,osm:node/7418255483,group_home,senior,Support Group,Senior Care
+a9bae9ac-26de-4d7c-8968-e9cee199116d,Clarmar Manor,osm:way/509989203,nursing_home,senior,Support Group,Senior Care
+a9d581ab-e114-4d59-9085-2ed36b94041c,Résidence Saint-Raphaël,osm:node/4483881757,group_home,senior,Support Group,Senior Care
+a9e3a230-9ae5-4617-a948-e13b9173cc0a,Queen Alexandra Building,osm:way/161931294,ambulatory_care,child,Support Group,Social Services
+a9ed5b2b-f4db-45a2-80d5-81784ca543b7,St. Luke's Table,osm:node/5756769172,food_bank,,Support Group,Food Support
+aaa49ef5-457d-4bb5-9b0e-aff639984594,Ridgeview,osm:way/183615904,nursing_home,senior,Support Group,Senior Care
+aab659c2-17ba-42a9-b001-2fde8474b979,Stella's Place,osm:node/4644427339,outreach,mental_health,Support Group,Social Services
+ab47616e-b2c5-45cf-99dd-42f0d02f0cd7,Charles Village,osm:way/189631509,assisted_living,,Support Group,Senior Care
+ac166514-aef9-4847-8a37-eac39d3e63b9,Amica at Dundas,osm:way/171057043,,,Support Group,Senior Care
+ac8e1542-2df0-4da0-a202-97dcc3b2c5ce,Victoria Heights,osm:way/391277788,group_home,senior,Support Group,Senior Care
+ace810ce-390d-450b-921c-66a5531a6401,Résidence pour personnes âgées,osm:node/7133798335,group_home,senior,Support Group,Senior Care
+acfc0c97-9b43-4037-8d0e-36a1bddadd4d,Mission Possible,osm:node/12557765866,employment_agency,homeless,Support Group,Social Services
+ad063ee9-adab-4321-b535-28de5d22451e,Among Friends,osm:node/3786761689,,,Support Group,Social Services
+ad3d317a-7672-4336-a18d-f8e799c7b6c7,Idlewyld Manor,osm:way/155090525,nursing_home,senior,Support Group,Senior Care
+adc430dc-ef82-411e-a3bb-7863528f328f,Oxford Manor,osm:way/230385315,assisted_living,,Support Group,Senior Care
+adce288d-2560-46c8-a66c-81931784b017,Circle Drive Special Care Home,osm:node/13736885072,group_home,senior,Support Group,Senior Care
+ade8799c-a8e2-40e6-816a-2f0ccc7f7c68,Woodhall Park Care Community,osm:way/97335867,nursing_home,senior,Support Group,Senior Care
+ae2552c8-72db-456a-80bc-a3ead1f8d0ca,AIDS Program South Saskatchewan,osm:way/288668582,outreach,diseased,Support Group,Social Services
+aea0eab3-8d9b-432d-b422-4dd317cb0ff8,Marronniers,osm:node/6164901017,group_home,senior,Support Group,Senior Care
+af578fd2-e76e-4bd9-8b0f-7f28bce7b2c5,CHSLD Robert-Cliche,osm:node/7435257691,nursing_home,disabled,Support Group,Senior Care
+af719a1d-b3c5-4f1e-82f0-5d84d9d341a2,Golden Vistas,osm:way/727002946,retirement_home,senior,Support Group,Senior Care
+af85be88-e830-4cec-a5ef-d1850224ab56,Sarah Ross House,osm:node/11365154813,supportive_housing,woman,Support Group,Social Services
+af9a1c30-fe0e-4a6d-8ff3-9aca53f57b2d,Creekside Withdrawal Management Centre,osm:way/550318994,,,Support Group,Social Services
+b0529a0c-de90-4237-a4de-00c739a750e6,Harris Hall,osm:way/358577261,group_home,senior,Support Group,Senior Care
+b0671be1-f143-422c-859a-aa158847eb89,Chatwell Domaine de Bordeaux,osm:way/104085012,group_home,senior,Support Group,Senior Care
+b06ff4fb-1223-402c-94e9-cc53e1fe0d36,Children And Family Services,osm:node/13064164154,,child,Support Group,Social Services
+b083014b-76c3-4889-a9da-25d3c64d4a04,Parkwood Place,osm:way/908529300,assisted_living,senior,Support Group,Senior Care
+b0920385-fe3e-46c5-b0c0-26acf7a3aeb6,Glengarry Hospital,osm:way/188008115,nursing_home,senior,Support Group,Senior Care
+b0d4e17e-4c4b-485a-88fd-3beff25f6719,Résidence Du Precieux Sang,osm:way/103870030,group_home,senior,Support Group,Senior Care
+b16df18a-78c6-4181-bb48-36a025c4abd2,Manoir Ronald McDonald,osm:node/2386355208,group_home,diseased,Support Group,Supported Housing
+b1c97f2f-50da-4962-90c3-95080b60fd79,Melville Heights,osm:way/71449780,group_home,senior,Support Group,Senior Care
+b1d772a1-9ff1-4b5b-b070-e6f2d3bb26ce,Quest Non-Profit Grocery Market,osm:node/12706444800,food_bank,,Support Group,Food Support
+b25c45da-b7e0-42f5-8e5d-228c8488295a,Matheson,osm:way/99282620,group_home,senior,Support Group,Senior Care
+b3372e2b-57c3-4761-b7e6-70e55ff5289b,Women's Emergency Shelter,osm:node/12536645072,shelter,homeless,Support Group,Shelter
+b3b022c3-5fcf-4b74-8d81-6aa32e054d82,BayWoods Place,osm:way/201857155,nursing_home,senior,Support Group,Senior Care
+b422d30c-6e8c-4ade-99b2-aac6687e41e2,Quest Non-Profit Grocery Market,osm:node/12557765867,food_bank,,Support Group,Food Support
+b50dc40f-18ad-438f-bbd1-d2d55f33b80a,St Mary’s Food Bank,osm:node/10931849501,food_bank,,Support Group,Food Support
+b51e7864-2fa5-4d94-9a08-2b9f5b2cb580,Parkwood Court,osm:way/1064626552,assisted_living,senior,Support Group,Senior Care
+b5730a64-4a32-43cb-ab41-41fd4f1d5aa0,Surrey Food Bank Society,osm:node/1102710949,food_bank,,Support Group,Food Support
+b5ad3903-11f4-493a-90ba-d68f49321728,The Golden Age Club,osm:node/1809306844,outreach,,Support Group,Social Services
+b6100359-52b4-4d7a-ac21-27be5a533a02,Villa Forum,osm:node/7320201671,nursing_home,senior,Support Group,Senior Care
+b64dcb51-abf1-44ed-abeb-ef6f3b11f663,Drive Youth Employment Services,osm:node/6388587375,,youth,Support Group,Employment
+b72076f0-37ba-48aa-b626-30e6174a8410,L’œuvre des Samaritains,osm:node/4590998220,food_bank,underprivileged,Support Group,Food Support
+b788b8e8-92ed-4478-bca8-b7e18705db05,Centre 507,osm:node/5866623984,outreach,,Support Group,Social Services
+b798b50a-f305-4617-9247-acf476ba1242,The Thome Rivertown Neighborhood Senior Apartments,osm:way/821158408,group_home,senior,Support Group,Senior Care
+b7e8a06f-5065-4082-b2ab-a12770127e1a,WorkBC Vancouver Northeast,osm:node/2852238320,,immigrants,Support Group,Social Services
+b8516375-3f43-40ff-ad29-3981774222d9,"Trellis Society, Bowness Club",osm:node/4106046136,,juvenile,Support Group,Social Services
+b8e447f8-99c2-48a7-bbde-e4870301ae7c,CHSLD Providence-Saint-Joseph,osm:node/7442402254,nursing_home,disabled,Support Group,Senior Care
+b91fd6d1-7c0e-4c21-9d1e-1da58764f1a1,La Bouchée généreuse,osm:node/13627090366,food_bank,,Support Group,Food Support
+b952f345-3b50-487f-b220-3566e1a48b15,BladeRunners Program - ACCESS,osm:node/5152587095,,,Support Group,Social Services
+b9afc76b-72cb-45a7-b10f-da22c8c4c8f4,Maison Martin-Matte,osm:node/4946070302,,,Support Group,Social Services
+b9bf2c93-f6ea-40e3-ae74-1a4b48317695,Winnipeg Harvest,osm:way/100141351,food_bank,,Support Group,Food Support
+b9d98a5e-a0a1-49cf-880f-2b0a5785ed41,L'Agapanthe,osm:node/3376460759,,homeless,Support Group,Shelter
+bb15a57e-ef1d-4172-b37a-b6c33ad0d6be,Edward L. Roach Centre for Living,osm:way/462587820,nursing_home,senior,Support Group,Senior Care
+bb435cbc-b94c-4e27-91d6-a866581cce1e,McNaughton Place,osm:way/544425681,group_home,senior,Support Group,Senior Care
+bb8b9b3b-ece7-4415-9c32-c55c3bdec249,Pan Am Place,osm:node/13256760942,shelter,,Support Group,Shelter
+bc5955ec-d8a4-4332-aee3-f82b0f9dd4fa,Social Planning & Research Council (SPRC),osm:node/13821534601,,,Support Group,Social Services
+bc758041-5a78-4914-9e8e-dafc3d6b5a26,Burrard Respite,osm:node/13568787251,shelter,homeless,Support Group,Shelter
+bcb10790-3f18-44a4-a83a-50f7777f7446,Sir John Thompson Manor,osm:way/362127551,group_home,senior,Support Group,Senior Care
+bd0ecaad-1712-426b-9df1-6cb031394099,Chelsey Park,osm:way/118770501,nursing_home,senior,Support Group,Senior Care
+bdd36db5-83b4-4acc-b337-1741f86ab073,Northwood Manor,osm:way/462587845,nursing_home,senior,Support Group,Senior Care
+be194e5c-1767-4185-a139-18ca202728bf,Springhouse Shelter,osm:node/12535298907,shelter,homeless;women,Support Group,Shelter
+be543c81-a8e5-40ad-98e9-2c4e13703bd3,Templemont Gardens,osm:node/12660891536,group_home,drug_addicted;mental_health,Support Group,Supported Housing
+beb4eea4-d9a7-4795-ab73-9003953d66f6,Amica Credit Mills,osm:node/12605233926,nursing_home,senior,Support Group,Senior Care
+bf06a15a-98a1-4845-830a-aa0e9a749d25,Boundary Newcomers Centre and Multi-lingual Orientation Service Association for Immigrant Communities Administrative Office,osm:node/11647784172,,immigrants,Support Group,Social Services
+bf08b912-1f2c-4063-bf66-f6e070c52e13,AVIVA Résidences,osm:way/104085447,nursing_home,senior,Support Group,Senior Care
+c03c5d4f-178d-4691-8358-5cc495dd720a,Shanti Counselling Centre,osm:node/6126926778,outreach,,Support Group,Social Services
+c11ad1ef-bb15-4ead-9699-221640287d59,Kanata Food Cupboard,osm:node/6171966265,food_bank,,Support Group,Food Support
+c136f1fe-3743-410e-96a2-efdd436b7ff4,La Maison d'Aurore,osm:node/5220345075,outreach,,Support Group,Social Services
+c1cd91b5-3c7e-4475-b9a4-44f159296b0e,London Cares,osm:node/14178574436,shelter,homeless,Support Group,Shelter
+c1f5622b-097d-4586-a822-895e9317c99b,Maison l'Étincelle,osm:node/7416057716,nursing_home,senior,Support Group,Senior Care
+c272f658-b4c3-425e-9ba7-30dcc312998b,CHSLD Des Moulins,osm:node/4600852000,nursing_home,disabled,Support Group,Senior Care
+c28fd317-8029-4ffd-88f8-c7fbfb490dd2,"Unité d'hébergement, Hôpital Lasalle",osm:node/7403774391,nursing_home,senior,Support Group,Senior Care
+c2b9ab91-e963-42f1-ac57-bff9d3284c37,CHSLD Vigi Deux-Montagnes,osm:node/4483089002,nursing_home,disabled,Support Group,Senior Care
+c2ba9f31-c123-421d-8637-7be740e94e79,Villa Sainte-Rose,osm:node/7450262653,group_home,senior,Support Group,Senior Care
+c38edc65-f5d2-4f70-a7a5-60a0eb05d6ef,Milton Heights,osm:way/288117994,group_home,senior,Support Group,Senior Care
+c3e92777-ae70-4645-9eae-91002a22fa4e,Hull Transalta Community Connections,osm:node/4813799539,,,Support Group,Social Services
+c4572fa7-90f7-4776-9d00-3b396dd1ac6d,The Lark,osm:node/7132498090,shelter,homeless,Support Group,Shelter
+c4763ac0-2484-4cec-a35b-6e2565f920e5,Maison Essor (Via Travail Inc),osm:node/4590998219,outreach,unemployed,Support Group,Social Services
+c4ceb628-bc8e-4671-b942-eaa96cd648ee,Résidence Cité Rive,osm:node/7459111439,group_home,senior,Support Group,Senior Care
+c4e13269-f801-40da-b77e-6b5978ce553d,Tamura House,osm:node/12414092639,assisted_living,,Support Group,Senior Care
+c5089ae9-a725-4cda-ad39-95b2cf50c558,Surrey Youth Resources Centre Guildford,osm:node/5968192327,,,Support Group,Social Services
+c56d99ab-05bc-4019-9e07-be93ae8464e7,Cambridge Estates,osm:way/613598508,group_home,senior,Support Group,Senior Care
+c60fed3d-3b04-46d5-b3cd-33655eb0efb9,Chartwell Willowgrove Long Term Care Residence,osm:way/183115184,nursing_home,senior,Support Group,Senior Care
+c6a2eda5-6642-4818-b76a-1f99a24da6db,Jericho Kids Club,osm:node/1241350082,,,Support Group,Social Services
+c6e9d9ea-e02a-46e0-bd9a-0a3b4e570844,Shannex Parkstone,osm:way/358578673,group_home,senior,Support Group,Senior Care
+c72b7279-4fc4-4b1b-9822-5bb291cf29fc,Centre d'hébergement Fernand-Larocque,osm:node/7403738078,nursing_home,disabled,Support Group,Senior Care
+c760e172-99bf-4a29-a4fb-909a33d6f929,WISH Drop-In Centre,osm:node/12532259821,,woman,Support Group,Shelter
+c78af550-2c52-4c80-84da-eb06bb2ec628,Marian Chateau Retirement Residence,osm:way/288722245,group_home,senior,Support Group,Senior Care
+c7c59736-426f-46f2-b27c-8d58ab046eeb,Résidence Étienne-Simard,osm:node/6231121878,group_home,senior,Support Group,Senior Care
+c80922b6-65b0-4314-a4d5-553ec3e12427,The Czorny Alzheimer Centre,osm:way/673122127,nursing_home,senior,Support Group,Senior Care
+c82eba8b-3c57-4fbd-861b-c3cd27516f54,Charlie's Pet Food Bank,osm:node/12657220937,pet_food_bank,,Support Group,Food Support
+c8a3c725-77d0-4ccf-ad40-17321bb37dbd,Queen's Garden,osm:way/129080688,nursing_home,senior,Support Group,Senior Care
+ca2a0301-4fae-43a3-b0dc-0aca741ddcd6,Maryvale,osm:way/781424139,healthcare,child,Support Group,Social Services
+caf307f7-14dd-4f6a-9d63-b27760cfa9f3,Urban Native Youth Association,osm:node/9733330969,,youth,Support Group,Social Services
+caf621fa-863d-4a14-955b-a9db80098677,Neighbour to Neighbour Centre (N2N),osm:way/98067657,food_bank,,Support Group,Food Support
+cb2440c2-d970-4b6d-a2bc-d17174818613,Drop-In Centre,osm:node/12535051456,,woman,Support Group,Shelter
+cbcf21d9-2913-4b2e-88d4-33c47eb4eac8,ONYX Community Services,osm:node/5931809928,outreach,,Support Group,Social Services
+cc39d036-be58-46bf-8f8d-d35287c6f719,ITS Hamilton,osm:node/13850693201,,,Support Group,Social Services
+cc769161-4cd2-4fe4-b193-62376206338b,Amber Meadow,osm:way/72630233,assisted_living,senior,Support Group,Senior Care
+cca4a015-9a1c-4f21-ab21-fc8d31592480,Capuchin Soup Kitchen,osm:node/5972743501,,,Support Group,Food Support
+cca6c675-4458-4daf-b3fa-d35684c62f94,Centre de prévention du suicide de Québec,osm:node/2517015143,,,Support Group,Social Services
+cd107282-7ddb-46bd-82b8-f80f7e86bd9e,Centre d'hébergement Saint-Jean-Eudes,osm:node/6589904120,nursing_home,senior,Support Group,Senior Care
+cd22f247-7de6-403a-992e-04c772d420e7,Rights of Passage,osm:node/12621255864,assisted_living,youth,Support Group,Senior Care
+cd35743e-7492-4248-8e97-efab112d907f,"Boys and Girls Clubs of Calgary, Falconridge Club",osm:node/4454157767,,juventile,Support Group,Social Services
+ce61d150-2612-4c07-85de-a4363aacfbd1,Sunnyside Home Long-Term Care,osm:node/12051788185,group_home,senior,Support Group,Senior Care
+cf015d62-4241-43a1-b9c0-c2cdf9594680,Circle Drive Place,osm:node/13937779176,nursing_home,senior,Support Group,Senior Care
+cf08c219-7dbe-4fec-903b-db699bf810be,Vers l'équilibre,osm:node/5111490815,,,Support Group,Social Services
+cfa33d1c-292e-4580-8cfb-40d027eb45b5,Blackadar Continuing Care Centre,osm:way/43938848,nursing_home,senior,Support Group,Senior Care
+cfd30b39-13b2-45b2-8779-a5b283e3f143,Assessment and Referral Centre,osm:node/565546561,,,Support Group,Social Services
+d00042fc-3d8f-4a5f-9923-4899afdc9eed,Community Living Hamilton,osm:node/12879104763,,,Support Group,Social Services
+d0261986-29c7-414b-98f1-2186fab0ab0c,Uquutaq Medical Boarding Home,osm:way/82348462,group_home,,Support Group,Supported Housing
+d04bb5f3-cd99-4490-989c-894725da4744,Kettle on Burrard,osm:node/3734942643,,,Support Group,Social Services
+d0617936-0cf7-4d74-a5bb-3882682e06f9,Banwell Gardens,osm:way/750969337,nursing_home,senior,Support Group,Senior Care
+d0f66a66-d292-49b4-9599-3eff06f57fd9,Rosemary Heights Seniors Village,osm:way/673860522,assisted_living,senior,Support Group,Senior Care
+d1219ffc-8f6f-4932-b21f-de6373847cf6,Trinity Manor,osm:way/661916711,group_home,senior,Support Group,Senior Care
+d125bc77-c4fa-40ec-bdaa-8b24143f1f18,Mount Hope Centre for Long Term Care,osm:way/119868862,nursing_home,senior,Support Group,Senior Care
+d12a9ad0-bd63-4f3c-9d24-9d8a163f7b25,Riverside Place,osm:way/164279921,nursing_home,senior,Support Group,Senior Care
+d13624b1-e840-4109-9dae-e91a926f772d,Chown Adult Centre,osm:node/8715491218,day_care,senior,Support Group,Senior Care
+d1bb5baa-7ca3-4b15-9778-8c0a2442bc6a,Sélection Deux-Montagnes,osm:node/6734060156,group_home,senior,Support Group,Senior Care
+d1cac898-89b2-41f3-bd29-fdea2c821206,Living Well,osm:node/3802275457,nursing_home,,Support Group,Senior Care
+d27829f9-b87c-4da4-9703-a4a22770d36d,The Dam,osm:node/12784765972,,,Support Group,Social Services
+d2a1aa40-6751-4b16-92bc-7956e544be5b,Abrigo Centre,osm:node/2566868006,,,Support Group,Social Services
+d2b938eb-3a16-4c2f-b66c-7b3bdd2cd36c,Comité logement de la Petite-Patrie,osm:node/2295839157,outreach,,Support Group,Social Services
+d33ca1ed-53ea-4d3c-86ba-1e6d39a533b3,Access to Housing - ATH,osm:node/13821553601,outreach,,Support Group,Social Services
+d38b6cd1-1c76-4d57-9c80-5ae36c371848,Fred Douglas Lodge,osm:node/14095730158,assisted_living,senior,Support Group,Senior Care
+d3a6f852-c49b-447b-9641-8feb9dda7f26,CHSLD Bellevue,osm:node/6178710627,group_home,senior,Support Group,Senior Care
+d3bbc805-1616-451a-aa7a-78a1688ee6b3,Native Youth Health & Wellness Centre,osm:node/9733330968,,youth,Support Group,Social Services
+d403e547-03b9-4ae8-a6d4-a23a2126b2e8,CHSLD Jeanne-Le Ber,osm:node/7432120294,nursing_home,disabled,Support Group,Senior Care
+d4205394-afa3-4c7f-8c59-a6894f63aa6a,St. Joseph's Hospitality Centre,osm:node/14178574435,soup_kitchen,,Support Group,Food Support
+d44f29c5-e96d-44ab-8c8f-0425c3b5b213,Salvation Army Community and Family Services,osm:node/12879114357,,,Support Group,Social Services
+d4a30e41-9f52-44c6-9acf-3199c6e8b798,Montage Support Services,osm:node/12496714262,,,Support Group,Social Services
+d4d3b0d5-282d-45f7-bb20-1d450de44e1c,Threshold Housing,osm:node/11431609407,outreach,,Support Group,Social Services
+d696adbe-4694-48d5-a952-64cd71f8b108,Immigrant Youth Outreach Project (IYOP),osm:node/4242979893,,,Support Group,Social Services
+d6b5c7d8-0468-4e4a-a5c7-f5e390ce14f6,Kiwanis Pavilion,osm:way/1064628626,assisted_living,senior,Support Group,Senior Care
+d6ff3960-c099-4cab-bb45-a8f0d935b9a7,McGarrell Place,osm:way/128072293,nursing_home,senior,Support Group,Senior Care
+d748dbd7-1d4c-4815-9c5c-ecea12c96eee,Ronald McDonald House,osm:way/26809278,group_home,diseased,Support Group,Supported Housing
+d753fa6c-e90c-468d-bfd1-feec94dad184,Résidence l'Amitié,osm:node/6150633850,group_home,senior,Support Group,Senior Care
+d7a62f9d-e1b3-4f44-8faa-8bca16605a0a,The Lilly,osm:way/1055555864,shelter,homeless,Support Group,Shelter
+d7cf9cd8-1f4c-46a2-961a-5d29dc3346ee,Chartwell Terrace on the Square Retirement Residence,osm:way/202030977,group_home,senior,Support Group,Senior Care
+d8258213-42fe-4d08-b2c2-66ee1daaec45,Dixie Bloor Neighbourhood Centre,osm:node/13186846784,,,Support Group,Social Services
+d8784bb6-75f2-461d-b33a-2a4f3b3b7933,Service familial d'accompagnement Super Visé,osm:node/2520374266,,,Support Group,Social Services
+d87dcfe2-fe23-4eb0-b29b-82dc98d73af6,Eden Food for Change,osm:node/5151668704,food_bank,,Support Group,Food Support
+d8cf1160-24e5-44c5-a3ca-5001c9bf2ca2,CHSLD Vigi Dollard-des-Ormeaux,osm:node/7418324086,nursing_home,disabled,Support Group,Senior Care
+d8cfdb75-aba7-4938-b8a9-1f6a98ec5c7f,Working Gear,osm:node/12648963075,,,Support Group,Social Services
+d8d9bc4e-ff7e-4768-9e3c-b6865b0fc97c,Almon Place Retirement Living,osm:way/452139157,group_home,senior,Support Group,Senior Care
+d91ccd78-4682-4a82-865a-7b35fc28d1ec,Bruce Villa,osm:way/787820592,assisted_living,senior,Support Group,Senior Care
+d92b3f53-21d9-4e01-b738-04e9f1223fe2,Dopamine,osm:node/2444571774,outreach,drug_addicted,Support Group,Social Services
+d990881a-c533-4c41-85d4-ddaf2858a011,Wing Kei Crescent Heights,osm:node/8807486585,nursing_home,senior,Support Group,Senior Care
+da38cd1b-0ce8-4b76-bce1-290395595f34,Mission Services Men's Shelter,osm:node/13717260801,,,Support Group,Shelter
+dbbf5629-f7b5-491f-96f5-55ea861e36b0,Safe Shelter,osm:node/12535470301,shelter,homeless,Support Group,Shelter
+dc41f16e-ba61-47a6-a880-475f50f6f4f8,Burlington Seniors Centre,osm:way/43940471,,senior,Support Group,Senior Care
+dcd547c6-535a-480c-84d1-254be5ac2e96,The Working Centre,osm:node/5080712449,,unemployed,Support Group,Social Services
+dce74541-1ef3-4b94-a791-cb97f3e4eaaf,Selkirk Place,osm:way/138970551,assisted_living,senior,Support Group,Senior Care
+dd4cf17a-db61-4da3-ab48-c308be2a810f,Family Services of Greater Vancouver,osm:node/11747018279,,,Support Group,Social Services
+de38e3dc-28c2-482f-850d-219c982c8e0d,Bingo,osm:node/3037381186,yes,,Support Group,Social Services
+de64cbb0-019b-4446-a7f0-2ab929f688f1,Salvation Army - Grace Haven Young Parent & Family Resource Centre,osm:node/13807038601,,,Support Group,Support Group
+df04d2f8-a2c9-488b-97ce-37c237d292c5,Vancouver Language Centre,osm:node/6531327375,,immigrants,Support Group,Social Services
+e1187b32-5639-4f65-a080-570b92879667,Souls Harbour Rescue Mission,osm:node/10598340724,shelter,,Support Group,Shelter
+e17d764d-722c-44a1-9251-81472420bc6b,Maple View Terrace,osm:way/119873505,nursing_home,senior,Support Group,Senior Care
+e29b2988-87f4-4100-ac49-21e8ae6ff0e9,The Alex Seniors Health Centre,osm:node/4913948196,healthcare,senior,Support Group,Senior Care
+e2c7fb63-ccba-4766-9844-2dc928209fe8,Station Park,osm:node/11762237836,assisted_living,senior,Support Group,Senior Care
+e3bc789f-2ed3-4033-b5ad-72b3ede84a46,Résidence Cartier,osm:node/6151135175,group_home,senior,Support Group,Senior Care
+e40f1ce2-1da2-4397-874a-45a922c97bd7,The Mustard Seed Shelter,osm:way/545323262,shelter,homeless,Support Group,Shelter
+e423c03e-1352-4378-89ca-8fee5d9a24c6,Centre d'hébergement Sainte-Dorothée,osm:node/6967682001,nursing_home,disabled,Support Group,Senior Care
+e498b07e-3004-414c-880b-e10edcefa29c,Gateway Shelter,osm:way/391082856,shelter,homeless,Support Group,Shelter
+e49e0263-45bf-4378-b7ee-ab2ab94dcbe9,Bethshan Gardens,osm:way/753739637,group_home,senior,Support Group,Senior Care
+e4e826f2-32e4-4039-8000-9da1ba0360c0,CHSLD Santé Courville de Laval,osm:node/7360377776,nursing_home,disabled,Support Group,Senior Care
+e54433a6-d84f-4279-8eba-91cd0807fc3e,Extendicare London,osm:way/154411093,nursing_home,senior,Support Group,Senior Care
+e58f57da-f122-49d1-a310-8a549c144da3,Eastern Ottawa Resource Centre,osm:node/5949895728,outreach,,Support Group,Social Services
+e5ce86cf-b295-46bc-bec6-b792e343cd4e,The Evergreen Hamlets at Fleetwood,osm:node/8646313139,nursing_home,senior,Support Group,Senior Care
+e66cb332-b95f-4635-96a0-f83092dd4aa5,Samuel Prince Manor,osm:way/366148253,group_home,senior,Support Group,Senior Care
+e69ca3be-6427-402e-9e1f-83d2283052b9,Child and Adolescent Services,osm:node/13850701601,,,Support Group,Social Services
+e6cf8788-11cb-4034-949c-a9ffe5474665,Manoir Beaconsfield,osm:node/7432120288,group_home,senior,Support Group,Senior Care
+e7165b6d-f3f4-495e-9a0b-e8440f3cd970,Qu'Appelle House,osm:way/427863245,group_home,senior,Support Group,Senior Care
+e810f7f8-a8e9-4526-8181-8d9c770979ec,Samaritas,osm:way/1016998649,assisted_living,disabled,Support Group,Senior Care
+e8594b24-2e1e-4eb5-a69f-a27ebc630aa2,Shannon Oaks,osm:way/956954188,assisted_living,senior,Support Group,Senior Care
+e8b6aef6-e45c-47d3-b0c3-e9e98fe400db,Residence Jean-Bosco,osm:node/3690535439,shelter,,Support Group,Shelter
+e8bba822-ff8b-463d-b58d-ab3c9de9cb7f,Next Steps Emergency Shelter,osm:way/302986923,shelter,,Support Group,Shelter
+e90ac914-813e-4abe-b118-b919e3116819,The Rock Bay Landing,osm:way/945983440,shelter,homeless,Support Group,Shelter
+e9239fdb-0ed6-41d5-8980-8fbc659f1efc,Maison Revivre,osm:node/13137244240,shelter,homeless,Support Group,Shelter
+e991d39a-613d-473c-a3a1-6e7dcfbe9c05,Capuchin Soup Kitchen,osm:way/59153362,soup_kitchen,homeless,Support Group,Food Support
+ea9a99bc-7636-4262-ae5c-47b5d459e3c5,Maison des Sourds,osm:node/4480951944,,,Support Group,Social Services
+eaec3c91-e149-4af5-a171-5a4bdf5a27a9,CHSLD Vigi Reine-Élizabeth,osm:node/7444921232,nursing_home,disabled,Support Group,Senior Care
+ec4c4d5c-7a39-448b-af95-8761a8f70bf2,Dundas Commmunity Services,osm:node/8990470275,,,Support Group,Social Services
+ec924f92-1efa-4f59-ab0d-aff6f9fcc07b,Les Loggias Villa Val des Arbres,osm:node/7427119066,group_home,senior,Support Group,Senior Care
+eda1cdec-03b2-44a2-8be1-e0f166b5de20,CHSLD Michèle-Bohec,osm:node/6754437112,nursing_home,disabled,Support Group,Senior Care
+edd0a966-d8d6-4625-b00e-7f7c67fd711f,Guru Nanak's Free Kitchen,osm:node/8942435116,soup_kitchen,homeless,Support Group,Food Support
+ee1218cd-bc80-49e2-b57a-0399f1f1c900,Richmond Manor,osm:way/366148248,group_home,senior,Support Group,Senior Care
+ee52b76f-9c45-4e19-8f68-cbd52486b06c,Centre d'hébergement de Saint-Laurent,osm:node/4402756506,nursing_home,disabled,Support Group,Senior Care
+ee927add-e463-482e-be41-24d3f0ad0232,Entraide Ahuntsic-Nord,osm:node/4480961573,,,Support Group,Support Group
+ef2e563a-f6f4-476d-a834-d3002c047b49,Toujours Ensemble,osm:node/5586880502,,child,Support Group,Social Services
+ef9b5df8-d0a0-4c05-90d9-920bb05c2d9b,Edgemere Manor,osm:way/463106169,assisted_living,,Support Group,Senior Care
+efd9302e-6db8-4b8c-aa7c-54799c7b9f97,First United Community Help Desk,osm:node/12557765868,,mental_health;homeless,Support Group,Shelter
+eff92342-5849-4f0a-b0cd-84f6af0c940d,Sandhills Senior Living,osm:way/134130869,,,Support Group,Senior Care
+f06a0819-ed8c-4ac3-8540-565c5f56557f,Inn from the Cold,osm:node/13755360916,shelter,,Support Group,Shelter
+f0720c4a-7af0-4d54-84cd-0d9a8e7e820d,La petite Maison De Pointe-Calumet,osm:node/1851140208,,,Support Group,Social Services
+f14b0389-d76a-49d4-9456-fc3694d72dfa,La Boussole,osm:node/2520422896,,,Support Group,Social Services
+f1a42e98-63b0-4ae9-b69a-5b387f2f05b1,Résidence Déziel,osm:node/6164974565,group_home,senior,Support Group,Senior Care
+f1c4df4a-dbc2-4f2a-97c6-578b3b070ca6,Earls Court Village,osm:way/772470556,nursing_home,senior,Support Group,Senior Care
+f1e31d8c-d15a-4cc2-9c20-e2f234ffd7e7,OPDS Maison Aline-Gendron,osm:node/5111364856,outreach,,Support Group,Social Services
+f2352f83-faf3-493b-b68a-b1a780e14526,Jardins du Haut-Saint-Laurent,osm:way/164722704,group_home,senior,Support Group,Senior Care
+f23e0bcd-8c21-49a6-b65d-b12726d39601,Housing Services,osm:node/13717260802,,,Support Group,Social Services
+f2a8fdd9-0255-41ec-9f90-3cb082571e34,Polycultural Immigrant & Community Services,osm:node/6304868759,outreach,,Support Group,Social Services
+f2f39feb-448e-43bc-97f3-0343030248db,Tapestry - The Art of Seniors Living,osm:way/534166222,group_home,senior,Support Group,Senior Care
+f3061285-624a-485c-a99d-43e0405974f6,Dixie Bloor Neighbourhood Centre,osm:node/13186846783,,,Support Group,Social Services
+f4029983-492b-450f-b26d-bb127f09c7e4,Shelbourne Community Kitchen,osm:node/13310156595,food_bank,,Support Group,Food Support
+f4106a89-99e6-4cd3-bffa-df52486da562,Glasgow Hall,osm:way/358577227,group_home,senior,Support Group,Senior Care
+f410c88c-4206-4011-8757-7ed2cdac0b65,The Downtown Mission,osm:way/639159432,,,Support Group,Social Services
+f42ace72-f860-4844-b668-30740f138141,Crossroads Residential Services,osm:way/267545334,shelter,,Support Group,Shelter
+f4dc9f02-0e2e-4e45-a351-0f92dc5ab646,The Ashtrey Resource Recovery Centre,osm:node/12557765862,,drug_addicted;homeless,Support Group,Shelter
+f5af248b-574b-4560-b874-3fd02772b2b6,Arbor Oaks Personal Care Home for Seniors,osm:way/373450448,group_home,senior,Support Group,Senior Care
+f5b28b52-9d41-4f94-885b-7dd03b2d681a,Old York Towers,osm:node/1295522967,,,Support Group,Social Services
+f5dc33dc-7a0d-40cb-acef-0e7226190e22,Saweyihtotan Women's Warm Up Shelter,osm:way/292387135,shelter,,Support Group,Shelter
+f629e563-8ebe-40b7-8eda-e13579e613f0,Constance Court,osm:node/11474789196,assisted_living,senior,Support Group,Senior Care
+f6662fd9-5642-4fcc-bb96-477f99228af0,Brunswick Street Mission Food Bank,osm:node/11765941949,food_bank,general_public,Support Group,Food Support
+f66c33b4-8a63-4502-8444-bc15f423209a,Residence Angelica,osm:node/5308341670,group_home,senior,Support Group,Senior Care
+f67d8df5-f4ae-4e1b-a8c9-47c54ae3656f,Mustard Seed,osm:node/2651352347,shelter,homeless,Support Group,Shelter
+f694fcb6-6024-4475-8c65-d6e34e1fc3eb,Brampton Caledon Community Living,osm:node/10693533490,,,Support Group,Social Services
+f6c93ece-a4ae-4302-b491-0d3f70d1a79f,Sadaqa Food Bank,osm:node/6052165894,food_bank,,Support Group,Food Support
+f7592d5e-fbc4-4ee9-8c43-4ec666abf8fc,Powell Place Emergency Shelter,osm:node/12535270362,shelter,homeless;women,Support Group,Shelter
+f79a793e-39c4-4d94-a1f9-62e8e5be47c2,Centre d'hébergement Laurendeau,osm:node/5314074392,nursing_home,disabled,Support Group,Senior Care
+f81b995d-56f5-4b10-98bc-82c53472528f,Centre d'hébergement Saint-Andrew,osm:node/7412498075,nursing_home,disabled,Support Group,Senior Care
+f832d07f-471e-40e4-aaa5-809e52889225,Dans la Rue,osm:node/4271031593,outreach,homeless;youth,Support Group,Social Services
+f91fb1f8-6727-4885-a481-0868171fe5f6,H.P. MacKeen Manor,osm:way/88610798,group_home,senior,Support Group,Senior Care
+f929da66-dfdf-442a-9c71-9672382d0c2f,Melville Gardens,osm:way/448158609,group_home,senior,Support Group,Senior Care
+f9889d3a-c8c9-469f-90be-a7b215040d09,Villa Mon Repos,osm:node/6164974563,group_home,senior,Support Group,Senior Care
+f9ca0ebe-4e85-467d-a581-d90fb7c0b9ad,Westmoor Lodge,osm:way/453086620,group_home,senior,Support Group,Senior Care
+f9ea4c54-1ad0-4879-8978-3c5165ba55bf,St. Nicholas Housing Co-operative,osm:node/2747770554,shelter,homeless,Support Group,Shelter
+fa5c11b4-de0c-47d7-b9a7-6cef74f3e101,Sister Elizabeth Residential Services,osm:node/13718661301,,,Support Group,Social Services
+fb2002d1-03dc-4813-b77b-5a571eeea8c9,Chartwell Appartements de Bordeaux,osm:node/6348761986,nursing_home,,Support Group,Senior Care
+fb6d7077-5ede-46a6-8407-1e2fb097967d,Jacob's Well,osm:node/12657220938,,,Support Group,Social Services
+fbcc8f28-4f7b-40ee-b793-b76f36faa206,Inverness Hall,osm:way/358577260,group_home,senior,Support Group,Senior Care
+fbf0087c-3537-41c6-9b38-54059ea6efe5,Victoria Park Personal Care Community,osm:way/249654306,group_home,senior,Support Group,Senior Care
+fbf495c7-4610-43bd-aa2d-8af558f4743a,Guru Nanak Niwas PICS Seniors Housing,osm:way/783220304,group_home,senior,Support Group,Senior Care
+fcf3b50e-e98c-4de1-87df-759bfc643b24,Traverse Independence,osm:node/11929709989,,,Support Group,Social Services
+fd043507-da16-47ff-a0ab-5224141d2e52,Manoir Pierrefonds,osm:node/6665540398,group_home,senior,Support Group,Senior Care
+fd0fc1ce-9fed-462a-a9b5-9be9ae6ef2e8,The Door is Open,osm:node/12646675490,food_bank,homeless,Support Group,Food Support
+fdacdcdc-4722-49e7-9146-4f680e2cd1b3,Guildford Shelter,osm:way/161716622,shelter,homeless,Support Group,Shelter
+fddc3dee-f711-4120-a0b3-53b73586b0bf,Locke St Community Fridge,osm:node/9429492219,food_bank,,Support Group,Food Support
+fdfbf027-1126-421e-b67e-1dc9a4a864ab,Lookout Emergency Aid Society,osm:node/6374315524,outreach,,Support Group,Social Services
+fe1c07a3-eafd-4f82-a86b-eb9c03b3bc4e,Muslim Care Centre,osm:node/6991459865,,,Support Group,Social Services
+fe253931-7ed5-4845-9e4c-bf18860daa64,Boulevard Manor Nursing & Rehabiliation,osm:way/681763970,nursing_home,senior,Support Group,Senior Care
+fe359cb7-a3b1-4e92-bfef-bb5d30a9b76d,Panacea Body Wellness Centre,osm:node/3799399357,,,Support Group,Social Services
+fe9425a8-c711-4ce6-97e5-d585b21fc448,Mariners Inn,osm:way/805109836,shelter,homeless,Support Group,Shelter
+febb7787-7cc8-4a6a-9d0b-f4fedb98b364,Wesley Child Care Centre,osm:node/14176061301,,,Support Group,Child Care
+ff045eb6-6f80-4029-a4f3-461fd79b9d47,Devonshire Manor,osm:node/12547924619,assisted_living,senior,Support Group,Senior Care
+ff5db0fa-5bab-4ca8-b178-df3b83643718,La Soupe Populaire de Hull,osm:node/3690627098,shelter,,Support Group,Shelter
+ff860c5f-d933-4161-9366-e55aaa9e0999,Eric's House,osm:node/7735146062,outreach,disabled,Support Group,Social Services
+ffa154d8-41f6-4eed-a6be-e237b42da0c1,Victoria Street Hospitality House,osm:way/48330820,,homeless,Support Group,Shelter
+ffaabe84-4e53-47e7-8361-ef9526ae337e,The Salvation Army,osm:node/12042746375,,,Support Group,Social Services
+ffab1cbe-765e-4a1b-9fe8-3831ec505acb,Crossreach,osm:node/14155931485,day_care,senior,Support Group,Senior Care

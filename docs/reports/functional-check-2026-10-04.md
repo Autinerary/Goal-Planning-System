@@ -25,7 +25,7 @@ and controls, accessibility settings". This is that check, and what was fixed.
 | "Learn More" on the Path did nothing | The "Unlock Multi-Path Management" card | Replaced with a card that says what exists: parents and guardians manage a family member's path on the Family page, with a link to it. |
 | ResourceHub's Connection type, Rare and Highly requested filters were ignored: every result came back | ResourceHub search | They now filter. Shop products no longer appear under filters only places have. When a filter that depends on ratings finds nothing, the page says why and offers to clear all filters. |
 | "Large" appeared twice on the accessibility page (widget size and text size), so it was easy to pick the wrong one | Settings > Accessibility | Widget size now shows boxes, not "Aa"; every size and colour choice tells screen readers which is selected. All other accessibility settings worked. |
-| One place's website has moved: `tvdsb.ca/SirIsaacBrock.cfm` returns "not found" | A school's record in ResourceHub | Left as is: the new address could not be found. Update the record when it is known. |
+| One place's website has moved: `tvdsb.ca/SirIsaacBrock.cfm` returns "not found" | A school's record in ResourceHub | Fixed 5 October: 75 of the 76 Thames Valley schools had the same dead link after the board moved its pages. 72 now link to the board's own page for the school (this one is `tvdsb.ca/brock`); 3 schools no longer on the board's list had the dead link removed (`backend/scripts/fix_tvdsb_school_links.py`). |
 
 Every page loaded, and every navigation item worked on both desktop and phone.
 

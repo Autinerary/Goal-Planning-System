@@ -50,31 +50,43 @@ Tidbits are marked "Free account" for visitors.
 
 | Need | Resources |
 | --- | --- |
-| Starter information | Autism organisations and services (search) · two books from the shop · Ask a question in Tidbits |
-| Services | Autism organisations and services · Therapists and counsellors · Doctors and health centres · Community centres and libraries |
-| People with similar experiences | Ask a question in Tidbits · Autism organisations and services · Community centres and libraries · Sports and activities |
-| School or work support | Help with work · Autism organisations and services · Ask how others handled school or work. **For parents:** autism organisations · After-school activities · Schools and daycares · Tidbits |
+| Starter information | Autism, ADHD and support organisations · two books from the shop · Ask a question in Tidbits |
+| Services | Autism, ADHD and support organisations · Therapists and counsellors · Doctors and health centres · Community centres and libraries |
+| People with similar experiences | Ask a question in Tidbits · Autism, ADHD and support organisations · Community centres and libraries · Sports and activities |
+| School or work support | Help with work · Autism, ADHD and support organisations · Ask how others handled school or work. **For parents:** Autism, ADHD and support organisations · After-school activities · Schools and daycares · Tidbits |
 | Sensory tools | Five shop items for noise, light and touch (earplugs, headphones, a weighted blanket, a sleep mask, fidgets). **For parents:** headphones, fidgets, the blanket, a visual timer, chewable pencil toppers |
-| Not sure yet | Autism organisations and services · Therapists and counsellors · Ask a question in Tidbits · a book |
+| Not sure yet | Autism, ADHD and support organisations · Therapists and counsellors · Ask a question in Tidbits · a book |
 
 To change a pathway, edit `frontend/lib/startHere.ts`. Keep each item's
 `id` the same when you reword it: the report counts opened resources by
 `id`.
 
-## What the data showed (October 2026)
+## What the data showed, and what was fixed
 
-These gaps shaped the pathways, and are the best places to add content:
+Checked on 4 October 2026, fixed on 5 October:
 
-- ResourceHub's **Support Group** category (712 places) is mostly housing and
-  care homes, so it is left out. Recategorising it would give the pathways
-  real support groups.
-- Only **4 places** mention autism, and **none** mention ADHD or
-  "neurodivergent". Adding local autism and ADHD organisations would help
-  every pathway.
-- **Employment** has 3 places; the "Help with work" search (39 places) finds
-  them and more.
-- **Tidbits** has 2 questions and 1 answer, so it is offered as a place to
-  ask, not as a library of answers.
+- ResourceHub's **Support Group** category (712 places) was really care
+  homes, shelters and food banks imported from OpenStreetMap. Each now has
+  the category its own OSM tags give it (Senior Care, Social Services,
+  Shelter, Food Support, Supported Housing, Employment, Child Care), and
+  "Support Group" holds real support organisations
+  (`backend/scripts/resort_support_groups.py`; every change is in
+  `docs/data/support-group-resort.csv`, and `--revert` undoes it).
+- Only **4 places** mentioned autism and **none** mentioned ADHD. 19 autism,
+  ADHD and learning disability organisations were added, each checked on its
+  own website (`backend/scripts/add_support_organisations.py`). "Support
+  Group" now has 28 places, and the pathways' first item uses it.
+- **Tidbits** had one real question. Five starter questions, one per need,
+  are posted openly by an "Autinerary team" account
+  (`backend/scripts/seed_tidbits_questions.py`).
+- 75 of 76 Thames Valley school websites were dead after the board moved
+  them; 72 now point at the board's own pages and 3 dead links were removed
+  (`backend/scripts/fix_tvdsb_school_links.py`,
+  `docs/data/tvdsb-school-links.csv`).
+
+Still true:
+
+- **Employment** has 9 places; the "Help with work" search finds more.
 - Group 4's sample pathway began with a "plain-language article". ResourceHub
   has no articles yet; the pathway's own explanation does that job for now.
 - Only signed-in people can set a location in ResourceHub, so for visitors

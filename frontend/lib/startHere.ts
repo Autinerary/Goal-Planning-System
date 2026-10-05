@@ -11,10 +11,13 @@
  *
  * Every pathway item is something ResourceHub really has, checked against its
  * data in October 2026: searches anyone can open (shown with how many places
- * they find), shop items (opened with a free account) and Tidbits. Left out:
- * ResourceHub's "Support Group" category, because most of its 712 places are
- * housing and care homes rather than groups, and its "Employment" category
- * (3 places; the work search below finds them and more).
+ * they find), shop items (opened with a free account) and Tidbits. Its
+ * "Support Group" category used to be 712 care homes, shelters and food banks
+ * from OpenStreetMap; since 5 October 2026 those have their own categories
+ * (backend/scripts/resort_support_groups.py) and it holds real support
+ * organisations, including autism and ADHD ones added that day
+ * (backend/scripts/add_support_organisations.py). The "Employment" category
+ * is left out: the work search below finds its places and more.
  *
  * Used by the home page and /start (app/components/StartHere.tsx), the
  * starter API (app/api/starter-resources), setup (which starts with the same
@@ -84,9 +87,11 @@ export interface Pathway {
   more: { label: string; params: Record<string, string> }
 }
 
+// The id stays 'autism' so the funnel's counts carry on (start_open).
 const AUTISM: PathwayItem = {
-  id: 'autism', kind: 'search', label: 'Autism organisations and services',
-  detail: 'Organisations and services for autistic people and their families.', params: { q: 'autism' },
+  id: 'autism', kind: 'search', label: 'Autism, ADHD and support organisations',
+  detail: 'Organisations for autistic people, people with ADHD and their families, and other support groups.',
+  params: { categories: 'Support Group' },
 }
 const THERAPISTS: PathwayItem = {
   id: 'therapists', kind: 'search', label: 'Therapists and counsellors',
@@ -171,7 +176,7 @@ const PATHWAYS: Record<string, Pathway> = {
 const FOR_ROLE: Record<string, Partial<Record<string, Partial<Pathway>>>> = {
   child: {
     school_work: {
-      explanation: 'Start with the part that matters most right now. Autism organisations can often point you to support at school, and after-school activities are a gentle way to try new things.',
+      explanation: 'Start with the part that matters most right now. Autism and ADHD organisations can often point you to support at school, and after-school activities are a gentle way to try new things.',
       items: [AUTISM, AFTER_SCHOOL, SCHOOLS, TIDBITS_SCHOOL_WORK],
     },
     sensory: { items: [sensory(['noise', 'fidget', 'weighted', 'timer', 'chew'])] },
