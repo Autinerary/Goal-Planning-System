@@ -4760,7 +4760,8 @@ ALTER TABLE public.onboarding_events
 -- to the funnel table (STEP 45) through its own /api/events
 -- (servicehub-mvp/app/api/events/route.ts):
 --
---   rh_visit            no step                     first visit from this browser
+--   rh_visit            'first' | 'return'          first visit from this browser, or
+--                                                   its first on a later day
 --   rh_setup_step       'role' | 'topic' | 'first'  a setup step was shown
 --   rh_setup_complete   'topic' | 'no_topic'        setup was saved
 --   rh_first_resource   'setup' | 'browse'          first place opened, and from where

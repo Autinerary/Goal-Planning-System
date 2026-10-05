@@ -531,6 +531,23 @@ class Group8Tests(unittest.TestCase):
         self.assertIn("finished setup                     4 (67% of those who started)", text)
         self.assertIn("median 2.0 h after their first visit", text)
 
+    def test_coming_back_within_7_and_14_days(self):
+        events = []
+        # Five first visits on 6 October. a: back on the 9th; b: back on the
+        # 18th (within 14 days, not 7); c: back the same day only; d: never;
+        # e: the first release, a visit with no step, back on the 7th.
+        for v in "abcde":
+            events.append(self.rh(v, "rh_visit", "2026-10-06T10:00:00+00:00", None if v == "e" else "first"))
+        events += [self.rh("a", "rh_visit", "2026-10-09T10:00:00+00:00", "return"),
+                   self.rh("b", "rh_visit", "2026-10-18T09:00:00+00:00", "return"),
+                   self.rh("c", "rh_visit", "2026-10-06T20:00:00+00:00", "return"),
+                   self.rh("e", "rh_visit", "2026-10-07T08:00:00+00:00", "return")]
+        s = summarize_resourcehub(events)
+        self.assertEqual(s["visits"], 5)
+        self.assertEqual(s["back"]["visit_7"], 2)
+        self.assertEqual(s["back"]["visit_14"], 3)
+        self.assertIn("within 7 days 40%, within 14 days 60% of first visits", render_resourcehub(s))
+
     def test_results_within_the_radius_and_prompts(self):
         events = [self.rh("a", "rh_search", "2026-10-06T10:00:00+00:00", "12/20"),
                   self.rh("a", "rh_search", "2026-10-06T10:01:00+00:00", "0/20"),

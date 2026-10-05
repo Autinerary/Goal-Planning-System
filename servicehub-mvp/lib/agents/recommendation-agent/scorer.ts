@@ -104,9 +104,12 @@ function calculateBarrierMatchScore(
     return avgBarrierRating / 5 // Normalize to 0-1
   })
 
-  // Weight by severity if available
+  // Weight by severity if available. Not stated counts as the middle (3), as
+  // in rating snapshots and /api/me/diagnostics: since Riipen Labs Group 8,
+  // setup no longer asks it, and counting it as 1 would make every norm
+  // added since then weigh least.
   const weightedMatches = barrierMatches.map((match, index) => {
-    const severity = userBarriers[index].severity || 1
+    const severity = userBarriers[index].severity || 3
     return match * (severity / 5) // Weight by severity (1-5)
   })
 

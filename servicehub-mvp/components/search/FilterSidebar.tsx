@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { CONNECTION_TYPES, AGE_RANGES, SPECIAL_TAGS, SOURCE_TYPE_GROUPS } from '@/lib/filters/taxonomy'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import ConditionsFilter from './ConditionsFilter'
@@ -39,6 +40,10 @@ interface FilterSidebarProps {
   onAgeRangeToggle?: (id: string) => void
   onSpecialTagToggle?: (id: string) => void
   onSourceTypeToggle?: (id: string) => void
+  /** Where distances are measured from ("Surrey, BC"), and whether someone is
+   *  signed in, so the distance filter can say so (Riipen Labs, Group 8). */
+  place?: string | null
+  signedIn?: boolean
 }
 
 export default function FilterSidebar({
@@ -68,6 +73,8 @@ export default function FilterSidebar({
   onPriceChange,
   onMaxDistanceChange,
   onClearFilters,
+  place = null,
+  signedIn = false,
 }: FilterSidebarProps) {
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   // Odosa: "they are working; they're just not showing up like the other ones."
@@ -417,8 +424,16 @@ export default function FilterSidebar({
 
       {/* Distance Filter */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Distance From You</h3>
-        <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Distance From You</h3>
+        {place && (
+          <p className="mb-3 text-xs text-gray-600">
+            From {place} ·{' '}
+            <Link href="/profile#location" className="font-medium text-blue-700 underline">
+              Change
+            </Link>
+          </p>
+        )}
+        <div className={`space-y-2 ${place ? '' : 'mt-2'}`}>
           {[5, 10, 25, 50, 100].map((distance) => (
             <label
               key={distance}
@@ -449,8 +464,18 @@ export default function FilterSidebar({
           </label>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Distances are measured from the location in your profile. Complete
-          onboarding (or set a location in your profile) to sort by nearest.
+          {place ? (
+            'With no distance chosen, places within 50 km come first, nearest first.'
+          ) : signedIn ? (
+            <>
+              <Link href="/profile#location" className="font-medium text-blue-700 underline">
+                Set your location
+              </Link>{' '}
+              to see places near you first. It is private and optional.
+            </>
+          ) : (
+            'Sign in and set a location to see places near you first.'
+          )}
         </p>
       </div>
 

@@ -646,9 +646,11 @@ def is_resourcehub(e: dict) -> bool:
 
 def summarize_resourcehub(events: Iterable[dict]) -> Dict:
     """ResourceHub's first session (Group 8): setup completion, time from the
-    first visit to the first place opened, how many search results were
-    within the radius, and whether each prompt is taken up. A "person" is a
-    visitor id (one browser). Test traffic ('qa-...') never counts. Pure."""
+    first visit to the first place opened, whether people come back on a later
+    day within 7 and 14 days (of their first visit, and of finishing setup),
+    how many search results were within the radius, and whether each prompt
+    is taken up. A "person" is a visitor id (one browser). Test traffic
+    ('qa-...') never counts. Pure."""
     by_visitor: Dict[str, List[dict]] = defaultdict(list)
     for e in events:
         if is_resourcehub(e) and not str(e.get("onboarding_version") or "").startswith("qa"):
@@ -662,12 +664,25 @@ def summarize_resourcehub(events: Iterable[dict]) -> Dict:
     from_setup: set = set()
     hours_from_visit: List[float] = []
     hours_from_setup: List[float] = []
+    back: Dict[str, set] = {"visit_7": set(), "visit_14": set(), "setup_7": set(), "setup_14": set()}
     near = shown = searches = 0
     prompts: Dict[str, Dict[str, set]] = {p: {"shown": set(), "yes": set(), "no": set(), "later": set()} for p, _ in RH_PROMPTS}
 
     for vid, evs in by_visitor.items():
         evs.sort(key=lambda e: e["created_at"])
-        first_visit = next((_ts(e["created_at"]) for e in evs if e["event"] == "rh_visit"), None)
+        # The first release sent the first visit with no step.
+        first_visit = next((_ts(e["created_at"]) for e in evs
+                            if e["event"] == "rh_visit" and e.get("step") in (None, "first")), None)
+        finished_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "rh_setup_complete"), None)
+        returns = [_ts(e["created_at"]) for e in evs if e["event"] == "rh_visit" and e.get("step") == "return"]
+        for start, key in ((first_visit, "visit"), (finished_at, "setup")):
+            if start is None:
+                continue
+            later = [t - start for t in returns if t.date() > start.date()]
+            if any(d <= RETURN_WINDOW_LONG for d in later):
+                back[f"{key}_14"].add(vid)
+            if any(d <= RETURN_WINDOW for d in later):
+                back[f"{key}_7"].add(vid)
         setup_start = next((_ts(e["created_at"]) for e in evs
                             if e["event"] == "rh_setup_step" and e.get("step") == "role"), None)
         if first_visit:
@@ -708,6 +723,7 @@ def summarize_resourcehub(events: Iterable[dict]) -> Dict:
         "finished_with_topic": len(with_topic & finished & steps["role"]),
         "opened": len(opened),
         "opened_from_setup": len(from_setup),
+        "back": {k: len(v) for k, v in back.items()},
         "first_open_median_hours": median(hours_from_visit) if hours_from_visit else None,
         "setup_to_open_median_hours": median(hours_from_setup) if hours_from_setup else None,
         "searches": searches,
@@ -743,6 +759,12 @@ def render_resourcehub(s: Dict) -> str:
                        f"median {_duration(s['setup_to_open_median_hours'])} after starting setup")
     else:
         out.append(line)
+    if s["visits"] >= MIN_CELL:
+        out.append(f"  came back on a later day           within 7 days {pct(s['back']['visit_7'], s['visits'])}, "
+                   f"within 14 days {pct(s['back']['visit_14'], s['visits'])} of first visits")
+    if s["finished"] >= MIN_CELL:
+        out.append(f"    after finishing setup            within 7 days {pct(s['back']['setup_7'], s['finished'])}, "
+                   f"within 14 days {pct(s['back']['setup_14'], s['finished'])}")
     if s["searches"] < MIN_CELL:
         out.append(f"  searches with a location           {count(s['searches'])}")
     else:

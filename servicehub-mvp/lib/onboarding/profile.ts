@@ -19,6 +19,8 @@ export interface MyNorm {
   group: string
   /** Confirmed by a professional or an organisation. */
   confirmed: boolean
+  /** How much it affects daily life, 1 to 5, if they said (optional, on the profile). */
+  severity: number | null
 }
 
 export interface MyProfile {
@@ -43,7 +45,7 @@ export async function readMyProfile(supabase: SupabaseClient, user: User): Promi
     supabase.from('profiles').select('role, location').eq('id', user.id).maybeSingle(),
     supabase
       .from('user_barriers')
-      .select('barrier_type, barrier_category, verification_method, verified_at')
+      .select('barrier_type, barrier_category, verification_method, verified_at, severity')
       .eq('user_id', user.id),
   ])
 
@@ -61,6 +63,7 @@ export async function readMyProfile(supabase: SupabaseClient, user: User): Promi
       label: prettyNorm(type),
       group: findNorm(type)?.group || text(r.barrier_category) || 'general',
       confirmed: Boolean(r.verified_at) || (Boolean(r.verification_method) && r.verification_method !== 'self'),
+      severity: Number.isInteger(r.severity) && r.severity >= 1 && r.severity <= 5 ? r.severity : null,
     })
   }
 

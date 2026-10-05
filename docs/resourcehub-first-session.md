@@ -13,9 +13,9 @@ how it is measured.
 | --- | --- |
 | Five steps (Welcome, Location, Norms, Impact, Context) before any resource | Three steps: who you are, one topic and what you hope to find, then "Here's a place to start" with real places |
 | Location said "private and optional", but all three fields were required | Not asked in setup. It is asked where it is used: the home page, search ("Set your location to see places near you first") and the profile. It is optional everywhere |
-| Impact repeated the severity slider from Norms | Gone. The Context step's life stage, goals and notes were never saved, so they are gone too |
+| Impact repeated the severity slider from Norms | Gone from setup. It weighs recommendations and groups ratings by level, so it moved rather than vanished, as Group 8 advised: the profile asks "how much does it affect daily life?" for each topic, optionally and in words ("A little", "A lot"). An answer not given counts as the middle, as it always did for ratings. The Context step's life stage, goals and notes were never saved, so they are gone |
 | Identity, health and disability asked up front | On the profile, under "More about you (optional)", where any answer can be changed or removed |
-| Surrey, BC got Montreal results (3,675 km away) with no distance shown | With a location and no sort chosen, search shows places within 50 km first, nearest first, under "Near Surrey, BC", with each distance. Then "Broader options": organisations for your province or all of Canada (they have no map point, so AutismBC comes before Autism Ontario for someone in Surrey), then farther places, nearest first. When nothing is within 50 km, it says so and offers "Change location". "Near <city>" on the home page uses coordinates too; it used to look at an arbitrary 200 of 9,561 places by city name |
+| Surrey, BC got Montreal results (3,675 km away) with no distance shown | With a location and no sort chosen, search shows places within 50 km first, nearest first, under "Near Surrey, BC", with each distance. Then "Broader options": organisations for your province or all of Canada (they have no map point, so AutismBC comes before Autism Ontario for someone in Surrey), then farther places, nearest first. When nothing is within 50 km, it says so and offers "Change location"; when only one or two are, it says how few. The distance filter says where distances are measured from ("From Surrey, BC · Change"). "Near <city>" on the home page uses coordinates too; it used to look at an arbitrary 200 of 9,561 places by city name |
 | Cards showed large two-letter initials | An icon for the kind of place (a school, a doctor, a park). Real photos still show when there is one |
 | Asked information "visibly leads nowhere" | "For you" on the home page shows places matched to your topic and what you hope to find, near you where possible. Each place says why it is there: "Rated for ADHD", "Mentions ADHD", or the kind of place you asked for. Setup's last step shows the first of them, and offers, in one optional line, to add a location to see places near you first |
 
@@ -56,6 +56,7 @@ show as "<5".
 | "Time from landing to first resource viewed" | Median time from a browser's first visit to the first place it opens, and from the start of setup |
 | "Percentage of search results returned within the user's stated radius" | Share of first-page places within the radius, for searches by people with a location |
 | "Validating each trigger before adding more" | For each prompt: shown, yes, no and later |
+| "Bring them back in their first 7–14 days" | Share of first visits, and of people who finished setup, back on a later day within 7 and within 14 days |
 
 ## What it does not fix
 

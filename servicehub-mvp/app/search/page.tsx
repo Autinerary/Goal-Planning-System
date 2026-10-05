@@ -33,6 +33,10 @@ interface NearInfo {
 
 const isNear = (r: { distance?: number }, radiusKm: number) => r.distance !== undefined && r.distance <= radiusKm
 
+/** Fewer near results than this, and the page says how few (Group 8:
+ *  "a clear fallback message when local results are sparse"). */
+const SPARSE = 3
+
 const RESULT_COUNT_PER_PAGE = 20
 
 const VALID_SORT_KEYS = new Set<SortKey>([
@@ -482,6 +486,8 @@ function SearchResults() {
                   onPriceChange={handlePriceChange}
                   onMaxDistanceChange={handleMaxDistanceChange}
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
+                  place={nearInfo?.place}
+                  signedIn={nearInfo?.signedIn}
                 />
               </div>
             </aside>
@@ -622,6 +628,19 @@ function SearchResults() {
               </div>
 
               {/* Where results are measured from (Riipen Labs, Group 8) */}
+              {/* Only a few near: say so, so "Broader options" is no surprise. */}
+              {!error && !loading && radiusKm !== undefined && page === 1 && (nearInfo?.nearCount ?? 0) > 0 &&
+                (nearInfo?.nearCount ?? 0) < SPARSE && results.length > (nearInfo?.nearCount ?? 0) && (
+                <p className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-gray-700" role="status">
+                  <MapPin className="h-4 w-4 flex-shrink-0 text-violet-700" aria-hidden="true" />
+                  Only {nearInfo?.nearCount} {nearInfo?.nearCount === 1 ? 'place' : 'places'} within {radiusKm} km of{' '}
+                  {nearInfo?.place || 'you'} {nearInfo?.nearCount === 1 ? 'matches' : 'match'} this search. Broader options are
+                  below.
+                  <Link href="/profile#location" className="font-medium text-blue-700 underline">
+                    Change location
+                  </Link>
+                </p>
+              )}
               {!error && !loading && radiusKm !== undefined && page === 1 && nearInfo?.nearCount === 0 && results.length > 0 && (
                 <div className="mb-6 rounded-lg border border-violet-200 bg-violet-50 p-4" role="status">
                   <p className="flex items-center gap-2 text-sm font-semibold text-violet-900">
@@ -794,6 +813,8 @@ function SearchResults() {
                   onPriceChange={handlePriceChange}
                   onMaxDistanceChange={handleMaxDistanceChange}
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
+                  place={nearInfo?.place}
+                  signedIn={nearInfo?.signedIn}
                 />
               </div>
             </aside>

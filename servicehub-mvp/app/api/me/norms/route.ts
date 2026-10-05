@@ -8,6 +8,10 @@ export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/me/norms — { type, notes? }: add a norm (topic) to your profile.
+ * PATCH /api/me/norms — { type, severity }: how much it affects daily life,
+ *   1 to 5, or null for not said. Setup asked this of everyone (twice) before
+ *   showing anything; Group 8 asked for it to move, not vanish, since it
+ *   weighs recommendations and groups ratings by level.
  * DELETE /api/me/norms?type=...: remove one of your own.
  *
  * The profile page and the "add it to your matches?" prompt use these
@@ -62,6 +66,34 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: 'Could not add that. Please try again.' }, { status: 500 })
     refreshEmbedding(user.id)
   }
+  return NextResponse.json({ signedIn: true, ...(await readMyProfile(supabase, user)) })
+}
+
+export async function PATCH(request: NextRequest) {
+  const { supabase, user } = await signedIn()
+  if (!user) return NextResponse.json({ error: 'Please sign in first.' }, { status: 401 })
+
+  let body: any
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+  const type = typeof body?.type === 'string' ? body.type.trim() : ''
+  const severity = body?.severity === null ? null : Number(body?.severity)
+  if (!type || (severity !== null && !(Number.isInteger(severity) && severity >= 1 && severity <= 5))) {
+    return NextResponse.json({ error: 'Choose how much it affects daily life, or "Not said".' }, { status: 400 })
+  }
+
+  const { data: changed, error } = await supabase
+    .from('user_barriers')
+    .update({ severity })
+    .eq('user_id', user.id)
+    .eq('barrier_type', type)
+    .select('id')
+  if (error) return NextResponse.json({ error: 'Could not save that. Please try again.' }, { status: 500 })
+  if (!changed || changed.length === 0) return NextResponse.json({ error: 'That is not on your profile.' }, { status: 404 })
+  refreshEmbedding(user.id)
   return NextResponse.json({ signedIn: true, ...(await readMyProfile(supabase, user)) })
 }
 

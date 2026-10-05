@@ -18,7 +18,8 @@ export const dynamic = 'force-dynamic'
  * STEP 51 (backend/database/migrations/2026_resourcehub_events.sql), and are
  * reported by backend/scripts/onboarding_funnel.py.
  *
- *   rh_visit            first time this browser opens ResourceHub
+ *   rh_visit            first | return                first visit from this browser,
+ *                                                    or its first on a later day
  *   rh_setup_step       role | topic | first        a setup step was shown
  *   rh_setup_complete   topic | no_topic            setup was saved
  *   rh_first_resource   setup | browse              first place opened, and from where
@@ -31,7 +32,7 @@ export const dynamic = 'force-dynamic'
  */
 
 const PATTERNS: Record<string, RegExp | null> = {
-  rh_visit: null,
+  rh_visit: /^(first|return)$/,
   rh_setup_step: new RegExp(`^(${SETUP_STEPS.join('|')})$`),
   rh_setup_complete: /^(topic|no_topic)$/,
   rh_first_resource: /^(setup|browse)$/,
@@ -45,6 +46,8 @@ const TOKEN = /^[a-z0-9._-]{1,40}$/i
 function stepFor(event: string, step: unknown): string | null | undefined {
   const pattern = PATTERNS[event]
   if (pattern === null) return null
+  // The first release sent the first visit with no step.
+  if (event === 'rh_visit' && (step === undefined || step === null)) return 'first'
   if (typeof step !== 'string' || !pattern.test(step)) return undefined
   if (event === 'rh_search') {
     const [near, shown] = step.split('/').map(Number)

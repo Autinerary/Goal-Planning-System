@@ -24,6 +24,47 @@ import { ALL_NORMS, MORE_ABOUT_YOU, SETUP_NEEDS, findRole, isOtherNorm, normsMat
 
 const MORE_GROUPS = new Set(MORE_ABOUT_YOU.map((g) => g.group))
 
+// "How much does it affect daily life?", in words rather than a 1-5 slider.
+// Setup used to ask it of everyone before showing anything (Group 8 found
+// that "impersonal or even invasive"); here it is optional, for those who
+// want their matches weighed by it.
+const IMPACT = [
+  { value: '', label: 'Not said' },
+  { value: '1', label: 'Hardly' },
+  { value: '2', label: 'A little' },
+  { value: '3', label: 'Somewhat' },
+  { value: '4', label: 'A lot' },
+  { value: '5', label: 'Very much' },
+]
+
+function ImpactSelect({
+  label,
+  value,
+  disabled,
+  onChange,
+}: {
+  label: string
+  value: number | null
+  disabled?: boolean
+  onChange: (next: number | null) => void
+}) {
+  return (
+    <select
+      aria-label={`How much ${label} affects daily life`}
+      value={value ?? ''}
+      disabled={disabled}
+      onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+      className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {IMPACT.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 const card = 'rounded-2xl bg-white p-6 shadow-sm'
 const linkButton =
   'text-sm font-medium text-blue-700 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded'
@@ -84,6 +125,8 @@ export default function ProfilePage() {
     change(`norm.${type}`, '/api/me/norms', { method: 'POST', body: JSON.stringify({ type }) })
   const removeNorm = (type: string) =>
     change(`norm.${type}`, `/api/me/norms?type=${encodeURIComponent(type)}`, { method: 'DELETE' })
+  const setImpact = (type: string, severity: number | null) =>
+    change(`norm.${type}`, '/api/me/norms', { method: 'PATCH', body: JSON.stringify({ type, severity }) })
   const toggleNeed = (id: string) =>
     change(`need.${id}`, '/api/me/profile', {
       method: 'PATCH',
@@ -168,9 +211,29 @@ export default function ProfilePage() {
                   ))}
                 </dd>
                 <button type="button" className={linkButton} onClick={() => setEditing(editing === 'topic' ? null : 'topic')}>
-                  {editing === 'topic' ? 'Done' : 'Add'}
+                  {editing === 'topic' ? 'Done' : 'Edit'}
                 </button>
               </div>
+              {editing === 'topic' && topics.length > 0 && (
+                <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                  <p className="text-sm text-gray-700">
+                    How much does each affect daily life? Optional: it weighs your recommendations.
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {topics.map((n) => (
+                      <li key={n.type} className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-800">
+                        {n.label}
+                        <ImpactSelect
+                          label={n.label}
+                          value={n.severity}
+                          disabled={busy === `norm.${n.type}`}
+                          onChange={(v) => setImpact(n.type, v)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {editing === 'topic' && (
                 <div className="mt-3">
                   <label htmlFor="add-topic" className="block text-sm text-gray-700">
@@ -300,18 +363,29 @@ export default function ProfilePage() {
                   {isOpen && (
                     <div className="grid gap-2 border-t border-gray-100 p-4 sm:grid-cols-2">
                       {options.map((n) => {
-                        const confirmed = norms.some((m) => m.type === n.id && m.confirmed)
+                        const mine = norms.find((m) => m.type === n.id)
                         return (
-                          <label key={n.id} className="flex items-center gap-2 text-sm text-gray-800">
-                            <input
-                              type="checkbox"
-                              checked={has(n.id)}
-                              disabled={busy === `norm.${n.id}` || confirmed}
-                              onChange={() => (has(n.id) ? removeNorm(n.id) : addNorm(n.id))}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            {n.label}
-                          </label>
+                          <div key={n.id} className="flex flex-wrap items-center justify-between gap-2">
+                            <label className="flex items-center gap-2 text-sm text-gray-800">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(mine)}
+                                disabled={busy === `norm.${n.id}` || Boolean(mine?.confirmed)}
+                                onChange={() => (mine ? removeNorm(n.id) : addNorm(n.id))}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              {n.label}
+                            </label>
+                            {/* Identity is who you are, not how much it affects you. */}
+                            {mine && g.group !== 'identity' && (
+                              <ImpactSelect
+                                label={n.label}
+                                value={mine.severity}
+                                disabled={busy === `norm.${n.id}`}
+                                onChange={(v) => setImpact(n.id, v)}
+                              />
+                            )}
+                          </div>
                         )
                       })}
                     </div>
