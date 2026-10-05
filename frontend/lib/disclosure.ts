@@ -57,6 +57,13 @@ export function getVisitDayCount(): number {
   return readVisitDays().length
 }
 
+/** Visit days on or after a local YYYY-MM-DD day, e.g. since signing up.
+ *  Visits are recorded on every page, the landing page included, so days as
+ *  a visitor would otherwise count as days of use. */
+export function getVisitDayCountSince(day: string): number {
+  return readVisitDays().filter((d) => d >= day).length
+}
+
 /** The most recent day before today this browser opened the app (local YYYY-MM-DD), or null. */
 export function getPreviousVisitDay(): string | null {
   const today = dayKey(new Date())

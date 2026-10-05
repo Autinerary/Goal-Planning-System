@@ -39,6 +39,12 @@ they return". Where they click and whether they return are above; where
 they leave is the parts of the app people opened on their last day, for
 those who have now been away two weeks or more.
 
+Group 7 asked to "measure completion rates, time to first action and drop-off
+by step", and to test, not assume, that people answer optional questions
+later. So the funnel also shows how long after sign-up people open their
+first step, and the questions asked later (ask_later events, STEP 50) are
+counted: shown, answered, closed.
+
 Group 2 also asked to "ask active users about usefulness and inactive users
 why they disengaged". Those answers (public.checkin_responses, STEP 46) are
 summarized at the end: why people stopped, from the check-in email and the
@@ -128,6 +134,13 @@ STOP_REASONS = [
 ]
 USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "not yet")]
 
+# Optional setup questions asked later on the Path, as in frontend/lib/askLater.ts.
+ASK_LATER = [
+    ("location", "Location", ["location"]),
+    ("aboutYou", "Sensory needs and conditions", ["aboutYou"]),
+    ("makeItYours", "Character, spirit animals, look", ["character", "spiritAnimal", "personalize"]),
+]
+
 RETURN_WINDOW = timedelta(days=7)
 RETURN_WINDOW_LONG = timedelta(days=14)
 FIRST_WEEKS = timedelta(days=14)
@@ -194,6 +207,13 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
                     returned_long = True
                     if t - signup_at <= RETURN_WINDOW:
                         returned = True
+        # First action: opening a step (feature_use "milestones") after sign-up.
+        first_open_hours = None
+        if signup_at is not None:
+            opens = [_ts(e["created_at"]) for e in evs if e["event"] == "feature_use"
+                     and e.get("step") == "milestones" and _ts(e["created_at"]) >= signup_at]
+            if opens:
+                first_open_hours = (min(opens) - signup_at).total_seconds() / 3600
         first_step_hours = None
         if signup_at is not None and user_id and first_done_by_user.get(user_id):
             done_at = _ts(first_done_by_user[user_id])
@@ -212,6 +232,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "returned": returned,
             "returned_14": returned_long,
             "first_step_hours": first_step_hours,
+            "first_open_hours": first_open_hours,
         })
 
     def stage_counts(group: List[dict]) -> Dict:
@@ -224,6 +245,8 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "returned": sum(p["returned"] for p in group),
             "returned_14": sum(p["returned_14"] for p in group),
             "first_step": sum(p["first_step_hours"] is not None for p in group),
+            "first_open": sum(p["first_open_hours"] is not None for p in group),
+            "first_open_median_hours": median(h) if (h := [p["first_open_hours"] for p in group if p["first_open_hours"] is not None]) else None,
             "first_step_median_hours": median(h) if (h := [p["first_step_hours"] for p in group if p["first_step_hours"] is not None]) else None,
             "accounts_from_landing": sum(p["landing"] and p["account"] for p in group),
         }
@@ -337,6 +360,8 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append(f"  finished setup                  {o['finished']}   ({pct(o['finished'], o['accounts'])} of accounts)")
     out.append(f"  returned within 7 days          {o['returned']}   ({pct(o['returned'], o['accounts'])} of accounts)")
     out.append(f"  returned within 14 days         {o['returned_14']}   ({pct(o['returned_14'], o['accounts'])} of accounts)")
+    out.append(f"  opened their first step         {o['first_open']}   ({pct(o['first_open'], o['accounts'])} of accounts)"
+               + (f", median {_duration(o['first_open_median_hours'])} after sign-up" if o['first_open_median_hours'] is not None else ""))
     out.append(f"  marked a first step done        {o['first_step']}   ({pct(o['first_step'], o['accounts'])} of accounts)"
                + (f", median {_duration(o['first_step_median_hours'])} after sign-up" if o['first_step_median_hours'] is not None else ""))
     out.append("")
@@ -577,6 +602,33 @@ def render_last_seen(s: Dict) -> str:
     return "\n".join(out)
 
 
+def summarize_ask_later(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """For each group of questions asked later: how many browsers saw it,
+    answered something in it, or closed it. Pure."""
+    seen: Dict[str, Dict[str, set]] = {g: {"shown": set(), "done": set(), "closed": set()} for g, _, _ in ASK_LATER}
+    group_of = {item: g for g, _, items in ASK_LATER for item in items}
+    for e in events:
+        if e["event"] != "ask_later" or not e.get("step") or not keep_version(e.get("onboarding_version", ""), wanted_version):
+            continue
+        action, _, name = str(e["step"]).partition(".")
+        group = name if name in seen else group_of.get(name)
+        if group and action in ("shown", "done", "closed"):
+            seen[group][action].add(e["visitor_id"])
+    return {g: {k: len(v) for k, v in counts.items()} for g, counts in seen.items()}
+
+
+def render_ask_later(s: Dict) -> str:
+    out = ["== Questions asked later on the Path (Group 7: do people answer them?)",
+           f"  {'questions':<32} {'shown':>6} {'answered':>9} {'closed':>7}"]
+    for group, label, _ in ASK_LATER:
+        g = s.get(group, {"shown": 0, "done": 0, "closed": 0})
+        if g["shown"] < MIN_CELL:
+            out.append(f"  {label:<32} {SMALL if g['shown'] else 0:>6} {'-':>9} {'-':>7}")
+            continue
+        out.append(f"  {label:<32} {g['shown']:>6} {pct(g['done'], g['shown']):>9} {pct(g['closed'], g['shown']):>7}")
+    return "\n".join(out)
+
+
 def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None,
                        joined_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
@@ -716,6 +768,8 @@ def main() -> int:
     print(render_feature_use(summarize_feature_use(events, args.version, audience_by_user)))
     print()
     print(render_last_seen(summarize_last_seen(events, args.version)))
+    print()
+    print(render_ask_later(summarize_ask_later(events, args.version)))
     print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version, created_at")

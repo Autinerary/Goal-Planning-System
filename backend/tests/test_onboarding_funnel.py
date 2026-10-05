@@ -24,6 +24,8 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_feature_use,
     render_last_seen,
     summarize_last_seen,
+    render_ask_later,
+    summarize_ask_later,
     render_heard_from,
     summarize_heard_from,
     STOP_REASONS,
@@ -444,3 +446,44 @@ class WhereTheyLeaveTests(unittest.TestCase):
         from datetime import datetime, timezone
         s = summarize_last_seen([self.use("a", 1, "path")], V, datetime(2026, 10, 30, tzinfo=timezone.utc))
         self.assertIn("fewer than 5 so far", render_last_seen(s))
+
+
+class Group7Tests(unittest.TestCase):
+    """Riipen Labs, Group 7: time to first action, and questions asked later."""
+
+    def test_time_to_first_opened_step(self):
+        events = [ev("a", "signup_complete", "2026-10-05T10:00:00+00:00"),
+                  ev("a", "feature_use", "2026-10-05T09:00:00+00:00", step="milestones"),   # before sign-up: ignored
+                  ev("a", "feature_use", "2026-10-05T10:30:00+00:00", step="path"),
+                  ev("a", "feature_use", "2026-10-05T12:00:00+00:00", step="milestones")]
+        o = compute_funnel(events)["overall"]
+        self.assertEqual(o["first_open"], 1)
+        self.assertAlmostEqual(o["first_open_median_hours"], 2.0)
+        self.assertIn("opened their first step", render(compute_funnel(events), summarize_feedback([]), False))
+
+    def test_questions_asked_later(self):
+        events = []
+        for i in range(6):
+            v = f"v{i}"
+            events.append(ev(v, "ask_later", "2026-10-05T10:00:00+00:00", step="shown.location"))
+            if i < 3:
+                events.append(ev(v, "ask_later", "2026-10-05T10:01:00+00:00", step="done.location"))
+            elif i < 5:
+                events.append(ev(v, "ask_later", "2026-10-05T10:01:00+00:00", step="closed.location"))
+        events += [ev("w", "ask_later", "2026-10-15T10:00:00+00:00", step="shown.makeItYours"),
+                   ev("w", "ask_later", "2026-10-15T10:01:00+00:00", step="done.character")]
+        s = summarize_ask_later(events)
+        self.assertEqual(s["location"], {"shown": 6, "done": 3, "closed": 2})
+        self.assertEqual(s["makeItYours"], {"shown": 1, "done": 1, "closed": 0})
+        text = render_ask_later(s)
+        location = next(l for l in text.splitlines() if l.strip().startswith("Location"))
+        self.assertIn("50%", location)
+        make = next(l for l in text.splitlines() if l.strip().startswith("Character"))
+        self.assertIn("<5", make)
+
+    def test_ask_later_matches_the_app_and_the_database(self):
+        ts = (REPO / "frontend/lib/askLater.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_ask_later_events.sql").read_text()
+        for group in ("location", "aboutYou", "makeItYours"):
+            self.assertIn(f"id: '{group}'", ts)
+        self.assertIn("'ask_later'", sql)

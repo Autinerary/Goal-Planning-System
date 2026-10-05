@@ -38,6 +38,14 @@ and the two-question setup. From the second day, the Path offers its fuller
 view instead of switching by itself. The voice is in
 [voice.md](voice.md), and the report now shows where people leave.
 
+Group 7's report ("Customer Experience Optimization") recommended
+progressive onboarding with only essential questions first, one clear first
+action on the dashboard, and measuring "completion rates, time to first
+action and drop-off by step". Which questions are asked when is in
+[onboarding-questions.md](onboarding-questions.md). The Path's first card
+is "Your next step", with one button. The feedback form no longer reaches
+people before they have used the app.
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -59,6 +67,7 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures | Done 4 October; tested live |
 | The app's own address, app.autinerary.ca (Route 53, Vercel, Supabase sign-in redirect) | Printed QR codes and shared links never have to change ([campaign/README.md](campaign/README.md)) | Done 4 October |
 | Apply STEP 49 | Counts which parts of the app people open | Done 4 October; tested live |
+| Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | To do |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -197,6 +206,11 @@ Group 5's measures:
 | "Track 7-14 day retention" | Share of new accounts back within 7 and within 14 days | Funnel events |
 | "Monitor first-week satisfaction scores" | Usefulness answers given in the first two weeks after sign-up; setup ease | In-app check-in; post-setup survey |
 | "Which features different user groups actually use" | Share of accounts that open each part of the app, by who they are here for | feature_use events (STEP 49) |
+
+Group 7's measures: completion and drop-off by step (above), **time to
+first action** (how long after sign-up people open their first step, and
+mark one done), and whether people **answer questions asked later**
+(shown, answered, closed, per group).
 
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;

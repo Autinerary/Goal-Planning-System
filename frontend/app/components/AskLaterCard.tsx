@@ -6,6 +6,7 @@ import { MapPin, Palette, Heart, SlidersHorizontal, Ear, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { dayKey, daysSince } from '@/lib/disclosure'
 import { dueAskLaterGroup } from '@/lib/askLater'
+import { track } from '@/lib/funnel'
 
 /**
  * "Ask later" (Riipen Labs, Group 2: "sort the questions into need now and ask
@@ -19,12 +20,26 @@ import { dueAskLaterGroup } from '@/lib/askLater'
  */
 
 const KEY = 'autinerary_ask_later'
+// Groups already counted as shown in this browser, so each counts once.
+const SHOWN_KEY = 'autinerary_ask_later_shown'
 
 const LINKS: Record<string, { icon: typeof Palette; title: string; body: string; href: string }> = {
   aboutYou: { icon: Ear, title: 'Sensory needs and conditions', body: 'So plans and suggestions can fit how you work. Private.', href: '/profile/diagnostic' },
   character: { icon: Palette, title: 'Design your character', body: 'Your avatar in Dream Land.', href: '/ideal-self' },
   spiritAnimal: { icon: Heart, title: 'Choose your spirit animals', body: 'The guides shown on your Path.', href: '/profile/settings' },
   personalize: { icon: SlidersHorizontal, title: 'Adjust how the app looks', body: 'Layout, colours, and how much it shows at once.', href: '/profile/settings' },
+}
+
+/** Count a group as shown once per browser (Group 7's "assumption to test"). */
+function countShown(groupId: string): void {
+  try {
+    const shown: string[] = JSON.parse(localStorage.getItem(SHOWN_KEY) || '[]')
+    if (shown.includes(groupId)) return
+    localStorage.setItem(SHOWN_KEY, JSON.stringify([...shown, groupId]))
+  } catch {
+    return
+  }
+  track('ask_later', `shown.${groupId}`)
 }
 
 export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
@@ -74,6 +89,7 @@ export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
         setLocError(res.status === 422 ? "We couldn't find that place. Check the spelling, or try a nearby city." : body.error || 'Could not save. Please try again.')
         return
       }
+      track('ask_later', 'done.location')
       remove('location')
     } catch {
       setLocState('error')
@@ -83,7 +99,11 @@ export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
 
   // Days since the account was made; unknown counts as day 0.
   const day = supabaseUser?.created_at ? daysSince(dayKey(new Date(supabaseUser.created_at))) : 0
-  const group = dueAskLaterGroup(items, day)
+  const group = loaded ? dueAskLaterGroup(items, day) : undefined
+  const groupId = group?.id
+  useEffect(() => {
+    if (groupId) countShown(groupId)
+  }, [groupId])
   if (!loaded) return null
   if (!group) return <>{fallback}</>
   const links = group.ids.filter((id) => id !== 'location' && items.includes(id))
@@ -97,7 +117,10 @@ export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
         </div>
         <button
           type="button"
-          onClick={() => save(items.filter((id) => !group.ids.includes(id)))}
+          onClick={() => {
+            track('ask_later', `closed.${group.id}`)
+            save(items.filter((id) => !group.ids.includes(id)))
+          }}
           aria-label="Hide these suggestions"
           className="text-slate-500 hover:text-slate-800"
         >
@@ -143,7 +166,10 @@ export default function AskLaterCard({ fallback }: { fallback?: ReactNode }) {
             <li key={id}>
               <Link
                 href={href}
-                onClick={() => remove(id)}
+                onClick={() => {
+                  track('ask_later', `done.${id}`)
+                  remove(id)
+                }}
                 className="flex h-full gap-3 rounded-xl border border-slate-200 p-3 hover:border-indigo-400"
               >
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-indigo-700" aria-hidden="true" />

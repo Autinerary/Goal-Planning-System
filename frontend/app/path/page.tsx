@@ -508,8 +508,13 @@ useEffect(() => {
               <>
                 <p className="mt-1 text-lg font-bold text-slate-900">{nextMilestone.name || nextMilestone.title || 'Your next milestone'}</p>
                 <p className="mt-1 text-sm text-slate-700">
-                  {doneSteps} of {pathMilestones.length} steps done.
+                  {doneSteps === 0
+                    ? `${pathMilestones.length} small steps in your plan. This is the first.`
+                    : `${doneSteps} of ${pathMilestones.length} steps done.`}
                 </p>
+                {/* What the one button leads to (Riipen Labs, Group 7: "one clear
+                    first action" on the dashboard). */}
+                <p className="mt-1 text-sm text-slate-700">Open it to see what to do, and the tools that can help.</p>
                 <Link
                   href={`/milestones/${encodeURIComponent(nextMilestone.id)}`}
                   className="mt-3 inline-flex items-center gap-1 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800"

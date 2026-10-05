@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { START_ROLES, START_GOALS, PATHWAY_ITEM_IDS } from '@/lib/startHere'
 import { AREA_IDS } from '@/lib/funnel'
+import { ASK_LATER_STEP } from '@/lib/askLater'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,14 +19,15 @@ export const dynamic = 'force-dynamic'
  * Everything is validated against a fixed vocabulary; anything else is
  * dropped. Always answers 204: analytics must never break or slow a page,
  * including before STEP 45 has been applied (or STEP 48, which allows the
- * "Start here" events, or STEP 49, which allows feature_use).
+ * "Start here" events, STEP 49, which allows feature_use, or STEP 50, which
+ * allows ask_later).
  */
 
 const EVENTS = new Set([
   'landing_view', 'signup_view', 'signup_complete',
   'onboarding_step_view', 'onboarding_complete', 'app_open',
   'start_role', 'start_pathway', 'start_open', 'start_useful', 'start_save',
-  'feature_use',
+  'feature_use', 'ask_later',
 ])
 
 // Onboarding step ids, as defined in app/onboarding/page.tsx.
@@ -48,6 +50,8 @@ const STEP_PATTERNS: Record<string, RegExp> = {
   start_save: new RegExp(`^${ROLE_GOAL}$`),
   // Which part of the app (lib/funnel.ts).
   feature_use: new RegExp(`^${anyOf(AREA_IDS)}$`),
+  // A question asked later: shown, answered or closed (lib/askLater.ts).
+  ask_later: ASK_LATER_STEP,
 }
 
 function stepFor(event: string, step: unknown): string | null {

@@ -10,6 +10,8 @@
  */
 
 export interface AskLaterGroup {
+  /** Names the group in the funnel events (ask_later). */
+  id: string
   ids: string[]
   fromDay: number
   title: string
@@ -17,10 +19,15 @@ export interface AskLaterGroup {
 }
 
 export const ASK_LATER_GROUPS: AskLaterGroup[] = [
-  { ids: ['location'], fromDay: 0, title: 'Find services near you (optional)', intro: 'You skipped this during setup. Add it whenever you like.' },
-  { ids: ['aboutYou'], fromDay: 7, title: 'Help it fit you better (optional)', intro: 'Now that you have used Autinerary for a while, you can tell it more. Only what you choose, and you can change it any time.' },
-  { ids: ['character', 'spiritAnimal', 'personalize'], fromDay: 10, title: 'Make it yours (optional)', intro: 'You skipped these during setup. Add any of them whenever you like.' },
+  { id: 'location', ids: ['location'], fromDay: 0, title: 'Find services near you (optional)', intro: 'You skipped this during setup. Add it whenever you like.' },
+  { id: 'aboutYou', ids: ['aboutYou'], fromDay: 7, title: 'Help it fit you better (optional)', intro: 'Now that you have used Autinerary for a while, you can tell it more. Only what you choose, and you can change it any time.' },
+  { id: 'makeItYours', ids: ['character', 'spiritAnimal', 'personalize'], fromDay: 10, title: 'Make it yours (optional)', intro: 'You skipped these during setup. Add any of them whenever you like.' },
 ]
+
+/** Steps of the ask_later event: "shown.aboutYou", "done.location", "closed.makeItYours". */
+export const ASK_LATER_STEP = new RegExp(
+  `^(shown|done|closed)\\.(${[...new Set(ASK_LATER_GROUPS.flatMap((g) => [g.id, ...g.ids]))].join('|')})$`,
+)
 
 /** The group to show `day` days after sign-up, if any is due. */
 export function dueAskLaterGroup(items: string[], day: number): AskLaterGroup | undefined {

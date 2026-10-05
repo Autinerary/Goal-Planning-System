@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import CheckinQuestion from './CheckinQuestion'
 import { useAuth } from '../context/AuthContext'
 import { STOP_REASONS, USEFULNESS, AWAY_DAYS } from '@/lib/checkin'
-import { dayKey, daysSince, getPreviousVisitDay, getVisitDayCount } from '@/lib/disclosure'
+import { dayKey, daysSince, getPreviousVisitDay, getVisitDayCountSince } from '@/lib/disclosure'
 
 /**
  * In-app check-ins on the Path (Riipen Labs, Group 2: "ask active users about
@@ -49,8 +49,10 @@ export default function CheckinPrompt({ fallback }: { fallback?: ReactNode }) {
       } else if (
         localStorage.getItem(FEEDBACK_KEY) === 'true' &&
         localStorage.getItem(`${FEEDBACK_KEY}_on`) !== today &&
-        (getVisitDayCount() >= USEFULNESS_AFTER_DAYS ||
-          (joined !== null && daysSince(joined) >= WEEK_TWO_FROM_DAY && getVisitDayCount() >= 2)) &&
+        joined !== null &&
+        // Days of use since signing up, not days as a visitor before it.
+        (getVisitDayCountSince(joined) >= USEFULNESS_AFTER_DAYS ||
+          (daysSince(joined) >= WEEK_TWO_FROM_DAY && getVisitDayCountSince(joined) >= 2)) &&
         !localStorage.getItem(USEFULNESS_KEY)
       ) {
         setDue({ kind: 'usefulness' })

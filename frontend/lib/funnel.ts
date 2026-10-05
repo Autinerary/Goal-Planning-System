@@ -42,6 +42,11 @@ export type FunnelEvent =
   // features different user groups actually use"). Step: the area, below.
   // At most once a day per area per browser, signed in only.
   | 'feature_use'
+  // Optional setup questions asked later on the Path (Riipen Labs, Group 7:
+  // "assumption to test, not assume: users will actually engage ... later if
+  // not asked upfront"). Step: "shown.<group>", "done.<question>" or
+  // "closed.<group>" (lib/askLater.ts).
+  | 'ask_later'
 
 // Parts of the app, by address. ResourceHub is opened through /go/servicehub,
 // so its destination decides between Tidbits and the rest of ResourceHub.

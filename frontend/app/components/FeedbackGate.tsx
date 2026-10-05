@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { getVisitDayCount } from '@/lib/disclosure'
+import { dayKey, getVisitDayCountSince } from '@/lib/disclosure'
+import { useAuth } from '../context/AuthContext'
 
 /**
  * Blocking feedback modal.
@@ -49,6 +50,15 @@ const MIN_DWELL_MS = 90_000
 
 export default function FeedbackGate() {
   const pathname = usePathname() || ''
+  // Only people who have used the app: signed in, setup finished, and back
+  // on a later day than they signed up. Visits were counted on every page, so
+  // a visitor who looked at the home page on two days got this blocking form
+  // before making an account, and someone who browsed yesterday got it on
+  // their first day (Riipen Labs, Group 7: a "feedback survey appearing
+  // before product use may feel premature").
+  const { user, supabaseUser } = useAuth()
+  const joined = supabaseUser?.created_at ? dayKey(new Date(supabaseUser.created_at)) : null
+  const usedEnough = Boolean(user?.hasCompletedOnboarding && joined && getVisitDayCountSince(joined) >= MIN_VISIT_DAYS)
   const [hydrated, setHydrated] = useState(false)
   const [done, setDone] = useState(true)         // start true to avoid SSR flash
   const [confirmed, setConfirmed] = useState(false)
@@ -70,11 +80,10 @@ export default function FeedbackGate() {
   // Hold the gate until the person has actually used the app, then wait out
   // the dwell timer so it does not land in the middle of what they are doing.
   useEffect(() => {
-    if (!hydrated || done) return
-    if (getVisitDayCount() < MIN_VISIT_DAYS) return
+    if (!hydrated || done || !usedEnough) return
     const timer = setTimeout(() => setEarnedTheRight(true), MIN_DWELL_MS)
     return () => clearTimeout(timer)
-  }, [hydrated, done])
+  }, [hydrated, done, usedEnough])
 
   // Body scroll lock while the gate is up.
   useEffect(() => {
@@ -89,7 +98,7 @@ export default function FeedbackGate() {
   if (!hydrated) return null
   if (done) return null
   if (skipped) return null
-  if (!earnedTheRight) return null
+  if (!earnedTheRight || !usedEnough) return null
 
   const handleConfirm = () => {
     try {
