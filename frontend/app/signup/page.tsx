@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, UserPlus, Loader2, Check } from 'lucide-react'
 import { computeAge, isAdult, MIN_SIGNUP_AGE } from '@/lib/age'
 import { track } from '@/lib/funnel'
+import { wakeBackend } from '@/lib/wakeBackend'
 import GoogleSignIn from '../components/GoogleSignIn'
 
 export default function SignupPage() {
@@ -23,6 +24,8 @@ export default function SignupPage() {
 
   useEffect(() => {
     track('signup_view')
+    // Setup makes the path on the backend, which sleeps when idle.
+    wakeBackend()
   }, [])
 
   // Under-18 flagged live once a full DOB is entered.

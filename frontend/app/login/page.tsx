@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import GoogleSignIn from '../components/GoogleSignIn'
+import { wakeBackend } from '@/lib/wakeBackend'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,6 +19,8 @@ export default function LoginPage() {
   
   // Check for return URL from ServiceHub (only store once to prevent redirect loops)
   useEffect(() => {
+    // The Path loads from the backend, which sleeps when idle.
+    wakeBackend()
     const params = new URLSearchParams(window.location.search)
     const returnTo = params.get('returnTo')
     if (returnTo && !sessionStorage.getItem('returnTo_used')) {

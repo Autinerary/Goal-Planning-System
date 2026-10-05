@@ -30,6 +30,24 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _parse(value: Any) -> Optional[datetime]:
+    """A database timestamp. Postgres trims trailing zeros from the fraction
+    ('...:55.88668+00:00'), which older Pythons' fromisoformat rejects."""
+    if not isinstance(value, str) or not value:
+        return None
+    text = value.replace("Z", "+00:00")
+    head, _, rest = text.partition(".")
+    if rest:
+        digits = rest[:len(rest) - len(rest.lstrip("0123456789"))]
+        zone = rest[len(digits):]
+        text = f"{head}.{digits[:6].ljust(6, '0')}{zone}"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
 def enabled() -> bool:
     return get_supabase() is not None
 
@@ -133,6 +151,26 @@ def latest_for_user(user_id: str) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"[jobs] latest_for_user failed: {e}")
         return None
+
+
+def in_flight_for_user(user_id: str) -> Optional[Dict[str, Any]]:
+    """The person's generation that is still queued or running, if any.
+
+    One person, one generation at a time. A second one, started by a retry, a
+    reload, or a request that gave up while the server was waking up (it
+    sleeps when idle and took 41 s to answer on 5 October), used to run beside
+    the first. Each makes about 15 AI calls, two make 30, and the per-person
+    limit is 30 a minute (core/budget.py), so one or both failed with "Too
+    many requests in the last minute": 223 of 293 generations in September.
+    Riipen Labs Group 9 reported setup "freezing".
+    """
+    row = latest_for_user(user_id)
+    if not row or row.get("status") not in ("queued", "running"):
+        return None
+    created = _parse(row.get("created_at"))
+    if created is None or datetime.now(timezone.utc) - created > STALE_AFTER:
+        return None
+    return row
 
 
 def reap_stale() -> int:

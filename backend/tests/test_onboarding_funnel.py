@@ -30,6 +30,9 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_heard_from,
     RH_PROMPTS,
     RH_SETUP_STEPS,
+    _ts,
+    render_generation,
+    summarize_generation,
     is_resourcehub,
     render_resourcehub,
     summarize_resourcehub,
@@ -603,4 +606,49 @@ class Group8Tests(unittest.TestCase):
         for need in ("services", "community", "school_work", "sensory"):
             self.assertIn(f"id: '{need}'", setup)
             self.assertIn(f"id: '{need}'", start)
+
+
+class Group9Tests(unittest.TestCase):
+    """Riipen Labs, Group 9: setup "freezing", which was path generation
+    failing when a second one ran beside the first."""
+
+    def job(self, user, status, start, seconds=None, error=None):
+        row = {"user_id": user, "status": status, "created_at": start, "error": error}
+        if seconds is not None:
+            t = _ts(start)
+            row["finished_at"] = (t + __import__("datetime").timedelta(seconds=seconds)).isoformat()
+        return row
+
+    def test_making_the_path(self):
+        busy = "Too many requests in the last minute. Please wait a moment and try again."
+        rows = [self.job(f"u{i}", "succeeded", "2026-10-12T10:00:00+00:00", 30 + i) for i in range(5)]
+        rows += [self.job("u5", "failed", "2026-10-12T10:00:00+00:00", 20, busy),
+                 self.job("u5", "failed", "2026-10-12T10:00:30+00:00", 2, busy),
+                 self.job("u5", "succeeded", "2026-10-12T10:02:00+00:00", 40),
+                 self.job("x", "failed", "2026-10-12T10:00:00+00:00", 1, busy)]   # not in this funnel
+        g = summarize_generation(rows, {f"u{i}" for i in range(6)})
+        self.assertEqual((g["people"], g["got_path"], g["more_than_one_try"]), (6, 6, 1))
+        self.assertEqual((g["attempts"], g["failed"]), (8, 2))
+        self.assertEqual(g["median_s"], 32.5)
+        text = render_generation(g)
+        self.assertIn("got a path                         6 (100%)", text)
+        self.assertIn("attempts that failed               2 of 8", text)
+        self.assertNotIn("Too many requests", text)   # fewer than 5 failures: no reasons shown
+
+    def test_small_groups_hidden(self):
+        g = summarize_generation([self.job("u0", "succeeded", "2026-10-12T10:00:00+00:00", 30)], {"u0"})
+        self.assertIn("people who started one             <5", render_generation(g))
+
+    def test_postgres_timestamps(self):
+        self.assertEqual(_ts("2026-10-05T03:25:46.95505+00:00").microsecond, 955050)
+        self.assertEqual(_ts("2026-10-05T03:25:46Z").second, 46)
+
+    def test_the_app_wakes_the_backend_and_waits_for_it(self):
+        wake = (REPO / "frontend/lib/wakeBackend.ts").read_text()
+        self.assertIn("/health", wake)
+        for page in ("signup", "login", "onboarding"):
+            self.assertIn("wakeBackend()", (REPO / f"frontend/app/{page}/page.tsx").read_text(), page)
+        setup = (REPO / "frontend/app/onboarding/page.tsx").read_text()
+        enqueue = setup[setup.index("/api/onboarding/jobs`, onboardingBody"):]
+        self.assertIn("timeout: 60000", enqueue[:300])
 

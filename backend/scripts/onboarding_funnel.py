@@ -171,7 +171,15 @@ SMALL = f"<{MIN_CELL}"
 
 
 def _ts(value: str) -> datetime:
-    return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    """A database timestamp. Postgres trims trailing zeros from the fraction
+    ('...:46.95505+00:00'), which fromisoformat before Python 3.11 rejects;
+    15 of the first 192 events looked like that."""
+    text = str(value).replace("Z", "+00:00")
+    head, dot, rest = text.partition(".")
+    if dot:
+        digits = rest[:len(rest) - len(rest.lstrip("0123456789"))]
+        text = f"{head}.{digits[:6].ljust(6, '0')}{rest[len(digits):]}"
+    return datetime.fromisoformat(text)
 
 
 def keep_version(version: str, wanted: str) -> bool:
@@ -781,6 +789,53 @@ def render_resourcehub(s: Dict) -> str:
     return "\n".join(out)
 
 
+def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
+    """Making the path, for the accounts in this funnel (Riipen Labs Group 9
+    saw setup "freezing"): how many got a path, how many needed more than one
+    try, how long a successful one took, and why attempts failed. In
+    September 223 of 293 attempts failed with "Too many requests in the last
+    minute", when a second generation ran beside the first (see
+    backend/core/jobs.py, in_flight_for_user). Pure."""
+    jobs = [r for r in rows if r.get("user_id") in user_ids]
+    by_user: Dict[str, List[dict]] = defaultdict(list)
+    for j in jobs:
+        by_user[j["user_id"]].append(j)
+    seconds = [(_ts(j["finished_at"]) - _ts(j["created_at"])).total_seconds()
+               for j in jobs if j.get("status") == "succeeded" and j.get("finished_at")]
+    seconds.sort()
+    failed = [j for j in jobs if j.get("status") == "failed"]
+    return {
+        "people": len(by_user),
+        "got_path": sum(1 for js in by_user.values() if any(j.get("status") == "succeeded" for j in js)),
+        "more_than_one_try": sum(1 for js in by_user.values() if len(js) > 1),
+        "attempts": len(jobs),
+        "failed": len(failed),
+        "median_s": median(seconds) if seconds else None,
+        "p90_s": seconds[min(len(seconds) - 1, int(len(seconds) * 0.9))] if seconds else None,
+        "reasons": Counter((j.get("error") or "no message")[:80] for j in failed),
+    }
+
+
+def render_generation(g: Dict) -> str:
+    out = ["== Making the path (Group 9: setup \"freezing\")"]
+    if g["people"] < MIN_CELL:
+        out.append(f"  people who started one             {SMALL if g['people'] else 0}")
+        return "\n".join(out)
+    out += [
+        f"  people who started one             {g['people']}",
+        f"  got a path                         {g['got_path']} ({pct(g['got_path'], g['people'])})",
+        f"  needed more than one try           {g['more_than_one_try']} ({pct(g['more_than_one_try'], g['people'])})",
+        f"  attempts that failed               {g['failed']} of {g['attempts']}",
+    ]
+    if g["median_s"] is not None:
+        out.append(f"  time to a path                     median {_duration(g['median_s'] / 3600)}, "
+                   f"90% within {_duration(g['p90_s'] / 3600)}")
+    if g["failed"] >= MIN_CELL:
+        for reason, n in g["reasons"].most_common(3):
+            out.append(f"    {n:>4} x {reason}")
+    return "\n".join(out)
+
+
 def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str, str]] = None,
                        joined_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Why people stopped (email and welcome-back answers) and whether active
@@ -928,6 +983,14 @@ def main() -> int:
     print()
     print(render_resourcehub(summarize_resourcehub(rh_events)))
     print()
+    try:
+        generations = fetch_all(sb, "generation_jobs", "user_id, status, created_at, finished_at, error")
+        accounts = {p["user_id"] for p in funnel["people"] if p["account"] and p["user_id"]}
+        print(render_generation(summarize_generation(generations, accounts)))
+        print()
+    except Exception:
+        print("== Making the path: not available (generation_jobs could not be read).")
+        print()
     try:
         checkins = fetch_all(sb, "checkin_responses", "user_id, kind, reason, usefulness, comment, onboarding_version, created_at")
     except Exception:

@@ -21,6 +21,7 @@ import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
+import { wakeBackend } from '@/lib/wakeBackend'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import {
@@ -446,18 +447,6 @@ const motivationOptions = [
   },
 ]
 
-// CSS animations for bunny
-const bunnyStyles = `
-  @keyframes bunnyHop {
-    0%, 100% { transform: translateX(-50%) translateY(-50%) translateY(0px); }
-    50% { transform: translateX(-50%) translateY(-50%) translateY(-10px); }
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.2); }
-  }
-`
-
 // ── Character-select avatar ───────────────────────────────────────────────
 // Code-generated character avatar (DiceBear "avataaars", inline SVG) so people
 // can actually see what they're picking — a video-game-style character select.
@@ -497,6 +486,11 @@ function CharacterAvatar({
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, supabaseUser, completeOnboarding, isLoading: authLoading } = useAuth()
+  // The path is made on the backend at the end of setup; wake it now, while
+  // the questions are answered (lib/wakeBackend.ts).
+  useEffect(() => {
+    wakeBackend()
+  }, [])
   const [guardianApproved, setGuardianApproved] = useState(false)
   const isManagedAccount = !!(supabaseUser?.app_metadata?.managed_by_guardian || supabaseUser?.user_metadata?.managed_by_guardian)
   const [currentStep, setCurrentStep] = useState(0)
@@ -615,6 +609,8 @@ export default function OnboardingPage() {
   const [showAdvancedModes, setShowAdvancedModes] = useState(false)
 
   const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
+  // Which section of the norms list is open, per connection: one at a time.
+  const [openNormSection, setOpenNormSection] = useState<Record<string, string | null>>({})
   // Free-text custom barriers the user adds per connection (e.g. "public speaking").
   const [customBarrierDraft, setCustomBarrierDraft] = useState<Record<string, string>>({})
   // Sensitive optional details intentionally stay out of the localStorage
@@ -1148,10 +1144,13 @@ export default function OnboardingPage() {
         ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
       }
 
+      // 60 s, not 20: a sleeping backend took 41 s to answer, and giving up
+      // sooner sent a second request that ran a second generation beside the
+      // first (the backend now joins them; core/jobs.py, in_flight_for_user).
       const enqueued = await axios
         .post(`${API_URL}/api/onboarding/jobs`, onboardingBody, {
           headers: authHeaders,
-          timeout: 20000,
+          timeout: 60000,
           validateStatus: (status) => status === 202 || status === 503,
         })
         .catch(() => null)
@@ -1371,16 +1370,6 @@ export default function OnboardingPage() {
   const groupSteps = inExtras ? steps.slice(CORE_STEP_COUNT) : steps.slice(0, CORE_STEP_COUNT)
   const progressPercentage = groupSteps.length > 1 ? ((currentStep - groupStart) / (groupSteps.length - 1)) * 100 : 100
   
-  // Food items evenly spaced along the path
-  const foodItems = [
-    { emoji: '🥕', position: 11 },
-    { emoji: '🍎', position: 22 },
-    { emoji: '🥬', position: 33 },
-    { emoji: '🍌', position: 44 },
-    { emoji: '🥕', position: 55 },
-    { emoji: '🍓', position: 66 },
-    { emoji: '🥕', position: 77 },
-  ]
 
   return (
     <div className="min-h-screen text-slate-900 p-4 md:p-8 relative overflow-hidden surface-veil">
@@ -1397,12 +1386,11 @@ export default function OnboardingPage() {
         <div className="absolute bottom-1/4 right-10 w-96 h-44 bg-white/30 rounded-full blur-3xl" />
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: bunnyStyles }} />
       <div className="relative max-w-4xl mx-auto z-10">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-2 text-slate-800">
-            Welcome{user?.name ? `, ${user.name}` : ''}! 👋
+            Welcome{user?.name ? `, ${user.name}` : ''}
           </h1>
           <p className="text-slate-600 text-lg">Let's build your personalized path to success</p>
 
@@ -1424,64 +1412,28 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        {/* Animated Bunny Progress Path */}
+        {/* Progress: a slim rail with the bunny on it. It was a tall grass
+            track with seven food emoji, a finish flag and a bunny that hopped
+            without stopping. Riipen Labs Group 9 found "the frequent use of
+            emojis, bright colours, and game-like visual elements" made setup
+            feel less polished, and motion that never stops is hard on
+            attention (WCAG 2.2.2). The bunny stays, the one playful touch,
+            and moves only when the step does. */}
         <div className="mb-12 relative">
-          {/* Path Line */}
-          <div className="relative h-32 md:h-40 bg-gradient-to-r from-green-200 via-green-300 to-green-400 rounded-full shadow-lg border-4 border-green-500/50 overflow-hidden">
-            {/* Grass texture */}
-            <div className="absolute inset-0 bg-gradient-to-b from-green-400/50 to-green-600/30" />
-            
-            {/* Completed path (green) */}
-            <div 
-              className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-700 ease-out rounded-l-full"
+          <div className="relative mx-4 h-10" aria-hidden="true">
+            <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-slate-200" />
+            <div
+              className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-emerald-500 transition-all duration-500 ease-out"
               style={{ width: `${progressPercentage}%` }}
             />
-            
-            {/* Finish Line */}
-            <div className="absolute right-0 top-0 h-full w-12 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 border-l-4 border-yellow-700 flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-bold text-yellow-900 drop-shadow-lg">🏁</span>
-            </div>
-            
-            {/* Food Items along the path */}
-            {foodItems.map((food, idx) => {
-              const eaten = currentStep >= Math.floor((food.position / 100) * steps.length)
-              return (
-                <div
-                  key={idx}
-                  className="absolute top-1/2 text-3xl md:text-4xl transition-all duration-500 drop-shadow-lg z-10"
-                  style={{
-                    left: `${food.position}%`,
-                    // opacity is not a transform function. It used to be
-                    // written inline as `opacity-60`, a Tailwind class name,
-                    // and one invalid function voids the whole transform
-                    // declaration — so translate(-50%, -50%) was silently
-                    // dropped the moment a step completed and the emoji
-                    // jumped out of line.
-                    transform: `translate(-50%, -50%) scale(${eaten ? 0.8 : 1})`,
-                    opacity: eaten ? 0.6 : 1,
-                    animation: eaten ? 'bounce 0.5s' : 'none',
-                  }}
-                >
-                  {food.emoji}
-                </div>
-              )
-            })}
-            
-            {/* Animated Bunny */}
-            <div
-              className="absolute top-1/2 text-4xl md:text-5xl transition-all duration-700 ease-out drop-shadow-2xl z-20"
-              style={{
-                left: `${progressPercentage}%`,
-                // translateY was missing, so the bunny hung half its own
-                // height below the food items it is meant to line up with.
-                transform: 'translate(-50%, -50%)',
-                animation: 'bunnyHop 0.6s ease-in-out infinite'
-              }}
+            <span
+              className="absolute top-1/2 text-2xl leading-none transition-all duration-500 ease-out"
+              style={{ left: `${progressPercentage}%`, transform: 'translate(-50%, -70%)' }}
             >
               🐰
-            </div>
+            </span>
           </div>
-          
+
           {/* Step Labels Below Path */}
           {inExtras && (
             <p className="mt-3 text-center text-sm text-slate-700">Optional extras: skip any of them, or create your path now.</p>
@@ -1974,7 +1926,6 @@ export default function OnboardingPage() {
                                 : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
                           }`}
                         >
-                          <span>{conn.icon}</span>
                           {conn.label}
                           {formData.barrierConnections[conn.id] !== undefined && <Check className="w-4 h-4 ml-1" />}
                         </button>
@@ -2005,7 +1956,7 @@ export default function OnboardingPage() {
                           }}
                           className="w-4 h-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
                         />
-                        <span>👤 These norms also apply to me (add yourself)</span>
+                        <span>These norms also apply to me (add yourself)</span>
                       </label>
                     )}
                   </div>
@@ -2028,7 +1979,7 @@ export default function OnboardingPage() {
                         return (
                           <div key={connId} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                             <h4 className="font-medium text-slate-800 mb-1 flex items-center gap-2">
-                              <span>{conn.icon}</span> Norms for: {conn.label}
+                              Norms for: {conn.label}
                             </h4>
                             <p className="text-xs text-slate-500 mb-3">
                               {isSelf
@@ -2037,14 +1988,42 @@ export default function OnboardingPage() {
                                   ? `Only pick what you actually know about your ${conn.label.toLowerCase()}. If you are not sure whether they have a diagnosis, leave it blank: a guess would shape their plan around something that may not be true. What you have seen yourself, like sensory needs or accommodations, is the useful part.`
                                   : 'Pick what you know. Anything you are unsure about is better left blank than guessed.'}
                             </p>
-                            <div className="space-y-4">
-                              {barrierCategories.map((category) => (
-                                <div key={category.name}>
-                                  <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">{category.name}</p>
-                                  <div className="space-y-2 ml-2">
+                            {/* What is picked so far, so a closed section hides nothing. */}
+                            {(formData.barrierConnections[connId] || []).length > 0 && (
+                              <p className="mb-3 text-xs text-slate-700">
+                                <span className="font-semibold text-slate-900">Picked:</span>{' '}
+                                {(formData.barrierConnections[connId] || []).join(', ')}
+                              </p>
+                            )}
+                            {/* Nine groups, one open at a time. Every one used to be
+                                open at once, repeated for each connection picked:
+                                Riipen Labs Group 9's "too much information at once",
+                                against W3C's advice to present "smaller, easier-to-
+                                understand sections". */}
+                            <div className="space-y-2">
+                              {barrierCategories.map((category) => {
+                                const sectionItems = category.subcategories.flatMap((sub) => sub.items)
+                                const pickedHere = sectionItems.filter((item) => formData.barrierConnections[connId]?.includes(item)).length
+                                const isOpen = openNormSection[connId] === category.name
+                                return (
+                                <div key={category.name} className="rounded-lg border border-slate-200 bg-white">
+                                  <button
+                                    type="button"
+                                    aria-expanded={isOpen}
+                                    onClick={() => setOpenNormSection(prev => ({ ...prev, [connId]: isOpen ? null : category.name }))}
+                                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                                  >
+                                    <span>
+                                      {category.name}
+                                      {pickedHere > 0 && <span className="ml-2 text-xs font-semibold text-indigo-700">{pickedHere} picked</span>}
+                                    </span>
+                                    <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                                  </button>
+                                  {isOpen && (
+                                  <div className="space-y-2 border-t border-slate-100 px-3 pb-3 pt-2">
                                     {category.subcategories.map((sub) => (
                                       <div key={sub.name}>
-                                        <p className="text-xs text-slate-600 mb-1">{sub.name}</p>
+                                        {category.subcategories.length > 1 && <p className="text-xs text-slate-600 mb-1">{sub.name}</p>}
                                         <div className="flex flex-wrap gap-1.5 mb-2">
                                           {sub.items.map((barrier) => {
                                             const isSelected = formData.barrierConnections[connId]?.includes(barrier)
@@ -2085,8 +2064,10 @@ export default function OnboardingPage() {
                                       </div>
                                     ))}
                                   </div>
+                                  )}
                                 </div>
-                              ))}
+                                )
+                              })}
                             </div>
 
                             {/* Add your own — custom / more specific barriers */}

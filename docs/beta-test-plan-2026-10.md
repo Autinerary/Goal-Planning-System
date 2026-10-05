@@ -54,6 +54,19 @@ first; identity, health and more topics live on the profile; and three
 prompts ask for more when it is useful. Details are in
 [resourcehub-first-session.md](resourcehub-first-session.md).
 
+Group 9's report, from one student who tested the nine-stage setup, asked for
+essential questions first (done: two questions, the rest optional or asked
+later), less shown at once, calmer visuals, and a fix for the "freezing" they
+hit. The freezing was the path failing to generate: 223 of 293 attempts in
+September stopped with "Too many requests in the last minute", because a
+second generation for the same person (a retry, or a request the browser
+gave up on while the sleeping backend woke) ran beside the first and both met
+the per-person AI limit. The backend now runs one generation per person, the
+app wakes the backend when sign-up, sign-in or setup opens, and setup waits
+60 s instead of 20. The norms list opens one section at a time, and setup's
+grass track with seven food emoji and an endlessly hopping bunny is now a
+slim progress bar with the bunny on it.
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -76,6 +89,7 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | The app's own address, app.autinerary.ca (Route 53, Vercel, Supabase sign-in redirect) | Printed QR codes and shared links never have to change ([campaign/README.md](campaign/README.md)) | Done 4 October |
 | Apply STEP 49 | Counts which parts of the app people open | Done 4 October; tested live |
 | Apply STEP 50 (`backend/database/migrations/2026_ask_later_events.sql`) | Counts whether people answer the questions asked later; until then those events are dropped | Done 5 October, with STEP 51; tested live |
+| The backend sleeps when idle: its first answer on 5 October took 41 s | The app now wakes it when sign-up, sign-in or setup opens, so it is usually awake by the time a path is made, but someone opening the Path straight after a quiet spell still waits. A plan that does not sleep would remove the wait | Decide |
 | Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | Done 5 October; tested live |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
@@ -237,6 +251,13 @@ Group 8's measures, for ResourceHub: setup completion, **time from first
 visit to the first place opened**, the **share of search results within the
 radius** for people with a location, and whether each prompt that asks for
 more is taken up (section "ResourceHub's first session").
+
+Group 9's measures: completion and where people stop (above, and by
+onboarding version), whether people reach and open their recommended
+resources and path (Start here and first-step measures above), and, for the
+freezing, the report's **Making the path** section: how many people got a
+path, how many needed more than one try, how long it took, and why attempts
+failed.
 
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;

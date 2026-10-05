@@ -54,6 +54,12 @@ who you are, one topic and what you hope to find. Location, identity, health
 and more topics are asked later, where they are used. See
 [resourcehub-first-session.md](resourcehub-first-session.md) (Group 8).
 
+## Less at once
+
+The optional norms list (about 80 options in nine groups) opens one group at
+a time, with what is picked shown above the groups; it used to show every
+group at once, repeated for each connection picked (Riipen Labs Group 9).
+
 ## Testing the assumption
 
 Group 7: "Assumption to test, not assume: users will actually engage ...
