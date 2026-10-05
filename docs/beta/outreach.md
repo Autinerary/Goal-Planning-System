@@ -18,16 +18,16 @@ schools link answers both (`need=`). People can change either answer.
 
 | Channel | Mostly reaches | Try the app (tracked) |
 | --- | --- | --- |
-| Riipen | Everyone | https://goal-planning-app.vercel.app/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
-| Reddit | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&need=community&utm_source=reddit&utm_campaign=beta-oct-2026 |
-| TikTok | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&need=community&utm_source=tiktok&utm_campaign=beta-oct-2026 |
-| Facebook parent groups | Parents | https://goal-planning-app.vercel.app/start?for=child&need=learn&utm_source=facebook&utm_campaign=beta-oct-2026 |
-| Instagram | Neurodivergent adults | https://goal-planning-app.vercel.app/start?for=self&utm_source=instagram&utm_campaign=beta-oct-2026 |
-| LinkedIn | Teachers, employers, support workers | https://goal-planning-app.vercel.app/start?for=work&utm_source=linkedin&utm_campaign=beta-oct-2026 |
-| Community organizations | Everyone (adults and parents) | https://goal-planning-app.vercel.app/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
-| Parent groups | Parents | https://goal-planning-app.vercel.app/start?for=child&utm_source=parent-group&utm_campaign=beta-oct-2026 |
-| Schools and teachers | School staff | https://goal-planning-app.vercel.app/start?for=work&need=school_work&utm_source=school&utm_campaign=beta-oct-2026 |
-| Friends and family | Everyone | https://goal-planning-app.vercel.app/start?utm_source=friends&utm_campaign=beta-oct-2026 |
+| Riipen | Everyone | https://app.autinerary.ca/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
+| Reddit | Neurodivergent adults | https://app.autinerary.ca/start?for=self&need=community&utm_source=reddit&utm_campaign=beta-oct-2026 |
+| TikTok | Neurodivergent adults | https://app.autinerary.ca/start?for=self&need=community&utm_source=tiktok&utm_campaign=beta-oct-2026 |
+| Facebook parent groups | Parents | https://app.autinerary.ca/start?for=child&need=learn&utm_source=facebook&utm_campaign=beta-oct-2026 |
+| Instagram | Neurodivergent adults | https://app.autinerary.ca/start?for=self&utm_source=instagram&utm_campaign=beta-oct-2026 |
+| LinkedIn | Teachers, employers, support workers | https://app.autinerary.ca/start?for=work&utm_source=linkedin&utm_campaign=beta-oct-2026 |
+| Community organizations | Everyone (adults and parents) | https://app.autinerary.ca/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
+| Parent groups | Parents | https://app.autinerary.ca/start?for=child&utm_source=parent-group&utm_campaign=beta-oct-2026 |
+| Schools and teachers | School staff | https://app.autinerary.ca/start?for=work&need=school_work&utm_source=school&utm_campaign=beta-oct-2026 |
+| Friends and family | Everyone | https://app.autinerary.ca/start?utm_source=friends&utm_campaign=beta-oct-2026 |
 
 To make another targeted link, add to `/start?`:
 
@@ -48,8 +48,8 @@ this path".
 For print (merch, the comic, research posts) and anywhere a long link is
 awkward, use the short links and QR codes in
 [../campaign/README.md](../campaign/README.md), for example
-`goal-planning-app.vercel.app/c/comic`. They are tracked the same way. The home page address
-(`https://goal-planning-app.vercel.app/?utm_source=...`) still works, and
+`app.autinerary.ca/c/comic`. They are tracked the same way. The home page address
+(`https://app.autinerary.ca/?utm_source=...`) still works, and
 also starts with Start here.
 
 Session sign-up form: [[TEAM: Google Form link, once the screener is made]]
@@ -105,7 +105,7 @@ use the community's flair for research or feedback if it has one.
 >   breaks whenever: [session form]
 >
 > Free, 18+. What it collects is listed here:
-> https://goal-planning-app.vercel.app/privacy
+> https://app.autinerary.ca/privacy
 >
 > Happy to answer questions in the comments.
 
@@ -156,7 +156,7 @@ Ask the group's admins before posting, as with Reddit.
 >
 > We don't sell your information, show ads, or use it to train AI, and
 > accounts are for adults: you can add your child from your own Family page.
-> What it collects: https://goal-planning-app.vercel.app/privacy
+> What it collects: https://app.autinerary.ca/privacy
 >
 > Try it: [Facebook link]
 > Or join one 40-minute video session (12 to 23 October): [session form]
@@ -203,7 +203,7 @@ groups that are only for parents.
 >
 > - Try it: [community-org link]
 > - Session sign-up: [session form]
-> - What the app collects: https://goal-planning-app.vercel.app/privacy
+> - What the app collects: https://app.autinerary.ca/privacy
 >
 > [[TEAM: thank-you line, or delete]]
 >

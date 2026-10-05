@@ -39,7 +39,7 @@ If recording: "I'm starting the recording now."
 ## 2. The tasks (about 30 minutes)
 
 **First, the first screen (Group 4's clarity measure).** Ask them to open
-https://goal-planning-app.vercel.app on their own device, then:
+https://app.autinerary.ca on their own device, then:
 
 "Take a moment to look at this page, without clicking anything. In your own
 words, what is Autinerary for? Who is it for?"

@@ -4,15 +4,14 @@
 //
 // From the repository root:
 //   npm i --no-save qrcode
-//   node scripts/campaign/make-qr-codes.mjs                       # the app's current address
+//   node scripts/campaign/make-qr-codes.mjs                       # app.autinerary.ca
 //   node scripts/campaign/make-qr-codes.mjs https://app.example   # another address
 //
-// Printed codes cannot be changed, so print them for the address the app
-// will keep (see docs/campaign/README.md).
+// Printed codes cannot be changed (see docs/campaign/README.md).
 import QRCode from 'qrcode'
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 
-const base = (process.argv[2] || 'https://goal-planning-app.vercel.app').replace(/\/$/, '')
+const base = (process.argv[2] || 'https://app.autinerary.ca').replace(/\/$/, '')
 const source = readFileSync('frontend/lib/campaign.ts', 'utf8')
 const block = source.slice(source.indexOf('CAMPAIGN_LINKS'), source.indexOf('\n}\n', source.indexOf('CAMPAIGN_LINKS')))
 const codes = [...block.matchAll(/^ {2}([a-z0-9-]+): \{/gm)].map((m) => m[1])

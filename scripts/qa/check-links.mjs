@@ -13,7 +13,7 @@
 import puppeteer from 'puppeteer-core'
 import { writeFileSync } from 'fs'
 
-const APP = process.env.APP || 'https://goal-planning-app.vercel.app'
+const APP = process.env.APP || 'https://app.autinerary.ca'
 const HUB = process.env.HUB || 'https://servicehub-six.vercel.app'
 const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const EMAIL = process.env.QA_EMAIL, PASSWORD = process.env.QA_PASSWORD

@@ -48,8 +48,8 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | Privacy page | What testers are told about their information | Live at /privacy |
 | Apply STEP 47 (`backend/database/migrations/2026_push_subscriptions.sql`) | Notifications on a device | Done 4 October; tested live (on, delivered, off) |
 | Apply STEP 48 (`backend/database/migrations/2026_start_here_events.sql`) | Counts Start here's measures | Done 4 October; tested live |
-| Apply STEP 49 (`backend/database/migrations/2026_feature_use_events.sql`) | Counts which parts of the app people open; until then those events are dropped | To do |
-| If the app will get its own address (for example app.autinerary.ca), set it up before printing QR codes | Printed codes cannot be changed ([campaign/README.md](campaign/README.md)) | To decide |
+| The app's own address, app.autinerary.ca (Route 53, Vercel, Supabase sign-in redirect) | Printed QR codes and shared links never have to change ([campaign/README.md](campaign/README.md)) | Done 4 October |
+| Apply STEP 49 | Counts which parts of the app people open | Done 4 October; tested live |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
@@ -124,12 +124,12 @@ answer its first question for the people a channel reaches (Group 4's
 channel. The home page works too, for example:
 
 ```
-https://goal-planning-app.vercel.app/?utm_source=riipen
-https://goal-planning-app.vercel.app/?utm_source=reddit
-https://goal-planning-app.vercel.app/?utm_source=instagram
-https://goal-planning-app.vercel.app/?utm_source=linkedin
-https://goal-planning-app.vercel.app/?utm_source=community-org
-https://goal-planning-app.vercel.app/?utm_source=school
+https://app.autinerary.ca/?utm_source=riipen
+https://app.autinerary.ca/?utm_source=reddit
+https://app.autinerary.ca/?utm_source=instagram
+https://app.autinerary.ca/?utm_source=linkedin
+https://app.autinerary.ca/?utm_source=community-org
+https://app.autinerary.ca/?utm_source=school
 ```
 
 `utm_campaign` can name a post or partner (for example

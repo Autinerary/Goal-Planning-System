@@ -40,7 +40,7 @@ like whether it is useful so far. You can skip any of them.
   how long each task took), what you say, and a screen recording if you
   agree to it.
 - **From the app:** what Autinerary records for everyone, described at
-  https://goal-planning-app.vercel.app/privacy
+  https://app.autinerary.ca/privacy
 - Notes and recordings are labelled with a code, like P07, not your name.
   Your name and email are kept separately and only used to arrange things
   with you.

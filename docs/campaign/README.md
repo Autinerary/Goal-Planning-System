@@ -10,7 +10,7 @@ and tech teams [need] to agree on a clear call-to-action".
 Use the same words everywhere (merch, the comic, research posts, social):
 
 > **Find neurodivergent-friendly resources in two questions.**
-> Scan the code, or go to `goal-planning-app.vercel.app/c/<code>`.
+> Scan the code, or go to `app.autinerary.ca/c/<code>`.
 
 Every link opens **Start here**: two quick questions, then a few starter
 resources and "Save this path", which is the free account. Nothing to sign
@@ -32,29 +32,30 @@ from `backend/`, "By channel").
 | TikTok (adults) | /c/tiktok | People with similar experiences, starting with Tidbits | [tiktok.svg](qr/tiktok.svg) |
 | Reddit (adults) | /c/reddit | People with similar experiences, starting with Tidbits | [reddit.svg](qr/reddit.svg) |
 
-All are `https://goal-planning-app.vercel.app/c/...`. The Facebook, TikTok
+All are `https://app.autinerary.ca/c/...`. The Facebook, TikTok
 and Reddit paths follow Group 5: "trust/safety for Facebook parents vs. peer
 tools for TikTok/Reddit adults". People can change either answer.
 
 An unknown code still opens Start here, so a typo is never a dead end. To
 add a link, add a line to `frontend/lib/campaign.ts`.
 
+## The address
+
+The app's own address is `app.autinerary.ca`: an A record in Route 53
+(`app`, pointing at Vercel's `76.76.21.21`), added to the goal-planning-app
+project in Vercel. The old address, `goal-planning-app.vercel.app`, keeps
+working, so links already shared still open.
+
 ## Before printing anything
 
-**Printed codes cannot be changed.** They point at
-`goal-planning-app.vercel.app`, Vercel's default address for the app. If
-the app will move to its own address (for example `app.autinerary.ca`), set
-that up first:
+**Printed codes cannot be changed.** Scan each printed proof with a phone
+before the full print run. The codes use high error correction, so they
+still scan when printed small or on fabric. Keep them at least 2 cm wide,
+with the white border around them.
 
-1. In Vercel, add the domain to the goal-planning-app project.
-2. In Route 53, add the CNAME record Vercel shows.
-3. Regenerate the codes for the new address:
+To make the codes again (for example after adding a link):
 
-   ```
-   npm i --no-save qrcode
-   node scripts/campaign/make-qr-codes.mjs https://app.autinerary.ca
-   ```
-
-Then scan each printed proof with a phone before the full print run. The
-codes use high error correction, so they still scan when printed small or
-on fabric. Keep them at least 2 cm wide, with the white border around them.
+```
+npm i --no-save qrcode
+node scripts/campaign/make-qr-codes.mjs
+```

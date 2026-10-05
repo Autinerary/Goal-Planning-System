@@ -127,7 +127,7 @@ We use it only to arrange your session or send you the trial link.
 
 *(Description:)* Before your session we'll send you a short description of
 what taking part involves, to agree to. How Autinerary handles your
-information: https://goal-planning-app.vercel.app/privacy . Questions:
+information: https://app.autinerary.ca/privacy . Questions:
 aayush@autinerary.ca
 
 ---
