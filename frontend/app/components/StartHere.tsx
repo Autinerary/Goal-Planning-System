@@ -11,7 +11,7 @@ import {
   START_ROLES, START_GOALS, START_FOR_KEY, START_NEED_KEY,
   isStartRole, isStartGoal, pathwayFor, pathwayTitle, searchPath,
 } from '@/lib/startHere'
-import type { StarterItem } from '../api/starter-resources/route'
+import type { StarterItem } from '@/lib/starterItems'
 
 /**
  * "Start here", on the home page and on its own at /start.
@@ -39,6 +39,8 @@ const PRIMARY =
 const CHOICE =
   'w-full rounded-xl border px-4 py-3 text-left font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1'
 const TEXT_BUTTON = 'font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950'
+// Shared with the home page's weekly-email offer (components/NewsletterPrompt).
+export const NEWSLETTER_KEY = 'autinerary_newsletter_prompt'
 
 type Step = 'role' | 'goal' | 'pathway'
 
@@ -68,6 +70,14 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const [savedAs, setSavedAs] = useState('')
   const [saveNote, setSaveNote] = useState('')
   const [shareNote, setShareNote] = useState('')
+  // "Or get this list by email" (Riipen Labs, Group 11: "Want these saved and
+  // emailed to you?"), confirmed by email first (app/api/newsletter).
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [email, setEmail] = useState('')
+  const [weekly, setWeekly] = useState(false)
+  const [trap, setTrap] = useState('')
+  const [emailNote, setEmailNote] = useState('')
+  const [emailing, setEmailing] = useState(false)
   const stepHeading = useRef<HTMLHeadingElement>(null)
   // Focus follows the person between steps, never on page load.
   const moved = useRef(false)
@@ -224,6 +234,23 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
       if ((e as Error)?.name === 'AbortError') return
       setShareNote(`Keep this link to come back to this list: ${url}`)
     }
+  }
+
+  const emailList = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailing(true)
+    setEmailNote('')
+    const res = await fetch('/api/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, weekly, sendList: true, role, need: goal, website: trap }),
+    }).catch(() => null)
+    const json = await res?.json().catch(() => ({}))
+    setEmailing(false)
+    if (res?.ok) {
+      setEmailNote('Check your inbox: confirm your email, and we will send the list.')
+      try { localStorage.setItem(NEWSLETTER_KEY, 'asked') } catch {}
+    } else setEmailNote(json?.error || 'This could not be sent just now. Please try again later.')
   }
 
   const hubHref = (path: string) => (user ? goHubHref(path) : `${HUB}${path}`)
@@ -441,6 +468,43 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                   </button>
                   {shareNote && <span role="status" className="mt-1 block break-all">{shareNote}</span>}
                 </p>
+              )}
+              {!user && (
+                <div className="mt-2 text-sm text-slate-800">
+                  {!emailOpen ? (
+                    <button type="button" onClick={() => setEmailOpen(true)} className={TEXT_BUTTON}>
+                      Or get this list by email
+                    </button>
+                  ) : (
+                    <form onSubmit={emailList} className="mt-2 space-y-2 rounded-lg border border-indigo-200 bg-white p-3">
+                      <label className="block font-medium text-slate-900">
+                        Your email
+                        <input
+                          type="email"
+                          required
+                          autoComplete="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        />
+                      </label>
+                      <label className="flex items-start gap-2">
+                        <input type="checkbox" className="mt-1" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} />
+                        Also send me three places and ideas to start with, and one practical tip, each week. No spam; stop anytime.
+                      </label>
+                      {/* Left empty by people; robots fill it in. */}
+                      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={trap} onChange={(e) => setTrap(e.target.value)} className="hidden" />
+                      <button type="submit" disabled={emailing} className="rounded-lg bg-indigo-700 px-4 py-2 font-semibold text-white hover:bg-indigo-800 disabled:bg-slate-300 disabled:text-slate-700">
+                        {emailing ? 'Sending…' : 'Email me this list'}
+                      </button>
+                      <p className="text-xs text-slate-700">
+                        We email you once to confirm first, and send nothing else until you do.{' '}
+                        <Link href="/privacy" className={TEXT_BUTTON}>Privacy</Link>
+                      </p>
+                    </form>
+                  )}
+                  {emailNote && <p role="status" className="mt-2">{emailNote}</p>}
+                </div>
               )}
               <p className="mt-3 text-sm">
                 <a href={hubHref(searchPath(pathway.more.params))} target="_blank" rel="noopener noreferrer" className={TEXT_BUTTON}>

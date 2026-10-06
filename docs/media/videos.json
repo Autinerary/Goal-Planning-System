@@ -1,0 +1,123 @@
+{
+  "voice": {
+    "model": "gpt-4o-mini-tts",
+    "voice": "sage",
+    "instructions": "Speak in a calm, warm and friendly tone, at a relaxed, steady pace, like explaining something to a friend. Clear and plain. No excitement or sales voice."
+  },
+  "videos": [
+    {
+      "id": "what-is-autinerary",
+      "title": "What Autinerary is",
+      "scenes": [
+        {
+          "title": "Autinerary",
+          "subtitle": "A life plan built around how you work",
+          "note": "Narrated by an AI voice",
+          "narration": "This is Autinerary. It turns a goal into small, clear steps, planned around your energy."
+        },
+        {
+          "image": "start-role",
+          "title": "Start without an account",
+          "narration": "You can start without an account. Say who you're here for, and what you need today."
+        },
+        {
+          "image": "start-resources",
+          "title": "Starter resources, right away",
+          "narration": "You get starter resources straight away, picked for your answers."
+        },
+        {
+          "image": "setup-about",
+          "title": "Two quick questions",
+          "narration": "When you're ready, a free account takes two quick questions: who you're here for, and one goal."
+        },
+        {
+          "image": "setup-helper",
+          "title": "Help with your goal",
+          "narration": "Not sure how to put your goal? Describe it in your own words, then pick a suggestion."
+        },
+        {
+          "image": "path",
+          "title": "One step at a time",
+          "narration": "Your path shows one next step at a time."
+        },
+        {
+          "image": "step",
+          "title": "Small parts, with tools",
+          "narration": "Each step breaks into small parts, with tools that can help."
+        },
+        {
+          "image": "calendar-low",
+          "title": "A plan for low-energy days",
+          "narration": "Your calendar has low, balanced and high-energy days, so a hard day still has a plan."
+        },
+        {
+          "image": "hub-home",
+          "title": "Services rated by people like you",
+          "narration": "In ResourceHub, find services rated by people with similar norms."
+        },
+        {
+          "image": "tidbits",
+          "title": "Advice from people like you",
+          "narration": "In Tidbits, read answers from people with similar experiences."
+        },
+        {
+          "title": "Free during the beta",
+          "subtitle": "We don't sell your information, show ads, or use it to train AI.",
+          "narration": "Autinerary is free during the beta. We don't sell your information, show ads, or use it to train AI. Start with your starter resources, no account needed."
+        }
+      ]
+    },
+    {
+      "id": "how-to-use-your-path",
+      "title": "How to use your Path",
+      "scenes": [
+        {
+          "title": "How to use your Path",
+          "subtitle": "One minute",
+          "note": "Narrated by an AI voice",
+          "narration": "Here's how to use your Autinerary path."
+        },
+        {
+          "image": "path",
+          "title": "Your next step",
+          "narration": "Your path shows your next step. Open it to see what to do."
+        },
+        {
+          "image": "step",
+          "title": "What to do",
+          "narration": "Each step has small parts to do, and tools that can help."
+        },
+        {
+          "image": "races-list",
+          "title": "Tick it off",
+          "narration": "When you've done a step, tick its box on the Races page. Your progress fills in as you go."
+        },
+        {
+          "image": "calendar-low",
+          "title": "On a hard day",
+          "narration": "On a hard day, open your calendar and choose Low Energy for a lighter plan."
+        },
+        {
+          "image": "hub-resource",
+          "title": "Save what helps",
+          "narration": "Find services in ResourceHub, and save the ones you want to come back to."
+        },
+        {
+          "image": "journal",
+          "title": "Look back",
+          "narration": "Write in your journal now and then, to see what is working."
+        },
+        {
+          "image": "path-checklist",
+          "title": "Getting started",
+          "narration": "The Getting started list on your Path ticks itself off as you try these."
+        },
+        {
+          "title": "Take it at your pace",
+          "subtitle": "Replay the tour any time from How it works, in the top bar.",
+          "narration": "Take it at your own pace. You can replay the tour any time from How it works, in the top bar."
+        }
+      ]
+    }
+  ]
+}

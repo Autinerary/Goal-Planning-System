@@ -47,6 +47,8 @@ from scripts.onboarding_funnel import (  # noqa: E402
     render_return_loop,
     summarize_goal_helper,
     summarize_return_loop,
+    render_newsletter_and_stories,
+    summarize_newsletter_and_stories,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -799,7 +801,7 @@ class Group11Tests(unittest.TestCase):
             if i in (0, 1, 2, 3, 4, 6, 7, 8):
                 events.append(self._ev(v, "onboarding_complete", "2026-10-01T10:05:00+00:00", user=u))
         g = summarize_goal_helper(compute_funnel(events)["people"])
-        self.assertEqual(g, {"reached": 12, "used": 6, "picked": 4, "used_finished": 5, "others": 6, "others_finished": 3})
+        self.assertEqual(g, {"reached": 12, "used": 6, "picked": 4, "used_finished": 5, "others": 6, "others_finished": 3, "chat": 0, "chat_finished": 0})
         text = render_goal_helper(g)
         self.assertIn("got suggestions                  6   (50%); added one: 67%", text)
         self.assertIn("with the helper 83%, without it 50%", text)
@@ -811,11 +813,32 @@ class Group11Tests(unittest.TestCase):
 
     def test_helper_events_are_accepted_and_sent(self):
         funnel_ts = (REPO / "frontend/lib/funnel.ts").read_text()
-        self.assertIn("export const ACTION_IDS = ['goal_helper', 'goal_helper_pick']", funnel_ts)
+        self.assertIn("export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat']", funnel_ts)
         helper = (REPO / "frontend/app/components/GoalHelper.tsx").read_text()
         self.assertIn("track('feature_use', 'goal_helper')", helper)
         self.assertIn("track('feature_use', 'goal_helper_pick')", helper)
         self.assertIn("AI helper", helper)
+
+class Group11FinishTests(unittest.TestCase):
+    def test_chat_setup_is_counted(self):
+        events = []
+        for i in range(6):
+            v, u = f"c{i}", f"u{i}"
+            events.append({**ev(v, "signup_complete", "2026-10-01T10:00:00+00:00"), "user_id": u})
+            events.append({**ev(v, "feature_use", "2026-10-01T10:01:00+00:00", step="setup_chat"), "user_id": u})
+            if i < 3:
+                events.append({**ev(v, "onboarding_complete", "2026-10-01T10:05:00+00:00"), "user_id": u})
+        g = summarize_goal_helper(compute_funnel(events)["people"])
+        self.assertEqual((g["chat"], g["chat_finished"]), (6, 3))
+        self.assertIn("answered setup as a chat         6, finished setup 50%", render_goal_helper(g))
+
+    def test_email_and_stories_counts_hide_small_groups(self):
+        subs = [{"status": "confirmed", "weekly": True, "list_sent_at": "x"}] * 6 + [{"status": "pending"}] * 2
+        n = summarize_newsletter_and_stories(subs, [{"status": "submitted"}])
+        text = render_newsletter_and_stories(n)
+        self.assertIn("confirmed 6, not yet confirmed <5", text)
+        self.assertIn("weekly email 6; lists sent 6", text)
+        self.assertIn("submitted <5", text)
 
 
 if __name__ == "__main__":

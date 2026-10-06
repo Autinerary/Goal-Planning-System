@@ -74,6 +74,17 @@ export default function CheckinQuestion({
     return (
       <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5 text-green-900" role="status">
         <p>{thanks}</p>
+        {/* Someone it helps may want to say so (Riipen Labs, Group 11:
+            lived-experience stories, shared with consent). Only an offer. */}
+        {kind === 'usefulness' && choice === 'very' && (
+          <p className="mt-3 text-sm">
+            Glad it helps. A few sentences about it could help someone like you decide to try it.{' '}
+            <a href="/share-your-story" className="font-medium underline underline-offset-2">
+              Share your story
+            </a>
+            , only if you want to.
+          </p>
+        )}
         {adjustments.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-semibold">Would one of these help now?</p>

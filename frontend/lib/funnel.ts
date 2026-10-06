@@ -15,6 +15,8 @@
  * the page.
  */
 
+import { gaEvent } from '@/lib/analytics'
+
 // Bump when onboarding changes enough that its numbers should be compared
 // separately (Riipen: "create a revised onboarding group"). riipen-2026-10 was
 // the first revision (readability, info before sign-up); goalfirst-2026-10 the
@@ -67,10 +69,11 @@ const AREAS: [RegExp, string][] = [
   [/^\/path-market(\/|$)/, 'path_market'],
   [/^\/paths\/compare(\/|$)/, 'compare'],
 ]
-// Two things done rather than places opened, sent the same way: the AI goal
+// Things done rather than places opened, sent the same way: the AI goal
 // helper answered, and one of its suggestions was added (Riipen Labs, Group
-// 11 suggested testing "the AI guide vs the standard Goals step").
-export const ACTION_IDS = ['goal_helper', 'goal_helper_pick']
+// 11 suggested testing "the AI guide vs the standard Goals step"), and setup
+// answered as a chat (components/ChatSetup).
+export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat']
 export const AREA_IDS = [...AREAS.map(([, id]) => id), 'tidbits', 'resourcehub', ...ACTION_IDS]
 
 export function areaFor(pathname: string, search = ''): string | null {
@@ -136,6 +139,8 @@ function firstTouch(): FirstTouch {
 
 export function track(event: FunnelEvent, step?: string): void {
   if (typeof window === 'undefined' || optedOut()) return
+  // The same event to Google Analytics, only if it is on and allowed (lib/analytics.ts).
+  gaEvent(event, step)
   const id = visitorId()
   if (!id) return
   const touch = firstTouch()

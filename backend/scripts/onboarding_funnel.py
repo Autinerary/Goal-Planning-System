@@ -302,6 +302,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "resumed": resumed,
             "helper_used": "goal_helper" in used,
             "helper_picked": "goal_helper_pick" in used,
+            "chat_used": "setup_chat" in used,
             "first_step_hours": first_step_hours,
             "first_open_hours": first_open_hours,
             "first_value_hours": first_value_hours,
@@ -971,12 +972,17 @@ def summarize_goal_helper(people: List[dict]) -> Dict:
         "used_finished": sum(p["finished"] for p in used),
         "others": len(others),
         "others_finished": sum(p["finished"] for p in others),
+        "chat": sum(p.get("chat_used", False) for p in people if p["account"]),
+        "chat_finished": sum(p.get("chat_used", False) and p["finished"] for p in people if p["account"]),
     }
 
 
 def render_goal_helper(g: Dict) -> str:
     out = ["== The goal helper (Group 11: optional AI help on the goal step)",
            f"  reached the goal step            {g['reached']}"]
+    chat = g.get("chat", 0)
+    out.append(f"  answered setup as a chat         {SMALL if 0 < chat < MIN_CELL else chat}"
+               + (f", finished setup {pct(g['chat_finished'], chat)}" if chat >= MIN_CELL else ""))
     if g["used"] < MIN_CELL:
         out.append(f"  got suggestions                  {SMALL if g['used'] else 0}   (fewer than {MIN_CELL}: no rates yet)")
         return "\n".join(out)
@@ -986,6 +992,30 @@ def render_goal_helper(g: Dict) -> str:
                f"without it {pct(g['others_finished'], g['others']) if g['others'] >= MIN_CELL else SMALL}")
     out.append("  (people choose to use it, so this compares groups, not cause and effect)")
     return "\n".join(out)
+
+
+def summarize_newsletter_and_stories(subscribers: Iterable[dict], stories: Iterable[dict]) -> Dict:
+    """Group 11: email without an account (double opt-in) and shared stories. Counts only. Pure."""
+    subs = list(subscribers)
+    return {
+        "subscribers": Counter(r.get("status") for r in subs),
+        "weekly": sum(1 for r in subs if r.get("status") == "confirmed" and r.get("weekly")),
+        "lists_sent": sum(1 for r in subs if r.get("list_sent_at")),
+        "stories": Counter(r.get("status") for r in stories),
+    }
+
+
+def render_newsletter_and_stories(n: Dict) -> str:
+    def count(k: int) -> str:
+        return SMALL if 0 < k < MIN_CELL else str(k)
+    s, t = n["subscribers"], n["stories"]
+    return "\n".join([
+        "== Email without an account, and shared stories (Group 11)",
+        f"  asked for email: confirmed {count(s.get('confirmed', 0))}, not yet confirmed {count(s.get('pending', 0))}, "
+        f"stopped {count(s.get('unsubscribed', 0))}; weekly email {count(n['weekly'])}; lists sent {count(n['lists_sent'])}",
+        "  stories: " + ", ".join(f"{k} {count(t.get(k, 0))}" for k in
+                                  ("submitted", "awaiting_approval", "approved", "published", "declined", "withdrawn")),
+    ])
 
 
 def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
@@ -1198,6 +1228,13 @@ def main() -> int:
     print(render_return_loop(summarize_return_loop(funnel["people"], prefs_by_user, push_users, first_save_by_user)))
     print()
     print(render_goal_helper(summarize_goal_helper(funnel["people"])))
+    print()
+    try:
+        subscribers = fetch_all(sb, "newsletter_subscribers", "status, weekly, list_sent_at")
+        stories = fetch_all(sb, "stories", "status")
+        print(render_newsletter_and_stories(summarize_newsletter_and_stories(subscribers, stories)))
+    except Exception:
+        print("== Email without an account, and shared stories: not available yet (apply STEP 52).")
     print()
     print(render_resourcehub(summarize_resourcehub(rh_events)))
     print()

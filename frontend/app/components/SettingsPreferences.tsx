@@ -8,14 +8,17 @@
  * the people most likely to need it.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check, Mail } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
-import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, type ViewPreference } from '@/lib/preferences'
+import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, loadPreferences, type ViewPreference } from '@/lib/preferences'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import PushOptIn from './PushOptIn'
+import ReminderFields from './ReminderFields'
+import { useAuth } from '../context/AuthContext'
+import { gaConsent, gaEnabled, setGaConsent } from '@/lib/analytics'
 
 /** Odosa's wording for the four artistic levels, in her order. */
 const VIEW_LEVEL_COPY: Record<ViewPreference, string> = {
@@ -27,6 +30,10 @@ const VIEW_LEVEL_COPY: Record<ViewPreference, string> = {
 
 export default function SettingsPreferences() {
   const { prefs, update } = usePreferences()
+  const { user } = useAuth()
+  // The whole reminder, fresh from this device: the server replaces it, not
+  // merges, and several fields can change in one go.
+  const loadReminders = () => loadPreferences().reminders
   const { lang, setLang } = useTranslation()
   const { level, setOverride } = useDisclosure()
   const [showAllLanguages, setShowAllLanguages] = useState(false)
@@ -251,14 +258,26 @@ export default function SettingsPreferences() {
         <label className="mb-3 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
           <input
             type="checkbox"
-            checked={Boolean(prefs.reminders?.enabled && prefs.reminders?.consent)}
+            checked={Boolean(prefs.reminders?.enabled)}
             onChange={(e) => update({
-              reminders: { ...prefs.reminders, channel: 'email', enabled: e.target.checked, consent: e.target.checked },
+              reminders: {
+                ...prefs.reminders,
+                enabled: e.target.checked,
+                contact: prefs.reminders?.contact || user?.email || '',
+              },
             })}
             className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
           />
-          <span>Daily reminder: email me once a day to check my Path.</span>
+          <span>Daily reminder to check my Path, at a time I choose.</span>
         </label>
+        {prefs.reminders?.enabled && (
+          <div className="mb-4 ml-7">
+            <ReminderFields
+              value={prefs.reminders}
+              onChange={(patch) => update({ reminders: { ...loadReminders(), ...patch } })}
+            />
+          </div>
+        )}
         <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
           <input
             type="checkbox"
@@ -271,7 +290,28 @@ export default function SettingsPreferences() {
         <div className="mt-4">
           <PushOptIn />
         </div>
+        {gaEnabled() && <AnalyticsSetting />}
       </section>
     </div>
+  )
+}
+
+/** Google Analytics, when it is set up: the visitor's yes or no, changeable here. */
+function AnalyticsSetting() {
+  const [on, setOn] = useState(false)
+  useEffect(() => setOn(gaConsent() === 'yes'), [])
+  return (
+    <label className="mt-4 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={on}
+        onChange={(e) => {
+          setOn(e.target.checked)
+          setGaConsent(e.target.checked ? 'yes' : 'no')
+        }}
+        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+      />
+      <span>Let Google Analytics count which pages I use (never what I type, not for ads).</span>
+    </label>
   )
 }

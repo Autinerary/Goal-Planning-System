@@ -10,6 +10,8 @@ import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
 import PushOptIn from '../components/PushOptIn'
 import { START_GOALS, isStartGoal, isStartRole, pathwayTitle } from '@/lib/startHere'
+import MediaPlayer from '../components/MediaPlayer'
+import { HOW_TO, lengthLabel } from '@/lib/media'
 
 /**
  * Post-onboarding: what was built, and what to do first.
@@ -225,6 +227,17 @@ export default function OnboardingConfirmationPage() {
             </button>
           </div>
         </div>
+
+        {/* The "how to use the app" video (Riipen Labs, Group 11), folded
+            away so it is there for anyone who prefers to watch. */}
+        <details className="border border-slate-200 rounded-2xl p-6 mb-6 surface">
+          <summary className="cursor-pointer font-bold text-slate-900">
+            Prefer to watch? How to use your Path ({lengthLabel(HOW_TO.seconds)})
+          </summary>
+          <div className="mt-4">
+            <MediaPlayer item={HOW_TO} />
+          </div>
+        </details>
 
         {/* How the pieces connect, the same order the landing page uses. */}
         <div className="border border-slate-200 rounded-2xl p-6 mb-6 surface">

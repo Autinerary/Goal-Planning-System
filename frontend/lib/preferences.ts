@@ -22,9 +22,9 @@ export type ViewPreference = 'plain' | 'pretty' | 'exciting' | 'fun'
 export type ReminderChannel = 'email' | 'sms'
 
 /**
- * Daily goal-reminder opt-in. Email reminders are sent once a day, at 13:00
- * UTC, by app/api/cron/reminders. Text messages and a chosen time are not
- * sent or used; `channel: 'sms'` and `time` stay readable for saved data.
+ * Daily goal-reminder opt-in, sent by lib/reminderRun.ts at the chosen time in
+ * the person's time zone, by email, or by text once their number is verified
+ * (lib/sms.ts; texts are offered only when Twilio is set up).
  * Persisted to profiles.preferences.reminders (cross-device) via onboarding submit
  * and mirrored to localStorage for instant UX.
  */
@@ -39,6 +39,10 @@ export interface ReminderPreferences {
   time: string
   /** Explicit consent to be contacted at `contact`. Required to enable. */
   consent: boolean
+  /** IANA time zone the time is in (the device's, when it was chosen). */
+  timeZone?: string
+  /** Texts only: the number was confirmed with a texted code. The number itself is kept server-side. */
+  smsVerified?: boolean
 }
 
 export interface LayoutPositions {
@@ -62,7 +66,7 @@ export interface UserPreferences {
   accessibility: AccessibilitySettings
   /** UI language code (BCP-47-ish, e.g. "en", "es", "fr"). */
   language: string
-  /** Daily goal-reminder opt-in (emailed by app/api/cron/reminders). */
+  /** Daily goal-reminder opt-in (sent by lib/reminderRun.ts). */
   reminders: ReminderPreferences
   /** Onboarding's first question: who this person is here for. */
   audience?: string | null

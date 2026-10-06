@@ -1,0 +1,34 @@
+{
+  "what-is-autinerary": {
+    "title": "What Autinerary is",
+    "seconds": 88,
+    "transcript": [
+      "This is Autinerary. It turns a goal into small, clear steps, planned around your energy.",
+      "You can start without an account. Say who you're here for, and what you need today.",
+      "You get starter resources straight away, picked for your answers.",
+      "When you're ready, a free account takes two quick questions: who you're here for, and one goal.",
+      "Not sure how to put your goal? Describe it in your own words, then pick a suggestion.",
+      "Your path shows one next step at a time.",
+      "Each step breaks into small parts, with tools that can help.",
+      "Your calendar has low, balanced and high-energy days, so a hard day still has a plan.",
+      "In ResourceHub, find services rated by people with similar norms.",
+      "In Tidbits, read answers from people with similar experiences.",
+      "Autinerary is free during the beta. We don't sell your information, show ads, or use it to train AI. Start with your starter resources, no account needed."
+    ]
+  },
+  "how-to-use-your-path": {
+    "title": "How to use your Path",
+    "seconds": 63,
+    "transcript": [
+      "Here's how to use your Autinerary path.",
+      "Your path shows your next step. Open it to see what to do.",
+      "Each step has small parts to do, and tools that can help.",
+      "When you've done a step, tick its box on the Races page. Your progress fills in as you go.",
+      "On a hard day, open your calendar and choose Low Energy for a lighter plan.",
+      "Find services in ResourceHub, and save the ones you want to come back to.",
+      "Write in your journal now and then, to see what is working.",
+      "The Getting started list on your Path ticks itself off as you try these.",
+      "Take it at your own pace. You can replay the tour any time from How it works, in the top bar."
+    ]
+  }
+}

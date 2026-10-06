@@ -25,6 +25,9 @@ import { wakeBackend } from '@/lib/wakeBackend'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import GoalHelper from '@/app/components/GoalHelper'
+import ReminderFields from '@/app/components/ReminderFields'
+import ChatSetup from '@/app/components/ChatSetup'
+import { browserTimeZone } from '@/lib/reminderSchedule'
 import {
   CONDITION_GROUPS,
   EMPTY_DIAGNOSTIC_PROFILE,
@@ -800,7 +803,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     try { if (localStorage.getItem(SETUP_REMINDER_KEY)) setSetupReminder('asked') } catch {}
   }, [])
-  const saveSetupReminder = (value: { requestedAt: string } | null) =>
+  const saveSetupReminder = (value: { requestedAt: string; timeZone: string } | null) =>
     fetch('/api/me/preferences', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -808,7 +811,7 @@ export default function OnboardingPage() {
       body: JSON.stringify({ setupReminder: value }),
     }).then(res => res.ok).catch(() => false)
   const requestSetupReminder = async () => {
-    const ok = await saveSetupReminder({ requestedAt: new Date().toISOString() })
+    const ok = await saveSetupReminder({ requestedAt: new Date().toISOString(), timeZone: browserTimeZone() })
     setSetupReminder(ok ? 'asked' : 'failed')
     if (ok) try { localStorage.setItem(SETUP_REMINDER_KEY, '1') } catch {}
   }
@@ -817,6 +820,38 @@ export default function OnboardingPage() {
     setSetupReminder('none')
     try { localStorage.removeItem(SETUP_REMINDER_KEY) } catch {}
   }
+
+  // What the goal helper may suggest: the ideas the goal step shows (and the
+  // examples in each field), nothing else (components/GoalHelper, ChatSetup).
+  const ideasFor = (categoryId: string) => {
+    const cat = goalCategories.find(c => c.id === categoryId)
+    const examples = (cat?.placeholder || '').replace(/^e\.g\.,\s*/, '').split(',').map(s => s.trim()).filter(Boolean)
+    const seeded = pathSeed?.focusCategory === categoryId ? pathSeed.suggestions : []
+    return Array.from(new Set([...seeded, ...getGoalSuggestions(categoryId, selectedBarrierTypes), ...examples]))
+  }
+  const helperIdeas = goalCategories.flatMap(cat => ideasFor(cat.id).map(text => ({ category: cat.id, text })))
+  const addGoal = (category: string, goal: string) => {
+    setOpenGoalCategory(category)
+    setFormData(prev => {
+      const list = [...(prev.goalsByCategory[category] || [])]
+      if (list.some(e => e.goal.trim().toLowerCase() === goal.toLowerCase())) return prev
+      const emptyIdx = list.findIndex(e => !e.goal.trim())
+      if (emptyIdx >= 0) list[emptyIdx] = { ...list[emptyIdx], goal }
+      else list.push({ goal, dreams: '', obstacles: '' })
+      return { ...prev, goalsByCategory: { ...prev.goalsByCategory, [category]: list } }
+    })
+  }
+  const removeGoal = (category: string, goal: string) => {
+    setFormData(prev => {
+      const list = (prev.goalsByCategory[category] || []).filter(e => e.goal !== goal)
+      const goalsByCategory = { ...prev.goalsByCategory, [category]: list }
+      if (list.length === 0) delete goalsByCategory[category]
+      return { ...prev, goalsByCategory }
+    })
+  }
+  // Setup as a chat (components/ChatSetup, Riipen Labs, Group 11): the same
+  // two questions, answered in a conversation; the extras stay the form.
+  const [chatMode, setChatMode] = useState(false)
 
   // Clear autosave + consumed path seed on successful submission
   const clearAutosave = () => {
@@ -1093,9 +1128,10 @@ export default function OnboardingPage() {
       // explicit consent + a contact). Otherwise store it disabled so we never
       // record a half-opted-in reminder we couldn't honor.
       const r = formData.reminders
+      const reachable = r.channel === 'sms' ? Boolean(r.smsVerified) : Boolean(r.contact.trim())
       const remindersToSave: ReminderPreferences =
-        r.enabled && r.consent && r.contact.trim()
-          ? { ...r, contact: r.contact.trim() }
+        r.enabled && r.consent && reachable
+          ? { ...r, contact: r.contact.trim(), timeZone: r.timeZone || browserTimeZone() }
           : { ...DEFAULT_REMINDERS }
 
       // Record view/interaction preferences (age, tech savvy, view style) so the
@@ -1545,7 +1581,27 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          <div className="mb-5 flex flex-wrap items-center gap-2 text-sm">
+          {chatMode && !inExtras && (
+            <ChatSetup
+              name={(user?.name || '').split(' ')[0]}
+              audiences={AUDIENCES}
+              audienceValue={AUDIENCE_VALUE}
+              categories={goalCategories}
+              ideasFor={ideasFor}
+              helperIdeas={helperIdeas}
+              onAge={(value) => setFormData(prev => ({ ...prev, ageConfirmation: value }))}
+              onAudience={chooseAudience}
+              onGoal={addGoal}
+              onUndoGoal={removeGoal}
+              onCity={(city) => setFormData(prev => ({ ...prev, location: { ...prev.location, city } }))}
+              onCreate={handleSubmit}
+              onMore={() => { setChatMode(false); setCurrentStep(CORE_STEP_COUNT) }}
+              onForm={() => setChatMode(false)}
+              isSubmitting={isSubmitting}
+            />
+          )}
+
+          <div className={`mb-5 flex flex-wrap items-center gap-2 text-sm ${chatMode && !inExtras ? 'hidden' : ''}`}>
             {!REQUIRED_STEP_IDS.has(currentId) && (
               <span className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-0.5 font-semibold text-slate-700">Optional step</span>
             )}
@@ -1556,7 +1612,7 @@ export default function OnboardingPage() {
 
           {/* About you: the short goal-first start. Age is required (18+ for
               now); who this is for is one tap; what they came for is optional. */}
-          {currentId === 'about' && (
+          {currentId === 'about' && !chatMode && (
             <div>
               {/* A welcoming, plain first screen (Riipen Labs, Group 6: "a cohesive
                   and empathetic voice to build immediate trust"; docs/voice.md). */}
@@ -1571,6 +1627,11 @@ export default function OnboardingPage() {
                 </p>
                 <p className="mt-2">We don&apos;t sell your information, show ads, or use it to train AI.</p>
               </div>
+              <p className="mb-6 text-sm">
+                <button type="button" onClick={() => setChatMode(true)} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                  Prefer to answer by chatting? Try the chat version
+                </button>
+              </p>
 
               <label className="block mb-6 font-medium">
                 Confirm your age
@@ -2315,7 +2376,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 3: Goals, Dreams & Obstacles (combined) */}
-          {currentId === 'goalsAndDreams' && (() => {
+          {currentId === 'goalsAndDreams' && !chatMode && (() => {
             // Detect connections to another person (sibling, parent, etc.) so we
             // can offer an "ideal relationship" option alongside the dream — the
             // user answers whichever speaks to them (one optional out of two).
@@ -2324,25 +2385,6 @@ export default function OnboardingPage() {
             const otherPersonLabel = otherConnectionIds.length === 1
               ? (connectionTypes.find(c => c.id === otherConnectionIds[0])?.label || 'them').replace(' (Lived Experience)', '')
               : 'them'
-            // What the goal helper may suggest: the ideas this step shows (and
-            // the examples in each field), nothing else (components/GoalHelper).
-            const helperIdeas = goalCategories.flatMap(cat => {
-              const examples = cat.placeholder.replace(/^e\.g\.,\s*/, '').split(',').map(s => s.trim()).filter(Boolean)
-              const seeded = pathSeed?.focusCategory === cat.id ? pathSeed.suggestions : []
-              return Array.from(new Set([...seeded, ...getGoalSuggestions(cat.id, selectedBarrierTypes), ...examples]))
-                .map(text => ({ category: cat.id, text }))
-            })
-            const addGoal = (category: string, goal: string) => {
-              setOpenGoalCategory(category)
-              setFormData(prev => {
-                const list = [...(prev.goalsByCategory[category] || [])]
-                if (list.some(e => e.goal.trim().toLowerCase() === goal.toLowerCase())) return prev
-                const emptyIdx = list.findIndex(e => !e.goal.trim())
-                if (emptyIdx >= 0) list[emptyIdx] = { ...list[emptyIdx], goal }
-                else list.push({ goal, dreams: '', obstacles: '' })
-                return { ...prev, goalsByCategory: { ...prev.goalsByCategory, [category]: list } }
-              })
-            }
             return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal</h2>
@@ -3084,9 +3126,8 @@ export default function OnboardingPage() {
                     aria-checked={formData.reminders.enabled}
                     onClick={() => updateReminders({
                       enabled: !formData.reminders.enabled,
-                      channel: 'email',
                       // Prefill the account's email when turning on.
-                      contact: !formData.reminders.enabled && (formData.reminders.channel !== 'email' || !formData.reminders.contact)
+                      contact: !formData.reminders.enabled && !formData.reminders.contact
                         ? (user?.email || '')
                         : formData.reminders.contact,
                     })}
@@ -3103,47 +3144,9 @@ export default function OnboardingPage() {
                 </div>
 
                 {formData.reminders.enabled && (
-                  <div className="mt-4 space-y-4">
-                    {/* Email only, once a day: what the daily send (app/api/cron/
-                        reminders, 13:00 UTC) does. Text messages and a choice of
-                        time were offered here, but nothing sent texts or used the
-                        time (Riipen Labs, Group 11's "users choose the timing" is
-                        in docs/first-visit-to-return.md). */}
-                    <div>
-                      <label htmlFor="reminder-contact" className="block text-sm font-medium text-slate-700 mb-1">
-                        Email address
-                      </label>
-                      <input
-                        id="reminder-contact"
-                        type="email"
-                        value={formData.reminders.contact}
-                        onChange={(e) => updateReminders({ contact: e.target.value, channel: 'email' })}
-                        placeholder="you@example.com"
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                      />
-                    </div>
-
-                    {/* Consent */}
-                    <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.reminders.consent}
-                        onChange={(e) => updateReminders({ consent: e.target.checked, channel: 'email' })}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-                      />
-                      <span>
-                        I agree to receive daily goal reminders at this email address. I can turn these
-                        off anytime.
-                      </span>
-                    </label>
-
-                    {formData.reminders.consent && !formData.reminders.contact.trim() && (
-                      <p className="text-xs text-amber-800">Add an email address so we know where to send reminders.</p>
-                    )}
-
-                    <p className="text-xs text-slate-700">
-                      One email a day, in the morning (Eastern time). Turn it off anytime in Settings, under Emails.
-                    </p>
+                  <div className="mt-4">
+                    {/* When, and by email or text (components/ReminderFields). */}
+                    <ReminderFields value={formData.reminders} onChange={updateReminders} />
                   </div>
                 )}
               </div>
@@ -3154,8 +3157,9 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Navigation Buttons */}
+          {/* Navigation Buttons (the chat has its own) */}
           <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t border-slate-200">
+            {!(chatMode && !inExtras) && (<>
             <button
               onClick={handleBack}
               disabled={currentStep === 0}
@@ -3234,6 +3238,7 @@ export default function OnboardingPage() {
                 {continueHint()}
               </p>
             )}
+            </>)}
 
             {/* Honest waiting state. No progress bar — we cannot see inside the
                 pipeline, and a bar that stalls at 80% is worse than a clock. */}

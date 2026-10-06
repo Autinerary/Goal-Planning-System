@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Check, ListChecks } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { createClient } from '@/lib/supabase/client'
+import MediaPlayer from './MediaPlayer'
+import { HOW_TO, lengthLabel } from '@/lib/media'
 
 /**
  * "Getting started": three first things to try, each ticked off when done.
@@ -126,6 +128,14 @@ export default function StarterChecklist({ stepsDone }: { stepsDone: number }) {
           </li>
         ))}
       </ol>
+      <details className="mt-3 text-sm">
+        <summary className="cursor-pointer font-medium text-indigo-800 underline underline-offset-2">
+          Watch how to use your Path ({lengthLabel(HOW_TO.seconds)})
+        </summary>
+        <div className="mt-3 max-w-xl">
+          <MediaPlayer item={HOW_TO} />
+        </div>
+      </details>
       <button type="button" onClick={hide} className="mt-3 text-sm font-medium text-slate-800 underline underline-offset-2 hover:text-slate-950">
         Hide this list
       </button>

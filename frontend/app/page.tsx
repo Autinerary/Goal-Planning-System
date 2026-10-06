@@ -18,6 +18,12 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import FunnelPing from './components/FunnelPing'
+import MediaPlayer from './components/MediaPlayer'
+import ListenSection from './components/ListenSection'
+import StoriesSection from './components/StoriesSection'
+import NewsletterPrompt from './components/NewsletterPrompt'
+import { EXPLAINER } from '@/lib/media'
+import { gaEnabled } from '@/lib/analytics'
 import StartHere from './components/StartHere'
 
 /**
@@ -175,6 +181,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen text-slate-900">
       <FunnelPing event="landing_view" />
+      <NewsletterPrompt />
       {/* Top bar: brand, beta status, and sign-in as a quiet link so it does
           not compete with the one primary action. */}
       <header className="relative z-10 bg-white/95 border-b border-slate-200">
@@ -267,8 +274,14 @@ export default function HomePage() {
       <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="inside-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="inside-heading" className="text-2xl font-bold md:text-3xl">A look inside</h2>
-          <p className="mt-2 text-slate-700">Screens from the app, with a sample plan for the goal &ldquo;Learn a new language&rdquo;.</p>
-          <ul className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <p className="mt-2 text-slate-700">
+            A short tour, then four screens from the app, with a sample plan for the goal &ldquo;Learn a new language&rdquo;.
+          </p>
+          {/* The explainer video (Group 11: "a 60-90 second captioned video"). */}
+          <div className="mt-6 max-w-3xl">
+            <MediaPlayer item={EXPLAINER} />
+          </div>
+          <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
             {PREVIEW.map((shot) => (
               <li key={shot.src}>
                 <figure>
@@ -287,6 +300,8 @@ export default function HomePage() {
           </ul>
         </div>
       </section>
+
+      <ListenSection />
 
       {/* How it works: the clear first step, and what happens after it. */}
       <section id="how" className="scroll-mt-4 border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="how-heading">
@@ -365,6 +380,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <StoriesSection />
+
       {/* Details people asked for, folded away until wanted so the page does
           not front-load everything (the review's main risk to avoid). */}
       <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="details-heading">
@@ -428,6 +445,7 @@ export default function HomePage() {
                 whether people found them useful. Once you have an account, we count which parts of the app you
                 open. These counts never include anything you type. There are no advertising trackers on this site, and if
                 your browser sends Do Not Track or Global Privacy Control, you are not counted.
+                {gaEnabled() && ' If you allow it when asked, Google Analytics gets the same counts; it is off until you say yes.'}
               </p>
             </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">

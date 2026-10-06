@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { gaEnabled } from '@/lib/analytics'
 
 export const metadata: Metadata = {
   title: 'Privacy · Autinerary',
@@ -23,11 +24,24 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
+    name: 'Twilio',
+    does: 'Sends reminder texts, and the code that confirms your number, if you choose reminders by text',
+    gets: 'Your mobile number and the text',
+  },
+  {
     name: 'Your browser’s notification service (for example Google, Apple or Mozilla)',
     does: 'Delivers notifications, if you turn them on for a device',
     gets: 'An address for your device and the notification, which is encrypted so the service cannot read it',
   },
-  { name: 'Google', does: 'Sign in with Google, and our feedback form (Google Forms)', gets: 'Only what you share through them, if you use them' },
+  {
+    name: 'Google',
+    does: gaEnabled()
+      ? 'Sign in with Google, our feedback form (Google Forms), and Google Analytics if you allow it'
+      : 'Sign in with Google, and our feedback form (Google Forms)',
+    gets: gaEnabled()
+      ? 'Only what you share through them, if you use them. Google Analytics gets which pages you open and the same counts described under "How the app is used", never anything you type'
+      : 'Only what you share through them, if you use them',
+  },
   { name: 'OpenStreetMap (Nominatim)', does: 'Finds the map position of the city you enter', gets: 'The place name, not who you are' },
   { name: 'Open-Meteo', does: 'Weather forecasts, if you turn weather on', gets: 'Your approximate location' },
 ]
@@ -99,6 +113,10 @@ export default function PrivacyPage() {
               </li>
               <li>Your motivation style, character and Dream Self choices, spirit animals, and display and accessibility settings.</li>
               <li>Your plan and progress: milestones, races, calendar tasks, Life Stats check-ins and reflections.</li>
+              <li>
+                If you turn on daily reminders: the time you chose, your time zone, and how to reach you. For texts, your mobile
+                number, which you confirm with a code we text to it.
+              </li>
             </List>
           </Sub>
           <Sub title="Information about yourself that you choose to share">
@@ -118,6 +136,21 @@ export default function PrivacyPage() {
             <List>
               <li>Ratings and reviews, questions and answers in Tidbits, resources you save or suggest, photos you upload, and your community profile.</li>
               <li>Ratings, reviews, Tidbits posts and your community profile can be seen by other people using Autinerary.</li>
+            </List>
+          </Sub>
+          <Sub title="If you share your story">
+            <List>
+              <li>Your story, how you want your name and details shown, and where it may be shared.</li>
+              <li>Nothing is shown until you approve the final version, and you can withdraw it at any time. A published story can be seen by anyone.</li>
+            </List>
+          </Sub>
+          <Sub title="If you ask for emails without an account">
+            <List>
+              <li>
+                Your email address, what you asked for (a Start here list, or the weekly email), when you confirmed it, and a
+                scrambled form of your network address, used only to stop floods of sign-ups.
+              </li>
+              <li>Nothing is sent until you confirm from the first email, and every email has a link to stop them.</li>
             </List>
           </Sub>
           <Sub title="Connecting with people">
@@ -146,6 +179,12 @@ export default function PrivacyPage() {
                 kept in your browser, so setup can start with them, and saved to your account when you save the path.
               </li>
               <li>We don’t record anything you type in these, and your browser sends none of them if it has Do Not Track or Global Privacy Control turned on.</li>
+              {gaEnabled() && (
+                <li>
+                  If you allow it when asked, Google Analytics gets the same counts, to show us which pages are used. It is
+                  off until you say yes, it is not used for ads, and you can change your answer in Settings.
+                </li>
+              )}
               <li>How much AI processing your account uses, to keep use fair.</li>
             </List>
           </Sub>
@@ -166,8 +205,9 @@ export default function PrivacyPage() {
             </li>
             <li>
               To send email: a welcome email when you finish setup, one reminder to finish setup if you ask for it, daily
-              reminders if you turn them on, and a check-in if you opt in. Each reminder and check-in email tells you how to
-              turn them off.
+              reminders at the time you choose if you turn them on, and a check-in if you opt in. Without an account: a
+              Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them
+              off.
             </li>
             <li>
               To send notifications, only to devices you turn them on for: one when you turn them on, and a check-in if you
@@ -216,7 +256,7 @@ export default function PrivacyPage() {
           <List>
             <li>Skip any optional question, and change your answers later in Settings.</li>
             <li>In Settings you can download a copy of your plan and progress, or erase them.</li>
-            <li>Turn emails off from any reminder or check-in email, or in Settings. Turn notifications off in Settings, or in your browser.</li>
+            <li>Turn emails off from any reminder or check-in email, or in Settings. Stop texts by replying STOP, or in Settings. Turn notifications off in Settings, or in your browser.</li>
             <li>To see, correct or delete anything else, or to close your account, email {mail}. We will reply within 30 days.</li>
             <li>You can withdraw your consent for optional information at any time.</li>
             <li>
