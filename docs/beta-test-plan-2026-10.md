@@ -68,6 +68,16 @@ all six at once), the norms list opens one section at a time, and setup's
 grass track with seven food emoji and an endlessly hopping bunny is now a
 slim progress bar with the bunny on it.
 
+Group 10's report ("Simplifying onboarding while preserving personalization")
+recommended progressive onboarding: welcome, user type, immediate goal, a
+useful path, micro-prompts when relevant, and check-ins that adjust the path.
+The first five were in place; check-ins now offer a change matched to the
+answer (a different goal, starter resources, or just the next step). Their
+three open questions are answered here: which questions are essential is in
+[onboarding-questions.md](onboarding-questions.md), now grouped as they asked
+("essential now, useful later, optional"); which groups to test first is
+proposed under "Who takes part"; and what is tracked is under "Measures".
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -109,6 +119,12 @@ results are split:
 | Siblings, partners, other family | 3 to 4 | |
 | Teachers, employers, support workers, allies | 3 to 4 | |
 | NT adults, for themselves | 4 to 6 | The comparison group Group 2 asked for |
+
+Priority groups, proposed for the team to agree (Group 10: "choose 2-3
+priority user groups"; Group 8 chose the same two): **ND adults, for
+themselves**, and **parents of an ND child**. They are the largest rows above
+and the two groups the outreach posts reach first; the other three rows are
+recruited in smaller numbers so their results can still be compared.
 
 ND or NT status comes from the sign-up screener, with consent, and stays in
 the research spreadsheet under a participant code. It is never put into the
@@ -259,6 +275,17 @@ resources and path (Start here and first-step measures above), and, for the
 freezing, the report's **Making the path** section: how many people got a
 path, how many needed more than one try, how long it took, and why attempts
 failed.
+
+Group 10's six measures, and where each is in the report:
+
+| Group 10 asked | What we report |
+| --- | --- |
+| Completion rate: "do more users finish initial onboarding?" | Setup completion, overall and by onboarding version |
+| Time to first value: "how quickly do users reach a relevant path or resource?" | **Reached something useful**: share of accounts that opened a step of their path, a starter resource, ResourceHub or Tools, how long after sign-up, and how many did on the day they signed up |
+| Drop-off points: "where do users pause, leave, or repeat steps?" | Setup steps reached; **where people pause** (median time on each step) and **what they come back to**; where people leave the app (above) |
+| 7-14 day return | Back within 7 and 14 days, for Goal Planning and ResourceHub |
+| Path engagement: "milestones or recommendations?" | First step opened and marked done; parts of the app opened |
+| User feedback: "clear and manageable?" | Setup ease and clarity (post-setup survey), check-ins, session notes |
 
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;

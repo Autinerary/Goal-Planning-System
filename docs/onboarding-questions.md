@@ -13,7 +13,10 @@ Start here asks two questions (who for, what you need) and shows starter
 resources with no account. Its answers carry into setup, so nobody is asked
 twice.
 
-## Essential: asked before the path is made
+Riipen Labs Group 10 asked for every question to be marked "essential now,
+useful later, or optional". That is how they are grouped below.
+
+## Essential now: asked before the path is made
 
 | Question | Why it can't wait |
 | --- | --- |
@@ -22,16 +25,23 @@ twice.
 | Who are you here for? (with "Not sure yet") | The wording of the next questions, and the starter resources after setup |
 | One goal | The path is built from it |
 
-## Optional during setup, asked again later if skipped
+## Useful later: they sharpen what is shown, so they come back
 
 | Question | What it improves | When it comes back |
 | --- | --- | --- |
 | What are you looking for today? | What the page after setup shows first | Not needed again: Start here and Quick Links cover it |
-| Location | Services near you in ResourceHub | On the Path from the first day, and on ResourceHub's home page |
-| Norms, conditions and sensory needs | Tools, services and people matched to you | On the Path from day 7 (the condition and support profile), and in the rating form |
-| Character, spirit animals, how the app looks | Dream Land and the look of the app | On the Path from day 10 |
-| Dream Self | The Ideal Self page | On the Ideal Self page; not prompted |
+| Location | Services near you in ResourceHub | On the Path from the first day; in ResourceHub on its home page, in search and at the end of its setup |
+| Norms, conditions and sensory needs | Tools, services and people matched to you | On the Path from day 7 (the condition and support profile), in the rating form, and in ResourceHub when you search for one |
+| How much each norm affects daily life | Weighs recommendations, and groups ratings by level | On the ResourceHub profile, optional and in words; never in setup |
 | Motivation style | Matching with people motivated in similar ways | Only in setup for now; a good next question to ask in context |
+
+## Optional: how the app looks and feels
+
+| Question | What it changes | When it comes back |
+| --- | --- | --- |
+| Character, spirit animals, how the app looks | Dream Land and the look of the app | On the Path from day 10 |
+| Biggest dream | Sent with your goal when the path is made | One line on the goal step, opened only if wanted |
+| Dream Self | The Ideal Self page | On the Ideal Self page; not prompted |
 
 The Path shows one of these at a time, and only when no check-in is due.
 From the second day it may instead offer the fuller view ("Ready for a bit
@@ -45,7 +55,11 @@ more?"). Nothing changes by itself.
   back on a later day. Until 5 October 2026 it could reach a visitor on a
   second visit to the home page, before they had an account.
 - "Is Autinerary useful so far?": after five days of use, or on a return
-  visit in the second week.
+  visit in the second week. An answer of "Not yet", or a reason for
+  stopping, is met with something that can change now: a different goal,
+  starter resources, or just the next step in the simple view (Group 10:
+  check-ins that "adjust path with feedback"; `ADJUSTMENTS` in
+  `frontend/lib/checkin.ts`).
 
 ## ResourceHub
 

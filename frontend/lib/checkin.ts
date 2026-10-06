@@ -23,6 +23,39 @@ export const USEFULNESS = [
 
 export type CheckinKind = 'inactive_email' | 'welcome_back' | 'usefulness'
 
+/**
+ * What the app can change, offered once someone answers. Riipen Labs Group
+ * 10's model ends in "check-ins: adjust path with feedback and engagement";
+ * the answers used to be stored and thanked, and nothing changed for the
+ * person who gave them. Every option is something the app already does.
+ * `simpler` also switches the Path to its simple view (lib/disclosure.ts).
+ */
+export interface Adjustment {
+  id: string
+  label: string
+  /** An app path, or a ResourceHub path when `hub` is set. */
+  href: string
+  hub?: boolean
+  simpler?: boolean
+}
+
+const NEW_GOAL: Adjustment = { id: 'new_goal', label: 'Try a different goal', href: '/onboarding' }
+const RESOURCES: Adjustment = { id: 'resources', label: 'Find services and resources instead', href: '/start' }
+const NEXT_STEP: Adjustment = { id: 'next_step', label: 'Show me just my next step', href: '/path', simpler: true }
+
+export const ADJUSTMENTS: Record<string, Adjustment[]> = {
+  not_yet: [NEW_GOAL, RESOURCES],
+  not_useful_yet: [NEW_GOAL, RESOURCES],
+  not_what_i_needed: [NEW_GOAL, RESOURCES],
+  too_much: [NEXT_STEP],
+  no_time: [NEXT_STEP, { id: 'emails', label: 'Change or turn off reminder emails', href: '/profile/settings#emails-heading' }],
+  hard_to_find: [
+    { id: 'start', label: 'Find it with Start here', href: '/start' },
+    { id: 'search', label: 'Search ResourceHub', href: '/search', hub: true },
+  ],
+  just_exploring: [{ id: 'explore', label: 'See what Autinerary has', href: '/start' }],
+}
+
 // Away this long before the email check-in or the welcome-back question.
 export const AWAY_DAYS = 14
 

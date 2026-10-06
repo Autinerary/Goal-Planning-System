@@ -652,3 +652,60 @@ class Group9Tests(unittest.TestCase):
         enqueue = setup[setup.index("/api/onboarding/jobs`, onboardingBody"):]
         self.assertIn("timeout: 60000", enqueue[:300])
 
+
+class Group10Tests(unittest.TestCase):
+    """Riipen Labs, Group 10: time to first value, where people pause or
+    repeat setup steps, and check-ins that adjust the path."""
+
+    def test_time_to_first_value(self):
+        events = []
+        for i in range(5):
+            v = f"v{i}"
+            events.append(ev(v, "signup_complete", "2026-10-12T10:00:00+00:00"))
+        events += [
+            ev("v0", "start_open", "2026-10-12T09:00:00+00:00", step="self.services.therapists"),  # before sign-up
+            ev("v0", "start_open", "2026-10-12T10:10:00+00:00", step="self.services.therapists"),
+            ev("v1", "feature_use", "2026-10-12T10:30:00+00:00", step="milestones"),
+            ev("v2", "feature_use", "2026-10-13T10:00:00+00:00", step="resourcehub"),
+            ev("v3", "feature_use", "2026-10-12T10:05:00+00:00", step="settings"),                # not a value
+        ]
+        o = compute_funnel(events)["overall"]
+        self.assertEqual(o["first_value"], 3)
+        self.assertEqual(o["first_value_same_day"], 2)
+        self.assertAlmostEqual(o["first_value_median_hours"], 0.5)
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        self.assertIn("reached something useful        3   (60% of accounts), median 30 min after sign-up; 2 on the day", text)
+
+    def test_pauses_and_steps_people_come_back_to(self):
+        events = []
+        for i in range(5):
+            v = f"v{i}"
+            events += [ev(v, "onboarding_step_view", "2026-10-12T10:00:00+00:00", step="about"),
+                       ev(v, "onboarding_step_view", f"2026-10-12T10:00:{40 + i:02d}+00:00", step="goalsAndDreams")]
+            if i < 2:   # two went back to the first step, then on again
+                events += [ev(v, "onboarding_step_view", "2026-10-12T10:01:30+00:00", step="about"),
+                           ev(v, "onboarding_step_view", "2026-10-12T10:02:00+00:00", step="goalsAndDreams")]
+        o = compute_funnel(events)["overall"]
+        self.assertEqual(o["step_came_back"]["about"], 2)
+        self.assertEqual(o["step_median_seconds"]["about"], 42)
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        about = next(l for l in text.splitlines() if l.strip().startswith("About you") and "came back" not in l and "%" in l)
+        self.assertIn("42 s", about)
+        self.assertIn("40%", about)
+
+    def test_setup_sends_every_step_visit(self):
+        setup = (REPO / "frontend/app/onboarding/page.tsx").read_text()
+        self.assertIn("lastStepTracked.current === currentStep", setup)
+        self.assertNotIn("stepsSeen.current.has(currentStep)) return", setup)
+
+    def test_check_in_answers_offer_real_adjustments(self):
+        import re
+        checkin = (REPO / "frontend/lib/checkin.ts").read_text()
+        answers = set(re.findall(r"\{ id: '([a-z_]+)', label:", checkin))
+        block = checkin[checkin.index("export const ADJUSTMENTS"):]
+        keys = set(re.findall(r"^  ([a-z_]+): \[", block, re.M))
+        self.assertTrue(keys and keys <= answers, keys - answers)
+        for href in set(re.findall(r"href: '(/[a-z/-]+)", checkin)) - {"/search"}:
+            self.assertTrue((REPO / f"frontend/app{href}/page.tsx").exists(), href)
+        self.assertIn("ADJUSTMENTS[choice]", (REPO / "frontend/app/components/CheckinQuestion.tsx").read_text())
+

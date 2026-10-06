@@ -771,10 +771,17 @@ export default function OnboardingPage() {
       }
   }, [currentStep, formData, draftReady])
 
-  // Funnel: which steps people reach, to see where setup loses them.
+  // Funnel: which steps people reach, to see where setup loses them. Every
+  // visit is sent, coming back included, so the report can show where people
+  // pause and which steps they return to (Riipen Labs, Group 10: "where do
+  // users pause, leave, or repeat steps?"); "reached" still counts each
+  // browser once.
+  // stepsSeen also decides which optional extras are asked later (below).
   const stepsSeen = useRef(new Set<number>())
+  const lastStepTracked = useRef<number | null>(null)
   useEffect(() => {
-    if (!draftReady || stepsSeen.current.has(currentStep)) return
+    if (!draftReady || lastStepTracked.current === currentStep) return
+    lastStepTracked.current = currentStep
     stepsSeen.current.add(currentStep)
     track('onboarding_step_view', steps[currentStep].id)
   }, [currentStep, draftReady])

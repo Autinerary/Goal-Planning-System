@@ -3,7 +3,9 @@
 import { useState, FormEvent } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { ONBOARDING_VERSION } from '@/lib/funnel'
-import type { CheckinKind } from '@/lib/checkin'
+import { ADJUSTMENTS, type CheckinKind } from '@/lib/checkin'
+import { setDisclosureOverride } from '@/lib/disclosure'
+import { goHubHref } from '@/lib/serviceHub'
 
 /**
  * One check-in question with an optional comment (see lib/checkin.ts). Used by
@@ -66,9 +68,31 @@ export default function CheckinQuestion({
   }
 
   if (status === 'saved') {
+    // The answer can change something now, not only later (Riipen Labs,
+    // Group 10: check-ins that "adjust path with feedback").
+    const adjustments = ADJUSTMENTS[choice] || []
     return (
       <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5 text-green-900" role="status">
-        {thanks}
+        <p>{thanks}</p>
+        {adjustments.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold">Would one of these help now?</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {adjustments.map((a) => (
+                <a
+                  key={a.id}
+                  href={a.hub ? goHubHref(a.href) : a.href}
+                  onClick={() => {
+                    if (a.simpler) setDisclosureOverride('simple')
+                  }}
+                  className="rounded-lg border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-900 hover:bg-green-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-600"
+                >
+                  {a.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }

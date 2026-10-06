@@ -151,6 +151,16 @@ RH_PROMPTS = [
     ("add_topic", "Add a searched topic"),
 ]
 
+# What counts as reaching something useful after sign-up (Riipen Labs,
+# Group 10's "time to first value: how quickly do users reach a relevant path
+# or resource?"): opening a step of their path, ResourceHub or Tools
+# (feature_use), or a starter resource (start_open).
+VALUE_AREAS = ("milestones", "resourcehub", "tools")
+
+# Time on a setup step counts until the next step was shown, if that came
+# within this long; a longer gap is someone who left and came back.
+STEP_PAUSE_CAP = timedelta(minutes=30)
+
 RETURN_WINDOW = timedelta(days=7)
 RETURN_WINDOW_LONG = timedelta(days=14)
 FIRST_WEEKS = timedelta(days=14)
@@ -232,6 +242,26 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
                      and e.get("step") == "milestones" and _ts(e["created_at"]) >= signup_at]
             if opens:
                 first_open_hours = (min(opens) - signup_at).total_seconds() / 3600
+        # First value: the first useful thing opened after sign-up (Group 10).
+        first_value_hours = None
+        first_value_same_day = False
+        if signup_at is not None:
+            values = [_ts(e["created_at"]) for e in evs
+                      if ((e["event"] == "feature_use" and e.get("step") in VALUE_AREAS) or e["event"] == "start_open")
+                      and _ts(e["created_at"]) >= signup_at]
+            if values:
+                first_value_hours = (min(values) - signup_at).total_seconds() / 3600
+                first_value_same_day = min(values).date() == signup_at.date()
+        # Setup steps: visits to each, and time until the next step was shown.
+        step_visits: Counter = Counter()
+        step_seconds: Dict[str, float] = {}
+        views = [e for e in evs if e["event"] == "onboarding_step_view" and e.get("step")]
+        for i, e in enumerate(views):
+            step_visits[e["step"]] += 1
+            if i + 1 < len(views) and e["step"] not in step_seconds:
+                gap = _ts(views[i + 1]["created_at"]) - _ts(e["created_at"])
+                if gap <= STEP_PAUSE_CAP:
+                    step_seconds[e["step"]] = gap.total_seconds()
         first_step_hours = None
         if signup_at is not None and user_id and first_done_by_user.get(user_id):
             done_at = _ts(first_done_by_user[user_id])
@@ -251,6 +281,10 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "returned_14": returned_long,
             "first_step_hours": first_step_hours,
             "first_open_hours": first_open_hours,
+            "first_value_hours": first_value_hours,
+            "first_value_same_day": first_value_same_day,
+            "step_visits": step_visits,
+            "step_seconds": step_seconds,
         })
 
     def stage_counts(group: List[dict]) -> Dict:
@@ -264,6 +298,11 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "returned_14": sum(p["returned_14"] for p in group),
             "first_step": sum(p["first_step_hours"] is not None for p in group),
             "first_open": sum(p["first_open_hours"] is not None for p in group),
+            "first_value": sum(p["first_value_hours"] is not None for p in group),
+            "first_value_same_day": sum(p["first_value_same_day"] for p in group),
+            "first_value_median_hours": median(h) if (h := [p["first_value_hours"] for p in group if p["first_value_hours"] is not None]) else None,
+            "step_came_back": {sid: sum(p["step_visits"][sid] > 1 for p in group) for sid, _ in STEPS},
+            "step_median_seconds": {sid: median(s) if (s := [p["step_seconds"][sid] for p in group if sid in p["step_seconds"]]) else None for sid, _ in STEPS},
             "first_open_median_hours": median(h) if (h := [p["first_open_hours"] for p in group if p["first_open_hours"] is not None]) else None,
             "first_step_median_hours": median(h) if (h := [p["first_step_hours"] for p in group if p["first_step_hours"] is not None]) else None,
             "accounts_from_landing": sum(p["landing"] and p["account"] for p in group),
@@ -343,6 +382,11 @@ def _duration(hours: float) -> str:
     return f"{hours / 24:.1f} days"
 
 
+def _short(seconds: float) -> str:
+    """Time on a setup step: seconds when under a minute."""
+    return f"{round(seconds)} s" if seconds < 60 else _duration(seconds / 3600)
+
+
 def summarize_heard_from(people: List[dict], heard_from_by_user: Dict[str, str]) -> Counter:
     """Self-reported channel, for accounts in this funnel that answered."""
     return Counter(heard_from_by_user[p["user_id"]] for p in people
@@ -382,6 +426,21 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
                + (f", median {_duration(o['first_open_median_hours'])} after sign-up" if o['first_open_median_hours'] is not None else ""))
     out.append(f"  marked a first step done        {o['first_step']}   ({pct(o['first_step'], o['accounts'])} of accounts)"
                + (f", median {_duration(o['first_step_median_hours'])} after sign-up" if o['first_step_median_hours'] is not None else ""))
+    out.append(f"  reached something useful        {o['first_value']}   ({pct(o['first_value'], o['accounts'])} of accounts)"
+               + (f", median {_duration(o['first_value_median_hours'])} after sign-up; "
+                  f"{o['first_value_same_day']} on the day they signed up" if o['first_value_median_hours'] is not None else ""))
+    out.append("    (a step of their path, a starter resource, ResourceHub or Tools: Group 10's time to first value)")
+    out.append("")
+    out.append("== Setup steps: where people pause and what they come back to (Group 10)")
+    out.append(f"  {'step':<29} {'reached':>7} {'median time':>12} {'came back':>10}")
+    for sid, label in STEPS:
+        n = o["steps"][sid]
+        if n < MIN_CELL:
+            out.append(f"  {label[:29]:<29} {SMALL if n else 0:>7} {'-':>12} {'-':>10}")
+            continue
+        secs = o["step_median_seconds"][sid]
+        took = _short(secs) if secs is not None else "-"
+        out.append(f"  {label[:29]:<29} {n:>7} {took:>12} {pct(o['step_came_back'][sid], n):>10}")
     out.append("")
     out.extend(_comparison("By who they are here for", funnel.get("by_audience", {}), feedback.get("by_audience", {})))
     out.append("")
