@@ -76,7 +76,7 @@ answer (a different goal, starter resources, or just the next step). Their
 three open questions are answered here: which questions are essential is in
 [onboarding-questions.md](onboarding-questions.md), now grouped as they asked
 ("essential now, useful later, optional"); which groups to test first is
-proposed under "Who takes part"; and what is tracked is under "Measures".
+agreed under "Who takes part"; and what is tracked is under "Measures".
 
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
@@ -120,9 +120,9 @@ results are split:
 | Teachers, employers, support workers, allies | 3 to 4 | |
 | NT adults, for themselves | 4 to 6 | The comparison group Group 2 asked for |
 
-Priority groups, proposed for the team to agree (Group 10: "choose 2-3
-priority user groups"; Group 8 chose the same two): **ND adults, for
-themselves**, and **parents of an ND child**. They are the largest rows above
+Priority groups, agreed 5 October (Group 10: "choose 2-3 priority user
+groups"; Group 8 chose the same two): **ND adults, for themselves**, and
+**parents of an ND child**. They are the largest rows above
 and the two groups the outreach posts reach first; the other three rows are
 recruited in smaller numbers so their results can still be compared.
 
@@ -299,6 +299,9 @@ Proposed targets, for the team to agree before the trial starts:
 - at least 60% say they knew "about right" before signing up
 - setup ease median of 4 or more
 - at least 40% come back within 7 days
+- at least half of new accounts reach something useful (a step of their
+  path, a starter resource, ResourceHub or Tools) on the day they sign up:
+  Group 10's first-session success
 - at least 70% of people who start Start here reach a pathway, and at least
   half of pathways lead to a next action
 - more people say starter resources were useful than not, for each need
