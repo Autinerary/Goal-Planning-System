@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Map } from 'lucide-react'
 import { dayKey, getUsageLevel, getVisitDayCount, useDisclosure } from '@/lib/disclosure'
 
@@ -20,7 +20,7 @@ import { dayKey, getUsageLevel, getVisitDayCount, useDisclosure } from '@/lib/di
 const SNOOZE_KEY = 'autinerary_more_offer_until'
 const SNOOZE_DAYS = 7
 
-export default function MoreFeaturesOffer() {
+export default function MoreFeaturesOffer({ fallback }: { fallback?: ReactNode }) {
   const { isSimple, setOverride } = useDisclosure()
   const [due, setDue] = useState(false)
   const [days, setDays] = useState(0)
@@ -35,7 +35,7 @@ export default function MoreFeaturesOffer() {
     }
   }, [])
 
-  if (!isSimple || !due) return null
+  if (!isSimple || !due) return <>{fallback}</>
 
   const notNow = () => {
     const until = new Date()

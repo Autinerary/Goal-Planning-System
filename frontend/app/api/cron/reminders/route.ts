@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail, dailyReminderEmail, emailEnabled } from '@/lib/email'
+import { sendEmail, dailyReminderEmail, finishSetupEmail, emailEnabled } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -17,7 +17,14 @@ export const maxDuration = 60
  * Reads profiles whose preferences.reminders is enabled+consented with
  * channel=email, and emails all of them on this daily run. NO-OPS until
  * RESEND_API_KEY is set, so it's safe to schedule immediately.
+ *
+ * The same run sends the one reminder to finish setup that someone asked for
+ * on the setup page (preferences.setupReminder, Riipen Labs, Group 11), on
+ * the first run at least SETUP_REMINDER_AFTER later: the next morning for
+ * anyone in North America who asks in the evening. Only if setup is still
+ * unfinished; either way the request is then closed, so it is sent once.
  */
+const SETUP_REMINDER_AFTER = 6 * 60 * 60 * 1000
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization') || ''
@@ -57,5 +64,35 @@ export async function GET(req: NextRequest) {
     else if (!res.skipped) failures.push(`${row.id}: ${res.error}`)
   }
 
-  return NextResponse.json({ ok: true, considered, sent, failures: failures.slice(0, 10) })
+  let setupSent = 0
+  for (const row of rows || []) {
+    const ask = (row.preferences as any)?.setupReminder
+    if (!ask?.requestedAt || ask.sentAt || ask.closedAt) continue
+    const askedAt = Date.parse(ask.requestedAt)
+    if (!Number.isFinite(askedAt) || Date.now() - askedAt < SETUP_REMINDER_AFTER) continue
+
+    const { data: found } = await admin.auth.admin.getUserById(row.id)
+    const account = found?.user
+    if (!account) continue
+    const send = account.user_metadata?.has_completed_onboarding !== true && Boolean(account.email)
+    if (send) {
+      const { subject, html, text } = finishSetupEmail(appUrl)
+      const res = await sendEmail({ to: account.email!, subject, html, text, idempotencyKey: `setup-reminder-${row.id}-${askedAt}` })
+      if (!res.ok) {
+        if (!res.skipped) failures.push(`${row.id}: ${res.error}`)
+        continue
+      }
+      setupSent++
+    }
+    // Read again before writing, so a change made since the run started is kept.
+    const { data: fresh } = await admin.from('profiles').select('preferences').eq('id', row.id).maybeSingle()
+    const prefs = (fresh?.preferences as Record<string, any>) || {}
+    if (prefs.setupReminder?.requestedAt !== ask.requestedAt) continue
+    const stamp = new Date().toISOString()
+    await admin.from('profiles').update({
+      preferences: { ...prefs, setupReminder: { ...prefs.setupReminder, ...(send ? { sentAt: stamp } : { closedAt: stamp }) } },
+    }).eq('id', row.id)
+  }
+
+  return NextResponse.json({ ok: true, considered, sent, setupSent, failures: failures.slice(0, 10) })
 }

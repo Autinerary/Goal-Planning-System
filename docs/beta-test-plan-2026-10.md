@@ -78,6 +78,20 @@ three open questions are answered here: which questions are essential is in
 ("essential now, useful later, optional"); which groups to test first is
 agreed under "Who takes part"; and what is tracked is under "Measures".
 
+Group 11's report ("Customer Experience Optimization Report") recommended
+value first, an AI guide inside setup, and bringing people back. The home
+page now says why Autinerary is different, shows four real screens, and says
+what you share, what you get and how it is protected. Start here lets
+someone without an account send the list to themselves. The goal step has an
+optional AI helper, labelled as AI, that suggests goals only from setup's own
+ideas and hands words of danger to the crisis lines. Setup says answers are
+saved, welcomes people back where they left off, and sends one reminder email
+if asked. The Path has a "Getting started" checklist, and Settings let people
+choose the app's voice, speed and volume. What was built, what the team
+still needs to make (a video, testimonials) and what was decided against
+(GA4, a newsletter pop-up) are in
+[first-visit-to-return.md](first-visit-to-return.md).
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -287,6 +301,17 @@ Group 10's six measures, and where each is in the report:
 | Path engagement: "milestones or recommendations?" | First step opened and marked done; parts of the app opened |
 | User feedback: "clear and manageable?" | Setup ease and clarity (post-setup survey), check-ins, session notes |
 
+Group 11's measures, and where each is in the report:
+
+| Group 11 asked for | What we report |
+| --- | --- |
+| 1-, 7- and 14-day return, by segment and traffic source | Returned the next day, within 7 and within 14 days; a column for each, by who people are here for and by channel |
+| Email and push opt-in rate | **Bringing people back**: share of accounts with daily reminder emails, check-in emails, notifications, or any of them |
+| Their three segments: visited but did not start, stopped at a step, finished | **Bringing people back**: each group, the last step seen by people who stopped, and who came back to setup after a break |
+| "The share of users who saved a resource in their first week" | **Bringing people back** |
+| The AI guide against the standard goal step | **The goal helper**: who got suggestions, who added one, and setup completion with and without it. People choose to use it, so it compares groups and does not show cause and effect |
+| Time to first value, start rate, drop-off by step, completion | As for Groups 7 and 10, above |
+
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;
 returns are the 7 and 14 day returns above; **where they leave** is the
@@ -307,6 +332,8 @@ Proposed targets, for the team to agree before the trial starts:
 - more people say starter resources were useful than not, for each need
 - drop-off at least 40% lower in `twostep-2026-10` than in
   `goalfirst-2026-10`, once each has at least 5 accounts
+- people who use the goal helper finish setup at least as often as those
+  who don't (if not, the helper is getting in the way)
 
 Groups with fewer than 5 people are shown as "<5", with no percentages.
 Browsers that send Do Not Track or Global Privacy Control are left out of the

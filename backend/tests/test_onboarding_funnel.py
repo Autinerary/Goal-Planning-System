@@ -43,6 +43,10 @@ from scripts.onboarding_funnel import (  # noqa: E402
     render_checkins,
     summarize_checkins,
     summarize_feedback,
+    render_goal_helper,
+    render_return_loop,
+    summarize_goal_helper,
+    summarize_return_loop,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -156,8 +160,6 @@ class FeedbackTests(unittest.TestCase):
         self.assertIn("my name is X", shown)
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 class CheckinTests(unittest.TestCase):
@@ -709,3 +711,112 @@ class Group10Tests(unittest.TestCase):
             self.assertTrue((REPO / f"frontend/app{href}/page.tsx").exists(), href)
         self.assertIn("ADJUSTMENTS[choice]", (REPO / "frontend/app/components/CheckinQuestion.tsx").read_text())
 
+
+class Group11Tests(unittest.TestCase):
+    """Riipen Labs, Group 11: 1-, 7- and 14-day return by segment and
+    channel, opt-in rates, three segments to bring back, first-week saves,
+    and the AI goal helper against the standard goal step."""
+
+    def _ev(self, visitor, event, at, step=None, user=None, channel=None):
+        e = ev(visitor, event, at, step=step, channel=channel)
+        e["user_id"] = user
+        return e
+
+    def test_next_day_return(self):
+        events = [
+            self._ev("a", "signup_complete", "2026-10-01T22:00:00+00:00", user="ua"),
+            self._ev("a", "app_open", "2026-10-02T08:00:00+00:00", user="ua"),    # next day
+            self._ev("b", "signup_complete", "2026-10-01T10:00:00+00:00", user="ub"),
+            self._ev("b", "app_open", "2026-10-01T18:00:00+00:00", user="ub"),    # same day: no
+            self._ev("b", "app_open", "2026-10-03T10:00:00+00:00", user="ub"),    # day 2: no
+        ]
+        o = compute_funnel(events)["overall"]
+        self.assertEqual((o["returned_next_day"], o["returned"], o["returned_14"]), (1, 2, 2))
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        self.assertIn("returned the next day           1   (50% of accounts)", text)
+
+    def test_return_columns_by_channel(self):
+        events = []
+        for i in range(5):
+            v = f"t{i}"
+            events.append(self._ev(v, "signup_complete", "2026-10-01T10:00:00+00:00", user=f"u{i}", channel="tiktok"))
+            if i < 2:
+                events.append(self._ev(v, "app_open", "2026-10-02T10:00:00+00:00", user=f"u{i}", channel="tiktok"))
+            if i == 2:
+                events.append(self._ev(v, "app_open", "2026-10-12T10:00:00+00:00", user=f"u{i}", channel="tiktok"))
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        header = next(l for l in text.splitlines() if "next day" in l and "in 14d" in l)
+        row = next(l for l in text.splitlines() if l.strip().startswith("tiktok"))
+        self.assertTrue(header)
+        self.assertEqual(row.split()[1:6], ["5", "0%", "40%", "40%", "60%"])
+
+    def test_three_segments_opt_ins_and_first_week_saves(self):
+        events = [self._ev("visitor", "landing_view", "2026-10-01T09:00:00+00:00")]
+        for i in range(6):
+            v, u = f"v{i}", f"u{i}"
+            events += [self._ev(v, "landing_view", "2026-10-01T09:00:00+00:00"),
+                       self._ev(v, "signup_complete", "2026-10-01T10:00:00+00:00", user=u),
+                       self._ev(v, "onboarding_step_view", "2026-10-01T10:01:00+00:00", step="about", user=u)]
+            if i < 5:   # five reached the goal step
+                events.append(self._ev(v, "onboarding_step_view", "2026-10-01T10:02:00+00:00", step="goalsAndDreams", user=u))
+            if i < 3:
+                events.append(self._ev(v, "onboarding_complete", "2026-10-01T10:05:00+00:00", user=u))
+        # v4 left on the goal step and came back the next day, still unfinished.
+        events.append(self._ev("v4", "onboarding_step_view", "2026-10-02T10:00:00+00:00", step="goalsAndDreams", user="u4"))
+        funnel = compute_funnel(events)
+        prefs = {
+            "u0": {"reminders": {"enabled": True, "consent": True}, "checkin": {"optIn": True}},
+            "u1": {"reminders": {"enabled": True, "consent": False}},   # not consented: not counted
+            "u3": {"setupReminder": {"requestedAt": "2026-10-01T10:03:00+00:00"}},
+            "u4": {"setupReminder": None},                                # asked, then cancelled
+        }
+        saves = {"u0": "2026-10-03T10:00:00+00:00",      # day 2: counts
+                 "u1": "2026-10-20T10:00:00+00:00",      # day 19: no
+                 "u2": "2026-09-30T10:00:00+00:00"}      # before sign-up: no
+        r = summarize_return_loop(funnel["people"], prefs, {"u2"}, saves)
+        self.assertEqual(r["visited_only"], 1)
+        self.assertEqual((r["accounts"], r["stopped"], r["finished"]), (6, 3, 3))
+        self.assertEqual(dict(r["stopped_at"]), {"goalsAndDreams": 2, "about": 1})
+        self.assertEqual((r["resumed"], r["resumed_finished"]), (1, 0))
+        self.assertEqual((r["reminders"], r["checkin"], r["push"], r["any_opt_in"]), (1, 1, 1, 2))
+        self.assertEqual((r["setup_reminder"], r["saved_first_week"]), (1, 1))
+        text = render_return_loop(r)
+        self.assertIn("visited, no account yet          <5", text)
+        self.assertIn("finished setup                   <5", text)
+        self.assertIn("opted in, of 6 accounts: daily reminder emails <5", text)
+        self.assertNotIn("%", text)   # every group is under five
+
+    def test_goal_helper_compared_with_the_standard_step(self):
+        events = []
+        for i in range(12):
+            v, u = f"g{i}", f"u{i}"
+            events += [self._ev(v, "signup_complete", "2026-10-01T10:00:00+00:00", user=u),
+                       self._ev(v, "onboarding_step_view", "2026-10-01T10:02:00+00:00", step="goalsAndDreams", user=u)]
+            if i < 6:
+                events.append(self._ev(v, "feature_use", "2026-10-01T10:03:00+00:00", step="goal_helper", user=u))
+            if i < 4:
+                events.append(self._ev(v, "feature_use", "2026-10-01T10:04:00+00:00", step="goal_helper_pick", user=u))
+            if i in (0, 1, 2, 3, 4, 6, 7, 8):
+                events.append(self._ev(v, "onboarding_complete", "2026-10-01T10:05:00+00:00", user=u))
+        g = summarize_goal_helper(compute_funnel(events)["people"])
+        self.assertEqual(g, {"reached": 12, "used": 6, "picked": 4, "used_finished": 5, "others": 6, "others_finished": 3})
+        text = render_goal_helper(g)
+        self.assertIn("got suggestions                  6   (50%); added one: 67%", text)
+        self.assertIn("with the helper 83%, without it 50%", text)
+        # Helper events are not parts of the app.
+        self.assertNotIn("goal_helper", render_feature_use(summarize_feature_use(events)))
+
+    def test_goal_helper_hides_small_numbers(self):
+        self.assertIn("<5", render_goal_helper({"reached": 9, "used": 2, "picked": 1, "used_finished": 1, "others": 7, "others_finished": 3}))
+
+    def test_helper_events_are_accepted_and_sent(self):
+        funnel_ts = (REPO / "frontend/lib/funnel.ts").read_text()
+        self.assertIn("export const ACTION_IDS = ['goal_helper', 'goal_helper_pick']", funnel_ts)
+        helper = (REPO / "frontend/app/components/GoalHelper.tsx").read_text()
+        self.assertIn("track('feature_use', 'goal_helper')", helper)
+        self.assertIn("track('feature_use', 'goal_helper_pick')", helper)
+        self.assertIn("AI helper", helper)
+
+
+if __name__ == "__main__":
+    unittest.main()

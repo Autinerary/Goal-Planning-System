@@ -21,6 +21,7 @@ import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
 import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
 import { toast } from '../components/Toaster'
+import { LOW_ENERGY_TRIED_KEY } from '../components/StarterChecklist'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -958,7 +959,11 @@ function CalendarContent() {
         {/* Scenario Selector */}
         <div className="flex flex-wrap gap-3 mb-8">
           <button
-            onClick={() => setScenario('worst')}
+            onClick={() => {
+              setScenario('worst')
+              // Ticks "Try a low-energy day" in the Path's getting-started list.
+              try { localStorage.setItem(LOW_ENERGY_TRIED_KEY, '1') } catch {}
+            }}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'worst' 
                 ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 

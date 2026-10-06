@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 // Where privacy questions and requests go. Change it here if the team sets up
 // a shared address (for example privacy@autinerary.ca).
 const CONTACT = 'aayush@autinerary.ca'
-const UPDATED = '4 October 2026'
+const UPDATED = '6 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -19,7 +19,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences, and what you type into the goal helper during setup, if you use it. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -93,6 +93,10 @@ export default function PrivacyPage() {
           <Sub title="When you set up and use your plan">
             <List>
               <li>Who you are here for, what you are looking for, and your goals, dreams and challenges.</li>
+              <li>
+                If you use the goal helper during setup: what you type is sent to OpenAI to suggest goals, and is not saved.
+                We only count that the helper was used.
+              </li>
               <li>Your motivation style, character and Dream Self choices, spirit animals, and display and accessibility settings.</li>
               <li>Your plan and progress: milestones, races, calendar tasks, Life Stats check-ins and reflections.</li>
             </List>
@@ -161,8 +165,9 @@ export default function PrivacyPage() {
               profiles into numerical summaries (called embeddings), stored in our database.
             </li>
             <li>
-              To send email: a welcome email when you finish setup, daily reminders if you turn them on, and a check-in if you
-              opt in. Each reminder and check-in email tells you how to turn them off.
+              To send email: a welcome email when you finish setup, one reminder to finish setup if you ask for it, daily
+              reminders if you turn them on, and a check-in if you opt in. Each reminder and check-in email tells you how to
+              turn them off.
             </li>
             <li>
               To send notifications, only to devices you turn them on for: one when you turn them on, and a check-in if you

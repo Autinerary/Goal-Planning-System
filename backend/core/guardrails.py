@@ -143,11 +143,13 @@ def validate_text(text: str) -> Optional[str]:
     if _RACE_AS_GOAL.search(text):
         return "Goals involving changing race aren't supported."
 
-    # 10. Self-harm / harming others
+    # 10. Self-harm / harming others. Most people using Autinerary are in
+    # Canada, where the line is 9-8-8; the US line has the same number.
     if _SELF_HARM.search(text):
         return (
-            "It sounds like you may be going through a difficult time. "
-            "Please reach out to the 988 Suicide & Crisis Lifeline (call or text 988)."
+            "It sounds like you may be going through a difficult time. You can call or text "
+            "9-8-8 any time: the Suicide Crisis Helpline in Canada, and the Suicide & Crisis "
+            "Lifeline in the US. If you are in danger now, call 911."
         )
     if _HARM_OTHERS.search(text):
         return "Goals involving harming others aren't supported."

@@ -33,8 +33,15 @@ another.
 
 ## What has changed (Group 5's mitigation)
 
-- **No AI during setup.** The "AI Recommendations" step is gone from setup.
-  Start here's starter resources, which use no AI, come after setup instead.
+- **No AI during setup, unless someone asks for it.** The "AI
+  Recommendations" step is gone from setup. Start here's starter resources,
+  which use no AI, come after setup instead. Since 6 October the goal step
+  has an optional **goal helper** (Riipen Labs, Group 11): one line,
+  labelled "AI helper", that suggests goals from the ideas setup already
+  shows when someone describes what they want in their own words. It runs
+  only when asked, makes one small call per ask, and is not one of the six
+  agents: the usage ledger records it as `goal_helper`. See
+  [first-visit-to-return.md](first-visit-to-return.md).
 - **AI explanations come after the essentials.** The page after setup used
   to open with two AI explanations ("How your path was built", "Why we
   suggested this"). They now sit below the first steps, and still show only

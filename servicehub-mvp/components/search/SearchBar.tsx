@@ -22,6 +22,10 @@ export default function SearchBar({
   const [isLoading, setIsLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout>()
+  // Suggestions are for someone typing. A search opened from a link
+  // (/search?q=autism, as Start here's links are) used to open the list over
+  // the results until the person clicked somewhere else.
+  const typed = useRef(false)
 
   // Debounce query changes
   useEffect(() => {
@@ -44,7 +48,7 @@ export default function SearchBar({
 
   // Fetch suggestions
   useEffect(() => {
-    if (!showSuggestions || localQuery.length < 2) {
+    if (!showSuggestions || !typed.current || localQuery.length < 2) {
       setSuggestions([])
       setShowSuggestionsList(false)
       return
@@ -91,22 +95,26 @@ export default function SearchBar({
   }, [])
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    typed.current = true
     setLocalQuery(e.target.value)
   }
 
   const handleClear = () => {
+    typed.current = false
     setLocalQuery('')
     onQueryChange('')
     setShowSuggestionsList(false)
   }
 
   const handleSuggestionClick = (suggestion: string) => {
+    typed.current = false
     setLocalQuery(suggestion)
     onQueryChange(suggestion)
     setShowSuggestionsList(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
+    typed.current = false
     e.preventDefault()
     onQueryChange(localQuery)
     setShowSuggestionsList(false)

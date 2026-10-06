@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Mic, MicOff } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import { goHubHref } from '@/lib/serviceHub'
+import { speak } from '@/lib/speech'
 
 interface Recognition {
   lang: string
@@ -67,10 +68,7 @@ export default function VoiceNavigation() {
       if (selected) {
         setDestination(selected)
         setMessage(`Open ${selected.label}? Confirm or cancel.`)
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel()
-          window.speechSynthesis.speak(new SpeechSynthesisUtterance(`Open ${selected.label}? Press the microphone and say confirm or cancel.`))
-        }
+        speak(`Open ${selected.label}? Press the microphone and say confirm or cancel.`)
       } else setMessage('Command not recognized. Available destinations: Path, Calendar, Settings, Accessibility, Resources, Tidbits, People, Assistant.')
     }
     try { instance.start(); setListening(true); setMessage('Listening...'); } catch { setMessage('Unable to start the microphone.'); }

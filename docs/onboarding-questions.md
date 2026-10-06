@@ -78,6 +78,16 @@ for. The optional norms list (about 80 options in nine groups) opens one group
 at a time, with what is picked shown above the groups; it used to show every
 group at once, repeated for each connection picked.
 
+## Help with the goal, and a break
+
+Riipen Labs' Group 11 found the goal the hardest question in setup. Besides
+the ideas in each category, the goal step offers an optional AI helper:
+describe what you want in your own words, and it suggests goals from the same
+ideas, or one in your words. Nothing is added until you pick one. Setup also
+says that answers are saved on the device as you go, welcomes people back
+where they left off, and offers one reminder email to finish. See
+[first-visit-to-return.md](first-visit-to-return.md).
+
 ## Testing the assumption
 
 Group 7: "Assumption to test, not assume: users will actually engage ...

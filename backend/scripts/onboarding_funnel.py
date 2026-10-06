@@ -51,6 +51,13 @@ summarized at the end: why people stopped, from the check-in email and the
 welcome-back question, and whether active users find it useful, each split by
 who they are here for. Check-ins are not split by onboarding version.
 
+Group 11 asked for 1-, 7- and 14-day return by segment and channel, the
+email and notification opt-in rate, and three segments to bring back (visited
+but did not start, stopped at a step, finished); they suggested sharing "the
+share of users who saved a resource in their first week" once measured, and
+testing the AI goal helper against the standard goal step. Those are the
+next-day and 14-day columns, "Bringing people back" and "The goal helper".
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
 public.checkin_responses (STEP 46) and profiles.preferences. Counts only: no
 user ids, emails or visitor ids are printed. Survey and check-in comments are
@@ -173,6 +180,7 @@ AREAS = [
     ("settings", "Settings"), ("start", "Start here"), ("path_market", "Path Market"),
     ("compare", "Compare paths"), ("tidbits", "Tidbits"), ("resourcehub", "ResourceHub"),
 ]
+AREA_IDS = {area for area, _ in AREAS}
 
 # Rows for groups smaller than this show "<5" instead of counts and rates, so
 # a shared copy of the report cannot single anyone out. Totals are unaffected.
@@ -225,7 +233,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         channel = next((e.get("channel") for e in evs if e.get("channel")), None) or "(none)"
         user_id = next((e.get("user_id") for e in evs if e.get("user_id")), None)
         signup_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "signup_complete"), None)
-        returned = returned_long = False
+        returned = returned_long = returned_next_day = False
         if signup_at is not None:
             for e in evs:
                 if e["event"] != "app_open":
@@ -235,6 +243,12 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
                     returned_long = True
                     if t - signup_at <= RETURN_WINDOW:
                         returned = True
+                    # Group 11's 1-day return: back on the next calendar day.
+                    if (t.date() - signup_at.date()).days == 1:
+                        returned_next_day = True
+        # The AI goal helper on the goal step (Group 11): answered, and a
+        # suggestion added (feature_use, frontend/lib/funnel.ts ACTION_IDS).
+        used = {e.get("step") for e in evs if e["event"] == "feature_use"}
         # First action: opening a step (feature_use "milestones") after sign-up.
         first_open_hours = None
         if signup_at is not None:
@@ -262,6 +276,9 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
                 gap = _ts(views[i + 1]["created_at"]) - _ts(e["created_at"])
                 if gap <= STEP_PAUSE_CAP:
                     step_seconds[e["step"]] = gap.total_seconds()
+        # Left setup and came back to it later: a gap longer than a pause.
+        resumed = any(_ts(b["created_at"]) - _ts(a["created_at"]) > STEP_PAUSE_CAP
+                      for a, b in zip(views, views[1:]))
         first_step_hours = None
         if signup_at is not None and user_id and first_done_by_user.get(user_id):
             done_at = _ts(first_done_by_user[user_id])
@@ -279,6 +296,12 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "finished": "onboarding_complete" in names,
             "returned": returned,
             "returned_14": returned_long,
+            "returned_next_day": returned_next_day,
+            "signup_at": signup_at,
+            "last_step": views[-1]["step"] if views else None,
+            "resumed": resumed,
+            "helper_used": "goal_helper" in used,
+            "helper_picked": "goal_helper_pick" in used,
             "first_step_hours": first_step_hours,
             "first_open_hours": first_open_hours,
             "first_value_hours": first_value_hours,
@@ -296,6 +319,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "finished": sum(p["finished"] for p in group),
             "returned": sum(p["returned"] for p in group),
             "returned_14": sum(p["returned_14"] for p in group),
+            "returned_next_day": sum(p["returned_next_day"] for p in group),
             "first_step": sum(p["first_step_hours"] is not None for p in group),
             "first_open": sum(p["first_open_hours"] is not None for p in group),
             "first_value": sum(p["first_value_hours"] is not None for p in group),
@@ -360,17 +384,20 @@ def pct(n: int, d: int) -> str:
 
 def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[str, Dict]) -> List[str]:
     out = [f"== {title}",
-           f"  {'group':<20} {'accounts':>8} {'finished':>9} {'back in 7d':>10} {'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10}"]
+           f"  {'group':<20} {'accounts':>8} {'finished':>9} {'next day':>9} {'back in 7d':>10} {'in 14d':>7} "
+           f"{'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10}"]
     for g in list(funnel_groups) + [g for g in survey_groups if g not in funnel_groups]:
-        f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0})
+        f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0, "returned_next_day": 0, "returned_14": 0})
         s = survey_groups.get(g)
         if max(f["accounts"], s["responses"] if s else 0) < MIN_CELL:
-            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>10} {'-':>8} {'-':>10} {'-':>10}")
+            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>9} {'-':>10} {'-':>7} {'-':>8} {'-':>10} {'-':>10}")
             continue
         clarity = f"{100 * s['about_right_share']:.0f}%" if s and s["about_right_share"] is not None else "-"
         ease = f"{s['ease_median']}" if s and s["ease_median"] is not None else "-"
         out.append(f"  {g[:20]:<20} {f['accounts']:>8} {pct(f['finished'], f['accounts']):>9} "
-                   f"{pct(f['returned'], f['accounts']):>10} {(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10}")
+                   f"{pct(f.get('returned_next_day', 0), f['accounts']):>9} {pct(f['returned'], f['accounts']):>10} "
+                   f"{pct(f.get('returned_14', 0), f['accounts']):>7} "
+                   f"{(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10}")
     return out
 
 
@@ -420,6 +447,7 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
         out.append(f"  reached setup: {label:<27} {n}{drop}")
         prev = n
     out.append(f"  finished setup                  {o['finished']}   ({pct(o['finished'], o['accounts'])} of accounts)")
+    out.append(f"  returned the next day           {o['returned_next_day']}   ({pct(o['returned_next_day'], o['accounts'])} of accounts)")
     out.append(f"  returned within 7 days          {o['returned']}   ({pct(o['returned'], o['accounts'])} of accounts)")
     out.append(f"  returned within 14 days         {o['returned_14']}   ({pct(o['returned_14'], o['accounts'])} of accounts)")
     out.append(f"  opened their first step         {o['first_open']}   ({pct(o['first_open'], o['accounts'])} of accounts)"
@@ -614,7 +642,7 @@ def summarize_feature_use(events: Iterable[dict], wanted_version: str = CURRENT_
     audience_by_user = audience_by_user or {}
     used: Dict[str, set] = defaultdict(set)
     for e in events:
-        if e["event"] == "feature_use" and e.get("user_id") and e.get("step") \
+        if e["event"] == "feature_use" and e.get("user_id") and e.get("step") in AREA_IDS \
                 and keep_version(e.get("onboarding_version", ""), wanted_version):
             used[e["user_id"]].add(e["step"])
     groups: Dict[str, List[set]] = defaultdict(list)
@@ -651,7 +679,7 @@ def summarize_last_seen(events: Iterable[dict], wanted_version: str = CURRENT_VE
     was `away_days` or more ago, the parts they opened that day. Pure."""
     last: Dict[str, tuple] = {}
     for e in events:
-        if e["event"] != "feature_use" or not e.get("user_id") or not e.get("step") \
+        if e["event"] != "feature_use" or not e.get("user_id") or e.get("step") not in AREA_IDS \
                 or not keep_version(e.get("onboarding_version", ""), wanted_version):
             continue
         day = _ts(e["created_at"]).date()
@@ -848,6 +876,118 @@ def render_resourcehub(s: Dict) -> str:
     return "\n".join(out)
 
 
+def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, dict]] = None,
+                          push_users: Optional[set] = None,
+                          first_save_by_user: Optional[Dict[str, str]] = None) -> Dict:
+    """Group 11's measures for bringing people back. Their three segments
+    (visited but did not start, stopped at a step, finished), who came back to
+    setup after a break, who opted in to reminder emails, check-in emails or
+    notifications, and who saved a resource in their first week (their
+    suggested "proof of impact", to publish once measured). Pure."""
+    prefs_by_user = prefs_by_user or {}
+    push_users = push_users or set()
+    first_save_by_user = first_save_by_user or {}
+    accounts = [p for p in people if p["account"]]
+    stopped = [p for p in accounts if not p["finished"]]
+    known = [p for p in accounts if p.get("user_id")]
+
+    def prefs(p: dict) -> dict:
+        return prefs_by_user.get(p["user_id"]) or {}
+
+    def reminders(p: dict) -> bool:
+        r = prefs(p).get("reminders") or {}
+        return bool(r.get("enabled") and r.get("consent"))
+
+    def checkin(p: dict) -> bool:
+        return bool((prefs(p).get("checkin") or {}).get("optIn"))
+
+    def saved_first_week(p: dict) -> bool:
+        first = first_save_by_user.get(p["user_id"])
+        if not first or p.get("signup_at") is None:
+            return False
+        return timedelta(0) <= _ts(first) - p["signup_at"] <= RETURN_WINDOW
+
+    return {
+        "visited_only": sum(1 for p in people if p["landing"] and not p["account"]),
+        "accounts": len(accounts),
+        "stopped": len(stopped),
+        "stopped_at": Counter(p["last_step"] or "(no step)" for p in stopped),
+        "stopped_back": sum(p["returned"] for p in stopped),
+        "finished": len(accounts) - len(stopped),
+        "finished_back": sum(p["returned"] for p in accounts if p["finished"]),
+        "resumed": sum(p["resumed"] for p in accounts),
+        "resumed_finished": sum(p["resumed"] and p["finished"] for p in accounts),
+        "known": len(known),
+        "reminders": sum(reminders(p) for p in known),
+        "checkin": sum(checkin(p) for p in known),
+        "push": sum(p["user_id"] in push_users for p in known),
+        "any_opt_in": sum(reminders(p) or checkin(p) or p["user_id"] in push_users for p in known),
+        "setup_reminder": sum(bool((prefs(p).get("setupReminder") or {}).get("requestedAt")) for p in known),
+        "saved_first_week": sum(saved_first_week(p) for p in known),
+    }
+
+
+def render_return_loop(r: Dict) -> str:
+    def count(n: int) -> str:
+        return SMALL if 0 < n < MIN_CELL else str(n)
+
+    def share(n: int, d: int) -> str:
+        return "" if d < MIN_CELL or 0 < n < MIN_CELL else f"   ({pct(n, d)})"
+
+    labels = dict(STEPS)
+    out = ["== Bringing people back (Group 11): three groups, and what each gets now",
+           f"  visited, no account yet          {count(r['visited_only'])}   "
+           "(Start here keeps their answers and reopens on their starter resources)",
+           f"  stopped during setup             {count(r['stopped'])}{share(r['stopped'], r['accounts'])}   "
+           "(setup reopens where they left off; one email only if they asked for it)"]
+    if r["stopped"] >= MIN_CELL:
+        for step, n in r["stopped_at"].most_common():
+            out.append(f"    last step seen: {labels.get(step, step)[:27]:<27} {count(n)}")
+        out.append(f"    came back within 7 days          {count(r['stopped_back'])}{share(r['stopped_back'], r['stopped'])}")
+    out.append(f"  finished setup                   {count(r['finished'])}{share(r['finished'], r['accounts'])}   "
+               "(check-ins, the getting-started list, and emails they turned on)")
+    out.append(f"  left setup and came back to it   {count(r['resumed'])}, of whom finished {count(r['resumed_finished'])}")
+    out.append(f"  opted in, of {r['known']} accounts: daily reminder emails {count(r['reminders'])}{share(r['reminders'], r['known'])}, "
+               f"check-in emails {count(r['checkin'])}{share(r['checkin'], r['known'])}, "
+               f"notifications {count(r['push'])}{share(r['push'], r['known'])}; "
+               f"any of them {count(r['any_opt_in'])}{share(r['any_opt_in'], r['known'])}")
+    out.append(f"  asked for a reminder to finish setup   {count(r['setup_reminder'])}")
+    out.append(f"  saved a resource in their first week   {count(r['saved_first_week'])}{share(r['saved_first_week'], r['known'])}")
+    return "\n".join(out)
+
+
+def summarize_goal_helper(people: List[dict]) -> Dict:
+    """The AI goal helper (Group 11 suggested testing "the AI guide vs the
+    standard Goals step"): of the accounts that reached the goal step, who got
+    suggestions, who added one, and how often each group finished setup. Not
+    a randomized test: people choose to open the helper. Pure."""
+    at_goal = [p for p in people if p["account"] and "goalsAndDreams" in p["steps"]]
+    used = [p for p in at_goal if p["helper_used"]]
+    others = [p for p in at_goal if not p["helper_used"]]
+    return {
+        "reached": len(at_goal),
+        "used": len(used),
+        "picked": sum(p["helper_picked"] for p in used),
+        "used_finished": sum(p["finished"] for p in used),
+        "others": len(others),
+        "others_finished": sum(p["finished"] for p in others),
+    }
+
+
+def render_goal_helper(g: Dict) -> str:
+    out = ["== The goal helper (Group 11: optional AI help on the goal step)",
+           f"  reached the goal step            {g['reached']}"]
+    if g["used"] < MIN_CELL:
+        out.append(f"  got suggestions                  {SMALL if g['used'] else 0}   (fewer than {MIN_CELL}: no rates yet)")
+        return "\n".join(out)
+    out.append(f"  got suggestions                  {g['used']}   ({pct(g['used'], g['reached'])}); "
+               f"added one: {pct(g['picked'], g['used'])}")
+    out.append(f"  finished setup: with the helper {pct(g['used_finished'], g['used'])}, "
+               f"without it {pct(g['others_finished'], g['others']) if g['others'] >= MIN_CELL else SMALL}")
+    out.append("  (people choose to use it, so this compares groups, not cause and effect)")
+    return "\n".join(out)
+
+
 def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
     """Making the path, for the accounts in this funnel (Riipen Labs Group 9
     saw setup "freezing"): how many got a path, how many needed more than one
@@ -1008,7 +1148,9 @@ def main() -> int:
     audience_by_user = {}
     heard_from_by_user = {}
     joined_by_user = {}
+    prefs_by_user: Dict[str, dict] = {}
     for p in fetch_all(sb, "profiles", "id, preferences, created_at"):
+        prefs_by_user[p["id"]] = p.get("preferences") or {}
         if p.get("created_at"):
             joined_by_user[p["id"]] = p["created_at"]
         heard = (p.get("preferences") or {}).get("heardFrom")
@@ -1039,6 +1181,23 @@ def main() -> int:
     print(render_last_seen(summarize_last_seen(events, args.version)))
     print()
     print(render_ask_later(summarize_ask_later(events, args.version)))
+    print()
+    push_users: set = set()
+    first_save_by_user: Dict[str, str] = {}
+    try:
+        push_users = {r["user_id"] for r in fetch_all(sb, "push_subscriptions", "user_id")}
+    except Exception:
+        pass  # without it, notifications show 0
+    try:
+        for r in fetch_all(sb, "saved_resources", "user_id, created_at"):
+            if r.get("user_id") and r.get("created_at"):
+                if r["user_id"] not in first_save_by_user or r["created_at"] < first_save_by_user[r["user_id"]]:
+                    first_save_by_user[r["user_id"]] = r["created_at"]
+    except Exception:
+        pass  # without it, first-week saves show 0
+    print(render_return_loop(summarize_return_loop(funnel["people"], prefs_by_user, push_users, first_save_by_user)))
+    print()
+    print(render_goal_helper(summarize_goal_helper(funnel["people"])))
     print()
     print(render_resourcehub(summarize_resourcehub(rh_events)))
     print()

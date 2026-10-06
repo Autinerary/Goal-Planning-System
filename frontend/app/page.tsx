@@ -12,7 +12,11 @@ import {
   ChevronDown,
   HeartHandshake,
   Sparkles,
+  MessagesSquare,
+  Layers,
+  ShieldCheck,
 } from 'lucide-react'
+import Image from 'next/image'
 import FunnelPing from './components/FunnelPing'
 import StartHere from './components/StartHere'
 
@@ -42,6 +46,13 @@ import StartHere from './components/StartHere'
  * primary button now leads into Start Here, which ends in "Save this path"
  * (the free account); creating an account straight away stays one click
  * away, as the secondary button.
+ *
+ * Riipen Labs, Group 11 asked for value and trust before the account: what
+ * makes Autinerary different ("Why Autinerary"), a preview of what the app
+ * looks like inside, and "what you'll share / what you get / how we protect
+ * it", with honest answers explained and "prefer not to say" always there.
+ * The screenshots are of the real app with a sample plan; retake them when
+ * those screens change (docs/first-visit-to-return.md says how).
  */
 
 const PRIMARY_CTA =
@@ -70,6 +81,61 @@ const WHAT_YOU_GET = [
     icon: PenLine,
     title: 'A journal to look back on',
     body: 'Write how things went and notice what is working. Streak freezes mean one missed day does not undo the weeks before it.',
+  },
+  {
+    icon: MessagesSquare,
+    title: 'Advice from people like you',
+    body: 'Tidbits has questions and answers from people with similar experiences, so you can learn from lived experience, not only from experts.',
+  },
+  {
+    icon: Layers,
+    title: 'Built for more than one norm',
+    body: 'Plan around everything you navigate at once, like ADHD and being a newcomer. Positive and non-clinical: we talk about norms, not deficits.',
+  },
+]
+
+// Real screens with a sample plan (Riipen Labs, Group 11: "a short visual
+// tour on the homepage ... so visitors see the result before they start").
+const PREVIEW = [
+  {
+    src: '/preview/path.jpg',
+    alt: 'The Path on a phone. "Your next step" is "Choose a language to learn", the first of 16 small steps, with an "Open this step" button.',
+    caption: 'Your Path: the next step, one at a time.',
+  },
+  {
+    src: '/preview/step.jpg',
+    alt: 'A step on a phone: "Choose a language to learn", with a short explanation, its progress, and the next steps to take.',
+    caption: 'A step: what to do, in small parts.',
+  },
+  {
+    src: '/preview/calendar.jpg',
+    alt: 'The calendar on a phone with Low Energy chosen: a schedule for hard days with only critical tasks. Balanced and High Energy are the other choices.',
+    caption: 'The calendar: a lighter plan for low-energy days.',
+  },
+  {
+    src: '/preview/resourcehub.jpg',
+    alt: 'ResourceHub on a phone: "Find resources rated by people like you, for people like you", a search box, and categories such as Therapists, Schools and Doctors.',
+    caption: 'ResourceHub: services rated by people like you.',
+  },
+]
+
+// What you share, what you get for it, and how it is protected (Group 11).
+// Each statement is on the privacy page.
+const EXCHANGE = [
+  {
+    icon: ListChecks,
+    title: 'What you share',
+    body: 'Required: that you are 18 or older, who you are here for, and one goal. Everything else is optional, and \u201cPrefer not to share\u201d is always an answer.',
+  },
+  {
+    icon: Sparkles,
+    title: 'What you get for it',
+    body: 'A plan and starter resources built from your answers. Honest answers give better matches, like services rated by people with similar norms.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'How it is protected',
+    body: 'We don\u2019t sell your information, show ads, or use it to train AI. Sensitive answers are optional, and you can change or remove them, or ask us to delete everything.',
   },
 ]
 
@@ -174,11 +240,16 @@ export default function HomePage() {
 
       <StartHere />
 
-      {/* What you get */}
+      {/* Why Autinerary: what you get, and what makes it different (Group
+          11: "most neurodivergent apps focus on one job"). */}
       <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
         <div className="mx-auto max-w-5xl">
-          <h2 id="what-heading" className="text-2xl font-bold md:text-3xl">What you get</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <h2 id="what-heading" className="text-2xl font-bold md:text-3xl">Why Autinerary</h2>
+          <p className="mt-2 max-w-3xl text-lg text-slate-700">
+            Planning, services and advice from people with similar experiences, in one place and built around the norms
+            you navigate. Many apps do one of these. Autinerary connects them.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {WHAT_YOU_GET.map(({ icon: Icon, title, body }) => (
               <div key={title} className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
                 <Icon className="mt-0.5 h-6 w-6 shrink-0 text-indigo-700" aria-hidden="true" />
@@ -189,6 +260,31 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* A look inside, before any account. */}
+      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="inside-heading">
+        <div className="mx-auto max-w-5xl">
+          <h2 id="inside-heading" className="text-2xl font-bold md:text-3xl">A look inside</h2>
+          <p className="mt-2 text-slate-700">Screens from the app, with a sample plan for the goal &ldquo;Learn a new language&rdquo;.</p>
+          <ul className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {PREVIEW.map((shot) => (
+              <li key={shot.src}>
+                <figure>
+                  <Image
+                    src={shot.src}
+                    alt={shot.alt}
+                    width={600}
+                    height={1000}
+                    sizes="(min-width: 768px) 240px, 45vw"
+                    className="h-auto w-full rounded-xl border border-slate-300 bg-white shadow-sm"
+                  />
+                  <figcaption className="mt-2 text-sm text-slate-700">{shot.caption}</figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -272,8 +368,22 @@ export default function HomePage() {
       {/* Details people asked for, folded away until wanted so the page does
           not front-load everything (the review's main risk to avoid). */}
       <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="details-heading">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <h2 id="details-heading" className="text-2xl font-bold md:text-3xl">Before you sign up</h2>
+          <ul className="mt-6 grid gap-4 md:grid-cols-3">
+            {EXCHANGE.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="rounded-xl border border-slate-200 bg-white p-5">
+                <Icon className="h-6 w-6 text-indigo-700" aria-hidden="true" />
+                <h3 className="mt-2 font-semibold">{title}</h3>
+                <p className="mt-1 text-slate-700">{body}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm text-slate-700">
+            <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+              Read what we collect and why
+            </Link>
+          </p>
           <div className="mt-6 space-y-3">
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">

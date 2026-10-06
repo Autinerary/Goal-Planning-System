@@ -9,7 +9,7 @@ import {
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 import {
-  AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, REMINDER_TIMES, DEFAULT_REMINDERS,
+  AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, DEFAULT_REMINDERS,
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
@@ -24,6 +24,7 @@ import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import DiagnosticProfileSection from './DiagnosticProfileSection'
+import GoalHelper from '@/app/components/GoalHelper'
 import {
   CONDITION_GROUPS,
   EMPTY_DIAGNOSTIC_PROFILE,
@@ -641,6 +642,9 @@ export default function OnboardingPage() {
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
   const [draftReady, setDraftReady] = useState(false)
   const draftRestored = useRef(false)
+  // The step a saved draft reopened on, to say so there (Riipen Labs, Group
+  // 11: "Need a break? Your progress is saved"). Null on a fresh start.
+  const [resumedStep, setResumedStep] = useState<number | null>(null)
   const draftSubmitted = useRef(false)
   // Stable answers from the last completed onboarding, reused to prefill when a
   // returning user starts another path (see the carry-over block on mount).
@@ -663,7 +667,10 @@ export default function OnboardingPage() {
           // A step that no longer exists (AI recommendations, the last one)
           // resumes at the last step there is.
           const at = stepIndex(id)
-          setCurrentStep(data.ageConfirmation === 'adult' ? (at >= 0 ? at : steps.length - 1) : 0)
+          const resumeAt = data.ageConfirmation === 'adult' ? (at >= 0 ? at : steps.length - 1) : 0
+          setCurrentStep(resumeAt)
+          // Only when something was answered: every visit saves a draft.
+          if (data.ageConfirmation || data.audience) setResumedStep(resumeAt)
           restoredDraft = true
         }
       }
@@ -786,12 +793,38 @@ export default function OnboardingPage() {
     track('onboarding_step_view', steps[currentStep].id)
   }, [currentStep, draftReady])
 
+  // A reminder to finish setup, by email, only when asked for (see the
+  // footer). Remembered in this browser so the offer is not repeated.
+  const SETUP_REMINDER_KEY = 'autinerary_setup_reminder'
+  const [setupReminder, setSetupReminder] = useState<'none' | 'asked' | 'failed'>('none')
+  useEffect(() => {
+    try { if (localStorage.getItem(SETUP_REMINDER_KEY)) setSetupReminder('asked') } catch {}
+  }, [])
+  const saveSetupReminder = (value: { requestedAt: string } | null) =>
+    fetch('/api/me/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ setupReminder: value }),
+    }).then(res => res.ok).catch(() => false)
+  const requestSetupReminder = async () => {
+    const ok = await saveSetupReminder({ requestedAt: new Date().toISOString() })
+    setSetupReminder(ok ? 'asked' : 'failed')
+    if (ok) try { localStorage.setItem(SETUP_REMINDER_KEY, '1') } catch {}
+  }
+  const cancelSetupReminder = async () => {
+    if (!(await saveSetupReminder(null))) return
+    setSetupReminder('none')
+    try { localStorage.removeItem(SETUP_REMINDER_KEY) } catch {}
+  }
+
   // Clear autosave + consumed path seed on successful submission
   const clearAutosave = () => {
     draftSubmitted.current = true
     try {
       localStorage.removeItem(AUTOSAVE_KEY)
       localStorage.removeItem('autinerary_path_seed')
+      localStorage.removeItem(SETUP_REMINDER_KEY)
     } catch {}
   }
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1496,6 +1529,11 @@ export default function OnboardingPage() {
 
         {/* Step Content Card */}
         <div className="rounded-2xl p-6 md:p-8 surface">
+          {resumedStep === currentStep && (
+            <p role="status" className="mb-5 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-slate-800">
+              Welcome back. Your answers were saved, so you are where you left off.
+            </p>
+          )}
           {missingSections.length > 0 && (
             <div role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">
               <p className="font-semibold">Complete these required sections:</p>
@@ -2286,6 +2324,25 @@ export default function OnboardingPage() {
             const otherPersonLabel = otherConnectionIds.length === 1
               ? (connectionTypes.find(c => c.id === otherConnectionIds[0])?.label || 'them').replace(' (Lived Experience)', '')
               : 'them'
+            // What the goal helper may suggest: the ideas this step shows (and
+            // the examples in each field), nothing else (components/GoalHelper).
+            const helperIdeas = goalCategories.flatMap(cat => {
+              const examples = cat.placeholder.replace(/^e\.g\.,\s*/, '').split(',').map(s => s.trim()).filter(Boolean)
+              const seeded = pathSeed?.focusCategory === cat.id ? pathSeed.suggestions : []
+              return Array.from(new Set([...seeded, ...getGoalSuggestions(cat.id, selectedBarrierTypes), ...examples]))
+                .map(text => ({ category: cat.id, text }))
+            })
+            const addGoal = (category: string, goal: string) => {
+              setOpenGoalCategory(category)
+              setFormData(prev => {
+                const list = [...(prev.goalsByCategory[category] || [])]
+                if (list.some(e => e.goal.trim().toLowerCase() === goal.toLowerCase())) return prev
+                const emptyIdx = list.findIndex(e => !e.goal.trim())
+                if (emptyIdx >= 0) list[emptyIdx] = { ...list[emptyIdx], goal }
+                else list.push({ goal, dreams: '', obstacles: '' })
+                return { ...prev, goalsByCategory: { ...prev.goalsByCategory, [category]: list } }
+              })
+            }
             return (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal</h2>
@@ -2326,6 +2383,15 @@ export default function OnboardingPage() {
                   )
                 })}
               </div>
+
+              {/* Optional AI help for the hardest question in setup (Riipen
+                  Labs, Group 11): one line until asked for. */}
+              <GoalHelper
+                ideas={helperIdeas}
+                categoryLabel={(id) => goalCategories.find(c => c.id === id)?.label || 'Other'}
+                audience={formData.audience}
+                onAdd={addGoal}
+              />
 
               {/* Category sections: the one picked, the chosen path's focus, and
                   any that already hold a goal. */}
@@ -3018,8 +3084,9 @@ export default function OnboardingPage() {
                     aria-checked={formData.reminders.enabled}
                     onClick={() => updateReminders({
                       enabled: !formData.reminders.enabled,
-                      // Prefill email contact when turning on with the email channel.
-                      contact: !formData.reminders.enabled && formData.reminders.channel === 'email' && !formData.reminders.contact
+                      channel: 'email',
+                      // Prefill the account's email when turning on.
+                      contact: !formData.reminders.enabled && (formData.reminders.channel !== 'email' || !formData.reminders.contact)
                         ? (user?.email || '')
                         : formData.reminders.contact,
                     })}
@@ -3037,92 +3104,45 @@ export default function OnboardingPage() {
 
                 {formData.reminders.enabled && (
                   <div className="mt-4 space-y-4">
-                    {/* Channel */}
-                    <div>
-                      <span className="block text-sm font-medium text-slate-700 mb-2">How should we reach you?</span>
-                      <div className="grid grid-cols-2 gap-3">
-                        {([
-                          { id: 'email', label: 'Email' },
-                          { id: 'sms', label: 'Text message' },
-                        ] as const).map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => updateReminders({
-                              channel: c.id,
-                              // Swap in the email as a sensible default when switching to email.
-                              contact: c.id === 'email' && !formData.reminders.contact ? (user?.email || '') : (c.id === 'sms' ? '' : formData.reminders.contact),
-                            })}
-                            className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                              formData.reminders.channel === c.id
-                                ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                                : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                            }`}
-                          >
-                            {c.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Contact */}
+                    {/* Email only, once a day: what the daily send (app/api/cron/
+                        reminders, 13:00 UTC) does. Text messages and a choice of
+                        time were offered here, but nothing sent texts or used the
+                        time (Riipen Labs, Group 11's "users choose the timing" is
+                        in docs/first-visit-to-return.md). */}
                     <div>
                       <label htmlFor="reminder-contact" className="block text-sm font-medium text-slate-700 mb-1">
-                        {formData.reminders.channel === 'email' ? 'Email address' : 'Phone number'}
+                        Email address
                       </label>
                       <input
                         id="reminder-contact"
-                        type={formData.reminders.channel === 'email' ? 'email' : 'tel'}
+                        type="email"
                         value={formData.reminders.contact}
-                        onChange={(e) => updateReminders({ contact: e.target.value })}
-                        placeholder={formData.reminders.channel === 'email' ? 'you@example.com' : '+1 555 123 4567'}
+                        onChange={(e) => updateReminders({ contact: e.target.value, channel: 'email' })}
+                        placeholder="you@example.com"
                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                     </div>
 
-                    {/* Time */}
-                    <div>
-                      <span className="block text-sm font-medium text-slate-700 mb-2">When?</span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {REMINDER_TIMES.map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => updateReminders({ time: t.id })}
-                            className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
-                              formData.reminders.time === t.id
-                                ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                                : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                            }`}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Consent */}
-                    <label className="flex items-start gap-2 text-xs text-slate-600 cursor-pointer">
+                    <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.reminders.consent}
-                        onChange={(e) => updateReminders({ consent: e.target.checked })}
+                        onChange={(e) => updateReminders({ consent: e.target.checked, channel: 'email' })}
                         className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                       />
                       <span>
-                        I agree to receive daily goal reminders at the contact above. I can turn these
+                        I agree to receive daily goal reminders at this email address. I can turn these
                         off anytime.
                       </span>
                     </label>
 
                     {formData.reminders.consent && !formData.reminders.contact.trim() && (
-                      <p className="text-xs text-amber-600">Add a {formData.reminders.channel === 'email' ? 'email' : 'phone number'} so we know where to send reminders.</p>
+                      <p className="text-xs text-amber-800">Add an email address so we know where to send reminders.</p>
                     )}
 
-                    {/* Honest note: we store the preference now; delivery isn't live yet. */}
-                    <p className="text-xs text-slate-600 italic">
-                      We&apos;ll save this to your profile now. Reminder delivery is rolling out soon. 
-                      we won&apos;t message you until it&apos;s switched on.
+                    <p className="text-xs text-slate-700">
+                      One email a day, in the morning (Eastern time). Turn it off anytime in Settings, under Emails.
                     </p>
                   </div>
                 )}
@@ -3237,6 +3257,38 @@ export default function OnboardingPage() {
             ? <>Optional extra {currentStep - CORE_STEP_COUNT + 1} of {steps.length - CORE_STEP_COUNT}</>
             : <>Step {currentStep + 1} of {CORE_STEP_COUNT}</>}
         </div>
+
+        {/* Need a break? (Riipen Labs, Group 11: "Your progress is saved ...
+            Send an email reminder if the user shared an email.") The draft is
+            kept in this browser (AUTOSAVE_KEY). The email is sent only when
+            asked for here, once, by the daily send (app/api/cron/reminders). */}
+        {!isSubmitting && (
+          <div className="mt-2 text-center text-sm text-slate-700">
+            <p>Need a break? Your answers are saved on this device, so you can close this page and finish later.</p>
+            {/* Not for someone making another path: setup counts as done for
+                them, so the reminder would never be sent. */}
+            {user?.email && !user.hasCompletedOnboarding && canAccessOnboarding && setupReminder === 'none' && (
+              <button
+                type="button"
+                onClick={requestSetupReminder}
+                className="mt-1 font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+              >
+                Email me a reminder tomorrow
+              </button>
+            )}
+            {setupReminder === 'asked' && (
+              <p role="status" className="mt-1">
+                We&apos;ll send one email to {user?.email} tomorrow morning, and nothing else.{' '}
+                <button type="button" onClick={cancelSetupReminder} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                  Don&apos;t send it
+                </button>
+              </p>
+            )}
+            {setupReminder === 'failed' && (
+              <p role="status" className="mt-1">The reminder could not be set up just now. Please try again later.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

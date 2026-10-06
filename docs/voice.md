@@ -37,6 +37,25 @@ screen, an email, a post.
 | Stuck on a barrier? | Stuck on something? |
 | You can turn them off in Settings. (There was no switch.) | You can turn them off in Settings, under Emails. (There is one.) |
 
+## Video, audio and the app's own voice
+
+Riipen Labs' Group 11 suggested an explainer video, testimonials, podcasts
+and a "how to use the app" video. Anything Autinerary publishes that moves
+or speaks follows the seven rules above, and these:
+
+1. **Captions on by default**, and a transcript beside it. Captions are written, not auto-generated and left unchecked.
+2. **No sound until someone presses play.** Nothing plays by itself; a muted preview is fine.
+3. **Short:** 60 to 90 seconds for a video. About 10 minutes for an episode, with a way to stop and pick up later.
+4. **Calm pacing:** one idea at a time, no fast cuts, no flashing (no more than three flashes a second), and quiet or no music under speech.
+5. **Always skippable**, and never in the way: the page works without watching.
+6. **Real people, with consent.** Stories come from people who agreed in writing ([beta/testimonials.md](beta/testimonials.md)). Never actors presented as users, never invented quotes.
+7. **Only what is true** (rule 5): show the app as it is now, and say "sample plan" when the data is made up.
+
+When the app itself speaks (spoken descriptions, the read-aloud tour, voice
+navigation), people choose the voice, the speed and the volume in Settings →
+Accessibility, and can try it first. Every place that speaks uses those
+choices (`frontend/lib/speech.ts`).
+
 ## Where the voice is set
 
 - Start here: `frontend/lib/startHere.ts` (roles, needs, explanations).

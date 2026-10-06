@@ -83,6 +83,29 @@ export function welcomeEmail(appUrl: string): { subject: string; html: string; t
 }
 
 /**
+ * A reminder to finish setup (Riipen Labs, Group 11: "Need a break? Your
+ * progress is saved"). Sent once, only to someone who asked for it on the
+ * setup page, and only while setup is still unfinished (app/api/cron/reminders).
+ */
+export function finishSetupEmail(appUrl: string): { subject: string; html: string; text: string } {
+  const link = `${appUrl.replace(/\/$/, '')}/onboarding`
+  return {
+    subject: 'Your Autinerary setup is waiting',
+    text: `Hi,\n\nYou asked us to remind you to finish setting up Autinerary. Your answers are saved on the device you used, so you can pick up where you left off:\n${link}\n\nOne goal is all it takes to get your path. This is the only reminder we will send.\n\n- Autinerary`,
+    html: `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
+        <p style="font-size:16px">Hi,</p>
+        <p style="font-size:16px;line-height:1.5">You asked us to remind you to finish setting up Autinerary. Your answers are saved on the device you used, so you can pick up where you left off.</p>
+        <p style="margin:24px 0">
+          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Finish setup</a>
+        </p>
+        <p style="font-size:16px;line-height:1.5">One goal is all it takes to get your path.</p>
+        <p style="font-size:13px;color:#475569;line-height:1.5">This is the only reminder we will send.</p>
+      </div>`,
+  }
+}
+
+/**
  * The inactive-user check-in (Riipen Labs, Group 2): one question, sent only to
  * people who opted in, after two weeks away. The links work without signing
  * in: one answers the question, the other turns these emails off.

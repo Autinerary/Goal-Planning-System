@@ -122,9 +122,11 @@ input[type="radio"] {
 }
 
 /* Skip link for keyboard navigation */
+/* Fully above the page until focused: at -40px its bottom edge showed as a
+   black bar on phones, where larger text makes the link taller than 40px. */
 .skip-link {
   position: absolute;
-  top: -40px;
+  top: -100px;
   left: 0;
   background: #000;
   color: #fff;

@@ -28,7 +28,8 @@ import type { StarterItem } from '../api/starter-resources/route'
  * asked twice), and they are saved to the account with the path.
  *
  * Campaign links can start part-way: /start?for=child, or
- * /start?for=child&need=services to open straight on a pathway.
+ * /start?for=child&need=services to open straight on a pathway. The same
+ * link is what "Send this list to yourself" shares.
  */
 
 const HUB = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
@@ -66,6 +67,7 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const [useful, setUseful] = useState<'' | 'yes' | 'no'>('')
   const [savedAs, setSavedAs] = useState('')
   const [saveNote, setSaveNote] = useState('')
+  const [shareNote, setShareNote] = useState('')
   const stepHeading = useRef<HTMLHeadingElement>(null)
   // Focus follows the person between steps, never on page load.
   const moved = useRef(false)
@@ -152,6 +154,7 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
     moved.current = true
     setUseful('')
     setSaveNote('')
+    setShareNote('')
     setStep(next)
   }
 
@@ -202,6 +205,25 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
       .catch(() => false)
     if (ok) setSavedAs(answer)
     setSaveNote(ok ? 'Saved. You can open it again from Quick Links on your Path.' : 'This could not be saved just now. Please try again.')
+  }
+
+  // Not ready for an account: keep the list without one (Riipen Labs, Group
+  // 11 suggested "Want these saved and emailed to you?"). The link reopens
+  // this pathway, and the phone's share sheet can email it to themselves, so
+  // Autinerary never collects an address from someone without an account.
+  const sendToSelf = async () => {
+    const url = `${window.location.origin}/start?for=${encodeURIComponent(role)}&need=${encodeURIComponent(goal)}`
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: `Autinerary: ${pathwayTitle(role, goal)}`, url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setShareNote('Link copied. Paste it into an email or a note to come back to this list.')
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return
+      setShareNote(`Keep this link to come back to this list: ${url}`)
+    }
   }
 
   const hubHref = (path: string) => (user ? goHubHref(path) : `${HUB}${path}`)
@@ -409,6 +431,15 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                   <Link href="/privacy" className={TEXT_BUTTON}>
                     What we collect
                   </Link>
+                </p>
+              )}
+              {!user && (
+                <p className="mt-2 text-sm text-slate-800">
+                  Not ready for an account?{' '}
+                  <button type="button" onClick={sendToSelf} className={TEXT_BUTTON}>
+                    Send this list to yourself
+                  </button>
+                  {shareNote && <span role="status" className="mt-1 block break-all">{shareNote}</span>}
                 </p>
               )}
               <p className="mt-3 text-sm">

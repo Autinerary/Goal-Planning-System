@@ -22,8 +22,9 @@ export type ViewPreference = 'plain' | 'pretty' | 'exciting' | 'fun'
 export type ReminderChannel = 'email' | 'sms'
 
 /**
- * Daily goal-reminder opt-in. This is the storage/consent groundwork only — the
- * actual send pipeline (scheduler + email/SMS provider) is a separate workstream.
+ * Daily goal-reminder opt-in. Email reminders are sent once a day, at 13:00
+ * UTC, by app/api/cron/reminders. Text messages and a chosen time are not
+ * sent or used; `channel: 'sms'` and `time` stay readable for saved data.
  * Persisted to profiles.preferences.reminders (cross-device) via onboarding submit
  * and mirrored to localStorage for instant UX.
  */
@@ -61,7 +62,7 @@ export interface UserPreferences {
   accessibility: AccessibilitySettings
   /** UI language code (BCP-47-ish, e.g. "en", "es", "fr"). */
   language: string
-  /** Daily goal-reminder opt-in (storage/consent only; delivery not yet wired). */
+  /** Daily goal-reminder opt-in (emailed by app/api/cron/reminders). */
   reminders: ReminderPreferences
   /** Onboarding's first question: who this person is here for. */
   audience?: string | null
@@ -89,6 +90,12 @@ export interface AccessibilitySettings {
   soundEffects: boolean
   spokenDescriptions: boolean
   voiceNavigation: boolean
+  /** The voice used when the app speaks (a browser voice name); '' is the browser's default. */
+  voiceName: string
+  /** Speaking speed: 0.8 slower, 1 normal, 1.2 faster (lib/speech.ts). */
+  speechRate: number
+  /** Speaking volume, 0 to 1. */
+  speechVolume: number
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -100,6 +107,9 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   soundEffects: true,
   spokenDescriptions: false,
   voiceNavigation: false,
+  voiceName: '',
+  speechRate: 1,
+  speechVolume: 1,
 }
 
 export const DEFAULT_LAYOUT: LayoutPositions = {
@@ -116,13 +126,6 @@ export const DEFAULT_REMINDERS: ReminderPreferences = {
   consent: false,
 }
 
-/** Preset send times for the reminder opt-in (value is "HH:MM", 24h). */
-export const REMINDER_TIMES: { id: string; label: string }[] = [
-  { id: '09:00', label: 'Morning · 9:00 AM' },
-  { id: '12:00', label: 'Midday · 12:00 PM' },
-  { id: '18:00', label: 'Evening · 6:00 PM' },
-  { id: '21:00', label: 'Night · 9:00 PM' },
-]
 
 // ── Layout option metadata (single source of truth for UI + CSS) ──
 

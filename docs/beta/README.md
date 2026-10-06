@@ -9,6 +9,7 @@ Use the files in this order:
 | 2 | [screener.md](screener.md) | Sign-up questions, to copy into a Google Form | Before posting |
 | 3 | [consent.md](consent.md) | What testers agree to, in plain language | Sent with the session invitation |
 | 4 | [session-script.md](session-script.md) | What the facilitator says and records, task by task | Each 40-minute session (12 to 23 October) |
+| 5 | [testimonials.md](testimonials.md) | Consent to share someone's story on the website (Group 11) | Only when a tester offers a story, after their session |
 
 The 30-day trial runs 12 October to 10 November. The app records the trial's
 measures by itself; the report is `python -m scripts.onboarding_funnel`

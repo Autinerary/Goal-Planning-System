@@ -6,6 +6,7 @@ import { recordVisit } from '@/lib/disclosure'
 import { recordLoginDay } from '@/lib/streak'
 import { useAuth } from '../context/AuthContext'
 import { describeElement } from '@/lib/infoMode'
+import { speak, stopSpeaking } from '@/lib/speech'
 
 /**
  * Applies the user's accessibility settings to the document on mount and
@@ -27,12 +28,10 @@ export default function AccessibilityProvider() {
       lastControl = control
       lastSpoken = Date.now()
       const description = describeElement(control)
-      const utterance = new SpeechSynthesisUtterance([description.title, description.body].filter(Boolean).join('. '))
-      utterance.lang = loadPreferences().language
-      window.speechSynthesis.cancel()
-      window.speechSynthesis.speak(utterance)
+      // In the voice, speed and volume chosen in Settings → Accessibility.
+      speak([description.title, description.body].filter(Boolean).join('. '))
     }
-    const cancel = () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel() }
+    const cancel = () => stopSpeaking()
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') cancel() }
     document.addEventListener('click', describe, true)
     document.addEventListener('focusin', describe, true)

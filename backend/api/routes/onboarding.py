@@ -835,6 +835,32 @@ async def delete_user_path(user_id: str, path_id: str, caller_id: str = Depends(
         raise HTTPException(status_code=400, detail="Could not delete path.")
     return {"pathId": path_id, "deleted": True}
 
+
+class GoalIdea(BaseModel):
+    category: str
+    text: str
+
+
+class GoalHelperRequest(BaseModel):
+    text: str = ""
+    audience: Optional[str] = None
+    # The goal ideas setup shows this person; suggestions come only from these
+    # (plus one goal in their own words). core/goal_helper.py checks them.
+    ideas: List[GoalIdea] = Field(default_factory=list)
+
+
+@router.post("/goal-helper")
+async def goal_helper(request: GoalHelperRequest, actor: str = Depends(onboarding_user_id)):
+    """The optional AI goal helper on setup's goal step (Riipen Labs, Group 11)."""
+    from core import goal_helper as helper
+    audience = request.audience if isinstance(request.audience, str) else None
+    try:
+        return await helper.suggest(request.text, request.ideas[:helper.MAX_IDEAS],
+                                    (audience or "")[:60] or None, actor)
+    except budget.LimitExceeded as e:
+        raise HTTPException(status_code=429, detail=e.message)
+
+
 @router.get("/questions")
 async def get_onboarding_questions():
     """

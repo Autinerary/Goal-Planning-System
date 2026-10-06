@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Mic, MicOff, Volume2, VolumeX, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { speak } from '@/lib/speech'
 
 /**
  * First-run introduction overlay (Eliyana: "a microphone button would be a good
@@ -134,11 +135,7 @@ export default function FirstRunIntro() {
     if (!visible || !ttsOn || !ttsSupported) return
     const { title, body } = STEPS[step]
     try {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(`${title}. ${body}`)
-      u.rate = 1
-      u.pitch = 1
-      window.speechSynthesis.speak(u)
+      speak(`${title}. ${body}`)
     } catch {
       /* ignore */
     }
