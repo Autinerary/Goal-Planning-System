@@ -56,9 +56,13 @@ and more topics are asked later, where they are used. See
 
 ## Less at once
 
-The optional norms list (about 80 options in nine groups) opens one group at
-a time, with what is picked shown above the groups; it used to show every
-group at once, repeated for each connection picked (Riipen Labs Group 9).
+Riipen Labs Group 9 found setup showed too much at once. The goal step, which
+everyone completes, now opens only the category picked (and any that already
+hold a goal), with its field ready; it used to show all six, each with its own
+ideas and fields, and the optional "biggest dream" box is one line until asked
+for. The optional norms list (about 80 options in nine groups) opens one group
+at a time, with what is picked shown above the groups; it used to show every
+group at once, repeated for each connection picked.
 
 ## Testing the assumption
 

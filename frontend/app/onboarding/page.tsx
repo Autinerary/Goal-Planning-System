@@ -611,6 +611,10 @@ export default function OnboardingPage() {
   const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
   // Which section of the norms list is open, per connection: one at a time.
   const [openNormSection, setOpenNormSection] = useState<Record<string, string | null>>({})
+  // The goal step shows the category picked (and any that already hold a
+  // goal), not all six at once; the dream box opens on request.
+  const [openGoalCategory, setOpenGoalCategory] = useState<string | null>(null)
+  const [showUltimateDream, setShowUltimateDream] = useState(false)
   // Free-text custom barriers the user adds per connection (e.g. "public speaking").
   const [customBarrierDraft, setCustomBarrierDraft] = useState<Record<string, string>>({})
   // Sensitive optional details intentionally stay out of the localStorage
@@ -2280,25 +2284,35 @@ export default function OnboardingPage() {
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal</h2>
               <p className="text-slate-600 mb-6">{goalIntro}</p>
               
-              {/* Category tabs */}
+              {/* Category tabs: pick one, and only that one opens (Riipen Labs,
+                  Group 9: all six used to show at once, each with its own
+                  ideas and fields, on a step everyone has to complete). */}
               <div className="flex flex-wrap gap-2 mb-6">
                 {goalCategories.map((cat) => {
                   const count = (formData.goalsByCategory[cat.id] || []).filter(e => e.goal.trim()).length
+                  const isOpen = openGoalCategory === cat.id
                   return (
                     <button
                       key={cat.id}
+                      type="button"
+                      aria-pressed={isOpen}
                       onClick={() => {
-                        // Toggle open/scroll to that category
-                        const el = document.getElementById(`goal-cat-${cat.id}`)
-                        el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        setOpenGoalCategory(cat.id)
+                        // Its goal field is ready to type in.
+                        setFormData(prev => (prev.goalsByCategory[cat.id] || []).length > 0 ? prev : {
+                          ...prev,
+                          goalsByCategory: { ...prev.goalsByCategory, [cat.id]: [{ goal: '', dreams: '', obstacles: '' }] },
+                        })
+                        setTimeout(() => document.getElementById(`goal-cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
                       }}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        count > 0
-                          ? 'bg-cyan-100 text-cyan-700 border border-cyan-300'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:border-cyan-400'
+                        isOpen
+                          ? 'bg-indigo-600 text-white border border-indigo-600'
+                          : count > 0
+                            ? 'bg-cyan-100 text-cyan-700 border border-cyan-300'
+                            : 'bg-white border border-slate-200 text-slate-600 hover:border-cyan-400'
                       }`}
                     >
-                      <span>{cat.emoji}</span>
                       {cat.label}
                       {count > 0 && <span className="bg-cyan-700 text-white text-xs px-1.5 py-0.5 rounded-full">{count}</span>}
                     </button>
@@ -2306,14 +2320,22 @@ export default function OnboardingPage() {
                 })}
               </div>
 
-              {/* Category sections */}
+              {/* Category sections: the one picked, the chosen path's focus, and
+                  any that already hold a goal. */}
+              {!openGoalCategory && !pathSeed && !goalCategories.some(c => (formData.goalsByCategory[c.id] || []).some(e => e.goal.trim())) && (
+                <p className="mb-6 text-sm text-slate-600">Pick a category above to add your goal.</p>
+              )}
               <div className="space-y-6">
                 {goalCategories.map((cat) => {
                   const entries = formData.goalsByCategory[cat.id] || []
+                  const shown = openGoalCategory === cat.id
+                    || entries.some(e => e.goal.trim())
+                    || (!openGoalCategory && pathSeed?.focusCategory === cat.id)
+                  if (!shown) return null
                   return (
                     <div key={cat.id} id={`goal-cat-${cat.id}`} className="bg-white border border-slate-200 rounded-xl p-4">
                       <h3 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
-                        <span>{cat.emoji}</span> {cat.label}
+                        {cat.label}
                       </h3>
 
                       {/* Suggestions tailored to the chosen Path Market path —
@@ -2513,10 +2535,19 @@ export default function OnboardingPage() {
                 })}
               </div>
 
-              {/* Ultimate Dream */}
+              {/* Ultimate Dream: optional, so one line until someone wants it. */}
+              {!showUltimateDream && !formData.ultimateDream.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setShowUltimateDream(true)}
+                  className="mt-6 text-sm font-medium text-purple-700 underline hover:text-purple-900"
+                >
+                  + Add your biggest dream (optional)
+                </button>
+              ) : (
               <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
                 <h3 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
-                  <span>🌟</span> Ultimate Dream
+                  Ultimate Dream
                 </h3>
                 <p className="text-xs text-purple-600 mb-3">Beyond all your goals, what&apos;s your biggest dream?</p>
                 <input
@@ -2527,6 +2558,7 @@ export default function OnboardingPage() {
                   className="w-full bg-white border border-purple-200 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
                 />
               </div>
+              )}
             </div>
             )
           })()}

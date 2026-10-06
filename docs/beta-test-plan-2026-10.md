@@ -63,7 +63,8 @@ second generation for the same person (a retry, or a request the browser
 gave up on while the sleeping backend woke) ran beside the first and both met
 the per-person AI limit. The backend now runs one generation per person, the
 app wakes the backend when sign-up, sign-in or setup opens, and setup waits
-60 s instead of 20. The norms list opens one section at a time, and setup's
+60 s instead of 20. The goal step opens only the category picked (it showed
+all six at once), the norms list opens one section at a time, and setup's
 grass track with seven food emoji and an endlessly hopping bunny is now a
 slim progress bar with the bunny on it.
 
