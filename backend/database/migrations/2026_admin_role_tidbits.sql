@@ -141,3 +141,62 @@ DROP POLICY IF EXISTS community_answers_admin_read ON public.community_answers;
 CREATE POLICY community_answers_admin_read ON public.community_answers
   FOR SELECT TO authenticated
   USING (public.is_admin());
+
+-- 8. Resolve a report (POST /api/community/admin/reports/[id]/resolve), and
+--    optionally remove what it points at or lock the post. The route made up
+--    to three writes one after another and, if removing or locking failed,
+--    logged it and resolved the report anyway. Here they happen together or
+--    not at all, for an admin only.
+CREATE OR REPLACE FUNCTION public.community_resolve_report(
+  p_report_id     UUID,
+  p_status        TEXT,
+  p_note          TEXT DEFAULT NULL,
+  p_remove_target BOOLEAN DEFAULT FALSE,
+  p_lock_post     BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_report public.community_reports%ROWTYPE;
+BEGIN
+  IF v_caller IS NULL OR NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Admin only' USING ERRCODE = '42501';
+  END IF;
+  IF p_status IS NULL OR p_status NOT IN ('resolved_kept', 'resolved_removed', 'resolved_warned') THEN
+    RAISE EXCEPTION 'Invalid status' USING ERRCODE = '22023';
+  END IF;
+  SELECT * INTO v_report FROM public.community_reports WHERE id = p_report_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Report not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_report.status <> 'open' THEN
+    RAISE EXCEPTION 'Report already resolved' USING ERRCODE = '55000';
+  END IF;
+
+  IF p_remove_target AND v_report.target_type = 'post' THEN
+    UPDATE public.community_posts
+       SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+     WHERE id = v_report.target_id AND is_deleted = FALSE;
+  ELSIF p_remove_target AND v_report.target_type = 'answer' THEN
+    UPDATE public.community_answers
+       SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+     WHERE id = v_report.target_id AND is_deleted = FALSE;
+  END IF;
+  IF p_lock_post AND v_report.target_type = 'post' THEN
+    UPDATE public.community_posts
+       SET is_locked = TRUE, locked_reason = left(p_note, 500), locked_by = v_caller, locked_at = now()
+     WHERE id = v_report.target_id;
+  END IF;
+
+  UPDATE public.community_reports
+     SET status = p_status, resolved_by = v_caller, resolved_at = now(),
+         resolution_note = left(p_note, 1000)
+   WHERE id = p_report_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_resolve_report(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_resolve_report(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN) TO authenticated;
