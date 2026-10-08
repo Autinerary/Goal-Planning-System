@@ -33,6 +33,17 @@ export function getCommunityServiceClient(): SupabaseClient | null {
 }
 
 /**
+ * Whether the signed-in caller is an admin: a row in public.admin_users
+ * (STEP 55), checked by the database for this session only. Admin routes
+ * gate on this and then write with the caller's own session, so RLS policies
+ * that call is_admin() decide what they may change (STEP 58).
+ */
+export async function isCommunityAdmin(supabase: SupabaseClient): Promise<boolean> {
+  const { data, error } = await supabase.rpc('is_admin');
+  return !error && data === true;
+}
+
+/**
  * Resolve the currently signed-in user. Returns null if no session.
  * Use the cookie-bound `createClient()` so RLS still applies for reads.
  */

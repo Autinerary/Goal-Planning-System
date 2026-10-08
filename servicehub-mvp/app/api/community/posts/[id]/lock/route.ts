@@ -5,13 +5,15 @@
  * Locked posts become read-only: no new answers, no votes accepted. The
  * lock is honored by the answer-creation + vote endpoints (they check
  * the flag before writing).
+ *
+ * Admins are the people in public.admin_users. The write runs as the
+ * signed-in admin under RLS (community_posts_admin_update, STEP 58), not with
+ * the service-role key.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getCommunityServiceClient,
-  getCommunityViewer,
-} from '@/lib/community/client';
+import { createClient } from '@/lib/supabase/server';
+import { isCommunityAdmin } from '@/lib/community/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,12 +26,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer || !viewer.is_admin) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  if (!(await isCommunityAdmin(supabase))) {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
 
@@ -46,7 +48,7 @@ export async function POST(
     ? {
         is_locked: true,
         locked_reason: reason,
-        locked_by: viewer.user_id,
+        locked_by: user.id,
         locked_at: new Date().toISOString(),
       }
     : {
@@ -55,10 +57,15 @@ export async function POST(
         locked_by: null,
         locked_at: null,
       };
-  const { error } = await client.from('community_posts').update(update).eq('id', params.id);
+  const { data, error } = await supabase
+    .from('community_posts')
+    .update(update)
+    .eq('id', params.id)
+    .select('id');
   if (error) {
     console.error('[community] lock failed:', error.message);
     return NextResponse.json({ error: 'Lock failed' }, { status: 500 });
   }
+  if (!data?.length) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
