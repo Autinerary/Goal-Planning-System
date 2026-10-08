@@ -43,7 +43,7 @@ signed-out readers.
 | `frontend/app/api/path-models/[id]/approve` | Approve or reject a community path model | No | **Migrated** (STEP 55): `rpc('is_admin')`, then an update under RLS that only admins pass, on the `status` column only |
 | `servicehub-mvp/app/api/community/posts/[id]/lock` | Lock or unlock a post | No: one table, one admin update policy | **Migrated** (STEP 58 §1) |
 | `servicehub-mvp/app/api/community/posts/[id]` (PATCH) | Edit anyone's post | No: the same policy as the lock | **Migrated** (STEP 58 §2) |
-| `servicehub-mvp/app/api/community/answers/[id]` (PATCH) | Edit anyone's answer | No: one admin update policy | To migrate |
+| `servicehub-mvp/app/api/community/answers/[id]` (PATCH) | Edit anyone's answer | No: one admin update policy | **Migrated** (STEP 58 §3) |
 | `servicehub-mvp/app/api/community/profiles/[id]` (PATCH) | Edit someone else's community profile | No: admin read and update policies; an admin edits a profile but never creates one | To migrate |
 | `servicehub-mvp/app/api/community/posts/[id]` (DELETE) | Soft-delete anyone's post | No, but a policy is not enough: the deleted row fails the "not deleted" read policy, so this is a function that checks `is_admin()` | To migrate |
 | `servicehub-mvp/app/api/community/answers/[id]` (DELETE) | Soft-delete anyone's answer | No: a function, as for posts; it also keeps the post's answer count right | To migrate |

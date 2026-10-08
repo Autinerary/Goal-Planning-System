@@ -1,13 +1,19 @@
 /**
  * /api/community/answers/[id]
- *   PATCH  — edit body_markdown / image_urls (author only)
+ *   PATCH  — edit body_markdown / image_urls (author, or an admin)
  *   DELETE — soft-delete (author or admin)
+ *
+ * PATCH runs as the signed-in caller under RLS: the author under
+ * community_answers_update, an admin (public.admin_users) under
+ * community_answers_admin_update (STEP 58), not with the service-role key.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import {
   getCommunityServiceClient,
   getCommunityViewer,
+  isCommunityAdmin,
 } from '@/lib/community/client';
 
 export const dynamic = 'force-dynamic';
@@ -21,14 +27,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
 
-  const { data: answer } = await client
+  const { data: answer } = await supabase
     .from('community_answers')
     .select('author_id, post_id, is_deleted')
     .eq('id', params.id)
@@ -36,7 +41,7 @@ export async function PATCH(
   if (!answer || answer.is_deleted) {
     return NextResponse.json({ error: 'Answer not found' }, { status: 404 });
   }
-  if (answer.author_id !== viewer.user_id && !viewer.is_admin) {
+  if (answer.author_id !== user.id && !(await isCommunityAdmin(supabase))) {
     return NextResponse.json({ error: 'Not your answer' }, { status: 403 });
   }
 
@@ -62,11 +67,16 @@ export async function PATCH(
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true });
   }
-  const { error } = await client.from('community_answers').update(update).eq('id', params.id);
+  const { data: updated, error } = await supabase
+    .from('community_answers')
+    .update(update)
+    .eq('id', params.id)
+    .select('id');
   if (error) {
     console.error('[community] PATCH /answers/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to update answer' }, { status: 500 });
   }
+  if (!updated?.length) return NextResponse.json({ error: 'Answer not found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 

@@ -24,3 +24,10 @@ CREATE POLICY community_posts_admin_update ON public.community_posts
 
 -- 2. Edit a post (PATCH /api/community/posts/[id]). Nothing new: the author
 --    edits under community_posts_update, an admin under the policy in 1.
+
+-- 3. Edit an answer (PATCH /api/community/answers/[id]).
+DROP POLICY IF EXISTS community_answers_admin_update ON public.community_answers;
+CREATE POLICY community_answers_admin_update ON public.community_answers
+  FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
