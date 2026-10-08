@@ -18,6 +18,7 @@ from datetime import datetime
 from database.supabase_client import get_supabase
 from core import memory as mem
 from core.guardrails import validate_all_inputs
+from core.path_storage import apply_adaptation
 from core import jobs
 from core import llm
 from core import budget
@@ -740,13 +741,18 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
         updated_payload["updatedAt"] = datetime.utcnow().isoformat()
         updated_payload["lastAdaptation"] = adaptation_result
 
-        # Apply updated milestones/tasks if the adaptation agent produced any
-        new_milestones = adaptation_result.get("updated_milestones") or []
-        new_tasks = adaptation_result.get("updated_tasks") or []
-        if new_milestones:
-            updated_payload["milestones"] = new_milestones
-        if new_tasks:
-            updated_payload["tasks"] = new_tasks
+        # Apply updated milestones/tasks where the app reads them, and only for
+        # milestones this path has (core/path_storage.py). They used to be
+        # written to top-level "milestones"/"tasks": nothing reads tasks there,
+        # and two pages read milestones there first, so the adaptation agent's
+        # placeholder output ('updated_milestone_1') would have replaced the plan.
+        updated_payload, applied = apply_adaptation(
+            updated_payload,
+            adaptation_result.get("updated_milestones") or [],
+            adaptation_result.get("updated_tasks") or [],
+        )
+        if applied["ignored"]:
+            print(f"[onboarding] adaptation: ignored {applied['ignored']} update(s) for milestones not in this path")
 
         _save_path(prior_path_id, user_id, updated_payload)
 
