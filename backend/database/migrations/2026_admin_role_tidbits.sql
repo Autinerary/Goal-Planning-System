@@ -31,3 +31,19 @@ CREATE POLICY community_answers_admin_update ON public.community_answers
   FOR UPDATE TO authenticated
   USING (public.is_admin())
   WITH CHECK (public.is_admin());
+
+-- 4. Edit someone's community profile (PATCH /api/community/profiles/[id]).
+--    An admin must see a private profile to update it. There is no admin
+--    INSERT policy: an admin edits a profile, never creates one for someone
+--    who has not opted in. Admins also see private profiles' pseudonyms
+--    elsewhere now, as the moderation queue needs.
+DROP POLICY IF EXISTS community_profiles_admin_read ON public.community_profiles;
+CREATE POLICY community_profiles_admin_read ON public.community_profiles
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_profiles_admin_update ON public.community_profiles;
+CREATE POLICY community_profiles_admin_update ON public.community_profiles
+  FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
