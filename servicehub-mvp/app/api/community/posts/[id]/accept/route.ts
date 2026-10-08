@@ -7,13 +7,14 @@
  * and a 1-3 sentence TLDR. Empty values are rejected here AND at the DB
  * layer (CHECK constraint), so the requirement is enforced even if a
  * developer bypasses this endpoint.
+ *
+ * Runs as the signed-in caller: community_accept_answer takes who is acting
+ * from the session and allows the post's author or an admin
+ * (public.admin_users), not the service-role key and an id we pass (STEP 58).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getCommunityServiceClient,
-  getCommunityViewer,
-} from '@/lib/community/client';
+import { createClient } from '@/lib/supabase/server';
 import { validateSolvedPayload } from '@/lib/community/solved';
 
 export const dynamic = 'force-dynamic';
@@ -28,12 +29,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  const client = createClient();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
 
   let body: Body = {};
   try {
@@ -55,7 +55,7 @@ export async function POST(
   const { error } = await client.rpc('community_accept_answer', {
     p_post_id: params.id,
     p_answer_id: answerId,
-    p_acting_user_id: viewer.user_id,
+    p_acting_user_id: user.id,
     p_tldr: tldr,
     p_key_insight: keyInsight,
   });
