@@ -54,6 +54,10 @@ signed-out readers.
 | `servicehub-mvp/app/api/admin/resources/[id]`, `/admin/moderation/[id]` | Approving a resource also embeds it | **Yes**, for the embedding write only (`resource_embeddings`, as above) | Left as it is |
 | `servicehub-mvp/app/api/admin/seed` | Development seed data | **Yes**: it uses the auth admin API. It is refused in production | Left as it is |
 
+What the Tidbits pages show an admin (moderation buttons, private profile
+sections) comes from `getCommunityViewer()`, which now asks `is_admin()` too,
+so they offer only what the routes allow.
+
 Related admin checks that do not use the service role, listed for the same move:
 
 - ResourceHub's `/api/admin/*` routes and `/admin` pages check `profiles.role`
