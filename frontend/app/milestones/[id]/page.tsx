@@ -7,6 +7,7 @@ import { ArrowLeft, ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageS
 import { useAgentPath } from '../../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import CommonMistakes from '@/app/components/CommonMistakes'
+import MilestoneRating from '@/app/components/MilestoneRating'
 
 
 interface Tool {
@@ -38,7 +39,7 @@ export default function MilestoneDetailView() {
   const params = useParams()
   const router = useRouter()
   const milestoneId = params.id as string
-  const { pathPlanning, toolRecommendation } = useAgentPath()
+  const { payload, pathPlanning, toolRecommendation } = useAgentPath()
   const [milestone, setMilestone] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -224,6 +225,9 @@ export default function MilestoneDetailView() {
           )}
 
           <CommonMistakes milestoneId={milestone.id} />
+
+          {/* A rating per milestone: the first real signal about plans (B6). */}
+          <MilestoneRating pathId={payload?.id} milestoneId={milestone.id} />
         </div>
 
         {/* Tools Section */}
