@@ -22,6 +22,8 @@ This is vocabulary, not agent output. Add aliases here as new labels appear;
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
@@ -300,3 +302,32 @@ def match_keys(raw_list) -> Set[str]:
         elif r.kind == "free_text":
             keys.add(FREE_TEXT_KEY_PREFIX + _norm(str(raw)))
     return keys
+
+
+# What the placeholder answers say, for the stored vocabulary.
+PLACEHOLDER_LABELS = {"none": "No current barriers", "undisclosed": "Prefer not to share"}
+
+# Changes whenever an alias or a condition does, so a stored vocabulary built
+# from an older version of this table can be told apart (STEP 57).
+TAXONOMY_VERSION = hashlib.sha1(json.dumps([
+    sorted(_ALIASES.items()),
+    sorted((c.key, c.label, c.category, c.share_specific) for c in CONDITIONS.values()),
+]).encode()).hexdigest()[:10]
+
+
+def vocabulary_entry(raw: object) -> Dict[str, Optional[str]]:
+    """How one stored label reads in the normalised vocabulary (STEP 57).
+
+    kind is "condition", "placeholder" or "unmapped". Placeholders keep their
+    own canonical value ("none", "undisclosed"), so they are never counted as
+    a condition. A label this table doesn't know is "unmapped", with no
+    canonical value: it is listed for a person to decide on, not guessed.
+    """
+    r = normalize_condition(raw)
+    if r.condition:
+        return {"kind": "condition", "canonical": r.condition.key,
+                "label": r.condition.label, "category": r.condition.category}
+    if r.kind in NON_CONDITIONS:
+        return {"kind": "placeholder", "canonical": r.kind,
+                "label": PLACEHOLDER_LABELS[r.kind], "category": "placeholder"}
+    return {"kind": "unmapped", "canonical": None, "label": None, "category": None}
