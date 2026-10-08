@@ -121,3 +121,23 @@ $$;
 
 REVOKE ALL ON FUNCTION public.community_delete_answer(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.community_delete_answer(UUID) TO authenticated;
+
+-- 7. The moderation queue (GET /api/community/admin/reports): every report,
+--    and what each one points at, even when that post or answer is already
+--    deleted. Private profiles' pseudonyms come from the policy in 4. Every
+--    other read of posts with a person's session already filters out
+--    deleted rows, so admins' ordinary browsing doesn't change.
+DROP POLICY IF EXISTS community_reports_admin_read ON public.community_reports;
+CREATE POLICY community_reports_admin_read ON public.community_reports
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_posts_admin_read ON public.community_posts;
+CREATE POLICY community_posts_admin_read ON public.community_posts
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_answers_admin_read ON public.community_answers;
+CREATE POLICY community_answers_admin_read ON public.community_answers
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
