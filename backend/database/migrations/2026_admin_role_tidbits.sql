@@ -84,3 +84,40 @@ $$;
 
 REVOKE ALL ON FUNCTION public.community_delete_post(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.community_delete_post(UUID) TO authenticated;
+
+-- 6. Soft-delete an answer (DELETE /api/community/answers/[id]), for its
+--    author or an admin. A function, as in 5. Run as the caller, the answer
+--    count trigger could not update a post that isn't theirs: RLS would
+--    skip that row and the count would drift. In here it runs as the
+--    function's owner.
+CREATE OR REPLACE FUNCTION public.community_delete_answer(p_answer_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_author UUID;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+  END IF;
+  SELECT author_id INTO v_author
+    FROM public.community_answers
+   WHERE id = p_answer_id AND is_deleted = FALSE
+   FOR UPDATE;
+  IF v_author IS NULL THEN
+    RAISE EXCEPTION 'Answer not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_author <> v_caller AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Not your answer' USING ERRCODE = '42501';
+  END IF;
+  UPDATE public.community_answers
+     SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+   WHERE id = p_answer_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_delete_answer(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_delete_answer(UUID) TO authenticated;

@@ -3,18 +3,15 @@
  *   PATCH  — edit body_markdown / image_urls (author, or an admin)
  *   DELETE — soft-delete (author or admin)
  *
- * PATCH runs as the signed-in caller under RLS: the author under
- * community_answers_update, an admin (public.admin_users) under
- * community_answers_admin_update (STEP 58), not with the service-role key.
+ * Both run as the signed-in caller, not with the service-role key. PATCH is
+ * under RLS: the author under community_answers_update, an admin
+ * (public.admin_users) under community_answers_admin_update. DELETE calls
+ * community_delete_answer, which checks author or admin itself (STEP 58).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import {
-  getCommunityServiceClient,
-  getCommunityViewer,
-  isCommunityAdmin,
-} from '@/lib/community/client';
+import { isCommunityAdmin } from '@/lib/community/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,33 +81,20 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
 
-  const { data: answer } = await client
-    .from('community_answers')
-    .select('author_id, is_deleted')
-    .eq('id', params.id)
-    .maybeSingle();
-  if (!answer || answer.is_deleted) {
-    return NextResponse.json({ error: 'Answer not found' }, { status: 404 });
-  }
-  if (answer.author_id !== viewer.user_id && !viewer.is_admin) {
-    return NextResponse.json({ error: 'Not your answer' }, { status: 403 });
-  }
-  const { error } = await client
-    .from('community_answers')
-    .update({
-      is_deleted: true,
-      deleted_by: viewer.user_id,
-      deleted_at: new Date().toISOString(),
-    })
-    .eq('id', params.id);
+  const { error } = await supabase.rpc('community_delete_answer', { p_answer_id: params.id });
   if (error) {
+    if (error.code === 'P0002' || error.code === '22P02') {
+      return NextResponse.json({ error: 'Answer not found' }, { status: 404 });
+    }
+    if (error.code === '42501') {
+      return NextResponse.json({ error: 'Not your answer' }, { status: 403 });
+    }
     console.error('[community] DELETE /answers/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to delete answer' }, { status: 500 });
   }
