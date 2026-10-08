@@ -611,13 +611,21 @@ class UpdateOnboardingRequest(BaseModel):
 
 
 @router.patch("/{user_id}", response_model=OnboardingResponse)
-async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
+async def update_onboarding(
+    user_id: str,
+    request: UpdateOnboardingRequest,
+    caller_id: str = Depends(current_user_id),
+):
     """
     Update onboarding answers for an existing user and evolve their path
     via the Adaptation Agent rather than regenerating from scratch.
 
     If the user has no prior path, falls back to a fresh generation.
     """
+    # It had no check: anyone could rewrite anyone's answers, conditions,
+    # profile email, vector and path by naming their account id.
+    require_self_or_guardian(user_id, caller_id)
+
     try:
         prior = _load_path_by_user(user_id)
         prior_profile: Dict[str, Any] = (prior or {}).get("userProfile", {}) if prior else {}
@@ -761,14 +769,21 @@ async def update_onboarding(user_id: str, request: UpdateOnboardingRequest):
 
 
 @router.get("/path/{path_id}")
-async def get_generated_path(path_id: str):
+async def get_generated_path(path_id: str, caller_id: str = Depends(current_user_id)):
     """
     Retrieve the AI-generated path data after onboarding.
     Looks up the in-memory cache first, then Supabase user_paths.
+
+    Only for the path's owner, or their guardian. It had no check, so anyone
+    holding a path id could read the whole payload.
     """
     payload = _load_path_by_id(path_id)
     if payload is None:
         raise HTTPException(status_code=404, detail="Path not found.")
+    owner = str(payload.get("userId") or "")
+    if not owner:
+        raise HTTPException(status_code=404, detail="Path not found.")
+    require_self_or_guardian(owner, caller_id)
     return payload
 
 

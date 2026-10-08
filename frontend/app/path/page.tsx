@@ -138,7 +138,7 @@ try {
         //    mirrored into Supabase).
         let response: Response | null = null
         if (pathId) {
-          response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`)
+          response = await fetch(`${API_URL}/api/onboarding/path/${pathId}`, { headers: await backendAuthHeaders() })
         }
         if ((!response || !response.ok) && userId) {
           response = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: await backendAuthHeaders() })
@@ -177,7 +177,7 @@ try {
     setSwitchingPath(true)
     try {
       await activateServerPath(userId, newPathId)
-      const res = await fetch(`${API_URL}/api/onboarding/path/${newPathId}`, { cache: 'no-store' })
+      const res = await fetch(`${API_URL}/api/onboarding/path/${newPathId}`, { cache: 'no-store', headers: await backendAuthHeaders() })
       if (res.ok) {
         setPathData(await res.json())
         setServerPaths((prev) => prev.map((p) => ({ ...p, isActive: p.pathId === newPathId })))
