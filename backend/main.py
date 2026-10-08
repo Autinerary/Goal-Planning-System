@@ -6,6 +6,7 @@ Multi-Agent Orchestration System with AutoGen
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import asyncio
 import os
 from dotenv import load_dotenv
 
@@ -15,7 +16,7 @@ from dotenv import load_dotenv
 # in either frontend ever called them. Unregistered rather than left serving
 # fabricated data on a public API — the real equivalents live under
 # /api/onboarding/* and read from user_paths.
-from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models
+from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models, pattern
 from database.connection import init_db
 
 load_dotenv()
@@ -67,13 +68,38 @@ else:
     orchestrator = Orchestrator()
     print("� Using LangGraph Multi-Agent Orchestrator")
 
+# Rebuild profile vectors whose person's conditions changed since they were
+# written (STEP 56, core/pattern_reindex.py): soon after startup, since the
+# server often wakes from sleep, then every REINDEX_EVERY_SECONDS while awake.
+REINDEX_EVERY_SECONDS = 600
+
+
+async def _reindex_loop():
+    from core.pattern_reindex import reindex_pending
+    from database.supabase_client import get_supabase
+
+    await asyncio.sleep(30)
+    while True:
+        sb = get_supabase()
+        if sb is not None:
+            try:
+                result = await reindex_pending(sb, orchestrator)
+                if result.get("pending"):
+                    print(f"[pattern_reindex] {result}")
+            except Exception as e:
+                print(f"[pattern_reindex] sweep skipped: {str(e)[:120]}")
+        await asyncio.sleep(REINDEX_EVERY_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await init_db()
     await orchestrator.initialize()
+    reindex_task = asyncio.create_task(_reindex_loop())
     yield
     # Shutdown
+    reindex_task.cancel()
     await orchestrator.cleanup()
 
 app = FastAPI(
@@ -123,6 +149,7 @@ app.include_router(calls.router, tags=["calls"])
 app.include_router(memes.router, prefix="/api/memes", tags=["memes"])
 app.include_router(memory.router, prefix="/api/memory", tags=["memory"])
 app.include_router(assistant.router, prefix="/api/assistant", tags=["assistant"])
+app.include_router(pattern.router, prefix="/api/pattern", tags=["pattern"])
 app.include_router(models.router, prefix="/api/models", tags=["models"])
 
 @app.get("/")
