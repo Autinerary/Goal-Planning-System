@@ -4,9 +4,10 @@
  *   PATCH  — edit title/body/tags/image_urls (author, or an admin)
  *   DELETE — soft-delete (author or admin)
  *
- * PATCH runs as the signed-in caller under RLS: the author under
- * community_posts_update, an admin (public.admin_users) under
- * community_posts_admin_update (STEP 58), not with the service-role key.
+ * PATCH and DELETE run as the signed-in caller, not with the service-role
+ * key. PATCH is under RLS: the author under community_posts_update, an admin
+ * (public.admin_users) under community_posts_admin_update. DELETE calls
+ * community_delete_post, which checks author or admin itself (STEP 58).
  */
 
 import { primaryRelationship } from '@/lib/trust/authorRelationship'
@@ -228,35 +229,20 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
-  const postId = params.id;
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
 
-  const { data: post } = await client
-    .from('community_posts')
-    .select('author_id, is_deleted')
-    .eq('id', postId)
-    .maybeSingle();
-  if (!post || post.is_deleted) {
-    return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-  }
-  if (post.author_id !== viewer.user_id && !viewer.is_admin) {
-    return NextResponse.json({ error: 'Not your post' }, { status: 403 });
-  }
-
-  const { error } = await client
-    .from('community_posts')
-    .update({
-      is_deleted: true,
-      deleted_by: viewer.user_id,
-      deleted_at: new Date().toISOString(),
-    })
-    .eq('id', postId);
+  const { error } = await supabase.rpc('community_delete_post', { p_post_id: params.id });
   if (error) {
+    if (error.code === 'P0002' || error.code === '22P02') {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+    if (error.code === '42501') {
+      return NextResponse.json({ error: 'Not your post' }, { status: 403 });
+    }
     console.error('[community] DELETE /posts/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
   }

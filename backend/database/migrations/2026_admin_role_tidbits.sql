@@ -47,3 +47,40 @@ CREATE POLICY community_profiles_admin_update ON public.community_profiles
   FOR UPDATE TO authenticated
   USING (public.is_admin())
   WITH CHECK (public.is_admin());
+
+-- 5. Soft-delete a post (DELETE /api/community/posts/[id]), for its author or
+--    an admin. A policy is not enough: an UPDATE that filters on a column
+--    must leave a row the caller can still read, and a deleted post fails
+--    community_posts_select (is_deleted = FALSE). So a function does it,
+--    checking who is asking itself.
+CREATE OR REPLACE FUNCTION public.community_delete_post(p_post_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_author UUID;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+  END IF;
+  SELECT author_id INTO v_author
+    FROM public.community_posts
+   WHERE id = p_post_id AND is_deleted = FALSE
+   FOR UPDATE;
+  IF v_author IS NULL THEN
+    RAISE EXCEPTION 'Post not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_author <> v_caller AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Not your post' USING ERRCODE = '42501';
+  END IF;
+  UPDATE public.community_posts
+     SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+   WHERE id = p_post_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_delete_post(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_delete_post(UUID) TO authenticated;

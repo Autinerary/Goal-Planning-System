@@ -45,7 +45,7 @@ signed-out readers.
 | `servicehub-mvp/app/api/community/posts/[id]` (PATCH) | Edit anyone's post | No: the same policy as the lock | **Migrated** (STEP 58 §2) |
 | `servicehub-mvp/app/api/community/answers/[id]` (PATCH) | Edit anyone's answer | No: one admin update policy | **Migrated** (STEP 58 §3) |
 | `servicehub-mvp/app/api/community/profiles/[id]` (PATCH) | Edit someone else's community profile | No: admin read and update policies; an admin edits a profile but never creates one | **Migrated** (STEP 58 §4) |
-| `servicehub-mvp/app/api/community/posts/[id]` (DELETE) | Soft-delete anyone's post | No, but a policy is not enough: the deleted row fails the "not deleted" read policy, so this is a function that checks `is_admin()` | To migrate |
+| `servicehub-mvp/app/api/community/posts/[id]` (DELETE) | Soft-delete anyone's post | No, but a policy is not enough: the deleted row fails the "not deleted" read policy, so this is a function that checks `is_admin()` | **Migrated** (STEP 58 §5: `community_delete_post`) |
 | `servicehub-mvp/app/api/community/answers/[id]` (DELETE) | Soft-delete anyone's answer | No: a function, as for posts; it also keeps the post's answer count right | To migrate |
 | `servicehub-mvp/app/api/community/admin/reports` (GET) | List reports with what they point at | No: admin read policies on reports, posts, answers and profiles | To migrate |
 | `servicehub-mvp/app/api/community/admin/reports/[id]/resolve` | Resolve a report, and remove or lock what it points at | No: one function, so the steps happen together or not at all | To migrate |
