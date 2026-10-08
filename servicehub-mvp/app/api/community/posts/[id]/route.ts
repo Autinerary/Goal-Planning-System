@@ -1,15 +1,21 @@
 /**
  * /api/community/posts/[id]
  *   GET    — full post detail (with threaded answers + viewer state)
- *   PATCH  — edit title/body/tags/image_urls (author only)
+ *   PATCH  — edit title/body/tags/image_urls (author, or an admin)
  *   DELETE — soft-delete (author or admin)
+ *
+ * PATCH runs as the signed-in caller under RLS: the author under
+ * community_posts_update, an admin (public.admin_users) under
+ * community_posts_admin_update (STEP 58), not with the service-role key.
  */
 
 import { primaryRelationship } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import {
   getCommunityServiceClient,
   getCommunityViewer,
+  isCommunityAdmin,
 } from '@/lib/community/client';
 import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
 import { markdownExcerpt } from '@/lib/community/markdown';
@@ -138,15 +144,14 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
   const postId = params.id;
 
-  const { data: post } = await client
+  const { data: post } = await supabase
     .from('community_posts')
     .select('author_id, is_locked, is_deleted')
     .eq('id', postId)
@@ -154,10 +159,13 @@ export async function PATCH(
   if (!post || post.is_deleted) {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   }
-  if (post.is_locked && !viewer.is_admin) {
+  const isAuthor = post.author_id === user.id;
+  // Ask only when it matters: a locked post, or someone else's.
+  const isAdmin = post.is_locked || !isAuthor ? await isCommunityAdmin(supabase) : false;
+  if (post.is_locked && !isAdmin) {
     return NextResponse.json({ error: 'Post is locked' }, { status: 403 });
   }
-  if (post.author_id !== viewer.user_id && !viewer.is_admin) {
+  if (!isAuthor && !isAdmin) {
     return NextResponse.json({ error: 'Not your post' }, { status: 403 });
   }
 
@@ -203,11 +211,16 @@ export async function PATCH(
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true });
   }
-  const { error } = await client.from('community_posts').update(update).eq('id', postId);
+  const { data: updated, error } = await supabase
+    .from('community_posts')
+    .update(update)
+    .eq('id', postId)
+    .select('id');
   if (error) {
     console.error('[community] PATCH /posts/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
   }
+  if (!updated?.length) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
