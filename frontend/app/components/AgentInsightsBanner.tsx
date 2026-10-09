@@ -6,8 +6,10 @@
  * clean in fallback / signed-out states.
  */
 
+import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
+import SimilarGroupFeedback, { SIMILAR_GROUP_FEEDBACK_ENABLED } from './SimilarGroupFeedback'
 
 type AgentKey =
   | 'pattern_recognition'
@@ -64,6 +66,9 @@ export default function AgentInsightsBanner({
   className?: string
 }) {
   const ctx = useAgentPath()
+  // Pattern Recognition only: the group summary and its question load when
+  // the banner is opened, and only with the feature flag on.
+  const [open, setOpen] = useState(false)
   const sliceMap: Record<AgentKey, any> = {
     pattern_recognition: ctx.patternRecognition,
     path_planning: ctx.pathPlanning,
@@ -85,6 +90,7 @@ export default function AgentInsightsBanner({
         'group rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-cyan-50 ' +
         className
       }
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
     >
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2 text-xs font-medium text-purple-700">
         <Sparkles className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
@@ -93,6 +99,7 @@ export default function AgentInsightsBanner({
         <span className="ml-auto hidden text-purple-400 group-open:inline">Hide</span>
       </summary>
       <p className="border-t border-purple-100 px-4 py-3 text-sm text-slate-700">{message}</p>
+      {agent === 'pattern_recognition' && SIMILAR_GROUP_FEEDBACK_ENABLED && open && <SimilarGroupFeedback />}
     </details>
   )
 }

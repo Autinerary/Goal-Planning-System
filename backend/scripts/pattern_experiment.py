@@ -28,6 +28,9 @@ Measures, all read-only:
   * against human labels -- once pairs have been labelled with
     label_similar_pairs.py, how each arm ranks pairs judged similar (partner
     rank) and separates them from pairs judged not similar (AUC)
+  * against similar-group feedback -- people's own answers about the group
+    their plan was matched with (similar_group_feedback, STEP 60); see
+    score_against_group_feedback for how a group answer becomes a score
 
 Nothing here calls OpenAI or writes anything.
 
@@ -230,6 +233,79 @@ def score_against_labels(r: Report, sb, pool: List[str], arms: Dict) -> None:
       "choosing a representation on it.")
 
 
+GROUP_ANSWERS = ("yes", "somewhat", "no")
+
+
+def load_group_feedback(sb) -> Optional[List[Dict]]:
+    """The latest answer per person and plan, or None before STEP 60."""
+    try:
+        rows = fetch_all(sb, "similar_group_feedback", "user_id, path_id, answer, member_ids, created_at")
+    except Exception:
+        return None
+    latest: Dict[tuple, Dict] = {}
+    for row in sorted(rows, key=lambda x: str(x.get("created_at") or "")):
+        latest[(row["user_id"], row["path_id"])] = row
+    return list(latest.values())
+
+
+def group_overlap(neighbours: List[str], members) -> float:
+    """Share of a person's top-k neighbours who were in the group they rated."""
+    if not neighbours:
+        return 0.0
+    group = {str(m) for m in members or []}
+    return sum(1 for v in neighbours if v in group) / len(neighbours)
+
+
+def score_against_group_feedback(r: Report, rows: Optional[List[Dict]], pool: List[str],
+                                 arms: Dict, neighbours) -> None:
+    """How each arm agrees with what people said about their matched group.
+
+    An answer is about a group (the people a plan was matched with), not a
+    pair. For each answer and each arm: take the person's top-k neighbours
+    under that arm (with the same filter as the agreement table), and the
+    share of them who were in the group they rated. Per arm, the mean share
+    for groups answered Yes, Somewhat and No; and
+
+        score = mean share for Yes groups - mean share for No groups
+
+    Higher means the arm reproduces groups people recognise and stays away
+    from groups they reject. Members no longer in the pool can't be
+    neighbours, so they only lower the share. The groups shown were found by
+    the live search, which ranks on arm 1's vectors, so arm 1 starts ahead on
+    Yes groups; No answers are the informative ones.
+    """
+    r()
+    r("## Against similar-group feedback")
+    r()
+    if rows is None:
+        r("No labels yet: `similar_group_feedback` does not exist (STEP 60 is not applied).")
+        return
+    in_pool = set(pool)
+    usable = [x for x in rows if x["user_id"] in in_pool and x.get("answer") in GROUP_ANSWERS]
+    if not usable:
+        r(f"No labels yet: {len(rows)} answer(s) stored, none from people in the pool.")
+        return
+    counts = Counter(x["answer"] for x in usable)
+    r(f"{len(usable)} answers ({', '.join(f'{a}: {counts.get(a, 0)}' for a in GROUP_ANSWERS)}). "
+      "Each cell: mean share of the person's top neighbours under that arm who were in the "
+      "group they rated. Score = Yes - No.")
+    r()
+    r("| arm | Yes groups | Somewhat groups | No groups | score (Yes - No) |")
+    r("|---|---|---|---|---|")
+    for name, sim in arms.items():
+        means = {}
+        for answer in GROUP_ANSWERS:
+            shares = [group_overlap(neighbours(x["user_id"], sim), x.get("member_ids")) for x in usable
+                      if x["answer"] == answer]
+            means[answer] = (sum(shares) / len(shares)) if shares else None
+        cells = [f"{means[a]:.2f}" if means[a] is not None else "—" for a in GROUP_ANSWERS]
+        score = (f"{means['yes'] - means['no']:+.2f}"
+                 if means["yes"] is not None and means["no"] is not None else "— (needs both)")
+        r(f"| {name} | " + " | ".join(cells) + f" | {score} |")
+    r()
+    r(f"**Read with care:** {len(usable)} answers can't separate arms statistically.")
+
+
 def run(args) -> Report:
     r = Report()
     sb = get_supabase()
@@ -353,6 +429,11 @@ def run(args) -> Report:
 
     # ---- Against human labels (item 4) ---------------------------------------
     score_against_labels(r, sb, pool, arms)
+
+    def neighbours(u, sim):
+        return [v for v, _ in ranked_neighbours(u, pool, sim) if gate is None or gate(u, v)][:k]
+
+    score_against_group_feedback(r, load_group_feedback(sb), pool, arms, neighbours)
 
     # ---- Similarity range of the stored vectors ------------------------------
     pair_sims = [arms["1 text"](a, b) for i, a in enumerate(pool) for b in pool[i + 1:]]
