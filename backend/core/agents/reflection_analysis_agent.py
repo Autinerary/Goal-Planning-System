@@ -184,10 +184,10 @@ class ReflectionAnalysisAgent(BaseAgent):
             data = await llm.complete_json(
                 system=(
                     "You are a sentiment analyst for neurodivergent users' journal entries. "
-                    "Be empathetic and accurate."
+                    "Be empathetic and accurate. " + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Reflection text: {text[:1500]}\n"
+                    f"Reflection text: {llm.user_text(text, 1500)}\n"
                     "Return JSON: {\"label\": \"positive|negative|neutral\", \"score\": 0.0-1.0, \"key_themes\": [\"...\"]}"
                 ),
                 temperature=0.2,
@@ -436,10 +436,10 @@ class ReflectionAnalysisAgent(BaseAgent):
                     "You are a compassionate neurodiversity coach analysing a personal "
                     "reflection. Extract SPECIFIC insights grounded in what the person "
                     "actually wrote — never invent events. Each item is one short sentence. "
-                    "Empty lists are fine when the text gives no evidence."
+                    "Empty lists are fine when the text gives no evidence. " + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Reflection:\n{text[:2500]}\n\n"
+                    f"Reflection:\n{llm.user_text(text, 2500)}\n\n"
                     'Return JSON: {"what_works": ["..."], "what_doesnt_work": ["..."], '
                     '"recommendations": ["..."], "celebration_worthy": ["..."]}'
                 ),

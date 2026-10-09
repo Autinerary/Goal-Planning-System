@@ -328,13 +328,14 @@ class PathPlanningAgent(BaseAgent):
                     "education, workplace, relationships, health. Each roadmap must contain "
                     "4 concrete, actionable milestone names (max 8 words each) that move "
                     "the user toward the SAME goal from that dimension's angle. "
-                    "Tailor wording to the user's barriers. No numbering, no commentary."
+                    "Tailor wording to the user's barriers. No numbering, no commentary. "
+                    + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Goal: {goal}\n"
-                    f"Barriers: {', '.join(barriers) or 'none'}\n"
-                    + (f"Functional support needs and successful accommodations: {support_summary}\n" if support_summary else "")
-                    + (f"Prior history:\n{memory_hint}\n" if memory_hint else "")
+                    f"Goal: {llm.user_text(goal, 300)}\n"
+                    f"Barriers: {llm.user_list(barriers)}\n"
+                    + (f"Functional support needs and successful accommodations: {llm.user_text(support_summary, 5000)}\n" if support_summary else "")
+                    + (f"Prior history:\n{llm.user_text(memory_hint, 1500)}\n" if memory_hint else "")
                     + "Return JSON: {"
                     "\"education\": [\"...\", \"...\", \"...\", \"...\"], "
                     "\"workplace\": [\"...\", \"...\", \"...\", \"...\"], "
@@ -459,9 +460,10 @@ class PathPlanningAgent(BaseAgent):
                     "commonly associated with this experience, never platitudes. "
                     "accommodations = specific adjustments to ask for. Use short "
                     "snake_case phrases. 3-4 items per list. "
-                    'Return JSON: {"strategies": [], "strengths": [], "accommodations": []}'
+                    'Return JSON: {"strategies": [], "strengths": [], "accommodations": []} '
+                    + llm.USER_TEXT_RULE
                 ),
-                user=f"Norms: {', '.join(barriers)}",
+                user=f"Norms: {llm.user_list(barriers)}",
                 temperature=0.4,
                 max_tokens=400,
                 agent="path_planning",
@@ -511,12 +513,13 @@ class PathPlanningAgent(BaseAgent):
                         "You are a neurodiversity-aware life coach. For EACH numbered "
                         "milestone write ONE warm, concrete sentence (max 35 words) "
                         "describing it, tailored to the user's barriers. "
-                        'Return JSON: {"descriptions": {"0": "...", "1": "..."}}'
+                        'Return JSON: {"descriptions": {"0": "...", "1": "..."}} '
+                        + llm.USER_TEXT_RULE
                     ),
                     user=(
-                        f"Goal: {goal}\n"
-                        f"Barriers: {', '.join(barriers) or 'none'}\n"
-                        f"{('Support context: ' + support_summary) if support_summary else ''}\n"
+                        f"Goal: {llm.user_text(goal, 300)}\n"
+                        f"Barriers: {llm.user_list(barriers)}\n"
+                        f"{('Support context: ' + llm.user_text(support_summary, 5000)) if support_summary else ''}\n"
                         f"Milestones:\n{listing}"
                     ),
                     temperature=0.6,
@@ -631,7 +634,7 @@ class PathPlanningAgent(BaseAgent):
         async def _one_chunk(i: int) -> None:
             chunk = milestones[i:i + chunk_size]
             listing = "\n".join(
-                f"{j}. [{m.get('id')}] {m.get('name')} (goal: {m.get('goal', '')})"
+                f"{j}. [{m.get('id')}] {m.get('name')} (goal: {llm.user_text(m.get('goal', ''), 300)})"
                 for j, m in enumerate(chunk)
             )
             try:
@@ -643,10 +646,11 @@ class PathPlanningAgent(BaseAgent):
                         "office for the form'), NEVER generic phases like 'Research and gather "
                         "information'. Each description is one concrete sentence. minutes is 10-30. "
                         'Return JSON: {"milestones": {"0": {"tasks": [{"name": "...", '
-                        '"description": "...", "minutes": 20}]}}}'
+                        '"description": "...", "minutes": 20}]}}} '
+                        + llm.USER_TEXT_RULE
                     ),
                     user=(
-                        f"Barriers: {', '.join(barriers) or 'none'}\n"
+                        f"Barriers: {llm.user_list(barriers)}\n"
                         f"Milestones:\n{listing}"
                     ),
                     temperature=0.6,
@@ -724,12 +728,13 @@ class PathPlanningAgent(BaseAgent):
                     "into 5 small sequential tasks. Each task name is a specific imperative "
                     "action of at most 9 words (e.g. 'Email the disability office for the form'), "
                     "NEVER generic phases like 'Research and gather information' or 'Create action plan'. "
-                    "Each description is one concrete sentence. minutes is 10-30."
+                    "Each description is one concrete sentence. minutes is 10-30. "
+                    + llm.USER_TEXT_RULE
                 ),
                 user=(
                     f"Milestone: {milestone.get('name')}\n"
-                    f"Goal: {milestone.get('goal', '')}\n"
-                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    f"Goal: {llm.user_text(milestone.get('goal', ''), 300)}\n"
+                    f"Barriers: {llm.user_list(barriers)}\n"
                     'Return JSON: {"tasks": [{"name": "...", "description": "...", "minutes": 20}]}'
                 ),
                 temperature=0.6,
@@ -788,11 +793,12 @@ class PathPlanningAgent(BaseAgent):
             data = await llm.complete_json(
                 system=(
                     "You are a neurodiversity coach. Generate 3 short, actionable "
-                    "helper tricks (max 12 words each) for someone with the listed barriers."
+                    "helper tricks (max 12 words each) for someone with the listed barriers. "
+                    + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Barriers: {', '.join(barriers) or 'general'}\n"
-                    + (f"Functional support needs and strategies that worked: {support_summary}\n" if support_summary else "")
+                    f"Barriers: {llm.user_list(barriers, empty='general')}\n"
+                    + (f"Functional support needs and strategies that worked: {llm.user_text(support_summary, 5000)}\n" if support_summary else "")
                     + "Return JSON: {\"tricks\": [\"...\", \"...\", \"...\"]}"
                 ),
                 temperature=0.7,
@@ -800,7 +806,8 @@ class PathPlanningAgent(BaseAgent):
                 agent="path_planning",
             )
             if data and isinstance(data.get('tricks'), list) and data['tricks']:
-                return [str(t) for t in data['tricks'][:3]]
+                # Asked for 12 words; never store more than a short line.
+                return [str(t)[:150] for t in data['tricks'][:3]]
 
         tricks = []
         if 'adhd' in [b.lower() for b in barriers]:
