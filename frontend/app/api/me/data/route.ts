@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { withoutOtherPeople } from '@/lib/pathPrivacy'
 
 /**
  * Data & Progress management for the signed-in user.
@@ -69,6 +70,10 @@ export async function GET() {
       if (error) {
         console.warn(`backup: skipped ${table}:`, error.message)
         tables[table] = []
+      } else if (table === PLAN_TABLE) {
+        // A backup holds the person's own data, not the other people their
+        // plan was matched with (lib/pathPrivacy.ts).
+        tables[table] = (data || []).map((row: any) => ({ ...row, payload: withoutOtherPeople(row.payload) }))
       } else {
         tables[table] = data || []
       }

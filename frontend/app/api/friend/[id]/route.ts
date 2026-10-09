@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { withoutOtherPeople } from '@/lib/pathPrivacy'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -87,7 +88,8 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
       category: conn.category,
       connection_id: conn.id,
       profile: profileRes.data || null,
-      path: pathRes.data?.payload || null,
+      // Never the people the friend's plan was matched with (lib/pathPrivacy.ts).
+      path: withoutOtherPeople(pathRes.data?.payload || null),
       path_updated_at: pathRes.data?.updated_at || null,
       calendar: calendarRes.data || [],
       progress: progressRes.data || [],

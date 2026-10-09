@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 
 from api.auth_guard import current_user_id, require_self_or_guardian
+from core.path_privacy import without_other_people
 
 router = APIRouter()
 
@@ -23,7 +24,7 @@ async def get_path(path_id: str, caller_id: str = Depends(current_user_id)):
 
     if path_id in generated_paths:
         require_self_or_guardian(str(generated_paths[path_id].get("userId") or ""), caller_id)
-        return generated_paths[path_id]
+        return without_other_people(generated_paths[path_id])
 
     # Fallback for legacy/mock paths
     return {

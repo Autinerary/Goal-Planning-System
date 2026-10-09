@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { withoutOtherPeople } from '@/lib/pathPrivacy'
 
 /**
  * Helper to get user from Authorization header OR cookie session.
@@ -55,7 +56,9 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({
-    payload: data?.payload || null,
+    // The stored plan lists the other people it was matched with; they stay
+    // on the server (lib/pathPrivacy.ts).
+    payload: withoutOtherPeople(data?.payload || null),
     path_id: data?.path_id || null,
     updated_at: data?.updated_at || null,
   })

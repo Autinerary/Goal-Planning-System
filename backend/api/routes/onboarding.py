@@ -8,6 +8,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth_guard import current_user_id, onboarding_user_id, require_self_or_guardian
+from core.path_privacy import without_other_people
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
@@ -784,7 +785,7 @@ async def get_generated_path(path_id: str, caller_id: str = Depends(current_user
     if not owner:
         raise HTTPException(status_code=404, detail="Path not found.")
     require_self_or_guardian(owner, caller_id)
-    return payload
+    return without_other_people(payload)
 
 
 @router.get("/user/{user_id}/path")
@@ -800,7 +801,7 @@ async def get_user_path(user_id: str, caller_id: str = Depends(current_user_id))
     payload = _load_path_by_user(user_id)
     if payload is None:
         raise HTTPException(status_code=404, detail="No path found for user.")
-    return payload
+    return without_other_people(payload)
 
 
 @router.get("/user/{user_id}/paths")

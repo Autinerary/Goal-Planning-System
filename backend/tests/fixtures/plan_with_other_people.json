@@ -1,0 +1,131 @@
+{
+  "about": "A plan as stored, and what may leave the server (core/path_privacy.py, frontend/lib/pathPrivacy.ts). Synthetic ids.",
+  "stored": {
+    "id": "path_example",
+    "userId": "00000000-0000-0000-0000-0000000000aa",
+    "userProfile": {
+      "goals": [
+        "Get a job"
+      ],
+      "barrierTypes": [
+        "ADHD"
+      ]
+    },
+    "races": [
+      {
+        "id": "race_1",
+        "milestones": [
+          {
+            "id": "m1",
+            "name": "Update the CV",
+            "nameSource": "llm"
+          }
+        ]
+      }
+    ],
+    "agentResponses": [
+      {
+        "agentId": "pattern_recognition",
+        "agentName": "Pattern Recognition Agent",
+        "confidence": 0.2,
+        "result": {
+          "similar_users": [
+            {
+              "user_id": "00000000-0000-0000-0000-0000000000b1",
+              "similarity": 1.016,
+              "barriers": [
+                "Autism"
+              ],
+              "success_rate": 0.5,
+              "journey": "Goals: Finish school. Barriers: Autism. Milestones: 16."
+            },
+            {
+              "user_id": "00000000-0000-0000-0000-0000000000b2",
+              "similarity": 1.012,
+              "barriers": [
+                "ADHD",
+                "Anxiety"
+              ],
+              "success_rate": 0.7,
+              "journey": "Goals: Get a job. Barriers: ADHD, Anxiety. Milestones: 16."
+            }
+          ],
+          "retrieved_user_ids": [
+            "00000000-0000-0000-0000-0000000000b1",
+            "00000000-0000-0000-0000-0000000000b2"
+          ],
+          "patterns": [],
+          "models": [],
+          "confidence": 0.2,
+          "explanation": "Found 2 similar users with 0 success patterns"
+        }
+      },
+      {
+        "agentId": "path_planning",
+        "agentName": "Path Planning Agent",
+        "confidence": 0.8,
+        "result": {
+          "milestones": [
+            {
+              "id": "m1"
+            }
+          ],
+          "tasks": [],
+          "confidence": 0.8
+        }
+      }
+    ]
+  },
+  "returned": {
+    "id": "path_example",
+    "userId": "00000000-0000-0000-0000-0000000000aa",
+    "userProfile": {
+      "goals": [
+        "Get a job"
+      ],
+      "barrierTypes": [
+        "ADHD"
+      ]
+    },
+    "races": [
+      {
+        "id": "race_1",
+        "milestones": [
+          {
+            "id": "m1",
+            "name": "Update the CV",
+            "nameSource": "llm"
+          }
+        ]
+      }
+    ],
+    "agentResponses": [
+      {
+        "agentId": "pattern_recognition",
+        "agentName": "Pattern Recognition Agent",
+        "confidence": 0.2,
+        "result": {
+          "patterns": [],
+          "models": [],
+          "confidence": 0.2,
+          "explanation": "Found 2 similar users with 0 success patterns",
+          "similar_users_count": 2
+        }
+      },
+      {
+        "agentId": "path_planning",
+        "agentName": "Path Planning Agent",
+        "confidence": 0.8,
+        "result": {
+          "milestones": [
+            {
+              "id": "m1"
+            }
+          ],
+          "tasks": [],
+          "confidence": 0.8
+        }
+      }
+    ]
+  }
+}
