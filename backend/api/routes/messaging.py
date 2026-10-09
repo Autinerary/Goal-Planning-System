@@ -9,9 +9,10 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from api.auth_guard import current_user_id
 from database.supabase_client import get_supabase
 
 router = APIRouter(prefix="/api/messaging", tags=["messaging"])
@@ -104,10 +105,14 @@ async def send_message(message: MessageCreate, user_id: str = Query(...)):
 
 
 @router.get("/conversations", response_model=List[dict])
-async def get_conversations(user_id: str = Query(...)):
-    """Everyone this user has exchanged messages with, most recent first."""
+async def get_conversations(
+    user_id: Optional[str] = Query(None),
+    caller_id: str = Depends(current_user_id),
+):
+    """Everyone the signed-in person has exchanged messages with, most recent
+    first. It used to list them for any ?user_id; that is now ignored."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(caller_id, "user_id")
     try:
         sent = sb.table("messages").select("receiver_id, created_at") \
                  .eq("sender_id", uid).is_("deleted_at", "null").execute()

@@ -140,7 +140,10 @@ def _set_active_path(user_id: str, path_id: str) -> bool:
 
 def _delete_path(user_id: str, path_id: str) -> bool:
     """Delete a single path for the user."""
-    generated_paths.pop(path_id, None)
+    # Only from the cache if it is theirs: the id comes from the request.
+    cached = generated_paths.get(path_id)
+    if cached is not None and str(cached.get("userId") or "") == str(user_id):
+        generated_paths.pop(path_id, None)
     client = get_supabase()
     if client is None:
         return False
@@ -583,8 +586,13 @@ async def get_job(job_id: str):
 
 
 @router.get("/jobs/latest/{user_id}", response_model=Optional[JobStatus])
-async def get_latest_job(user_id: str):
-    """The user's most recent job — how a reloaded page reattaches to its work."""
+async def get_latest_job(user_id: str, caller_id: str = Depends(current_user_id)):
+    """The user's most recent job — how a reloaded page reattaches to its work.
+
+    Only for the person, or their guardian: a job's error can be the crisis
+    message shown when a goal mentions self-harm.
+    """
+    require_self_or_guardian(user_id, caller_id)
     row = jobs.latest_for_user(user_id)
     if not row:
         return None
@@ -614,7 +622,9 @@ class UpdateOnboardingRequest(BaseModel):
 async def update_onboarding(
     user_id: str,
     request: UpdateOnboardingRequest,
-    caller_id: str = Depends(current_user_id),
+    # The same gate as generating a plan (age, guardian approval): this can
+    # run a whole new generation.
+    caller_id: str = Depends(onboarding_user_id),
 ):
     """
     Update onboarding answers for an existing user and evolve their path
