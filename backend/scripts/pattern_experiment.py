@@ -10,6 +10,16 @@ classifiers as the Vector deck, so "real" means the same thing everywhere).
   arm 4   split          goals and conditions embedded separately (STEP 43 table)
             4a goals only, 4b conditions only, 4 = mean of the two
 
+Inputs (defaults; --conditions stored --filter none reproduces runs up to
+8 Oct 2026):
+  * conditions: each person's current conditions from user_barriers, cleaned
+    with the condition vocabulary (core/condition_taxonomy.vocabulary_entry:
+    conditions only, no placeholders, nothing unmapped). The copy stored with
+    the vector is stale when a condition was added after it was built; the
+    report counts those.
+  * neighbours: through the live condition filter (apply_condition_filter's
+    rule): a person with any matchable condition only gets people sharing one.
+
 Measures, all read-only:
   * agreement -- how much each pair of arms retrieves the same top-k people
   * threshold sweep -- how many matches the search returns at each threshold,
@@ -37,7 +47,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from core.condition_taxonomy import normalize_conditions  # noqa: E402
+from core.condition_taxonomy import (  # noqa: E402
+    TAXONOMY_VERSION,
+    match_keys,
+    normalize_conditions,
+    vocabulary_entry,
+)
 from core.embedding_privacy import AGE_BANDS  # noqa: E402
 from core.retrieval_eval import (  # noqa: E402
     arm_agreement,
@@ -45,9 +60,11 @@ from core.retrieval_eval import (  # noqa: E402
     chance_jaccard,
     engineered_features,
     feature_sim,
+    jaccard,
     matches_at,
     mean_sim,
     partner_rank,
+    ranked_neighbours,
     standardized_mean_sim,
     vector_sim,
 )
@@ -91,13 +108,21 @@ def load(sb):
 
     try:
         emb = fetch_all(sb, "pattern_user_embeddings",
-                        "user_id, embedding, barriers, goals, motivation_type, embedding_text_version")
+                        "user_id, embedding, barriers, goals, motivation_type, embedding_text_version, updated_at")
     except Exception as e:
         if "embedding_text_version" not in str(e):
             raise
         emb = fetch_all(sb, "pattern_user_embeddings",
-                        "user_id, embedding, barriers, goals, motivation_type")
+                        "user_id, embedding, barriers, goals, motivation_type, updated_at")
+    all_emb = emb
     emb = [r for r in emb if r["user_id"] in real]
+
+    current: Dict[str, List[str]] = {}
+    added_at: Dict[str, List[str]] = {}
+    for row in fetch_all(sb, "user_barriers", "user_id, barrier_type, created_at"):
+        if row.get("barrier_type") is not None:
+            current.setdefault(row["user_id"], []).append(str(row["barrier_type"]))
+            added_at.setdefault(row["user_id"], []).append(str(row.get("created_at") or ""))
 
     prefs = {p["id"]: (p.get("preferences") or {}) for p in fetch_all(sb, "profiles", "id, preferences")}
 
@@ -111,7 +136,40 @@ def load(sb):
                                    "STEP 43, then run embed_pattern_fields --apply"
                                    if missing else f"could not read field embeddings: {str(e)[:80]}")
     fields = [r for r in fields if r["user_id"] in real]
-    return real, emb, prefs, fields, fields_note
+    return real, emb, prefs, fields, fields_note, all_emb, current, added_at
+
+
+def condition_keys(labels) -> set:
+    """Canonical condition keys from the vocabulary: conditions only."""
+    return {e["canonical"] for e in map(vocabulary_entry, labels or []) if e["kind"] == "condition"}
+
+
+def stale_counts(rows: List[Dict], current: Dict[str, List[str]], added_at: Dict[str, List[str]]) -> Dict[str, int]:
+    """Vectors built before a condition was added.
+
+    by content: the person now has a condition (by vocabulary key) that the
+    copy stored with the vector lacks. by time: a user_barriers row is newer
+    than the vector's updated_at. Re-embedding did not refresh updated_at
+    before STEP 56, so the time test also flags vectors rebuilt since.
+    """
+    added = removed = by_time = 0
+    for row in rows:
+        uid = row["user_id"]
+        now, then = condition_keys(current.get(uid)), condition_keys(row.get("barriers"))
+        added += bool(now - then)
+        removed += bool(then - now)
+        built = str(row.get("updated_at") or "")
+        by_time += any(t > built for t in added_at.get(uid, []) if t and built)
+    return {"vectors": len(rows), "added": added, "removed": removed, "by_time": by_time}
+
+
+def filtered_agreement(pool: List[str], sim_a, sim_b, k: int, gate) -> float:
+    """Mean Jaccard of top-k neighbour sets when both arms only pick people
+    the gate lets through (the live condition filter)."""
+    def top(u, sim):
+        return [v for v, _ in ranked_neighbours(u, pool, sim) if gate(u, v)][:k]
+    vals = [jaccard(top(u, sim_a), top(u, sim_b)) for u in pool]
+    return sum(vals) / len(vals) if vals else float("nan")
 
 
 def score_against_labels(r: Report, sb, pool: List[str], arms: Dict) -> None:
@@ -175,11 +233,20 @@ def score_against_labels(r: Report, sb, pool: List[str], arms: Dict) -> None:
 def run(args) -> Report:
     r = Report()
     sb = get_supabase()
-    real, emb, prefs, fields, fields_note = load(sb)
+    real, emb, prefs, fields, fields_note, all_emb, current, added_at = load(sb)
 
     r("# Pattern Recognition representation experiment")
     r()
     r(f"Real users in the cohort: {len(real)}. With a stored profile vector: {len(emb)}.")
+    stale_all, stale_real = stale_counts(all_emb, current, added_at), stale_counts(emb, current, added_at)
+    r(f"Stale vectors (a condition added after the vector was built), by content: "
+      f"{stale_all['added']} of {stale_all['vectors']} stored ({stale_real['added']} of "
+      f"{stale_real['vectors']} real users); a condition since removed: {stale_all['removed']}. "
+      f"By timestamp: {stale_all['by_time']} of {stale_all['vectors']}. Nothing is re-embedded.")
+    r(f"Conditions used: **{args.conditions}** "
+      + ("(user_barriers now, cleaned with the vocabulary, taxonomy " + TAXONOMY_VERSION + ")"
+         if args.conditions == "current" else "(the copy stored with each vector)")
+      + f". Neighbours: **{'live condition filter' if args.filter == 'live' else 'no filter'}**.")
 
     # ---- Arm 1: stored vectors, one text version only ----------------------
     versions = Counter(row.get("embedding_text_version") for row in emb)
@@ -196,6 +263,12 @@ def run(args) -> Report:
 
     vectors = {row["user_id"]: parse_vec(row["embedding"]) for row in arm1_rows}
     raw_barriers = {row["user_id"]: [str(b) for b in row.get("barriers") or []] for row in emb}
+    if args.conditions == "current":
+        # Cleaned: today's conditions, only what the vocabulary maps to a condition.
+        conditions = {uid: [c for c in current.get(uid, []) if vocabulary_entry(c)["kind"] == "condition"]
+                      for uid in raw_barriers}
+    else:
+        conditions = raw_barriers
     goals = {row["user_id"]: row.get("goals") or [] for row in emb}
     motivation = {row["user_id"]: row.get("motivation_type") for row in emb}
 
@@ -205,7 +278,7 @@ def run(args) -> Report:
 
     arms = {"1 text": vector_sim(vectors)}
 
-    features = {uid: engineered_features(raw_barriers[uid], goals[uid], band(uid), motivation[uid])
+    features = {uid: engineered_features(conditions[uid], goals[uid], band(uid), motivation[uid])
                 for uid in raw_barriers}
     arms["2 engineered"] = feature_sim(features)
     # Two versions of "concatenated" -- see the note printed below the table.
@@ -239,11 +312,24 @@ def run(args) -> Report:
         r(f"Arm 4 **NOT RUN**: {arm4_note}.")
 
     # ---- Agreement -----------------------------------------------------------
+    gate = None
+    if args.filter == "live":
+        # apply_condition_filter's rule, on the chosen conditions: someone with
+        # a matchable condition only gets people who share one.
+        live_keys = {uid: match_keys(conditions.get(uid, [])) for uid in pool}
+
+        def gate(a, b):
+            return not live_keys[a] or bool(live_keys[a] & live_keys[b])
+
+        short = sum(1 for u in pool if sum(1 for v in pool if v != u and gate(u, v)) < k)
     r()
     r("## Agreement between arms")
     r()
     r(f"Mean Jaccard overlap of top-{k} neighbour sets. 1.00 = identical retrieval; "
       f"chance for unrelated rankings at this pool size is about {chance_jaccard(n, k):.2f}.")
+    if gate is not None:
+        r(f"With the live filter, {short} of {n} people have fewer than {k} people to choose from; "
+          "every arm returns the same set for them, so it counts as 1.00.")
     r()
     names = list(arms)
     r("| | " + " | ".join(names) + " |")
@@ -251,12 +337,17 @@ def run(args) -> Report:
     for a in names:
         cells = []
         for b in names:
-            cells.append("—" if a == b else f"{arm_agreement(pool, arms[a], arms[b], k):.2f}")
+            if a == b:
+                cells.append("—")
+            elif gate is None:
+                cells.append(f"{arm_agreement(pool, arms[a], arms[b], k):.2f}")
+            else:
+                cells.append(f"{filtered_agreement(pool, arms[a], arms[b], k, gate):.2f}")
         r(f"| {a} | " + " | ".join(cells) + " |")
     r()
     r("*3 concat (raw)* averages the two cosines as they are, which is what literally "
       "concatenating the vectors does. Because ada-002 cosines here span only about "
-      "0.84–1.0 while feature cosines span 0–1, the feature arm dominates it. "
+      "0.77–1.0 while feature cosines span 0–1, the feature arm dominates it. "
       "*3 concat (scaled)* z-scores each arm over the pool first so both have an equal "
       "say. Compare arms against the scaled version.")
 
@@ -365,6 +456,10 @@ def run(args) -> Report:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--k", type=int, default=5)
+    ap.add_argument("--conditions", choices=("current", "stored"), default="current",
+                    help="current: user_barriers now, cleaned with the vocabulary; stored: the copy saved with each vector")
+    ap.add_argument("--filter", choices=("live", "none"), default="live",
+                    help="live: neighbours must pass the live condition filter; none: as before")
     ap.add_argument("--out", help="also write the report to this markdown file")
     args = ap.parse_args()
     report = run(args)
