@@ -14,6 +14,7 @@ import { usePreferences } from '../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
 import PeopleBoard, { type PeopleKind } from '../hare-world/PeopleBoard'
 import PersonCard, { type CardPerson } from '../hare-world/PersonCard'
+import SocialHub from '../hare-world/SocialHub'
 import { goHubHref } from '@/lib/serviceHub'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
@@ -31,7 +32,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { toolRecommendation } = useAgentPath()
+  const { toolRecommendation, payload: agentPayload } = useAgentPath()
+  // Your goals, to offer when inviting someone to work on one together.
+  const myGoals: string[] = ((agentPayload?.userProfile?.goals || []) as unknown[]).map((g) => String(g || '').trim()).filter(Boolean)
   const { user: authUser } = useAuth()
   const isSignedIn = !!authUser?.id
   
@@ -116,6 +119,8 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   const [blocks, setBlocks] = useState<{ available: boolean; people: BlockedPerson[] }>({ available: false, people: [] })
   const [peopleStatus, setPeopleStatus] = useState('')
   const [confirmBlockRequest, setConfirmBlockRequest] = useState<string | null>(null)
+  // Messages, notes, calls, tasks and goals together work once STEP 66 is applied.
+  const [socialOn, setSocialOn] = useState(false)
 
   const [connectionsLoading, setConnectionsLoading] = useState(false)
   const [connectionsError, setConnectionsError] = useState<string | null>(null)
@@ -270,6 +275,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     target_user_id: c.target_user_id || null,
     created_at: c.created_at || null,
     connected_at: c.connected_at || null,
+    inbound_category: c.inbound_category || null,
     direction: c.direction,
     username: c.username || null,
     pronouns: c.pronouns || null,
@@ -390,6 +396,16 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     }
   }
   useEffect(() => { refreshPendingInbox() }, [isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    fetch('/api/social/messages', { credentials: 'include', cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (!cancelled && json) setSocialOn(Boolean(json.available)) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isSignedIn])
 
   useEffect(() => {
     if (!isSignedIn) return
@@ -1312,6 +1328,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               />
             )}
 
+            {/* Updates, notes of support, memes, calls, mentor tasks and goals
+                together (Riipen Labs, Group 34; STEP 66). */}
+            {haveWorldView === 'people' && isSignedIn && <SocialHub goals={myGoals} />}
+
             {/* Collab Groups View */}
             {haveWorldView === 'collab' && (
               <div className="space-y-6">
@@ -1624,13 +1644,11 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
             </div>
             )}
 
-            {/* More - Only show in People view. Most of what was here did not
-                work: messages were sent to the wrong person and never shown,
-                the feed showed only your own memes, the "video call" was a
-                timer, and rival alerts, mentor tasks and support messages were
-                always empty. They are listed as coming later, not offered
-                (Riipen Labs, Group 34: "bugs undermine trust"; "social features
-                ... have unclear purposes"). Their code and modals are kept. */}
+            {/* More - Only show in People view. Messages, memes, calls, mentor
+                tasks, updates and notes of support didn't work (Riipen Labs,
+                Group 34: "bugs undermine trust"); they were rebuilt on the
+                database's rules (STEP 66) and live in SocialHub above. The old
+                modals below called the backend and are no longer opened. */}
             {haveWorldView === 'people' && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-lg font-bold mb-4">More</h3>
@@ -1649,9 +1667,8 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               <details className="mt-4 rounded-lg border border-slate-200 p-4">
                 <summary className="cursor-pointer text-sm font-medium text-slate-800">Coming later</summary>
                 <p className="mt-2 text-sm text-slate-700">
-                  These are planned but don&apos;t work yet, so they are not offered: messages with your connections, sharing
-                  memes, calls and tasks from mentors, updates when someone you follow finishes a task, notes of support, and
-                  working on a race together.
+                  These are planned but don&apos;t work yet, so they are not offered: chat inside collab groups, and match
+                  suggestions in Relationships.
                 </p>
               </details>
               {blocks.people.length > 0 && (
@@ -1694,6 +1711,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               requestRemoveConnection(person.id, person.name, kind === 'rolemodels' ? 'rolemodel' : kind === 'mentors' ? 'mentor' : 'friend')
             }}
             onBlock={blocks.available && openPerson.person.target_user_id ? () => blockPerson(openPerson.person.target_user_id!, openPerson.person.name) : null}
+            social={socialOn ? { goals: myGoals } : null}
           />
         )}
 

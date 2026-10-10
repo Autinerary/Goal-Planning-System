@@ -193,6 +193,8 @@ export default function HelpPage() {
             { term: 'Friends, mentors and role models', body: 'A friend supports you. A mentor guides you. A role model is someone you look up to. If someone adds you as their mentor or role model, they appear with your friends, marked “Chose you as a mentor” or “Chose you as a role model”.', href: '/hare-world', linkText: 'Open Hare World' },
             { id: 'discoverable', term: 'Discoverable', body: 'Off unless you turn it on, in Your profile. When it is on, other signed-in people can find you by searching your name, your username or your whole email address, and send you a request. Your email address is never shown to them.' },
             { id: 'cards', term: 'A person’s card', body: 'Choose someone in Hare World to open their card: how you are connected and since when, a few words about them, and notes that only you can see.' },
+            { id: 'messages', term: 'Messages and notes of support', body: 'Message anyone you are connected to, in Hare World, then Messages. A note of support is a short, kind message; it also shows on their Path. You can unsend what you sent, and report a message you got: the team sees a copy. Only connected people can message each other.', href: '/hare-world/messages', linkText: 'Open Messages' },
+            { id: 'with-your-people', term: 'Updates, memes, calls, tasks and goals together', body: 'In Hare World, under With your people. Updates show the steps your people finished; it isn’t a contest. Memes are an emoji or a few words for your connections. A call is booked for a time, with a link to a private video room (Jitsi Meet) or your own link. Someone who chose you as their mentor can be sent small tasks, which they accept, decline or tick off. And you can invite someone to work on one of your goals together.', href: '/hare-world#updates', linkText: 'Open Hare World' },
             { id: 'blocking', term: 'Blocking', body: 'Choose Block on a person’s card or on their request. It removes your connection and any requests, both ways; neither of you can find or see the other, and they aren’t told. To undo it, open Blocked people at the bottom of Hare World.' },
             { id: 'requests', term: 'Requests, and what accepting shares', body: 'When someone with an account adds you, you get a request in Hare World, and a notification if you turned them on. You can accept or decline. If you accept, you can each see the other’s path, calendar and race progress. Either of you can remove the other at any time; it ends the connection for both of you, and they aren’t told. You can also add someone by name only, as a note for yourself: they aren’t told and see nothing.' },
             { id: 'role-model-galleria', term: 'Role Model Galleria', body: 'People to look up to, suggested by the community and reviewed before they appear. You can suggest someone.', href: '/hare-world/role-models', linkText: 'Open the Galleria' },
@@ -241,10 +243,6 @@ export default function HelpPage() {
 
         <Section id="not-yet" title="Not working yet" intro="These are planned, but they don’t work yet, so the app doesn’t offer them:">
           <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">
-            <li>Messages with your connections, and sharing memes</li>
-            <li>Calls and tasks from mentors</li>
-            <li>Updates when someone you follow finishes a task, and notes of support</li>
-            <li>Working on a race together</li>
             <li>Match suggestions in Relationships</li>
             <li>Chat inside collab groups</li>
           </ul>

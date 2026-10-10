@@ -129,6 +129,9 @@ export async function GET(req: NextRequest) {
       match_dream: row.match_dream,
       friend_dream: requesterProfile?.dream || null,
       direction: 'incoming',
+      // Which of their lists you are in: 'mentors' means they chose you as
+      // their mentor, so you can suggest tasks (STEP 66).
+      inbound_category: category,
       created_at: row.created_at,
       connected_at: row.connected_at || null,
       username: requesterProfile?.username || null,

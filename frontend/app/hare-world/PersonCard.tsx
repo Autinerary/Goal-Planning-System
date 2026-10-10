@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { MessageCircle, X } from 'lucide-react'
 import { PersonAvatar, type BoardPerson, type PeopleKind } from './PeopleBoard'
+import { CallForm, CollabForm, NoteForm, TaskForm } from './SocialHub'
 
 /**
  * A person's card in Hare World (Riipen Labs, Group 34, slide 20): name,
@@ -18,6 +19,8 @@ export interface CardPerson extends BoardPerson {
   created_at?: string | null
   /** When the request was accepted (STEP 65); empty for older connections. */
   connected_at?: string | null
+  /** For someone who added you: which of their lists you're in. */
+  inbound_category?: string | null
   direction?: 'incoming' | 'outgoing'
   bio?: string | null
   friend_dream?: string | null
@@ -42,7 +45,9 @@ export function relationLine(person: CardPerson, kind: PeopleKind): string {
   return `${KIND_WORD[kind]}, connected${when ? `. You asked on ${when}` : ''}.`
 }
 
-export default function PersonCard({ person, kind, note, onNoteChange, onClose, onRemove, onBlock }: {
+type Action = 'note' | 'call' | 'task' | 'goal'
+
+export default function PersonCard({ person, kind, note, onNoteChange, onClose, onRemove, onBlock, social }: {
   person: CardPerson
   kind: PeopleKind
   note: string
@@ -51,7 +56,10 @@ export default function PersonCard({ person, kind, note, onNoteChange, onClose, 
   onRemove: () => void
   /** Present only when blocking is available (STEP 65) and this is a real account. */
   onBlock?: (() => void) | null
+  /** Messages, notes, calls, tasks and goals together, once STEP 66 is applied; your goals for the last. */
+  social?: { goals: string[] } | null
 }) {
+  const [action, setAction] = useState<Action | null>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const [draft, setDraft] = useState(note)
   const [saved, setSaved] = useState(false)
@@ -92,7 +100,7 @@ export default function PersonCard({ person, kind, note, onNoteChange, onClose, 
         role="dialog"
         aria-modal="true"
         aria-labelledby="person-card-name"
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -117,12 +125,53 @@ export default function PersonCard({ person, kind, note, onNoteChange, onClose, 
         {person.friend_dream && <p className="mt-3 text-sm text-slate-700"><span className="font-semibold">Their dream:</span> {person.friend_dream}</p>}
 
         {connected && (
-          <Link
-            href={`/friend/${person.target_user_id}`}
-            className="mt-4 inline-flex rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800"
-          >
-            See their path and calendar
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href={`/friend/${person.target_user_id}`}
+              className="inline-flex rounded-lg bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800"
+            >
+              See their path and calendar
+            </Link>
+            {social && (
+              <Link
+                href={`/hare-world/messages?with=${person.target_user_id}`}
+                className="inline-flex items-center gap-2 rounded-lg border border-purple-300 px-4 py-2 text-sm font-semibold text-purple-900 hover:bg-purple-50"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" /> Message
+              </Link>
+            )}
+          </div>
+        )}
+
+        {connected && social && (
+          <div className="mt-3">
+            <div className="flex flex-wrap gap-2" role="group" aria-label={`With ${person.name}`}>
+              {([
+                ['note', 'Note of support'],
+                ['call', 'Book a call'],
+                ...(person.inbound_category === 'mentors' ? [['task', 'Suggest a task']] : []),
+                ['goal', 'Work on a goal together'],
+              ] as [Action, string][]).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-expanded={action === id}
+                  onClick={() => setAction(action === id ? null : id)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${action === id ? 'border-purple-700 bg-purple-700 text-white' : 'border-slate-300 text-slate-800 hover:bg-slate-50'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {action && (
+              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                {action === 'note' && <NoteForm people={[]} to={person.target_user_id!} />}
+                {action === 'call' && <CallForm people={[]} to={person.target_user_id!} />}
+                {action === 'task' && <TaskForm people={[]} to={person.target_user_id!} />}
+                {action === 'goal' && <CollabForm people={[]} goals={social.goals} to={person.target_user_id!} />}
+              </div>
+            )}
+          </div>
         )}
 
         <div className="mt-5">

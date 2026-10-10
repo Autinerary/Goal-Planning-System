@@ -40,9 +40,10 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   {
     id: 'people',
     label: 'People',
-    info: 'Your people in Hare World, groups, and family',
+    info: 'Your people in Hare World, messages, groups, and family',
     items: [
       { label: 'Hare World', href: '/hare-world' },
+      { label: 'Messages', href: '/hare-world/messages' },
       { label: 'Friend requests', href: '/hare-world#requests' },
       { label: 'Role Model Galleria', href: '/hare-world/role-models' },
       { label: 'Groups', href: '/hare-world?view=collab' },
@@ -64,21 +65,26 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   {
     id: 'mentors',
     label: 'Mentors',
-    info: 'The people who guide you',
+    info: 'The people who guide you, calls, and tasks from mentors',
     items: [
       { label: 'Your mentors', href: '/hare-world#mentors' },
       { label: 'Find a mentor', href: '/hare-world?add=mentors' },
+      { label: 'Calls', href: '/hare-world#calls' },
+      { label: 'Mentor tasks', href: '/hare-world#tasks' },
       { label: 'What a mentor is', href: '/help#hare-world' },
     ],
   },
   {
     id: 'friends',
     label: 'Friends',
-    info: 'The people who support you',
+    info: 'The people who support you, their updates, notes, memes and goals together',
     items: [
       { label: 'Your friends', href: '/hare-world#friends' },
       { label: 'Find friends', href: '/hare-world?add=friends' },
-      { label: 'Friend requests', href: '/hare-world#requests' },
+      { label: 'Updates from your people', href: '/hare-world#updates' },
+      { label: 'Notes of support', href: '/hare-world#notes' },
+      { label: 'Memes', href: '/hare-world#memes' },
+      { label: 'Goals together', href: '/hare-world#together' },
     ],
   },
   {

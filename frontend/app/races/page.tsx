@@ -15,6 +15,7 @@ import MilestoneTrail from '../components/MilestoneTrail'
 import LaneWorld from '../components/LaneWorld'
 import UserAvatar from '../components/UserAvatar'
 import AnyOrderPond from './AnyOrderPond'
+import GoalsTogether from './GoalsTogether'
 import { Car } from 'lucide-react'
 import { playTaskCompleteSound } from '@/lib/taskSound'
 import { useDisclosure } from '@/lib/disclosure'
@@ -1056,6 +1057,8 @@ function RacesContent() {
               ]}
             />
           </div>
+
+          {isSignedIn && <GoalsTogether day={day} />}
 
           {/* Track shape sub-toggle. Trail Map and Any order for everyone;
               As One and Separate once the app shows more (useDisclosure). */}

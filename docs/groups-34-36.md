@@ -100,13 +100,37 @@ Group 35 is also summarised in [cohort-report-2026-09.md](cohort-report-2026-09.
 
 ### Hare World features that didn't work
 
-Messages went to the wrong person and were never shown; the meme feed showed
-only your own; "Mentor call" was a timer with no video; rival updates, mentor
-tasks and notes of support were never filled in; "Collab" on races had nothing
-behind it; "Suggest" and "Share/Restrict/Private" only showed an alert. They
-are now listed under "Coming later" instead of offered, and in the glossary's
-"Not working yet". Their code is kept. **Team decision:** build them or remove
-them.
+Messages went to the wrong person and were never shown (they were held for a
+review nobody did); the meme feed read an empty table, so it showed only your
+own; "Mentor call" was a timer with no video; rival updates, mentor tasks and
+notes of support were never filled in; "Collab" on races had nothing behind
+it. They were listed as "Coming later". **Now built**, under **With your
+people** in Hare World, on the person's card, and at **Messages**
+(`/hare-world/messages`):
+
+| Feature | Now |
+| --- | --- |
+| Messages | Between connected people only. Unsend what you sent; report what you got (the team gets a copy, kept even if it is unsent); block from the card. Unread counts; checked every few seconds while open. A notification that never names the sender |
+| Notes of support | A short, kind message (ideas offered), shown in the conversation and on the person's Path |
+| Memes | An emoji or a few words, with a caption, for your connections; likes counted by the database. No pictures, which would need checking first |
+| Calls | Booked for a day and time, with a link to a private Jitsi Meet room the app makes, or your own Zoom, Teams or Meet link. Join, cancel, mark done |
+| Mentor tasks | Someone who chose you as their mentor can be sent small tasks; they accept, decline or tick them off |
+| Updates from your people (was rival notifications) | The steps your people finished in the last 30 days, with the step's name. Not a contest. Works now: connected people could already see each other's progress |
+| Goals together (was Collab on races) | Invite a connection to one of your goals; they accept or decline. Shown in Hare World and on Races, with each other's progress |
+
+The rules are in the database (STEP 66, below): only between connected people,
+never between people where one blocked the other, limits against floods, and
+blocking clears booked calls, suggestions and invitations between the two.
+Chat inside collab groups and match suggestions in Relationships are still
+"Not working yet".
+
+**Found while doing this:** the planning service's message, meme and call
+endpoints took the person from `?user_id=` with no sign-in check, through the
+service-role key, so anyone who knew an id could read that person's
+conversations and call history or send messages as them (checked live with
+the test account; no messages or calls were stored). Fixed on 10 October
+(commit 3d78f99): a session is required, a user_id must be the signed-in
+person, and only connected people. Checked live: 401 without a session.
 
 ## Group 35
 
@@ -140,7 +164,8 @@ Their "10 pages of intake" was cut to two questions in Group 5.
 
 ## Team decisions
 
-1. Hare World's unfinished features: build or remove.
+1. ~~Hare World's unfinished features: build or remove~~: built (above),
+   once STEP 66 is applied.
 2. ~~Closing or pausing an account in the app~~: built from the mockup
    (slide 21), with Privacy updated. Deleting needs STEP 65; until it is
    applied the page says to email us, as before.
@@ -183,6 +208,14 @@ Where the database may not remove a sign-in, the app finishes with the admin
 API. Both were tested on a local copy of the whole schema (every migration
 file): 46 checks, with each run more than once to show it can be.
 
+STEP 66 (`backend/database/migrations/2026_social_features.sql`, after STEP
+65): the rules for messages and notes of support, reports, memes and likes,
+calls, mentor tasks and goals together, described above. It removes whatever
+rules the three older tables had before adding its own. Tested on the local
+copy of the whole schema with function bodies checked as Supabase does: 62
+checks, including deleting an account (everything of theirs goes, reports
+they made included).
+
 ## How it was checked
 
 - Unit tests for the new logic: plan-task ticks, daily quotes, calendar
@@ -208,3 +241,9 @@ file): 46 checks, with each run more than once to show it can be.
   Path's paused banner, and deleting. What STEP 64 and 65 add was answered by
   the test, since they aren't applied yet; nothing was deleted and no email
   was sent. axe's WCAG 2.2 AA rules on each of those screens: no issues.
+- For Hare World's people features: a browser test (42 checks) of each tab,
+  the person card's actions, Messages (send with Enter, unsend, report, the
+  phone layout) and the Path's note card, with the new routes answered by the
+  test; and, on the live database, that each says "not switched on yet"
+  before STEP 66 while Updates work. axe on every screen: no issues.
+- The planning service's tests (190), including the new sign-in rules.

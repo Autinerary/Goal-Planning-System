@@ -23,6 +23,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
+  { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, if you join one the app made', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
   {
     name: 'Twilio',
     does: 'Sends reminder texts, and the code that confirms your number, if you choose reminders by text',
@@ -160,7 +161,16 @@ export default function PrivacyPage() {
           </Sub>
           <Sub title="Connecting with people">
             <List>
-              <li>The people you connect with, and messages you send them.</li>
+              <li>
+                The people you connect with, and what you share with them: messages and notes of support, memes, calls you
+                book (the time, a note, and the link to the video room), tasks between you and a mentor, and goals you work on
+                together. Only the two of you can see these. Your connections can also see when you finish a step on your
+                path, in Updates.
+              </li>
+              <li>
+                If you report a message you were sent, a copy of it and your reason, which the team reads to keep Hare World
+                safe.
+              </li>
               <li>
                 Other members see only your public profile: your display name, picture and dream, and your username,
                 pronouns, bio and photo if you add them. They see it only if you are discoverable, you are connected, or

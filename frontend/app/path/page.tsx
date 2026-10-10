@@ -25,6 +25,7 @@ import { usePreferences } from '../context/usePreferences'
 import { quoteOfTheDay } from '@/lib/quotes'
 import PathMenus from '../components/PathMenus'
 import PausedBanner from '../components/PausedBanner'
+import SupportNotesCard from '../components/SupportNotesCard'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -341,6 +342,7 @@ useEffect(() => {
         {/* Menus across the top (Riipen Labs, Group 34, slide 22) */}
         <PausedBanner />
         <PathMenus />
+        <SupportNotesCard />
 
         {/* ── Header ── */}
         <div className="flex flex-col items-start gap-4 mb-6 xl:flex-row xl:justify-between">
