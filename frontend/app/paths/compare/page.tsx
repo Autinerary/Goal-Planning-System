@@ -118,7 +118,7 @@ export default function ComparePathsPage() {
               Go to your Path and tap <span className="font-semibold">Save snapshot</span> to keep a version here,
               then generate a new path to compare against it.
             </p>
-            <button onClick={() => router.push('/path')} className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm font-medium">
+            <button onClick={() => router.push('/path')} className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm font-medium">
               Go to Path
             </button>
           </div>

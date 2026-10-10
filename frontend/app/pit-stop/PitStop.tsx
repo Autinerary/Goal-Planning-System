@@ -1174,7 +1174,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                         <div className="flex flex-col items-end gap-1 flex-shrink-0">
                           <button
                             onClick={() => updateSuggestionStatus(s.id, 'accepted')}
-                            className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg"
+                            className="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium rounded-lg"
                           >
                             Got it
                           </button>
@@ -1506,7 +1506,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                             }}
                             className={`px-4 py-2 rounded-lg transition-all text-sm font-medium cursor-pointer ${
                               group.joined
-                                ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                ? 'bg-emerald-700 text-white hover:bg-emerald-800'
                                 : 'bg-indigo-500 text-white hover:bg-indigo-600'
                             }`}
                           >
