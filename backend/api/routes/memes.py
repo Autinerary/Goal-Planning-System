@@ -12,10 +12,12 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from database.supabase_client import get_supabase
+from api.auth_guard import current_user_id
+from api.routes.social_access import as_self, connected, connected_ids
 
 router = APIRouter()
 
@@ -65,10 +67,10 @@ def _uuid(value: str, field: str) -> str:
 
 
 @router.post("/share")
-async def share_meme(meme: MemeCreate, user_id: str = Query(..., description="User ID")):
-    """Share a meme with your connections."""
+async def share_meme(meme: MemeCreate, user_id: Optional[str] = Query(None, description="User ID"), actor: str = Depends(current_user_id)):
+    """Share a meme with your connections, as the signed-in person."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     try:
         res = sb.table("memes").insert({
             "user_id": uid,
@@ -100,13 +102,14 @@ async def share_meme(meme: MemeCreate, user_id: str = Query(..., description="Us
 
 
 @router.get("/feed")
-async def get_meme_feed(user_id: str = Query(..., description="User ID"), limit: int = 50):
+async def get_meme_feed(user_id: Optional[str] = Query(None, description="User ID"), limit: int = 50, actor: str = Depends(current_user_id)):
     """Memes from the people you're connected to, plus your own."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     try:
-        conns = sb.table("connections").select("connected_user_id").eq("user_id", uid).execute()
-        author_ids = [c["connected_user_id"] for c in (conns.data or []) if c.get("connected_user_id")]
+        # Connections are social_connections; the old `connections` table is
+        # empty, which is why the feed only ever showed your own memes.
+        author_ids = connected_ids(sb, uid)
         author_ids.append(uid)  # your own memes appear in your feed
 
         res = (sb.table("memes").select("*")
@@ -142,15 +145,18 @@ async def get_meme_feed(user_id: str = Query(..., description="User ID"), limit:
 
 
 @router.post("/like")
-async def toggle_like(meme_id: str = Query(...), user_id: str = Query(...)):
-    """Like or unlike a meme. Idempotent per (user, meme)."""
+async def toggle_like(meme_id: str = Query(...), user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
+    """Like or unlike a meme you can see. Idempotent per (user, meme)."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     mid = _uuid(meme_id, "meme_id")
     try:
         existing = sb.table("meme_likes").select("id").eq("meme_id", mid).eq("user_id", uid).execute()
-        current = sb.table("memes").select("likes").eq("id", mid).limit(1).execute()
+        current = sb.table("memes").select("likes, user_id").eq("id", mid).limit(1).execute()
         if not (current.data or []):
+            raise HTTPException(status_code=404, detail="Meme not found")
+        author = str(current.data[0].get("user_id") or "")
+        if author != uid and not connected(sb, uid, author):
             raise HTTPException(status_code=404, detail="Meme not found")
         likes = (current.data[0].get("likes") or 0)
 

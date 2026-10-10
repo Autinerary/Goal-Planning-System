@@ -9,10 +9,12 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from database.supabase_client import get_supabase
+from api.auth_guard import current_user_id
+from api.routes.social_access import as_self, require_connected
 
 router = APIRouter(prefix="/api/messaging", tags=["messaging"])
 
@@ -70,11 +72,13 @@ def _shape(row: dict) -> dict:
 
 
 @router.post("/send", response_model=MessageResponse)
-async def send_message(message: MessageCreate, user_id: str = Query(...)):
-    """Send a message. Held at moderation_status='pending' until reviewed."""
+async def send_message(message: MessageCreate, user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
+    """Send a message, as the signed-in person, to someone they are connected to.
+    Held at moderation_status='pending' until reviewed."""
     sb = _client()
-    sender = _uuid(user_id, "user_id")
+    sender = _uuid(as_self(user_id, actor), "user_id")
     receiver = _uuid(message.receiver_id, "receiver_id")
+    require_connected(sb, sender, receiver)
 
     body = (message.content or "").strip()
     if not body:
@@ -104,10 +108,10 @@ async def send_message(message: MessageCreate, user_id: str = Query(...)):
 
 
 @router.get("/conversations", response_model=List[dict])
-async def get_conversations(user_id: str = Query(...)):
-    """Everyone this user has exchanged messages with, most recent first."""
+async def get_conversations(user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
+    """Everyone the signed-in person has exchanged messages with, most recent first."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     try:
         sent = sb.table("messages").select("receiver_id, created_at") \
                  .eq("sender_id", uid).is_("deleted_at", "null").execute()
@@ -134,10 +138,10 @@ async def get_conversations(user_id: str = Query(...)):
 
 
 @router.get("/conversation/{other_user_id}", response_model=List[MessageResponse])
-async def get_conversation(other_user_id: str, user_id: str = Query(...)):
-    """Approved messages between two people, oldest first."""
+async def get_conversation(other_user_id: str, user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
+    """Approved messages between the signed-in person and another, oldest first."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     other = _uuid(other_user_id, "other_user_id")
     try:
         # Two directed queries rather than one OR: PostgREST's or() with
