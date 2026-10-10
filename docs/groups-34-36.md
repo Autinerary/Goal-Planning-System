@@ -133,12 +133,17 @@ Their "10 pages of intake" was cut to two questions in Group 5.
 4. Written moderation rules for Tidbits.
 5. The website's content (Group 36): for whoever runs www.autinerary.ca.
 
-## For whoever runs the database
+## Database
 
 STEP 63 (`backend/database/migrations/2026_badge_wording.sql`): two Tidbits
 badges say what earns them. "Helpful" said "Received 5 upvotes on an answer"
 but is given at 25 helpful points. It changes only those two rows, only while
-they still have the old wording, and can be run twice. Tested on a local copy.
+they still have the old wording, and can be run twice. Applied on 10 October
+and checked live: "Reached 25 helpful points" and "Reached 1,000 helpful
+points", with the other four badges unchanged.
+
+"Streak Starter" ("Posted on 3 consecutive days") has no rule that grants it,
+so nobody can earn it yet.
 
 ## How it was checked
 
