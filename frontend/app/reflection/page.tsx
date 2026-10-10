@@ -287,6 +287,11 @@ function ReflectionContent() {
                 <span className="text-sm text-slate-500">Read your past journal entries</span>
               </Link>
             </div>
+            {/* Riipen Labs, Group 34, slide 26: a page about you, beside the journal. */}
+            <p className="mt-4 text-center text-sm text-slate-700">
+              Want to write about yourself, not just your day?{' '}
+              <Link href="/about-me" className="font-medium text-indigo-800 underline underline-offset-2">Open About me</Link>
+            </p>
           </div>
         ) : (
         /* ── Write Mode: the entry form ── */

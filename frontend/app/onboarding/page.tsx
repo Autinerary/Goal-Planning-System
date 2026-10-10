@@ -27,6 +27,7 @@ import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, s
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import GoalHelper from '@/app/components/GoalHelper'
 import ReminderFields from '@/app/components/ReminderFields'
+import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
 import QuickSettings from '@/app/components/QuickSettings'
 import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
@@ -241,15 +242,8 @@ const STEP_PURPOSE: Record<string, string> = {
   personalize: 'How the app looks and how much it shows at once. You can change this later in Settings.',
 }
 
-const goalCategories = [
-  { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
-  { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
-  { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
-  { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
-  // Odosa: never show the word "barrier". The id stays for data matching.
-  { id: 'barrier', label: 'Norms', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
-  { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
-]
+// The areas are shared with the Dream Self page (lib/goalAreas.ts).
+const goalCategories: { id: string; label: string; emoji: string; placeholder: string }[] = [...GOAL_AREAS]
 
 // ── Goal suggestions ──────────────────────────────────────────────────
 // Suggest goals based on what the user selected in "Barrier Connections".
@@ -873,6 +867,20 @@ export default function OnboardingPage() {
       return { ...prev, goalsByCategory: { ...prev.goalsByCategory, [category]: list } }
     })
   }
+  // From the Dream Self page's "Make a plan" (app/ideal-self/DreamGoals):
+  // /onboarding?goal=…&area=… starts with that goal added.
+  const goalFromLink = useRef(false)
+  useEffect(() => {
+    if (!draftReady || goalFromLink.current) return
+    goalFromLink.current = true
+    const params = new URLSearchParams(window.location.search)
+    const goal = (params.get('goal') || '').trim().slice(0, 200)
+    if (!goal) return
+    const area = params.get('area')
+    addGoal(isGoalArea(area) ? area : 'other', goal)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftReady])
+
   const removeGoal = (category: string, goal: string) => {
     setFormData(prev => {
       const list = (prev.goalsByCategory[category] || []).filter(e => e.goal !== goal)

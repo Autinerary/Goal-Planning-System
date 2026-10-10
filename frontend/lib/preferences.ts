@@ -61,6 +61,10 @@ export interface UserPreferences {
   peopleNotes?: Record<string, string>
   /** Your profile → Take a break (app/api/me/pause): set while the account is paused, null after. */
   paused?: { since: string; wasDiscoverable: boolean } | null
+  /** About me (app/about-me): in your own words, shared with the assistant only if you say so. */
+  aboutMe?: import('./aboutMe').AboutMe
+  /** Your Dream Self's goals by area (app/ideal-self), as you write them; not your plan's goals. */
+  dreamGoals?: Record<string, string[]>
   /** The character from setup's Character step, shown on the race track at the current step. */
   character?: { hairStyle: string; hairColor: string; skinColor: string; accessory?: string; facialHair?: string; clothing?: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }

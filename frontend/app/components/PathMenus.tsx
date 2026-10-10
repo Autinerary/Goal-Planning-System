@@ -52,10 +52,11 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   {
     id: 'fun',
     label: 'Fun',
-    info: 'Your reel, your journal, your Dream Self and your stats',
+    info: 'Your reel, your journal, About me, your Dream Self and your stats',
     items: [
       { label: 'Reels', href: '/reels' },
       { label: 'Journal', href: '/reflection' },
+      { label: 'About me', href: '/about-me' },
       { label: 'Your Dream Self', href: '/ideal-self' },
       { label: 'Life Stats', href: '/stats' },
     ],

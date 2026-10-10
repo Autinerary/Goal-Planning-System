@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import { useAgentPath } from '../context/AgentPathContext'
+import { usePreferences } from '../context/usePreferences'
 import { toLlmConfig } from '@/lib/modelPrefs'
 
 interface Msg {
@@ -74,6 +76,9 @@ function buildContext(payload: any): string {
 export default function AssistantPage() {
   const router = useRouter()
   const { payload } = useAgentPath()
+  // Whether About me goes with each question (app/about-me; added on the server).
+  const { prefs } = usePreferences()
+  const sharesAboutMe = Boolean(prefs.aboutMe?.shareWithAssistant)
   const [messages, setMessages] = useState<Msg[]>([INTRO])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -215,8 +220,13 @@ export default function AssistantPage() {
             <Send className="w-4 h-4" />
           </button>
         </form>
-        <p className="text-center text-[10px] text-slate-400 pb-2 px-4">
-          The assistant can be wrong. For medical, legal, or crisis help, contact a professional.
+        <p className="text-center text-xs text-slate-700 pb-1 px-4">
+          {sharesAboutMe ? 'The assistant reads your About me.' : 'The assistant doesn’t read your About me.'}{' '}
+          <Link href="/about-me" className="font-medium text-indigo-800 underline underline-offset-2">Change</Link>
+        </p>
+        <p className="text-center text-xs text-slate-600 pb-2 px-4">
+          The assistant can be wrong. For medical or legal help, contact a professional. If things are hard right now,{' '}
+          <Link href="/help#talk-now" className="font-medium text-indigo-800 underline underline-offset-2">talk to someone now</Link>.
         </p>
       </div>
     </div>

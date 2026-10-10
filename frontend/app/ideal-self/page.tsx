@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import AvatarEditor, { type Appearance } from '../components/AvatarEditor'
 import { usePreferences } from '../context/usePreferences'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
+import DreamGoals from './DreamGoals'
 
 type Portrait = { imageUrl: string; prompt?: string; style?: string; updatedAt?: string }
 // value is null when the API has no signal for that stat yet. The bar
@@ -166,6 +167,9 @@ export default function IdealSelfPage() {
             </details>}
           </section>
 
+          {/* Your Dream Self's goals, by area (Riipen Labs, Group 34, slide 26) */}
+          <DreamGoals saved={prefs.dreamGoals} setupGoals={payload?.userProfile?.goalsByCategory} onSave={(dreamGoals) => update({ dreamGoals })} />
+
           {/* ① Role Models / Influences */}
           <div className="border border-slate-200 rounded-2xl p-6 surface">
             <div className="flex items-center gap-2 mb-3">
@@ -216,7 +220,7 @@ export default function IdealSelfPage() {
           <div className="border border-slate-200 rounded-2xl p-6 surface">
             <div className="flex items-center gap-2 mb-3">
               <Target className="w-5 h-5 text-sky-500" />
-              <h3 className="font-bold text-slate-800">Goals</h3>
+              <h3 className="font-bold text-slate-800">On your path now</h3>
             </div>
             {goals.length ? (
               <ul className="space-y-2">

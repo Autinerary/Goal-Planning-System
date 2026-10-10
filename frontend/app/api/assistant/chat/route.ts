@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { aboutMeForAssistant } from '@/lib/aboutMe'
 
 // Proxies at request time (never prerendered).
 export const dynamic = 'force-dynamic'
@@ -48,9 +49,21 @@ export async function POST(request: NextRequest) {
   try {
     // Forwarded so the backend can attribute usage to a verified account. Read
     // from the auth cookie here rather than trusting anything the browser sent.
+    const supabase = createServerSupabase()
     const {
       data: { session },
-    } = await createServerSupabase().auth.getSession()
+    } = await supabase.auth.getSession()
+
+    // About me, only when its owner turned on "Share with the assistant"
+    // (app/about-me). Read here from their own row, never from the browser.
+    // It goes first: the backend keeps the first 2,000 characters of context.
+    let aboutMe = ''
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: row } = await supabase.from('profiles').select('aboutMe:preferences->aboutMe').eq('id', user.id).maybeSingle()
+      aboutMe = aboutMeForAssistant((row as { aboutMe?: any } | null)?.aboutMe)
+    }
+    const pathContext = typeof body.context === 'string' ? body.context : ''
 
     const res = await fetch(`${BACKEND}/api/assistant/chat`, {
       method: 'POST',
@@ -62,7 +75,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         messages,
-        context: typeof body.context === 'string' ? body.context : '',
+        context: [aboutMe, pathContext].filter(Boolean).join('\n\n'),
         llm_config: body.llm_config ?? null,
       }),
       // Render free tier sleeps when idle; the first request can take ~40s+ to

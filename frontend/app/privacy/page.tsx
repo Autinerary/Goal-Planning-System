@@ -20,7 +20,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences, and what you type into the goal helper during setup, if you use it. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -123,6 +123,11 @@ export default function PrivacyPage() {
             <List>
               <li>Norms or conditions, for example autism or ADHD.</li>
               <li>If you fill it in, a more detailed profile about things like diagnoses, therapies, sensory needs and accommodations.</li>
+              <li>
+                If you write it, your About me: what you are good at, what helps, what is hard, and what you want people to know.
+                Only you can see it. It goes to the assistant (and so to OpenAI) only if you turn on “Share with the assistant”.
+              </li>
+              <li>If you write them, your Dream Self’s goals.</li>
             </List>
             <p>This is sensitive, so it is always optional. You can skip it, change it or remove it. We use it only to personalize your plan and recommendations.</p>
           </Sub>

@@ -477,6 +477,8 @@ export default function ProfilePage() {
           <ul className="mt-3 divide-y divide-slate-100">
             {[
               { href: '/hare-world', title: 'Your people', body: 'Friends, mentors and role models, in Hare World' },
+              { href: '/about-me', title: 'About me', body: 'You, in your own words. Only you see it, and the assistant if you say so' },
+              { href: '/ideal-self', title: 'Your Dream Self', body: 'Your character, and your Dream Self’s goals' },
               { href: '/profile/settings', title: 'Settings', body: 'How the app looks, language, reminders and emails, back-ups' },
               { href: '/profile/accessibility', title: 'Accessibility', body: 'Text size, contrast, motion and reading aloud' },
               { href: '/profile/diagnostic', title: 'Condition & Support Profile', body: 'Optional, private: so plans can fit how you work' },
