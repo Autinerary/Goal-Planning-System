@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { hubReturnHref } from '@/lib/serviceHub'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { trackArea, trackDailyOpen } from '@/lib/funnel'
 import { markSeenToday } from '@/lib/checkin'
@@ -194,7 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (user && !user.hasCompletedOnboarding && !isOnboarding && !isPublic) {
       router.push('/onboarding')
     } else if (user && user.hasCompletedOnboarding && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
-      router.push('/path')
+      // Sent here by ResourceHub to sign in, but already signed in: go back
+      // there through the hand-off rather than to the Path.
+      const back = pathname === '/login' ? hubReturnHref(new URLSearchParams(window.location.search).get('returnTo')) : null
+      if (back) window.location.replace(back)
+      else router.push('/path')
     }
   }, [user, isLoading, pathname, router])
 

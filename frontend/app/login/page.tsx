@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import GoogleSignIn from '../components/GoogleSignIn'
 import { wakeBackend } from '@/lib/wakeBackend'
+import { hubReturnHref } from '@/lib/serviceHub'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -41,7 +42,11 @@ export default function LoginPage() {
       if (returnTo && !alreadyUsed) {
         sessionStorage.removeItem('returnTo')
         sessionStorage.setItem('returnTo_used', 'true')
-        window.location.href = returnTo
+        // Back to ResourceHub through the hand-off, so it arrives signed in.
+        // Anything else must be a page of this app: returnTo used to send
+        // people to any address at all.
+        const inApp = returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.startsWith('/\\')
+        window.location.href = hubReturnHref(returnTo) || (inApp ? returnTo : '/path')
       } else {
         sessionStorage.removeItem('returnTo')
         sessionStorage.removeItem('returnTo_used')
