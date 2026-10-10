@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,6 +23,11 @@ export async function GET(request: NextRequest) {
     if (profile?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
+    // Counting everyone's profile needs the admin client: since STEP 64 a
+    // session reads only its own row (and before it, only the rows it was
+    // linked to), so these counts were never the whole table.
+    const admin = createAdminClient()
 
     // Get total counts
     const now = new Date()
@@ -65,18 +71,18 @@ export async function GET(request: NextRequest) {
       .lt('created_at', weekAgo.toISOString())
 
     // Total users
-    const { count: totalUsers } = await supabase
+    const { count: totalUsers } = await admin
       .from('profiles')
       .select('*', { count: 'exact', head: true })
 
     // Users this week
-    const { count: usersThisWeek } = await supabase
+    const { count: usersThisWeek } = await admin
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', weekAgo.toISOString())
 
     // Users last week
-    const { count: usersLastWeek } = await supabase
+    const { count: usersLastWeek } = await admin
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', twoWeeksAgo.toISOString())

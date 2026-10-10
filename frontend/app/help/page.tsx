@@ -101,6 +101,7 @@ export default function HelpPage() {
               ['help-on-pages', 'Help on every page'],
               ['ai', 'Where AI is used'],
               ['not-yet', 'Not working yet'],
+              ['talk-now', 'Talk to someone now'],
             ].map(([id, label]) => (
               <li key={id}><a href={`#${id}`} className={linkClass}>{label}</a></li>
             ))}
@@ -244,6 +245,21 @@ export default function HelpPage() {
             <li>Chat inside collab groups</li>
           </ul>
         </Section>
+
+        {/* The same lines the goal helper shows (backend/core/goal_helper.py,
+            CRISIS). Linked from "Stuck?" on the Path. */}
+        <section id="talk-now" aria-labelledby="talk-now-heading" className="mt-12 scroll-mt-20 rounded-xl border-2 border-amber-300 bg-amber-50 p-5">
+          <h2 id="talk-now-heading" className="text-2xl font-bold text-slate-900">Talk to someone now</h2>
+          <p className="mt-2 text-slate-800">
+            If things are really hard right now, you don&apos;t have to work it out alone. These are free, at any time:
+          </p>
+          <ul className="mt-3 space-y-2 text-slate-900">
+            <li><strong>9-8-8 Suicide Crisis Helpline (Canada):</strong> call or text <a href="tel:988" className={linkClass}>9-8-8</a>, any time.</li>
+            <li><strong>988 Suicide &amp; Crisis Lifeline (US):</strong> call or text <a href="tel:988" className={linkClass}>988</a>, any time.</li>
+            <li><strong>Emergency services:</strong> call <a href="tel:911" className={linkClass}>911</a> if you or someone else is in danger now.</li>
+          </ul>
+          <p className="mt-3 text-sm text-slate-700">Autinerary isn&apos;t a crisis service, and nothing in it is medical advice.</p>
+        </section>
 
         <p className="mt-12 text-sm text-slate-700">
           Something here unclear, or a word missing? Email{' '}

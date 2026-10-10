@@ -33,7 +33,9 @@ export async function getProfile(userId: string): Promise<Profile | null> {
  * whole profile row from getProfile, so email and location went out with it
  * (Riipen Labs, Group 34). Runs with the viewer's own session, so a profile
  * RLS hides from them is simply missing and the review reads "Anonymous", as
- * before.
+ * before. Since STEP 64 people read only their own row of profiles; other
+ * people's public fields come from the public_profiles view, for the same
+ * rows as before. Before STEP 64 the view doesn't exist and this falls back.
  */
 export async function getReviewerProfiles(
   userIds: string[]
@@ -43,10 +45,13 @@ export async function getReviewerProfiles(
   if (ids.length === 0) return out
 
   const supabase = createClient()
-  const { data, error } = await supabase
-    .from('profiles')
+  let { data, error } = await supabase
+    .from('public_profiles')
     .select('id, full_name, role')
     .in('id', ids)
+  if (error && /public_profiles|does not exist|could not find/i.test(error.message || '')) {
+    ;({ data, error } = await supabase.from('profiles').select('id, full_name, role').in('id', ids))
+  }
 
   if (error) {
     console.error('Error fetching reviewer profiles:', error)

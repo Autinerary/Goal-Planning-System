@@ -23,6 +23,7 @@ import MoreFeaturesOffer from '../components/MoreFeaturesOffer'
 import CheckinPrompt from '../components/CheckinPrompt'
 import { usePreferences } from '../context/usePreferences'
 import { quoteOfTheDay } from '@/lib/quotes'
+import PathMenus from '../components/PathMenus'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -335,6 +336,9 @@ useEffect(() => {
             <span className="text-slate-400">ℹ️</span> {loadError}
           </div>
         )}
+
+        {/* Menus across the top (Riipen Labs, Group 34, slide 22) */}
+        <PathMenus />
 
         {/* ── Header ── */}
         <div className="flex flex-col items-start gap-4 mb-6 xl:flex-row xl:justify-between">

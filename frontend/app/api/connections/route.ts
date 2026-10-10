@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { publicProfilesByIds } from '@/lib/publicProfiles'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { pushToUser } from '@/lib/push'
 
@@ -75,14 +76,8 @@ export async function GET(req: NextRequest) {
   for (const r of ownRows || []) if (r.target_user_id) otherIds.add(r.target_user_id)
   for (const r of inboundRows || []) if (r.owner_id) otherIds.add(r.owner_id)
 
-  let profilesById: Record<string, any> = {}
-  if (otherIds.size) {
-    const { data: profs } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_emoji, dream')
-      .in('id', Array.from(otherIds))
-    for (const p of profs || []) profilesById[(p as any).id] = p
-  }
+  // Public fields only (lib/publicProfiles.ts, STEP 64).
+  const profilesById: Record<string, any> = await publicProfilesByIds(supabase, Array.from(otherIds))
 
   const grouped: Record<Category, any[]> = { friends: [], mentors: [], rolemodels: [] }
 

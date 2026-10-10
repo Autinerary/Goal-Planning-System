@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { publicProfilesByIds } from '@/lib/publicProfiles'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -60,14 +61,7 @@ export async function GET(req: NextRequest) {
   for (const r of inboxRes.data || []) otherIds.add(r.from_user_id)
   for (const r of sentRes.data || []) otherIds.add(r.to_user_id)
 
-  let profilesById: Record<string, any> = {}
-  if (otherIds.size) {
-    const { data: profs } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_emoji')
-      .in('id', Array.from(otherIds))
-    for (const p of profs || []) profilesById[(p as any).id] = p
-  }
+  const profilesById: Record<string, any> = await publicProfilesByIds(supabase, Array.from(otherIds))
 
   const inbox = (inboxRes.data || []).map((r: any) => ({
     ...r,

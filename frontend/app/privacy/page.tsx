@@ -156,6 +156,11 @@ export default function PrivacyPage() {
           <Sub title="Connecting with people">
             <List>
               <li>The people you connect with, and messages you send them.</li>
+              <li>
+                Other members see only your public profile: your display name, picture and dream, and your username,
+                pronouns, bio and photo if you add them. They see it only if you are discoverable, you are connected, or
+                one of you sent the other a request. Never your email address, date of birth or settings.
+              </li>
             </List>
           </Sub>
           <Sub title="Feedback and check-ins">

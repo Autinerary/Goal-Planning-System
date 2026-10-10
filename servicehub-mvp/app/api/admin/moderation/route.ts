@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,7 +43,9 @@ export async function GET(request: NextRequest) {
 
     // Get user emails for each item
     const userIds = [...new Set(items?.map((item) => item.submitted_by) || [])]
-    const { data: profiles } = await supabase
+    // Other people's emails need the admin client (the caller was checked to
+    // be an admin above): a session reads only its own profile row (STEP 64).
+    const { data: profiles } = await createAdminClient()
       .from('profiles')
       .select('id, email')
       .in('id', userIds)
