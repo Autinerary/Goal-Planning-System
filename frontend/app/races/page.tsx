@@ -14,6 +14,7 @@ import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
 import LaneWorld from '../components/LaneWorld'
 import UserAvatar from '../components/UserAvatar'
+import AnyOrderPond from './AnyOrderPond'
 import { Car } from 'lucide-react'
 import { playTaskCompleteSound } from '@/lib/taskSound'
 import { useDisclosure } from '@/lib/disclosure'
@@ -82,7 +83,7 @@ function RacesContent() {
   // 'trail' is the level-map view — the whole path as a set of zones you
   // move through, rather than the five-stop road. Default, because seeing
   // progress spatially is the point of the race framing in the first place.
-  const [trackShape, setTrackShape] = useState<'trail' | 'one' | 'separate'>('trail')
+  const [trackShape, setTrackShape] = useState<'trail' | 'pads' | 'one' | 'separate'>('trail')
   // Your generated Dream Self portrait, if you have one. The header showed a
   // generic stick figure even after you had made a portrait of the person you
   // are growing into — which is the one place it most belongs.
@@ -518,6 +519,8 @@ function RacesContent() {
   // View gating: List shows the streamlined top + checklist. Track can be a
   // single continuous road ("one") or parallel dimension tracks ("separate").
   const showTrail = layoutMode === 'track' && trackShape === 'trail'
+  // Any order (Riipen Labs, Group 34, slide 23): lily pads or clouds.
+  const showPads = layoutMode === 'track' && trackShape === 'pads'
   const showContinuousTrack = layoutMode === 'track' && trackShape === 'one'
   const showSeparateTrack = layoutMode === 'track' && trackShape === 'separate'
   // Odosa: Checklist View lives in List View ONLY. Track View gets the race
@@ -1054,16 +1057,20 @@ function RacesContent() {
             />
           </div>
 
-          {/* Track shape sub-toggle — As One vs Separate parallel tracks */}
-          {layoutMode === 'track' && !isSimple && (
+          {/* Track shape sub-toggle. Trail Map and Any order for everyone;
+              As One and Separate once the app shows more (useDisclosure). */}
+          {layoutMode === 'track' && (
             <div className="pt-2 w-full flex justify-center">
               <GameTabs
                 value={trackShape}
                 onChange={(v) => setTrackShape(v)}
                 options={[
                   { id: 'trail' as const, label: 'Trail Map', icon: '🗺️' },
-                  { id: 'one' as const, label: 'As One', icon: '🛣️' },
-                  { id: 'separate' as const, label: 'Separate', icon: '🏁' },
+                  { id: 'pads' as const, label: 'Any order', icon: '🪷' },
+                  ...(isSimple ? [] : [
+                    { id: 'one' as const, label: 'As One', icon: '🛣️' },
+                    { id: 'separate' as const, label: 'Separate', icon: '🏁' },
+                  ]),
                 ]}
               />
             </div>
@@ -1638,6 +1645,20 @@ function RacesContent() {
                 </div>
               )}
             </div>
+          )}
+
+          {showPads && (
+            milestones.length === 0 ? (
+              <p className={`py-8 text-center text-sm ${sub}`}>Finish setup and your milestones appear here.</p>
+            ) : (
+              <AnyOrderPond
+                milestones={milestones as any}
+                completedIds={completedMilestoneIds}
+                onToggle={toggleMilestoneComplete}
+                day={day}
+                character={myCharacter ? <UserAvatar {...myCharacter} size={32} /> : undefined}
+              />
+            )
           )}
 
           {showSeparateTrack && (
