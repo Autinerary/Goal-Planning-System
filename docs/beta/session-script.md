@@ -80,7 +80,7 @@ you do next?" Note whether they name a next step without help.
 Ratings matter beyond the session: the norm and rating filters in
 ResourceHub only work once people have rated real places.
 
-## 3. Wrap-up (5 minutes)
+## 3. Wrap-up (7 minutes)
 
 Ask, and write their words down as closely as you can:
 
@@ -88,7 +88,16 @@ Ask, and write their words down as closely as you can:
 2. "What nearly made you give up?"
 3. "What was the most confusing moment?"
 4. "If you could change one thing, what would it be?"
-5. "How likely are you to keep using it, from 1, not at all, to 5, very?"
+5. "When it asked who you are here for, and what you need today, was there
+   an answer that fit you? If not, what would you have called it?"
+6. "Did anything make you trust it more, or less? Did you notice where it
+   uses AI, and how did you feel about that?"
+7. "How likely are you to keep using it, from 1, not at all, to 5, very?"
+
+Questions 5 and 6 come from Riipen Labs' cohort report: the roles and needs
+"should be validated with beta participants rather than treated as fixed
+labels", and trust and AI framing should be tested "rather than assuming a
+preferred framing" (Team 18).
 
 "Thank you, this really helps. If you'd like to keep going, you're welcome in the 30-day trial
 until 10 November; we'll email you the link. If you think of anything later,
@@ -136,6 +145,8 @@ yes / partly / no · Next step they named, without help: ____
 2. Nearly gave up when:
 3. Most confusing moment:
 4. One change:
-5. Likely to keep using (1-5):
+5. An answer that fit them (who for, need)? yes / no · What they'd call it: ____
+6. Trust, more or less, and why · Noticed the AI? ____
+7. Likely to keep using (1-5):
 
 **Anything else we noticed:**

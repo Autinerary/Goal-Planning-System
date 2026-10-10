@@ -81,7 +81,7 @@ export default function SettingsPreferences() {
                   {l.label}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
+              <div className="text-[11px] text-slate-600 mt-0.5">
                 {l.english}
                 {!l.translated && ' · not translated yet'}
               </div>
@@ -98,7 +98,7 @@ export default function SettingsPreferences() {
           </button>
         )}
 
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="text-xs text-slate-600 mt-2">
           Core navigation is available in {translated.length} languages. Some pages still use English.
           Languages marked "not translated yet" are not available to select.
         </p>
@@ -137,7 +137,7 @@ export default function SettingsPreferences() {
             )
           })}
         </div>
-        <p className="text-xs text-slate-400 mt-2">New accounts start in Simplified View.</p>
+        <p className="text-xs text-slate-600 mt-2">New accounts start in Simplified View.</p>
       </section>
 
       {/* ── Colours / artistic design ──────────────────────────── */}

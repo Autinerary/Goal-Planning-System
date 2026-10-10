@@ -476,6 +476,34 @@ export default function HomePage() {
                 come back gently over your first two weeks.
               </p>
             </details>
+            {/* Riipen Labs' cohort report: "explain where AI is used, what user
+                benefit it provides, what controls exist and where
+                human-reviewed or source-based information matters", without
+                letting technology language eclipse what people get. Each
+                claim matches docs/ai-agents-beta.md and the privacy page. */}
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                Where does Autinerary use AI?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <div className="mt-3 space-y-2 text-slate-700">
+                <p>
+                  AI writes your plan from your goal: the steps, the tools suggested for each one, and short notes on why.
+                  If you ask for it, the goal helper in setup, labelled &ldquo;AI helper&rdquo;, turns your own words into
+                  goal ideas. AI also makes Dream Self pictures, if you make one.
+                </p>
+                <p>
+                  Some things are not AI. Start here&apos;s starter resources are real listings from ResourceHub, chosen
+                  without AI. Your low, balanced and high-energy days are worked out by fixed rules, and the crisis lines
+                  are written by our team. Nothing Autinerary suggests is medical or clinical advice.
+                </p>
+                <p>
+                  AI gets only what it needs, such as your goals and any norms you chose to share. You can change or remove
+                  those answers. We don&apos;t use your information to train AI, and OpenAI&apos;s terms say it doesn&apos;t
+                  either.
+                </p>
+              </div>
+            </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
                 What does Autinerary count?

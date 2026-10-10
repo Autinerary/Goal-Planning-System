@@ -49,8 +49,11 @@ more?"). Nothing changes by itself.
 
 ## Feedback, after people have used it
 
-- Two optional questions on the page after setup: how much they knew
-  before signing up, and how easy setup was.
+- Optional questions on the page after setup: whether they know what to do
+  next (Riipen Labs' cohort report: "Did you know what to do next?"; kept
+  once STEP 62 is applied, and "Not sure" or "No" points to where to start
+  and the tour), how much they knew before signing up, how easy setup was,
+  and where they heard about Autinerary.
 - The team's feedback form: only for people who finished setup and came
   back on a later day. Until 5 October 2026 it could reach a visitor on a
   second visit to the home page, before they had an account.

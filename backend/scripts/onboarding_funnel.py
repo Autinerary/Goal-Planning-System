@@ -128,6 +128,9 @@ START_NEEDS = [
     ("sensory", "sensory tools"),
     ("unsure", "not sure yet"),
 ]
+# The first three role and goal paths of the beta (Riipen Labs' cohort report:
+# "choose the first three role/goal paths"; docs/beta-test-plan-2026-10.md).
+BETA_PATHS = ("self.services", "self.community", "child.learn")
 
 # Check-in answers, as in frontend/lib/checkin.ts.
 STOP_REASONS = [
@@ -353,12 +356,16 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
 def _survey_stats(rows: List[dict]) -> Dict:
     eases = [r["setup_ease"] for r in rows if r.get("setup_ease")]
     infos = [r["info_before_signup"] for r in rows if r.get("info_before_signup")]
+    # "Do you know what to do next?" (the cohort report; STEP 62).
+    nexts = [r["next_step"] for r in rows if r.get("next_step")]
     return {
         "responses": len(rows),
         "info_before_signup": Counter(infos),
         "about_right_share": (sum(1 for i in infos if i == "about_right") / len(infos)) if infos else None,
         "ease": Counter(eases),
         "ease_median": median(eases) if eases else None,
+        "next_step": Counter(nexts),
+        "knows_next_share": (sum(1 for n in nexts if n == "yes") / len(nexts)) if nexts else None,
     }
 
 
@@ -386,19 +393,20 @@ def pct(n: int, d: int) -> str:
 def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[str, Dict]) -> List[str]:
     out = [f"== {title}",
            f"  {'group':<20} {'accounts':>8} {'finished':>9} {'next day':>9} {'back in 7d':>10} {'in 14d':>7} "
-           f"{'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10}"]
+           f"{'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10} {'knows next':>10}"]
     for g in list(funnel_groups) + [g for g in survey_groups if g not in funnel_groups]:
         f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0, "returned_next_day": 0, "returned_14": 0})
         s = survey_groups.get(g)
         if max(f["accounts"], s["responses"] if s else 0) < MIN_CELL:
-            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>9} {'-':>10} {'-':>7} {'-':>8} {'-':>10} {'-':>10}")
+            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>9} {'-':>10} {'-':>7} {'-':>8} {'-':>10} {'-':>10} {'-':>10}")
             continue
         clarity = f"{100 * s['about_right_share']:.0f}%" if s and s["about_right_share"] is not None else "-"
         ease = f"{s['ease_median']}" if s and s["ease_median"] is not None else "-"
+        knows = f"{100 * s['knows_next_share']:.0f}%" if s and s.get("knows_next_share") is not None else "-"
         out.append(f"  {g[:20]:<20} {f['accounts']:>8} {pct(f['finished'], f['accounts']):>9} "
                    f"{pct(f.get('returned_next_day', 0), f['accounts']):>9} {pct(f['returned'], f['accounts']):>10} "
                    f"{pct(f.get('returned_14', 0), f['accounts']):>7} "
-                   f"{(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10}")
+                   f"{(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10} {knows:>10}")
     return out
 
 
@@ -475,6 +483,7 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append("")
     out.extend(_comparison("By channel (utm_source of the first visit)", funnel["by_channel"], feedback.get("by_channel", {})))
     out.append("  (clarity ok = answered \"about right\" to how much they knew before making an account;")
+    out.append("   knows next = answered \"yes\" to \"Do you know what to do next?\" after setup;")
     out.append(f"   groups smaller than {MIN_CELL} show {SMALL})")
     out.append("")
     out.append(f"== Post-setup survey: {feedback['responses']} responses")
@@ -482,6 +491,11 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     total_info = sum(info.values())
     for key, label in (("too_little", "not enough"), ("about_right", "about right"), ("too_much", "too much")):
         out.append(f"  information before sign-up: {label:<12} {info.get(key, 0)}  ({pct(info.get(key, 0), total_info)})")
+    nexts = feedback.get("next_step") or Counter()
+    total_next = sum(nexts.values())
+    out.append("  knows what to do next: " + "   ".join(
+        f"{label} {nexts.get(key, 0)} ({pct(nexts.get(key, 0), total_next)})"
+        for key, label in (("yes", "yes"), ("not_sure", "not sure"), ("no", "no"))))
     ease = feedback["ease"]
     out.append("  setup ease (1 very hard .. 5 very easy): " +
                "  ".join(f"{k}:{ease.get(k, 0)}" for k in range(1, 6)) +
@@ -506,7 +520,8 @@ def compute_start_here(events: Iterable[dict], wanted_version: str = CURRENT_VER
             by_visitor[e["visitor_id"]].append(e)
 
     overall: Counter = Counter()
-    groups: Dict[str, Dict[str, Counter]] = {"need": defaultdict(Counter), "role": defaultdict(Counter)}
+    groups: Dict[str, Dict[str, Counter]] = {"need": defaultdict(Counter), "role": defaultdict(Counter),
+                                             "path": defaultdict(Counter)}
     opened: Counter = Counter()
     for evs in by_visitor.values():
         start = [e for e in evs if e["event"] in START_EVENTS and e.get("step")]
@@ -541,17 +556,19 @@ def compute_start_here(events: Iterable[dict], wanted_version: str = CURRENT_VER
             first = min(pathway_times)
             overall["account_after"] += any(
                 e["event"] == "signup_complete" and _ts(e["created_at"]) >= first for e in evs)
-        for dim, i in (("role", 0), ("need", 1)):
+        for dim, i in (("role", 0), ("need", 1), ("path", None)):
             merged: Dict[str, set] = defaultdict(set)
             for key, done in acts.items():
-                merged[key[i]] |= done
+                merged[f"{key[0]}.{key[1]}" if i is None else key[i]] |= done
             for value, done in merged.items():
                 g = groups[dim][value]
                 g["people"] += 1
                 for a in ("pathway", "opened", "saved", "yes", "no"):
                     g[a] += a in done
+                g["acted"] += bool(done & {"opened", "saved"})
         opened.update(items)
-    return {"overall": overall, "by_need": dict(groups["need"]), "by_role": dict(groups["role"]), "opened": opened}
+    return {"overall": overall, "by_need": dict(groups["need"]), "by_role": dict(groups["role"]),
+            "by_path": dict(groups["path"]), "opened": opened}
 
 
 def render_start_here(s: Dict) -> str:
@@ -578,7 +595,20 @@ def render_start_here(s: Dict) -> str:
                 continue
             out.append(f"  {label:<20} {g['people']:>8} {pct(g['opened'], g['people']):>7} {pct(g['saved'], g['people']):>6} "
                        f"{g['yes']:>7} {g['no']:>10}")
-    needs = dict(START_NEEDS)
+    roles, needs = dict(START_ROLES), dict(START_NEEDS)
+    out.append("")
+    out.append("== Start here: by path (who for + need; * = one of the beta's three paths)")
+    out.append(f"  {'path':<41} {'browsers':>8} {'opened':>7} {'saved':>6} {'next action':>11}")
+    by_path = s.get("by_path", {})
+    for value in list(BETA_PATHS) + sorted((v for v in by_path if v not in BETA_PATHS), key=lambda v: -by_path[v]["people"]):
+        g = by_path.get(value, Counter())
+        role, _, need = value.partition(".")
+        label = f"{'*' if value in BETA_PATHS else ' '} {roles.get(role, role)} + {needs.get(need, need)}"
+        if g["people"] < MIN_CELL:
+            out.append(f"  {label:<41} {(SMALL if g['people'] else '0'):>8} {'-':>7} {'-':>6} {'-':>11}")
+            continue
+        out.append(f"  {label:<41} {g['people']:>8} {pct(g['opened'], g['people']):>7} {pct(g['saved'], g['people']):>6} "
+                   f"{pct(g['acted'], g['people']):>11}")
     shown = [(k, n) for k, n in s["opened"].most_common() if n >= MIN_CELL][:10]
     out.append("")
     out.append(f"== Start here: resources opened most (by need; fewer than {MIN_CELL} not listed)")
@@ -1173,8 +1203,13 @@ def main() -> int:
     try:
         events = fetch_all(sb, "onboarding_events",
                            "visitor_id, user_id, event, step, channel, onboarding_version, created_at")
-        feedback = fetch_all(sb, "onboarding_feedback",
-                             "user_id, info_before_signup, setup_ease, comment, onboarding_version")
+        try:
+            feedback = fetch_all(sb, "onboarding_feedback",
+                                 "user_id, info_before_signup, setup_ease, comment, onboarding_version, next_step")
+        except Exception:
+            # next_step comes with STEP 62.
+            feedback = fetch_all(sb, "onboarding_feedback",
+                                 "user_id, info_before_signup, setup_ease, comment, onboarding_version")
     except Exception as e:
         print(f"Could not read the funnel tables ({str(e)[:90]}). Has STEP 45 been applied?")
         return 1

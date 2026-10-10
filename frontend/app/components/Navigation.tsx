@@ -107,7 +107,7 @@ export default function Navigation() {
 
             <button
               onClick={logout}
-              aria-label="Sign out"
+              aria-label={t('nav.logout')}
               data-info="Signs you out of this account without deleting your saved progress."
               className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
             >

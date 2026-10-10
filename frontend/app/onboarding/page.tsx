@@ -181,6 +181,23 @@ function keptStartPath(): { for: string; need: string; savedAt: string } | null 
   return null
 }
 
+// Why the path could not be made, in plain words, with what to do next. It
+// used to be a browser pop-up with the server's own words ("Cannot connect to
+// server at https://...", "Agent orchestration failed: ..."). Riipen Labs'
+// cohort report: "test technical error states". The backend's own messages
+// are kept only where they are written for people: a goal the guardrails
+// turned down (422) and the daily limit (429).
+function submitErrorMessage(error: any): string {
+  const saved = 'Your answers are saved on this device, so nothing is lost.'
+  const status: number | undefined = error?.response?.status
+  const detail = error?.response?.data?.detail
+  if ((status === 422 || status === 429) && typeof detail === 'string' && detail.trim()) return detail
+  if (status === 401 || status === 403) return `Your sign-in needs refreshing. Sign in again and come back here. ${saved}`
+  if (error?.request && !error?.response) return `We couldn't reach Autinerary just now. Check your internet connection, then try again. ${saved}`
+  if (String(error?.message || '').includes('longer than expected')) return `Making your path is taking much longer than usual. Please try again in a few minutes. ${saved}`
+  return `Your path couldn't be made just now. Please try again in a minute. ${saved}`
+}
+
 // "What are you looking for today?" decides what is shown first after setup.
 const LOOKING_FOR = [
   { id: 'plan', label: 'A step-by-step plan for a goal' },
@@ -500,6 +517,8 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const currentId = steps[currentStep]?.id ?? 'about'
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Why the last try to create the path failed, in plain words (shown under the buttons).
+  const [submitError, setSubmitError] = useState('')
   // Path generation takes ~55s alone and ~90s when a few people submit at once
   // (both measured against production). A static spinner for that long reads as
   // frozen — people refresh, abandon the request, and report it as broken.
@@ -1123,6 +1142,7 @@ export default function OnboardingPage() {
     if (!user) return
     
     setIsSubmitting(true)
+    setSubmitError('')
     try {
       // Only persist a reminder opt-in that's actually complete (enabled +
       // explicit consent + a contact). Otherwise store it disabled so we never
@@ -1403,21 +1423,7 @@ export default function OnboardingPage() {
         API_URL
       })
       
-      // More detailed error handling
-      let errorMessage = 'Error creating your path. Please try again.'
-      
-      if (error?.response) {
-        // Server responded with error
-        errorMessage = error.response.data?.detail || error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`
-      } else if (error?.request) {
-        // Request made but no response (network error)
-        errorMessage = `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
-      } else if (error?.message) {
-        // Other error
-        errorMessage = error.message
-      }
-      
-      alert(errorMessage)
+      setSubmitError(submitErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -3238,6 +3244,7 @@ export default function OnboardingPage() {
                 {continueHint()}
               </p>
             )}
+
             </>)}
 
             {/* Honest waiting state. No progress bar — we cannot see inside the
@@ -3250,6 +3257,18 @@ export default function OnboardingPage() {
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
                   Please keep this tab open. Refreshing starts it over.
+                </p>
+              </div>
+            )}
+            {/* Shown in the form and in the chat version alike. */}
+            {submitError && !isSubmitting && (
+              <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-slate-800">
+                <p>{submitError}</p>
+                <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <button type="button" onClick={handleSubmit} className="font-semibold text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                    Try again
+                  </button>
+                  <span>If it keeps happening, email aayush@autinerary.ca.</span>
                 </p>
               </div>
             )}

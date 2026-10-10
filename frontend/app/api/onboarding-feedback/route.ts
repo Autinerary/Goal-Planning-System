@@ -6,12 +6,16 @@ export const dynamic = 'force-dynamic'
 /**
  * POST /api/onboarding-feedback
  *
- * The two-question survey shown after setup (Riipen Labs: "provide surveys
- * asking for feedback and whether users were provided with the right amount
- * of information about Autinerary before creating an account").
+ * The questions shown after setup (Riipen Labs: "provide surveys asking for
+ * feedback and whether users were provided with the right amount of
+ * information about Autinerary before creating an account"; the cohort
+ * report: "Did you know what to do next?").
  *
- * Body: { infoBeforeSignup?: 'too_little'|'about_right'|'too_much',
+ * Body: { nextStep?: 'yes'|'not_sure'|'no',
+ *         infoBeforeSignup?: 'too_little'|'about_right'|'too_much',
  *         setupEase?: 1-5, comment?: string, version: string }
+ *
+ * Before STEP 62 adds next_step, the other answers are kept without it.
  *
  * Written with the person's own session; RLS only allows inserting a row for
  * auth.uid(). One response per user per onboarding version: a second
@@ -19,6 +23,7 @@ export const dynamic = 'force-dynamic'
  */
 
 const INFO = new Set(['too_little', 'about_right', 'too_much'])
+const NEXT_STEP = new Set(['yes', 'not_sure', 'no'])
 
 export async function POST(req: NextRequest) {
   const supabase = createServerSupabase()
@@ -32,21 +37,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  const nextStep = NEXT_STEP.has(body?.nextStep) ? body.nextStep : null
   const info = INFO.has(body?.infoBeforeSignup) ? body.infoBeforeSignup : null
   const ease = Number.isInteger(body?.setupEase) && body.setupEase >= 1 && body.setupEase <= 5 ? body.setupEase : null
   const comment = typeof body?.comment === 'string' ? body.comment.trim().slice(0, 1000) || null : null
   const version = typeof body?.version === 'string' && /^[a-z0-9._-]{1,40}$/i.test(body.version) ? body.version : null
 
   if (!version) return NextResponse.json({ error: 'Missing version' }, { status: 400 })
-  if (!info && !ease && !comment) return NextResponse.json({ error: 'Nothing to save' }, { status: 400 })
+  if (!nextStep && !info && !ease && !comment) return NextResponse.json({ error: 'Nothing to save' }, { status: 400 })
 
-  const { error } = await supabase.from('onboarding_feedback').insert({
-    user_id: user.id,
-    info_before_signup: info,
-    setup_ease: ease,
-    comment,
-    onboarding_version: version,
-  })
+  const row = { user_id: user.id, info_before_signup: info, setup_ease: ease, comment, onboarding_version: version }
+  let { error } = await supabase.from('onboarding_feedback').insert(nextStep ? { ...row, next_step: nextStep } : row)
+  // PGRST204 / 42703: next_step does not exist yet (STEP 62 not applied).
+  if (error && nextStep && (error.code === 'PGRST204' || error.code === '42703')) {
+    if (!info && !ease && !comment) return NextResponse.json({ saved: false })
+    ;({ error } = await supabase.from('onboarding_feedback').insert(row))
+  }
 
   // 23505: unique violation, i.e. this person already answered for this version.
   if (error && error.code !== '23505') {

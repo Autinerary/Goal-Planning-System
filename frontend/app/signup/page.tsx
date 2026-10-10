@@ -117,10 +117,11 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700 mb-2">
                 Your Name
               </label>
               <input
+                id="signup-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -132,18 +133,20 @@ export default function SignupPage() {
 
             {/* Date of birth (18+ gate) */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="signup-dob" className="block text-sm font-medium text-slate-700 mb-2">
                 Date of birth
               </label>
               <input
+                id="signup-dob"
                 type="date"
                 value={dob}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setDob(e.target.value)}
+                aria-describedby="signup-dob-help"
                 className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 required
               />
-              <p className="text-xs text-slate-500 mt-1">You must be 18 or older to create your own account.</p>
+              <p id="signup-dob-help" className="text-xs text-slate-500 mt-1">You must be 18 or older to create your own account.</p>
             </div>
 
             {/* Under-18 explainer */}
@@ -159,10 +162,11 @@ export default function SignupPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="signup-email" className="block text-sm font-medium text-slate-700 mb-2">
                 Email
               </label>
               <input
+                id="signup-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -174,11 +178,12 @@ export default function SignupPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="signup-password" className="block text-sm font-medium text-slate-700 mb-2">
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="signup-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -189,6 +194,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -215,10 +221,11 @@ export default function SignupPage() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="signup-confirm" className="block text-sm font-medium text-slate-700 mb-2">
                 Confirm Password
               </label>
               <input
+                id="signup-confirm"
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

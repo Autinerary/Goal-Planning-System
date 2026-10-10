@@ -65,7 +65,7 @@ const en: Dict = {
   'nav.settings': 'Settings',
   'nav.howItWorks': 'How it works',
   'nav.findResources': 'Find Resources',
-  'nav.logout': 'Logout',
+  'nav.logout': 'Sign out',
   'nav.path': 'Path',
   'nav.races': 'Races',
   'nav.milestones': 'Milestones',

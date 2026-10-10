@@ -97,6 +97,12 @@ what needs switching on, and what was not built (randomized A/B tests, too
 few people in the trial) are in
 [first-visit-to-return.md](first-visit-to-return.md).
 
+Riipen Labs' cohort report, from all 36 teams, asked for one onboarding path
+for every channel, a review date set before recruiting, three role and goal
+paths with a starter shelf and a success measure each, and "Did you know what
+to do next?". Those are below; every part of the report is mapped in
+[cohort-report-2026-09.md](cohort-report-2026-09.md).
+
 A note on timing: Autism Acceptance Month is in April. October is ADHD
 Awareness Month (and Dyslexia Awareness Month), so outreach copy for an
 October trial should lead with that.
@@ -122,6 +128,8 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | The backend sleeps when idle: its first answer on 5 October took 41 s | The app now wakes it when sign-up, sign-in or setup opens, so it is usually awake by the time a path is made, but someone opening the Path straight after a quiet spell still waits. A plan that does not sleep would remove the wait | Decide |
 | Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | Done 5 October; tested live |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
+| Apply STEP 62 (`backend/database/migrations/2026_onboarding_next_step.sql`) | Keeps the answer to "Do you know what to do next?" after setup. Until then the other answers are kept without it | To do |
+| Agree the review date and who decides (below, "Review: keep, change or stop") | The cohort report: "set the beta review date before recruiting" | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |
 
@@ -155,6 +163,43 @@ Western (https://forms.gle/hRNpUKtBsA8B8RacA); the clubs had not replied by
 25 September. It can be reused, but it belongs to Group 8's Google account:
 ask them to add the team as an editor, or make a copy, before sending it, or
 the answers go to them.
+
+## The first three paths
+
+Riipen Labs' cohort report: "choose the first three role/goal paths ...
+curate one starter shelf per path ... define first-session and 7-day
+success". Start here has a shelf for every answer; these three are the ones
+the beta is judged on. They follow the two priority groups agreed on 5
+October. Start here had 4 browsers by 10 October, too few to choose by data,
+so check them at the halfway check-in.
+
+| Path (who for + need) | Starter shelf (`frontend/lib/startHere.ts`) | First session | Within 7 days |
+| --- | --- | --- | --- |
+| Myself + services | Autism, ADHD and support organisations; therapists and counsellors; doctors and health centres; community centres and libraries | Opens one of them, or saves the path | Comes back |
+| Myself + people with similar experiences | Ask a question in Tidbits; Autism, ADHD and support organisations; community centres and libraries; sports and activities | Opens one, most likely Tidbits | Comes back |
+| My child + starter information | Autism, ADHD and support organisations; a book from the shop; ask a question in Tidbits | Opens one, or saves the path | Comes back |
+
+For all three, the qualitative check is "Do you know what to do next?" after
+setup, and "Was this useful?" in Start here. The report's "Start here: by
+path" table marks these three with `*`; returns are in "Returned the next
+day, within 7 and 14 days", by who people are here for.
+
+## Channels: one hypothesis each
+
+The cohort report: "define one first-week success hypothesis per
+audience/channel pair", and test it rather than assume it. Every channel
+gets the same Start here; only the welcome line differs
+([outreach.md](beta/outreach.md)).
+
+| Channel | Who we expect | Hypothesis for the first week | Where to look |
+| --- | --- | --- | --- |
+| Facebook and parent groups | Parents | Most choose "My child", and the trust line helps them save the path | Start here by who it is for, and saves, for `utm_source` facebook and parent-group |
+| TikTok, Reddit, Instagram | Neurodivergent adults | Most choose "Myself", and more open Tidbits than other channels | Start here by path; "By channel" for returns |
+| LinkedIn, schools | Teachers, employers, support workers | They choose "Someone I teach, support or work with" and open school or work support | Start here by who it is for |
+| Riipen, friends, community organizations | Everyone | They reach a starter resource as often as the targeted channels | "By channel" |
+
+If a channel turns out to bring different people than expected, that is a
+finding, not a failure. Change the welcome line or the post, not the path.
 
 ## Part 1: moderated task sessions (weeks 1 and 2)
 
@@ -207,10 +252,12 @@ Open to anyone 18+ who reaches the app through a tracked link. No
 facilitator. The app collects everything below by itself.
 
 Tracked links: add `?utm_source=<channel>` to the address, one value per
-channel, lower case. Campaign links open Start here (`/start`), and can
-answer its first question for the people a channel reaches (Group 4's
-"targeted landing paths"); [outreach.md](beta/outreach.md) has one for each
-channel. The home page works too, for example:
+channel, lower case. Campaign links open Start here (`/start`), where
+everyone answers the same two questions and only a welcome line changes with
+the channel (Riipen Labs' cohort report: one path for everyone, "channel
+should not be used as a proxy for identity or need");
+[outreach.md](beta/outreach.md) has one for each channel. The home page works
+too, for example:
 
 ```
 https://app.autinerary.ca/?utm_source=riipen
@@ -233,9 +280,10 @@ What participants will see, in order:
 2. Setup in two questions (who you're here for, and one goal), starting with
    their Start here answers, with an optional "What are you looking for
    today?". Norms and the other extras are optional.
-3. Starter resources picked from their answers, two optional questions about
-   setup (how much they knew before signing up, how easy setup was), and an
-   opt-in to a check-in by email, by a notification on their device, or both.
+3. Starter resources picked from their answers, optional questions (whether
+   they know what to do next, how much they knew before signing up, how easy
+   setup was, where they heard about Autinerary), and an opt-in to a check-in
+   by email, by a notification on their device, or both.
 4. Optional questions they skipped come back on the Path, one group at a
    time: location first, sensory needs and conditions from day 7, the
    personal touches from day 10.
@@ -317,6 +365,17 @@ Group 11's measures, and where each is in the report:
 | The AI guide against the standard goal step | **The goal helper**: who got suggestions, who added one, and setup completion with and without it. People choose to use it, so it compares groups and does not show cause and effect |
 | Time to first value, start rate, drop-off by step, completion | As for Groups 7 and 10, above |
 
+Riipen Labs' cohort report (all 36 teams) asked for "a small set of
+observable behaviours", by entry channel and user group:
+
+| They asked for | What we report |
+| --- | --- |
+| Onboarding completion and step-level drop-off | Funnel; "where people pause"; last step seen by those who stopped |
+| First useful action | **Reached something useful** (Group 10); Start here's next actions, by path |
+| Return behaviour | Returned the next day, within 7 and within 14 days |
+| Follow-up engagement | **Bringing people back**: reminder and weekly emails, check-ins, notifications |
+| A short qualitative question ("Did you know what to do next?") | **Post-setup survey** and the "knows next" column, by group and channel (STEP 62) |
+
 Group 6's measure: "where they click, leave, and whether they return". Clicks
 are the parts of the app opened and the Start here resources opened;
 returns are the 7 and 14 day returns above; **where they leave** is the
@@ -339,22 +398,56 @@ Proposed targets, for the team to agree before the trial starts:
   `goalfirst-2026-10`, once each has at least 5 accounts
 - people who use the goal helper finish setup at least as often as those
   who don't (if not, the helper is getting in the way)
+- at least 70% answer "yes" to "Do you know what to do next?" after setup
+  (the cohort report's qualitative check, so completion is not mistaken for
+  understanding)
+- on each of the three beta paths (below), at least half of the browsers
+  that reach it take a next action (open a resource or save the path)
 
 Groups with fewer than 5 people are shown as "<5", with no percentages.
 Browsers that send Do Not Track or Global Privacy Control are left out of the
 funnel counts; survey and check-in answers, which people give on purpose, are
 kept.
 
-## After the trial (week of 10 November)
+## Review: keep, change or stop (Wednesday 12 November)
+
+Riipen Labs' cohort report: "set the beta review date before recruiting" and
+"run a scale/revise/stop review before public launch". Proposed date:
+**Wednesday 12 November 2026**, two days after the trial ends. Who makes the
+call: [[TEAM: name]]. A check-in on **Monday 26 October**, halfway, looks
+only for things that are broken (errors, a step nobody gets past), not for
+results.
 
 1. Run the report for the trial version (`twostep-2026-10`, the default) and
    export the session notes.
 2. For each measure, compare user groups and channels; mark anything below
-   target.
+   target. Read numbers with the session notes and the "Do you know what to
+   do next?" answers, never alone: groups under 5 show "<5".
 3. List the three most common reasons people stopped, with quotes.
-4. Decide on two or three changes, and bump `ONBOARDING_VERSION` in
-   `frontend/lib/funnel.ts` when they ship, so the next round compares
-   cleanly against this one.
+4. Decide, for each part of the first session (Start here, setup, the page
+   after setup, the first week):
+   - **Keep**: at or above target for both priority groups. Widen the beta to
+     more people and channels.
+   - **Change**: below target for either priority group, or one group or
+     channel far behind the others. Change it, bump `ONBOARDING_VERSION` in
+     `frontend/lib/funnel.ts` when it ships, and test again, so the next
+     round compares cleanly against this one.
+   - **Stop**: it blocks a session task for two or more people, or the
+     comments and sessions show it costs trust (privacy worries, AI that
+     confuses). Take it out or rework it before any public launch.
+
+## Risks, and how this trial handles them
+
+From the cohort report's "Risk & Mitigation":
+
+| Risk | What is in place |
+| --- | --- |
+| Overgeneralizing neurodivergent users | Five recruiting groups with ND and NT people; results split by group and channel, never turned into personas; groups under 5 shown as "<5" |
+| Collecting too much too early | Two required questions; everything else optional or asked later, with what it is for ([onboarding-questions.md](onboarding-questions.md)) |
+| Mistaking completion for satisfaction | First useful action, returns, "Was this useful?", "Do you know what to do next?", the check-ins and session notes sit beside completion |
+| A separate product for every channel | One path for every channel; only the welcome line differs, and that only where it says something every visitor is told anyway |
+| Over-relying on AI positioning | The home page leads with what people get; "Where does Autinerary use AI?" says what AI does, what it doesn't, and the controls; the goal helper is labelled and optional |
+| Accessibility as a one-time checklist | `scripts/qa/check-accessibility.mjs` checks the first-session pages of both apps at phone and desktop widths, before each release that changes them; task-based sessions with the people the app is for |
 
 ## Out of scope for this trial
 

@@ -28,13 +28,17 @@ from `backend/`, "By channel").
 | The comic | /c/comic | Start here | [comic.svg](qr/comic.svg) |
 | Research posts and papers | /c/research | Start here | [research.svg](qr/research.svg) |
 | Community partners and role models | /c/partners | Start here | [partners.svg](qr/partners.svg) |
-| Facebook (parents) | /c/facebook | Starter information for parents, with a line on privacy under "Save this path" | [facebook.svg](qr/facebook.svg) |
-| TikTok (adults) | /c/tiktok | People with similar experiences, starting with Tidbits | [tiktok.svg](qr/tiktok.svg) |
-| Reddit (adults) | /c/reddit | People with similar experiences, starting with Tidbits | [reddit.svg](qr/reddit.svg) |
+| Facebook | /c/facebook | Start here, welcomed with "no account needed, no ads, never sold" | [facebook.svg](qr/facebook.svg) |
+| TikTok | /c/tiktok | Start here, welcomed with where to find people with similar experiences | [tiktok.svg](qr/tiktok.svg) |
+| Reddit | /c/reddit | Start here, welcomed with where to find people with similar experiences | [reddit.svg](qr/reddit.svg) |
 
-All are `https://app.autinerary.ca/c/...`. The Facebook, TikTok
-and Reddit paths follow Group 5: "trust/safety for Facebook parents vs. peer
-tools for TikTok/Reddit adults". People can change either answer.
+All are `https://app.autinerary.ca/c/...`. Every link asks Start here's two
+questions. Group 5 suggested "trust/safety for Facebook parents vs. peer
+tools for TikTok/Reddit adults", so the Facebook, TikTok and Reddit links
+used to answer them in advance. Riipen Labs' cohort report asked for one path
+for everyone ("channel should not be used as a proxy for identity or need"),
+so since 10 October they only change the welcome line. The printed codes
+did not change.
 
 An unknown code still opens Start here, so a typo is never a dead end. To
 add a link, add a line to `frontend/lib/campaign.ts`.

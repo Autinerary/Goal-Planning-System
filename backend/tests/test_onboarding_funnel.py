@@ -140,6 +140,27 @@ class FunnelTests(unittest.TestCase):
         self.assertIn("0 responses", text)
 
 
+class StartHerePathTests(unittest.TestCase):
+    def test_by_path_marks_the_three_beta_paths(self):
+        events = []
+        for i in range(5):   # five browsers on "myself + services", three of them act
+            v = f"s{i}"
+            events.append(ev(v, "start_pathway", "2026-10-12T10:00:00+00:00", step="self.services"))
+            if i < 2:
+                events.append(ev(v, "start_open", "2026-10-12T10:01:00+00:00", step="self.services.therapists"))
+            if i == 2:
+                events.append(ev(v, "start_save", "2026-10-12T10:01:00+00:00", step="self.services"))
+        events.append(ev("w", "start_pathway", "2026-10-12T10:00:00+00:00", step="work.school_work"))
+        s = compute_start_here(events)
+        g = s["by_path"]["self.services"]
+        self.assertEqual((g["people"], g["opened"], g["saved"], g["acted"]), (5, 2, 1, 3))
+        text = render_start_here(s)
+        self.assertRegex(text, r"\* myself \+ services +5 +40% +20% +60%")
+        self.assertRegex(text, r"\* myself \+ similar experiences +0 ")
+        self.assertRegex(text, r"\* my child \+ starter information +0 ")
+        self.assertRegex(text, r"\n {4}teach / work with \+ school or work +<5 ")
+
+
 class FeedbackTests(unittest.TestCase):
     def test_counts_and_median(self):
         rows = [
@@ -153,6 +174,18 @@ class FeedbackTests(unittest.TestCase):
         self.assertEqual(s["info_before_signup"]["about_right"], 2)
         self.assertEqual(s["ease_median"], 3)
         self.assertEqual(len(s["comments"]), 1)
+        self.assertIsNone(s["knows_next_share"])   # rows from before STEP 62
+
+    def test_knows_what_to_do_next(self):
+        rows = [{"next_step": "yes", "onboarding_version": V}, {"next_step": "yes", "onboarding_version": V},
+                {"next_step": "not_sure", "onboarding_version": V}, {"next_step": "no", "onboarding_version": V},
+                {"setup_ease": 4, "onboarding_version": V}]
+        s = summarize_feedback(rows)
+        self.assertEqual(dict(s["next_step"]), {"yes": 2, "not_sure": 1, "no": 1})
+        self.assertEqual(s["knows_next_share"], 0.5)
+        text = render(compute_funnel([]), s, show_comments=False)
+        self.assertIn("knows what to do next: yes 2 (50%)   not sure 1 (25%)   no 1 (25%)", text)
+        self.assertIn("knows next", text)
 
     def test_comments_hidden_unless_asked(self):
         rows = [{"info_before_signup": None, "setup_ease": None, "comment": "my name is X", "onboarding_version": V}]

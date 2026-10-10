@@ -237,8 +237,9 @@ export default function ProfileSettingsPage() {
 
               {/* Email (read-only) */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+                <label htmlFor="settings-email" className="block text-sm font-semibold text-slate-800 mb-1">Email</label>
                 <input
+                  id="settings-email"
                   type="email"
                   value={profile.email || ''}
                   disabled
@@ -290,9 +291,9 @@ export default function ProfileSettingsPage() {
                       {profile.discoverable
                         ? <Eye className="w-4 h-4 text-emerald-600" />
                         : <EyeOff className="w-4 h-4 text-slate-500" />}
-                      <span className="font-semibold text-slate-900">Discoverable</span>
+                      <span id="discoverable-label" className="font-semibold text-slate-900">Discoverable</span>
                     </div>
-                    <p className="text-xs text-slate-600">
+                    <p id="discoverable-help" className="text-xs text-slate-600">
                       When ON, other signed-in users can find you by name or email and send you a friend request.
                       When OFF, only people who already have your direct link can see your profile.
                     </p>
@@ -301,6 +302,8 @@ export default function ProfileSettingsPage() {
                     type="button"
                     role="switch"
                     aria-checked={profile.discoverable}
+                    aria-labelledby="discoverable-label"
+                    aria-describedby="discoverable-help"
                     onClick={() => setProfile({ ...profile, discoverable: !profile.discoverable })}
                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                       profile.discoverable ? 'bg-emerald-500' : 'bg-slate-300'
@@ -320,7 +323,7 @@ export default function ProfileSettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save
@@ -397,7 +400,7 @@ export default function ProfileSettingsPage() {
                 <button
                   onClick={() => setConfirm('all')}
                   disabled={dataBusy !== null}
-                  className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                  className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                 >
                   {dataBusy === 'wipe' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   Restart
@@ -467,7 +470,7 @@ export default function ProfileSettingsPage() {
               <button onClick={() => setConfirm(null)} className="flex-1 px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-lg font-semibold hover:bg-slate-50">Cancel</button>
               <button
                 onClick={() => doReset(confirm)}
-                className={`flex-1 px-4 py-2 text-white rounded-lg font-semibold ${confirm === 'all' ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'}`}
+                className={`flex-1 px-4 py-2 text-white rounded-lg font-semibold ${confirm === 'all' ? 'bg-red-700 hover:bg-red-800' : 'bg-amber-700 hover:bg-amber-800'}`}
               >
                 {confirm === 'all' ? 'Delete everything' : 'Reset progress'}
               </button>
