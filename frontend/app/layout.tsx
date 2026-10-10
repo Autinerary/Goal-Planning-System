@@ -91,7 +91,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={bodyFont.variable}>
+    // Settings saved on this device (Settings → Accessibility) are applied
+    // before the first paint, so dark mode doesn't flash white and text
+    // doesn't jump size. AccessibilityProvider keeps them up to date after.
+    <html lang="en" className={bodyFont.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-screen">
         <AuthProvider>
           <AgentPathProvider>

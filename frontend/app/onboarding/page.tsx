@@ -27,6 +27,8 @@ import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, s
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import GoalHelper from '@/app/components/GoalHelper'
 import ReminderFields from '@/app/components/ReminderFields'
+import QuickSettings from '@/app/components/QuickSettings'
+import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import {
@@ -157,6 +159,16 @@ const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
   // Riipen Labs, Group 4: "Include 'not sure' to avoid blocking progress".
   // Setup then reads as if for themselves, the default.
   { id: 'unsure', label: 'Not sure yet', connection: null },
+]
+
+// The same answers under three headings (Riipen Labs, Group 34, slide 25:
+// "Who are you?" in three groups). Their mockup's first group was
+// "Neurodivergent"; it is "Yourself" here, since not everyone planning for
+// themselves uses that word. "Not sure yet" follows the groups.
+const AUDIENCE_GROUPS: { label: string; ids: string[] }[] = [
+  { label: 'Yourself', ids: ['self'] },
+  { label: 'Family', ids: ['child', 'family'] },
+  { label: 'Friends, work and others', ids: ['friend', 'work', 'ally'] },
 ]
 
 // What Autinerary does for each of them, shown once they choose (Riipen Labs,
@@ -1672,8 +1684,8 @@ export default function OnboardingPage() {
 
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
                 <legend className="mb-2 font-medium text-slate-900">Who are you here for?</legend>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {AUDIENCES.map((a) => (
+                {(() => {
+                  const audienceButton = (a: typeof AUDIENCES[number]) => (
                     <button
                       key={a.id}
                       type="button"
@@ -1688,8 +1700,23 @@ export default function OnboardingPage() {
                       {formData.audience === a.id && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
                       {a.label}
                     </button>
-                  ))}
-                </div>
+                  )
+                  return (
+                    <div className="space-y-3">
+                      {AUDIENCE_GROUPS.map((g, i) => (
+                        <div key={g.label} role="group" aria-labelledby={`audience-group-${i}`}>
+                          <p id={`audience-group-${i}`} className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">{g.label}</p>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {AUDIENCES.filter((a) => g.ids.includes(a.id)).map(audienceButton)}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {AUDIENCES.filter((a) => !AUDIENCE_GROUPS.some((g) => g.ids.includes(a.id))).map(audienceButton)}
+                      </div>
+                    </div>
+                  )
+                })()}
                 {AUDIENCE_VALUE[formData.audience] && (
                   <p role="status" className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
                     {AUDIENCE_VALUE[formData.audience]}
@@ -1725,6 +1752,8 @@ export default function OnboardingPage() {
                   })}
                 </div>
               </fieldset>
+
+              {canAccessOnboarding && <ProfileBasics />}
             </div>
           )}
 
@@ -3051,7 +3080,7 @@ export default function OnboardingPage() {
                 <Palette className="w-6 h-6 text-cyan-600" />
                 <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
               </div>
-              <p className="text-slate-600 mb-6">Two quick choices. Both can be changed later in Settings.</p>
+              <p className="text-slate-600 mb-6">How it looks and reads, and reminders. You can change all of it later in Settings.</p>
 
               {/* Age range and "How often do you use apps?" were asked here too.
                   They only capped the liveliness chosen below, so they asked the
@@ -3081,6 +3110,9 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               </div>
+              {/* Dark mode, contrast and text size (Group 34, slide 25). */}
+              <QuickSettings />
+
               {/* Daily goal reminders (opt-in) */}
               <div className="mt-6 border-t border-slate-200 pt-6">
                 <div className="flex items-start justify-between gap-4">

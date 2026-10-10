@@ -116,7 +116,7 @@ export default function PhotoField({ userId, url, emoji, onSaved }: {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="Your photo" width={72} height={72} className="h-[72px] w-[72px] rounded-full object-cover" />
         ) : (
-          <span className="grid h-[72px] w-[72px] place-items-center rounded-full bg-purple-50 text-4xl" aria-hidden="true">{emoji || '👤'}</span>
+          <span className="keep-colors grid h-[72px] w-[72px] place-items-center rounded-full bg-purple-50 text-4xl" aria-hidden="true">{emoji || '👤'}</span>
         )}
         <div className="flex flex-wrap gap-2">
           <input

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2 } from 'lucide-react'
+import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2, Moon } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
 import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
 import { SPEECH_RATES, SPEECH_VOLUMES, loadVoices, speak, speechSupported, voicesFor } from '@/lib/speech'
@@ -38,6 +38,7 @@ export default function AccessibilitySettingsPage() {
     desc: string
     icon: typeof Contrast
   }[] = [
+    { key: 'darkMode', label: 'Dark mode (experimental)', desc: 'Light text on a dark background. Photos and characters keep their colours; some emoji and colours may look different.', icon: Moon },
     { key: 'highContrast', label: 'High contrast', desc: 'Boost contrast for easier reading.', icon: Contrast },
     { key: 'reduceMotion', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
     { key: 'dyslexiaFont', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },

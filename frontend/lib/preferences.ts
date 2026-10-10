@@ -110,6 +110,8 @@ export interface AccessibilitySettings {
   speechRate: number
   /** Speaking volume, 0 to 1. */
   speechVolume: number
+  /** Dark mode, experimental (Riipen Labs, Group 34, slide 25). On this device only, like the rest. */
+  darkMode?: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -298,6 +300,7 @@ export function applyAccessibility(a11y: AccessibilitySettings): void {
   root.dataset.reduceMotion = a11y.reduceMotion ? 'on' : 'off'
   root.dataset.dyslexiaFont = a11y.dyslexiaFont ? 'on' : 'off'
   root.dataset.underlineLinks = a11y.underlineLinks ? 'on' : 'off'
+  root.dataset.darkMode = a11y.darkMode ? 'on' : 'off'
 }
 
 /**

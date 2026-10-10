@@ -60,7 +60,7 @@ export function PersonAvatar({ person, size = 40 }: { person: BoardPerson; size?
   return (
     <span
       aria-hidden="true"
-      className="grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-100 to-pink-100"
+      className="keep-colors grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-100 to-pink-100"
       style={{ width: size, height: size, fontSize: size * 0.5 }}
     >
       {person.icon || '👤'}

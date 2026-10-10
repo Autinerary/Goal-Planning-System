@@ -42,7 +42,7 @@ export default function UserAvatar({
       style={{ width: size, height: size }}
       role="img"
       aria-label="Your character"
-      className={className}
+      className={`keep-colors ${className}`}
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )

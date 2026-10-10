@@ -196,7 +196,7 @@ export default function ProfilePage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={shown.avatar_url} alt="" width={64} height={64} className="h-16 w-16 shrink-0 rounded-full object-cover" />
               ) : (
-                <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-purple-50 text-4xl" aria-hidden="true">{shown?.avatar_emoji || '👤'}</span>
+                <span className="keep-colors grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-purple-50 text-4xl" aria-hidden="true">{shown?.avatar_emoji || '👤'}</span>
               )}
               <div className="min-w-0">
                 <p className="truncate text-xl font-bold text-slate-900">{shown?.display_name || user?.name || 'No display name yet'}</p>
