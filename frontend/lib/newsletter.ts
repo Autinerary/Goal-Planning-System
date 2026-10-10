@@ -71,16 +71,23 @@ export function tipFor(now: Date): string {
   return TIPS[weekIndex(now) % TIPS.length]
 }
 
-/** Organisations that serve everyone, not one town (no map position). */
+/**
+ * Organisations that serve everyone, not one town (no map position), with a
+ * real description: a placeholder of a word or two tells the reader nothing.
+ * Filtered in the database: there are thousands of places with a position
+ * (9,561 approved resources, 19 without one, on 10 October 2026).
+ */
 async function organisations(): Promise<{ id: string; name: string; description: string | null; province: string | null }[]> {
   const { data } = await createAdminClient()
     .from('resources')
     .select('id, name, description, location')
     .eq('status', 'approved')
+    .or('location.is.null,location->>lat.is.null')
     .order('name')
     .limit(500)
   return (data || [])
     .filter((r: any) => !(r.location && (r.location.lat || r.location.lng)))
+    .filter((r: any) => (r.description || '').trim().length >= 20)
     .map((r: any) => ({ id: r.id, name: r.name, description: r.description, province: r.location?.province || null }))
 }
 

@@ -78,6 +78,8 @@ export interface UserPreferences {
   startPath?: { for: string; need: string; savedAt?: string }
   /** Consent to one short email check-in after two weeks away (default off). */
   checkin?: { optIn: boolean; updatedAt: string }
+  /** The weekly email: what they saved, plus new picks (lib/weeklyPicks.ts; default off). */
+  weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }
@@ -121,6 +123,9 @@ export const DEFAULT_LAYOUT: LayoutPositions = {
   widgetSize: 'medium',
   accent: 'cyan',
 }
+
+/** The weekly email's switch in Settings, kept with the choice as its consent record (lib/weeklyPicks.ts sends it). */
+export const WEEKLY_PICKS_CONSENT = 'A weekly email on Mondays: what I saved in ResourceHub, plus new picks for me.'
 
 export const DEFAULT_REMINDERS: ReminderPreferences = {
   enabled: false,

@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, newsletterWeeklyEmail, sendEmail, type NewsletterLink } from '@/lib/email'
 import { postalAddress, tipFor, weeklyLinks } from '@/lib/newsletter'
+import { runWeeklyPicks } from '@/lib/weeklyPicks'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 /**
  * GET /api/cron/newsletter: the weekly email (Mondays, vercel.json) to
- * everyone who confirmed it. Off until NEWSLETTER_POSTAL_ADDRESS is set, as
+ * everyone who confirmed it, and the weekly email for people with an account
+ * who turned it on in Settings (lib/weeklyPicks.ts), which replaces this one
+ * for the same address. Off until NEWSLETTER_POSTAL_ADDRESS is set, as
  * Canada's anti-spam law requires a mailing address in it. Each email has a
  * one-click unsubscribe (List-Unsubscribe) and is sent at most once in six
  * days per person.
@@ -24,6 +27,12 @@ export async function GET(req: NextRequest) {
   }
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin).replace(/\/$/, '')
   const now = new Date()
+  const failures: string[] = []
+  // People with an account first: whoever gets theirs is skipped below.
+  const accounts = await runWeeklyPicks(now, appUrl).catch((e: any) => {
+    failures.push(`accounts: ${e?.message || 'failed'}`)
+    return null
+  })
   const admin = createAdminClient()
   const { data: rows, error } = await admin.from('newsletter_subscribers')
     .select('id, email, token, role, need, last_sent_at').eq('status', 'confirmed').eq('weekly', true)
@@ -32,8 +41,8 @@ export async function GET(req: NextRequest) {
   const tip = tipFor(now)
   const picks = new Map<string, NewsletterLink[]>()
   let sent = 0
-  const failures: string[] = []
   for (const row of rows || []) {
+    if (accounts?.addresses.has(String(row.email).toLowerCase())) continue
     if (row.last_sent_at && now.getTime() - Date.parse(row.last_sent_at) < 6 * 86400000) continue
     const key = `${row.role || ''}.${row.need || ''}`
     if (!picks.has(key)) picks.set(key, await weeklyLinks(row.role, row.need, now, appUrl))
@@ -53,5 +62,5 @@ export async function GET(req: NextRequest) {
       await admin.from('newsletter_subscribers').update({ last_sent_at: now.toISOString() }).eq('id', row.id)
     } else if (!res.skipped) failures.push(`${row.id}: ${res.error}`)
   }
-  return NextResponse.json({ ok: true, sent, failures: failures.slice(0, 10) })
+  return NextResponse.json({ ok: true, sent, accounts: accounts?.sent ?? 0, failures: [...failures, ...(accounts?.failures || [])].slice(0, 10) })
 }

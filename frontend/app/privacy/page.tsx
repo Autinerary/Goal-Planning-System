@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // Where privacy questions and requests go. Change it here if the team sets up
 // a shared address (for example privacy@autinerary.ca).
 const CONTACT = 'aayush@autinerary.ca'
-const UPDATED = '6 October 2026'
+const UPDATED = '10 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -205,7 +205,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               To send email: a welcome email when you finish setup, one reminder to finish setup if you ask for it, daily
-              reminders at the time you choose if you turn them on, and a check-in if you opt in. Without an account: a
+              reminders at the time you choose if you turn them on, a weekly email with the resources you saved in
+              ResourceHub and new picks for you if you turn it on, and a check-in if you opt in. Without an account: a
               Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them
               off.
             </li>

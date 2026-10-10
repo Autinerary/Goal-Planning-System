@@ -13,7 +13,7 @@ import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check, 
 import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
-import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, loadPreferences, type ViewPreference } from '@/lib/preferences'
+import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, WEEKLY_PICKS_CONSENT, loadPreferences, type ViewPreference } from '@/lib/preferences'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import PushOptIn from './PushOptIn'
 import ReminderFields from './ReminderFields'
@@ -287,12 +287,49 @@ export default function SettingsPreferences() {
           />
           <span>If I haven&apos;t opened Autinerary for two weeks, email me one short question about why.</span>
         </label>
+        <WeeklyPicksSetting
+          enabled={Boolean(prefs.weeklyPicks?.enabled)}
+          onChange={(on) => update({ weeklyPicks: { enabled: on, consent: WEEKLY_PICKS_CONSENT, updatedAt: new Date().toISOString() } })}
+        />
         <div className="mt-4">
           <PushOptIn />
         </div>
         {gaEnabled() && <AnalyticsSetting />}
       </section>
     </div>
+  )
+}
+
+/**
+ * The weekly email with what they saved and new picks (Riipen Labs, Group 11,
+ * for people who finished setup; lib/weeklyPicks.ts). Offered once it can be
+ * sent, and always shown while it is on, so it can be turned off.
+ */
+function WeeklyPicksSetting({ enabled, onChange }: { enabled: boolean; onChange: (on: boolean) => void }) {
+  const [available, setAvailable] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/me/weekly-picks', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled) setAvailable(Boolean(json?.available))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  if (!available && !enabled) return null
+  return (
+    <label className="mt-3 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+      />
+      <span>{WEEKLY_PICKS_CONSENT}</span>
+    </label>
   )
 }
 

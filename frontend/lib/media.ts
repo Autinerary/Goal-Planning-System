@@ -54,6 +54,18 @@ export const HOW_TO = video('how-to-use-your-path')
  */
 export const EPISODES: MediaItem[] = []
 
+/**
+ * Recordings of shared stories, keyed by the story's id in public.stories
+ * (Riipen Labs, Group 11: testimonials "in video, audio, and text ... in the
+ * format each visitor prefers"). "In their words" shows the approved text and,
+ * when there is a recording, a button to watch or listen. Record only with the
+ * teller's consent for audio or video (docs/beta/testimonials.md), and only
+ * once the story is published. Put the file and its captions in
+ * public/media/stories/. Leave `transcript` empty when the recording says the
+ * approved text word for word: the text on the card is then the transcript.
+ */
+export const STORY_RECORDINGS: Record<string, MediaItem> = {}
+
 /** "1 minute", "1½ minutes", "10 minutes", for labels. */
 export function lengthLabel(seconds: number): string {
   if (seconds < 60) return `${Math.round(seconds)} seconds`

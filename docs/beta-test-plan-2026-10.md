@@ -87,9 +87,14 @@ optional AI helper, labelled as AI, that suggests goals only from setup's own
 ideas and hands words of danger to the crisis lines. Setup says answers are
 saved, welcomes people back where they left off, and sends one reminder email
 if asked. The Path has a "Getting started" checklist, and Settings let people
-choose the app's voice, speed and volume. What was built, what the team
-still needs to make (a video, testimonials) and what was decided against
-(GA4, a newsletter pop-up) are in
+choose the app's voice, speed and volume. Since then: two captioned videos,
+stories people share (text, and recordings once made), email without an
+account, a weekly email with saved resources and new picks for people with
+an account, reminders at a chosen time, setup by chatting, opt-in Google
+Analytics, and a sourced line of research on need. What was built, what the
+team still needs to make (stories, podcast episodes, measured beta results),
+what needs switching on, and what was not built (randomized A/B tests, too
+few people in the trial) are in
 [first-visit-to-return.md](first-visit-to-return.md).
 
 A note on timing: Autism Acceptance Month is in April. October is ADHD
@@ -306,7 +311,7 @@ Group 11's measures, and where each is in the report:
 | Group 11 asked for | What we report |
 | --- | --- |
 | 1-, 7- and 14-day return, by segment and traffic source | Returned the next day, within 7 and within 14 days; a column for each, by who people are here for and by channel |
-| Email and push opt-in rate | **Bringing people back**: share of accounts with daily reminder emails, check-in emails, notifications, or any of them |
+| Email and push opt-in rate | **Bringing people back**: share of accounts with daily reminder emails, check-in emails, notifications, the weekly email, or any of them |
 | Their three segments: visited but did not start, stopped at a step, finished | **Bringing people back**: each group, the last step seen by people who stopped, and who came back to setup after a break |
 | "The share of users who saved a resource in their first week" | **Bringing people back** |
 | The AI guide against the standard goal step | **The goal helper**: who got suggestions, who added one, and setup completion with and without it. People choose to use it, so it compares groups and does not show cause and effect |

@@ -883,8 +883,9 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
     """Group 11's measures for bringing people back. Their three segments
     (visited but did not start, stopped at a step, finished), who came back to
     setup after a break, who opted in to reminder emails, check-in emails or
-    notifications, and who saved a resource in their first week (their
-    suggested "proof of impact", to publish once measured). Pure."""
+    notifications or the weekly email (what they saved, plus new picks), and
+    who saved a resource in their first week (their suggested "proof of
+    impact", to publish once measured). Pure."""
     prefs_by_user = prefs_by_user or {}
     push_users = push_users or set()
     first_save_by_user = first_save_by_user or {}
@@ -901,6 +902,9 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
 
     def checkin(p: dict) -> bool:
         return bool((prefs(p).get("checkin") or {}).get("optIn"))
+
+    def weekly(p: dict) -> bool:
+        return (prefs(p).get("weeklyPicks") or {}).get("enabled") is True
 
     def saved_first_week(p: dict) -> bool:
         first = first_save_by_user.get(p["user_id"])
@@ -922,7 +926,8 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
         "reminders": sum(reminders(p) for p in known),
         "checkin": sum(checkin(p) for p in known),
         "push": sum(p["user_id"] in push_users for p in known),
-        "any_opt_in": sum(reminders(p) or checkin(p) or p["user_id"] in push_users for p in known),
+        "weekly": sum(weekly(p) for p in known),
+        "any_opt_in": sum(reminders(p) or checkin(p) or weekly(p) or p["user_id"] in push_users for p in known),
         "setup_reminder": sum(bool((prefs(p).get("setupReminder") or {}).get("requestedAt")) for p in known),
         "saved_first_week": sum(saved_first_week(p) for p in known),
     }
@@ -950,7 +955,8 @@ def render_return_loop(r: Dict) -> str:
     out.append(f"  left setup and came back to it   {count(r['resumed'])}, of whom finished {count(r['resumed_finished'])}")
     out.append(f"  opted in, of {r['known']} accounts: daily reminder emails {count(r['reminders'])}{share(r['reminders'], r['known'])}, "
                f"check-in emails {count(r['checkin'])}{share(r['checkin'], r['known'])}, "
-               f"notifications {count(r['push'])}{share(r['push'], r['known'])}; "
+               f"notifications {count(r['push'])}{share(r['push'], r['known'])}, "
+               f"weekly email {count(r['weekly'])}{share(r['weekly'], r['known'])}; "
                f"any of them {count(r['any_opt_in'])}{share(r['any_opt_in'], r['known'])}")
     out.append(f"  asked for a reminder to finish setup   {count(r['setup_reminder'])}")
     out.append(f"  saved a resource in their first week   {count(r['saved_first_week'])}{share(r['saved_first_week'], r['known'])}")

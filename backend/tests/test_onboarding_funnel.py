@@ -769,7 +769,9 @@ class Group11Tests(unittest.TestCase):
         prefs = {
             "u0": {"reminders": {"enabled": True, "consent": True}, "checkin": {"optIn": True}},
             "u1": {"reminders": {"enabled": True, "consent": False}},   # not consented: not counted
-            "u3": {"setupReminder": {"requestedAt": "2026-10-01T10:03:00+00:00"}},
+            "u3": {"setupReminder": {"requestedAt": "2026-10-01T10:03:00+00:00"},
+                   "weeklyPicks": {"enabled": True}},
+            "u5": {"weeklyPicks": {"enabled": False}},                   # turned off: not counted
             "u4": {"setupReminder": None},                                # asked, then cancelled
         }
         saves = {"u0": "2026-10-03T10:00:00+00:00",      # day 2: counts
@@ -780,12 +782,13 @@ class Group11Tests(unittest.TestCase):
         self.assertEqual((r["accounts"], r["stopped"], r["finished"]), (6, 3, 3))
         self.assertEqual(dict(r["stopped_at"]), {"goalsAndDreams": 2, "about": 1})
         self.assertEqual((r["resumed"], r["resumed_finished"]), (1, 0))
-        self.assertEqual((r["reminders"], r["checkin"], r["push"], r["any_opt_in"]), (1, 1, 1, 2))
+        self.assertEqual((r["reminders"], r["checkin"], r["push"], r["weekly"], r["any_opt_in"]), (1, 1, 1, 1, 3))
         self.assertEqual((r["setup_reminder"], r["saved_first_week"]), (1, 1))
         text = render_return_loop(r)
         self.assertIn("visited, no account yet          <5", text)
         self.assertIn("finished setup                   <5", text)
         self.assertIn("opted in, of 6 accounts: daily reminder emails <5", text)
+        self.assertIn("weekly email <5; any of them <5", text)
         self.assertNotIn("%", text)   # every group is under five
 
     def test_goal_helper_compared_with_the_standard_step(self):

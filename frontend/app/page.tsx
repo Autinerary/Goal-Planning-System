@@ -58,7 +58,10 @@ import StartHere from './components/StartHere'
  * looks like inside, and "what you'll share / what you get / how we protect
  * it", with honest answers explained and "prefer not to say" always there.
  * The screenshots are of the real app with a sample plan; retake them when
- * those screens change (docs/first-visit-to-return.md says how).
+ * those screens change (docs/first-visit-to-return.md says how). For "proof
+ * of impact" they suggested beta results as they are measured, alongside
+ * research on need: "So far in the beta" waits for measured results, and the
+ * research is one sourced line under "Who it's for".
  */
 
 const PRIMARY_CTA =
@@ -170,6 +173,20 @@ const CONNECTIONS = [
   { label: 'Your calendar', detail: 'next steps scheduled around your energy' },
   { label: 'Your journal', detail: 'look back, adjust your goals' },
 ]
+
+// Results from Autinerary's own beta, for "So far in the beta" (Group 11:
+// "share results from Autinerary's own beta as they are measured (for example,
+// the share of users who saved a resource in their first week)"). Add one only
+// once the trial has measured it, from the report (python -m
+// scripts.onboarding_funnel, in backend/), never as an estimate: the figure,
+// what it counts, how many people it is from, and the month. The section shows
+// only when there is at least one.
+const BETA_RESULTS: { figure: string; what: string; people: number; measured: string }[] = []
+
+// Research on need (Group 11: "alongside credible research on need"). Canadian,
+// like the people Autinerary serves, and about more than one norm at once.
+const NEED_SOURCE =
+  'https://www.canada.ca/en/public-health/services/publications/diseases-conditions/autism-spectrum-disorder-canadian-health-survey-children-youth-2019.html'
 
 const NORM_EXAMPLES = [
   'Autism', 'ADHD', 'OCD', 'Bipolar', 'Anxiety', 'Learning differences',
@@ -377,10 +394,36 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+          <p className="mt-4 max-w-3xl text-sm text-slate-700">
+            Many people navigate more than one. In Canada, 1 in 50 children and youth have an autism diagnosis, and more
+            than two-thirds of them also have another long-term condition, most often ADHD, a learning disability or
+            anxiety (
+            <a href={NEED_SOURCE} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+              Public Health Agency of Canada, 2022
+            </a>
+            ).
+          </p>
         </div>
       </section>
 
       <StoriesSection />
+
+      {BETA_RESULTS.length > 0 && (
+        <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="beta-heading">
+          <div className="mx-auto max-w-5xl">
+            <h2 id="beta-heading" className="text-2xl font-bold md:text-3xl">So far in the beta</h2>
+            <ul className="mt-6 grid gap-4 md:grid-cols-3">
+              {BETA_RESULTS.map((r) => (
+                <li key={r.what} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-3xl font-bold text-indigo-800">{r.figure}</p>
+                  <p className="mt-1 text-slate-800">{r.what}</p>
+                  <p className="mt-2 text-sm text-slate-700">From {r.people} people, measured in {r.measured}.</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Details people asked for, folded away until wanted so the page does
           not front-load everything (the review's main risk to avoid). */}
