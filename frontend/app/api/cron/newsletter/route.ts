@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, newsletterWeeklyEmail, sendEmail, type NewsletterLink } from '@/lib/email'
 import { postalAddress, tipFor, weeklyLinks } from '@/lib/newsletter'
 import { runWeeklyPicks } from '@/lib/weeklyPicks'
+import { pausedEmails } from '@/lib/pause'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -40,9 +41,12 @@ export async function GET(req: NextRequest) {
 
   const tip = tipFor(now)
   const picks = new Map<string, NewsletterLink[]>()
+  // Someone who paused their account (Your profile) gets no weekly email.
+  const paused = await pausedEmails(admin)
   let sent = 0
   for (const row of rows || []) {
     if (accounts?.addresses.has(String(row.email).toLowerCase())) continue
+    if (paused.has(String(row.email).toLowerCase())) continue
     if (row.last_sent_at && now.getTime() - Date.parse(row.last_sent_at) < 6 * 86400000) continue
     const key = `${row.role || ''}.${row.need || ''}`
     if (!picks.has(key)) picks.set(key, await weeklyLinks(row.role, row.need, now, appUrl))

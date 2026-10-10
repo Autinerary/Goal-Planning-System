@@ -50,9 +50,9 @@ Group 35 is also summarised in [cohort-report-2026-09.md](cohort-report-2026-09.
 | Move core resources to the top | Quick Links come straight after "Your next step" on the Path, two to four across, each with a line saying what it is. Hare World is one of them. |
 | A separate social page | **Hare World**, at `/hare-world`: your people, requests, groups and relationships. Pit Stop keeps the tools. Old `/pit-stop?tab=haveworld` links go to Hare World. |
 | Break Pit Stop into clearer sections (tools, social, mentors, friends) | Pit Stop is tools; Hare World has role models, mentors and friends in columns, then groups |
-| A profile page | **Your profile**, at `/profile`, opened from your name in the top bar: how friends see you, your character, your name, your email, changing your password, and Profile & Discovery (moved from Settings) |
+| A profile page | **Your profile**, at `/profile`, opened from your name in the top bar: how friends see you, your character, your name, your email address (now changeable), your phone number, your password, Profile & Discovery (moved from Settings), and taking a break or deleting your account. Their mockup's fields are below |
 | Short explanations for Tidbits, Pit Stop, mentors, races and messaging | **What things are called**, at `/help`: 33 terms, public. Linked from the home page, the Path, the Help popover, and the Pit Stop and Hare World headers. |
-| Being able to expand the tabs on the main page | "Show more" on the Path |
+| Being able to expand the tabs on the main page | Their mockup (slide 22) shows menus across the top of the Path. **Stuck?, People, Fun, Mentors, Friends and Tools** each open a short list of places. "Show more" is still there for the rest |
 | Split setup into two parts, the second after the account | Since Groups 5 to 7: two questions, optional extras, and questions asked later on the Path |
 | Dropdowns instead of test-like questions | Kept as large buttons: Group 36 asked for large touch targets, and a dropdown hides the choices. A team decision if they want it revisited. |
 | A 7-14 day feedback survey | The check-in questions (useful? why did you stop?) and the questions after setup |
@@ -83,6 +83,15 @@ Group 35 is also summarised in [cohort-report-2026-09.md](cohort-report-2026-09.
 | Repetitive quotes | 40 quotes, ten for each stage of the journey, one a day (`frontend/lib/quotes.ts`) |
 | Integrate Tidbits and ResourceHub | Tidbits is inside ResourceHub, with the same account; the glossary says so |
 | Explain Reddit-style features | "How Tidbits works" |
+
+### Their mockups (slides 19 to 26)
+
+| Mockup | Now |
+| --- | --- |
+| The Path's menus (slide 22): Stuck? > People > Fun > Mentors > Friends > Tools | Done. Stuck? includes **Talk to someone now** (9-8-8, 988 and 911) on the glossary page |
+| Hare World (slide 19): "Find your friends" with Add and Search beside "Your friends", the same for mentors, and your top role models as cards | Done. Add and Search open the search or the add-by-name form for that list; role models show the top three, with the rest in a list |
+| A person's card (slide 20): friends since, notes, Remove, Block | Done. The card shows their @username, pronouns, a few words about them and their dream; when you connected (for requests accepted after STEP 65) or when you asked; **your notes**, which only you can see; Remove; and **Block**, which asks first. Blocking removes the connection and any requests both ways, hides each of you from the other and stops new requests; they aren't told. **Blocked people** at the bottom of Hare World lists them, with Unblock. Block is on requests too. Chat and Collab are with the features below |
+| Your profile (slide 21): username, bio, photo, phone number, change email, pause, delete | Done. Username (3 to 20 letters, numbers, dots or underscores; unique), **pronouns** (tick any of seven, or type your own), a bio, and a **photo**, cut square and made smaller in the browser, which also drops where the photo was taken. The phone number is the one verified for text reminders, changed in Settings. **Change email address** sends a link to the new address. **Pause** turns off every reminder, check-in, weekly email and notification, and hides you from search, until you press Resume (on the Path or here). **Delete** removes the account and everything linked to it at once, after you type DELETE; it points to the back-up first. Team accounts can't be deleted this way |
 
 ### Hare World features that didn't work
 
@@ -127,8 +136,9 @@ Their "10 pages of intake" was cut to two questions in Group 5.
 ## Team decisions
 
 1. Hare World's unfinished features: build or remove.
-2. Closing or pausing an account in the app. Now it is by email, as Privacy
-   says. Changing the email address is also by email.
+2. ~~Closing or pausing an account in the app~~: built from the mockup
+   (slide 21), with Privacy updated. Deleting needs STEP 65; until it is
+   applied the page says to email us, as before.
 3. Accent colour as a full theme.
 4. Written moderation rules for Tidbits.
 5. The website's content (Group 36): for whoever runs www.autinerary.ca.
@@ -144,6 +154,29 @@ points", with the other four badges unchanged.
 
 "Streak Starter" ("Posted on 3 consecutive days") has no rule that grants it,
 so nobody can earn it yet.
+
+STEP 64 (`backend/database/migrations/2026_profile_privacy.sql`), found while
+building the person card: anyone could read the **whole** profile row of a
+person who was discoverable, or linked to them by a connection or request,
+including their email address, date of birth and settings (which can hold a
+phone number). Discoverable rows could be read signed out, with the public key
+the website ships. The app never showed those fields, but the database did.
+After STEP 64 people read only their own row; other people's public fields
+(name, picture, dream, username, pronouns, bio, photo) come from a
+`public_profiles` view; people search matches a name, a username or a
+**whole** email address (it matched any part, so "gmail" listed everyone
+discoverable on Gmail). It also adds the new profile fields and the photo
+bucket. The app was changed first, so it works before and after.
+
+STEP 65 (`backend/database/migrations/2026_blocks_and_account_deletion.sql`,
+after STEP 64): when a request was accepted (for "Friends since"), blocking,
+and `delete_my_account()`. Deleting clears references that would stop it
+(who locked or resolved a Tidbits post, who suggested a resource), removes
+rows in tables that hold a person's id without a link to the account (the
+journal, the matching vectors and others), then the profile and the sign-in.
+Where the database may not remove a sign-in, the app finishes with the admin
+API. Both were tested on a local copy of the whole schema (every migration
+file): 46 checks, with each run more than once to show it can be.
 
 ## How it was checked
 
@@ -162,3 +195,11 @@ so nobody can earn it yet.
   ticks (saved to the account and still ticked after a reload), the mood
   calendar, sticky headers, Back buttons, and 12 pages at phone width.
 - The accessibility checker on every page, at phone and desktop widths.
+- For the mockups: a second browser test (75 checks) of the Path menus'
+  pages, Hare World's board, a person's card, notes, blocking and unblocking,
+  Your profile's new fields, the photo (a 900 by 600 picture arrives as a 512
+  by 512 JPEG in the person's own folder), changing the email address, pausing
+  and resuming (on the live database, with the test account restored), the
+  Path's paused banner, and deleting. What STEP 64 and 65 add was answered by
+  the test, since they aren't applied yet; nothing was deleted and no email
+  was sent. axe's WCAG 2.2 AA rules on each of those screens: no issues.

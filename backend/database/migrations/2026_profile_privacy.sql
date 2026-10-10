@@ -22,7 +22,8 @@
 -- 4. New public profile fields for Group 34's profile page (slide 21) and
 --    setup (slide 25): username, pronouns, bio, avatar_url (a photo).
 -- 5. An "avatars" storage bucket for profile photos: 2 MB, PNG, JPEG or
---    WebP; each person can only write in their own folder.
+--    WebP; each person can only write in, list and remove from their own
+--    folder. Anyone with a photo's link can open it.
 --
 -- The app works before and after this is applied: it reads public_profiles
 -- and search_profiles when they exist and falls back otherwise.
@@ -165,4 +166,10 @@ CREATE POLICY "avatars_update_own" ON storage.objects
 DROP POLICY IF EXISTS "avatars_delete_own" ON storage.objects;
 CREATE POLICY "avatars_delete_own" ON storage.objects
   FOR DELETE TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Listing and removing your own photos need to read your own folder.
+DROP POLICY IF EXISTS "avatars_read_own" ON storage.objects;
+CREATE POLICY "avatars_read_own" ON storage.objects
+  FOR SELECT TO authenticated
   USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);

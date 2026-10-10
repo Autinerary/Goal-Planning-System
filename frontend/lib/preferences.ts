@@ -57,6 +57,10 @@ export interface LayoutPositions {
 export interface UserPreferences {
   gamification?: import('./gamification').GamificationPreferences
   dreamAppearance?: { hairStyle: string; hairColor: string; skinColor: string }
+  /** Private notes about people in Hare World, by connection id (only you can read preferences). */
+  peopleNotes?: Record<string, string>
+  /** Your profile → Take a break (app/api/me/pause): set while the account is paused, null after. */
+  paused?: { since: string; wasDiscoverable: boolean } | null
   /** The character from setup's Character step, shown on the race track at the current step. */
   character?: { hairStyle: string; hairColor: string; skinColor: string; accessory?: string; facialHair?: string; clothing?: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }

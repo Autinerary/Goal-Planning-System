@@ -10,6 +10,10 @@ import MerchantShopkeeper from '../components/MerchantShopkeeper'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import { resolveToolLink } from '@/lib/toolLink'
+import { usePreferences } from '../context/usePreferences'
+import { loadPreferences } from '@/lib/preferences'
+import PeopleBoard, { type PeopleKind } from '../hare-world/PeopleBoard'
+import PersonCard, { type CardPerson } from '../hare-world/PersonCard'
 import { goHubHref } from '@/lib/serviceHub'
 
 // Service Hub URL - defaults to localhost:3001 (Service Hub should run on a different port)
@@ -100,9 +104,18 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   // When the user is signed in we replace these with rows from /api/connections.
   // Real connections only — start empty; /api/connections populates on mount.
   // Empty lists render honest "no connections yet" states, never sample people.
-  const [roleModels, setRoleModels] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
-  const [mentors, setMentors] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
-  const [friends, setFriends] = useState<Array<{ id: string; name: string; role: string; status: string; icon: string; target_user_id?: string | null }>>([])
+  const [roleModels, setRoleModels] = useState<CardPerson[]>([])
+  const [mentors, setMentors] = useState<CardPerson[]>([])
+  const [friends, setFriends] = useState<CardPerson[]>([])
+  // The person whose card is open (Riipen Labs, Group 34, slide 20).
+  const [openPerson, setOpenPerson] = useState<{ person: CardPerson; kind: PeopleKind } | null>(null)
+  const { prefs, update: updatePreferences } = usePreferences()
+  // People you blocked (STEP 65; available once it is applied), and what
+  // happened last, for screen readers and everyone else.
+  type BlockedPerson = { id: string; display_name: string | null; avatar_emoji: string | null; blocked_at: string }
+  const [blocks, setBlocks] = useState<{ available: boolean; people: BlockedPerson[] }>({ available: false, people: [] })
+  const [peopleStatus, setPeopleStatus] = useState('')
+  const [confirmBlockRequest, setConfirmBlockRequest] = useState<string | null>(null)
 
   const [connectionsLoading, setConnectionsLoading] = useState(false)
   const [connectionsError, setConnectionsError] = useState<string | null>(null)
@@ -246,6 +259,35 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     setShowAddModal(true)
   }
 
+  // One shape for a connection from /api/connections, with the public
+  // profile fields the person card shows.
+  const toPerson = (c: any, fallbackStatus: string): CardPerson => ({
+    id: c.id,
+    name: c.name,
+    role: c.role || '',
+    status: c.status || fallbackStatus,
+    icon: c.icon || '👤',
+    target_user_id: c.target_user_id || null,
+    created_at: c.created_at || null,
+    connected_at: c.connected_at || null,
+    direction: c.direction,
+    username: c.username || null,
+    pronouns: c.pronouns || null,
+    bio: c.bio || null,
+    avatar_url: c.avatar_url || null,
+    friend_dream: c.friend_dream || null,
+  })
+
+  // /hare-world?add=friends|mentors|rolemodels opens Search for that list
+  // (the Path's "Find friends" and "Find a mentor" menus).
+  useEffect(() => {
+    const add = searchParams.get('add')
+    if (page === 'people' && (add === 'friends' || add === 'mentors' || add === 'rolemodels')) {
+      setAddMode('search')
+      handleAddConnection(add)
+    }
+  }, [searchParams, page]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ===== Backend-backed connections =====
   // Fetch the signed-in user's connections from /api/connections and replace the local seed lists.
   useEffect(() => {
@@ -265,15 +307,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
       .then((data) => {
         if (cancelled) return
         const grouped = data?.connections || {}
-        setRoleModels((grouped.rolemodels || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
-        })))
-        setMentors((grouped.mentors || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
-        })))
-        setFriends((grouped.friends || []).map((c: any) => ({
-          id: c.id, name: c.name, role: c.role || '', status: c.status || 'pending', icon: c.icon || '👤', target_user_id: c.target_user_id || null
-        })))
+        setRoleModels((grouped.rolemodels || []).map((c: any) => toPerson(c, 'pending')))
+        setMentors((grouped.mentors || []).map((c: any) => toPerson(c, 'pending')))
+        setFriends((grouped.friends || []).map((c: any) => toPerson(c, 'pending')))
       })
       .catch((err) => {
         if (!cancelled) {
@@ -355,6 +391,47 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   }
   useEffect(() => { refreshPendingInbox() }, [isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    fetch('/api/blocks', { credentials: 'include', cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (!cancelled && json) setBlocks({ available: Boolean(json.available), people: json.people || [] }) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isSignedIn])
+
+  // Block someone: every connection and request between you goes, both ways.
+  const blockPerson = async (targetId: string, name: string) => {
+    try {
+      const res = await fetch('/api/blocks', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: targetId }) })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) { setPeopleStatus(body.error || 'That person could not be blocked. Please try again.'); return }
+      const keep = (p: CardPerson) => p.target_user_id !== targetId
+      setFriends((prev) => prev.filter(keep))
+      setMentors((prev) => prev.filter(keep))
+      setRoleModels((prev) => prev.filter(keep))
+      setPendingInbox((prev) => prev.filter((r) => r.requester.id !== targetId))
+      setBlocks((prev) => ({ ...prev, people: [{ id: targetId, display_name: name, avatar_emoji: null, blocked_at: new Date().toISOString() }, ...prev.people.filter((b) => b.id !== targetId)] }))
+      setOpenPerson(null)
+      setConfirmBlockRequest(null)
+      setPeopleStatus(`${name} is blocked.`)
+    } catch {
+      setPeopleStatus('That person could not be blocked. Please try again.')
+    }
+  }
+
+  const unblockPerson = async (person: BlockedPerson) => {
+    try {
+      const res = await fetch('/api/blocks', { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: person.id }) })
+      if (!res.ok) { setPeopleStatus('That person could not be unblocked. Please try again.'); return }
+      setBlocks((prev) => ({ ...prev, people: prev.people.filter((b) => b.id !== person.id) }))
+      setPeopleStatus(`${person.display_name || 'They'} ${person.display_name ? 'is' : 'are'} unblocked. You can find each other again.`)
+    } catch {
+      setPeopleStatus('That person could not be unblocked. Please try again.')
+    }
+  }
+
   // ===== Phase B: Suggestion inbox (resources friends have recommended to me) =====
   const refreshSuggestionInbox = async () => {
     if (!isSignedIn) return
@@ -408,9 +485,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         if (r.ok) {
           const body = await r.json()
           const g = body?.connections || {}
-          setFriends((g.friends || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
-          setMentors((g.mentors || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
-          setRoleModels((g.rolemodels || []).map((c: any) => ({ id: c.id, name: c.name, role: c.role || '', status: c.status || 'connected', icon: c.icon || '👤', target_user_id: c.target_user_id || null })))
+          setFriends((g.friends || []).map((c: any) => toPerson(c, 'connected')))
+          setMentors((g.mentors || []).map((c: any) => toPerson(c, 'connected')))
+          setRoleModels((g.rolemodels || []).map((c: any) => toPerson(c, 'connected')))
         }
       } catch {}
     } catch (e) {
@@ -1083,17 +1160,18 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               {isSignedIn && (
                 <div className="mt-2 flex items-center justify-between text-xs">
                   <span className="text-slate-500">Want to be found by friends?</span>
-                  <a
-                    href="/profile/settings"
-                    className="text-purple-600 hover:text-purple-700 font-medium underline underline-offset-2"
+                  <Link
+                    href="/profile#discovery"
+                    className="text-purple-800 hover:text-purple-900 font-medium underline underline-offset-2"
                   >
                     Profile &amp; Discovery →
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>
 
-            {/* Pending friend-request inbox */}
+            {/* Pending friend-request inbox (the Path menus link to #requests) */}
+            <div id="requests" className="scroll-mt-24" />
             {isSignedIn && pendingInbox.length > 0 && (
               <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm">
                 <h3 className="text-lg font-bold mb-1 flex items-center gap-2">
@@ -1117,6 +1195,23 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           </div>
                         </div>
                       </div>
+                      {confirmBlockRequest === p.id ? (
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <span className="text-xs text-slate-800">Block them? They aren&apos;t told.</span>
+                          <button
+                            onClick={() => blockPerson(p.requester.id, p.requester.display_name || 'This person')}
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-medium rounded-lg"
+                          >
+                            Block
+                          </button>
+                          <button
+                            onClick={() => setConfirmBlockRequest(null)}
+                            className="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-medium rounded-lg"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => acceptPendingRequest(p.id)}
@@ -1130,7 +1225,17 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                         >
                           Decline
                         </button>
+                        {blocks.available && (
+                          <button
+                            onClick={() => setConfirmBlockRequest(p.id)}
+                            aria-label={`Block ${p.requester.display_name || 'this person'}`}
+                            className="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-medium rounded-lg"
+                          >
+                            Block
+                          </button>
+                        )}
                       </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1192,180 +1297,19 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               </div>
             )}
 
-            {/* People View */}
+            <p role="status" className={peopleStatus ? 'rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800' : 'sr-only'}>{peopleStatus}</p>
+
+            {/* People View: Riipen Labs, Group 34's layout (slide 19) */}
             {haveWorldView === 'people' && (
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Role Models */}
-              <div className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Users className="w-5 h-5 text-orange-500" />
-                    R.M.'s (Role Models)
-                  </h3>
-                  <button
-                    onClick={() => handleAddConnection('rolemodels')}
-                    aria-label="Add a role model"
-                    className="p-2 hover:bg-orange-50 rounded-lg transition-colors"
-                  >
-                    <UserPlus className="w-5 h-5 text-orange-500" />
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {roleModels.filter(rm => matchesSearch(rm.name, rm.role)).map((rm, i) => (
-                    <div key={rm.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{['🔑','🔨','🛡️','🔧','👢'][i % 5]}</span>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                          {rm.icon}
-                        </div>
-                        <div>
-                          <div className="font-medium">{rm.name}</div>
-                          <div className="text-xs text-slate-600">{displayRole(rm.role, rm.target_user_id ? rm.status : 'connected')}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {rm.status === 'pending' && rm.target_user_id && (
-                          <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
-                        )}
-                        {rm.status === 'connected' && rm.target_user_id && (
-                          <button
-                            onClick={() => router.push(`/friend/${rm.target_user_id}`)}
-                            className="text-xs px-2 py-1 bg-orange-200 hover:bg-orange-300 text-orange-800 rounded font-medium"
-                            title="View pathway, calendar, suggest a resource"
-                          >
-                            View
-                          </button>
-                        )}
-                        <button
-                          onClick={() => requestRemoveConnection(rm.id, rm.name, 'rolemodel')}
-                          className="p-1 hover:bg-red-100 rounded transition-colors"
-                          title={`Remove ${rm.name}`}
-                        >
-                          <UserMinus className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {roleModels.filter(rm => matchesSearch(rm.name, rm.role)).length === 0 && (
-                    <p className="text-xs text-slate-500 italic text-center py-2">No role models match your search.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Mentors */}
-              <div className="bg-white rounded-2xl border border-blue-200 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <UserCheck className="w-5 h-5 text-blue-500" />
-                    Mentors
-                  </h3>
-                  <button
-                    onClick={() => handleAddConnection('mentors')}
-                    aria-label="Add a mentor"
-                    className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <UserPlus className="w-5 h-5 text-blue-500" />
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {mentors.filter(m => matchesSearch(m.name, m.role)).map((m, i) => (
-                    <div key={m.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{['🔧','🔑','🏋️','🛡️','🔨'][i % 5]}</span>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
-                          {m.icon}
-                        </div>
-                        <div>
-                          <div className="font-medium">{m.name}</div>
-                          <div className="text-xs text-slate-600">{displayRole(m.role, m.target_user_id ? m.status : 'connected')}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {m.status === 'pending' && m.target_user_id && (
-                          <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
-                        )}
-                        {m.status === 'connected' && m.target_user_id && (
-                          <button
-                            onClick={() => router.push(`/friend/${m.target_user_id}`)}
-                            className="text-xs px-2 py-1 bg-blue-200 hover:bg-blue-300 text-blue-800 rounded font-medium"
-                            title="View pathway, calendar, suggest a resource"
-                          >
-                            View
-                          </button>
-                        )}
-                        <button
-                          onClick={() => requestRemoveConnection(m.id, m.name, 'mentor')}
-                          className="p-1 hover:bg-red-100 rounded transition-colors"
-                          title={`Remove ${m.name}`}
-                        >
-                          <UserMinus className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {mentors.filter(m => matchesSearch(m.name, m.role)).length === 0 && (
-                    <p className="text-xs text-slate-500 italic text-center py-2">No mentors match your search.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Friends */}
-              <div className="bg-white rounded-2xl border border-pink-200 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Users className="w-5 h-5 text-pink-500" />
-                    Friends
-                  </h3>
-                  <button
-                    onClick={() => handleAddConnection('friends')}
-                    aria-label="Add a friend"
-                    className="p-2 hover:bg-pink-50 rounded-lg transition-colors"
-                  >
-                    <UserPlus className="w-5 h-5 text-pink-500" />
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {friends.filter(f => matchesSearch(f.name, f.role)).map((f, i) => (
-                    <div key={f.id} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{['👢','🔨','🔑','🧴','🛡️'][i % 5]}</span>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold">
-                          {f.icon}
-                        </div>
-                        <div>
-                          <div className="font-medium">{f.name}</div>
-                          <div className="text-xs text-slate-600">{displayRole(f.role, f.target_user_id ? f.status : 'connected')}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {f.status === 'pending' && f.target_user_id && (
-                          <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
-                        )}
-                        {f.status === 'connected' && f.target_user_id && (
-                          <button
-                            onClick={() => router.push(`/friend/${f.target_user_id}`)}
-                            className="text-xs px-2 py-1 bg-pink-200 hover:bg-pink-300 text-pink-800 rounded font-medium"
-                            title="View pathway, calendar, suggest a resource"
-                          >
-                            View
-                          </button>
-                        )}
-                        <button
-                          onClick={() => requestRemoveConnection(f.id, f.name, 'friend')}
-                          className="p-1 hover:bg-red-100 rounded transition-colors"
-                          title={`Remove ${f.name}`}
-                        >
-                          <UserMinus className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {friends.filter(f => matchesSearch(f.name, f.role)).length === 0 && (
-                    <p className="text-xs text-slate-500 italic text-center py-2">No friends match your search.</p>
-                  )}
-                </div>
-              </div>
-            </div>
+              <PeopleBoard
+                friends={friends}
+                mentors={mentors}
+                roleModels={roleModels}
+                visible={(p) => matchesSearch(p.name, p.role)}
+                describe={(p) => displayRole(p.role, p.target_user_id ? p.status : 'connected')}
+                onAdd={(kind, mode) => { setAddMode(mode); handleAddConnection(kind) }}
+                onOpen={(person, kind) => setOpenPerson({ person: person as CardPerson, kind })}
+              />
             )}
 
             {/* Collab Groups View */}
@@ -1710,9 +1654,47 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   working on a race together.
                 </p>
               </details>
+              {blocks.people.length > 0 && (
+                <details id="blocked" className="mt-4 rounded-lg border border-slate-200 p-4">
+                  <summary className="cursor-pointer text-sm font-medium text-slate-800">Blocked people ({blocks.people.length})</summary>
+                  <p className="mt-2 text-sm text-slate-700">Only you can see this list. Unblocking doesn&apos;t reconnect you; either of you can send a request again.</p>
+                  <ul className="mt-3 space-y-2">
+                    {blocks.people.map((b) => (
+                      <li key={b.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 p-3">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span aria-hidden="true">{b.avatar_emoji || '👤'}</span>
+                          <span className="truncate text-sm font-medium text-slate-900">{b.display_name || 'Someone on Autinerary'}</span>
+                        </span>
+                        <button
+                          onClick={() => unblockPerson(b)}
+                          className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-100"
+                        >
+                          Unblock
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
             </div>
             )}
           </div>
+        )}
+
+        {openPerson && (
+          <PersonCard
+            person={openPerson.person}
+            kind={openPerson.kind}
+            note={prefs.peopleNotes?.[openPerson.person.id] || ''}
+            onNoteChange={(note) => updatePreferences({ peopleNotes: { ...(loadPreferences().peopleNotes || {}), [openPerson.person.id]: note } })}
+            onClose={() => setOpenPerson(null)}
+            onRemove={() => {
+              const { person, kind } = openPerson
+              setOpenPerson(null)
+              requestRemoveConnection(person.id, person.name, kind === 'rolemodels' ? 'rolemodel' : kind === 'mentors' ? 'mentor' : 'friend')
+            }}
+            onBlock={blocks.available && openPerson.person.target_user_id ? () => blockPerson(openPerson.person.target_user_id!, openPerson.person.name) : null}
+          />
         )}
 
         {/* Add Connection Modal — Phase A: search real users (default) or add free-form */}
@@ -1731,9 +1713,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     setUserSearchResults([])
                     setAddMode('search')
                   }}
+                  aria-label="Close"
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
@@ -1745,7 +1728,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     addMode === 'search' ? 'border-purple-500 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  Find real user
+                  Search on Autinerary
                 </button>
                 <button
                   onClick={() => setAddMode('manual')}
@@ -1753,7 +1736,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     addMode === 'manual' ? 'border-purple-500 text-purple-700' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  Add manually
+                  Add by name
                 </button>
               </div>
 

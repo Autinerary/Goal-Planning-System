@@ -252,7 +252,7 @@ export default function SettingsPreferences() {
           reminder email and the post-setup page both say these can be turned
           off in Settings; this is where. (The beta session's task 7, "stop the
           app sending you emails", had no answer for daily reminders.) */}
-      <section aria-labelledby="emails-heading">
+      <section id="emails" aria-labelledby="emails-heading" className="scroll-mt-24">
         <h3 id="emails-heading" className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
           <Mail className="w-4 h-4 text-cyan-700" aria-hidden="true" /> Emails
         </h3>

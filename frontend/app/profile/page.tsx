@@ -10,6 +10,10 @@ import { createClient } from '@/lib/supabase/client'
 import { newPasswordError } from '@/lib/passwordRules'
 import UserAvatar from '../components/UserAvatar'
 import NewPasswordFields from '../components/NewPasswordFields'
+import PronounsField from '../components/PronounsField'
+import PhotoField from './PhotoField'
+import ChangeEmail from './ChangeEmail'
+import AccountControls from './AccountControls'
 
 /**
  * Your profile (Riipen Labs, Group 34: "add common application features in
@@ -18,8 +22,10 @@ import NewPasswordFields from '../components/NewPasswordFields'
  * of the app could not be changed, and a password could only be changed from
  * ResourceHub, by email. Profile & Discovery moved here from Settings.
  *
- * Closing an account is not a button: Privacy says to email us, and that
- * stays the way until the team decides otherwise (docs/groups-34-36.md).
+ * Group 34's profile page (slide 21) added a username, pronouns, a bio and a
+ * photo (STEP 64; shown once it is applied), changing your email address,
+ * your phone number, and pausing or deleting your account (AccountControls,
+ * STEP 65).
  */
 
 type Profile = {
@@ -29,7 +35,14 @@ type Profile = {
   avatar_emoji: string
   dream: string | null
   discoverable: boolean
+  // STEP 64
+  username?: string | null
+  pronouns?: string | null
+  bio?: string | null
+  avatar_url?: string | null
 }
+
+const USERNAME_RULE = /^[a-z0-9_.]{3,20}$/
 
 const AVATAR_OPTIONS = ['👤', '🧑', '👩', '👨', '🦊', '🐯', '🦁', '🐼', '🐧', '🦉', '🐢', '🚀', '⭐️', '💫']
 
@@ -47,6 +60,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  // Username, pronouns, bio and photo exist once STEP 64 is applied.
+  const [extended, setExtended] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -55,14 +70,20 @@ export default function ProfilePage() {
         if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`)
         return res.json()
       })
-      .then((data) => { if (!cancelled) { setProfile(data.profile); setSaved(data.profile) } })
+      .then((data) => { if (!cancelled) { setProfile(data.profile); setSaved(data.profile); setExtended(Boolean(data.extended)) } })
       .catch((e) => { if (!cancelled) setError(e.message || 'Your profile could not be loaded.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [])
 
+  const usernameDraft = (profile?.username || '').trim().replace(/^@/, '').toLowerCase()
+  const usernameProblem = usernameDraft && !USERNAME_RULE.test(usernameDraft)
+    ? 'A username is 3 to 20 letters, numbers, dots or underscores, with no spaces.'
+    : null
+
   const saveProfile = async () => {
     if (!profile) return
+    if (usernameProblem) { setError(usernameProblem); return }
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -76,6 +97,7 @@ export default function ProfilePage() {
           dream: profile.dream || '',
           avatar_emoji: profile.avatar_emoji,
           discoverable: profile.discoverable,
+          ...(extended ? { username: usernameDraft, pronouns: profile.pronouns || '', bio: profile.bio || '' } : {}),
         }),
       })
       const body = await res.json()
@@ -105,6 +127,17 @@ export default function ProfilePage() {
     const { error: updateError } = await createClient().auth.updateUser({ data: { full_name: trimmed, name: trimmed } })
     setNameState(updateError ? 'Your name could not be saved. Please try again.' : 'saved')
   }
+
+  // ── Phone (the number verified for reminders by text, ReminderFields) ──
+  const [sms, setSms] = useState<null | { available: boolean; phone: string | null }>(null)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/me/sms', { credentials: 'include', cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { available: false, phone: null }))
+      .then((json) => { if (!cancelled) setSms({ available: Boolean(json.available), phone: json.phone || null }) })
+      .catch(() => { if (!cancelled) setSms({ available: false, phone: null }) })
+    return () => { cancelled = true }
+  }, [])
 
   // ── Password ──
   const [password, setPassword] = useState('')
@@ -159,9 +192,18 @@ export default function ProfilePage() {
           <p className="mt-1 text-sm text-slate-600">Your card in Hare World, for people you are connected to.</p>
           <div className="mt-4 flex flex-wrap items-center gap-6">
             <div className="flex min-w-0 flex-1 items-center gap-4">
-              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-purple-50 text-4xl" aria-hidden="true">{shown?.avatar_emoji || '👤'}</span>
+              {shown?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={shown.avatar_url} alt="" width={64} height={64} className="h-16 w-16 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-purple-50 text-4xl" aria-hidden="true">{shown?.avatar_emoji || '👤'}</span>
+              )}
               <div className="min-w-0">
                 <p className="truncate text-xl font-bold text-slate-900">{shown?.display_name || user?.name || 'No display name yet'}</p>
+                {(shown?.username || shown?.pronouns) && (
+                  <p className="text-sm text-slate-700">{[shown.username ? `@${shown.username}` : null, shown.pronouns].filter(Boolean).join(' · ')}</p>
+                )}
+                {shown?.bio && <p className="mt-1 whitespace-pre-line text-sm text-slate-800">{shown.bio}</p>}
                 <p className="text-sm text-slate-700">{shown?.dream || 'No dream added yet'}</p>
                 {shown && (
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
@@ -213,11 +255,32 @@ export default function ProfilePage() {
 
           <div className="mt-4">
             <p className="text-sm font-semibold text-slate-800">Email</p>
-            <p className="text-slate-900">{user?.email}</p>
-            <p className="mt-1 text-xs text-slate-600">
-              You sign in with this address. It can’t be changed here. If you need to change it, email us, as{' '}
-              <Link href="/privacy#contact" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link> explains.
-            </p>
+            <p className="break-all text-slate-900">{user?.email}</p>
+            {signsInWithPassword ? (
+              <ChangeEmail current={user?.email || ''} pending={(supabaseUser as any)?.new_email || null} />
+            ) : (
+              <p className="mt-1 text-xs text-slate-600">You sign in with Google, so this is your Google account’s address.</p>
+            )}
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm font-semibold text-slate-800">Phone number</p>
+            {sms === null ? (
+              <p className="text-sm text-slate-600">Checking…</p>
+            ) : sms.available ? (
+              <>
+                <p className="text-slate-900">{sms.phone || 'None added'}</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Used only for reminders by text.{' '}
+                  <Link href="/profile/settings#emails" className="font-medium text-indigo-800 underline underline-offset-2">
+                    {sms.phone ? 'Change or remove it in Settings' : 'Add one in Settings'}
+                  </Link>
+                  , under Emails.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-700">Reminders by text aren’t switched on yet, so there is no number to add.</p>
+            )}
           </div>
 
           <div className="mt-6 border-t border-slate-100 pt-5">
@@ -269,6 +332,51 @@ export default function ProfilePage() {
                 />
               </div>
 
+              {extended && (
+                <>
+                  <div>
+                    <label htmlFor="profile-username" className="block text-sm font-semibold text-slate-800 mb-1">Username</label>
+                    <p id="profile-username-help" className="mb-2 text-xs text-slate-600">
+                      Optional. People can find you by it. 3 to 20 letters, numbers, dots or underscores.
+                    </p>
+                    <div className="flex items-center rounded-lg border border-slate-200 focus-within:border-purple-500">
+                      <span className="pl-3 text-slate-600" aria-hidden="true">@</span>
+                      <input
+                        id="profile-username"
+                        type="text"
+                        value={profile.username || ''}
+                        onChange={(e) => { setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/\s/g, '') }); setError(null) }}
+                        autoCapitalize="none"
+                        autoComplete="username"
+                        spellCheck={false}
+                        maxLength={21}
+                        aria-describedby="profile-username-help profile-username-problem"
+                        aria-invalid={Boolean(usernameProblem)}
+                        className="w-full rounded-lg px-1 py-2 focus:outline-none"
+                      />
+                    </div>
+                    <p id="profile-username-problem" className="mt-1 text-xs text-red-700">{usernameProblem || ''}</p>
+                  </div>
+
+                  <PronounsField idPrefix="profile-pronouns" value={profile.pronouns || ''} onChange={(pronouns) => setProfile({ ...profile, pronouns })} />
+
+                  <div>
+                    <label htmlFor="profile-bio" className="block text-sm font-semibold text-slate-800 mb-1">About you</label>
+                    <textarea
+                      id="profile-bio"
+                      value={profile.bio || ''}
+                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                      placeholder="A few words for the people you connect with"
+                      rows={3}
+                      maxLength={500}
+                      aria-describedby="profile-bio-help"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-purple-500 focus:outline-none"
+                    />
+                    <p id="profile-bio-help" className="mt-1 text-xs text-slate-600">Optional. Shown on your card. {(profile.bio || '').length}/500</p>
+                  </div>
+                </>
+              )}
+
               <div>
                 <label htmlFor="profile-dream" className="block text-sm font-semibold text-slate-800 mb-1">Your dream / current goal</label>
                 <textarea
@@ -284,8 +392,20 @@ export default function ProfilePage() {
                 <p id="profile-dream-help" className="mt-1 text-xs text-slate-600">Shown on your card to friends and on the matching screen.</p>
               </div>
 
+              {extended && profile.id && (
+                <PhotoField
+                  userId={profile.id}
+                  url={profile.avatar_url || null}
+                  emoji={profile.avatar_emoji}
+                  onSaved={(row) => {
+                    setProfile((p) => (p ? { ...p, avatar_url: row?.avatar_url ?? null } : p))
+                    setSaved((p) => (p ? { ...p, avatar_url: row?.avatar_url ?? null } : p))
+                  }}
+                />
+              )}
+
               <div role="group" aria-labelledby="profile-avatar-label">
-                <p id="profile-avatar-label" className="mb-2 block text-sm font-semibold text-slate-800">Picture</p>
+                <p id="profile-avatar-label" className="mb-2 block text-sm font-semibold text-slate-800">{profile.avatar_url ? 'Picture, if you remove your photo' : 'Picture'}</p>
                 <div className="flex flex-wrap gap-2">
                   {AVATAR_OPTIONS.map((emoji) => (
                     <button
@@ -311,8 +431,8 @@ export default function ProfilePage() {
                       <span id="discoverable-label" className="font-semibold text-slate-900">Discoverable</span>
                     </div>
                     <p id="discoverable-help" className="text-xs text-slate-600">
-                      When on, other signed-in people can find you by searching your name or email address, and send you a
-                      request. Your email address is never shown to them. When off, nobody can find you in search.
+                      When on, other signed-in people can find you by searching your name{extended ? ', your username' : ''} or your whole email
+                      address, and send you a request. Your email address is never shown to them. When off, nobody can find you in search.
                     </p>
                   </div>
                   <button
@@ -343,6 +463,13 @@ export default function ProfilePage() {
             </div>
           )}
         </section>
+
+        <AccountControls
+          onDiscoverable={(discoverable) => {
+            setProfile((p) => (p ? { ...p, discoverable } : p))
+            setSaved((p) => (p ? { ...p, discoverable } : p))
+          }}
+        />
 
         {/* Everything else about you lives elsewhere; say where */}
         <section aria-labelledby="more-heading" className={card}>

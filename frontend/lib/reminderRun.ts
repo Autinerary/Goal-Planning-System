@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail, dailyReminderEmail, finishSetupEmail, storyReadyEmail, emailEnabled } from '@/lib/email'
 import { sendSms, smsEnabled, reminderText } from '@/lib/sms'
 import { reminderDue, setupReminderDue, localParts, validTimeZone } from '@/lib/reminderSchedule'
+import { isPaused } from '@/lib/pause'
 
 export interface ReminderRunResult {
   ok: true
@@ -39,6 +40,8 @@ export async function runReminders(now: Date, appUrl: string): Promise<ReminderR
 
   for (const row of rows || []) {
     const prefs = (row.preferences as Record<string, any>) || {}
+    // A paused account gets nothing until it is resumed.
+    if (isPaused(prefs)) continue
 
     // The daily reminder, at the hour they chose. reminderState is written
     // only here, so it survives the person changing their settings.

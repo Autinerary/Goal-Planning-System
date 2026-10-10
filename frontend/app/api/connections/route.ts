@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { publicProfilesByIds } from '@/lib/publicProfiles'
+import { publicProfilesByIds, step64Missing } from '@/lib/publicProfiles'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { pushToUser } from '@/lib/push'
 
@@ -45,22 +45,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  // (a) my own rows
-  const ownRowsP = supabase
-    .from('social_connections')
-    .select('id, category, name, role, status, icon, target_user_id, match_dream, created_at')
-    .eq('owner_id', user.id)
-    .order('created_at', { ascending: true })
-
-  // (b) inbound rows where I'm the target AND we're connected (accepted requests)
-  const inboundRowsP = supabase
-    .from('social_connections')
-    .select('id, owner_id, category, name, role, status, icon, match_dream, created_at')
-    .eq('target_user_id', user.id)
-    .eq('status', 'connected')
-    .order('created_at', { ascending: true })
-
-  const [{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }] = await Promise.all([ownRowsP, inboundRowsP])
+  // (a) my own rows, and (b) inbound rows where I'm the target AND we're
+  // connected (accepted requests). connected_at, when a request was
+  // accepted, arrived with STEP 65.
+  const load = (extra: string) => Promise.all([
+    supabase
+      .from('social_connections')
+      .select(`id, category, name, role, status, icon, target_user_id, match_dream, created_at${extra}`)
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('social_connections')
+      .select(`id, owner_id, category, name, role, status, icon, match_dream, created_at${extra}`)
+      .eq('target_user_id', user.id)
+      .eq('status', 'connected')
+      .order('created_at', { ascending: true }),
+  ])
+  let [{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }]: { data: any[] | null; error: any }[] = await load(', connected_at')
+  if (step64Missing(ownErr) || step64Missing(inboundErr)) {
+    ;[{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }] = await load('')
+  }
 
   if (ownErr) {
     console.error('GET /api/connections (own) error:', ownErr)
@@ -83,9 +87,10 @@ export async function GET(req: NextRequest) {
 
   // (a) own rows
   for (const row of ownRows || []) {
-    if (!isCategory(row.category)) continue
+    const category: unknown = row.category
+    if (!isCategory(category)) continue
     const linkedProfile = row.target_user_id ? profilesById[row.target_user_id] : null
-    grouped[row.category].push({
+    grouped[category].push({
       id: row.id,
       name: linkedProfile?.display_name || row.name,
       role: row.role,
@@ -95,6 +100,13 @@ export async function GET(req: NextRequest) {
       match_dream: row.match_dream,
       friend_dream: linkedProfile?.dream || null,
       direction: 'outgoing',
+      created_at: row.created_at,
+      connected_at: row.connected_at || null,
+      // Public profile fields for the person card (STEP 64; null before it).
+      username: linkedProfile?.username || null,
+      pronouns: linkedProfile?.pronouns || null,
+      bio: linkedProfile?.bio || null,
+      avatar_url: linkedProfile?.avatar_url || null,
     })
   }
 
@@ -104,18 +116,25 @@ export async function GET(req: NextRequest) {
   // so (Riipen Labs, Group 34: friend requests were confusing).
   const INBOUND_ROLE: Record<Category, string> = { friends: '', mentors: 'Chose you as a mentor', rolemodels: 'Chose you as a role model' }
   for (const row of inboundRows || []) {
-    if (!isCategory(row.category)) continue
+    const category: unknown = row.category
+    if (!isCategory(category)) continue
     const requesterProfile = row.owner_id ? profilesById[row.owner_id] : null
     grouped.friends.push({
       id: row.id,
       name: requesterProfile?.display_name || row.name,
-      role: INBOUND_ROLE[row.category] || row.role,
+      role: INBOUND_ROLE[category] || row.role,
       status: row.status,
       icon: requesterProfile?.avatar_emoji || row.icon,
       target_user_id: row.owner_id,
       match_dream: row.match_dream,
       friend_dream: requesterProfile?.dream || null,
       direction: 'incoming',
+      created_at: row.created_at,
+      connected_at: row.connected_at || null,
+      username: requesterProfile?.username || null,
+      pronouns: requesterProfile?.pronouns || null,
+      bio: requesterProfile?.bio || null,
+      avatar_url: requesterProfile?.avatar_url || null,
     })
   }
 
@@ -190,6 +209,14 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) {
+    // Either of you blocked the other (STEP 65). Someone who was blocked is
+    // only told the person can't be added.
+    if (error.code === 'P0001' && error.hint === 'blocked_by_you') {
+      return NextResponse.json({ error: 'You blocked this person. To connect, unblock them first: Hare World, then Blocked people.' }, { status: 403 })
+    }
+    if (error.code === 'P0001' && error.hint === 'unavailable') {
+      return NextResponse.json({ error: 'This person can’t be added.' }, { status: 403 })
+    }
     console.error('POST /api/connections error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

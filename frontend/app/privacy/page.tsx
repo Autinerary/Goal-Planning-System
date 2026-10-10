@@ -161,6 +161,12 @@ export default function PrivacyPage() {
                 pronouns, bio and photo if you add them. They see it only if you are discoverable, you are connected, or
                 one of you sent the other a request. Never your email address, date of birth or settings.
               </li>
+              <li>A profile photo is stored at a web address that is hard to guess. Anyone who has that address can open it.</li>
+              <li>
+                The people you block, which only you can see. Blocking someone removes your connection and any requests, both
+                ways; neither of you can find or see the other, and they aren’t told.
+              </li>
+              <li>Your notes about people in Hare World, which only you can see.</li>
             </List>
           </Sub>
           <Sub title="Feedback and check-ins">
@@ -252,9 +258,14 @@ export default function PrivacyPage() {
           <List>
             <li>While your account is open.</li>
             <li>
-              If you ask us to delete your account, we delete it and the information linked to it within 30 days, except
-              anything the law requires us to keep. Totals already in our reports, which do not identify anyone, stay.
+              When you delete your account on Your profile, we delete it and the information linked to it straight away.
+              Copies in our database host’s backups are gone within 30 days. Resources you suggested for ResourceHub stay,
+              without your name.
             </li>
+            <li>
+              If you ask us by email to delete your account, we delete it and the information linked to it within 30 days.
+            </li>
+            <li>Either way, we keep anything the law requires us to keep. Totals already in our reports, which do not identify anyone, stay.</li>
           </List>
         </Section>
 
@@ -263,7 +274,11 @@ export default function PrivacyPage() {
             <li>Skip any optional question, and change your answers later in Settings.</li>
             <li>In Settings you can download a copy of your plan and progress, or erase them.</li>
             <li>Turn emails off from any reminder or check-in email, or in Settings. Stop texts by replying STOP, or in Settings. Turn notifications off in Settings, or in your browser.</li>
-            <li>To see, correct or delete anything else, or to close your account, email {mail}. We will reply within 30 days.</li>
+            <li>
+              On Your profile you can pause your account (we send you nothing and nobody can find you in search until you
+              resume), or delete it.
+            </li>
+            <li>To see, correct or delete anything else, or if you can’t delete your account yourself, email {mail}. We will reply within 30 days.</li>
             <li>You can withdraw your consent for optional information at any time.</li>
             <li>
               If you are not happy with how we handled something, please tell us first. You can also contact the Office of the

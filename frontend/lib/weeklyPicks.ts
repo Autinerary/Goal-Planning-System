@@ -16,6 +16,7 @@ import { randomBytes, timingSafeEqual } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { emailEnabled, sendEmail, weeklyPicksEmail, type NewsletterLink } from '@/lib/email'
+import { isPaused } from '@/lib/pause'
 import { postalAddress, tipFor, weeklyLinks } from '@/lib/newsletter'
 import { HUB_URL } from '@/lib/starterItems'
 import { isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
@@ -136,7 +137,7 @@ async function sendOne(run: Run, userId: string, prefs: Record<string, any>, add
   const account = found?.user
   if (!account?.email) return 'skipped'
   addresses.add(account.email.toLowerCase())
-  if (!weeklyPicksDue(prefs, now)) return 'skipped'
+  if (isPaused(prefs) || !weeklyPicksDue(prefs, now)) return 'skipped'
 
   // The stop code, made the first time this person gets the email.
   let code = account.app_metadata?.weekly_stop as string | undefined

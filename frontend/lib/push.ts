@@ -1,5 +1,6 @@
 import webpush from 'web-push'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { accountPaused } from '@/lib/pause'
 
 /**
  * Push notifications (Web Push), server-only. Riipen Labs, Group 2: "add email
@@ -79,6 +80,8 @@ export async function sendPush(device: PushDevice, message: PushMessage): Promis
  * the push service says are gone. Returns how many received it.
  */
 export async function pushToUser(admin: SupabaseClient, userId: string, message: PushMessage): Promise<number> {
+  // A paused account (Your profile) gets no notifications.
+  if (await accountPaused(admin, userId)) return 0
   const { data: devices, error } = await admin
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')

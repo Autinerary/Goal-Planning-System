@@ -24,6 +24,7 @@ import CheckinPrompt from '../components/CheckinPrompt'
 import { usePreferences } from '../context/usePreferences'
 import { quoteOfTheDay } from '@/lib/quotes'
 import PathMenus from '../components/PathMenus'
+import PausedBanner from '../components/PausedBanner'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -338,6 +339,7 @@ useEffect(() => {
         )}
 
         {/* Menus across the top (Riipen Labs, Group 34, slide 22) */}
+        <PausedBanner />
         <PathMenus />
 
         {/* ── Header ── */}

@@ -4,6 +4,7 @@ import { emailEnabled, sendEmail, checkinEmail } from '@/lib/email'
 import { pushEnabled, pushToUser } from '@/lib/push'
 import { createCheckinToken } from '@/lib/checkinToken'
 import { AWAY_DAYS } from '@/lib/checkin'
+import { pausedIds } from '@/lib/pause'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -70,6 +71,9 @@ export async function GET(req: NextRequest) {
     person.pushSince = Math.max(person.pushSince || 0, Date.parse(d.created_at) || 0)
     people.set(d.user_id, person)
   }
+
+  // A paused account (Your profile) gets no check-in.
+  for (const id of await pausedIds(admin)) people.delete(id)
 
   const counts = {
     optedIn: Array.from(people.values()).filter((p) => p.email).length,

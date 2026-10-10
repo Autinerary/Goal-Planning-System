@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  // After Your profile → Delete your account.
+  const [deleted, setDeleted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Check for return URL from ServiceHub (only store once to prevent redirect loops)
@@ -23,6 +25,7 @@ export default function LoginPage() {
     // The Path loads from the backend, which sleeps when idle.
     wakeBackend()
     const params = new URLSearchParams(window.location.search)
+    if (params.get('deleted') === '1') setDeleted(true)
     const returnTo = params.get('returnTo')
     if (returnTo && !sessionStorage.getItem('returnTo_used')) {
       sessionStorage.setItem('returnTo', returnTo)
@@ -90,6 +93,12 @@ export default function LoginPage() {
             <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
             <p className="text-slate-600 text-sm mt-1">Sign in to continue your journey</p>
           </div>
+
+          {deleted && (
+            <p role="status" className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              Your account and everything in it have been deleted. Thank you for using Autinerary.
+            </p>
+          )}
 
           <GoogleSignIn label="Sign in with Google" />
 
