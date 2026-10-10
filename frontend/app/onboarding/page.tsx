@@ -29,6 +29,7 @@ import GoalHelper from '@/app/components/GoalHelper'
 import ReminderFields from '@/app/components/ReminderFields'
 import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
 import QuickSettings from '@/app/components/QuickSettings'
+import ChoiceDropdown from '@/app/components/ChoiceDropdown'
 import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
 import { browserTimeZone } from '@/lib/reminderSchedule'
@@ -2737,11 +2738,15 @@ export default function OnboardingPage() {
 
           {/* Step 4: Motivation & Life Stage */}
           {currentId === 'motivation' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
-                <p className="text-slate-600 mb-6">Select all that apply: most people are motivated by more than one thing.</p>
-                
+            <div className="space-y-4">
+              {/* Each question opens like a dropdown (Group 34, slides 12 and 16),
+                  with the same large choices inside (Group 36). */}
+              <p className="text-slate-600">Two optional questions. Open one to answer it.</p>
+              <ChoiceDropdown
+                question="What motivates you most?"
+                hint="Select all that apply: most people are motivated by more than one thing."
+                picked={formData.motivationTypes.map(v => motivationOptions.find(o => o.value === v)?.label).filter(Boolean).join(', ')}
+              >
                 <div className="grid gap-3">
                   {motivationOptions.map((option) => {
                     const isSelected = formData.motivationTypes.includes(option.value)
@@ -2776,14 +2781,13 @@ export default function OnboardingPage() {
                     )
                   })}
                 </div>
-              </div>
+              </ChoiceDropdown>
 
-              <div className="pt-6 border-t border-slate-200">
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What life stage are you in?</h2>
-                <p className="text-slate-600 mb-6">
-                  Pick as many as apply. Plenty of people are studying and working at the same time.
-                </p>
-
+              <ChoiceDropdown
+                question="What life stage are you in?"
+                hint="Pick as many as apply. Plenty of people are studying and working at the same time."
+                picked={formData.lifeStages.map(id => lifeStages.find(st => st.id === id)?.label).filter(Boolean).join(', ')}
+              >
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {lifeStages.map((stage) => {
                     const selected = formData.lifeStages.includes(stage.id)
@@ -2816,7 +2820,7 @@ export default function OnboardingPage() {
                     )
                   })}
                 </div>
-              </div>
+              </ChoiceDropdown>
             </div>
           )}
 

@@ -54,7 +54,7 @@ Group 35 is also summarised in [cohort-report-2026-09.md](cohort-report-2026-09.
 | Short explanations for Tidbits, Pit Stop, mentors, races and messaging | **What things are called**, at `/help`: 33 terms, public. Linked from the home page, the Path, the Help popover, and the Pit Stop and Hare World headers. |
 | Being able to expand the tabs on the main page | Their mockup (slide 22) shows menus across the top of the Path. **Stuck?, People, Fun, Mentors, Friends and Tools** each open a short list of places. "Show more" is still there for the rest |
 | Split setup into two parts, the second after the account | Since Groups 5 to 7: two questions, optional extras, and questions asked later on the Path |
-| Dropdowns instead of test-like questions | Kept as large buttons: Group 36 asked for large touch targets, and a dropdown hides the choices. A team decision if they want it revisited. |
+| Dropdowns instead of test-like questions | Done, keeping large choices (Group 36): questions that read like a test now open like dropdowns. Closed, each shows the question and what is picked; open, the same large buttons. The Motivation step's two questions work this way, as the Norms step's nine sections already did. The age question was already a dropdown |
 | A 7-14 day feedback survey | The check-in questions (useful? why did you stop?) and the questions after setup |
 | Moderation rules, mentor definitions, non-competitive framing | Friend, mentor and role model are defined in the glossary; non-competitive wording above. Tidbits reports go to the moderation queue. Written moderation rules are for the team. |
 
