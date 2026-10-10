@@ -128,7 +128,7 @@ link, the sign-up questions, the consent text and the facilitator's script.
 | The backend sleeps when idle: its first answer on 5 October took 41 s | The app now wakes it when sign-up, sign-in or setup opens, so it is usually awake by the time a path is made, but someone opening the Path straight after a quiet spell still waits. A plan that does not sleep would remove the wait | Decide |
 | Apply STEP 51 (`backend/database/migrations/2026_resourcehub_events.sql`) | Counts ResourceHub's first session: setup, first place opened, results near you, and the prompts. It keeps every STEP 50 event, so running it alone covers both | Done 5 October; tested live |
 | Fill the `[[TEAM: ...]]` blanks in the kit (thank-you, form link, booking, facilitator) | Before anything is posted | To do |
-| Apply STEP 62 (`backend/database/migrations/2026_onboarding_next_step.sql`) | Keeps the answer to "Do you know what to do next?" after setup. Until then the other answers are kept without it | To do |
+| Apply STEP 62 (`backend/database/migrations/2026_onboarding_next_step.sql`) | Keeps the answer to "Do you know what to do next?" after setup | Done 10 October; checked live |
 | Agree the review date and who decides (below, "Review: keep, change or stop") | The cohort report: "set the beta review date before recruiting" | To do |
 | Make the Google Form from [screener.md](beta/screener.md) | Session sign-ups | To do |
 | Book 2 pilot sessions | Fix the script before the real sessions | To do |

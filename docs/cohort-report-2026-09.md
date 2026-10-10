@@ -64,7 +64,7 @@ learn.
 | A 20-second value statement, before any profile question | The home page's first lines (above) |
 | Choose the first three role/goal paths | Proposed in the beta plan: myself + services, myself + people with similar experiences, my child + starter information, from the two priority groups. The report has a "Start here: by path" table for them |
 | One starter shelf per path | Each has 3 or 4 items; listed in the beta plan |
-| First-session and 7-day success, and one short question | In the beta plan: a next action in the first session, a return within 7 days, and "Do you know what to do next?" (needs STEP 62) |
+| First-session and 7-day success, and one short question | In the beta plan: a next action in the first session, a return within 7 days, and "Do you know what to do next?" (kept since STEP 62, applied 10 October) |
 | Set the review date before recruiting | Proposed: Wednesday 12 November, with a halfway check on 26 October. Who decides is for the team |
 
 ## Risks
@@ -113,7 +113,7 @@ already ([beta/README.md](beta/README.md)).
 
 ## For the team
 
-1. Apply **STEP 62** (`backend/database/migrations/2026_onboarding_next_step.sql`, also at the end of `setup/all_migrations.sql`) so "Do you know what to do next?" answers are kept.
+1. ~~Apply STEP 62~~: done 10 October, checked live.
 2. Agree the review date and **who makes the call** (the beta plan's `[[TEAM: name]]`), and fill the beta kit's other `[[TEAM: ...]]` blanks.
 3. Share Teams 15, 18 and 35's full reports if you want them gone through line by line.
 4. Decide whether to post a Level UP or FuturePath project.
