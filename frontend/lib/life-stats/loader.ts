@@ -27,6 +27,8 @@ import {
 } from './compute'
 
 const MS_PER_DAY = 86_400_000
+// Index = Date.getDay(), for calendar tasks that repeat on a weekday.
+const WEEKDAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
 export interface StatResponse extends StatComponents {
   /** Today's value out of 10 (rounded to 1 decimal). UI-friendly. */
@@ -120,9 +122,8 @@ export async function loadAndComputeForUser(
   ] = await Promise.all([
     supabase
       .from('calendar_tasks')
-      .select('day, completed, completed_at, created_at')
-      .eq('user_id', userId)
-      .gte('day', weekAgoDay),
+      .select('day, scheduled_date, completed, completed_at, created_at')
+      .eq('user_id', userId),
 
     supabase
       .from('race_progress')
@@ -135,7 +136,7 @@ export async function loadAndComputeForUser(
     // handles that gracefully.
     supabase
       .from('reflections')
-      .select('created_at, sentiment')
+      .select('created_at, sentiment, sentiment_label')
       .eq('user_id', userId)
       .gte('created_at', weekAgoIso),
 
@@ -203,22 +204,32 @@ export async function loadAndComputeForUser(
 
   // ---- Reshape rows for the pure compute functions ----
 
-  const calendarRows: CalendarRow[] = (calendarRes.data ?? []).map((r: any) => ({
-    // day is stored as a free-form text in this app; parse loosely.
-    day: new Date(String(r.day)),
-    completed: Boolean(r.completed),
-    completedAt: r.completed_at ? new Date(r.completed_at) : null,
-  }))
+  // `day` is a weekday name ("Monday") for tasks that repeat weekly, and
+  // new Date('Monday') is Invalid Date, so no calendar task ever counted
+  // towards Focus. A dated task uses its scheduled_date; a weekly one is placed
+  // on its weekday in the last seven days, and counts as done only if it was
+  // ticked in that time.
+  const calendarRows: CalendarRow[] = (calendarRes.data ?? []).map((r: any) => {
+    const completedAt = r.completed_at ? new Date(r.completed_at) : null
+    if (r.scheduled_date) return { day: new Date(`${r.scheduled_date}T12:00:00`), completed: Boolean(r.completed), completedAt }
+    const weekday = WEEKDAY_NAMES.indexOf(String(r.day || '').trim().toLowerCase())
+    const day = new Date(now)
+    day.setDate(day.getDate() - ((day.getDay() - (weekday < 0 ? day.getDay() : weekday) + 7) % 7))
+    const recent = completedAt !== null && now.getTime() - completedAt.getTime() < 7 * 86400000
+    return { day, completed: Boolean(r.completed) && recent, completedAt }
+  })
 
   const milestoneEvents: MilestoneEvent[] = (progressRes.data ?? []).map((r: any) => ({
     completedAt: new Date(r.completed_at),
   }))
 
   const sentimentMap: Record<string, number> = { positive: 1, neutral: 0, negative: -1 }
-  const reflectionRows: ReflectionRow[] = (reflectionsRes.data ?? []).map((r: any) => ({
-    createdAt: new Date(r.created_at),
-    sentiment: r.sentiment in sentimentMap ? sentimentMap[r.sentiment] : null,
-  }))
+  // The journal writes sentiment_label (backend/core/learning.py); the older
+  // `sentiment` column is empty, so Mentality was never computed.
+  const reflectionRows: ReflectionRow[] = (reflectionsRes.data ?? []).map((r: any) => {
+    const label = String(r.sentiment_label || r.sentiment || '').toLowerCase()
+    return { createdAt: new Date(r.created_at), sentiment: label in sentimentMap ? sentimentMap[label] : null }
+  })
 
   const checkinRows: CheckinRow[] = (checkinsRes.data ?? []).map((r: any) => ({
     checkinDate: new Date(String(r.checkin_date)),

@@ -7,6 +7,7 @@ import { ArrowLeft, MessageSquare, CheckCircle2 } from 'lucide-react'
 import type { CommunityProfilePublic } from '@/types/community'
 import BadgeList from '@/components/community/BadgeList'
 import FollowButton from '@/components/community/FollowButton'
+import HelpfulPoints from '@/components/community/HelpfulPoints'
 
 export default function ProfilePage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
@@ -88,7 +89,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-gray-900">{profile.pseudonym}</h1>
           <p className="text-sm text-gray-600">
-            {profile.karma} found helpful · {profile.follower_count} followers ·{' '}
+            <HelpfulPoints karma={profile.karma} /> · {profile.follower_count} followers ·{' '}
             {profile.following_count} following
           </p>
           {profile.bio && <p className="text-sm text-gray-700 mt-2">{profile.bio}</p>}

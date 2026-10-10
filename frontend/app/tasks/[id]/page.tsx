@@ -10,6 +10,10 @@ import { recordActiveDay, getPendingCelebration, markCelebrated, getStreak } fro
 import { notify } from '@/lib/notifications'
 import { useAgentPath } from '../../context/AgentPathContext'
 import { playTaskCompleteSound } from '../../../lib/taskSound'
+import { usePreferences } from '../../context/usePreferences'
+import { loadPreferences } from '@/lib/preferences'
+import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import BackButton from '../../components/BackButton'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -39,7 +43,9 @@ function TaskViewContent() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
+  // Ticks are saved with the account, shared with the calendar (lib/planTaskDone.ts).
+  const { prefs, update: updatePreferences } = usePreferences()
+  const completedTasks = doneThisWeek(prefs.planTaskDone)
   const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
   const [musicFile, setMusicFile] = useState<string | null>(null)
@@ -89,12 +95,12 @@ function TaskViewContent() {
   const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
 
   const toggleTask = (id: string) => {
-    setCompletedTasks(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) { s.delete(id) } else { s.add(id); playTaskCompleteSound() }
-      return s
-    })
+    const done = loadPreferences().planTaskDone
+    updatePreferences({ planTaskDone: togglePlanTaskDone(done, id) })
+    if (!doneThisWeek(done).has(id)) playTaskCompleteSound()
   }
+  // Done this week, from here, the task list or the calendar.
+  const isDone = completed || completedTasks.has(taskId)
 
   const toggleGoal = (id: string) => {
     setCompletedGoals(prev => {
@@ -124,6 +130,8 @@ function TaskViewContent() {
 
   const handleDone = () => {
     setCompleted(true)
+    const done = loadPreferences().planTaskDone
+    if (!doneThisWeek(done).has(taskId)) updatePreferences({ planTaskDone: togglePlanTaskDone(done, taskId) })
     setIsDoneDancing(true)
     playCelebrationMusic()
     // Streak: completing a task marks today active. May bridge a gap with a
@@ -264,7 +272,8 @@ function TaskViewContent() {
         <div className="rounded-2xl overflow-hidden surface">
 
           {/* Task Title */}
-          <div className="text-center py-4 px-4">
+          <div className="relative text-center py-4 px-4">
+            <BackButton fallback="/tasks" className="mb-3 sm:absolute sm:left-4 sm:top-4 sm:mb-0" />
             <h1 className="text-2xl font-bold text-slate-800">Task View</h1>
             <p className="text-sm text-slate-600 mt-1">{taskName}</p>
             <div className="h-px bg-slate-300 w-32 mx-auto mt-2" />
@@ -395,14 +404,14 @@ function TaskViewContent() {
         <div className="flex justify-center mt-8">
           <button
             onClick={handleDone}
-            disabled={completed}
+            disabled={isDone}
             className={`px-16 py-4 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
-              completed
+              isDone
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
                 : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white hover:shadow-purple-500/30'
             }`}
           >
-            {completed ? '✓ Done!' : 'Done'}
+            {isDone ? '✓ Done!' : 'Done'}
           </button>
         </div>
       </div>

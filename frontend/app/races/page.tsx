@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { loadChosenPathModel, pathModelShortName } from '@/lib/pathModel'
@@ -17,6 +17,7 @@ import UserAvatar from '../components/UserAvatar'
 import { Car } from 'lucide-react'
 import { playTaskCompleteSound } from '@/lib/taskSound'
 import { useDisclosure } from '@/lib/disclosure'
+import { useCssHeightVar } from '@/lib/useCssHeightVar'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
 
 /*
@@ -26,16 +27,26 @@ import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../compo
   Pit Stop Shop opens ServiceHub. Milestone sign is a signboard.
 */
 
+const STATS_SHOWN_KEY = 'autinerary_races_stats_shown'
+
 function RacesContent() {
   const { payload, pathPlanning, toolRecommendation, loading } = useAgentPath()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { prefs, updateLayout } = usePreferences()
   const { isSimple } = useDisclosure()
-  const [characterAppearance, setCharacterAppearance] = useState<{ hairStyle?: string; hairColor?: string; skinColor?: string }>({})
+  // The race track's progress badge sticks below this header (MilestoneTrail).
+  const headerRef = useRef<HTMLElement>(null)
+  useCssHeightVar(headerRef, '--page-header-h')
+  const [characterAppearance, setCharacterAppearance] = useState<{ hairStyle?: string; hairColor?: string; skinColor?: string; accessory?: string; facialHair?: string; clothing?: string }>({})
   useEffect(() => {
     try { setCharacterAppearance(JSON.parse(localStorage.getItem('autinerary_profile') || '{}').avatar || {}) } catch {}
   }, [])
+  // The character from setup (saved with the account since Group 34; this
+  // browser's copy for people who set up before), shown at "You are here".
+  // It used to appear nowhere after setup.
+  const myCharacter = prefs.character || (characterAppearance.hairStyle ? characterAppearance : null)
+  const trailCharacter = myCharacter ? <UserAvatar {...myCharacter} size={28} /> : undefined
 
   const [isDayTheme, setIsDayTheme] = useState(true)
   const [showRocketEntry, setShowRocketEntry] = useState(false)
@@ -51,7 +62,15 @@ function RacesContent() {
   const [expandShop, setExpandShop] = useState(false)
   const [suggestionText, setSuggestionText] = useState('')
   const [sentSuggestions, setSentSuggestions] = useState<{ to: string; text: string }[]>([])
-  const [gamifiedMode, setGamifiedMode] = useState(true)
+  // Hide/Show stats is remembered in this browser; it used to reset every visit.
+  const [gamifiedMode, setGamifiedModeState] = useState(true)
+  useEffect(() => {
+    try { if (localStorage.getItem(STATS_SHOWN_KEY) === '0') setGamifiedModeState(false) } catch {}
+  }, [])
+  const setGamifiedMode = (shown: boolean) => {
+    setGamifiedModeState(shown)
+    try { localStorage.setItem(STATS_SHOWN_KEY, shown ? '1' : '0') } catch {}
+  }
   const [showPinwheelPopup, setShowPinwheelPopup] = useState(false)
   const [pinwheelHover, setPinwheelHover] = useState(false)
   const [activeDimension, setActiveDimension] = useState('education')
@@ -246,7 +265,7 @@ function RacesContent() {
         ['Mentality', liveStats.mentality],
         ['Happiness', liveStats.happiness],
         ['Focus',     liveStats.focus],
-        ['Energy',    liveStats.energy],
+        ['Activity',  liveStats.energy],
       ] as [string, LiveStat | null][])
         .filter((pair): pair is [string, LiveStat] => pair[1] !== null)
         .map(([name, st]) => ({ name, value: st.value, max: 10, change: st.change }))
@@ -547,7 +566,7 @@ function RacesContent() {
     const shops: { emoji: string; name: string; desc: string; href: string; ext: boolean }[] = [
       { emoji: '🧰', name: 'Toolbox',     desc: 'Quick tools & utilities',   href: '/tools',                                ext: false },
       { emoji: '🏪', name: 'ResourceHub', desc: 'Find relevant resources', href: hub,                                     ext: true  },
-      { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/pit-stop?tab=haveworld&view=people',   ext: false },
+      { emoji: '🐰', name: 'Hare World',  desc: 'Role models & mentors',      href: '/hare-world',   ext: false },
       { emoji: '💬', name: 'Tidbits',     desc: 'View Related posts',         href: goHubHref('/community?from=hare-world&context=races'), ext: true  },
     ]
     return (
@@ -742,7 +761,7 @@ function RacesContent() {
           page depth to sit against, and the rolling hills at the foot give it
           a horizon. Still pure CSS/SVG, so it costs nothing to load. */}
       <div
-        className={`min-h-screen ${day ? '' : 'bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950'} relative overflow-x-hidden transition-colors duration-700`}
+        className={`min-h-screen ${day ? '' : 'bg-gradient-to-b from-indigo-950 via-purple-950 to-slate-950'} relative overflow-x-clip transition-colors duration-700`}
         style={
           day
             ? {
@@ -783,7 +802,7 @@ function RacesContent() {
         </div>
 
         {/* ═══ STICKY HEADER ═══ */}
-        <header className={`sticky top-0 z-40 ${day ? 'bg-sky-100/90' : 'bg-indigo-950/90'} backdrop-blur-md border-b ${day ? 'border-sky-200' : 'border-indigo-800'} px-4 py-2`}>
+        <header ref={headerRef} style={{ top: 'var(--nav-h, 0px)' }} className={`sticky z-40 ${day ? 'bg-sky-100/90' : 'bg-indigo-950/90'} backdrop-blur-md border-b ${day ? 'border-sky-200' : 'border-indigo-800'} px-4 py-2`}>
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <div className="flex items-center gap-3">
               <button onClick={() => {
@@ -796,8 +815,8 @@ function RacesContent() {
                 } else {
                   router.push('/path')
                 }
-              }} className={`p-1 rounded-lg hover:bg-black/10 ${txt}`}><ArrowLeft className="w-5 h-5" /></button>
-              <h1 className={`text-lg font-bold flex items-center gap-2 ${txt}`}><span aria-hidden="true">🏁</span>Dream Land Race Track</h1>
+              }} aria-label="Back" className={`p-1 rounded-lg hover:bg-black/10 ${txt}`}><ArrowLeft className="w-5 h-5" aria-hidden="true" /></button>
+              <h1 className={`text-lg font-bold flex items-center gap-2 ${txt}`}><span aria-hidden="true">🏁</span>Races</h1>
               {modelName && (
                 <Link
                   href="/path#life-path-models"
@@ -817,6 +836,7 @@ function RacesContent() {
               <div className="relative pref-widget" style={{ order: prefs.layout.pinwheelSide === 'right' ? 99 : -1 }}>
                 <button
                   onClick={() => setShowPinwheelPopup(true)}
+                  aria-label="Open the motivation pinwheel"
                   onMouseEnter={() => setPinwheelHover(true)}
                   onMouseLeave={() => setPinwheelHover(false)}
                   className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-all"
@@ -835,11 +855,11 @@ function RacesContent() {
               <button onClick={() => setIsDayTheme(!isDayTheme)} className={`px-2 py-1 rounded-lg text-xs font-semibold shadow ${day ? 'bg-indigo-600 text-white' : 'bg-amber-400 text-slate-900'}`}>{day ? '🌙' : '☀️'}</button>
               <div className="relative">
                 <button onClick={() => { setShowCompareMenu(!showCompareMenu); setShowNewViewsMenu(false) }} className={`px-2 py-1 bg-gradient-to-r ${accent} text-white rounded-lg text-xs font-semibold`}><RefreshCw className="w-3 h-3 inline mr-1" />Compare</button>
-                {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'To Role Model(s)', I: Users }, { k: 'friend', l: 'To Friend-vals', I: UserPlus }, { k: 'mentor', l: 'To Mentoring', I: UserCheck }, { k: 'recommendations', l: 'To Recommendations', I: Sparkles }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
+                {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'With role models', I: Users }, { k: 'friend', l: 'With friends', I: UserPlus }, { k: 'mentor', l: 'With mentors', I: UserCheck }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
               </div>
               <div className="relative">
                 <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
-                {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Compete' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
+                {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Learn from others' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
               </div>
             </div>
           </div>
@@ -865,14 +885,14 @@ function RacesContent() {
                     <Eye className={`w-4 h-4 ${sub}`} />
                     <span className={`text-sm font-bold ${txt}`}>Compare with a {cat.label}</span>
                   </div>
-                  <button onClick={() => router.push('/races')} className={`p-1.5 rounded-lg hover:bg-black/10 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" /></button>
+                  <button onClick={() => router.push('/races')} aria-label="Close" className={`p-1.5 rounded-lg hover:bg-black/10 ${day ? 'bg-slate-100' : 'bg-indigo-900'} ${txt}`}><X className="w-5 h-5" aria-hidden="true" /></button>
                 </div>
 
                 {people.length === 0 && (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">👥</div>
                     <p className={`text-sm mb-4 ${sub}`}>You haven&apos;t connected with a {cat.label.toLowerCase()} yet. Comparisons use your real connections&apos; shared paths.</p>
-                    <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all">
+                    <Link href="/hare-world" className="inline-block px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all">
                       Find a {cat.label.toLowerCase()} in Hare World →
                     </Link>
                   </div>
@@ -910,8 +930,8 @@ function RacesContent() {
           <div className="relative z-30 max-w-3xl mx-auto px-4 pt-3">
             <div className={`${day ? ' border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border rounded-2xl p-4 surface`}>
               <div className="flex items-center justify-between mb-2">
-                <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Compete'}</h2>
-                <button onClick={() => router.push('/races')} className={`${sub} hover:bg-black/10`}><X className="w-5 h-5" /></button>
+                <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Learn from others'}</h2>
+                <button onClick={() => router.push('/races')} aria-label="Close" className={`${sub} rounded-lg p-1 hover:bg-black/10`}><X className="w-5 h-5" aria-hidden="true" /></button>
               </div>
               {newView === 'avoidance' && (
                 <div className="space-y-1.5">
@@ -938,9 +958,13 @@ function RacesContent() {
                 </div>
               )}
               {(newView === 'suggestions' || newView === 'compete') && <div className="space-y-3 text-sm">
-                <p>No shared {newView === 'suggestions' ? 'suggestions' : 'challenges'} are available here yet.</p>
+                {/* Was "Compete". Group 34 asked for less competition, so this
+                    view is about learning from your people, not beating them. */}
+                <p>{newView === 'suggestions'
+                  ? 'No shared suggestions are available here yet.'
+                  : 'Open someone\'s page to see how they are getting on and pick up ideas. It isn\'t a contest.'}</p>
                 {Object.values(realConnections).flat().filter(person => person.target_user_id).map(person => <Link key={person.id} href={`/friend/${person.target_user_id}`} className="block underline">{person.name}</Link>)}
-                <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block underline">Manage my people</Link>
+                <Link href="/hare-world" className="inline-block underline">Manage my people</Link>
               </div>}
             </div>
           </div>
@@ -979,7 +1003,7 @@ function RacesContent() {
                           const progress = computeRaceProgress(rawRaces[index] || { name: goal }, milestones, completedMilestoneIds)
                           return <div key={`${index}-${goal}`} className="w-full border-b border-slate-200 py-2">
                             <div className="flex justify-between gap-3 text-sm"><span className="break-words">{goal}</span><span className="shrink-0">{progress === null ? 'No linked milestones' : `${progress}%`}</span></div>
-                            {progress !== null && <progress aria-label={`${goal} progress`} value={progress} max={100} className="mt-1 h-2 w-full accent-emerald-600" />}
+                            {progress !== null && <progress aria-label={`${goal} progress`} value={progress} max={100} className="mt-1 h-2 w-full" />}
                             <div className="mt-2 flex flex-wrap gap-3 text-xs">
                               <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'unanswered', context: 'races' })}`)} className="text-cyan-700 underline">Answer related questions</Link>
                               <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'solved', context: 'races' })}`)} className="text-cyan-700 underline">Solved threads / share experience</Link>
@@ -1104,9 +1128,9 @@ function RacesContent() {
                 <GamePanel tone="rose" className="px-4 pt-6 pb-4 flex flex-col">
                   <GameBanner tone="violet">🐰 Hare World</GameBanner>
                   <p className="text-[11px] font-medium text-rose-900/80 mb-3 flex-1 text-center">
-                    Your role models, mentors &amp; people. See who&apos;s ahead and learn from them.
+                    Your role models, mentors &amp; people. See how they&apos;re getting on and learn from them.
                   </p>
-                  <GameButton tone="violet" size="sm" href="/pit-stop?tab=haveworld&view=people" className="w-full">
+                  <GameButton tone="violet" size="sm" href="/hare-world" className="w-full">
                     Enter →
                   </GameButton>
                 </GamePanel>
@@ -1134,14 +1158,14 @@ function RacesContent() {
             </div>
             <div className="text-lg font-bold text-indigo-700">Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
-            <Link href="/ideal-self" className={`text-[10px] font-bold ${day ? 'text-purple-600' : 'text-purple-300'} hover:underline`}>
+            <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} hover:underline`}>
               See more
             </Link>
             {/* Path view already surfaces the multi-path switcher; Races did
                 not (Odosa asked for it at the top of Path and/or Race view). */}
             <Link
               href="/paths/compare"
-              className={`mt-1 text-[10px] font-semibold flex items-center gap-1 ${day ? 'text-slate-500 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`py-1 text-xs font-semibold flex items-center gap-1 ${day ? 'text-slate-600 hover:text-slate-800' : 'text-slate-300 hover:text-slate-100'}`}
             >
               <GitCompare className="w-3 h-3" /> Compare / switch paths
             </Link>
@@ -1235,8 +1259,8 @@ function RacesContent() {
                 {/* Individual | Combined toggle — always available */}
                 <div className="flex justify-center mb-4">
                   <div className={`inline-flex rounded-lg border overflow-hidden text-[10px] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
-                    <button onClick={() => setDimViewMode('individual')} className={`px-3 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Individual</button>
-                    <button onClick={() => setDimViewMode('combined')} className={`px-3 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-400' : 'bg-indigo-950 text-indigo-500')}`}>Combined</button>
+                    <button onClick={() => setDimViewMode('individual')} className={`px-3 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-600' : 'bg-indigo-950 text-indigo-300')}`}>Individual</button>
+                    <button onClick={() => setDimViewMode('combined')} className={`px-3 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-600' : 'bg-indigo-950 text-indigo-300')}`}>Combined</button>
                   </div>
                 </div>
 
@@ -1478,7 +1502,7 @@ function RacesContent() {
                                 <div className="flex items-center gap-1 mb-0.5">
                                   <span className="text-[10px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
                                   <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
-                                  {step.status === 'active' && !isCompleted && <span className="text-[8px] font-bold text-amber-500 ml-auto">YOU ARE HERE</span>}
+                                  {step.status === 'active' && !isCompleted && <span className="text-[10px] font-bold text-amber-800 ml-auto">YOU ARE HERE</span>}
                                 </div>
                                 <div className={`text-[11px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
                                 {(step as any).isGeneric && !isCompleted && (
@@ -1490,7 +1514,7 @@ function RacesContent() {
                                 <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-100'}`}>
                                   {isHearted ? '❤️' : '🤍'}
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
+                                <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} role="checkbox" aria-checked={isCompleted} aria-label={`Done: ${step.name}`} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
                                   {isCompleted && <span className="text-white text-[8px] font-bold">✓</span>}
                                 </button>
                               </div>
@@ -1591,7 +1615,7 @@ function RacesContent() {
                 <div className="grid items-start gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
                 <aside className="order-2 lg:order-1 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${110 + currentStopIdx * 160}px` } as React.CSSProperties}>
                   <h3 className="mb-2 font-semibold">Pit Stop</h3>
-                  <div className="flex flex-wrap gap-3 text-sm lg:flex-col"><Link className="underline" href={goHubHref('/')}>ResourceHub</Link><Link className="underline" href="/pit-stop?tab=haveworld&view=people">Hare World</Link><Link className="underline" href={goHubHref('/community')}>Tidbits</Link></div>
+                  <div className="flex flex-wrap gap-3 text-sm lg:flex-col"><Link className="underline" href={goHubHref('/')}>ResourceHub</Link><Link className="underline" href="/hare-world">Hare World</Link><Link className="underline" href={goHubHref('/community')}>Tidbits</Link></div>
                 </aside>
                 <div className="order-1 min-w-0 lg:order-2"><MilestoneTrail
                   milestones={trackStops as any}
@@ -1599,6 +1623,7 @@ function RacesContent() {
                   currentIndex={currentStopIdx}
                   startIndex={trackStart}
                   previewAll
+                  character={trailCharacter}
                   // Open THAT milestone, not the list. Every node used to
                   // push to /milestones, so all 144 of them led to the same
                   // screen — which is why they looked identical.
@@ -1781,6 +1806,7 @@ function RacesContent() {
                   completedIds={completedMilestoneIds}
                   currentIndex={0 /* the trail derives it from completedIds */}
                   day={day}
+                  character={trailCharacter}
                   onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
                 />
               </div>
@@ -1921,7 +1947,7 @@ function RacesContent() {
 
 export default function RacesView() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-lg">🚀 Loading Dream Land...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-lg">Loading your Races…</div>}>
       <RacesContent />
     </Suspense>
   )

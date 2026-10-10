@@ -10,8 +10,9 @@ Groups 1 to 11 were built one report at a time; their write-ups are in
 [start-here.md](start-here.md) (Group 4), [onboarding-questions.md](onboarding-questions.md)
 and [beta-test-plan-2026-10.md](beta-test-plan-2026-10.md). Of the five reports
 the cohort report highlights, Teams 4 and 10 were built as Groups 4 and 10.
-Teams 15, 18 and 35 have not been shared with us, so their parts below come
-from the cohort report's summary of them.
+Teams 15 and 18 have not been shared with us, so their parts below come from
+the cohort report's summary of them. Team 35's report was shared on 10
+October, with Groups 34 and 36: see [groups-34-36.md](groups-34-36.md).
 
 ## The main recommendation
 
@@ -109,11 +110,11 @@ already ([beta/README.md](beta/README.md)).
 | 10 | Progressive onboarding | Built as Group 10: essentials first, questions later, check-ins that adjust the path |
 | 15 | Channel profiles and a 7-14 day research plan | One path for every channel, a welcome line each, a hypothesis each, measured by channel |
 | 18 | Trust, AI framing, first impression | "Where does Autinerary use AI?", plain error messages, trust and AI questions in sessions |
-| 35 | Progress, save and skip safeguards, a starter shelf, day-one tracking | Already in place: progress, skip, save and resume; shelves; the funnel from day one |
+| 35 | Progress, save and skip safeguards, a starter shelf, day-one tracking | Already in place: progress, skip, save and resume; shelves; the funnel from day one. Checked line by line in [groups-34-36.md](groups-34-36.md) |
 
 ## For the team
 
 1. ~~Apply STEP 62~~: done 10 October, checked live.
 2. Agree the review date and **who makes the call** (the beta plan's `[[TEAM: name]]`), and fill the beta kit's other `[[TEAM: ...]]` blanks.
-3. Share Teams 15, 18 and 35's full reports if you want them gone through line by line.
+3. Share Teams 15 and 18's full reports if you want them gone through line by line (Team 35's is done).
 4. Decide whether to post a Level UP or FuturePath project.

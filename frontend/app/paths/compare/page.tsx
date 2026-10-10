@@ -97,9 +97,9 @@ export default function ComparePathsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-cyan-50/40">
-      <header className="sticky top-0 z-40 border-b border-slate-200 px-4 py-2 surface-chrome">
+      <header className="sticky z-40 border-b border-slate-200 px-4 py-2 surface-chrome" style={{ top: 'var(--nav-h, 0px)' }}>
         <div className="flex items-center gap-3 max-w-4xl mx-auto">
-          <button onClick={() => router.back()} className="p-1 rounded-lg hover:bg-slate-100 text-slate-700"><ArrowLeft className="w-5 h-5" /></button>
+          <button onClick={() => router.back()} aria-label="Back" className="p-1 rounded-lg hover:bg-slate-100 text-slate-700"><ArrowLeft className="w-5 h-5" aria-hidden="true" /></button>
           <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2"><GitCompare className="w-5 h-5 text-purple-600" /> Compare Paths</h1>
         </div>
       </header>
@@ -184,7 +184,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
 }) {
   if (!snapshot) {
     return (
-      <div className="bg-white/60 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-sm text-slate-400 flex items-center justify-center min-h-[200px]">
+      <div className="bg-white/60 border border-dashed border-slate-300 rounded-2xl p-6 text-center text-sm text-slate-600 flex items-center justify-center min-h-[200px]">
         Select a path to compare
       </div>
     )
@@ -199,7 +199,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
           <h3 className="font-bold text-slate-800 leading-tight">{snapshot.name}</h3>
-          <p className="text-[11px] text-slate-400">{new Date(snapshot.createdAt).toLocaleDateString()}</p>
+          <p className="text-[11px] text-slate-600">{new Date(snapshot.createdAt).toLocaleDateString()}</p>
         </div>
         <button onClick={() => onDelete(snapshot.id)} className="p-1 text-slate-300 hover:text-rose-500" title="Delete snapshot">
           <Trash2 className="w-4 h-4" />
@@ -225,14 +225,14 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
 
       {/* Races */}
       <div className="space-y-2">
-        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1">
+        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-600 flex items-center gap-1">
           <Flag className="w-3 h-3" /> {snapshot.data.races.length} race{snapshot.data.races.length === 1 ? '' : 's'}
         </div>
         {snapshot.data.races.slice(0, 6).map((r, i) => (
           <div key={r.id || i} className="text-xs">
             <div className="flex justify-between text-slate-600 mb-0.5">
               <span className="flex items-center gap-1"><Target className="w-3 h-3 text-slate-400" /> {r.name}</span>
-              <span className="text-slate-400">{r.progress}%</span>
+              <span className="text-slate-600">{r.progress}%</span>
             </div>
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full ${bar} rounded-full`} style={{ width: `${r.progress}%` }} />

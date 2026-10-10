@@ -169,14 +169,16 @@ export function computeEnergy(pings: ActivityPing[], now: Date = new Date()): St
   for (const p of pings) {
     if (daysAgo(p.occurredAt, now) >= 0) allActiveDayKeys.add(dayKey(p.occurredAt))
   }
+  // The streak ends today, or yesterday while nothing is logged yet today: a
+  // day isn't over in the morning. It used to drop to 0 every morning, so the
+  // number fell before anyone had a chance to do anything (Riipen Labs, Group
+  // 34: it "feels demotivating").
   let streak = 0
-  // If today isn't active, the streak is broken at 0 — be honest.
-  if (allActiveDayKeys.has(todayKey)) {
-    for (let i = 0; i < STREAK_CAP; i++) {
-      const d = new Date(now.getTime() - i * MS_PER_DAY)
-      if (allActiveDayKeys.has(dayKey(d))) streak++
-      else break
-    }
+  const start = allActiveDayKeys.has(todayKey) ? 0 : 1
+  for (let i = start; i < start + STREAK_CAP; i++) {
+    const d = new Date(now.getTime() - i * MS_PER_DAY)
+    if (allActiveDayKeys.has(dayKey(d))) streak++
+    else break
   }
   const streakRatio = streak / STREAK_CAP
 

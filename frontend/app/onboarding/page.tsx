@@ -9,7 +9,7 @@ import {
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 import {
-  AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, DEFAULT_REMINDERS,
+  VIEW_PREFERENCES, DEFAULT_REMINDERS,
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
@@ -17,6 +17,7 @@ import { buildAvatarSvg, HAIR_GROUPS, HAIR_OPTIONS, ACCESSORIES, FACIAL_HAIR, CL
   HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
 import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor'
+import { ageBandFromDob } from '@/lib/age'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
@@ -218,7 +219,7 @@ const skippableSteps = new Set(['barrierConnections', 'location', 'motivation', 
 // connect"). Each line was checked against where the app reads it.
 const STEP_PURPOSE: Record<string, string> = {
   about: 'The wording of the next questions, and what you see first once your path is ready.',
-  character: 'Your avatar in Dream Land.',
+  character: 'Your character on the race track in Races, at the step you are on.',
   barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms. Optional: skipped, it counts as “Prefer not to share”.',
   location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
   goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
@@ -1222,7 +1223,7 @@ export default function OnboardingPage() {
         supportContext: agentSupportContext,
         preferences: {
           pathModel: chosenModel,
-          ageRange: formData.ageRange,
+          ageRange: formData.ageRange || ageBandFromDob(supabaseUser?.app_metadata?.date_of_birth || supabaseUser?.user_metadata?.date_of_birth) || '',
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
           spiritAnimalMode: formData.spiritAnimalMode,
@@ -1373,6 +1374,19 @@ export default function OnboardingPage() {
       const startPath = keptStartPath()
       const prefsSaved = await axios.post('/api/me/preferences', {
         dreamAppearance: formData.dreamAppearance,
+        // The character from the Character step, kept with the account so the
+        // race track can show it on any device. Only if they saw that step:
+        // an untouched default would stand in for someone it may not look like.
+        ...(stepsSeen.current.has(stepIndex('character')) ? {
+          character: {
+            hairStyle: formData.hairStyle,
+            hairColor: formData.hairColor,
+            skinColor: formData.skinColor,
+            accessory: formData.accessory,
+            facialHair: formData.facialHair,
+            clothing: formData.clothing,
+          },
+        } : {}),
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
         // Who this is for and what they came for: drives what the next pages
         // show first, and lets the funnel be compared by user type.
@@ -1718,7 +1732,7 @@ export default function OnboardingPage() {
           {currentId === 'character' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
-              <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land. You can change it later on your Ideal Self page.</p>
+              <p className="text-slate-600 mb-6">Design a character to represent you. It stands on your race track at the step you're on, and you can change it later on your Ideal Self page.</p>
 
               <div className="space-y-6">
                 {/* Body Type */}
@@ -3037,63 +3051,17 @@ export default function OnboardingPage() {
                 <Palette className="w-6 h-6 text-cyan-600" />
                 <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
               </div>
-              <p className="text-slate-600 mb-6">
-                This helps us tailor how the app looks and feels for you. Every mode is still a
-                fun, gamified checklist, this just tunes how much visual energy we add. All optional.
-              </p>
+              <p className="text-slate-600 mb-6">Two quick choices. Both can be changed later in Settings.</p>
 
-              {/* Age Range */}
-              <div className="mb-6">
-                <label className="block font-semibold text-slate-800 mb-2">Age range</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {AGE_RANGES.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, ageRange: o.id }))}
-                      className={`px-4 py-3 rounded-xl border-2 font-medium transition-all ${
-                        formData.ageRange === o.id
-                          ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tech Savvyness */}
-              <div className="mb-6">
-                <label className="block font-semibold text-slate-800 mb-1">
-                  How often do you use apps?
-                </label>
-                <p className="text-xs text-slate-500 mb-2">
-                  Why we ask: this tunes how much detail the interface shows. If apps
-                  aren&apos;t your thing, we keep screens simpler. It&apos;s never shared.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {TECH_SAVVY.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, techSavvy: o.id }))}
-                      className={`px-4 py-3 rounded-xl border-2 text-left transition-all ${
-                        formData.techSavvy === o.id
-                          ? 'border-cyan-500 bg-cyan-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className={`font-medium ${formData.techSavvy === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
-                      <div className="text-xs text-slate-500">{o.hint}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              {/* Age range and "How often do you use apps?" were asked here too.
+                  They only capped the liveliness chosen below, so they asked the
+                  same thing twice (Riipen Labs, Group 36: "condense the number of
+                  questions on the personalization page", "combine overlapping
+                  sections"). The age band now comes from the date of birth given
+                  at sign-up (lib/age.ts, ageBandFromDob). */}
               {/* View Preference */}
               <div className="mb-2">
-                <label className="block font-semibold text-slate-800 mb-2">View preference</label>
+                <label className="block font-semibold text-slate-800 mb-2">How lively should it look?</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {VIEW_PREFERENCES.map((o) => (
                     <button
@@ -3120,10 +3088,7 @@ export default function OnboardingPage() {
                     <label htmlFor="reminders-toggle" className="block font-semibold text-slate-800">
                       Daily goal reminders
                     </label>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Get a gentle nudge about your goals for the day. Optional, and you can turn it
-                      off anytime in Settings.
-                    </p>
+                    <p className="text-xs text-slate-600 mt-0.5">A gentle nudge about the day’s goals. Off unless you turn it on.</p>
                   </div>
                   <button
                     id="reminders-toggle"
@@ -3157,9 +3122,6 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              <p className="text-xs text-slate-600 mt-4">
-                You can fine-tune placement, size, and colors later in Settings and on each screen.
-              </p>
             </div>
           )}
 

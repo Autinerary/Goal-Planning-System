@@ -276,10 +276,10 @@ ALTER TABLE public.community_badge_grants ENABLE ROW LEVEL SECURITY;
 -- Seed the default badge catalog. Idempotent via ON CONFLICT DO NOTHING.
 INSERT INTO public.community_badges (slug, name, description, icon, tier, auto_metric, auto_threshold) VALUES
     ('first_post',      'First Post',      'Posted your first question',          '✍️', 'bronze', 'posts',    1),
-    ('helpful',         'Helpful',         'Received 5 upvotes on an answer',     '🙌', 'bronze', 'karma',    25),
+    ('helpful',         'Helpful',         'Reached 25 helpful points',           '🙌', 'bronze', 'karma',    25),
     ('problem_solver',  'Problem Solver',  'Had an answer accepted as solved',    '🧩', 'silver', 'accepted', 1),
     ('mentor',          'Mentor',          '10 of your answers were accepted',    '🎓', 'gold',   'accepted', 10),
-    ('community_pillar','Community Pillar','Reached 1000 karma',                  '🏛️', 'gold',   'karma',    1000),
+    ('community_pillar','Community Pillar','Reached 1,000 helpful points',        '🏛️', 'gold',   'karma',    1000),
     ('streak_starter',  'Streak Starter',  'Posted on 3 consecutive days',        '🔥', 'bronze', NULL,       NULL)
 ON CONFLICT (slug) DO NOTHING;
 

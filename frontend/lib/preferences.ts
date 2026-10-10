@@ -57,6 +57,8 @@ export interface LayoutPositions {
 export interface UserPreferences {
   gamification?: import('./gamification').GamificationPreferences
   dreamAppearance?: { hairStyle: string; hairColor: string; skinColor: string }
+  /** The character from setup's Character step, shown on the race track at the current step. */
+  character?: { hairStyle: string; hairColor: string; skinColor: string; accessory?: string; facialHair?: string; clothing?: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }
   ageRange: AgeRange | ''
   techSavvy: TechSavvy | ''
@@ -78,6 +80,8 @@ export interface UserPreferences {
   startPath?: { for: string; need: string; savedAt?: string }
   /** Consent to one short email check-in after two weeks away (default off). */
   checkin?: { optIn: boolean; updatedAt: string }
+  /** Plan tasks ticked off, as task id -> the Monday of the week (lib/planTaskDone.ts). */
+  planTaskDone?: Record<string, string>
   /** The weekly email: what they saved, plus new picks (lib/weeklyPicks.ts; default off). */
   weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
   /** ISO timestamp of last update — useful for analytics. */

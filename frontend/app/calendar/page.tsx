@@ -22,6 +22,10 @@ import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
 import { toast } from '../components/Toaster'
 import { LOW_ENERGY_TRIED_KEY } from '../components/StarterChecklist'
+import { usePreferences } from '../context/usePreferences'
+import { loadPreferences } from '@/lib/preferences'
+import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { calendarIdeas } from '@/lib/calendarIdeas'
 // Scenario-specific task data
 const scenarioData = {
   worst: {
@@ -222,6 +226,9 @@ const priorityColors: Record<string, string> = {
   growth: 'bg-purple-100 border-purple-300',
 }
 
+const ENERGY_KEY = 'autinerary_calendar_energy'
+const PERIOD_KEY = 'autinerary_calendar_period'
+
 function CalendarContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -233,7 +240,29 @@ function CalendarContent() {
   // Day / Week / Month period (Odosa). 'day' shows one day; 'week'/'month' show
   // the full pattern (month adds a note that it repeats weekly).
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('week')
-  const [agentCompletedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
+  // Ticks on the plan's own tasks, saved with the account (lib/planTaskDone.ts).
+  // They were kept in memory only, so coming back to the calendar undid them,
+  // and so did the energy level and the period below (Riipen Labs, Group 34:
+  // "Calendar resets"). The energy level holds for the rest of the day: it is
+  // how today feels. The period is a view choice, kept on this device.
+  const { prefs, update: updatePreferences } = usePreferences()
+  const agentCompletedTasks = doneThisWeek(prefs.planTaskDone)
+  useEffect(() => {
+    try {
+      const energy = JSON.parse(localStorage.getItem(ENERGY_KEY) || 'null')
+      if (energy?.day === new Date().toDateString() && ['worst', 'average', 'best'].includes(energy.scenario)) setScenario(energy.scenario)
+      const savedPeriod = localStorage.getItem(PERIOD_KEY)
+      if (savedPeriod === 'day' || savedPeriod === 'week' || savedPeriod === 'month') setPeriod(savedPeriod)
+    } catch {}
+  }, [])
+  const chooseScenario = (next: 'worst' | 'average' | 'best') => {
+    setScenario(next)
+    try { localStorage.setItem(ENERGY_KEY, JSON.stringify({ scenario: next, day: new Date().toDateString() })) } catch {}
+  }
+  const choosePeriod = (next: 'day' | 'week' | 'month') => {
+    setPeriod(next)
+    try { localStorage.setItem(PERIOD_KEY, next) } catch {}
+  }
   const { supabaseUser, isLoading: authLoading } = useAuth()
   const isSignedIn = Boolean(supabaseUser)
   const [showAddTask, setShowAddTask] = useState(false)
@@ -277,7 +306,7 @@ function CalendarContent() {
   }, [isSignedIn])
 
   // Pull the live calendar-optimization scenarios from the agent payload.
-  const { calendarOptimization, pathPlanning, payload } = useAgentPath()
+  const { calendarOptimization, pathPlanning, payload, toolRecommendation } = useAgentPath()
   const agentScenarios = calendarOptimization?.scenarios as
     | { best_case?: any; worst_case?: any; average_case?: any }
     | undefined
@@ -285,11 +314,14 @@ function CalendarContent() {
   // Real "current milestone" — first milestone (in agent order) not yet
   // completed. Falls back to the race name, then a generic label, so the
   // header badge always reflects actual progress instead of a fixed string.
-  const currentMilestoneName = (() => {
+  const currentMilestone = (() => {
     const milestones = (payload?.milestones || pathPlanning?.milestones || []) as ProgressMilestone[]
-    const next = milestones.find((m: any) => !completedMilestoneIds.has(m.id))
-    return (next as any)?.name || (next as any)?.title || payload?.races?.[0]?.name || 'Getting started'
+    return milestones.find((m: any) => !completedMilestoneIds.has(m.id)) as any
   })()
+  const currentMilestoneName = currentMilestone?.name || currentMilestone?.title || payload?.races?.[0]?.name || 'Getting started'
+  // Ideas for a free slot (lib/calendarIdeas.ts), from the milestone you're on.
+  const currentTool = currentMilestone?.id ? ((toolRecommendation?.recommendations || {})[currentMilestone.id] || [])[0]?.name : null
+  const ideas = calendarIdeas({ milestoneName: currentMilestone ? currentMilestoneName : null, toolName: currentTool, energy: scenario })
 
   const scenarioKeyMap = { worst: 'worst_case', average: 'average_case', best: 'best_case' } as const
   const agentScenario = agentScenarios?.[scenarioKeyMap[scenario]]
@@ -330,8 +362,10 @@ function CalendarContent() {
         // Per-day theme from the agent. The old fallback reached into the
         // mock's FIRST day and stamped that one theme across the whole week —
         // the same defect that was in `motivation` directly below.
-        theme: (d as any).theme || agentScenario.name || '',
-        typeOfDay: d.type || 'Focus Day',
+        // The scenario's name ("Average Case") is not a theme, and every day
+        // was labelled "Focus Day": show only what the agent said about the day.
+        theme: (d as any).theme || '',
+        typeOfDay: d.type || '',
         // Was `scenarioData[scenario].days[0]?.motivation` unconditionally —
         // it never consulted the agent at all, so every day of every week
         // showed the same mock line ("Just showing up counts"). Use what the
@@ -407,17 +441,11 @@ function CalendarContent() {
       if (saved && !added.completed) playTaskCompleteSound()
       return
     }
-    setCompletedTasks(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(taskId)) {
-        newSet.delete(taskId)
-      } else {
-        newSet.add(taskId)
-        // Liam: satisfying "bubble wrap pop" feedback when a task is checked off.
-        playTaskCompleteSound()
-      }
-      return newSet
-    })
+    // Read fresh, not from this render: two quick ticks must both be kept.
+    const done = loadPreferences().planTaskDone
+    updatePreferences({ planTaskDone: togglePlanTaskDone(done, taskId) })
+    // Liam: satisfying "bubble wrap pop" feedback when a task is checked off.
+    if (!doneThisWeek(done).has(taskId)) playTaskCompleteSound()
   }
 
   /**
@@ -744,9 +772,10 @@ function CalendarContent() {
                     setShowSuggestionModal(false)
                     setPendingSuggestion(null)
                   }} 
+                  aria-label="Close"
                   className="p-2 hover:bg-slate-100 rounded-lg text-slate-800 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
               
@@ -757,7 +786,7 @@ function CalendarContent() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-slate-700">Select Day:</label>
+                  <label htmlFor="suggestion-day" className="block text-sm font-medium text-slate-700">Select Day:</label>
                   <select
                     id="suggestion-day"
                     className="w-full px-4 py-3 rounded-lg focus:outline-none focus:border-purple-500 text-slate-800 surface"
@@ -770,7 +799,7 @@ function CalendarContent() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-slate-700">Select Time:</label>
+                  <label htmlFor="suggestion-time" className="block text-sm font-medium text-slate-700">Select Time:</label>
                   <select
                     id="suggestion-time"
                     size={8}
@@ -960,7 +989,7 @@ function CalendarContent() {
         <div className="flex flex-wrap gap-3 mb-8">
           <button
             onClick={() => {
-              setScenario('worst')
+              chooseScenario('worst')
               // Ticks "Try a low-energy day" in the Path's getting-started list.
               try { localStorage.setItem(LOW_ENERGY_TRIED_KEY, '1') } catch {}
             }}
@@ -974,7 +1003,7 @@ function CalendarContent() {
             Low Energy
           </button>
           <button
-            onClick={() => setScenario('average')}
+            onClick={() => chooseScenario('average')}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'average' 
                 ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
@@ -985,7 +1014,7 @@ function CalendarContent() {
             Balanced
           </button>
           <button
-            onClick={() => setScenario('best')}
+            onClick={() => chooseScenario('best')}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'best' 
                 ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
@@ -1007,7 +1036,7 @@ function CalendarContent() {
           ] as const).map((p) => (
             <button
               key={p.id}
-              onClick={() => setPeriod(p.id)}
+              onClick={() => choosePeriod(p.id)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 period === p.id
                   ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
@@ -1031,6 +1060,33 @@ function CalendarContent() {
             + Add task
           </button>
         </div>
+
+        {/* Ideas for a free slot (Riipen Labs, Group 34: "allow the calendar
+            to suggest relevant activities"). */}
+        {ideas.length > 0 && (
+          <details className="mb-6 rounded-2xl p-4 surface">
+            <summary className="cursor-pointer font-semibold text-slate-800">Ideas for your week</summary>
+            <p className="mt-1 text-sm text-slate-600">From the milestone you’re on and today’s energy level. Add one to a free slot.</p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {ideas.map((idea) => (
+                <li key={idea.text} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                  <span>
+                    <span className="block text-sm font-medium text-slate-900">{idea.text}</span>
+                    <span className="block text-xs text-slate-600">{idea.why}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPendingSuggestion({ suggestion: idea.text, from: `An idea: ${idea.why.toLowerCase()}` }); setShowSuggestionModal(true) }}
+                    aria-label={`Add to calendar: ${idea.text}`}
+                    className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                  >
+                    Add
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
         <div className="rounded-2xl p-3 sm:p-6 md:p-8 surface">
           {period === 'month' && (
@@ -1169,7 +1225,7 @@ function CalendarContent() {
                   return (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
                       <p className="text-sm text-slate-600 mb-3">No mentors or role models connected yet. Comparisons use your real connections&apos; shared schedules.</p>
-                      <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">Find your people →</Link>
+                      <Link href="/hare-world" className="text-sm font-semibold text-purple-600 hover:underline">Find your people →</Link>
                     </div>
                   )
                 }
@@ -1264,8 +1320,8 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
             <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
               <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
               <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
-              <div className="text-sm italic text-purple-600">{day.typeOfDay}</div>
-              <div className="text-sm italic text-pink-600 mt-1">&ldquo;{day.motivation}&rdquo;</div>
+              {day.typeOfDay && <div className="text-sm italic text-purple-700">{day.typeOfDay}</div>}
+              {day.motivation && <div className="text-sm italic text-pink-700 mt-1">&ldquo;{day.motivation}&rdquo;</div>}
               <RainDayBanner weekday={day.name} onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} />
             </div>
 
@@ -1282,7 +1338,8 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
                 >
                   <input 
                     type="checkbox" 
-                    className="w-5 h-5 cursor-pointer accent-blue-600 flex-shrink-0"
+                    className="w-5 h-5 cursor-pointer flex-shrink-0"
+                    aria-label={`Done: ${task.name}`}
                     checked={completedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
@@ -1314,6 +1371,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
           <button
             onClick={() => setCurrentDayIndex(Math.max(0, safeIndex - 1))}
             disabled={safeIndex === 0}
+            aria-label="Earlier days"
             className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -1324,6 +1382,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
           <button
             onClick={() => setCurrentDayIndex(Math.min(days.length - 2, safeIndex + 1))}
             disabled={safeIndex >= days.length - 2}
+            aria-label="Later days"
             className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
           >
             <ChevronRight className="w-5 h-5" />
@@ -1373,8 +1432,8 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchD
               <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-slate-300">
                 <div className="font-bold text-slate-800 text-lg">{day.name}</div>
                 <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
-                <div className="text-xs italic font-normal text-purple-600">{day.typeOfDay}</div>
-                <div className="text-xs italic font-normal text-pink-600 mt-1">"{day.motivation}"</div>
+                {day.typeOfDay && <div className="text-xs italic font-normal text-purple-700">{day.typeOfDay}</div>}
+                {day.motivation && <div className="text-xs italic font-normal text-pink-700 mt-1">&ldquo;{day.motivation}&rdquo;</div>}
                 <div className="mt-2"><RainDayBanner weekday={day.name} compact onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} /></div>
               </th>
             ))}
@@ -1400,7 +1459,7 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchD
                       <div className={`flex items-start gap-2 ${completedTasks.has(task.id) ? 'opacity-50' : ''}`}>
                         <input 
                           type="checkbox" 
-                          className="w-5 h-5 mt-0.5 cursor-pointer accent-blue-600"
+                          className="w-5 h-5 mt-0.5 cursor-pointer"
                           checked={completedTasks.has(task.id)}
                           onChange={() => toggleTask(task.id)}
                         />

@@ -166,6 +166,12 @@ const STEPS = [
   },
 ]
 
+const PLACES = [
+  { name: 'autinerary.ca', detail: 'The website: about Autinerary, and things to read about autism. To learn.' },
+  { name: 'The app (here)', detail: 'Your plan, calendar, journal and people. To plan a goal.' },
+  { name: 'ResourceHub', detail: 'Services, places and things rated by people like you, and Tidbits. To find help, or ask.' },
+]
+
 const CONNECTIONS = [
   { label: 'Your answers', detail: 'norms, goals, what motivates you' },
   { label: 'Your path', detail: 'goals become races with milestones' },
@@ -355,6 +361,26 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
+
+          {/* Riipen Labs, Group 36: people should "distinguish among the main
+              website, ResourceHub and goal-planning application", with "a
+              visual roadmap connecting its platforms". The full version, with
+              a glossary of the app's own words, is /help. */}
+          <h3 className="mt-10 text-xl font-bold">Three places, one account</h3>
+          <ol className="mt-4 grid gap-2 md:grid-cols-3 md:gap-4">
+            {PLACES.map((place) => (
+              <li key={place.name} className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <p className="font-semibold">{place.name}</p>
+                <p className="text-sm text-slate-700">{place.detail}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-slate-700">
+            The app and ResourceHub share one free account.{' '}
+            <Link href="/help" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+              What things are called
+            </Link>
+          </p>
         </div>
       </section>
 

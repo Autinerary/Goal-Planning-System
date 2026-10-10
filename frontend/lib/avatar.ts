@@ -107,6 +107,17 @@ export const HAIR_GROUPS: { name: string; options: AvatarChoice[] }[] = [
 /** Flat list, for lookups and validation. */
 export const HAIR_OPTIONS: AvatarChoice[] = HAIR_GROUPS.flatMap((g) => g.options)
 
+/**
+ * The HAIR_GROUPS id a stored hair value is drawn as, so a picker shows the
+ * style that is actually on screen. A legacy 'braids' is drawn as tied locs
+ * and was labelled "Braids" in the Dream Self editor (Riipen Labs, Group 34);
+ * it now shows as "Locs, tied", next to "Braided crown".
+ */
+export function hairChoiceId(stored: string | undefined): string {
+  const mapped = HAIR_TOP[stored || ''] ?? stored ?? ''
+  return mapped && mapped !== 'skip' ? mapped : 'none'
+}
+
 /** Glasses and other face accessories. */
 export const ACCESSORIES: AvatarChoice[] = [
   { id: 'none', label: 'None' },
@@ -140,29 +151,42 @@ export const CLOTHING: AvatarChoice[] = [
   { id: 'overall', label: 'Overalls' },
 ]
 
-/** Selectable hair colours (avataaars expects 6-hex, no leading #). */
+/**
+ * Selectable hair colours (avataaars expects 6-hex, no leading #). Riipen
+ * Labs, Group 34 asked for more appearance options: dark brown, light blonde
+ * and three dyed colours were added. Ids are stored, so existing ones stay.
+ */
 export const HAIR_COLORS: AvatarChoice[] = [
   { id: '2c1b18', label: 'Black' },
+  { id: '4a312c', label: 'Dark brown' },
   { id: '724133', label: 'Brown' },
   { id: 'a55728', label: 'Auburn' },
   { id: 'b58143', label: 'Blonde' },
+  { id: 'd6b370', label: 'Light blonde' },
   { id: 'c93305', label: 'Red' },
   { id: 'e8e1e1', label: 'Grey' },
   { id: 'ecdcbf', label: 'Platinum' },
   { id: 'f59797', label: 'Pink' },
+  { id: '3f6fd8', label: 'Blue' },
+  { id: '7e4fc4', label: 'Purple' },
+  { id: '2e9e6b', label: 'Green' },
 ]
 
-/** Selectable skin tones. */
+/** Selectable skin tones, deepest first. Nine since Group 34; was five. */
 export const SKIN_TONES: AvatarChoice[] = [
+  { id: '3b2219', label: 'Very deep' },
   { id: '614335', label: 'Deep' },
+  { id: '8d5524', label: 'Rich brown' },
   { id: 'ae5d29', label: 'Tan' },
+  { id: 'c68642', label: 'Golden' },
   { id: 'd08b5b', label: 'Medium' },
+  { id: 'e0ac69', label: 'Warm beige' },
   { id: 'edb98a', label: 'Light' },
   { id: 'ffdbb4', label: 'Fair' },
 ]
 
-export const DEFAULT_HAIR_COLOR = HAIR_COLORS[1].id // Brown
-export const DEFAULT_SKIN_TONE = SKIN_TONES[2].id // Medium
+export const DEFAULT_HAIR_COLOR = '724133' // Brown
+export const DEFAULT_SKIN_TONE = 'd08b5b' // Medium
 export const DEFAULT_CLOTHING = CLOTHING[0].id
 
 export interface AvatarOptions {

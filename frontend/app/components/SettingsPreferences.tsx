@@ -229,6 +229,7 @@ export default function SettingsPreferences() {
         <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
           <Palette className="w-4 h-4 text-cyan-600" /> Accent colour
         </label>
+        <p className="mb-2 text-xs text-slate-600">Colours checkboxes, sliders, progress bars and the highlight on text you select.</p>
         <div className="flex flex-wrap gap-3">
           {ACCENTS.map((a) => (
             <button
@@ -236,7 +237,7 @@ export default function SettingsPreferences() {
               onClick={() => update({ layout: { ...prefs.layout, accent: a.id } })}
               aria-label={a.label}
               aria-pressed={prefs.layout.accent === a.id}
-              data-info={`Uses ${a.label.toLowerCase()} as the app's highlight colour.`}
+              data-info={`Uses ${a.label.toLowerCase()} for checkboxes, sliders, progress bars and selected text.`}
               className={`w-11 h-11 rounded-full border-2 transition-all ${
                 prefs.layout.accent === a.id ? 'border-slate-800 scale-110' : 'border-white shadow'
               }`}

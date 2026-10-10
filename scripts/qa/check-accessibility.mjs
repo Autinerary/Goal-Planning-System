@@ -1,5 +1,6 @@
 // Accessibility check: the first-session pages of both apps, at desktop and
-// phone widths, with axe-core's WCAG 2.1 A and AA rules. Riipen Labs' cohort
+// phone widths, with axe-core's WCAG 2.1 A and AA rules and WCAG 2.2's touch
+// target size (Group 36: "large touch targets"). Riipen Labs' cohort
 // report warned against treating accessibility as "a one-time checklist":
 // "repeat the review as the product changes". Run this before a release that
 // changes these pages. It finds what a machine can (contrast, names, labels,
@@ -10,7 +11,9 @@
 //   node scripts/qa/check-accessibility.mjs
 // Optional: APP, HUB (base URLs, default production), CHROME_PATH, and
 // QA_EMAIL with QA_PASSWORD (a QA account, test.account+...@test.com) to add
-// the signed-in pages. Nothing is submitted, and funnel events are not sent
+// the signed-in pages, and ALL=1 for every page of the app rather than the
+// first session (Group 34: "text too light"). Nothing is submitted, and funnel
+// events are not sent
 // (Global Privacy Control is on). Exits 1 when a serious or critical problem
 // is found; moderate and minor ones are listed too.
 import puppeteer from 'puppeteer-core'
@@ -30,9 +33,14 @@ const VIEWPORTS = [
 // "Send this list to yourself" makes.
 const SIGNED_OUT = [
   APP + '/', APP + '/start', APP + '/start?for=self&need=services', APP + '/signup', APP + '/login',
-  APP + '/privacy', APP + '/emails/weekly-stop', HUB + '/', HUB + '/search?q=autism',
+  APP + '/privacy', APP + '/help', APP + '/forgot-password', APP + '/emails/weekly-stop', HUB + '/', HUB + '/search?q=autism',
 ]
-const SIGNED_IN = [APP + '/onboarding-confirmation', APP + '/path', APP + '/profile/settings']
+const ALL = process.env.ALL === '1'
+if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
+const SIGNED_IN = (ALL
+  ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
+     '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
+  : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).map((p) => APP + p)
 const SERIOUS = new Set(['serious', 'critical'])
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -67,7 +75,7 @@ async function audit(context, url, viewport) {
     await wait(1000)
     await page.evaluate(AXE)
     const result = await page.evaluate(() =>
-      window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }))
+      window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } }))
     return result.violations.map((v) => ({
       rule: v.id, impact: v.impact, help: v.help, count: v.nodes.length,
       where: v.nodes.slice(0, 3).map((n) => n.target.join(' ')),

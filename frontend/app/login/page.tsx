@@ -124,11 +124,17 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {/* There was no way back in without ResourceHub (Riipen Labs, Group 34). */}
+              <p className="mt-2 text-right text-sm">
+                <Link href="/forgot-password" className="font-medium text-blue-700 underline-offset-2 hover:underline">
+                  Forgot password?
+                </Link>
+              </p>
             </div>
 
             {/* Error Message */}

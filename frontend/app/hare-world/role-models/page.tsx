@@ -48,7 +48,7 @@ export default function RoleModelGalleriaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
-        <Link href="/pit-stop?tab=haveworld" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
+        <Link href="/hare-world" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-4">
           <ArrowLeft className="w-4 h-4" /> Back to Hare World
         </Link>
 

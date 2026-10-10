@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles, Target, Users, Loader2 } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
-import AvatarEditor from '../components/AvatarEditor'
+import AvatarEditor, { type Appearance } from '../components/AvatarEditor'
 import { usePreferences } from '../context/usePreferences'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 
@@ -23,24 +23,47 @@ export default function IdealSelfPage() {
   const { prefs, update } = usePreferences()
   const defaultAppearance = { hairStyle: 'short_straight', hairColor: DEFAULT_HAIR_COLOR, skinColor: DEFAULT_SKIN_TONE }
   const persona = prefs.alternatePersona || { name: '', note: '', appearance: defaultAppearance }
+  // Your character from setup. Its only editor was setup itself, so it could
+  // not be changed afterwards (and it showed nowhere until Group 34).
+  const [legacyCharacter, setLegacyCharacter] = useState<Appearance | null>(null)
+  useEffect(() => {
+    try {
+      const avatar = JSON.parse(localStorage.getItem('autinerary_profile') || '{}').avatar
+      if (avatar?.hairStyle) setLegacyCharacter(avatar)
+    } catch {}
+  }, [])
+  const character: Appearance = prefs.character || legacyCharacter || defaultAppearance
 
   const dreams: string[] = (payload?.userProfile?.dreams || []) as string[]
   const goals: string[] = (payload?.userProfile?.goals || []) as string[]
   const barriers: string[] = (payload?.userProfile?.barrierTypes || []) as string[]
   const dreamHeadline = dreams[0] || 'Cloud 9: Your ideal future'
 
-  // Role models / influences — real data only.
+  // Role models / influences — real data only: the people in Hare World.
   //
   // These used to fall back to invented people ('Sarah C.', 'Marcus J.',
   // 'James W.', 'Lisa P.'), and 'Alex T.' was not even conditional — every
   // user was shown a friend who does not exist. On a page about the person
   // you are growing into, inventing your support network is the worst
-  // possible place to put placeholder data.
-  const roleModels: string[] = (payload?.userProfile?.roleModels || []) as string[]
-  const mentors: string[] = (payload?.userProfile?.mentors || []) as string[]
-  const friends: string[] = (payload?.userProfile?.friends || []) as string[]
-  const influences = { roleModels, mentors, friends }
-  const hasInfluences = roleModels.length + mentors.length + friends.length > 0
+  // possible place to put placeholder data. They were then read from
+  // userProfile.roleModels/mentors/friends, which nothing writes, so the box
+  // stayed empty for everyone (Riipen Labs, Group 34). Requests not yet
+  // accepted are left out.
+  const [influences, setInfluences] = useState<{ roleModels: string[]; mentors: string[]; friends: string[] }>({ roleModels: [], mentors: [], friends: [] })
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    fetch('/api/connections', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (cancelled || !j?.connections) return
+        const names = (rows: any[] = []) => rows.filter((r) => r.status !== 'pending').map((r) => String(r.name || '')).filter(Boolean)
+        setInfluences({ roleModels: names(j.connections.rolemodels), mentors: names(j.connections.mentors), friends: names(j.connections.friends) })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [isSignedIn])
+  const hasInfluences = influences.roleModels.length + influences.mentors.length + influences.friends.length > 0
 
   // Stats from the real life-stats loader (signed-in only).
   //
@@ -68,7 +91,7 @@ export default function IdealSelfPage() {
           { name: 'Mentality', value: val(j.stats.mentality), max: 10 },
           { name: 'Happiness', value: val(j.stats.happiness), max: 10 },
           { name: 'Focus', value: val(j.stats.focus), max: 10 },
-          { name: 'Energy', value: val(j.stats.energy), max: 10 },
+          { name: 'Activity', value: val(j.stats.energy), max: 10 },
         ])
       } catch {
         if (!cancelled) setStatsFailed(true)
@@ -78,7 +101,7 @@ export default function IdealSelfPage() {
   }, [isSignedIn])
 
   // Names only, so the card keeps its shape while the real values load.
-  const STAT_NAMES = ['Mentality', 'Happiness', 'Focus', 'Energy']
+  const STAT_NAMES = ['Mentality', 'Happiness', 'Focus', 'Activity']
 
   // Portrait state.
   const [portrait, setPortrait] = useState<Portrait | null>(null)
@@ -107,9 +130,9 @@ export default function IdealSelfPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-sky-100/90 backdrop-blur-md border-b border-sky-200 px-4 py-2">
+      <header className="sticky z-40 bg-sky-100/90 backdrop-blur-md border-b border-sky-200 px-4 py-2" style={{ top: 'var(--nav-h, 0px)' }}>
         <div className="flex items-center gap-3 max-w-5xl mx-auto">
-          <button onClick={() => router.back()} className="p-1 rounded-lg hover:bg-slate-900/10 text-slate-800">
+          <button onClick={() => router.back()} aria-label="Back" className="p-1 rounded-lg hover:bg-slate-900/10 text-slate-800">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-600" aria-hidden="true" />Ideal Self</h1>
@@ -126,6 +149,7 @@ export default function IdealSelfPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-4">
+            <AvatarEditor title="Your character" hint="Shown on your race track, at the step you're on." full value={character} onChange={appearance => update({ character: appearance })} />
             <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
             <div className="space-y-4">
               <label className="block text-sm font-medium">Alternate Persona name
@@ -154,7 +178,7 @@ export default function IdealSelfPage() {
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role Models</div>
                     <div className="flex flex-wrap gap-1.5">
-                      {influences.roleModels.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{n}</span>)}
+                      {influences.roleModels.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{n}</span>)}
                     </div>
                   </div>
                 )}
@@ -162,7 +186,7 @@ export default function IdealSelfPage() {
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Mentors</div>
                     <div className="flex flex-wrap gap-1.5">
-                      {influences.mentors.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">{n}</span>)}
+                      {influences.mentors.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">{n}</span>)}
                     </div>
                   </div>
                 )}
@@ -170,7 +194,7 @@ export default function IdealSelfPage() {
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Friends &amp; Family</div>
                     <div className="flex flex-wrap gap-1.5">
-                      {influences.friends.map(n => <span key={n} className="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{n}</span>)}
+                      {influences.friends.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{n}</span>)}
                     </div>
                   </div>
                 )}
@@ -183,7 +207,7 @@ export default function IdealSelfPage() {
                 once you add them in Hare World.
               </p>
             )}
-            <Link href="/pit-stop?tab=haveworld&view=people" className="inline-block mt-4 text-xs font-semibold text-purple-600 hover:underline">
+            <Link href="/hare-world" className="inline-block mt-4 text-xs font-semibold text-purple-600 hover:underline">
               See all people in Hare World →
             </Link>
           </div>
@@ -243,13 +267,13 @@ export default function IdealSelfPage() {
               ))}
             </div>
             {!isSignedIn ? (
-              <div className="mt-3 text-[11px] text-slate-400">Sign in to see your live stats.</div>
+              <div className="mt-3 text-[11px] text-slate-600">Sign in to see your live stats.</div>
             ) : statsFailed ? (
-              <div className="mt-3 text-[11px] text-slate-400">Couldn&apos;t load your stats just now.</div>
+              <div className="mt-3 text-[11px] text-slate-600">Couldn&apos;t load your stats just now.</div>
             ) : !stats ? (
-              <div className="mt-3 text-[11px] text-slate-400">Loading your stats…</div>
+              <div className="mt-3 text-[11px] text-slate-600">Loading your stats…</div>
             ) : stats.every((s) => s.value === null) ? (
-              <div className="mt-3 text-[11px] text-slate-400">
+              <div className="mt-3 text-[11px] text-slate-600">
                 No stats yet. Check in with your mood or complete a milestone to start them off.
               </div>
             ) : null}

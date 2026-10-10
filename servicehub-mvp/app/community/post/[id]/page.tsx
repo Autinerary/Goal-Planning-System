@@ -18,6 +18,7 @@ import Markdown from '@/components/community/Markdown'
 import SolvedBanner from '@/components/community/SolvedBanner'
 import QuickLinks from '@/components/community/QuickLinks'
 import BadgeList from '@/components/community/BadgeList'
+import HelpfulPoints from '@/components/community/HelpfulPoints'
 import ThreadedAnswer from '@/components/community/ThreadedAnswer'
 import AnswerComposer from '@/components/community/AnswerComposer'
 import AcceptSolutionModal from '@/components/community/AcceptSolutionModal'
@@ -66,6 +67,8 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [acceptTarget, setAcceptTarget] = useState<CommunityAnswerNode | null>(null)
   const [lockBusy, setLockBusy] = useState(false)
+  const [deleteBusy, setDeleteBusy] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     setError(null)
@@ -119,10 +122,20 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   }
 
   const deletePost = async () => {
-    if (!post) return
+    if (!post || deleteBusy) return
     if (!confirm('Delete this post? This cannot be undone.')) return
-    const res = await fetch(`/api/community/posts/${post.id}`, { method: 'DELETE' })
-    if (res.ok) router.push('/community')
+    setDeleteBusy(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/community/posts/${post.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
+    } catch {
+      // A failed delete used to show nothing at all (Riipen Labs, Group 34).
+      setDeleteError('This post could not be deleted. Please try again.')
+      setDeleteBusy(false)
+      return
+    }
+    router.push('/community')
   }
 
   if (loading) {
@@ -196,19 +209,21 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             {post.author.pseudonym}
           </Link>
           <RelationshipBadge relationship={post.author_relationship} />
-          <span>{post.author.karma} found helpful</span>
+          <HelpfulPoints karma={post.author.karma} />
           <BadgeList badges={post.author.top_badges} max={3} />
           <span className="ml-auto text-xs text-gray-400">
             asked {new Date(post.created_at).toLocaleString()}
           </span>
         </div>
         <div className="flex gap-4 items-start pt-2">
+          {/* viewer_can_edit is set only for the post's author. */}
           <VoteButton
             score={post.score}
             viewerVote={post.viewer_vote}
             targetType="post"
             targetId={post.id}
             disabled={post.is_locked}
+            isOwn={post.viewer_can_edit}
           />
           <div className="flex-1 min-w-0">
             {/* Unlocking moment — the author's highlighted key sentence (Odosa) */}
@@ -279,9 +294,10 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <button
               type="button"
               onClick={deletePost}
-              className="text-gray-500 hover:text-rose-600"
+              disabled={deleteBusy}
+              className="text-gray-500 hover:text-rose-600 disabled:opacity-50"
             >
-              Delete
+              {deleteBusy ? 'Deleting…' : 'Delete'}
             </button>
           )}
           {post.viewer_can_moderate && (
@@ -299,6 +315,11 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             {post.view_count} {post.view_count === 1 ? 'view' : 'views'}
           </span>
         </div>
+        {deleteError && (
+          <p className="text-xs text-rose-600" role="alert">
+            {deleteError}
+          </p>
+        )}
       </article>
 
       <section>
@@ -319,6 +340,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                 viewerCanAccept={post.viewer_can_accept && !post.is_locked}
                 onAccept={(ans) => setAcceptTarget(ans)}
                 onReply={reload}
+                onDeleted={reload}
               />
             ))}
           </div>

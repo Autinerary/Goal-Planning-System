@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, email, avatar_emoji, dream')
+    // Matched on email too, but the address itself is never sent back.
+    .select('id, display_name, avatar_emoji, dream')
     .eq('discoverable', true)
     .neq('id', user.id)
     .or(`display_name.ilike.${pattern},email.ilike.${pattern}`)
@@ -43,7 +44,9 @@ export async function GET(req: NextRequest) {
       .or(`and(owner_id.eq.${user.id},target_user_id.in.(${ids.join(',')})),and(target_user_id.eq.${user.id},owner_id.in.(${ids.join(',')}))`)
     for (const r of rels || []) {
       const other = (r as any).owner_id === user.id ? (r as any).target_user_id : (r as any).owner_id
-      if (other) states[other] = (r as any).status
+      // Someone who asked you is 'incoming', so the UI can point to the inbox
+      // rather than show a dead "Pending" button.
+      if (other) states[other] = (r as any).owner_id !== user.id && (r as any).status === 'pending' ? 'incoming' : (r as any).status
     }
   }
 

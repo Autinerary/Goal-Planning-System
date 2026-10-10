@@ -137,7 +137,7 @@ export default function OnboardingConfirmationPage() {
       {launching && (
         <div role="status" className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white p-6 text-center">
           <Rocket aria-hidden="true" className="mb-4 h-16 w-16 text-cyan-700 motion-safe:animate-bounce" />
-          <h1 className="text-3xl font-bold">Welcome to Dreamland</h1>
+          <h1 className="text-3xl font-bold">Opening your Path</h1>
         </div>
       )}
       <div className="max-w-3xl mx-auto px-4 py-8">

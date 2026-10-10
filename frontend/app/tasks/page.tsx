@@ -8,6 +8,9 @@ import { useAgentPath } from '../context/AgentPathContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import TaskCompanions from '../components/TaskCompanions'
 import { playTaskCompleteSound } from '../../lib/taskSound'
+import { usePreferences } from '../context/usePreferences'
+import { loadPreferences } from '@/lib/preferences'
+import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -51,7 +54,9 @@ export default function TasksPage() {
       ]
     : []
   const goalsToRender = agentGoals
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set())
+  // Ticks are saved with the account, shared with the calendar (lib/planTaskDone.ts).
+  const { prefs, update: updatePreferences } = usePreferences()
+  const completedTasks = doneThisWeek(prefs.planTaskDone)
   const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
   const [musicFile, setMusicFile] = useState<string | null>(null)
@@ -66,11 +71,9 @@ export default function TasksPage() {
   const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
 
   const toggleTask = (id: string) => {
-    setCompletedTasks(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) { s.delete(id) } else { s.add(id); playTaskCompleteSound() }
-      return s
-    })
+    const done = loadPreferences().planTaskDone
+    updatePreferences({ planTaskDone: togglePlanTaskDone(done, id) })
+    if (!doneThisWeek(done).has(id)) playTaskCompleteSound()
   }
 
   const toggleGoal = (id: string) => {
@@ -139,7 +142,7 @@ export default function TasksPage() {
       {/* Header */}
       <header className="relative z-20 px-4 py-3">
         <div className="flex items-center justify-between max-w-5xl mx-auto">
-          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-white/30 text-slate-700">
+          <button onClick={() => router.back()} aria-label="Back" className="p-2 rounded-lg hover:bg-white/30 text-slate-700">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-xl font-bold text-slate-800">Task View</h1>
@@ -251,7 +254,7 @@ export default function TasksPage() {
                     {isPlaying ? 'Pause' : 'Play'}
                   </button>
                 )}
-                <span className="text-[10px] text-slate-400 italic">
+                <span className="text-[10px] text-slate-600 italic">
                   <Music className="w-3 h-3 inline" /> Mascot dances to the beat!
                 </span>
               </div>

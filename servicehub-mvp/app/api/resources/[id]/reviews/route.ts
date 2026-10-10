@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getRatingsByResource, getRatingByUserAndResource } from '@/lib/supabase/queries'
-import { getProfile } from '@/lib/supabase/queries'
+import {
+  getRatingsByResource,
+  getRatingByUserAndResource,
+  getReviewerProfiles,
+} from '@/lib/supabase/queries'
 
 type SortOption = 'helpful' | 'newest' | 'highest'
 
@@ -13,39 +16,36 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const pageSize = Number(searchParams.get('pageSize') || '10')
 
     // Get all ratings
-    let ratings = await getRatingsByResource(params.id)
-
-    // Get user profiles for ratings
-    const userIds = [...new Set(ratings.map((r) => r.user_id))]
-    const profiles = await Promise.all(userIds.map((id) => getProfile(id)))
-
-    const profileMap = new Map(profiles.filter(Boolean).map((p) => [p!.id, p!]))
-
-    // Attach user profiles to ratings
-    let reviewsWithUsers = ratings.map((rating) => ({
-      ...rating,
-      user: profileMap.get(rating.user_id),
-    }))
+    const ratings = await getRatingsByResource(params.id)
 
     // Sort reviews
     switch (sort) {
       case 'helpful':
-        reviewsWithUsers.sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0))
+        ratings.sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0))
         break
       case 'highest':
-        reviewsWithUsers.sort((a, b) => b.overall_score - a.overall_score)
+        ratings.sort((a, b) => b.overall_score - a.overall_score)
         break
       case 'newest':
       default:
-        reviewsWithUsers.sort(
+        ratings.sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
         break
     }
 
-    const total = reviewsWithUsers.length
+    const total = ratings.length
     const offset = (page - 1) * pageSize
-    const paginatedReviews = reviewsWithUsers.slice(offset, offset + pageSize)
+    const pageRatings = ratings.slice(offset, offset + pageSize)
+
+    // Attach the writer's name and role, which is all the review card shows,
+    // for this page's reviews only. This used to attach each reviewer's whole
+    // profile row, email and location included (Riipen Labs, Group 34).
+    const reviewers = await getReviewerProfiles(pageRatings.map((r) => r.user_id))
+    const paginatedReviews = pageRatings.map((rating) => ({
+      ...rating,
+      user: reviewers.get(rating.user_id),
+    }))
 
     // Check if current user has rated, and which reviews on this page they
     // have already marked helpful. Without the second part the button cannot

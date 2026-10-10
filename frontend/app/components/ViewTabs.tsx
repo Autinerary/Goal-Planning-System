@@ -13,12 +13,14 @@ import { useDisclosure } from '@/lib/disclosure'
  * in the root layout; it renders itself only on the flow routes.
  */
 
+// What each tab is, for Help (data-info). Races and Milestones used to share
+// "a detailed view of your plan" (Riipen Labs, Groups 34 and 36).
 const TABS = [
-  { href: '/path', label: 'Path', Icon: Map },
-  { href: '/races', label: 'Races', Icon: Flag },
-  { href: '/milestones', label: 'Milestones', Icon: Milestone },
-  { href: '/calendar', label: 'Calendar', Icon: CalendarDays },
-  { href: '/tasks', label: 'Task', Icon: CheckSquare },
+  { href: '/path', label: 'Path', Icon: Map, info: 'your overall plan and your next step' },
+  { href: '/races', label: 'Races', Icon: Flag, info: 'each goal as a race, made of small steps called milestones' },
+  { href: '/milestones', label: 'Milestones', Icon: Milestone, info: 'every small step of your races, in one list' },
+  { href: '/calendar', label: 'Calendar', Icon: CalendarDays, info: 'your week, with lighter or fuller days to choose from' },
+  { href: '/tasks', label: 'Task', Icon: CheckSquare, info: "today's small things to do" },
 ] as const
 
 // Routes where the flow bar should appear. /tasks/<id> also counts as "Task".
@@ -47,7 +49,7 @@ export default function ViewTabs() {
               <div key={tab.href} className="flex items-center flex-shrink-0">
                 <Link
                   href={tab.href}
-                  data-info={`Opens ${tab.label}: ${tab.href === '/path' ? 'your overall plan and next milestone' : tab.href === '/calendar' ? 'your scheduled activities' : tab.href === '/tasks' ? 'your individual actions' : 'a detailed view of your plan'}.`}
+                  data-info={`Opens ${tab.label}: ${tab.info}.`}
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                     isActive

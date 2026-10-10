@@ -182,6 +182,10 @@ AREAS = [
     ("assistant", "Assistant"), ("family", "Family"), ("dream_self", "Dream Self"),
     ("settings", "Settings"), ("start", "Start here"), ("path_market", "Path Market"),
     ("compare", "Compare paths"), ("tidbits", "Tidbits"), ("resourcehub", "ResourceHub"),
+    # Since Riipen Labs, Group 34: Hare World has its own page (it was counted
+    # as Pit Stop), and Your profile, Life Stats and the glossary are counted.
+    ("hare_world", "Hare World"), ("profile", "Your profile"), ("stats", "Life Stats"),
+    ("help", "What things are called"),
 ]
 AREA_IDS = {area for area, _ in AREAS}
 

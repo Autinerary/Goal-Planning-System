@@ -59,12 +59,18 @@ const AREAS: [RegExp, string][] = [
   [/^\/calendar(\/|$)/, 'calendar'],
   [/^\/tasks(\/|$)/, 'tasks'],
   [/^\/pit-stop(\/|$)/, 'pit_stop'],
+  // Hare World was a tab of Pit Stop, counted as pit_stop, until it got its
+  // own page (Riipen Labs, Group 34).
+  [/^\/hare-world(\/|$)/, 'hare_world'],
   [/^\/tools(\/|$)/, 'tools'],
   [/^\/reflection(\/|$)/, 'journal'],
   [/^\/assistant(\/|$)/, 'assistant'],
   [/^\/family(\/|$)/, 'family'],
   [/^\/ideal-self(\/|$)/, 'dream_self'],
+  [/^\/profile\/?$/, 'profile'],
   [/^\/(profile|settings)(\/|$)/, 'settings'],
+  [/^\/stats(\/|$)/, 'stats'],
+  [/^\/help(\/|$)/, 'help'],
   [/^\/start(\/|$)/, 'start'],
   [/^\/path-market(\/|$)/, 'path_market'],
   [/^\/paths\/compare(\/|$)/, 'compare'],

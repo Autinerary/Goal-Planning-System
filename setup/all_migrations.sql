@@ -1639,10 +1639,10 @@ ALTER TABLE public.community_badge_grants ENABLE ROW LEVEL SECURITY;
 -- Seed the default badge catalog. Idempotent via ON CONFLICT DO NOTHING.
 INSERT INTO public.community_badges (slug, name, description, icon, tier, auto_metric, auto_threshold) VALUES
     ('first_post',      'First Post',      'Posted your first question',          '✍️', 'bronze', 'posts',    1),
-    ('helpful',         'Helpful',         'Received 5 upvotes on an answer',     '🙌', 'bronze', 'karma',    25),
+    ('helpful',         'Helpful',         'Reached 25 helpful points',           '🙌', 'bronze', 'karma',    25),
     ('problem_solver',  'Problem Solver',  'Had an answer accepted as solved',    '🧩', 'silver', 'accepted', 1),
     ('mentor',          'Mentor',          '10 of your answers were accepted',    '🎓', 'gold',   'accepted', 10),
-    ('community_pillar','Community Pillar','Reached 1000 karma',                  '🏛️', 'gold',   'karma',    1000),
+    ('community_pillar','Community Pillar','Reached 1,000 helpful points',        '🏛️', 'gold',   'karma',    1000),
     ('streak_starter',  'Streak Starter',  'Posted on 3 consecutive days',        '🔥', 'bronze', NULL,       NULL)
 ON CONFLICT (slug) DO NOTHING;
 
@@ -4923,5 +4923,29 @@ ALTER TABLE public.onboarding_feedback DROP CONSTRAINT IF EXISTS onboarding_feed
 ALTER TABLE public.onboarding_feedback ADD CONSTRAINT onboarding_feedback_answered CHECK (
   info_before_signup IS NOT NULL OR setup_ease IS NOT NULL OR comment IS NOT NULL OR next_step IS NOT NULL
 );
+
+-- STEP 63 — backend/database/migrations/2026_badge_wording.sql
+-- ==================================================================
+-- =====================================================================
+-- Tidbits badges say what earns them (STEP 63)
+--
+-- Riipen Labs, Group 34 found karma and up-votes unexplained. Tidbits now
+-- calls karma "helpful points" and explains the rule (up-votes minus
+-- down-votes, plus 15 for each accepted answer). Two badge descriptions
+-- disagreed with how they are earned: "Helpful" said "Received 5 upvotes on
+-- an answer" but is granted at 25 points, and "Community Pillar" said
+-- "karma". Only these two rows change, and only while they still have the
+-- old wording. The app works before this is applied: the old text shows.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+UPDATE public.community_badges
+   SET description = 'Reached 25 helpful points'
+ WHERE slug = 'helpful' AND description = 'Received 5 upvotes on an answer';
+
+UPDATE public.community_badges
+   SET description = 'Reached 1,000 helpful points'
+ WHERE slug = 'community_pillar' AND description = 'Reached 1000 karma';
 
 COMMIT;

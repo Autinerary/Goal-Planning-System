@@ -2,15 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { gaEnabled } from '@/lib/analytics'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 export const metadata: Metadata = {
   title: 'Privacy · Autinerary',
   description: 'What Autinerary collects, why, who else handles it, and what you can do about it.',
 }
 
-// Where privacy questions and requests go. Change it here if the team sets up
-// a shared address (for example privacy@autinerary.ca).
-const CONTACT = 'aayush@autinerary.ca'
+// Where privacy questions and requests go (lib/contact.ts).
+const CONTACT = CONTACT_EMAIL
 const UPDATED = '10 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [

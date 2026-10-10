@@ -122,7 +122,7 @@ export default function AssistantPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-slate-200 surface-chrome">
+      <div className="sticky z-10 border-b border-slate-200 surface-chrome" style={{ top: 'var(--nav-h, 0px)' }}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600" aria-label="Back">
             <ArrowLeft className="w-5 h-5" />

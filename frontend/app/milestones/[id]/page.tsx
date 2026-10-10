@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageSquare, Package, Lightbulb } from 'lucide-react'
+import { ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageSquare, Package, Lightbulb } from 'lucide-react'
 import { useAgentPath } from '../../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import CommonMistakes from '@/app/components/CommonMistakes'
+import BackButton from '../../components/BackButton'
 
 
 interface Tool {
@@ -148,14 +149,9 @@ export default function MilestoneDetailView() {
       </div>
       <div className="relative z-10">
       <div className="max-w-4xl mx-auto">
-        {/* Back Link */}
-        <Link
-          href="/races"
-          className="inline-flex items-center text-slate-600 hover:text-slate-900 font-medium mb-6 group"
-        >
-          <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-          Back to Races
-        </Link>
+        {/* Back to wherever this was opened from: the Path's "Open this step"
+            leads here too, and this always said "Back to Races". */}
+        <BackButton fallback="/races" className="mb-6" />
 
         {/* Milestone Header Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 mb-6 shadow-sm">

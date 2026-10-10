@@ -94,7 +94,7 @@ function buildSlides(
     const fmt = (n: any) => (typeof n === 'number' ? n.toFixed(1) : null)
     const bits = [
       fmt(s.focus?.value) && `Focus ${fmt(s.focus.value)}`,
-      fmt(s.energy?.value) && `Energy ${fmt(s.energy.value)}`,
+      fmt(s.energy?.value) && `Activity ${fmt(s.energy.value)}`,
       fmt(s.happiness?.value) && `Happiness ${fmt(s.happiness.value)}`,
       fmt(s.mentality?.value) && `Mind ${fmt(s.mentality.value)}`,
     ].filter(Boolean)
@@ -170,7 +170,7 @@ export default function ReelsPage() {
           </Link>
         </div>
       ) : (
-        <div className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar">
+        <div tabIndex={0} role="region" aria-label="Reels" className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
           {slides.map((s, i) => (
             <section
               key={s.id}

@@ -1,7 +1,7 @@
 import { provinceKey } from '@/lib/places/province'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
-import type { Database, Profile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
+import type { Database, Profile, ReviewerProfile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
 import { searchWords, cleanTerm, inNameDescriptionOrCategory } from '@/lib/search/words'
@@ -25,6 +25,38 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   }
 
   return data
+}
+
+/**
+ * The name and role a public review shows, for each reviewer the viewer may
+ * read. Nothing else leaves the database: the reviews API used to attach the
+ * whole profile row from getProfile, so email and location went out with it
+ * (Riipen Labs, Group 34). Runs with the viewer's own session, so a profile
+ * RLS hides from them is simply missing and the review reads "Anonymous", as
+ * before.
+ */
+export async function getReviewerProfiles(
+  userIds: string[]
+): Promise<Map<string, ReviewerProfile>> {
+  const out = new Map<string, ReviewerProfile>()
+  const ids = Array.from(new Set(userIds.filter(Boolean)))
+  if (ids.length === 0) return out
+
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, role')
+    .in('id', ids)
+
+  if (error) {
+    console.error('Error fetching reviewer profiles:', error)
+    return out
+  }
+
+  for (const p of (data ?? []) as Array<{ id: string } & ReviewerProfile>) {
+    out.set(p.id, { full_name: p.full_name, role: p.role })
+  }
+  return out
 }
 
 export async function createProfile(profile: {

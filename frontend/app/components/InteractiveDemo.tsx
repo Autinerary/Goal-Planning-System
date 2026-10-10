@@ -142,7 +142,7 @@ export default function InteractiveDemo() {
     // as a button. It still starts by itself once, on the next page.
     if (pathname === '/onboarding-confirmation') return
     // Nor over the one-question check-in someone opened from an email.
-    if (pathname === '/checkin' || pathname === '/privacy') return
+    if (['/checkin', '/privacy', '/help', '/forgot-password', '/reset-password'].includes(pathname)) return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.

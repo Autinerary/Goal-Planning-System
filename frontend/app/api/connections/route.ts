@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { pushToUser } from '@/lib/push'
 
 const VALID_CATEGORIES = ['friends', 'mentors', 'rolemodels'] as const
 type Category = (typeof VALID_CATEGORIES)[number]
@@ -101,14 +103,18 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // (b) inbound connected rows
+  // (b) inbound connected rows. The category is the requester's choice: if A
+  // added B as a mentor, B used to see A under "Mentors". To B, A is someone
+  // they mentor (or who looks up to them), so A shows with B's friends, saying
+  // so (Riipen Labs, Group 34: friend requests were confusing).
+  const INBOUND_ROLE: Record<Category, string> = { friends: '', mentors: 'Chose you as a mentor', rolemodels: 'Chose you as a role model' }
   for (const row of inboundRows || []) {
     if (!isCategory(row.category)) continue
     const requesterProfile = row.owner_id ? profilesById[row.owner_id] : null
-    grouped[row.category].push({
+    grouped.friends.push({
       id: row.id,
       name: requesterProfile?.display_name || row.name,
-      role: row.role,
+      role: INBOUND_ROLE[row.category] || row.role,
       status: row.status,
       icon: requesterProfile?.avatar_emoji || row.icon,
       target_user_id: row.owner_id,
@@ -152,14 +158,19 @@ export async function POST(req: NextRequest) {
 
   const hasRealTarget = typeof target_user_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target_user_id)
 
-  const defaultStatus = status === 'matched' ? 'matched' : hasRealTarget ? 'pending' : 'connected'
+  // A request to a real person is always pending until they accept it: the
+  // client could send 'connected' and skip consent, and a connection lets the
+  // other person read your path, calendar and race progress (is_connected_to).
+  // A card someone makes by hand has nobody to ask, so it is never "pending";
+  // those cards showed "Pending request" forever.
+  const rowStatus = hasRealTarget ? 'pending' : status === 'matched' ? 'matched' : 'connected'
 
   const insertRow = {
     owner_id: user.id,
     category,
     name: name.trim().slice(0, 200),
     role: typeof role === 'string' ? role.trim().slice(0, 200) : '',
-    status: status === 'connected' || status === 'matched' || status === 'pending' ? status : defaultStatus,
+    status: rowStatus,
     icon: typeof icon === 'string' && icon.length > 0 ? icon.slice(0, 8) : '👤',
     target_user_id: hasRealTarget ? target_user_id : null,
     match_dream: typeof match_dream === 'string' ? match_dream.slice(0, 500) : null,
@@ -186,6 +197,18 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error('POST /api/connections error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Requests were only visible on Pit Stop's Hare World tab, so people never
+  // knew they had one. Tell them on any device they turned notifications on
+  // for (lib/push.ts); this never names the sender.
+  if (hasRealTarget) {
+    await pushToUser(createAdminClient(), target_user_id, {
+      title: 'New connection request',
+      body: 'Someone on Autinerary wants to connect with you. Open Hare World to accept or decline.',
+      url: '/hare-world',
+      tag: 'connection-request',
+    }).catch(() => 0)
   }
 
   return NextResponse.json({ connection: data }, { status: 201 })

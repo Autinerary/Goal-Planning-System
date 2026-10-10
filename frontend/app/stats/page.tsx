@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Brain, Smile, Target, Zap, TrendingUp, TrendingDown, Minus, Loader2, Info, Activity, Flag, Flame } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useStreak } from '@/lib/streak'
+import MoodCalendar from '../components/MoodCalendar'
 
 type Part = { label: string; value: number; weight: number }
 type Stat = { value: number; change: number | null; score: number; parts: Part[]; source?: string }
@@ -29,8 +30,8 @@ const META: Record<string, { label: string; Icon: any; color: string; bar: strin
     Icon: Brain,
     color: 'text-violet-600',
     bar: 'bg-violet-500',
-    what: 'How consistently you\u2019ve been showing up \u2014 active days and reflection over the last 7 days.',
-    improve: 'Check in a little each day and jot a quick reflection. Consistency matters more than volume.',
+    what: 'How your journal entries have read lately, plus the milestones you finished, over the last 7 days.',
+    improve: 'Write a few lines in your journal when something happens, good or hard. Honest entries help more than cheerful ones.',
   },
   happiness: {
     label: 'Happiness',
@@ -48,13 +49,16 @@ const META: Record<string, { label: string; Icon: any; color: string; bar: strin
     what: 'How much of what you planned you actually did \u2014 calendar tasks completed plus milestones reached.',
     improve: 'Complete the tasks you schedule, and knock out a milestone when you can. Fewer, finished tasks beat many unfinished ones.',
   },
+  // It was called Energy, but it counts only what someone does in the app, so
+  // resting lowered their "energy" (Riipen Labs, Group 34: "energy tied to
+  // activity feels demotivating"). The name now says what it measures.
   energy: {
-    label: 'Energy',
+    label: 'Activity',
     Icon: Zap,
     color: 'text-emerald-600',
     bar: 'bg-emerald-500',
-    what: 'Your recent momentum \u2014 overall activity and social connection across the last 7 days.',
-    improve: 'Take small actions often and lean on your Hare World people. Rest counts too \u2014 sustainable pace keeps energy up.',
+    what: 'How many of the last 7 days you did something in Autinerary: ticked off a task, finished a milestone, checked in, wrote in your journal or connected with someone. It counts what you do here, not how you feel.',
+    improve: 'One small thing on the days you can is plenty. Resting lowers this number, and that is fine: it is not a measure of you.',
   },
   commitment: {
     label: 'Commitment',
@@ -94,9 +98,9 @@ const RAMIFICATIONS: Record<string, { low: string; mid: string; high: string }> 
     high: 'You finish what you start. Milestones are arriving on time and dreams are getting closer.',
   },
   energy: {
-    low: 'Low momentum and connection make everything feel heavier. Rest and one social nudge can reset it.',
-    mid: 'Momentum is okay. Regular small actions and leaning on your people keeps it from sliding.',
-    high: 'High momentum. You have capacity to push a race forward or support someone else right now.',
+    low: 'Not much activity in the app this week. That is fine; come back when it suits you.',
+    mid: 'Some activity this week, on and off.',
+    high: 'Active on most days this week.',
   },  commitment: {
     low: 'There have been quiet weeks lately. One small visit a week is enough to turn this around \u2014 it counts the weeks you show up, not how hard you go.',
     mid: 'You come back most weeks. Closing the gaps is what turns steady effort into finished milestones.',
@@ -116,13 +120,13 @@ function StreakDetail() {
   return (
     <div className="grid grid-cols-2 gap-3 mb-3">
       <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2">
-        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-orange-500">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-orange-800">
           <Flame className="w-3.5 h-3.5" /> Current streak
         </div>
         <div className="text-xl font-bold text-orange-700">
-          {current} <span className="text-sm font-medium text-orange-500">day{current === 1 ? '' : 's'}</span>
+          {current} <span className="text-sm font-medium text-orange-800">day{current === 1 ? '' : 's'}</span>
         </div>
-        <div className="text-[11px] text-orange-600/80">
+        <div className="text-[11px] text-orange-800">
           {current === 0
             ? 'Open the app tomorrow to start one'
             : activeToday
@@ -242,16 +246,16 @@ export default function StatsBreakdownPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-emerald-50/40">
-      <header className="sticky top-0 z-40 border-b border-slate-200 px-4 py-2 surface-chrome">
+      <header className="sticky z-40 border-b border-slate-200 px-4 py-2 surface-chrome" style={{ top: 'var(--nav-h, 0px)' }}>
         <div className="flex items-center gap-3 max-w-3xl mx-auto">
-          <button onClick={() => router.back()} className="p-1 rounded-lg hover:bg-slate-100 text-slate-700"><ArrowLeft className="w-5 h-5" /></button>
+          <button onClick={() => router.back()} aria-label="Back" className="p-1 rounded-lg hover:bg-slate-100 text-slate-700"><ArrowLeft className="w-5 h-5" aria-hidden="true" /></button>
           <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2"><Activity className="w-5 h-5 text-indigo-600" aria-hidden="true" />Stats Breakdown</h1>
         </div>
       </header>
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         <p className="text-sm text-slate-600 mb-6">
-          These four stats reflect the last 7 days of your journey. Here&apos;s what each one means, what&apos;s driving your number, and how to nudge it up.
+          These stats reflect your recent journey: the last 7 days, and four weeks for Commitment. Here&apos;s what each one means, what&apos;s driving your number, and how to nudge it up.
         </p>
 
         {loading && (
@@ -365,7 +369,9 @@ export default function StatsBreakdownPage() {
               </div>
             )}
 
-            <p className="text-[11px] text-slate-400 text-center pt-2">
+            <MoodCalendar onPayload={(next) => setPayload(next)} />
+
+            <p className="text-xs text-slate-600 text-center pt-2">
               As of {payload.asOf}. Stats update from your activity over a rolling 7-day window.
             </p>
           </div>
