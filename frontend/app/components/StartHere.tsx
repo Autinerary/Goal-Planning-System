@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { track } from '@/lib/funnel'
 import { goHubHref } from '@/lib/serviceHub'
 import { savePreferences } from '@/lib/preferences'
+import { entryLine } from '@/lib/campaign'
 import {
   START_ROLES, START_GOALS, START_FOR_KEY, START_NEED_KEY,
   isStartRole, isStartGoal, pathwayFor, pathwayTitle, searchPath,
@@ -27,9 +28,12 @@ import type { StarterItem } from '@/lib/starterItems'
  * Answers are kept in this browser, setup starts with them (so nobody is
  * asked twice), and they are saved to the account with the path.
  *
- * Campaign links can start part-way: /start?for=child, or
- * /start?for=child&need=services to open straight on a pathway. The same
- * link is what "Send this list to yourself" shares.
+ * A link of someone's own list (/start?for=child&need=services, from "Send
+ * this list to yourself" or the emailed list) opens straight on it. A
+ * campaign link (one with utm_source) never answers for the person: everyone
+ * gets the same two questions, and only a welcome line changes with where they
+ * came from (lib/campaign.ts; Riipen Labs' cohort report: "channel should not
+ * be used as a proxy for identity or need").
  */
 
 const HUB = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
@@ -70,6 +74,7 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const [savedAs, setSavedAs] = useState('')
   const [saveNote, setSaveNote] = useState('')
   const [shareNote, setShareNote] = useState('')
+  const [entry, setEntry] = useState<{ welcome: string; line: string } | null>(null)
   // "Or get this list by email" (Riipen Labs, Group 11: "Want these saved and
   // emailed to you?"), confirmed by email first (app/api/newsletter).
   const [emailOpen, setEmailOpen] = useState(false)
@@ -89,11 +94,14 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const pathway = role && goal ? pathwayFor(role, goal) : null
   const answer = `${role}.${goal}`
 
-  // A campaign link's answers first, then the ones this browser kept.
+  // The answers in a link to someone's own list first, then the ones this
+  // browser kept. A campaign link brings a welcome line instead.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const linkRole = params.get('for')
-    const linkGoal = params.get('need')
+    const source = params.get('utm_source')
+    setEntry(entryLine(source))
+    const linkRole = source ? null : params.get('for')
+    const linkGoal = source ? null : params.get('need')
     let r = isStartRole(linkRole) ? linkRole : null
     let g = isStartGoal(linkGoal) ? linkGoal : null
     if (r || g) {
@@ -278,6 +286,11 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
           Find neurodivergent-friendly resources that fit your situation
         </H>
         <p className="mt-2 text-slate-700">Two quick questions, no account needed. You can change your answers any time.</p>
+        {entry && step === 'role' && (
+          <p className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-slate-800">
+            <span className="font-semibold text-slate-900">{entry.welcome}</span> {entry.line}
+          </p>
+        )}
 
         {/* Where you are: what is done, what is next (W3C's clear steps). */}
         <ol className="mt-6 flex flex-col gap-2 text-sm" aria-label="Your progress">

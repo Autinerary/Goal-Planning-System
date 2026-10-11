@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import GoogleSignIn from '../components/GoogleSignIn'
 import { wakeBackend } from '@/lib/wakeBackend'
+import { hubReturnHref } from '@/lib/serviceHub'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,6 +16,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  // After Your profile → Delete your account.
+  const [deleted, setDeleted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Check for return URL from ServiceHub (only store once to prevent redirect loops)
@@ -22,6 +25,7 @@ export default function LoginPage() {
     // The Path loads from the backend, which sleeps when idle.
     wakeBackend()
     const params = new URLSearchParams(window.location.search)
+    if (params.get('deleted') === '1') setDeleted(true)
     const returnTo = params.get('returnTo')
     if (returnTo && !sessionStorage.getItem('returnTo_used')) {
       sessionStorage.setItem('returnTo', returnTo)
@@ -41,7 +45,11 @@ export default function LoginPage() {
       if (returnTo && !alreadyUsed) {
         sessionStorage.removeItem('returnTo')
         sessionStorage.setItem('returnTo_used', 'true')
-        window.location.href = returnTo
+        // Back to ResourceHub through the hand-off, so it arrives signed in.
+        // Anything else must be a page of this app: returnTo used to send
+        // people to any address at all.
+        const inApp = returnTo.startsWith('/') && !returnTo.startsWith('//') && !returnTo.startsWith('/\\')
+        window.location.href = hubReturnHref(returnTo) || (inApp ? returnTo : '/path')
       } else {
         sessionStorage.removeItem('returnTo')
         sessionStorage.removeItem('returnTo_used')
@@ -86,15 +94,22 @@ export default function LoginPage() {
             <p className="text-slate-600 text-sm mt-1">Sign in to continue your journey</p>
           </div>
 
+          {deleted && (
+            <p role="status" className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              Your account and everything in it have been deleted. Thank you for using Autinerary.
+            </p>
+          )}
+
           <GoogleSignIn label="Sign in with Google" />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-2">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -106,11 +121,12 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-2">
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -121,11 +137,18 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {/* There was no way back in without ResourceHub (Riipen Labs, Group 34). */}
+              <p className="mt-2 text-right text-sm">
+                <Link href="/forgot-password" className="font-medium text-blue-700 underline-offset-2 hover:underline">
+                  Forgot password?
+                </Link>
+              </p>
             </div>
 
             {/* Error Message */}

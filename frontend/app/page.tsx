@@ -58,7 +58,10 @@ import StartHere from './components/StartHere'
  * looks like inside, and "what you'll share / what you get / how we protect
  * it", with honest answers explained and "prefer not to say" always there.
  * The screenshots are of the real app with a sample plan; retake them when
- * those screens change (docs/first-visit-to-return.md says how).
+ * those screens change (docs/first-visit-to-return.md says how). For "proof
+ * of impact" they suggested beta results as they are measured, alongside
+ * research on need: "So far in the beta" waits for measured results, and the
+ * research is one sourced line under "Who it's for".
  */
 
 const PRIMARY_CTA =
@@ -163,6 +166,12 @@ const STEPS = [
   },
 ]
 
+const PLACES = [
+  { name: 'autinerary.ca', detail: 'The website: about Autinerary, and things to read about autism. To learn.' },
+  { name: 'The app (here)', detail: 'Your plan, calendar, journal and people. To plan a goal.' },
+  { name: 'ResourceHub', detail: 'Services, places and things rated by people like you, and Tidbits. To find help, or ask.' },
+]
+
 const CONNECTIONS = [
   { label: 'Your answers', detail: 'norms, goals, what motivates you' },
   { label: 'Your path', detail: 'goals become races with milestones' },
@@ -170,6 +179,20 @@ const CONNECTIONS = [
   { label: 'Your calendar', detail: 'next steps scheduled around your energy' },
   { label: 'Your journal', detail: 'look back, adjust your goals' },
 ]
+
+// Results from Autinerary's own beta, for "So far in the beta" (Group 11:
+// "share results from Autinerary's own beta as they are measured (for example,
+// the share of users who saved a resource in their first week)"). Add one only
+// once the trial has measured it, from the report (python -m
+// scripts.onboarding_funnel, in backend/), never as an estimate: the figure,
+// what it counts, how many people it is from, and the month. The section shows
+// only when there is at least one.
+const BETA_RESULTS: { figure: string; what: string; people: number; measured: string }[] = []
+
+// Research on need (Group 11: "alongside credible research on need"). Canadian,
+// like the people Autinerary serves, and about more than one norm at once.
+const NEED_SOURCE =
+  'https://www.canada.ca/en/public-health/services/publications/diseases-conditions/autism-spectrum-disorder-canadian-health-survey-children-youth-2019.html'
 
 const NORM_EXAMPLES = [
   'Autism', 'ADHD', 'OCD', 'Bipolar', 'Anxiety', 'Learning differences',
@@ -338,6 +361,26 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
+
+          {/* Riipen Labs, Group 36: people should "distinguish among the main
+              website, ResourceHub and goal-planning application", with "a
+              visual roadmap connecting its platforms". The full version, with
+              a glossary of the app's own words, is /help. */}
+          <h3 className="mt-10 text-xl font-bold">Three places, one account</h3>
+          <ol className="mt-4 grid gap-2 md:grid-cols-3 md:gap-4">
+            {PLACES.map((place) => (
+              <li key={place.name} className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <p className="font-semibold">{place.name}</p>
+                <p className="text-sm text-slate-700">{place.detail}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-slate-700">
+            The app and ResourceHub share one free account.{' '}
+            <Link href="/help" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+              What things are called
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -377,10 +420,36 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+          <p className="mt-4 max-w-3xl text-sm text-slate-700">
+            Many people navigate more than one. In Canada, 1 in 50 children and youth have an autism diagnosis, and more
+            than two-thirds of them also have another long-term condition, most often ADHD, a learning disability or
+            anxiety (
+            <a href={NEED_SOURCE} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+              Public Health Agency of Canada, 2022
+            </a>
+            ).
+          </p>
         </div>
       </section>
 
       <StoriesSection />
+
+      {BETA_RESULTS.length > 0 && (
+        <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="beta-heading">
+          <div className="mx-auto max-w-5xl">
+            <h2 id="beta-heading" className="text-2xl font-bold md:text-3xl">So far in the beta</h2>
+            <ul className="mt-6 grid gap-4 md:grid-cols-3">
+              {BETA_RESULTS.map((r) => (
+                <li key={r.what} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-3xl font-bold text-indigo-800">{r.figure}</p>
+                  <p className="mt-1 text-slate-800">{r.what}</p>
+                  <p className="mt-2 text-sm text-slate-700">From {r.people} people, measured in {r.measured}.</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Details people asked for, folded away until wanted so the page does
           not front-load everything (the review's main risk to avoid). */}
@@ -432,6 +501,34 @@ export default function HomePage() {
                 replay the tour anytime from “How it works”. Optional questions, like your location or sensory needs,
                 come back gently over your first two weeks.
               </p>
+            </details>
+            {/* Riipen Labs' cohort report: "explain where AI is used, what user
+                benefit it provides, what controls exist and where
+                human-reviewed or source-based information matters", without
+                letting technology language eclipse what people get. Each
+                claim matches docs/ai-agents-beta.md and the privacy page. */}
+            <details className="group rounded-xl border border-slate-200 bg-white p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+                Where does Autinerary use AI?
+                <ChevronDown className="h-5 w-5 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <div className="mt-3 space-y-2 text-slate-700">
+                <p>
+                  AI writes your plan from your goal: the steps, the tools suggested for each one, and short notes on why.
+                  If you ask for it, the goal helper in setup, labelled &ldquo;AI helper&rdquo;, turns your own words into
+                  goal ideas. AI also makes Dream Self pictures, if you make one.
+                </p>
+                <p>
+                  Some things are not AI. Start here&apos;s starter resources are real listings from ResourceHub, chosen
+                  without AI. Your low, balanced and high-energy days are worked out by fixed rules, and the crisis lines
+                  are written by our team. Nothing Autinerary suggests is medical or clinical advice.
+                </p>
+                <p>
+                  AI gets only what it needs, such as your goals and any norms you chose to share. You can change or remove
+                  those answers. We don&apos;t use your information to train AI, and OpenAI&apos;s terms say it doesn&apos;t
+                  either.
+                </p>
+              </div>
             </details>
             <details className="group rounded-xl border border-slate-200 bg-white p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">

@@ -12,38 +12,37 @@ Two links per post: one to try the app, one to sign up for a session.
 Riipen Labs' Group 4 recommended sending each campaign "to targeted landing
 paths instead of a general destination". So each link opens **Start here**
 (`/start`): two quick questions, then a few starter resources and "Save this
-path", which is the free account. Where a channel mostly reaches one kind of
-person, its link answers the first question for them (`for=`), and the
-schools link answers both (`need=`). People can change either answer.
+path", which is the free account.
 
-| Channel | Mostly reaches | Try the app (tracked) |
-| --- | --- | --- |
-| Riipen | Everyone | https://app.autinerary.ca/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
-| Reddit | Neurodivergent adults | https://app.autinerary.ca/start?for=self&need=community&utm_source=reddit&utm_campaign=beta-oct-2026 |
-| TikTok | Neurodivergent adults | https://app.autinerary.ca/start?for=self&need=community&utm_source=tiktok&utm_campaign=beta-oct-2026 |
-| Facebook parent groups | Parents | https://app.autinerary.ca/start?for=child&need=learn&utm_source=facebook&utm_campaign=beta-oct-2026 |
-| Instagram | Neurodivergent adults | https://app.autinerary.ca/start?for=self&utm_source=instagram&utm_campaign=beta-oct-2026 |
-| LinkedIn | Teachers, employers, support workers | https://app.autinerary.ca/start?for=work&utm_source=linkedin&utm_campaign=beta-oct-2026 |
-| Community organizations | Everyone (adults and parents) | https://app.autinerary.ca/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
-| Parent groups | Parents | https://app.autinerary.ca/start?for=child&utm_source=parent-group&utm_campaign=beta-oct-2026 |
-| Schools and teachers | School staff | https://app.autinerary.ca/start?for=work&need=school_work&utm_source=school&utm_campaign=beta-oct-2026 |
-| Friends and family | Everyone | https://app.autinerary.ca/start?utm_source=friends&utm_campaign=beta-oct-2026 |
+Every link asks both questions. Until 10 October some links answered the
+first one, or both, for the people a channel mostly reaches (Group 5: "peer
+tools" for TikTok and Reddit adults, "trust & safety" for Facebook parents).
+Riipen Labs' cohort report, from all 36 teams, asked for one path for
+everyone instead: "use the same onboarding spine across channels, then vary
+the entry framing", because "channel should not be used as a proxy for
+identity or need". So a link now changes only the welcome line above the
+first question, for example "Welcome from Facebook. You can look around
+without an account. No ads, and we never sell your information."
+(`frontend/lib/campaign.ts`). The report then shows who really arrives from
+each channel. Links already posted with `for=` or `need=` in them still
+work: a link with `utm_source` never answers for anyone.
 
-To make another targeted link, add to `/start?`:
+| Channel | Mostly reaches | Welcome line | Try the app (tracked) |
+| --- | --- | --- | --- |
+| Riipen | Everyone | None | https://app.autinerary.ca/start?utm_source=riipen&utm_campaign=beta-oct-2026 |
+| Reddit | Neurodivergent adults | People with similar experiences | https://app.autinerary.ca/start?utm_source=reddit&utm_campaign=beta-oct-2026 |
+| TikTok | Neurodivergent adults | People with similar experiences | https://app.autinerary.ca/start?utm_source=tiktok&utm_campaign=beta-oct-2026 |
+| Facebook parent groups | Parents | No account needed, no ads, never sold | https://app.autinerary.ca/start?utm_source=facebook&utm_campaign=beta-oct-2026 |
+| Instagram | Neurodivergent adults | People with similar experiences | https://app.autinerary.ca/start?utm_source=instagram&utm_campaign=beta-oct-2026 |
+| LinkedIn | Teachers, employers, support workers | Who uses Autinerary | https://app.autinerary.ca/start?utm_source=linkedin&utm_campaign=beta-oct-2026 |
+| Community organizations | Everyone (adults and parents) | None | https://app.autinerary.ca/start?utm_source=community-org&utm_campaign=beta-oct-2026 |
+| Parent groups | Parents | No account needed, no ads, never sold | https://app.autinerary.ca/start?utm_source=parent-group&utm_campaign=beta-oct-2026 |
+| Schools and teachers | School staff | Who uses Autinerary | https://app.autinerary.ca/start?utm_source=school&utm_campaign=beta-oct-2026 |
+| Friends and family | Everyone | None | https://app.autinerary.ca/start?utm_source=friends&utm_campaign=beta-oct-2026 |
 
-- `for=` who they are here for: `self`, `child`, `family` (family member or
-  friend), `work` (someone they teach, support or work with), `ally`
-- `need=` what they need today: `learn` (starter information), `services`,
-  `community` (people with similar experiences), `school_work`, `sensory`
-
-Leave both out when a post reaches mixed groups: a wrong first answer is
-worse than one more question.
-
-Riipen Labs' Group 5 found that adults from fast channels (TikTok, Reddit)
-look for "peer tools", so those links open on people with similar
-experiences (Tidbits first). Parents from Facebook look for "trust & safety",
-so theirs opens on starter information, with a line on privacy under "Save
-this path".
+To give another channel a welcome line, add it to `ENTRY_LINES` in
+`frontend/lib/campaign.ts`. Keep it to what every visitor is told anyway: no
+numbers or quotes that aren't real.
 
 For print (merch, the comic, research posts) and anywhere a long link is
 awkward, use the short links and QR codes in

@@ -369,6 +369,11 @@ export type ResourceEmbedding = Database['public']['Tables']['resource_embedding
 export type PatternDiscovery = Database['public']['Tables']['pattern_discoveries']['Row']
 export type Notification = Database['public']['Tables']['notifications']['Row']
 
+// What a public review may say about the person who wrote it, and nothing
+// more: the reviews API used to send the whole profile row, email and
+// location included (Riipen Labs, Group 34).
+export type ReviewerProfile = Pick<Profile, 'full_name' | 'role'>
+
 // Location type helper
 export interface Location {
   address?: string

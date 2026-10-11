@@ -94,12 +94,21 @@ Still true:
 
 ## Campaign links
 
-`/start?for=<who>&need=<need>` opens part-way through: `for=` is `self`,
-`child`, `family`, `work` or `ally`; `need=` is `learn`, `services`,
-`community`, `school_work` or `sensory`. Add the usual `utm_source` and
-`utm_campaign`. The links for this October's beta are in
-[beta/outreach.md](beta/outreach.md); short links and QR codes for print
-(`/c/comic`, `/c/merch`, ...) are in [campaign/README.md](campaign/README.md).
+Campaign links open Start here with their tracking (`utm_source`,
+`utm_campaign`), and everyone answers the same two questions. Only a welcome
+line above the first question changes with where they came from
+(`ENTRY_LINES` in `frontend/lib/campaign.ts`). Until 10 October some links
+answered the questions for the people a channel mostly reaches; Riipen Labs'
+cohort report asked for one path for everyone, since "channel should not be
+used as a proxy for identity or need". A link with `utm_source` never answers
+for anyone, so older links still work.
+
+`/start?for=<who>&need=<need>`, with no `utm_source`, opens on that pathway.
+It is the link to someone's own list: "Send this list to yourself", the
+emailed list, and the page after setup make it. The links for this October's
+beta are in [beta/outreach.md](beta/outreach.md); short links and QR codes
+for print (`/c/comic`, `/c/merch`, ...) are in
+[campaign/README.md](campaign/README.md).
 
 ## Measures
 

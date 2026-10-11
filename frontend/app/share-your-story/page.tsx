@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import BackButton from '../components/BackButton'
 import { NAME_DISPLAYS, PROVINCES, STATUS_LABEL, STORY_ROLES, type StoryStatus } from '@/lib/stories'
 
 /**
@@ -72,6 +73,7 @@ export default function ShareYourStoryPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10">
+      <div className="mx-auto mb-4 max-w-2xl"><BackButton /></div>
       <article className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
         <h1 className="text-3xl font-bold text-slate-900">Share your story</h1>
         <p className="mt-3 text-slate-800">

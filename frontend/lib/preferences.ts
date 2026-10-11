@@ -57,6 +57,16 @@ export interface LayoutPositions {
 export interface UserPreferences {
   gamification?: import('./gamification').GamificationPreferences
   dreamAppearance?: { hairStyle: string; hairColor: string; skinColor: string }
+  /** Private notes about people in Hare World, by connection id (only you can read preferences). */
+  peopleNotes?: Record<string, string>
+  /** Your profile → Take a break (app/api/me/pause): set while the account is paused, null after. */
+  paused?: { since: string; wasDiscoverable: boolean } | null
+  /** About me (app/about-me): in your own words, shared with the assistant only if you say so. */
+  aboutMe?: import('./aboutMe').AboutMe
+  /** Your Dream Self's goals by area (app/ideal-self), as you write them; not your plan's goals. */
+  dreamGoals?: Record<string, string[]>
+  /** The character from setup's Character step, shown on the race track at the current step. */
+  character?: { hairStyle: string; hairColor: string; skinColor: string; accessory?: string; facialHair?: string; clothing?: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }
   ageRange: AgeRange | ''
   techSavvy: TechSavvy | ''
@@ -78,6 +88,10 @@ export interface UserPreferences {
   startPath?: { for: string; need: string; savedAt?: string }
   /** Consent to one short email check-in after two weeks away (default off). */
   checkin?: { optIn: boolean; updatedAt: string }
+  /** Plan tasks ticked off, as task id -> the Monday of the week (lib/planTaskDone.ts). */
+  planTaskDone?: Record<string, string>
+  /** The weekly email: what they saved, plus new picks (lib/weeklyPicks.ts; default off). */
+  weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }
@@ -100,6 +114,8 @@ export interface AccessibilitySettings {
   speechRate: number
   /** Speaking volume, 0 to 1. */
   speechVolume: number
+  /** Dark mode, experimental (Riipen Labs, Group 34, slide 25). On this device only, like the rest. */
+  darkMode?: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -121,6 +137,9 @@ export const DEFAULT_LAYOUT: LayoutPositions = {
   widgetSize: 'medium',
   accent: 'cyan',
 }
+
+/** The weekly email's switch in Settings, kept with the choice as its consent record (lib/weeklyPicks.ts sends it). */
+export const WEEKLY_PICKS_CONSENT = 'A weekly email on Mondays: what I saved in ResourceHub, plus new picks for me.'
 
 export const DEFAULT_REMINDERS: ReminderPreferences = {
   enabled: false,
@@ -285,6 +304,7 @@ export function applyAccessibility(a11y: AccessibilitySettings): void {
   root.dataset.reduceMotion = a11y.reduceMotion ? 'on' : 'off'
   root.dataset.dyslexiaFont = a11y.dyslexiaFont ? 'on' : 'off'
   root.dataset.underlineLinks = a11y.underlineLinks ? 'on' : 'off'
+  root.dataset.darkMode = a11y.darkMode ? 'on' : 'off'
 }
 
 /**

@@ -10,6 +10,60 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // Cross-app hand-off. Goal Planning's /go/servicehub sends people to the
+  // page they asked for with their Supabase session in the link. ProfileSync
+  // used to pick it up in the browser, but on a protected page (Tidbits, the
+  // shop, your profile) this middleware ran first, found no cookie and sent a
+  // signed-in person to Goal Planning's sign-in, which sends signed-in people
+  // to their Path: the Tidbits link never reached Tidbits. So the session is
+  // set here, server-side, and the same page is reopened without the tokens.
+  // If Supabase can't answer in time, the request goes on and ProfileSync
+  // still tries in the browser.
+  const handoffAccess = request.nextUrl.searchParams.get('access_token')
+  const handoffRefresh = request.nextUrl.searchParams.get('refresh_token')
+  if (handoffAccess && handoffRefresh) {
+    const jar: { name: string; value: string; options: CookieOptions }[] = []
+    const handoff = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            jar.push({ name, value, options })
+          },
+          remove(name: string, options: CookieOptions) {
+            jar.push({ name, value: '', options })
+          },
+        },
+      }
+    )
+    let handoffTimer: ReturnType<typeof setTimeout> | undefined
+    try {
+      const { error } = await Promise.race([
+        handoff.auth.setSession({ access_token: handoffAccess, refresh_token: handoffRefresh }),
+        new Promise<never>((_, reject) => {
+          handoffTimer = setTimeout(() => reject(new Error('hand-off timed out')), 3000)
+        }),
+      ])
+      if (!error && jar.length) {
+        const clean = request.nextUrl.clone()
+        clean.searchParams.delete('access_token')
+        clean.searchParams.delete('refresh_token')
+        const redirect = NextResponse.redirect(clean)
+        for (const c of jar) redirect.cookies.set({ name: c.name, value: c.value, ...c.options })
+        return redirect
+      }
+    } catch (e) {
+      console.warn('[middleware] hand-off skipped:', (e as Error).message)
+      return response
+    } finally {
+      if (handoffTimer) clearTimeout(handoffTimer)
+    }
+  }
+
   // Work out whether this route needs auth BEFORE doing any network calls.
   //
   // supabase.auth.getUser() is a round trip to Supabase's auth server, and it

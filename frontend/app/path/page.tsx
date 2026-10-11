@@ -22,6 +22,10 @@ import StarterChecklist from '../components/StarterChecklist'
 import MoreFeaturesOffer from '../components/MoreFeaturesOffer'
 import CheckinPrompt from '../components/CheckinPrompt'
 import { usePreferences } from '../context/usePreferences'
+import { quoteOfTheDay } from '@/lib/quotes'
+import PathMenus from '../components/PathMenus'
+import PausedBanner from '../components/PausedBanner'
+import SupportNotesCard from '../components/SupportNotesCard'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -46,7 +50,6 @@ export default function PathView() {
   const { prefs } = usePreferences()
   // Reshuffle the motivational message on every visit (new mount = new seed),
   // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
-  const [quoteSeed] = useState(() => Math.floor(Math.random() * 1000))
 
   const [pathData, setPathData] = useState<PathData | null>(null)
   const [isLoadingPath, setIsLoadingPath] = useState(true)
@@ -244,40 +247,9 @@ try {
     : 0
 
   // ── Motivational quote (Madhu) ──────────────────────────────────────
-  // A quote tuned to how the journey is going right now (a light proxy for
-  // "how the person is feeling"), so the Path always opens with encouragement.
-  const motivationalQuote = (() => {
-    if (overallProgress === 0) {
-      const start = [
-        'Every big journey begins with one small step. You\u2019ve got this.',
-        'The start is the hardest part, and you\u2019re already here.',
-        'You don\u2019t have to be great to start, but you have to start to be great.',
-      ]
-      return start[quoteSeed % start.length]
-    }
-    if (overallProgress < 40) {
-      const early = [
-        'Progress, not perfection. Keep going at your own pace.',
-        'Small steps every day add up to big change.',
-        'You\u2019re building momentum: one milestone at a time.',
-      ]
-      return early[quoteSeed % early.length]
-    }
-    if (overallProgress < 80) {
-      const mid = [
-        'You\u2019re over the hump. Look how far you\u2019ve come.',
-        'Halfway is a milestone worth celebrating. Keep it up!',
-        'Consistency is your superpower. Stay the course.',
-      ]
-      return mid[quoteSeed % mid.length]
-    }
-    const near = [
-      'The finish line is in sight. Finish strong!',
-      'You\u2019re so close. Your future self is cheering you on.',
-      'Almost there. Every step now counts double.',
-    ]
-    return near[quoteSeed % near.length]
-  })()
+  // Tuned to how far along the journey is, so the Path always opens with
+  // encouragement; one a day, from ten per stage (lib/quotes.ts).
+  const motivationalQuote = quoteOfTheDay(overallProgress)
 
   // Group races by category
   const careerRaces = races.filter((r: any) => r.category === 'Career')
@@ -366,6 +338,11 @@ useEffect(() => {
             <span className="text-slate-400">ℹ️</span> {loadError}
           </div>
         )}
+
+        {/* Menus across the top (Riipen Labs, Group 34, slide 22) */}
+        <PausedBanner />
+        <PathMenus />
+        <SupportNotesCard />
 
         {/* ── Header ── */}
         <div className="flex flex-col items-start gap-4 mb-6 xl:flex-row xl:justify-between">
@@ -529,6 +506,49 @@ useEffect(() => {
           </section>
         )}
 
+        {/* ── Quick Links. Each themed name says plainly what it is (Riipen
+             Labs, Group 3: "unfamiliar terms such as Pit Stop"). Near the top,
+             not at the bottom, so the main places are there as soon as the
+             Path opens, and two to a row on a phone (Group 34: "move the quick
+             links from the bottom of the page to the top"). Each has a
+             data-info line for Help, and the words are explained at /help. ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6">
+          <h2 className="font-bold text-lg text-slate-800 mb-3 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" aria-hidden="true" /> Quick Links
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            {[
+              { href: '/races', Icon: Target, color: 'text-cyan-600', name: 'Races', what: 'Your goals, step by step', info: 'Races: each goal is a race, made of small steps called milestones.' },
+              { href: '/pit-stop', Icon: Wrench, color: 'text-purple-600', name: 'Pit Stop', what: 'Tools for your steps', info: 'Pit Stop: tools and supports for the steps in your plan.' },
+              { href: '/hare-world', Icon: Users, color: 'text-pink-600', name: 'Hare World', what: 'Friends, mentors, role models', info: 'Hare World: the people side of Autinerary. Connect with friends, mentors and role models.' },
+              { href: '/reflection?contextType=path', Icon: BookOpen, color: 'text-amber-600', name: 'Journal', what: 'Write how it is going', info: 'Journal: write how things went, and look back on what is working.' },
+              { href: goHubHref('/community?from=hare-world&context=path'), Icon: Sparkles, color: 'text-emerald-600', name: 'Tidbits', what: 'Questions and answers', external: true, info: 'Tidbits: questions and answers from people with similar experiences, in ResourceHub.' },
+              { href: goHubHref('/search'), Icon: Map, color: 'text-cyan-600', name: 'ResourceHub', what: 'Services near you', external: true, info: 'ResourceHub: services and places, rated by people with similar norms. It shares your account.' },
+              // The guided "Start here" (Riipen Labs, Group 4), and the path saved from it.
+              { href: '/start', Icon: Compass, color: 'text-indigo-600', name: 'Starter resources', what: prefs.startPath ? 'The path you saved' : 'Places to start', info: 'Starter resources: a few places to start, for what you need today.' },
+            ].map(({ href, Icon, color, name, what, external, info }) => {
+              const body = (
+                <>
+                  <Icon className={`w-5 h-5 shrink-0 ${color}`} aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-slate-800">{name}</span>
+                    <span className="block text-xs text-slate-600">{what}</span>
+                  </span>
+                </>
+              )
+              const cls = 'flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-3 sm:px-4 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm'
+              return external ? (
+                <a key={name} href={href} target="_blank" rel="noopener noreferrer" className={cls} data-info={info}>{body}</a>
+              ) : (
+                <Link key={name} href={href} className={cls} data-info={info}>{body}</Link>
+              )
+            })}
+          </div>
+          <p className="mt-3 text-sm text-slate-700">
+            New words? <Link href="/help" className="font-medium text-indigo-800 underline underline-offset-2">See what things are called</Link>
+          </p>
+        </div>
+
         {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
         <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
@@ -649,7 +669,7 @@ useEffect(() => {
             {!hasAnyPeople && (
               <div className="text-center py-6">
                 <p className="text-sm text-slate-500 mb-3">No connections yet. Find role models, mentors, and peers in Hare World.</p>
-                <Link href="/pit-stop?tab=haveworld&view=people" className="text-sm font-semibold text-purple-600 hover:underline">
+                <Link href="/hare-world" className="text-sm font-semibold text-purple-600 hover:underline">
                   Meet people →
                 </Link>
               </div>
@@ -690,7 +710,7 @@ useEffect(() => {
             ))}
 
             {hasAnyPeople && (
-              <Link href="/pit-stop?tab=haveworld&view=people" className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium mt-2 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+              <Link href="/hare-world" className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium mt-2 py-2 rounded-lg hover:bg-purple-50 transition-colors">
                 See all people <ChevronRight className="w-4 h-4" />
               </Link>
             )}
@@ -794,41 +814,6 @@ useEffect(() => {
           </>
 
         )}
-
-        {/* ── Quick Links. Each themed name says plainly what it is (Riipen
-             Labs, Group 3: "unfamiliar terms such as Pit Stop"). ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
-          <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" /> Quick Links
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { href: '/races', Icon: Target, color: 'text-cyan-600', name: 'Races', what: 'Your goals, step by step' },
-              { href: '/pit-stop?tab=haveworld', Icon: Wrench, color: 'text-purple-600', name: 'Pit Stop', what: 'Your tools and the people helping you' },
-              { href: '/reflection?contextType=path', Icon: BookOpen, color: 'text-amber-600', name: 'Journal', what: 'Write down how it is going' },
-              { href: goHubHref('/community?from=hare-world&context=path'), Icon: Sparkles, color: 'text-emerald-600', name: 'Tidbits', what: 'Questions and answers from people like you', external: true },
-              { href: goHubHref('/search'), Icon: Map, color: 'text-cyan-600', name: 'ResourceHub', what: 'Find services and places near you', external: true },
-              // The guided "Start here" (Riipen Labs, Group 4), and the path saved from it.
-              { href: '/start', Icon: Compass, color: 'text-indigo-600', name: 'Starter resources', what: prefs.startPath ? 'The starter path you saved' : 'A few places to start, for what you need' },
-            ].map(({ href, Icon, color, name, what, external }) => {
-              const body = (
-                <>
-                  <Icon className={`w-5 h-5 shrink-0 ${color}`} aria-hidden="true" />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-slate-800">{name}</span>
-                    <span className="block text-xs text-slate-600">{what}</span>
-                  </span>
-                </>
-              )
-              const cls = 'flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm'
-              return external ? (
-                <a key={name} href={href} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
-              ) : (
-                <Link key={name} href={href} className={cls}>{body}</Link>
-              )
-            })}
-          </div>
-        </div>
 
         {/* ── Planning for someone else? The Family page is where a parent or
              guardian adds a family member and manages their path. Shown to

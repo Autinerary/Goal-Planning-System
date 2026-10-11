@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Star, ThumbsUp, User, Clock, ChevronDown } from 'lucide-react'
 import type { Rating } from '@/types/database'
-import type { Profile } from '@/types/database'
+import type { ReviewerProfile } from '@/types/database'
 import AddRatingButton from './AddRatingButton'
 import EmptyState from '@/components/feedback/EmptyState'
 import { showToast } from '@/lib/toast'
@@ -16,7 +16,8 @@ interface CommunityReviewsProps {
 type SortOption = 'helpful' | 'newest' | 'highest'
 
 interface ReviewWithUser extends Rating {
-  user?: Profile
+  /** The writer's name and role, only when the viewer may read their profile. */
+  user?: ReviewerProfile
   /** Whether the signed-in viewer has already marked this review helpful. */
   viewer_marked_helpful?: boolean
   /** True when the viewer wrote this review, so they cannot vote on it. */

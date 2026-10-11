@@ -9,7 +9,7 @@ import {
   Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
 } from 'lucide-react'
 import {
-  AGE_RANGES, TECH_SAVVY, VIEW_PREFERENCES, DEFAULT_REMINDERS,
+  VIEW_PREFERENCES, DEFAULT_REMINDERS,
   savePreferences, type ReminderPreferences,
 } from '@/lib/preferences'
 import { isSimpleView } from '@/lib/disclosure'
@@ -17,6 +17,7 @@ import { buildAvatarSvg, HAIR_GROUPS, HAIR_OPTIONS, ACCESSORIES, FACIAL_HAIR, CL
   HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
 import UserAvatar from '@/app/components/UserAvatar'
 import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor'
+import { ageBandFromDob } from '@/lib/age'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
@@ -26,6 +27,10 @@ import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, s
 import DiagnosticProfileSection from './DiagnosticProfileSection'
 import GoalHelper from '@/app/components/GoalHelper'
 import ReminderFields from '@/app/components/ReminderFields'
+import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
+import QuickSettings from '@/app/components/QuickSettings'
+import ChoiceDropdown from '@/app/components/ChoiceDropdown'
+import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import {
@@ -158,6 +163,16 @@ const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
   { id: 'unsure', label: 'Not sure yet', connection: null },
 ]
 
+// The same answers under three headings (Riipen Labs, Group 34, slide 25:
+// "Who are you?" in three groups). Their mockup's first group was
+// "Neurodivergent"; it is "Yourself" here, since not everyone planning for
+// themselves uses that word. "Not sure yet" follows the groups.
+const AUDIENCE_GROUPS: { label: string; ids: string[] }[] = [
+  { label: 'Yourself', ids: ['self'] },
+  { label: 'Family', ids: ['child', 'family'] },
+  { label: 'Friends, work and others', ids: ['friend', 'work', 'ally'] },
+]
+
 // What Autinerary does for each of them, shown once they choose (Riipen Labs,
 // Group 5: "make the value of Autinerary clearer for each user group during
 // onboarding"). Matches what "Start here" says for the same answer.
@@ -181,6 +196,23 @@ function keptStartPath(): { for: string; need: string; savedAt: string } | null 
   return null
 }
 
+// Why the path could not be made, in plain words, with what to do next. It
+// used to be a browser pop-up with the server's own words ("Cannot connect to
+// server at https://...", "Agent orchestration failed: ..."). Riipen Labs'
+// cohort report: "test technical error states". The backend's own messages
+// are kept only where they are written for people: a goal the guardrails
+// turned down (422) and the daily limit (429).
+function submitErrorMessage(error: any): string {
+  const saved = 'Your answers are saved on this device, so nothing is lost.'
+  const status: number | undefined = error?.response?.status
+  const detail = error?.response?.data?.detail
+  if ((status === 422 || status === 429) && typeof detail === 'string' && detail.trim()) return detail
+  if (status === 401 || status === 403) return `Your sign-in needs refreshing. Sign in again and come back here. ${saved}`
+  if (error?.request && !error?.response) return `We couldn't reach Autinerary just now. Check your internet connection, then try again. ${saved}`
+  if (String(error?.message || '').includes('longer than expected')) return `Making your path is taking much longer than usual. Please try again in a few minutes. ${saved}`
+  return `Your path couldn't be made just now. Please try again in a minute. ${saved}`
+}
+
 // "What are you looking for today?" decides what is shown first after setup.
 const LOOKING_FOR = [
   { id: 'plan', label: 'A step-by-step plan for a goal' },
@@ -201,7 +233,7 @@ const skippableSteps = new Set(['barrierConnections', 'location', 'motivation', 
 // connect"). Each line was checked against where the app reads it.
 const STEP_PURPOSE: Record<string, string> = {
   about: 'The wording of the next questions, and what you see first once your path is ready.',
-  character: 'Your avatar in Dream Land.',
+  character: 'Your character on the race track in Races, at the step you are on.',
   barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms. Optional: skipped, it counts as “Prefer not to share”.',
   location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
   goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
@@ -211,15 +243,8 @@ const STEP_PURPOSE: Record<string, string> = {
   personalize: 'How the app looks and how much it shows at once. You can change this later in Settings.',
 }
 
-const goalCategories = [
-  { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
-  { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
-  { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
-  { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
-  // Odosa: never show the word "barrier". The id stays for data matching.
-  { id: 'barrier', label: 'Norms', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
-  { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
-]
+// The areas are shared with the Dream Self page (lib/goalAreas.ts).
+const goalCategories: { id: string; label: string; emoji: string; placeholder: string }[] = [...GOAL_AREAS]
 
 // ── Goal suggestions ──────────────────────────────────────────────────
 // Suggest goals based on what the user selected in "Barrier Connections".
@@ -500,6 +525,8 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const currentId = steps[currentStep]?.id ?? 'about'
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Why the last try to create the path failed, in plain words (shown under the buttons).
+  const [submitError, setSubmitError] = useState('')
   // Path generation takes ~55s alone and ~90s when a few people submit at once
   // (both measured against production). A static spinner for that long reads as
   // frozen — people refresh, abandon the request, and report it as broken.
@@ -841,6 +868,20 @@ export default function OnboardingPage() {
       return { ...prev, goalsByCategory: { ...prev.goalsByCategory, [category]: list } }
     })
   }
+  // From the Dream Self page's "Make a plan" (app/ideal-self/DreamGoals):
+  // /onboarding?goal=…&area=… starts with that goal added.
+  const goalFromLink = useRef(false)
+  useEffect(() => {
+    if (!draftReady || goalFromLink.current) return
+    goalFromLink.current = true
+    const params = new URLSearchParams(window.location.search)
+    const goal = (params.get('goal') || '').trim().slice(0, 200)
+    if (!goal) return
+    const area = params.get('area')
+    addGoal(isGoalArea(area) ? area : 'other', goal)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftReady])
+
   const removeGoal = (category: string, goal: string) => {
     setFormData(prev => {
       const list = (prev.goalsByCategory[category] || []).filter(e => e.goal !== goal)
@@ -1123,6 +1164,7 @@ export default function OnboardingPage() {
     if (!user) return
     
     setIsSubmitting(true)
+    setSubmitError('')
     try {
       // Only persist a reminder opt-in that's actually complete (enabled +
       // explicit consent + a contact). Otherwise store it disabled so we never
@@ -1202,7 +1244,7 @@ export default function OnboardingPage() {
         supportContext: agentSupportContext,
         preferences: {
           pathModel: chosenModel,
-          ageRange: formData.ageRange,
+          ageRange: formData.ageRange || ageBandFromDob(supabaseUser?.app_metadata?.date_of_birth || supabaseUser?.user_metadata?.date_of_birth) || '',
           techSavvy: formData.techSavvy,
           viewPreference: formData.viewPreference,
           spiritAnimalMode: formData.spiritAnimalMode,
@@ -1353,6 +1395,19 @@ export default function OnboardingPage() {
       const startPath = keptStartPath()
       const prefsSaved = await axios.post('/api/me/preferences', {
         dreamAppearance: formData.dreamAppearance,
+        // The character from the Character step, kept with the account so the
+        // race track can show it on any device. Only if they saw that step:
+        // an untouched default would stand in for someone it may not look like.
+        ...(stepsSeen.current.has(stepIndex('character')) ? {
+          character: {
+            hairStyle: formData.hairStyle,
+            hairColor: formData.hairColor,
+            skinColor: formData.skinColor,
+            accessory: formData.accessory,
+            facialHair: formData.facialHair,
+            clothing: formData.clothing,
+          },
+        } : {}),
         alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
         // Who this is for and what they came for: drives what the next pages
         // show first, and lets the funnel be compared by user type.
@@ -1403,21 +1458,7 @@ export default function OnboardingPage() {
         API_URL
       })
       
-      // More detailed error handling
-      let errorMessage = 'Error creating your path. Please try again.'
-      
-      if (error?.response) {
-        // Server responded with error
-        errorMessage = error.response.data?.detail || error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`
-      } else if (error?.request) {
-        // Request made but no response (network error)
-        errorMessage = `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
-      } else if (error?.message) {
-        // Other error
-        errorMessage = error.message
-      }
-      
-      alert(errorMessage)
+      setSubmitError(submitErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -1652,8 +1693,8 @@ export default function OnboardingPage() {
 
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
                 <legend className="mb-2 font-medium text-slate-900">Who are you here for?</legend>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {AUDIENCES.map((a) => (
+                {(() => {
+                  const audienceButton = (a: typeof AUDIENCES[number]) => (
                     <button
                       key={a.id}
                       type="button"
@@ -1668,8 +1709,23 @@ export default function OnboardingPage() {
                       {formData.audience === a.id && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
                       {a.label}
                     </button>
-                  ))}
-                </div>
+                  )
+                  return (
+                    <div className="space-y-3">
+                      {AUDIENCE_GROUPS.map((g, i) => (
+                        <div key={g.label} role="group" aria-labelledby={`audience-group-${i}`}>
+                          <p id={`audience-group-${i}`} className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">{g.label}</p>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {AUDIENCES.filter((a) => g.ids.includes(a.id)).map(audienceButton)}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {AUDIENCES.filter((a) => !AUDIENCE_GROUPS.some((g) => g.ids.includes(a.id))).map(audienceButton)}
+                      </div>
+                    </div>
+                  )
+                })()}
                 {AUDIENCE_VALUE[formData.audience] && (
                   <p role="status" className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
                     {AUDIENCE_VALUE[formData.audience]}
@@ -1705,6 +1761,8 @@ export default function OnboardingPage() {
                   })}
                 </div>
               </fieldset>
+
+              {canAccessOnboarding && <ProfileBasics />}
             </div>
           )}
 
@@ -1712,7 +1770,7 @@ export default function OnboardingPage() {
           {currentId === 'character' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
-              <p className="text-slate-600 mb-6">Design an avatar to represent you on your journey through Dream Land. You can change it later on your Ideal Self page.</p>
+              <p className="text-slate-600 mb-6">Design a character to represent you. It stands on your race track at the step you're on, and you can change it later on your Ideal Self page.</p>
 
               <div className="space-y-6">
                 {/* Body Type */}
@@ -2680,11 +2738,15 @@ export default function OnboardingPage() {
 
           {/* Step 4: Motivation & Life Stage */}
           {currentId === 'motivation' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What motivates you most?</h2>
-                <p className="text-slate-600 mb-6">Select all that apply: most people are motivated by more than one thing.</p>
-                
+            <div className="space-y-4">
+              {/* Each question opens like a dropdown (Group 34, slides 12 and 16),
+                  with the same large choices inside (Group 36). */}
+              <p className="text-slate-600">Two optional questions. Open one to answer it.</p>
+              <ChoiceDropdown
+                question="What motivates you most?"
+                hint="Select all that apply: most people are motivated by more than one thing."
+                picked={formData.motivationTypes.map(v => motivationOptions.find(o => o.value === v)?.label).filter(Boolean).join(', ')}
+              >
                 <div className="grid gap-3">
                   {motivationOptions.map((option) => {
                     const isSelected = formData.motivationTypes.includes(option.value)
@@ -2719,14 +2781,13 @@ export default function OnboardingPage() {
                     )
                   })}
                 </div>
-              </div>
+              </ChoiceDropdown>
 
-              <div className="pt-6 border-t border-slate-200">
-                <h2 className="text-2xl font-bold mb-2 text-slate-800">What life stage are you in?</h2>
-                <p className="text-slate-600 mb-6">
-                  Pick as many as apply. Plenty of people are studying and working at the same time.
-                </p>
-
+              <ChoiceDropdown
+                question="What life stage are you in?"
+                hint="Pick as many as apply. Plenty of people are studying and working at the same time."
+                picked={formData.lifeStages.map(id => lifeStages.find(st => st.id === id)?.label).filter(Boolean).join(', ')}
+              >
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {lifeStages.map((stage) => {
                     const selected = formData.lifeStages.includes(stage.id)
@@ -2759,7 +2820,7 @@ export default function OnboardingPage() {
                     )
                   })}
                 </div>
-              </div>
+              </ChoiceDropdown>
             </div>
           )}
 
@@ -3031,63 +3092,17 @@ export default function OnboardingPage() {
                 <Palette className="w-6 h-6 text-cyan-600" />
                 <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
               </div>
-              <p className="text-slate-600 mb-6">
-                This helps us tailor how the app looks and feels for you. Every mode is still a
-                fun, gamified checklist, this just tunes how much visual energy we add. All optional.
-              </p>
+              <p className="text-slate-600 mb-6">How it looks and reads, and reminders. You can change all of it later in Settings.</p>
 
-              {/* Age Range */}
-              <div className="mb-6">
-                <label className="block font-semibold text-slate-800 mb-2">Age range</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {AGE_RANGES.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, ageRange: o.id }))}
-                      className={`px-4 py-3 rounded-xl border-2 font-medium transition-all ${
-                        formData.ageRange === o.id
-                          ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tech Savvyness */}
-              <div className="mb-6">
-                <label className="block font-semibold text-slate-800 mb-1">
-                  How often do you use apps?
-                </label>
-                <p className="text-xs text-slate-500 mb-2">
-                  Why we ask: this tunes how much detail the interface shows. If apps
-                  aren&apos;t your thing, we keep screens simpler. It&apos;s never shared.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {TECH_SAVVY.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, techSavvy: o.id }))}
-                      className={`px-4 py-3 rounded-xl border-2 text-left transition-all ${
-                        formData.techSavvy === o.id
-                          ? 'border-cyan-500 bg-cyan-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className={`font-medium ${formData.techSavvy === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
-                      <div className="text-xs text-slate-500">{o.hint}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              {/* Age range and "How often do you use apps?" were asked here too.
+                  They only capped the liveliness chosen below, so they asked the
+                  same thing twice (Riipen Labs, Group 36: "condense the number of
+                  questions on the personalization page", "combine overlapping
+                  sections"). The age band now comes from the date of birth given
+                  at sign-up (lib/age.ts, ageBandFromDob). */}
               {/* View Preference */}
               <div className="mb-2">
-                <label className="block font-semibold text-slate-800 mb-2">View preference</label>
+                <label className="block font-semibold text-slate-800 mb-2">How lively should it look?</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {VIEW_PREFERENCES.map((o) => (
                     <button
@@ -3107,6 +3122,9 @@ export default function OnboardingPage() {
                   ))}
                 </div>
               </div>
+              {/* Dark mode, contrast and text size (Group 34, slide 25). */}
+              <QuickSettings />
+
               {/* Daily goal reminders (opt-in) */}
               <div className="mt-6 border-t border-slate-200 pt-6">
                 <div className="flex items-start justify-between gap-4">
@@ -3114,10 +3132,7 @@ export default function OnboardingPage() {
                     <label htmlFor="reminders-toggle" className="block font-semibold text-slate-800">
                       Daily goal reminders
                     </label>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Get a gentle nudge about your goals for the day. Optional, and you can turn it
-                      off anytime in Settings.
-                    </p>
+                    <p className="text-xs text-slate-600 mt-0.5">A gentle nudge about the day’s goals. Off unless you turn it on.</p>
                   </div>
                   <button
                     id="reminders-toggle"
@@ -3151,9 +3166,6 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              <p className="text-xs text-slate-600 mt-4">
-                You can fine-tune placement, size, and colors later in Settings and on each screen.
-              </p>
             </div>
           )}
 
@@ -3238,6 +3250,7 @@ export default function OnboardingPage() {
                 {continueHint()}
               </p>
             )}
+
             </>)}
 
             {/* Honest waiting state. No progress bar — we cannot see inside the
@@ -3250,6 +3263,18 @@ export default function OnboardingPage() {
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
                   Please keep this tab open. Refreshing starts it over.
+                </p>
+              </div>
+            )}
+            {/* Shown in the form and in the chat version alike. */}
+            {submitError && !isSubmitting && (
+              <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-slate-800">
+                <p>{submitError}</p>
+                <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <button type="button" onClick={handleSubmit} className="font-semibold text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                    Try again
+                  </button>
+                  <span>If it keeps happening, email aayush@autinerary.ca.</span>
                 </p>
               </div>
             )}

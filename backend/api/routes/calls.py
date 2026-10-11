@@ -9,10 +9,12 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from database.supabase_client import get_supabase
+from api.auth_guard import current_user_id
+from api.routes.social_access import as_self, require_connected
 
 router = APIRouter(prefix="/api/calls", tags=["calls"])
 
@@ -91,13 +93,14 @@ def _shape(row: dict) -> dict:
 
 
 @router.post("/start", response_model=CallResponse)
-async def start_call(call: CallCreate, user_id: str = Query(...)):
-    """Start (or schedule) a call."""
+async def start_call(call: CallCreate, user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
+    """Start (or schedule) a call, as the signed-in person, with a connection."""
     sb = _client()
-    caller = _uuid(user_id, "user_id")
+    caller = _uuid(as_self(user_id, actor), "user_id")
     receiver = _uuid(call.receiver_id, "receiver_id")
     if caller == receiver:
         raise HTTPException(status_code=400, detail="You cannot call yourself")
+    require_connected(sb, caller, receiver)
 
     now = datetime.now(timezone.utc).isoformat()
     scheduled = call.scheduled_at or None
@@ -128,10 +131,10 @@ async def start_call(call: CallCreate, user_id: str = Query(...)):
 
 
 @router.post("/{call_id}/end", response_model=CallResponse)
-async def end_call(call_id: str, user_id: str = Query(...)):
+async def end_call(call_id: str, user_id: Optional[str] = Query(None), actor: str = Depends(current_user_id)):
     """End a call. Only a participant may end it."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     cid = _uuid(call_id, "call_id")
     try:
         found = sb.table("video_calls").select("*").eq("id", cid).limit(1).execute()
@@ -155,10 +158,10 @@ async def end_call(call_id: str, user_id: str = Query(...)):
 
 
 @router.get("/history", response_model=List[CallResponse])
-async def get_call_history(user_id: str = Query(...), limit: int = 50):
-    """Calls this user took part in, either side, most recent first."""
+async def get_call_history(user_id: Optional[str] = Query(None), limit: int = 50, actor: str = Depends(current_user_id)):
+    """Calls the signed-in person took part in, either side, most recent first."""
     sb = _client()
-    uid = _uuid(user_id, "user_id")
+    uid = _uuid(as_self(user_id, actor), "user_id")
     try:
         cap = max(1, min(limit, 200))
         outgoing = sb.table("video_calls").select("*").eq("caller_id", uid) \

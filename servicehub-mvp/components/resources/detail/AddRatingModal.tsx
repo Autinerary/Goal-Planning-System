@@ -145,7 +145,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
           {/* How this rating gets categorized (norm · level) */}
           {diagnostics.length > 0 && (
             <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
-              <div className="text-xs font-medium text-blue-800 mb-1">You're rating as:</div>
+              <div className="text-xs font-medium text-blue-800 mb-1">You&apos;re rating as:</div>
               <div className="flex flex-wrap gap-1.5">
                 {diagnostics.map((d) => (
                   <span key={d.type} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-blue-700 border border-blue-200">
@@ -276,6 +276,16 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
             </div>
           </div>
 
+          {/* Who sees this (Riipen Labs, Group 34). Every rating and review is
+              listed on the resource page (CommunityReviews). The writer's name
+              shows only to a viewer allowed to read their profile; everyone
+              else sees "Anonymous". So this neither promises anonymity nor
+              promises the name. */}
+          <p id="rating-visibility-note" className="text-xs text-gray-600">
+            Ratings and written reviews are public on this resource&apos;s page. Whether your
+            name shows with them depends on who can see your profile.
+          </p>
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
@@ -287,6 +297,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
             </button>
             <button
               type="submit"
+              aria-describedby="rating-visibility-note"
               disabled={submitting || overallRating === 0}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >

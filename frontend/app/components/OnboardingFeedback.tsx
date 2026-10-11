@@ -6,8 +6,13 @@ import { ONBOARDING_VERSION } from '@/lib/funnel'
 import { usePreferences } from '../context/usePreferences'
 
 /**
- * Two quick questions after setup (Riipen Labs: survey whether people got the
+ * Quick questions after setup (Riipen Labs: survey whether people got the
  * right amount of information about Autinerary before creating an account).
+ *
+ * First, "Do you know what to do next?" (Riipen Labs' cohort report: "one
+ * short qualitative question such as 'Did you know what to do next?'", so
+ * completion is not mistaken for understanding). "Not sure" or "No" is met
+ * at once with where to start and the one-minute tour, not only counted.
  *
  * Optional and dismissible, shown once per browser per onboarding version,
  * and placed below the "Start here" steps so it never competes with the
@@ -15,6 +20,12 @@ import { usePreferences } from '../context/usePreferences'
  */
 
 const DONE_KEY = `autinerary_onboarding_feedback_${ONBOARDING_VERSION}`
+
+const NEXT_STEP_OPTIONS = [
+  { id: 'yes', label: 'Yes' },
+  { id: 'not_sure', label: 'Not sure' },
+  { id: 'no', label: 'No' },
+]
 
 const INFO_OPTIONS = [
   { id: 'too_little', label: 'Not enough' },
@@ -45,6 +56,7 @@ export const HEARD_FROM = [
 
 export default function OnboardingFeedback() {
   const [hidden, setHidden] = useState(true)
+  const [nextStep, setNextStep] = useState('')
   const [info, setInfo] = useState('')
   const [ease, setEase] = useState(0)
   const [heardFrom, setHeardFrom] = useState('')
@@ -67,14 +79,15 @@ export default function OnboardingFeedback() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!info && !ease && !comment.trim() && !heardFrom) return
+    if (!nextStep && !info && !ease && !comment.trim() && !heardFrom) return
     setStatus('saving')
     try {
-      if (info || ease || comment.trim()) {
+      if (nextStep || info || ease || comment.trim()) {
         const res = await fetch('/api/onboarding-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            nextStep: nextStep || undefined,
             infoBeforeSignup: info || undefined,
             setupEase: ease || undefined,
             comment: comment.trim() || undefined,
@@ -102,15 +115,52 @@ export default function OnboardingFeedback() {
     )
   }
 
-  const canSubmit = Boolean(info || ease || comment.trim() || heardFrom) && status !== 'saving'
+  const canSubmit = Boolean(nextStep || info || ease || comment.trim() || heardFrom) && status !== 'saving'
 
   return (
     <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-200 p-6 surface" aria-labelledby="feedback-heading">
       <div className="mb-1 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-indigo-700" aria-hidden="true" />
-        <h2 id="feedback-heading" className="font-bold text-slate-900">Three quick questions (optional)</h2>
+        <h2 id="feedback-heading" className="font-bold text-slate-900">Four quick questions (optional)</h2>
       </div>
       <p className="mb-5 text-sm text-slate-700">Autinerary is in beta. This tells us what to fix in setup.</p>
+
+      <fieldset className="mb-5">
+        <legend className="mb-2 text-sm font-semibold text-slate-900">Do you know what to do next?</legend>
+        <div className="flex flex-wrap gap-2">
+          {NEXT_STEP_OPTIONS.map((o) => (
+            <label
+              key={o.id}
+              className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1 ${
+                nextStep === o.id ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+              }`}
+            >
+              <input
+                type="radio"
+                name="next_step"
+                value={o.id}
+                checked={nextStep === o.id}
+                onChange={() => setNextStep(o.id)}
+                className="sr-only"
+              />
+              {o.label}
+            </label>
+          ))}
+        </div>
+        {(nextStep === 'not_sure' || nextStep === 'no') && (
+          <p role="status" className="mt-3 rounded-lg bg-indigo-50 p-3 text-sm text-slate-800">
+            Start with the numbered list under &ldquo;Start here&rdquo;, at the top of this page.{' '}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
+              className="font-semibold text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+            >
+              Take the one-minute tour
+            </button>{' '}
+            to see the rest.
+          </p>
+        )}
+      </fieldset>
 
       <fieldset className="mb-5">
         <legend className="mb-2 text-sm font-semibold text-slate-900">

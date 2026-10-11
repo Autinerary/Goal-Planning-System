@@ -77,5 +77,6 @@ Reply to our email with your answers:
 - **Keep the consent record:** the person's answers above, the approved final version, and the date. Store them with the tester code (P01, P02, ...) in the restricted spreadsheet from the beta kit, for as long as the story is used and a year after.
 - **Raw recordings** stay in the restricted folder and are deleted once the final version is approved.
 - **Captions and transcripts** on every audio or video story, following the rules in [../voice.md](../voice.md).
+- **Putting a recording on the site:** publish the story's text first (it is shown on its own card in "In their words"). Then put the edited file and its captions in `frontend/public/media/stories/`, and add an entry under the story's id to `STORY_RECORDINGS` in `frontend/lib/media.ts`. Its card then offers "Watch" or "Listen". If the recording says the approved text word for word, the text on the card is its transcript; if not, give the entry its own transcript.
 - **Before publishing:** the person approved this exact version; nothing in it identifies a child or anyone who did not agree; any gift is disclosed next to it.
 - **When someone withdraws:** remove the story everywhere within 14 days, delete the files, keep only a note that consent was withdrawn and when.

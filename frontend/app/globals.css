@@ -54,14 +54,35 @@ body {
   }
 }
 
-input[type="checkbox"] {
-  accent-color: #8b5cf6;
-}
 
 /* ── Accessibility settings (driven by data-attributes on <html>) ── */
 /* Font scaling — rem-based so the whole UI scales proportionally. */
 html[data-font-scale="large"] { font-size: 18px; }
 html[data-font-scale="xlarge"] { font-size: 20px; }
+
+/* Dark mode, experimental (Riipen Labs, Group 34, slide 25). The app's
+   colours are written into each page, about 2,300 of them, so rather than a
+   second palette the page is shown as its negative with the hues turned
+   back, slightly softened. Photos, video and anything marked keep-colors
+   (characters, emoji avatars) are turned back again, so they look as they
+   are. The filter is on <html>, which does not break fixed positioning. */
+html[data-dark-mode="on"] {
+  filter: invert(1) hue-rotate(180deg) contrast(0.92);
+  background: #fff;
+}
+html[data-dark-mode="on"] img,
+html[data-dark-mode="on"] video,
+html[data-dark-mode="on"] picture,
+html[data-dark-mode="on"] canvas,
+html[data-dark-mode="on"] iframe,
+html[data-dark-mode="on"] .keep-colors {
+  filter: invert(1) hue-rotate(180deg);
+}
+/* Inside something already turned back, don't turn back twice. */
+html[data-dark-mode="on"] .keep-colors img,
+html[data-dark-mode="on"] .keep-colors .keep-colors {
+  filter: none;
+}
 
 /* High contrast — darken text and strengthen borders/links. */
 html[data-high-contrast="on"] body { filter: contrast(1.15); }
@@ -113,8 +134,14 @@ html[data-accent="emerald"] { --accent-color: #10b981; }
 html[data-accent="amber"]   { --accent-color: #f59e0b; }
 html[data-accent="rose"]    { --accent-color: #f43f5e; }
 
-/* Selection + checkbox accents follow the chosen accent color. */
-html input[type="checkbox"] { accent-color: var(--accent-color); }
+/* What the accent colour changes, all of it: checkboxes, radio buttons,
+   sliders and progress bars, and the highlight on selected text. It used to
+   reach checkboxes only, while Settings promised "the app's highlight colour"
+   (Riipen Labs, Group 34: "make sure accent colours actually change"). The
+   rest of the app's colours are written into each page, so a full theme is a
+   team decision (docs/groups-34-36.md); Settings now says exactly this. */
+html { accent-color: var(--accent-color); }
+::selection { background-color: color-mix(in srgb, var(--accent-color) 30%, white); color: #0f172a; }
 
 /* Widget size — scales key interactive widgets proportionally. Components can
    opt in by using the .pref-widget class. */

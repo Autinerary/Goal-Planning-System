@@ -2,16 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { gaEnabled } from '@/lib/analytics'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 export const metadata: Metadata = {
   title: 'Privacy · Autinerary',
   description: 'What Autinerary collects, why, who else handles it, and what you can do about it.',
 }
 
-// Where privacy questions and requests go. Change it here if the team sets up
-// a shared address (for example privacy@autinerary.ca).
-const CONTACT = 'aayush@autinerary.ca'
-const UPDATED = '6 October 2026'
+// Where privacy questions and requests go (lib/contact.ts).
+const CONTACT = CONTACT_EMAIL
+const UPDATED = '10 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -20,9 +20,10 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences, and what you type into the goal helper during setup, if you use it. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
+  { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, if you join one the app made', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
   {
     name: 'Twilio',
     does: 'Sends reminder texts, and the code that confirms your number, if you choose reminders by text',
@@ -123,6 +124,11 @@ export default function PrivacyPage() {
             <List>
               <li>Norms or conditions, for example autism or ADHD.</li>
               <li>If you fill it in, a more detailed profile about things like diagnoses, therapies, sensory needs and accommodations.</li>
+              <li>
+                If you write it, your About me: what you are good at, what helps, what is hard, and what you want people to know.
+                Only you can see it. It goes to the assistant (and so to OpenAI) only if you turn on “Share with the assistant”.
+              </li>
+              <li>If you write them, your Dream Self’s goals.</li>
             </List>
             <p>This is sensitive, so it is always optional. You can skip it, change it or remove it. We use it only to personalize your plan and recommendations.</p>
           </Sub>
@@ -155,7 +161,27 @@ export default function PrivacyPage() {
           </Sub>
           <Sub title="Connecting with people">
             <List>
-              <li>The people you connect with, and messages you send them.</li>
+              <li>
+                The people you connect with, and what you share with them: messages and notes of support, memes, calls you
+                book (the time, a note, and the link to the video room), tasks between you and a mentor, and goals you work on
+                together. Only the two of you can see these. Your connections can also see when you finish a step on your
+                path, in Updates.
+              </li>
+              <li>
+                If you report a message you were sent, a copy of it and your reason, which the team reads to keep Hare World
+                safe.
+              </li>
+              <li>
+                Other members see only your public profile: your display name, picture and dream, and your username,
+                pronouns, bio and photo if you add them. They see it only if you are discoverable, you are connected, or
+                one of you sent the other a request. Never your email address, date of birth or settings.
+              </li>
+              <li>A profile photo is stored at a web address that is hard to guess. Anyone who has that address can open it.</li>
+              <li>
+                The people you block, which only you can see. Blocking someone removes your connection and any requests, both
+                ways; neither of you can find or see the other, and they aren’t told.
+              </li>
+              <li>Your notes about people in Hare World, which only you can see.</li>
             </List>
           </Sub>
           <Sub title="Feedback and check-ins">
@@ -205,7 +231,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               To send email: a welcome email when you finish setup, one reminder to finish setup if you ask for it, daily
-              reminders at the time you choose if you turn them on, and a check-in if you opt in. Without an account: a
+              reminders at the time you choose if you turn them on, a weekly email with the resources you saved in
+              ResourceHub and new picks for you if you turn it on, and a check-in if you opt in. Without an account: a
               Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them
               off.
             </li>
@@ -246,9 +273,14 @@ export default function PrivacyPage() {
           <List>
             <li>While your account is open.</li>
             <li>
-              If you ask us to delete your account, we delete it and the information linked to it within 30 days, except
-              anything the law requires us to keep. Totals already in our reports, which do not identify anyone, stay.
+              When you delete your account on Your profile, we delete it and the information linked to it straight away.
+              Copies in our database host’s backups are gone within 30 days. Resources you suggested for ResourceHub stay,
+              without your name.
             </li>
+            <li>
+              If you ask us by email to delete your account, we delete it and the information linked to it within 30 days.
+            </li>
+            <li>Either way, we keep anything the law requires us to keep. Totals already in our reports, which do not identify anyone, stay.</li>
           </List>
         </Section>
 
@@ -257,7 +289,11 @@ export default function PrivacyPage() {
             <li>Skip any optional question, and change your answers later in Settings.</li>
             <li>In Settings you can download a copy of your plan and progress, or erase them.</li>
             <li>Turn emails off from any reminder or check-in email, or in Settings. Stop texts by replying STOP, or in Settings. Turn notifications off in Settings, or in your browser.</li>
-            <li>To see, correct or delete anything else, or to close your account, email {mail}. We will reply within 30 days.</li>
+            <li>
+              On Your profile you can pause your account (we send you nothing and nobody can find you in search until you
+              resume), or delete it.
+            </li>
+            <li>To see, correct or delete anything else, or if you can’t delete your account yourself, email {mail}. We will reply within 30 days.</li>
             <li>You can withdraw your consent for optional information at any time.</li>
             <li>
               If you are not happy with how we handled something, please tell us first. You can also contact the Office of the

@@ -109,7 +109,7 @@ function ToolsContent() {
       </div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/pit-stop" className="p-2 border-2 border-black rounded hover:bg-gray-100">
+        <Link href="/pit-stop" aria-label="Back to Pit Stop" className="p-2 border-2 border-black rounded hover:bg-gray-100">
           <ChevronLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-2xl font-bold">Tools & Resources</h1>
@@ -152,6 +152,7 @@ function ToolsContent() {
           <select
             value={selectedBarrier || ''}
             onChange={(e) => setSelectedBarrier(e.target.value || null)}
+            aria-label="Filter by norm"
             className="border-2 border-black rounded px-3 py-2"
           >
             <option value="">All norms</option>

@@ -12,23 +12,18 @@ interface MeResponse {
   is_admin?: boolean
 }
 
+// Paths, Tasks and Calendar switches are hidden: no profile shows that data
+// (app/api/community/profiles/[id] returns none), so they did nothing
+// (Riipen Labs, Group 34). The columns and the PATCH route still take them.
+// These two only list yours on your profile page; the posts and answers
+// themselves stay in Tidbits either way, which the hints now say.
 const TOGGLES: Array<{
-  key: keyof Pick<
-    CommunityProfileRow,
-    | 'show_posts'
-    | 'show_answers'
-    | 'show_paths'
-    | 'show_tasks'
-    | 'show_calendar'
-  >
+  key: keyof Pick<CommunityProfileRow, 'show_posts' | 'show_answers'>
   label: string
   hint: string
 }> = [
-  { key: 'show_posts', label: 'Posts', hint: 'Other people can see questions you ask.' },
-  { key: 'show_answers', label: 'Answers', hint: 'Show the answers you have written.' },
-  { key: 'show_paths', label: 'Paths', hint: 'Share your goal-planning paths on your profile.' },
-  { key: 'show_tasks', label: 'Tasks', hint: 'Reveal what tasks you are working on.' },
-  { key: 'show_calendar', label: 'Calendar', hint: 'Show upcoming items from your calendar.' },
+  { key: 'show_posts', label: 'Posts', hint: 'Show the questions you have asked on your profile page.' },
+  { key: 'show_answers', label: 'Answers', hint: 'Show the answers you have written on your profile page.' },
 ]
 
 export default function CommunitySettingsPage() {
@@ -131,10 +126,13 @@ export default function CommunitySettingsPage() {
         </Link>
         <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
           <h1 className="text-2xl font-bold text-gray-900">Join Tidbits</h1>
+          {/* This promised "opt out anytime", but nothing removes a community
+              profile. The Public profile switch on this page is the control
+              that exists, so that is what it now says (Riipen Labs, Group 34). */}
           <p className="text-sm text-gray-700">
-            Tidbits is the ResourceHub community. You'll post under a generated pseudonym — your
-            real name is never shown. You can change your pseudonym, control visibility, and opt
-            out anytime.
+            Tidbits is the ResourceHub community. You&apos;ll post under a generated pseudonym,
+            and your real name is never shown. You can change your pseudonym, choose what your
+            profile shows, and turn your public profile off at any time on this page.
           </p>
           {error && <p className="text-sm text-rose-600">{error}</p>}
           <button
@@ -209,8 +207,11 @@ export default function CommunitySettingsPage() {
           />
           <span>
             <span className="block text-sm font-medium text-gray-900">Public profile</span>
+            {/* resolveVisibility lets admins past a private profile, and the
+                feed shows posts and answers whatever this is set to. */}
             <span className="block text-xs text-gray-500">
-              When off, only you can see your profile page. Sections below are ignored.
+              When off, only you and moderators can see your profile page, and the choices below
+              are ignored. Your posts and answers still appear in Tidbits under your pseudonym.
             </span>
           </span>
         </label>

@@ -3,11 +3,12 @@
 import RelationshipBadge from '@/components/community/RelationshipBadge'
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, Reply } from 'lucide-react'
+import { CheckCircle2, Reply, Trash2 } from 'lucide-react'
 import type { CommunityAnswerNode } from '@/types/community'
 import VoteButton from './VoteButton'
 import Markdown from './Markdown'
 import BadgeList from './BadgeList'
+import HelpfulPoints from './HelpfulPoints'
 import ReportButton from './ReportButton'
 import AnswerComposer from './AnswerComposer'
 
@@ -17,6 +18,8 @@ interface ThreadedAnswerProps {
   viewerCanAccept: boolean
   onAccept: (answer: CommunityAnswerNode) => void
   onReply: () => void
+  /** Reloads the thread once an answer has been deleted. */
+  onDeleted: () => void | Promise<void>
   depth?: number
 }
 
@@ -28,10 +31,34 @@ export default function ThreadedAnswer({
   viewerCanAccept,
   onAccept,
   onReply,
+  onDeleted,
   depth = 0,
 }: ThreadedAnswerProps) {
   const [replyOpen, setReplyOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const indent = Math.min(depth, MAX_VISIBLE_DEPTH)
+
+  // Riipen Labs, Group 34: "give users the ability to delete their own
+  // comments". The route soft-deletes; reloading then drops the answer from
+  // the thread the same way the API leaves out every deleted answer, and
+  // buildAnswerTree shows any replies to it as top-level answers.
+  const deleteAnswer = async () => {
+    if (deleting) return
+    if (!confirm('Delete this answer? This cannot be undone.')) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/community/answers/${answer.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
+    } catch {
+      setDeleteError('This answer could not be deleted. Please try again.')
+      setDeleting(false)
+      return
+    }
+    await onDeleted()
+    setDeleting(false)
+  }
 
   return (
     <div
@@ -41,12 +68,14 @@ export default function ThreadedAnswer({
       <div
         className={`flex gap-3 items-start py-4 ${answer.is_accepted ? 'bg-emerald-50/40 rounded-lg px-3' : ''}`}
       >
+        {/* viewer_can_edit is set only for the answer's author. */}
         <VoteButton
           score={answer.score}
           viewerVote={answer.viewer_vote}
           targetType="answer"
           targetId={answer.id}
           size="sm"
+          isOwn={answer.viewer_can_edit}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2 flex-wrap">
@@ -64,7 +93,7 @@ export default function ThreadedAnswer({
             </Link>
             <RelationshipBadge relationship={answer.author_relationship} />
             <span aria-hidden="true">·</span>
-            <span className="text-xs">{answer.author.karma} found helpful</span>
+            <HelpfulPoints karma={answer.author.karma} className="text-xs" />
             <BadgeList badges={answer.author.top_badges} max={2} />
             <span className="ml-auto text-xs text-gray-400">
               {new Date(answer.created_at).toLocaleString()}
@@ -111,7 +140,25 @@ export default function ThreadedAnswer({
               </button>
             )}
             <ReportButton targetType="answer" targetId={answer.id} />
+            {/* Author only, like the post's Delete. viewer_can_delete also
+                covers admins, who moderate through the report queue. */}
+            {answer.viewer_can_edit && (
+              <button
+                type="button"
+                onClick={deleteAnswer}
+                disabled={deleting}
+                className="inline-flex items-center gap-1 text-gray-500 hover:text-rose-600 disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            )}
           </div>
+          {deleteError && (
+            <p className="mt-2 text-xs text-rose-600" role="alert">
+              {deleteError}
+            </p>
+          )}
           {replyOpen && (
             <div className="mt-3">
               <AnswerComposer
@@ -135,6 +182,7 @@ export default function ThreadedAnswer({
                   viewerCanAccept={viewerCanAccept}
                   onAccept={onAccept}
                   onReply={onReply}
+                  onDeleted={onDeleted}
                   depth={depth + 1}
                 />
               ))}

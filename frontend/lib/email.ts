@@ -57,7 +57,7 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
     text: `${who}\n\nOpen your Path to see today's tasks and keep your streak going:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.\n\n— Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
-        <p style="font-size:16px">${who}</p>
+        <p style="font-size:16px">${esc(who)}</p>
         <p style="font-size:16px;line-height:1.5">Here's your nudge for today — open your Path to see your tasks and keep your streak going. 🔥</p>
         <p style="margin:24px 0">
           <a href="${link}" style="background:linear-gradient(90deg,#06b6d4,#3b82f6);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path →</a>
@@ -205,3 +205,42 @@ export function newsletterWeeklyEmail(links: NewsletterLink[], tip: string, unsu
   }
 }
 
+
+/**
+ * The weekly email for people with an account who turn it on in Settings →
+ * Emails (Riipen Labs, Group 11, for people who finished setup: "Your saved
+ * resources, plus new picks this week"). Sent by lib/weeklyPicks.ts.
+ */
+export function weeklyPicksEmail(input: {
+  name: string | null
+  saved: NewsletterLink[]
+  savedTotal: number
+  savedUrl: string
+  picks: NewsletterLink[]
+  tip: string
+  appUrl: string
+  unsubscribe: string
+  postal: string
+}): { subject: string; html: string; text: string } {
+  const who = input.name ? `Hi ${input.name},` : 'Hi,'
+  const path = `${input.appUrl.replace(/\/$/, '')}/path`
+  const picks = linkList(input.picks)
+  const saved = linkList(input.saved)
+  const more = input.savedTotal > input.saved.length ? input.savedTotal - input.saved.length : 0
+  const savedText = input.saved.length
+    ? `What you saved in ResourceHub:\n\n${saved.text}\n${more ? `\nAnd ${more} more: ${input.savedUrl}\n` : ''}`
+    : `Nothing saved yet. When a place looks useful in ResourceHub, save it and it will be here next week.\n`
+  const savedHtml = input.saved.length
+    ? `<p style="font-size:16px;line-height:1.5;font-weight:600">What you saved in ResourceHub</p>${saved.html}${more ? `<p style="font-size:15px"><a href="${input.savedUrl}" style="color:#3730a3">And ${more} more</a></p>` : ''}`
+    : `<p style="font-size:16px;line-height:1.5">Nothing saved yet. When a place looks useful in ResourceHub, save it and it will be here next week.</p>`
+  const foot = footer(input.unsubscribe, input.postal, 'You turned on this weekly email in Autinerary, under Settings → Emails.')
+  return {
+    subject: 'Your saved resources, plus new picks this week',
+    text: `${who}\n\n${savedText}\nNew picks for you this week:\n\n${picks.text}\n\nOne practical tip: ${input.tip}\n\nYour Path: ${path}\n\nThese are places to start looking, not medical or clinical advice.\n${foot.text}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">${esc(who)}</p>${savedHtml}
+      <p style="font-size:16px;line-height:1.5;font-weight:600">New picks for you this week</p>${picks.html}
+      <p style="font-size:16px;line-height:1.5;background:#eef2ff;border-radius:12px;padding:14px"><strong>One practical tip:</strong> ${esc(input.tip)}</p>
+      <p style="margin:24px 0"><a href="${path}" style="${BUTTON}">Open my Path</a></p>
+      <p style="${SMALL}">These are places to start looking, not medical or clinical advice.</p>${foot.html}</div>`,
+  }
+}

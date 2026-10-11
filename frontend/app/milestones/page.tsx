@@ -354,7 +354,7 @@ export default function MilestoneView() {
             </a>
             {/* 2 — Ask a mentor / role model (Hare World) */}
             <Link
-              href="/pit-stop?tab=haveworld&view=people"
+              href="/hare-world"
               className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white border border-purple-200 hover:border-purple-400 hover:shadow-sm transition-all"
             >
               <Users className="w-4 h-4 text-purple-600 flex-shrink-0" aria-hidden="true" />
@@ -375,7 +375,7 @@ export default function MilestoneView() {
       <div className="relative">
         <div className="max-w-4xl mx-auto px-4 pt-6 pb-4">
           {/* Close button */}
-          <button onClick={() => router.back()} className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white shadow-sm z-10">
+          <button onClick={() => router.back()} aria-label="Close" className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white shadow-sm z-10">
             <X className="w-5 h-5 text-slate-600" />
           </button>
 

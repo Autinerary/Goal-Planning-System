@@ -68,4 +68,43 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * GET /api/me/life-stats/checkin?days=35
+ *
+ * The caller's own mood check-ins for the last `days` days (7 to 92), oldest
+ * first, as { date, mood }. They were saved and averaged into Happiness but
+ * never shown back; the mood calendar on /stats reads this (Riipen Labs,
+ * Group 34: "improve the ... happiness calendar").
+ */
+export async function GET(req: NextRequest) {
+  const supabase = createServerSupabase()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  }
+
+  const days = Math.min(92, Math.max(7, Math.trunc(Number(req.nextUrl.searchParams.get('days')) || 35)))
+  const since = new Date(Date.now() - (days - 1) * 86_400_000).toISOString().slice(0, 10)
+
+  const { data, error } = await supabase
+    .from('life_stats_checkins')
+    .select('checkin_date, mood')
+    .eq('user_id', user.id)
+    .gte('checkin_date', since)
+    .order('checkin_date', { ascending: true })
+
+  if (error) {
+    console.error('GET /api/me/life-stats/checkin error:', error.message)
+    return NextResponse.json({ error: 'Your check-ins could not be loaded.' }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    days,
+    checkins: (data || []).map((row: any) => ({ date: row.checkin_date as string, mood: Number(row.mood) })),
+  })
+}
+
 export const dynamic = 'force-dynamic'

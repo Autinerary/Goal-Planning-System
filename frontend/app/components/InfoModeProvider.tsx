@@ -115,7 +115,7 @@ export default function InfoModeProvider() {
                 data-info-exempt="true"
                 onClick={() => { primed.current = null; setShown(null) }}
                 aria-label="Close explanation"
-                className="rounded p-0.5 text-slate-400 hover:text-slate-700"
+                className="rounded p-1 text-slate-600 hover:text-slate-900"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -123,7 +123,12 @@ export default function InfoModeProvider() {
             <p className="text-xs text-slate-600">
               {shown.body ?? 'No description has been written for this one yet.'}
             </p>
-            <p className="mt-2 text-xs font-medium text-cyan-700">Tap it again to use it.</p>
+            <p className="mt-2 text-xs font-medium text-cyan-800">Tap it again to use it.</p>
+            {/* Autinerary's own words, explained in one place (Riipen Labs,
+                Groups 34 and 36: "Races", "Norms", "Pit Stop" are unfamiliar). */}
+            <a href="/help" data-info-exempt="true" className="mt-1 inline-block py-1 text-xs font-medium text-indigo-800 underline underline-offset-2">
+              What things are called
+            </a>
           </div>
         </>
       )}

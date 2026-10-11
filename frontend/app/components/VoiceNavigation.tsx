@@ -59,7 +59,7 @@ export default function VoiceNavigation() {
         accessibility: { label: 'Accessibility', href: '/profile/accessibility' },
         resources: { label: 'ResourceHub', href: goHubHref('/') },
         tidbits: { label: 'Tidbits', href: goHubHref('/community') },
-        people: { label: 'People', href: '/pit-stop?tab=haveworld&view=people' },
+        people: { label: 'People', href: '/hare-world' },
         assistant: { label: 'Assistant', href: '/assistant' },
       }
       const selected = routes[command.replace(/^(go to|open|show) (my |the )?/, '')]

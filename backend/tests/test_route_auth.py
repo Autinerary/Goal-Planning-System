@@ -86,7 +86,10 @@ class RouteAuthTests(unittest.TestCase):
             self.assertEqual(owner.get("/api/onboarding/jobs/latest/owner").status_code, 200)
             self.assertEqual(client_as(None).get("/api/memory/owner").status_code, 401)
 
-    def test_conversations_are_the_callers_own_whatever_user_id_says(self):
+    def test_conversations_are_only_ever_the_callers_own(self):
+        # main (3d78f99, api/routes/social_access.py): a user_id naming someone
+        # else is refused with 403, not ignored; without one, or naming
+        # yourself, you get your own.
         me, victim = "00000000-0000-0000-0000-0000000000a1", "00000000-0000-0000-0000-0000000000b2"
         seen = []
 
@@ -98,8 +101,11 @@ class RouteAuthTests(unittest.TestCase):
 
         fake = type("SB", (), {"table": lambda self, name: Query()})()
         with patch.object(messaging, "_client", lambda: fake):
-            response = client_as(me).get(f"/api/messaging/conversations?user_id={victim}")
-        self.assertEqual(response.status_code, 200)
+            refused = client_as(me).get(f"/api/messaging/conversations?user_id={victim}")
+            self.assertEqual(refused.status_code, 403)
+            self.assertEqual(seen, [])
+            for path in ("/api/messaging/conversations", f"/api/messaging/conversations?user_id={me}"):
+                self.assertEqual(client_as(me).get(path).status_code, 200)
         self.assertEqual({v for _, v in seen}, {me})
 
     def test_deleting_a_path_only_drops_your_own_from_the_cache(self):

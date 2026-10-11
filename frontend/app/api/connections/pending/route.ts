@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { publicProfilesByIds } from '@/lib/publicProfiles'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,14 +25,9 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const requesterIds = Array.from(new Set((rows || []).map(r => r.owner_id).filter(Boolean)))
-  let profiles: Record<string, any> = {}
-  if (requesterIds.length) {
-    const { data: profs } = await supabase
-      .from('profiles')
-      .select('id, display_name, email, avatar_emoji, dream')
-      .in('id', requesterIds)
-    for (const p of profs || []) profiles[(p as any).id] = p
-  }
+  // Public fields only: this used to send each requester's email address
+  // too, which no screen showed (lib/publicProfiles.ts, STEP 64).
+  const profiles: Record<string, any> = await publicProfilesByIds(supabase, requesterIds)
 
   // social_connections.name is the label the REQUESTER typed when adding
   // this connection — that is, their name for the recipient. Falling back

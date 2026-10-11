@@ -12,8 +12,11 @@ export const metadata: Metadata = {
 /**
  * "Start here" on its own: the landing page for campaign links (Riipen Labs,
  * Group 4: "use campaign assets to send users to targeted landing paths
- * instead of a general destination"), e.g. /start?for=child&need=services.
- * Also where signed-in people reopen the path they saved (Quick Links).
+ * instead of a general destination"). A campaign link greets people by where
+ * they came from, and everyone answers the same two questions (Riipen Labs'
+ * cohort report; components/StartHere.tsx). A link to someone's own list,
+ * /start?for=child&need=services, opens on it. Also where signed-in people
+ * reopen the path they saved (Quick Links).
  */
 export default function StartPage() {
   return (

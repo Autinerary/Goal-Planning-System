@@ -187,7 +187,7 @@ export default function JournalHistory() {
     return (
       <div className="min-h-screen p-8 surface-veil">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/reflection" className="p-2 border-2 border-black rounded hover:bg-gray-100">
+          <Link href="/reflection" aria-label="Back to the journal" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-2xl font-bold">All Entries</h1>

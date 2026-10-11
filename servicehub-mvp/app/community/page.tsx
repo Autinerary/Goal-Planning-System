@@ -160,6 +160,29 @@ function FeedInner() {
           <p className="text-sm text-gray-600 mt-1">
             Ask, share, and learn from people who share your norms. Always pseudonymous.
           </p>
+          {/* Riipen Labs, Group 34: the community features "lack transparency";
+              explain how each one works and why it is there. Each line is what
+              the code does: generated pseudonyms, community_cast_vote (never
+              your own), the accept route, karma in 2026_community_tidbits.sql,
+              threshold badges, reports to the /admin/community queue, and
+              author delete. Update this when any of those change. */}
+          <details className="mt-2 max-w-2xl text-sm text-gray-700">
+            <summary className="cursor-pointer font-medium text-blue-700 hover:underline">
+              How Tidbits works
+            </summary>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>You post under a pseudonym, not your real name.</li>
+              <li>You can vote other people&apos;s posts and answers up or down.</li>
+              <li>The person who asked can accept one answer as the solution.</li>
+              <li>
+                Helpful points are up-votes minus down-votes, plus 15 for each accepted answer.
+              </li>
+              <li>Badges mark milestones, like a first post.</li>
+              <li>You can report a post or answer. A moderator reviews it and may remove it.</li>
+              <li>You can delete your own posts and answers.</li>
+              <li>It is a place to learn from each other, not a contest.</li>
+            </ul>
+          </details>
         </div>
         <Link
           href={withOriginContext('/community/new')}

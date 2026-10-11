@@ -1639,10 +1639,10 @@ ALTER TABLE public.community_badge_grants ENABLE ROW LEVEL SECURITY;
 -- Seed the default badge catalog. Idempotent via ON CONFLICT DO NOTHING.
 INSERT INTO public.community_badges (slug, name, description, icon, tier, auto_metric, auto_threshold) VALUES
     ('first_post',      'First Post',      'Posted your first question',          '✍️', 'bronze', 'posts',    1),
-    ('helpful',         'Helpful',         'Received 5 upvotes on an answer',     '🙌', 'bronze', 'karma',    25),
+    ('helpful',         'Helpful',         'Reached 25 helpful points',           '🙌', 'bronze', 'karma',    25),
     ('problem_solver',  'Problem Solver',  'Had an answer accepted as solved',    '🧩', 'silver', 'accepted', 1),
     ('mentor',          'Mentor',          '10 of your answers were accepted',    '🎓', 'gold',   'accepted', 10),
-    ('community_pillar','Community Pillar','Reached 1000 karma',                  '🏛️', 'gold',   'karma',    1000),
+    ('community_pillar','Community Pillar','Reached 1,000 helpful points',        '🏛️', 'gold',   'karma',    1000),
     ('streak_starter',  'Streak Starter',  'Posted on 3 consecutive days',        '🔥', 'bronze', NULL,       NULL)
 ON CONFLICT (slug) DO NOTHING;
 
@@ -4890,5 +4890,1253 @@ ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE public.newsletter_subscribers IS
   'Weekly email and emailed Start here lists, double opt-in (app/api/newsletter). Service role only.';
+
+-- STEP 62 — backend/database/migrations/2026_onboarding_next_step.sql
+-- ==================================================================
+-- STEPs 53-61 are on review branches; they were applied in production on
+-- 9 October 2026 and go above this one when those branches are merged.
+
+-- =====================================================================
+-- "Do you know what to do next?" after setup (STEP 62)
+--
+-- Riipen Labs' cohort report (all 36 teams, September 2026) asked for "one
+-- short qualitative question such as 'Did you know what to do next?'" and,
+-- against mistaking completion for satisfaction, to "ask whether users
+-- understood what to do next". The moderated sessions ask it; people using
+-- the app on their own were never asked.
+--
+-- One more optional answer in the questions after setup (yes, not sure, no),
+-- in the same row as the others. The app works before this is applied: the
+-- answer is simply not kept (app/api/onboarding-feedback).
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+ALTER TABLE public.onboarding_feedback
+  ADD COLUMN IF NOT EXISTS next_step TEXT CHECK (next_step IN ('yes', 'not_sure', 'no'));
+
+COMMENT ON COLUMN public.onboarding_feedback.next_step IS
+  '"Do you know what to do next?" on the page after setup: yes, not_sure or no (STEP 62).';
+
+-- A response may now be this answer alone.
+ALTER TABLE public.onboarding_feedback DROP CONSTRAINT IF EXISTS onboarding_feedback_answered;
+ALTER TABLE public.onboarding_feedback ADD CONSTRAINT onboarding_feedback_answered CHECK (
+  info_before_signup IS NOT NULL OR setup_ease IS NOT NULL OR comment IS NOT NULL OR next_step IS NOT NULL
+);
+
+-- STEP 63 — backend/database/migrations/2026_badge_wording.sql
+-- ==================================================================
+-- =====================================================================
+-- Tidbits badges say what earns them (STEP 63)
+--
+-- Riipen Labs, Group 34 found karma and up-votes unexplained. Tidbits now
+-- calls karma "helpful points" and explains the rule (up-votes minus
+-- down-votes, plus 15 for each accepted answer). Two badge descriptions
+-- disagreed with how they are earned: "Helpful" said "Received 5 upvotes on
+-- an answer" but is granted at 25 points, and "Community Pillar" said
+-- "karma". Only these two rows change, and only while they still have the
+-- old wording. The app works before this is applied: the old text shows.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+UPDATE public.community_badges
+   SET description = 'Reached 25 helpful points'
+ WHERE slug = 'helpful' AND description = 'Received 5 upvotes on an answer';
+
+UPDATE public.community_badges
+   SET description = 'Reached 1,000 helpful points'
+ WHERE slug = 'community_pillar' AND description = 'Reached 1000 karma';
+
+-- STEP 64 — backend/database/migrations/2026_profile_privacy.sql
+-- ==================================================================
+-- =====================================================================
+-- Profiles: private by default, public fields through a view (STEP 64)
+--
+-- Found on 10 October 2026 while building Riipen Labs Group 34's profile
+-- and friend card. The read rule on public.profiles ("profiles_read") let
+-- anyone see the WHOLE row of a profile that was discoverable, or linked to
+-- them by a connection or a pending request: email, date of birth,
+-- preferences (which can hold a phone number for text reminders), location,
+-- the app journey log and plan. A discoverable row was readable even
+-- signed out, with the public key the website ships. The app's screens
+-- never showed those fields, but the database API did.
+--
+-- 1. profiles: a person reads only their own row.
+-- 2. public_profiles: what other people may see (name, picture, dream and
+--    the new public fields below), for the same rows as before: your own,
+--    discoverable ones, and anyone a connection or pending request links you
+--    to. It runs with its owner's rights so it can read those rows, and
+--    returns only these columns.
+-- 3. search_profiles(q): Hare World's people search. Matches a display name
+--    or username, or a WHOLE email address; it used to match any part of an
+--    email, so searching "gmail" listed everyone discoverable with Gmail.
+-- 4. New public profile fields for Group 34's profile page (slide 21) and
+--    setup (slide 25): username, pronouns, bio, avatar_url (a photo).
+-- 5. An "avatars" storage bucket for profile photos: 2 MB, PNG, JPEG or
+--    WebP; each person can only write in, list and remove from their own
+--    folder. Anyone with a photo's link can open it.
+--
+-- The app works before and after this is applied: it reads public_profiles
+-- and search_profiles when they exist and falls back otherwise.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+-- 4. New public fields --------------------------------------------------
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS username   TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pronouns   TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bio        TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_username_format;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_username_format
+  CHECK (username IS NULL OR username ~ '^[a-z0-9_.]{3,20}$');
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_pronouns_length;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_pronouns_length
+  CHECK (pronouns IS NULL OR char_length(pronouns) <= 60);
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_bio_length;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_bio_length
+  CHECK (bio IS NULL OR char_length(bio) <= 500);
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_avatar_url_length;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_avatar_url_length
+  CHECK (avatar_url IS NULL OR char_length(avatar_url) <= 500);
+
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_unique
+  ON public.profiles (username) WHERE username IS NOT NULL;
+
+COMMENT ON COLUMN public.profiles.username IS 'Optional @name other members see: 3-20 of a-z, 0-9, _ and . (STEP 64).';
+COMMENT ON COLUMN public.profiles.pronouns IS 'Optional pronouns other members see (STEP 64).';
+COMMENT ON COLUMN public.profiles.bio IS 'Optional short bio other members see, up to 500 characters (STEP 64).';
+COMMENT ON COLUMN public.profiles.avatar_url IS 'Optional profile photo, in the avatars storage bucket (STEP 64).';
+
+-- 1. Own row only -------------------------------------------------------
+DROP POLICY IF EXISTS "profiles_read" ON public.profiles;
+CREATE POLICY "profiles_read"
+  ON public.profiles
+  FOR SELECT
+  USING (id = auth.uid());
+
+COMMENT ON POLICY "profiles_read" ON public.profiles IS
+  'Your own row only. Other people''s public fields come from public.public_profiles (STEP 64).';
+
+-- 2. What other people may see -------------------------------------------
+CREATE OR REPLACE VIEW public.public_profiles AS
+SELECT p.id,
+       p.display_name,
+       p.avatar_emoji,
+       p.dream,
+       p.full_name,
+       p.role,
+       p.discoverable,
+       p.created_at,
+       p.username,
+       p.pronouns,
+       p.bio,
+       p.avatar_url
+  FROM public.profiles p
+ WHERE p.id = auth.uid()
+    OR p.discoverable = TRUE
+    OR EXISTS (
+         SELECT 1 FROM public.social_connections sc
+          WHERE sc.status IN ('connected', 'pending')
+            AND (
+                  (sc.owner_id = auth.uid() AND sc.target_user_id = p.id)
+               OR (sc.target_user_id = auth.uid() AND sc.owner_id = p.id)
+                )
+       );
+
+COMMENT ON VIEW public.public_profiles IS
+  'The public part of a profile, for the rows profiles_read used to allow: your own, discoverable ones, and anyone a connected or pending connection links you to. Runs with its owner''s rights and returns only these columns (STEP 64).';
+
+REVOKE ALL ON public.public_profiles FROM PUBLIC;
+GRANT SELECT ON public.public_profiles TO anon, authenticated;
+
+-- 3. People search -----------------------------------------------------
+CREATE OR REPLACE FUNCTION public.search_profiles(q TEXT)
+RETURNS TABLE (
+  id UUID,
+  display_name TEXT,
+  avatar_emoji TEXT,
+  dream TEXT,
+  username TEXT,
+  pronouns TEXT,
+  avatar_url TEXT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH term AS (
+    SELECT ltrim(trim(coalesce(q, '')), '@') AS t
+  ), pattern AS (
+    SELECT t,
+           replace(replace(replace(t, '\', '\\'), '%', '\%'), '_', '\_') AS esc
+      FROM term
+  )
+  SELECT p.id, p.display_name, p.avatar_emoji, p.dream, p.username, p.pronouns, p.avatar_url
+    FROM public.profiles p, pattern
+   WHERE auth.uid() IS NOT NULL
+     AND char_length(pattern.t) >= 2
+     AND p.discoverable = TRUE
+     AND p.id <> auth.uid()
+     AND (
+           p.display_name ILIKE '%' || pattern.esc || '%'
+        OR p.username ILIKE pattern.esc || '%'
+        OR lower(p.email) = lower(pattern.t)
+         )
+   ORDER BY p.display_name NULLS LAST
+   LIMIT 20
+$$;
+
+COMMENT ON FUNCTION public.search_profiles(TEXT) IS
+  'Hare World people search: discoverable profiles by display name, username prefix, or a whole email address. Returns public fields only (STEP 64).';
+
+REVOKE ALL ON FUNCTION public.search_profiles(TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.search_profiles(TEXT) TO authenticated;
+
+-- 5. Profile photos ------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('avatars', 'avatars', TRUE, 2097152, ARRAY['image/png', 'image/jpeg', 'image/webp'])
+ON CONFLICT (id) DO UPDATE
+  SET public = EXCLUDED.public,
+      file_size_limit = EXCLUDED.file_size_limit,
+      allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "avatars_insert_own" ON storage.objects;
+CREATE POLICY "avatars_insert_own" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "avatars_update_own" ON storage.objects;
+CREATE POLICY "avatars_update_own" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text)
+  WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "avatars_delete_own" ON storage.objects;
+CREATE POLICY "avatars_delete_own" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Listing and removing your own photos need to read your own folder.
+DROP POLICY IF EXISTS "avatars_read_own" ON storage.objects;
+CREATE POLICY "avatars_read_own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+
+-- STEP 65 — backend/database/migrations/2026_blocks_and_account_deletion.sql
+-- ==================================================================
+-- =====================================================================
+-- Blocking, "friends since", and deleting your own account (STEP 65)
+--
+-- Riipen Labs, Group 34: a person's card (slide 20) has Block and says how
+-- long you have been connected; Your profile (slide 21) has Delete account.
+--
+-- 1. social_connections.connected_at: when a request was accepted. Rows
+--    accepted before this stay empty (nobody recorded it), and the card
+--    says when the request was sent instead. Set only by the database.
+-- 2. user_blocks and block_user(target). Blocking someone removes every
+--    connection and request between you, both ways; hides each of you from
+--    the other (public_profiles, search_profiles); and refuses new requests
+--    between you (a trigger). Only the person who blocked can see or undo
+--    it, and the other person is not told. my_blocked_people() lists them
+--    with names, since a block hides the blocked person's profile.
+-- 3. delete_my_account(confirm): deletes the signed-in person's account and
+--    everything linked to it, straight away. confirm must be 'DELETE';
+--    anything else deletes nothing and answers 'not_confirmed', which the
+--    app uses to check this is switched on. Team accounts (role admin or
+--    moderator) answer 'staff' and are never deleted this way.
+-- 4. Reading your own folder of the avatars bucket, which listing and
+--    removing your own photos need. (Added to STEP 64 on 10 October too;
+--    repeated here for a database that ran STEP 64 before then.)
+--
+-- Run after STEP 64. Idempotent. Safe to re-run.
+-- =====================================================================
+
+-- 1. When you connected ---------------------------------------------------
+ALTER TABLE public.social_connections ADD COLUMN IF NOT EXISTS connected_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN public.social_connections.connected_at IS
+  'When the request was accepted (STEP 65). Empty for rows accepted before STEP 65, and for rows that are not connected.';
+
+CREATE OR REPLACE FUNCTION public.stamp_connected_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.status = 'connected' THEN
+    IF TG_OP = 'INSERT' OR OLD.status IS DISTINCT FROM 'connected' THEN
+      NEW.connected_at := now();
+    ELSE
+      -- Nobody can rewrite when it happened.
+      NEW.connected_at := OLD.connected_at;
+    END IF;
+  ELSE
+    NEW.connected_at := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_stamp_connected_at ON public.social_connections;
+CREATE TRIGGER trg_stamp_connected_at
+  BEFORE INSERT OR UPDATE ON public.social_connections
+  FOR EACH ROW EXECUTE FUNCTION public.stamp_connected_at();
+
+-- 2. Blocking --------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.user_blocks (
+  blocker_id UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  blocked_id UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (blocker_id, blocked_id),
+  CONSTRAINT user_blocks_not_self CHECK (blocker_id <> blocked_id)
+);
+
+CREATE INDEX IF NOT EXISTS user_blocks_blocked_idx ON public.user_blocks (blocked_id);
+
+COMMENT ON TABLE public.user_blocks IS
+  'Who blocked whom (STEP 65). Only the blocker can read or delete their rows; rows are added by block_user().';
+
+ALTER TABLE public.user_blocks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "user_blocks_read_own" ON public.user_blocks;
+CREATE POLICY "user_blocks_read_own" ON public.user_blocks
+  FOR SELECT TO authenticated
+  USING (blocker_id = auth.uid());
+
+DROP POLICY IF EXISTS "user_blocks_delete_own" ON public.user_blocks;
+CREATE POLICY "user_blocks_delete_own" ON public.user_blocks
+  FOR DELETE TO authenticated
+  USING (blocker_id = auth.uid());
+
+REVOKE ALL ON public.user_blocks FROM anon;
+REVOKE INSERT, UPDATE ON public.user_blocks FROM authenticated;
+GRANT SELECT, DELETE ON public.user_blocks TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.block_user(target UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  me UUID := auth.uid();
+BEGIN
+  IF me IS NULL THEN
+    RAISE EXCEPTION 'Not signed in' USING ERRCODE = '28000';
+  END IF;
+  IF target IS NULL OR target = me THEN
+    RAISE EXCEPTION 'Choose someone else to block' USING ERRCODE = '22023';
+  END IF;
+
+  INSERT INTO public.user_blocks (blocker_id, blocked_id)
+  VALUES (me, target)
+  ON CONFLICT DO NOTHING;
+
+  DELETE FROM public.social_connections
+   WHERE (owner_id = me AND target_user_id = target)
+      OR (owner_id = target AND target_user_id = me);
+END;
+$$;
+
+COMMENT ON FUNCTION public.block_user(UUID) IS
+  'Block someone: removes every connection and request between you, both ways, and hides you from each other (STEP 65).';
+
+REVOKE ALL ON FUNCTION public.block_user(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.block_user(UUID) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.my_blocked_people()
+RETURNS TABLE (id UUID, display_name TEXT, avatar_emoji TEXT, blocked_at TIMESTAMPTZ)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT b.blocked_id, p.display_name, p.avatar_emoji, b.created_at
+    FROM public.user_blocks b
+    LEFT JOIN public.profiles p ON p.id = b.blocked_id
+   WHERE b.blocker_id = auth.uid()
+   ORDER BY b.created_at DESC
+$$;
+
+COMMENT ON FUNCTION public.my_blocked_people() IS
+  'The people you blocked, with their display name and picture, so you can unblock them (STEP 65).';
+
+REVOKE ALL ON FUNCTION public.my_blocked_people() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.my_blocked_people() TO authenticated;
+
+-- No new connection or request between two people when either blocked the
+-- other. The hint says which, for the message the app shows.
+CREATE OR REPLACE FUNCTION public.refuse_blocked_connection()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.target_user_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.user_blocks
+              WHERE blocker_id = NEW.owner_id AND blocked_id = NEW.target_user_id) THEN
+    RAISE EXCEPTION 'You blocked this person' USING ERRCODE = 'P0001', HINT = 'blocked_by_you';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.user_blocks
+              WHERE blocker_id = NEW.target_user_id AND blocked_id = NEW.owner_id) THEN
+    RAISE EXCEPTION 'This person can''t be added' USING ERRCODE = 'P0001', HINT = 'unavailable';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_refuse_blocked_connection ON public.social_connections;
+CREATE TRIGGER trg_refuse_blocked_connection
+  BEFORE INSERT OR UPDATE OF target_user_id, owner_id ON public.social_connections
+  FOR EACH ROW EXECUTE FUNCTION public.refuse_blocked_connection();
+
+-- What other people may see (STEP 64), now leaving out anyone either of you
+-- blocked.
+CREATE OR REPLACE VIEW public.public_profiles AS
+SELECT p.id,
+       p.display_name,
+       p.avatar_emoji,
+       p.dream,
+       p.full_name,
+       p.role,
+       p.discoverable,
+       p.created_at,
+       p.username,
+       p.pronouns,
+       p.bio,
+       p.avatar_url
+  FROM public.profiles p
+ WHERE p.id = auth.uid()
+    OR (
+         NOT EXISTS (
+           SELECT 1 FROM public.user_blocks b
+            WHERE (b.blocker_id = auth.uid() AND b.blocked_id = p.id)
+               OR (b.blocker_id = p.id AND b.blocked_id = auth.uid())
+         )
+     AND (
+           p.discoverable = TRUE
+        OR EXISTS (
+             SELECT 1 FROM public.social_connections sc
+              WHERE sc.status IN ('connected', 'pending')
+                AND (
+                      (sc.owner_id = auth.uid() AND sc.target_user_id = p.id)
+                   OR (sc.target_user_id = auth.uid() AND sc.owner_id = p.id)
+                    )
+           )
+         )
+       );
+
+COMMENT ON VIEW public.public_profiles IS
+  'The public part of a profile, for the rows profiles_read used to allow: your own, discoverable ones, and anyone a connected or pending connection links you to; never someone either of you blocked. Runs with its owner''s rights and returns only these columns (STEP 64, blocks STEP 65).';
+
+REVOKE ALL ON public.public_profiles FROM PUBLIC;
+GRANT SELECT ON public.public_profiles TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.search_profiles(q TEXT)
+RETURNS TABLE (
+  id UUID,
+  display_name TEXT,
+  avatar_emoji TEXT,
+  dream TEXT,
+  username TEXT,
+  pronouns TEXT,
+  avatar_url TEXT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH term AS (
+    SELECT ltrim(trim(coalesce(q, '')), '@') AS t
+  ), pattern AS (
+    SELECT t,
+           replace(replace(replace(t, '\', '\\'), '%', '\%'), '_', '\_') AS esc
+      FROM term
+  )
+  SELECT p.id, p.display_name, p.avatar_emoji, p.dream, p.username, p.pronouns, p.avatar_url
+    FROM public.profiles p, pattern
+   WHERE auth.uid() IS NOT NULL
+     AND char_length(pattern.t) >= 2
+     AND p.discoverable = TRUE
+     AND p.id <> auth.uid()
+     AND NOT EXISTS (
+           SELECT 1 FROM public.user_blocks b
+            WHERE (b.blocker_id = auth.uid() AND b.blocked_id = p.id)
+               OR (b.blocker_id = p.id AND b.blocked_id = auth.uid())
+         )
+     AND (
+           p.display_name ILIKE '%' || pattern.esc || '%'
+        OR p.username ILIKE pattern.esc || '%'
+        OR lower(p.email) = lower(pattern.t)
+         )
+   ORDER BY p.display_name NULLS LAST
+   LIMIT 20
+$$;
+
+COMMENT ON FUNCTION public.search_profiles(TEXT) IS
+  'Hare World people search: discoverable profiles by display name, username prefix, or a whole email address, leaving out anyone either of you blocked. Returns public fields only (STEP 64, blocks STEP 65).';
+
+REVOKE ALL ON FUNCTION public.search_profiles(TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.search_profiles(TEXT) TO authenticated;
+
+-- 3. Deleting your own account -------------------------------------------
+CREATE OR REPLACE FUNCTION public.delete_my_account(confirm TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  me UUID := auth.uid();
+  r RECORD;
+BEGIN
+  IF me IS NULL THEN
+    RAISE EXCEPTION 'Not signed in' USING ERRCODE = '28000';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.profiles WHERE id = me AND role IN ('admin', 'moderator')) THEN
+    RETURN 'staff';
+  END IF;
+  IF confirm IS DISTINCT FROM 'DELETE' THEN
+    RETURN 'not_confirmed';
+  END IF;
+
+  -- Tables that hold a person's id without a foreign key, so nothing below
+  -- would reach them. Each only if it exists here.
+  FOR r IN
+    SELECT t.tbl, t.col
+      FROM (VALUES
+              ('reflections', 'user_id'),
+              ('adaptation_outcomes', 'user_id'),
+              ('calendar_outcomes', 'user_id'),
+              ('pattern_user_embeddings', 'user_id'),
+              ('pattern_user_feedback', 'query_user_id'),
+              ('pattern_user_feedback', 'retrieved_user_id'),
+              ('user_latest_context', 'user_id'),
+              ('servicehub_agent_decisions', 'user_id'),
+              ('generation_jobs', 'user_id'),
+              ('agent_memory', 'user_id'),
+              ('user_paths', 'user_id')
+           ) AS t(tbl, col)
+     WHERE EXISTS (SELECT 1 FROM information_schema.columns c
+                    WHERE c.table_schema = 'public' AND c.table_name = t.tbl AND c.column_name = t.col)
+  LOOP
+    EXECUTE format('DELETE FROM public.%I WHERE %I = $1', r.tbl, r.col) USING me;
+  END LOOP;
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_schema = 'public' AND table_name = 'user_latest_context' AND column_name = 'retrieved_user_ids') THEN
+    EXECUTE 'UPDATE public.user_latest_context SET retrieved_user_ids = array_remove(retrieved_user_ids, $1) WHERE $1 = ANY (retrieved_user_ids)' USING me;
+  END IF;
+
+  -- References with no ON DELETE rule would stop the delete. Clear the
+  -- optional ones (who locked, resolved or reviewed something), so other
+  -- people's records stay; remove rows that can't exist without the person.
+  FOR r IN
+    SELECT con.conrelid::regclass AS tbl, att.attname AS col, att.attnotnull AS required
+      FROM pg_constraint con
+      JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = con.conkey[1]
+     WHERE con.contype = 'f'
+       AND con.confrelid IN ('public.profiles'::regclass, 'auth.users'::regclass)
+       AND con.confdeltype IN ('a', 'r')
+       AND array_length(con.conkey, 1) = 1
+       AND con.connamespace = 'public'::regnamespace
+       AND con.conrelid <> 'public.profiles'::regclass
+  LOOP
+    IF r.required THEN
+      EXECUTE format('DELETE FROM %s WHERE %I = $1', r.tbl, r.col) USING me;
+    ELSE
+      EXECUTE format('UPDATE %s SET %I = NULL WHERE %I = $1', r.tbl, r.col, r.col) USING me;
+    END IF;
+  END LOOP;
+
+  -- The profile, and with it everything that cascades from it.
+  DELETE FROM public.profiles WHERE id = me;
+
+  -- The sign-in itself, and everything that cascades from it. Where this
+  -- database role may not touch auth.users, the app finishes with the
+  -- admin API.
+  BEGIN
+    DELETE FROM auth.users WHERE id = me;
+  EXCEPTION WHEN insufficient_privilege THEN
+    RETURN 'profile_deleted';
+  END;
+  RETURN 'deleted';
+END;
+$$;
+
+COMMENT ON FUNCTION public.delete_my_account(TEXT) IS
+  'Deletes the signed-in person''s account and everything linked to it when confirm = ''DELETE''; otherwise deletes nothing and answers not_confirmed. Team accounts answer staff (STEP 65).';
+
+REVOKE ALL ON FUNCTION public.delete_my_account(TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.delete_my_account(TEXT) TO authenticated;
+
+-- 4. Your own photos -----------------------------------------------------
+DROP POLICY IF EXISTS "avatars_read_own" ON storage.objects;
+CREATE POLICY "avatars_read_own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+
+-- STEP 66 — backend/database/migrations/2026_social_features.sql
+-- ==================================================================
+-- =====================================================================
+-- Hare World's people features, with rules in the database (STEP 66)
+--
+-- Riipen Labs, Group 34 found that most of Hare World's people features
+-- didn't work (slides 8, 19 and 20): messages went to the wrong person and
+-- were never shown, the meme feed showed only your own, "Mentor call" was a
+-- timer, and mentor tasks, notes of support and working on a race together
+-- had nothing behind them. The app now reads and writes these tables as the
+-- signed-in person, so the rules below are what keeps them private.
+--
+-- Everything here is only between two people a connection links (accepted,
+-- either direction), never between people where either blocked the other
+-- (STEP 65), and has a limit per hour or day against floods.
+--
+-- 1. messages: chat, and notes of support (kind = 'support'). Each person
+--    reads their own conversations; sends as themselves; can unsend what
+--    they sent; marks what they received as read (mark_conversation_read).
+--    report_message() keeps a copy for the team to review.
+-- 2. memes: an emoji or a short text with a caption, for your connections
+--    (all of them, or the ones you pick). Likes are counted by the database.
+-- 3. video_calls: a call booked with a time and a link to a video room.
+--    Either person can cancel it or mark it done (set_call_status).
+-- 4. mentor_tasks: someone who chose you as their mentor can be sent small
+--    tasks; they accept, decline or tick them off (set_mentor_task_status).
+-- 5. race_collabs: invite a connection to work on one of your goals
+--    together; they accept or decline (respond_race_collab).
+-- 6. block_user() also clears what was waiting between two people: calls
+--    still booked, task suggestions and invitations.
+--
+-- Updates from your people need no table: connected people can already read
+-- each other's progress (race_progress) and paths (user_paths).
+--
+-- The tables in 1 to 3 came from the first schema (database/schema.sql) and
+-- were repointed at profiles in STEP 22. Whatever rules they had are removed
+-- first, so only these apply.
+--
+-- Run after STEP 65. Idempotent. Safe to re-run.
+-- =====================================================================
+
+-- Helpers ------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.connected_pair(a UUID, b UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.social_connections sc
+     WHERE sc.status = 'connected'
+       AND ((sc.owner_id = a AND sc.target_user_id = b)
+         OR (sc.owner_id = b AND sc.target_user_id = a))
+  )
+$$;
+
+CREATE OR REPLACE FUNCTION public.blocked_pair(a UUID, b UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_blocks ub
+     WHERE (ub.blocker_id = a AND ub.blocked_id = b)
+        OR (ub.blocker_id = b AND ub.blocked_id = a)
+  )
+$$;
+
+REVOKE ALL ON FUNCTION public.connected_pair(UUID, UUID) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.blocked_pair(UUID, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.connected_pair(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.blocked_pair(UUID, UUID) TO authenticated;
+
+-- The check every new row between two people goes through.
+CREATE OR REPLACE FUNCTION public.check_people_pair(a UUID, b UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF a IS NULL OR b IS NULL OR a = b THEN
+    RAISE EXCEPTION 'Choose someone else' USING ERRCODE = 'P0001', HINT = 'not_connected';
+  END IF;
+  IF public.blocked_pair(a, b) THEN
+    RAISE EXCEPTION 'Not available' USING ERRCODE = 'P0001', HINT = 'unavailable';
+  END IF;
+  IF NOT public.connected_pair(a, b) THEN
+    RAISE EXCEPTION 'Only with people you are connected to' USING ERRCODE = 'P0001', HINT = 'not_connected';
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.check_people_pair(UUID, UUID) FROM PUBLIC, anon, authenticated;
+
+-- Start from no rules on the old tables.
+DO $$
+DECLARE
+  p RECORD;
+BEGIN
+  FOR p IN
+    SELECT policyname, tablename FROM pg_policies
+     WHERE schemaname = 'public' AND tablename IN ('messages', 'memes', 'meme_likes', 'video_calls')
+  LOOP
+    EXECUTE format('DROP POLICY %I ON public.%I', p.policyname, p.tablename);
+  END LOOP;
+END $$;
+
+-- 1. Messages and notes of support ---------------------------------------
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'message';
+ALTER TABLE public.messages DROP CONSTRAINT IF EXISTS messages_kind_check;
+ALTER TABLE public.messages ADD CONSTRAINT messages_kind_check CHECK (kind IN ('message', 'support'));
+
+CREATE INDEX IF NOT EXISTS messages_sender_receiver_idx ON public.messages (sender_id, receiver_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS messages_receiver_unread_idx ON public.messages (receiver_id) WHERE read_at IS NULL;
+
+COMMENT ON COLUMN public.messages.kind IS 'message: chat. support: a note of support (STEP 66).';
+
+CREATE OR REPLACE FUNCTION public.check_new_message()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM public.check_people_pair(NEW.sender_id, NEW.receiver_id);
+  NEW.content := btrim(coalesce(NEW.content, ''));
+  IF NEW.content = '' THEN
+    RAISE EXCEPTION 'Write something first' USING ERRCODE = 'P0001', HINT = 'empty';
+  END IF;
+  IF char_length(NEW.content) > (CASE WHEN NEW.kind = 'support' THEN 300 ELSE 2000 END) THEN
+    RAISE EXCEPTION 'Too long' USING ERRCODE = 'P0001', HINT = 'too_long';
+  END IF;
+  IF (SELECT count(*) FROM public.messages
+       WHERE sender_id = NEW.sender_id AND created_at > (now() - interval '1 hour')) >= 120 THEN
+    RAISE EXCEPTION 'Slow down' USING ERRCODE = 'P0001', HINT = 'slow_down';
+  END IF;
+  NEW.created_at := now();
+  NEW.read_at := NULL;
+  NEW.deleted_at := NULL;
+  -- Shown at once. Reports (report_message) go to the team.
+  NEW.is_moderated := FALSE;
+  NEW.moderation_status := 'approved';
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_new_message ON public.messages;
+CREATE TRIGGER trg_check_new_message
+  BEFORE INSERT ON public.messages
+  FOR EACH ROW EXECUTE FUNCTION public.check_new_message();
+
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "messages_read_own" ON public.messages
+  FOR SELECT TO authenticated
+  USING (auth.uid() IN (sender_id, receiver_id) AND deleted_at IS NULL);
+
+CREATE POLICY "messages_send_as_self" ON public.messages
+  FOR INSERT TO authenticated
+  WITH CHECK (sender_id = auth.uid());
+
+CREATE POLICY "messages_unsend_own" ON public.messages
+  FOR DELETE TO authenticated
+  USING (sender_id = auth.uid());
+
+REVOKE ALL ON public.messages FROM anon, authenticated;
+GRANT SELECT, INSERT, DELETE ON public.messages TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.mark_conversation_read(other UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  n INTEGER;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not signed in' USING ERRCODE = '28000';
+  END IF;
+  UPDATE public.messages
+     SET read_at = now()
+   WHERE receiver_id = auth.uid() AND sender_id = other AND read_at IS NULL;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RETURN n;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.mark_conversation_read(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.mark_conversation_read(UUID) TO authenticated;
+
+CREATE TABLE IF NOT EXISTS public.message_reports (
+  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  message_id       UUID        REFERENCES public.messages(id) ON DELETE SET NULL,
+  reporter_id      UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  reported_user_id UUID        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  content_snapshot TEXT,
+  reason           TEXT        CHECK (reason IS NULL OR char_length(reason) <= 500),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  resolved_at      TIMESTAMPTZ,
+  resolved_by      UUID        REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+COMMENT ON TABLE public.message_reports IS
+  'Messages reported by the person who received them, with a copy of the text, for the team to review (STEP 66).';
+
+ALTER TABLE public.message_reports ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "message_reports_read" ON public.message_reports;
+CREATE POLICY "message_reports_read" ON public.message_reports
+  FOR SELECT TO authenticated
+  USING (
+    reporter_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM public.profiles pr WHERE pr.id = auth.uid() AND pr.role IN ('admin', 'moderator'))
+  );
+
+REVOKE ALL ON public.message_reports FROM anon, authenticated;
+GRANT SELECT ON public.message_reports TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.report_message(message UUID, why TEXT)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  m public.messages%ROWTYPE;
+  report_id UUID;
+BEGIN
+  SELECT * INTO m FROM public.messages WHERE id = message AND receiver_id = auth.uid();
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Message not found' USING ERRCODE = 'P0001', HINT = 'not_found';
+  END IF;
+  INSERT INTO public.message_reports (message_id, reporter_id, reported_user_id, content_snapshot, reason)
+  VALUES (m.id, auth.uid(), m.sender_id, m.content, left(nullif(btrim(coalesce(why, '')), ''), 500))
+  RETURNING id INTO report_id;
+  RETURN report_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.report_message(UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.report_message(UUID, TEXT) TO authenticated;
+
+-- 2. Memes -----------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.check_new_meme()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  person UUID;
+BEGIN
+  IF NEW.user_id IS NULL THEN
+    RAISE EXCEPTION 'No author' USING ERRCODE = 'P0001', HINT = 'empty';
+  END IF;
+  -- Pictures would need checking before others see them; emoji and words don't.
+  IF NEW.content_type NOT IN ('emoji', 'text') THEN
+    RAISE EXCEPTION 'Emoji or text only' USING ERRCODE = 'P0001', HINT = 'type';
+  END IF;
+  NEW.content := btrim(coalesce(NEW.content, ''));
+  NEW.caption := nullif(btrim(coalesce(NEW.caption, '')), '');
+  IF NEW.content = '' THEN
+    RAISE EXCEPTION 'Write something first' USING ERRCODE = 'P0001', HINT = 'empty';
+  END IF;
+  IF char_length(NEW.content) > 300 OR char_length(coalesce(NEW.caption, '')) > 200 THEN
+    RAISE EXCEPTION 'Too long' USING ERRCODE = 'P0001', HINT = 'too_long';
+  END IF;
+  NEW.shared_with := coalesce(NEW.shared_with, '{}');
+  FOREACH person IN ARRAY NEW.shared_with LOOP
+    PERFORM public.check_people_pair(NEW.user_id, person);
+  END LOOP;
+  IF (SELECT count(*) FROM public.memes
+       WHERE user_id = NEW.user_id AND created_at > (now() - interval '1 hour')) >= 30 THEN
+    RAISE EXCEPTION 'Slow down' USING ERRCODE = 'P0001', HINT = 'slow_down';
+  END IF;
+  NEW.likes := 0;
+  NEW.created_at := now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_new_meme ON public.memes;
+CREATE TRIGGER trg_check_new_meme
+  BEFORE INSERT ON public.memes
+  FOR EACH ROW EXECUTE FUNCTION public.check_new_meme();
+
+ALTER TABLE public.memes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "memes_read" ON public.memes
+  FOR SELECT TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR (
+      public.connected_pair(auth.uid(), user_id)
+      AND NOT public.blocked_pair(auth.uid(), user_id)
+      AND (cardinality(coalesce(shared_with, '{}')) = 0 OR auth.uid() = ANY (shared_with))
+    )
+  );
+
+CREATE POLICY "memes_post_as_self" ON public.memes
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "memes_delete_own" ON public.memes
+  FOR DELETE TO authenticated
+  USING (user_id = auth.uid());
+
+REVOKE ALL ON public.memes FROM anon, authenticated;
+GRANT SELECT, INSERT, DELETE ON public.memes TO authenticated;
+
+ALTER TABLE public.meme_likes ENABLE ROW LEVEL SECURITY;
+
+-- A like is seen with a meme you can see (the memes rule applies inside).
+CREATE POLICY "meme_likes_read" ON public.meme_likes
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid() OR EXISTS (SELECT 1 FROM public.memes m WHERE m.id = meme_id));
+
+CREATE POLICY "meme_likes_add_own" ON public.meme_likes
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid() AND EXISTS (SELECT 1 FROM public.memes m WHERE m.id = meme_id));
+
+CREATE POLICY "meme_likes_remove_own" ON public.meme_likes
+  FOR DELETE TO authenticated
+  USING (user_id = auth.uid());
+
+REVOKE ALL ON public.meme_likes FROM anon, authenticated;
+GRANT SELECT, INSERT, DELETE ON public.meme_likes TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.count_meme_likes()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  target UUID := coalesce(NEW.meme_id, OLD.meme_id);
+BEGIN
+  UPDATE public.memes
+     SET likes = (SELECT count(*) FROM public.meme_likes WHERE meme_id = target)
+   WHERE id = target;
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_count_meme_likes ON public.meme_likes;
+CREATE TRIGGER trg_count_meme_likes
+  AFTER INSERT OR DELETE ON public.meme_likes
+  FOR EACH ROW EXECUTE FUNCTION public.count_meme_likes();
+
+-- 3. Calls -------------------------------------------------------------------
+ALTER TABLE public.video_calls ADD COLUMN IF NOT EXISTS room_url TEXT;
+ALTER TABLE public.video_calls DROP CONSTRAINT IF EXISTS video_calls_room_url_check;
+ALTER TABLE public.video_calls ADD CONSTRAINT video_calls_room_url_check
+  CHECK (room_url IS NULL OR (room_url ~ '^https://[^[:space:]<>"]+$' AND char_length(room_url) <= 300));
+
+COMMENT ON COLUMN public.video_calls.room_url IS 'The video room for the call: one the app made, or a link the person pasted (STEP 66).';
+
+CREATE OR REPLACE FUNCTION public.check_new_call()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM public.check_people_pair(NEW.caller_id, NEW.receiver_id);
+  NEW.notes := nullif(btrim(coalesce(NEW.notes, '')), '');
+  IF char_length(coalesce(NEW.notes, '')) > 500 THEN
+    RAISE EXCEPTION 'Too long' USING ERRCODE = 'P0001', HINT = 'too_long';
+  END IF;
+  IF (SELECT count(*) FROM public.video_calls
+       WHERE caller_id = NEW.caller_id AND created_at > (now() - interval '1 day')) >= 20 THEN
+    RAISE EXCEPTION 'Slow down' USING ERRCODE = 'P0001', HINT = 'slow_down';
+  END IF;
+  NEW.status := 'scheduled';
+  NEW.scheduled_at := coalesce(NEW.scheduled_at, now());
+  NEW.started_at := NULL;
+  NEW.ended_at := NULL;
+  NEW.duration := NULL;
+  NEW.created_at := now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_new_call ON public.video_calls;
+CREATE TRIGGER trg_check_new_call
+  BEFORE INSERT ON public.video_calls
+  FOR EACH ROW EXECUTE FUNCTION public.check_new_call();
+
+ALTER TABLE public.video_calls ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "video_calls_read_own" ON public.video_calls
+  FOR SELECT TO authenticated
+  USING (auth.uid() IN (caller_id, receiver_id));
+
+CREATE POLICY "video_calls_book_as_self" ON public.video_calls
+  FOR INSERT TO authenticated
+  WITH CHECK (caller_id = auth.uid());
+
+REVOKE ALL ON public.video_calls FROM anon, authenticated;
+GRANT SELECT, INSERT ON public.video_calls TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.set_call_status(call UUID, new_status TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF new_status NOT IN ('cancelled', 'completed') THEN
+    RAISE EXCEPTION 'Cancel it or mark it done' USING ERRCODE = '22023';
+  END IF;
+  UPDATE public.video_calls
+     SET status = new_status,
+         ended_at = CASE WHEN new_status = 'completed' THEN now() ELSE ended_at END
+   WHERE id = call AND auth.uid() IN (caller_id, receiver_id) AND status = 'scheduled';
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Call not found' USING ERRCODE = 'P0001', HINT = 'not_found';
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.set_call_status(UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.set_call_status(UUID, TEXT) TO authenticated;
+
+-- 4. Tasks from mentors --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.mentor_tasks (
+  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  mentor_id  UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  mentee_id  UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title      TEXT        NOT NULL CHECK (char_length(title) BETWEEN 1 AND 140),
+  note       TEXT        CHECK (note IS NULL OR char_length(note) <= 500),
+  due_on     DATE,
+  status     TEXT        NOT NULL DEFAULT 'suggested' CHECK (status IN ('suggested', 'accepted', 'done', 'declined')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT mentor_tasks_not_self CHECK (mentor_id <> mentee_id)
+);
+
+CREATE INDEX IF NOT EXISTS mentor_tasks_mentee_idx ON public.mentor_tasks (mentee_id, status);
+CREATE INDEX IF NOT EXISTS mentor_tasks_mentor_idx ON public.mentor_tasks (mentor_id);
+
+COMMENT ON TABLE public.mentor_tasks IS
+  'Small tasks a mentor suggests to someone who chose them as a mentor; that person accepts, declines or ticks them off (STEP 66).';
+
+CREATE OR REPLACE FUNCTION public.check_new_mentor_task()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM public.check_people_pair(NEW.mentor_id, NEW.mentee_id);
+  -- Only someone the mentee chose as their mentor.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.social_connections sc
+     WHERE sc.owner_id = NEW.mentee_id AND sc.target_user_id = NEW.mentor_id
+       AND sc.category = 'mentors' AND sc.status = 'connected'
+  ) THEN
+    RAISE EXCEPTION 'Only for people who chose you as a mentor' USING ERRCODE = 'P0001', HINT = 'not_mentor';
+  END IF;
+  NEW.title := btrim(coalesce(NEW.title, ''));
+  NEW.note := nullif(btrim(coalesce(NEW.note, '')), '');
+  IF (SELECT count(*) FROM public.mentor_tasks
+       WHERE mentor_id = NEW.mentor_id AND created_at > (now() - interval '1 day')) >= 30 THEN
+    RAISE EXCEPTION 'Slow down' USING ERRCODE = 'P0001', HINT = 'slow_down';
+  END IF;
+  NEW.status := 'suggested';
+  NEW.created_at := now();
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_new_mentor_task ON public.mentor_tasks;
+CREATE TRIGGER trg_check_new_mentor_task
+  BEFORE INSERT ON public.mentor_tasks
+  FOR EACH ROW EXECUTE FUNCTION public.check_new_mentor_task();
+
+ALTER TABLE public.mentor_tasks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "mentor_tasks_read_own" ON public.mentor_tasks;
+CREATE POLICY "mentor_tasks_read_own" ON public.mentor_tasks
+  FOR SELECT TO authenticated
+  USING (auth.uid() IN (mentor_id, mentee_id));
+
+DROP POLICY IF EXISTS "mentor_tasks_suggest_as_self" ON public.mentor_tasks;
+CREATE POLICY "mentor_tasks_suggest_as_self" ON public.mentor_tasks
+  FOR INSERT TO authenticated
+  WITH CHECK (mentor_id = auth.uid());
+
+DROP POLICY IF EXISTS "mentor_tasks_remove_own" ON public.mentor_tasks;
+CREATE POLICY "mentor_tasks_remove_own" ON public.mentor_tasks
+  FOR DELETE TO authenticated
+  USING (auth.uid() IN (mentor_id, mentee_id));
+
+REVOKE ALL ON public.mentor_tasks FROM anon, authenticated;
+GRANT SELECT, INSERT, DELETE ON public.mentor_tasks TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.set_mentor_task_status(task UUID, new_status TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF new_status NOT IN ('accepted', 'done', 'declined', 'suggested') THEN
+    RAISE EXCEPTION 'Accept, decline or tick it off' USING ERRCODE = '22023';
+  END IF;
+  UPDATE public.mentor_tasks
+     SET status = new_status, updated_at = now()
+   WHERE id = task AND mentee_id = auth.uid();
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Task not found' USING ERRCODE = 'P0001', HINT = 'not_found';
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.set_mentor_task_status(UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.set_mentor_task_status(UUID, TEXT) TO authenticated;
+
+-- 5. Goals together ----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.race_collabs (
+  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id     UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  partner_id   UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  goal         TEXT        NOT NULL CHECK (char_length(goal) BETWEEN 1 AND 200),
+  note         TEXT        CHECK (note IS NULL OR char_length(note) <= 300),
+  status       TEXT        NOT NULL DEFAULT 'invited' CHECK (status IN ('invited', 'accepted', 'declined')),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  responded_at TIMESTAMPTZ,
+  CONSTRAINT race_collabs_not_self CHECK (owner_id <> partner_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS race_collabs_once ON public.race_collabs (owner_id, partner_id, lower(goal));
+CREATE INDEX IF NOT EXISTS race_collabs_partner_idx ON public.race_collabs (partner_id, status);
+
+COMMENT ON TABLE public.race_collabs IS
+  'One of your goals, worked on with a connection who accepted (STEP 66).';
+
+CREATE OR REPLACE FUNCTION public.check_new_race_collab()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM public.check_people_pair(NEW.owner_id, NEW.partner_id);
+  NEW.goal := btrim(coalesce(NEW.goal, ''));
+  NEW.note := nullif(btrim(coalesce(NEW.note, '')), '');
+  IF (SELECT count(*) FROM public.race_collabs
+       WHERE owner_id = NEW.owner_id AND created_at > (now() - interval '1 day')) >= 20 THEN
+    RAISE EXCEPTION 'Slow down' USING ERRCODE = 'P0001', HINT = 'slow_down';
+  END IF;
+  NEW.status := 'invited';
+  NEW.responded_at := NULL;
+  NEW.created_at := now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_new_race_collab ON public.race_collabs;
+CREATE TRIGGER trg_check_new_race_collab
+  BEFORE INSERT ON public.race_collabs
+  FOR EACH ROW EXECUTE FUNCTION public.check_new_race_collab();
+
+ALTER TABLE public.race_collabs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "race_collabs_read_own" ON public.race_collabs;
+CREATE POLICY "race_collabs_read_own" ON public.race_collabs
+  FOR SELECT TO authenticated
+  USING (auth.uid() IN (owner_id, partner_id));
+
+DROP POLICY IF EXISTS "race_collabs_invite_as_self" ON public.race_collabs;
+CREATE POLICY "race_collabs_invite_as_self" ON public.race_collabs
+  FOR INSERT TO authenticated
+  WITH CHECK (owner_id = auth.uid());
+
+DROP POLICY IF EXISTS "race_collabs_leave" ON public.race_collabs;
+CREATE POLICY "race_collabs_leave" ON public.race_collabs
+  FOR DELETE TO authenticated
+  USING (auth.uid() IN (owner_id, partner_id));
+
+REVOKE ALL ON public.race_collabs FROM anon, authenticated;
+GRANT SELECT, INSERT, DELETE ON public.race_collabs TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.respond_race_collab(collab UUID, accept BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.race_collabs
+     SET status = CASE WHEN accept THEN 'accepted' ELSE 'declined' END,
+         responded_at = now()
+   WHERE id = collab AND partner_id = auth.uid() AND status = 'invited';
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Invitation not found' USING ERRCODE = 'P0001', HINT = 'not_found';
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.respond_race_collab(UUID, BOOLEAN) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.respond_race_collab(UUID, BOOLEAN) TO authenticated;
+
+-- 6. Blocking clears what was waiting ----------------------------------------
+CREATE OR REPLACE FUNCTION public.block_user(target UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  me UUID := auth.uid();
+BEGIN
+  IF me IS NULL THEN
+    RAISE EXCEPTION 'Not signed in' USING ERRCODE = '28000';
+  END IF;
+  IF target IS NULL OR target = me THEN
+    RAISE EXCEPTION 'Choose someone else to block' USING ERRCODE = '22023';
+  END IF;
+
+  INSERT INTO public.user_blocks (blocker_id, blocked_id)
+  VALUES (me, target)
+  ON CONFLICT DO NOTHING;
+
+  DELETE FROM public.social_connections
+   WHERE (owner_id = me AND target_user_id = target)
+      OR (owner_id = target AND target_user_id = me);
+
+  -- What was waiting between the two of you (STEP 66).
+  UPDATE public.video_calls SET status = 'cancelled'
+   WHERE status = 'scheduled'
+     AND ((caller_id = me AND receiver_id = target) OR (caller_id = target AND receiver_id = me));
+  DELETE FROM public.mentor_tasks
+   WHERE status = 'suggested'
+     AND ((mentor_id = me AND mentee_id = target) OR (mentor_id = target AND mentee_id = me));
+  DELETE FROM public.race_collabs
+   WHERE status = 'invited'
+     AND ((owner_id = me AND partner_id = target) OR (owner_id = target AND partner_id = me));
+END;
+$$;
+
+COMMENT ON FUNCTION public.block_user(UUID) IS
+  'Block someone: removes every connection and request between you, both ways, hides you from each other (STEP 65), and clears booked calls, task suggestions and invitations between you (STEP 66).';
+
+REVOKE ALL ON FUNCTION public.block_user(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.block_user(UUID) TO authenticated;
 
 COMMIT;

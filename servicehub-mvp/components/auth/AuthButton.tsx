@@ -134,6 +134,18 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
                 Resource Manager
               </Link>
               
+              {/* Only the phone menu (MobileNav) linked here, so on a desktop
+                  the Tidbits public-profile switch could not be found
+                  (Riipen Labs, Group 34: a clear public/private toggle). */}
+              <Link
+                href="/community/settings"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                role="menuitem"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Tidbits settings
+              </Link>
+
               <Link
                 href="/settings/accessibility"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

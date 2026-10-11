@@ -25,7 +25,7 @@ const SHOWN_KEY = 'autinerary_ask_later_shown'
 
 const LINKS: Record<string, { icon: typeof Palette; title: string; body: string; href: string }> = {
   aboutYou: { icon: Ear, title: 'Sensory needs and conditions', body: 'So plans and suggestions can fit how you work. Private.', href: '/profile/diagnostic' },
-  character: { icon: Palette, title: 'Design your character', body: 'Your avatar in Dream Land.', href: '/ideal-self' },
+  character: { icon: Palette, title: 'Design your character', body: 'Shown on your race track, at the step you are on.', href: '/ideal-self' },
   spiritAnimal: { icon: Heart, title: 'Choose your spirit animals', body: 'The guides shown on your Path.', href: '/profile/settings' },
   personalize: { icon: SlidersHorizontal, title: 'Adjust how the app looks', body: 'Layout, colours, and how much it shows at once.', href: '/profile/settings' },
 }

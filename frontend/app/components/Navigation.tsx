@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
@@ -10,6 +11,7 @@ import VoiceNavigation from './VoiceNavigation'
 import NotificationBell from './NotificationBell'
 import { goHubHref } from '@/lib/serviceHub'
 import { useDisclosure } from '@/lib/disclosure'
+import { useCssHeightVar } from '@/lib/useCssHeightVar'
 
 function goToServiceHub() {
   // Route through /go/servicehub, which forwards the session so the user lands
@@ -17,13 +19,17 @@ function goToServiceHub() {
   window.location.href = goHubHref('/')
 }
 
-const hideNavRoutes = ['/', '/login', '/signup', '/auth/age', '/onboarding', '/checkin']
+const hideNavRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/auth/age', '/onboarding', '/checkin']
 
 export default function Navigation() {
   const { user, supabaseUser, logout, isLoading } = useAuth()
   const { t } = useTranslation()
   const pathname = usePathname()
   const { isSimple } = useDisclosure()
+  const navRef = useRef<HTMLElement>(null)
+  const shown = !isLoading && !hideNavRoutes.includes(pathname) && !!user?.hasCompletedOnboarding
+  // Page headers that stick to the top sit below this bar (lib/useCssHeightVar.ts).
+  useCssHeightVar(navRef, '--nav-h', shown)
 
   if (isLoading || hideNavRoutes.includes(pathname)) {
     return null
@@ -34,7 +40,7 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="text-slate-800 sticky top-0 z-50 shadow-sm border-b border-white/40 surface-chrome">
+    <nav ref={navRef} className="text-slate-800 sticky top-0 z-50 shadow-sm border-b border-white/40 surface-chrome">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-wrap justify-between items-center min-h-16 py-2 gap-2">
           <Link href="/path" className="flex items-center gap-2">
@@ -45,10 +51,16 @@ export default function Navigation() {
           </Link>
 
           <div className="flex flex-wrap items-center gap-1 sm:gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600">
-              <User className="w-4 h-4" />
-              <span>{user.name || user.email.split('@')[0]}</span>
-            </div>
+            {/* The name opens Your profile (Riipen Labs, Group 34); it was plain text. */}
+            <Link
+              href="/profile"
+              aria-label={`Your profile: ${user.name || user.email.split('@')[0]}`}
+              data-info="Opens your profile: your name, what friends see, and your password."
+              className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <User className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{user.name || user.email.split('@')[0]}</span>
+            </Link>
 
             <button
               onClick={goToServiceHub}
@@ -107,7 +119,7 @@ export default function Navigation() {
 
             <button
               onClick={logout}
-              aria-label="Sign out"
+              aria-label={t('nav.logout')}
               data-info="Signs you out of this account without deleting your saved progress."
               className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
             >

@@ -44,19 +44,22 @@ export default function ResourceCard({
   const href = isProduct ? `/shop/${resource.id}` : `/resources/${resource.id}`
   const price = (resource as any).price
 
+  // Each card is named by what it shows. An aria-label of "View <name>"
+  // replaced the rest (place, rating) for screen readers and failed WCAG
+  // 2.5.3, label in name (scripts/qa/check-accessibility.mjs). The photo's
+  // alt is empty because the name is written right beside it.
   if (variant === 'list') {
     return (
       <Link
         href={href}
         className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        aria-label={`View ${resource.name}`}
       >
         <div className="p-6 flex flex-col sm:flex-row gap-6">
           {/* Thumbnail */}
           <div className="sm:w-40 sm:h-40 w-full aspect-[16/9] sm:aspect-auto flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
             {photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo} alt={resource.name} className="w-full h-full object-cover" loading="lazy" />
+              <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <CategoryIcon category={resource.category} size="lg" />
             )}
@@ -133,7 +136,6 @@ export default function ResourceCard({
     <Link
       href={href}
       className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden group"
-      aria-label={`View ${resource.name}`}
     >
       {/* Image banner */}
       <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100">
@@ -141,7 +143,7 @@ export default function ResourceCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photo}
-            alt={resource.name}
+            alt=""
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />

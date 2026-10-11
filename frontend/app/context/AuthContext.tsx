@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { hubReturnHref } from '@/lib/serviceHub'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { trackArea, trackDailyOpen } from '@/lib/funnel'
 import { markSeenToday } from '@/lib/checkin'
@@ -31,9 +32,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // '/start' is the guided "Start here", open to everyone (campaign links land there).
-// The newsletter links work from an email, signed in or not (app/newsletter).
-const publicRoutes = ['/', '/start', '/login', '/signup', '/checkin', '/privacy', '/newsletter/confirm', '/newsletter/unsubscribe']
+// The newsletter links, and the weekly email's stop link, work from an email,
+// signed in or not (app/newsletter, app/emails).
+const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop']
 const AGE_ROUTE = '/auth/age'
+
+/** Supabase's sign-in errors, in plain words. */
+function signInErrorMessage(error: { message?: string; status?: number } | null): string {
+  const message = error?.message || ''
+  if (error?.status === 429 || /rate limit|too many/i.test(message)) {
+    return 'Too many sign-in attempts in a short time. Please wait a few minutes, then try again.'
+  }
+  if (/invalid login credentials/i.test(message)) {
+    return 'That email and password don’t match. Check them and try again, or use “Forgot password?”.'
+  }
+  return message || 'Sign-in didn’t work. Please try again.'
+}
 
 function profileFromSupabase(su: SupabaseUser): User {
   const hasCompletedOnboarding = su.user_metadata?.has_completed_onboarding === true
@@ -82,6 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    // The placeholder backend login stored "mock_token" here. It is not a
+    // session, but while it was set, signing out elsewhere (or a session
+    // running out) left this browser looking signed in.
+    try { if (localStorage.getItem('access_token') === 'mock_token') localStorage.removeItem('access_token') } catch {}
     // 1. Check if we have a locally stored custom session first
     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('app_user') : null
     if (storedUser) {
@@ -177,7 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (user && !user.hasCompletedOnboarding && !isOnboarding && !isPublic) {
       router.push('/onboarding')
     } else if (user && user.hasCompletedOnboarding && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
-      router.push('/path')
+      // Sent here by ResourceHub to sign in, but already signed in: go back
+      // there through the hand-off rather than to the Path.
+      const back = pathname === '/login' ? hubReturnHref(new URLSearchParams(window.location.search).get('returnTo')) : null
+      if (back) window.location.replace(back)
+      else router.push('/path')
     }
   }, [user, isLoading, pathname, router])
 
@@ -196,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return { success: false, error: body.message || body.error || 'Signup failed' }
 
       const { error: signInErr } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-      if (signInErr) return { success: false, error: signInErr.message }
+      if (signInErr) return { success: false, error: signInErrorMessage(signInErr) }
 
       return { success: true }
     } catch (err: any) {
@@ -205,68 +227,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase])
 
+  // Signs in straight from the browser. It used to post to /api/auth/login,
+  // which asked the backend first (a placeholder that accepted any password
+  // and returned "mock_token", stored below as if it were real) and, when the
+  // backend was asleep, signed in again from the server. Every server-side
+  // sign-in came from the same few hosting addresses, so a group signing in
+  // together shared one Supabase limit and saw "Too many requests" (Riipen
+  // Labs, Group 34); waiting on a sleeping backend also made signing in slow.
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    if (!supabase) return { success: false, error: 'Sign-in is not available right now. Please try again in a minute.' }
     try {
       const normalizedEmail = email.trim().toLowerCase()
+      const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
+      if (error || !data.user) return { success: false, error: signInErrorMessage(error) }
 
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, password }),
-      })
-
-      const body = await res.json()
-
-      if (!res.ok) {
-        return { success: false, error: body.message || body.detail || body.error || 'Login failed' }
-      }
-
-      // The route signs in on the server, which leaves the browser's Supabase
-      // client with no session. Path generation, reflections and model usage
-      // all read their backend token from that client (getSession), so without
-      // this step a freshly logged-in user reached the backend with no token
-      // and got "Sign-in required." Hand the route's session to the client;
-      // when the route answered from FastAPI instead (not a Supabase session),
-      // sign the browser in directly, the same way signup does.
-      let sessionUser: SupabaseUser | null = null
-      if (supabase) {
-        const s = body.session
-        if (s?.access_token && s?.refresh_token) {
-          const { data, error } = await supabase.auth.setSession({
-            access_token: s.access_token,
-            refresh_token: s.refresh_token,
-          })
-          if (!error) sessionUser = data.user
-        }
-        if (!sessionUser) {
-          const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-          if (error) return { success: false, error: error.message }
-          sessionUser = data.user
-        }
-      }
-
-      // Store JWT token if returned
-      const token = body.access_token || body.token || body.session?.access_token
-      if (token) {
-        localStorage.setItem('access_token', token)
-      }
-
-      // Build user profile object. Prefer the real Supabase user: the route's
-      // fallbacks ('user_id', onboarding defaulting to done) are guesses.
-      const userData = body.user || body
-      const userProfile: User = sessionUser
-        ? profileFromSupabase(sessionUser)
-        : {
-            id: userData.id || 'user_id',
-            email: userData.email || normalizedEmail,
-            name: userData.name || userData.full_name,
-            hasCompletedOnboarding: Boolean(userData.hasCompletedOnboarding ?? true),
-          }
-
-      // Persist user profile to state and localStorage to preserve session across reloads
+      localStorage.removeItem('access_token')
+      const userProfile = profileFromSupabase(data.user)
       localStorage.setItem('app_user', JSON.stringify(userProfile))
+      setSupabaseUser(data.user)
       setUser(userProfile)
-
       return { success: true }
     } catch (err: any) {
       console.error('Login error:', err)

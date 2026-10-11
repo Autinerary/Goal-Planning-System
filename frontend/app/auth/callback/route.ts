@@ -6,6 +6,10 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const origin = requestUrl.origin
+  // Where to go afterwards, for links the app asked for (changing your email
+  // address on Your profile). Only a page of this app.
+  const nextParam = requestUrl.searchParams.get('next') || ''
+  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') && !nextParam.startsWith('/\\') ? nextParam : null
 
   if (code) {
     const cookieStore = await cookies()
@@ -40,7 +44,9 @@ export async function GET(request: Request) {
     
     if (error) {
       console.error('Error exchanging code for session:', error)
-      return NextResponse.redirect(`${origin}/login?error=auth_error`)
+      // A link opened on another device can't sign in here, but the change
+      // it confirmed (a new email address) is done; go where it was headed.
+      return NextResponse.redirect(`${origin}${next || '/login?error=auth_error'}`)
     }
     
     // Email confirmations and Google sign-ins both land here. Google does not
@@ -53,10 +59,11 @@ export async function GET(request: Request) {
       if (!onboarded && !u.app_metadata?.date_of_birth && !u.user_metadata?.date_of_birth) {
         return NextResponse.redirect(`${origin}/auth/age`)
       }
-      return NextResponse.redirect(`${origin}${onboarded ? '/path' : '/onboarding'}`)
+      return NextResponse.redirect(`${origin}${onboarded ? next || '/path' : '/onboarding'}`)
     }
   }
 
-  // Redirect to home page after successful authentication
-  return NextResponse.redirect(`${origin}/`)
+  // Redirect to home page after successful authentication. With secure email
+  // change, the first of the two links arrives here without a code.
+  return NextResponse.redirect(`${origin}${next || '/'}`)
 }

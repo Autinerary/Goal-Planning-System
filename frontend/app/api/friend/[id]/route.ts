@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { publicProfilesByIds } from '@/lib/publicProfiles'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -50,11 +51,9 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
 
   // 2. Parallel-fetch the friend's profile + path + calendar + progress.
   const [profileRes, pathRes, calendarRes, progressRes] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, display_name, avatar_emoji, dream, email')
-      .eq('id', friendId)
-      .maybeSingle(),
+    // Public fields only: this used to send the friend's email address too,
+    // which the page never showed (lib/publicProfiles.ts, STEP 64).
+    publicProfilesByIds(supabase, [friendId]).then((byId) => ({ data: byId[friendId] || null, error: null as any })),
     // Same multi-row hazard as /api/me/path: pick the active path, newest first.
     supabase
       .from('user_paths')

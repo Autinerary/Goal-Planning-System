@@ -69,14 +69,16 @@ export default function MediaPlayer({ item, resume = false }: { item: MediaItem;
         <span className="font-semibold text-slate-900">{item.title}</span> · {lengthLabel(item.seconds)}
         {item.note && <> · {item.note}</>}
       </figcaption>
-      <details className="mt-2 text-sm text-slate-800">
-        <summary className="cursor-pointer font-medium text-indigo-800 underline underline-offset-2">Read the transcript</summary>
-        <div className="mt-2 space-y-2">
-          {item.transcript.map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
-        </div>
-      </details>
+      {item.transcript.length > 0 && (
+        <details className="mt-2 text-sm text-slate-800">
+          <summary className="cursor-pointer font-medium text-indigo-800 underline underline-offset-2">Read the transcript</summary>
+          <div className="mt-2 space-y-2">
+            {item.transcript.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        </details>
+      )}
     </figure>
   )
 }

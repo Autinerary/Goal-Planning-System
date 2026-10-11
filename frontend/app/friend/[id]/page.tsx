@@ -212,7 +212,7 @@ export default function FriendProfilePage() {
                 </div>
                 <button
                   onClick={() => setShowSuggest(true)}
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg flex items-center gap-2 flex-shrink-0"
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-medium rounded-lg flex items-center gap-2 flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
                   Suggest a resource
@@ -378,7 +378,7 @@ export default function FriendProfilePage() {
                     <button
                       onClick={sendSuggestion}
                       disabled={sSending}
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white text-sm font-medium rounded-lg flex items-center gap-2"
+                      className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white text-sm font-medium rounded-lg flex items-center gap-2"
                     >
                       {sSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                       Send suggestion

@@ -39,7 +39,7 @@ const STAT_META: Record<StatKey, {
   mentality: { label: 'Mentality', icon: Brain,  color: 'text-purple-600', bgColor: 'bg-purple-100', barColor: 'bg-purple-500' },
   happiness: { label: 'Happiness', icon: Heart,  color: 'text-pink-600',   bgColor: 'bg-pink-100',   barColor: 'bg-pink-500' },
   focus:     { label: 'Focus',     icon: Target, color: 'text-cyan-600',   bgColor: 'bg-cyan-100',   barColor: 'bg-cyan-500' },
-  energy:    { label: 'Energy',    icon: Zap,    color: 'text-amber-600',  bgColor: 'bg-amber-100',  barColor: 'bg-amber-500' },
+  energy:    { label: 'Activity',  icon: Zap,    color: 'text-amber-600',  bgColor: 'bg-amber-100',  barColor: 'bg-amber-500' },
   commitment:{ label: 'Commitment',icon: Flag,   color: 'text-emerald-600',bgColor: 'bg-emerald-100',barColor: 'bg-emerald-500' },
 }
 

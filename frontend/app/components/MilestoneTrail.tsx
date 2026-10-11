@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Check, Lock } from 'lucide-react'
 
 /**
@@ -36,6 +36,8 @@ interface MilestoneTrailProps {
   day?: boolean
   startIndex?: number
   previewAll?: boolean
+  /** The person's own character, drawn in the "You are here" marker. */
+  character?: ReactNode
 }
 
 const ZONE: Record<
@@ -65,6 +67,7 @@ export default function MilestoneTrail({
   day = true,
   startIndex = 0,
   previewAll = false,
+  character,
 }: MilestoneTrailProps) {
   const n = milestones.length
   const height = PAD_TOP + Math.max(1, n) * STEP + PAD_BOTTOM
@@ -149,7 +152,7 @@ export default function MilestoneTrail({
   return (
     <div className="w-full max-w-[440px] mx-auto">
       {/* HUD */}
-      <div className="sticky top-2 z-30 mb-2 flex justify-center">
+      <div className="sticky z-30 mb-2 flex justify-center" style={{ top: 'calc(var(--nav-h, 0px) + var(--page-header-h, 0px) + 0.5rem)' }}>
         <div className="flex items-center gap-2 rounded-full surface-chrome border border-amber-200 px-4 py-1.5 shadow-lg">
           <span className="text-lg leading-none" aria-hidden="true">🏁</span>
           <span className="text-xs font-extrabold tabular-nums text-slate-800">
@@ -322,7 +325,12 @@ export default function MilestoneTrail({
                 )}
               </span>
 
-              {current && <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-1 text-xs font-bold text-slate-900">You are here</span>}
+              {current && (
+                <span className={`absolute ${character ? '-top-11 flex items-center gap-1 py-0.5' : '-top-8 py-1'} left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 text-xs font-bold text-slate-900`}>
+                  {character && <span aria-hidden="true">{character}</span>}
+                  You are here
+                </span>
+              )}
               <span className="absolute top-[62px] left-1/2 w-32 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-[11px] font-semibold leading-tight text-slate-800">
                 <span className="line-clamp-2">{m.name}</span>
                 <span className="mt-1 block text-sky-700">{locked ? 'Locked' : 'Tap to view'}</span>

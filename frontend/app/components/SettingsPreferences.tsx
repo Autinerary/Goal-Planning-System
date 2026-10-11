@@ -13,7 +13,7 @@ import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check, 
 import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
-import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, loadPreferences, type ViewPreference } from '@/lib/preferences'
+import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, WEEKLY_PICKS_CONSENT, loadPreferences, type ViewPreference } from '@/lib/preferences'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import PushOptIn from './PushOptIn'
 import ReminderFields from './ReminderFields'
@@ -81,7 +81,7 @@ export default function SettingsPreferences() {
                   {l.label}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
+              <div className="text-[11px] text-slate-600 mt-0.5">
                 {l.english}
                 {!l.translated && ' · not translated yet'}
               </div>
@@ -98,7 +98,7 @@ export default function SettingsPreferences() {
           </button>
         )}
 
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="text-xs text-slate-600 mt-2">
           Core navigation is available in {translated.length} languages. Some pages still use English.
           Languages marked "not translated yet" are not available to select.
         </p>
@@ -137,7 +137,7 @@ export default function SettingsPreferences() {
             )
           })}
         </div>
-        <p className="text-xs text-slate-400 mt-2">New accounts start in Simplified View.</p>
+        <p className="text-xs text-slate-600 mt-2">New accounts start in Simplified View.</p>
       </section>
 
       {/* ── Colours / artistic design ──────────────────────────── */}
@@ -229,6 +229,7 @@ export default function SettingsPreferences() {
         <label className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
           <Palette className="w-4 h-4 text-cyan-600" /> Accent colour
         </label>
+        <p className="mb-2 text-xs text-slate-600">Colours checkboxes, sliders, progress bars and the highlight on text you select.</p>
         <div className="flex flex-wrap gap-3">
           {ACCENTS.map((a) => (
             <button
@@ -236,7 +237,7 @@ export default function SettingsPreferences() {
               onClick={() => update({ layout: { ...prefs.layout, accent: a.id } })}
               aria-label={a.label}
               aria-pressed={prefs.layout.accent === a.id}
-              data-info={`Uses ${a.label.toLowerCase()} as the app's highlight colour.`}
+              data-info={`Uses ${a.label.toLowerCase()} for checkboxes, sliders, progress bars and selected text.`}
               className={`w-11 h-11 rounded-full border-2 transition-all ${
                 prefs.layout.accent === a.id ? 'border-slate-800 scale-110' : 'border-white shadow'
               }`}
@@ -251,7 +252,7 @@ export default function SettingsPreferences() {
           reminder email and the post-setup page both say these can be turned
           off in Settings; this is where. (The beta session's task 7, "stop the
           app sending you emails", had no answer for daily reminders.) */}
-      <section aria-labelledby="emails-heading">
+      <section id="emails" aria-labelledby="emails-heading" className="scroll-mt-24">
         <h3 id="emails-heading" className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
           <Mail className="w-4 h-4 text-cyan-700" aria-hidden="true" /> Emails
         </h3>
@@ -287,12 +288,49 @@ export default function SettingsPreferences() {
           />
           <span>If I haven&apos;t opened Autinerary for two weeks, email me one short question about why.</span>
         </label>
+        <WeeklyPicksSetting
+          enabled={Boolean(prefs.weeklyPicks?.enabled)}
+          onChange={(on) => update({ weeklyPicks: { enabled: on, consent: WEEKLY_PICKS_CONSENT, updatedAt: new Date().toISOString() } })}
+        />
         <div className="mt-4">
           <PushOptIn />
         </div>
         {gaEnabled() && <AnalyticsSetting />}
       </section>
     </div>
+  )
+}
+
+/**
+ * The weekly email with what they saved and new picks (Riipen Labs, Group 11,
+ * for people who finished setup; lib/weeklyPicks.ts). Offered once it can be
+ * sent, and always shown while it is on, so it can be turned off.
+ */
+function WeeklyPicksSetting({ enabled, onChange }: { enabled: boolean; onChange: (on: boolean) => void }) {
+  const [available, setAvailable] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/me/weekly-picks', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled) setAvailable(Boolean(json?.available))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  if (!available && !enabled) return null
+  return (
+    <label className="mt-3 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+      />
+      <span>{WEEKLY_PICKS_CONSENT}</span>
+    </label>
   )
 }
 

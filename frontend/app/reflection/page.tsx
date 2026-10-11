@@ -287,6 +287,11 @@ function ReflectionContent() {
                 <span className="text-sm text-slate-500">Read your past journal entries</span>
               </Link>
             </div>
+            {/* Riipen Labs, Group 34, slide 26: a page about you, beside the journal. */}
+            <p className="mt-4 text-center text-sm text-slate-700">
+              Want to write about yourself, not just your day?{' '}
+              <Link href="/about-me" className="font-medium text-indigo-800 underline underline-offset-2">Open About me</Link>
+            </p>
           </div>
         ) : (
         /* ── Write Mode: the entry form ── */
@@ -472,7 +477,7 @@ function ReflectionContent() {
                   aria-label="How much did you complete?"
                   onChange={(event) => setCompletionPercent(Number(event.target.value))}
                   onInput={(event) => setCompletionPercent(Number((event.target as HTMLInputElement).value))}
-                  className="block w-full h-2 rounded-full appearance-none cursor-pointer accent-cyan-600"
+                  className="block w-full h-2 rounded-full appearance-none cursor-pointer"
                   style={{ background: `linear-gradient(to right, #0891b2 ${completionPercent}%, #e2e8f0 ${completionPercent}%)` }}
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 mt-1">
