@@ -26,6 +26,11 @@
 
 BEGIN;
 
+-- Function bodies are checked when they run, not when they are created (as
+-- pg_dump does): some steps create functions that use tables a later step
+-- creates, so with checking on, a new database stopped at STEP 01.
+SET LOCAL check_function_bodies = off;
+
 
 -- ==========================================================================
 -- STEP 01 — backend/database/migrations/2026_reflection_learning.sql
@@ -4891,10 +4896,931 @@ ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
 COMMENT ON TABLE public.newsletter_subscribers IS
   'Weekly email and emailed Start here lists, double opt-in (app/api/newsletter). Service role only.';
 
+-- STEP 53 — backend/database/migrations/2026_user_paths_is_legacy.sql
+-- ==================================================================
+-- =====================================================================
+-- Flag paths written before the agents computed their own numbers (STEP 53)
+--
+-- Until 064801c (26 August 2026, "derive confidence from real signals") the
+-- agents wrote fixed numbers into every path they generated: path planning's
+-- confidence 0.85, calendar optimization's 0.82, pattern recognition's 0.80,
+-- and pattern recognition's "patterns" carried a made-up success_rate of 0.82
+-- (and 0.79). Those values describe the old code, not the person. Paths
+-- generated since then compute them.
+--
+-- is_legacy marks the rows from before, so any evaluation that assumes real
+-- computed values can leave them out. Nothing is deleted or changed: the
+-- payload stays exactly as it was.
+--
+-- How a legacy row is recognised: the same change added `nameSource` to every
+-- milestone, so a path none of whose milestones carries it was written by the
+-- old code. Checked on 8 October 2026 against all 95 rows: it marks exactly
+-- the 16 paths generated before 26 August, and none after. The fixed values
+-- alone are not a safe test: pattern recognition's computed confidence can
+-- legitimately round to 0.80, and does in 4 paths generated in September.
+--
+--   rule (fixed value present in the path)            paths
+--   path planning confidence 0.85                        16
+--   calendar optimization confidence 0.82                16
+--   pattern recognition confidence 0.80                  16  (+4 later paths
+--                                                             where 0.80 was
+--                                                             computed: not flagged)
+--   pattern recognition patterns[].success_rate 0.82    14
+--   flagged in total (rows written before 064801c)       16
+--
+-- A boolean rather than a data_version column: it is the smaller change (one
+-- column, no writer changes, since every new row is simply not legacy) and it
+-- answers the only question asked of it, "can these numbers be trusted?".
+-- A data_version would need every writer to stamp a version from now on.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+ALTER TABLE public.user_paths
+  ADD COLUMN IF NOT EXISTS is_legacy BOOLEAN NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN public.user_paths.is_legacy IS
+  'true = generated before 064801c (26 Aug 2026): agent confidences and pattern success_rate in the payload are fixed values from the old code, not computed. Exclude from evaluations of those values.';
+
+-- Every array function is wrapped in CASE: Postgres does not evaluate AND
+-- left to right, so a type check beside it does not protect it.
+UPDATE public.user_paths AS p
+SET is_legacy = true
+WHERE NOT p.is_legacy
+  -- has milestones at all
+  AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(
+      CASE WHEN jsonb_typeof(p.payload::jsonb -> 'races') = 'array'
+           THEN p.payload::jsonb -> 'races' ELSE '[]'::jsonb END
+    ) AS r(race)
+    WHERE CASE WHEN jsonb_typeof(r.race -> 'milestones') = 'array'
+               THEN jsonb_array_length(r.race -> 'milestones') ELSE 0 END > 0
+  )
+  -- and none of them carries nameSource
+  AND NOT EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(
+      CASE WHEN jsonb_typeof(p.payload::jsonb -> 'races') = 'array'
+           THEN p.payload::jsonb -> 'races' ELSE '[]'::jsonb END
+    ) AS r(race)
+    CROSS JOIN LATERAL jsonb_array_elements(
+      CASE WHEN jsonb_typeof(r.race -> 'milestones') = 'array'
+           THEN r.race -> 'milestones' ELSE '[]'::jsonb END
+    ) AS m(milestone)
+    WHERE jsonb_typeof(m.milestone) = 'object' AND m.milestone ? 'nameSource'
+  );
+
+CREATE INDEX IF NOT EXISTS user_paths_is_legacy_idx
+  ON public.user_paths (is_legacy) WHERE is_legacy;
+
+
+-- STEP 54 — backend/database/migrations/2026_milestone_ratings.sql
+-- ==================================================================
+-- =====================================================================
+-- Milestone ratings: how useful a step of someone's plan was (STEP 54)
+--
+-- There are 0 reflections and the ratings table holds ResourceHub's place
+-- ratings, almost all from seed personas, so Reflection Analysis and
+-- Adaptation have no real signal about plans. This starts collecting one: on
+-- a milestone's page, "How useful was this step for you?" 1 to 5.
+--
+-- One row per rating, never updated: rating a step again adds a row, and the
+-- latest one counts. The history stays, which is what a label set needs.
+-- path_id is part of the key because milestone ids repeat across one
+-- person's paths ('milestone_g0_education_0' exists in each of them).
+--
+-- path_rating_scores rolls the latest rating of each milestone up to a path
+-- score in [0, 1]: (rating - 1) / 4, averaged over the rated milestones.
+-- It is a security_invoker view, so it shows each person only their own rows.
+--
+-- Written by the backend (POST /api/milestone-ratings), which then re-embeds
+-- the person's profile vector with the path score as its success_rate, the
+-- same call a reflection makes (orchestrator.index_user).
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.milestone_ratings (
+  id           BIGSERIAL   PRIMARY KEY,
+  user_id      UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  path_id      TEXT        NOT NULL CHECK (length(path_id) BETWEEN 1 AND 100),
+  milestone_id TEXT        NOT NULL CHECK (length(milestone_id) BETWEEN 1 AND 200),
+  rating       SMALLINT    NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS milestone_ratings_latest_idx
+  ON public.milestone_ratings (user_id, path_id, milestone_id, created_at DESC);
+
+ALTER TABLE public.milestone_ratings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Read own milestone ratings" ON public.milestone_ratings;
+CREATE POLICY "Read own milestone ratings" ON public.milestone_ratings
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Add own milestone ratings" ON public.milestone_ratings;
+CREATE POLICY "Add own milestone ratings" ON public.milestone_ratings
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+COMMENT ON TABLE public.milestone_ratings IS
+  'How useful a milestone was to the person (1-5). Append-only; the latest row per (user, path, milestone) counts.';
+
+CREATE OR REPLACE VIEW public.path_rating_scores
+WITH (security_invoker = true) AS
+SELECT
+  user_id,
+  path_id,
+  count(*)                                AS rated_milestones,
+  round(avg((rating - 1) / 4.0), 3)       AS score,
+  max(created_at)                         AS last_rated_at
+FROM (
+  SELECT DISTINCT ON (user_id, path_id, milestone_id)
+         user_id, path_id, milestone_id, rating, created_at
+  FROM public.milestone_ratings
+  ORDER BY user_id, path_id, milestone_id, created_at DESC
+) AS latest
+GROUP BY user_id, path_id;
+
+COMMENT ON VIEW public.path_rating_scores IS
+  'Path score in [0,1] from the latest rating of each rated milestone: avg((rating-1)/4).';
+
+
+-- STEP 55 — backend/database/migrations/2026_admin_users.sql
+-- ==================================================================
+-- =====================================================================
+-- A real admin role (STEP 55)
+--
+-- There was no admin role. Admin work was done by holding the service_role
+-- key, which bypasses every RLS policy, and ResourceHub and Tidbits treated
+-- profiles.role = 'admin' as admin. profiles.role is also the "who are you"
+-- answer people set themselves, and the profiles policy lets a signed-in
+-- person update their own row, so nothing in the database stopped someone
+-- setting their own role to 'admin' (0 profiles have it today).
+--
+-- 1. public.admin_users: who is an admin. Granted only in the SQL editor (no
+--    policy lets the API add or change a row):
+--      INSERT INTO public.admin_users (user_id, granted_by, note)
+--      SELECT id, 'aayush', 'team' FROM auth.users WHERE email = '<their email>';
+-- 2. public.is_admin(): whether the signed-in caller is one. Usable in RLS
+--    policies and through the API (rpc('is_admin')). It answers only for the
+--    caller, so it cannot be used to find out who the admins are.
+-- 3. A guard on profiles: a signed-in session can no longer set role to
+--    'admin'. Every remaining check on profiles.role = 'admin' (Tidbits
+--    moderation, the moderation queue policy, ResourceHub's admin pages) is
+--    therefore only as reachable as this table, until each moves to
+--    is_admin(). The SQL editor and the service role are unaffected.
+-- 4. The worked example: path model review. Admins may read every path
+--    model and change only its status, through RLS, so approving no longer
+--    needs the service_role key (frontend/app/api/path-models/[id]/approve).
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.admin_users (
+  user_id    UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  granted_by TEXT,
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  note       TEXT
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+-- People can see whether they themselves are an admin; nothing else.
+DROP POLICY IF EXISTS "See your own admin row" ON public.admin_users;
+CREATE POLICY "See your own admin row" ON public.admin_users
+  FOR SELECT USING (user_id = auth.uid());
+
+COMMENT ON TABLE public.admin_users IS
+  'Who may do admin work. Rows are added in the SQL editor only; is_admin() reads it for the signed-in caller.';
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.admin_users WHERE user_id = auth.uid())
+$$;
+
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- 3. Nobody grants themselves role 'admin' on their profile.
+CREATE OR REPLACE FUNCTION public.protect_profile_admin_role()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF current_user IN ('authenticated', 'anon')
+     AND NEW.role = 'admin'
+     AND (TG_OP = 'INSERT' OR OLD.role IS DISTINCT FROM 'admin') THEN
+    RAISE EXCEPTION 'The admin role is granted by the team (public.admin_users), not from a profile.'
+      USING ERRCODE = 'insufficient_privilege';
+  END IF;
+  RETURN NEW;
+END
+$$;
+
+DROP TRIGGER IF EXISTS protect_profile_admin_role ON public.profiles;
+CREATE TRIGGER protect_profile_admin_role
+  BEFORE INSERT OR UPDATE OF role ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.protect_profile_admin_role();
+
+-- 4. Path model review through RLS: admins read everything and change status only.
+DROP POLICY IF EXISTS "path_models_admin_read" ON public.path_models;
+CREATE POLICY "path_models_admin_read" ON public.path_models
+  FOR SELECT USING (public.is_admin());
+
+DROP POLICY IF EXISTS "path_models_admin_review" ON public.path_models;
+CREATE POLICY "path_models_admin_review" ON public.path_models
+  FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- The only column a signed-in session may change is status (and only admins
+-- pass the policy above). Submitting stays as before (INSERT is untouched).
+REVOKE UPDATE ON public.path_models FROM authenticated, anon;
+GRANT UPDATE (status) ON public.path_models TO authenticated;
+
+
+-- STEP 56 — backend/database/migrations/2026_vector_integrity.sql
+-- ==================================================================
+-- =====================================================================
+-- Vector-store integrity: no orphaned vectors, no stale ones (STEP 56)
+--
+-- Orphaned vectors. pattern_user_embeddings.user_id had no foreign key, so
+-- deleting an account left its vector behind. Counted before writing this
+-- (8 October 2026): 0 of 72 rows point at an account that no longer exists.
+-- The constraint is added checked when there are none, as now. If any appear
+-- before this runs, it is added NOT VALID instead, which still applies to
+-- every new or changed row and to future deletions, and the count is shown:
+-- nothing is deleted here.
+--
+-- Stale vectors. A vector was rebuilt only at setup and after a reflection,
+-- so a condition added later (in ResourceHub, for example) never reached it.
+-- On 8 Oct 5 of 72 vectors lacked a condition the person has since added.
+-- (The timestamp check on the deck said 11; only 2 of those differ in
+-- content, because re-embedding never refreshed updated_at. Fixed below.)
+--
+--   * reindex_requested_at: set by a trigger whenever someone's conditions
+--     change (user_barriers insert, delete, or a changed barrier_type), from
+--     any app. The backend rebuilds those vectors with the same anonymiser
+--     (core/pattern_reindex.py) and clears the mark. Goals change only when
+--     a path is generated, which already rebuilds the vector.
+--   * updated_at is now refreshed on every update, so it says when the
+--     vector was last written.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+DO $$
+DECLARE
+  orphans integer;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.pattern_user_embeddings'::regclass
+      AND conname = 'pattern_user_embeddings_user_id_fkey'
+  ) THEN
+    SELECT count(*) INTO orphans
+    FROM public.pattern_user_embeddings e
+    WHERE NOT EXISTS (SELECT 1 FROM auth.users u WHERE u.id = e.user_id);
+
+    IF orphans = 0 THEN
+      ALTER TABLE public.pattern_user_embeddings
+        ADD CONSTRAINT pattern_user_embeddings_user_id_fkey
+        FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    ELSE
+      ALTER TABLE public.pattern_user_embeddings
+        ADD CONSTRAINT pattern_user_embeddings_user_id_fkey
+        FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE NOT VALID;
+      RAISE NOTICE 'pattern_user_embeddings: % orphaned row(s) kept; the foreign key is NOT VALID until they are reviewed', orphans;
+    END IF;
+  END IF;
+END $$;
+
+ALTER TABLE public.pattern_user_embeddings
+  ADD COLUMN IF NOT EXISTS reindex_requested_at TIMESTAMPTZ;
+
+COMMENT ON COLUMN public.pattern_user_embeddings.reindex_requested_at IS
+  'Set when the person''s conditions change after the vector was built; the backend rebuilds it and clears this (core/pattern_reindex.py).';
+
+CREATE INDEX IF NOT EXISTS pattern_user_embeddings_reindex_idx
+  ON public.pattern_user_embeddings (reindex_requested_at)
+  WHERE reindex_requested_at IS NOT NULL;
+
+-- Mark a person's vector when their conditions change. SECURITY DEFINER:
+-- ResourceHub writes user_barriers as the person, who cannot write here.
+CREATE OR REPLACE FUNCTION public.request_pattern_reindex()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.pattern_user_embeddings
+     SET reindex_requested_at = now()
+   WHERE user_id = COALESCE(NEW.user_id, OLD.user_id);
+  RETURN NULL;
+END
+$$;
+
+-- Catch up: mark every vector whose stored conditions differ from the
+-- person's current ones (ignoring case and surrounding spaces), so the first
+-- sweep rebuilds the ones already stale: 5 of 72 on 8 Oct.
+UPDATE public.pattern_user_embeddings AS e
+   SET reindex_requested_at = now()
+ WHERE e.reindex_requested_at IS NULL
+   AND (SELECT coalesce(array_agg(DISTINCT lower(btrim(b.barrier_type)) ORDER BY lower(btrim(b.barrier_type))), '{}')
+          FROM public.user_barriers AS b
+         WHERE b.user_id = e.user_id AND btrim(b.barrier_type) <> '')
+       IS DISTINCT FROM
+       (SELECT coalesce(array_agg(DISTINCT lower(btrim(x)) ORDER BY lower(btrim(x))), '{}')
+          FROM unnest(e.barriers) AS x
+         WHERE btrim(x) <> '');
+
+DROP TRIGGER IF EXISTS request_pattern_reindex ON public.user_barriers;
+CREATE TRIGGER request_pattern_reindex
+  AFTER INSERT OR DELETE OR UPDATE OF barrier_type, user_id ON public.user_barriers
+  FOR EACH ROW EXECUTE FUNCTION public.request_pattern_reindex();
+
+-- updated_at says when the vector was last written.
+CREATE OR REPLACE FUNCTION public.touch_pattern_user_embeddings()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.embedding IS DISTINCT FROM OLD.embedding THEN
+    NEW.updated_at := now();
+  END IF;
+  RETURN NEW;
+END
+$$;
+
+DROP TRIGGER IF EXISTS touch_pattern_user_embeddings ON public.pattern_user_embeddings;
+CREATE TRIGGER touch_pattern_user_embeddings
+  BEFORE UPDATE ON public.pattern_user_embeddings
+  FOR EACH ROW EXECUTE FUNCTION public.touch_pattern_user_embeddings();
+
+
+-- STEP 57 — backend/database/migrations/2026_condition_vocabulary.sql
+-- ==================================================================
+-- =====================================================================
+-- Normalised condition vocabulary (STEP 57)
+--
+-- user_barriers.barrier_type keeps what people chose or typed, as they wrote
+-- it. On 8 Oct 2026 that was 92 distinct values (68 among real users) for 65
+-- distinct meanings (55): "ADHD" and "adhd", "Autism" and "Autism spectrum
+-- disorder" are the same condition. The Pattern Recognition filter already
+-- normalises at query time with core/condition_taxonomy.py. This stores that
+-- map's answer for every stored value, so SQL and reports can use it too.
+--
+--   condition_vocabulary       one row per distinct stored value: its kind
+--                              (condition, placeholder or unmapped), canonical
+--                              key, label and category. Written only by
+--                              scripts/sync_condition_vocabulary.py from the
+--                              same map, so it is that map's output, not a
+--                              second map.
+--   user_barriers_normalized   user_barriers with those columns joined on.
+--
+-- The raw values are not changed. Placeholders ("Prefer not to share", "No
+-- current barriers") are their own kind, never a condition. A value the map
+-- doesn't know is 'unmapped', for a person to decide on. A value written
+-- after the last sync has no row yet (condition_kind is NULL in the view)
+-- until the script runs again.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.condition_vocabulary (
+  raw_value        TEXT        PRIMARY KEY,
+  kind             TEXT        NOT NULL CHECK (kind IN ('condition', 'placeholder', 'unmapped')),
+  canonical        TEXT,
+  label            TEXT,
+  category         TEXT,
+  taxonomy_version TEXT        NOT NULL,
+  synced_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT condition_vocabulary_canonical_check CHECK ((kind = 'unmapped') = (canonical IS NULL))
+);
+
+COMMENT ON TABLE public.condition_vocabulary IS
+  'The condition map''s answer (core/condition_taxonomy.py) for each distinct stored condition value. Written by scripts/sync_condition_vocabulary.py.';
+
+ALTER TABLE public.condition_vocabulary ENABLE ROW LEVEL SECURITY;
+
+-- Mapped values are the app's own option labels, so anyone signed in may
+-- read them. Unmapped ones are text someone typed; only the service role
+-- sees those. Nobody but the service role writes.
+DROP POLICY IF EXISTS "Read mapped condition vocabulary" ON public.condition_vocabulary;
+CREATE POLICY "Read mapped condition vocabulary" ON public.condition_vocabulary
+  FOR SELECT TO authenticated
+  USING (kind <> 'unmapped');
+
+REVOKE ALL ON public.condition_vocabulary FROM anon, authenticated;
+GRANT SELECT ON public.condition_vocabulary TO authenticated;
+
+-- security_invoker: whoever reads it sees only the user_barriers rows they
+-- could read anyway (their own, under user_barriers' policies).
+CREATE OR REPLACE VIEW public.user_barriers_normalized
+WITH (security_invoker = true) AS
+SELECT b.id,
+       b.user_id,
+       b.barrier_category,
+       b.barrier_type,
+       b.created_at,
+       v.kind     AS condition_kind,
+       v.canonical AS condition_key,
+       v.label    AS condition_label,
+       v.category AS condition_category
+FROM public.user_barriers AS b
+LEFT JOIN public.condition_vocabulary AS v ON v.raw_value = b.barrier_type;
+
+COMMENT ON VIEW public.user_barriers_normalized IS
+  'user_barriers with the normalised condition joined on (STEP 57). barrier_type is the raw value, unchanged.';
+
+REVOKE ALL ON public.user_barriers_normalized FROM anon, authenticated;
+GRANT SELECT ON public.user_barriers_normalized TO authenticated;
+
+
+-- STEP 58 — backend/database/migrations/2026_admin_role_tidbits.sql
+-- ==================================================================
+-- =====================================================================
+-- Tidbits admin actions without the service-role key (STEP 58)
+--
+-- Needs STEP 55 (public.admin_users and public.is_admin()).
+--
+-- ResourceHub's Tidbits admin routes checked profiles.role = 'admin' and then
+-- wrote with the service-role key, which skips every policy. Each section
+-- below lets one of them run as the signed-in admin instead, so the database
+-- decides what an admin may change (docs/admin-role.md).
+--
+-- Every policy here is TO authenticated. is_admin() is granted only to
+-- authenticated, and a signed-out reader must never evaluate it: a policy
+-- that applied to anon would turn their reads into permission errors.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+-- 1. Lock or unlock a post (POST /api/community/posts/[id]/lock).
+DROP POLICY IF EXISTS community_posts_admin_update ON public.community_posts;
+CREATE POLICY community_posts_admin_update ON public.community_posts
+  FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- 2. Edit a post (PATCH /api/community/posts/[id]). Nothing new: the author
+--    edits under community_posts_update, an admin under the policy in 1.
+
+-- 3. Edit an answer (PATCH /api/community/answers/[id]).
+DROP POLICY IF EXISTS community_answers_admin_update ON public.community_answers;
+CREATE POLICY community_answers_admin_update ON public.community_answers
+  FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- 4. Edit someone's community profile (PATCH /api/community/profiles/[id]).
+--    An admin must see a private profile to update it. There is no admin
+--    INSERT policy: an admin edits a profile, never creates one for someone
+--    who has not opted in. Admins also see private profiles' pseudonyms
+--    elsewhere now, as the moderation queue needs.
+DROP POLICY IF EXISTS community_profiles_admin_read ON public.community_profiles;
+CREATE POLICY community_profiles_admin_read ON public.community_profiles
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_profiles_admin_update ON public.community_profiles;
+CREATE POLICY community_profiles_admin_update ON public.community_profiles
+  FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- 5. Soft-delete a post (DELETE /api/community/posts/[id]), for its author or
+--    an admin. A policy is not enough: an UPDATE that filters on a column
+--    must leave a row the caller can still read, and a deleted post fails
+--    community_posts_select (is_deleted = FALSE). So a function does it,
+--    checking who is asking itself.
+CREATE OR REPLACE FUNCTION public.community_delete_post(p_post_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_author UUID;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+  END IF;
+  SELECT author_id INTO v_author
+    FROM public.community_posts
+   WHERE id = p_post_id AND is_deleted = FALSE
+   FOR UPDATE;
+  IF v_author IS NULL THEN
+    RAISE EXCEPTION 'Post not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_author <> v_caller AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Not your post' USING ERRCODE = '42501';
+  END IF;
+  UPDATE public.community_posts
+     SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+   WHERE id = p_post_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_delete_post(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_delete_post(UUID) TO authenticated;
+
+-- 6. Soft-delete an answer (DELETE /api/community/answers/[id]), for its
+--    author or an admin. A function, as in 5. Run as the caller, the answer
+--    count trigger could not update a post that isn't theirs: RLS would
+--    skip that row and the count would drift. In here it runs as the
+--    function's owner.
+CREATE OR REPLACE FUNCTION public.community_delete_answer(p_answer_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_author UUID;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+  END IF;
+  SELECT author_id INTO v_author
+    FROM public.community_answers
+   WHERE id = p_answer_id AND is_deleted = FALSE
+   FOR UPDATE;
+  IF v_author IS NULL THEN
+    RAISE EXCEPTION 'Answer not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_author <> v_caller AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Not your answer' USING ERRCODE = '42501';
+  END IF;
+  UPDATE public.community_answers
+     SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+   WHERE id = p_answer_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_delete_answer(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_delete_answer(UUID) TO authenticated;
+
+-- 7. The moderation queue (GET /api/community/admin/reports): every report,
+--    and what each one points at, even when that post or answer is already
+--    deleted. Private profiles' pseudonyms come from the policy in 4. Every
+--    other read of posts with a person's session already filters out
+--    deleted rows, so admins' ordinary browsing doesn't change.
+DROP POLICY IF EXISTS community_reports_admin_read ON public.community_reports;
+CREATE POLICY community_reports_admin_read ON public.community_reports
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_posts_admin_read ON public.community_posts;
+CREATE POLICY community_posts_admin_read ON public.community_posts
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+DROP POLICY IF EXISTS community_answers_admin_read ON public.community_answers;
+CREATE POLICY community_answers_admin_read ON public.community_answers
+  FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+-- 8. Resolve a report (POST /api/community/admin/reports/[id]/resolve), and
+--    optionally remove what it points at or lock the post. The route made up
+--    to three writes one after another and, if removing or locking failed,
+--    logged it and resolved the report anyway. Here they happen together or
+--    not at all, for an admin only.
+CREATE OR REPLACE FUNCTION public.community_resolve_report(
+  p_report_id     UUID,
+  p_status        TEXT,
+  p_note          TEXT DEFAULT NULL,
+  p_remove_target BOOLEAN DEFAULT FALSE,
+  p_lock_post     BOOLEAN DEFAULT FALSE
+) RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller UUID := auth.uid();
+  v_report public.community_reports%ROWTYPE;
+BEGIN
+  IF v_caller IS NULL OR NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Admin only' USING ERRCODE = '42501';
+  END IF;
+  IF p_status IS NULL OR p_status NOT IN ('resolved_kept', 'resolved_removed', 'resolved_warned') THEN
+    RAISE EXCEPTION 'Invalid status' USING ERRCODE = '22023';
+  END IF;
+  SELECT * INTO v_report FROM public.community_reports WHERE id = p_report_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Report not found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_report.status <> 'open' THEN
+    RAISE EXCEPTION 'Report already resolved' USING ERRCODE = '55000';
+  END IF;
+
+  IF p_remove_target AND v_report.target_type = 'post' THEN
+    UPDATE public.community_posts
+       SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+     WHERE id = v_report.target_id AND is_deleted = FALSE;
+  ELSIF p_remove_target AND v_report.target_type = 'answer' THEN
+    UPDATE public.community_answers
+       SET is_deleted = TRUE, deleted_by = v_caller, deleted_at = now()
+     WHERE id = v_report.target_id AND is_deleted = FALSE;
+  END IF;
+  IF p_lock_post AND v_report.target_type = 'post' THEN
+    UPDATE public.community_posts
+       SET is_locked = TRUE, locked_reason = left(p_note, 500), locked_by = v_caller, locked_at = now()
+     WHERE id = v_report.target_id;
+  END IF;
+
+  UPDATE public.community_reports
+     SET status = p_status, resolved_by = v_caller, resolved_at = now(),
+         resolution_note = left(p_note, 1000)
+   WHERE id = p_report_id;
+END
+$$;
+
+REVOKE ALL ON FUNCTION public.community_resolve_report(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.community_resolve_report(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN) TO authenticated;
+
+-- 9. Accept an answer (POST /api/community/posts/[id]/accept), for the post's
+--    author or an admin. The function trusted p_acting_user_id, and any
+--    signed-in person may execute it, so anyone could call it directly with
+--    the author's id (readable on every post) and accept any answer, adding
+--    karma and writing the "Solved" lines onto someone else's post. Now the
+--    caller's session says who is acting. The id passed in counts only for
+--    the service role, so the route still works while it changes over. The
+--    signature is unchanged; admins come from admin_users.
+CREATE OR REPLACE FUNCTION public.community_accept_answer(
+    p_post_id         UUID,
+    p_answer_id       UUID,
+    p_acting_user_id  UUID,
+    p_tldr            TEXT,
+    p_key_insight    TEXT
+) RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_post_author    UUID;
+    v_answer_author  UUID;
+    v_answer_post_id UUID;
+    v_is_admin       BOOLEAN;
+    -- Who is acting: the signed-in caller. p_acting_user_id counts only when
+    -- the server calls with the service-role key (the route before STEP 58).
+    v_actor          UUID := CASE WHEN auth.role() = 'service_role'
+                                  THEN p_acting_user_id ELSE auth.uid() END;
+BEGIN
+    IF v_actor IS NULL THEN
+        RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+    END IF;
+
+    -- Validate solved metadata up front.
+    IF p_tldr IS NULL OR length(trim(p_tldr)) = 0 THEN
+        RAISE EXCEPTION 'Solved TLDR is required';
+    END IF;
+    IF p_key_insight IS NULL OR length(trim(p_key_insight)) = 0 THEN
+        RAISE EXCEPTION 'Solved key insight is required';
+    END IF;
+
+    -- Load post + answer in a way that locks them for the duration of the txn.
+    SELECT author_id INTO v_post_author
+      FROM public.community_posts
+     WHERE id = p_post_id AND is_deleted = FALSE
+     FOR UPDATE;
+    IF v_post_author IS NULL THEN
+        RAISE EXCEPTION 'Post not found or deleted';
+    END IF;
+
+    SELECT author_id, post_id INTO v_answer_author, v_answer_post_id
+      FROM public.community_answers
+     WHERE id = p_answer_id AND is_deleted = FALSE
+     FOR UPDATE;
+    IF v_answer_author IS NULL OR v_answer_post_id <> p_post_id THEN
+        RAISE EXCEPTION 'Answer not found, deleted, or does not belong to the post';
+    END IF;
+
+    -- Permission: post author OR admin (public.admin_users, STEP 55).
+    SELECT EXISTS (SELECT 1 FROM public.admin_users WHERE user_id = v_actor)
+      INTO v_is_admin;
+    IF v_post_author <> v_actor AND COALESCE(v_is_admin, FALSE) = FALSE THEN
+        RAISE EXCEPTION 'Only the post author or an admin can accept an answer';
+    END IF;
+
+    -- Clear any previously accepted answer on this post.
+    UPDATE public.community_answers
+       SET is_accepted = FALSE,
+           accepted_at = NULL
+     WHERE post_id = p_post_id AND is_accepted = TRUE AND id <> p_answer_id;
+
+    -- Accept the new answer.
+    UPDATE public.community_answers
+       SET is_accepted = TRUE,
+           accepted_at = now()
+     WHERE id = p_answer_id;
+
+    -- Stamp the post.
+    UPDATE public.community_posts
+       SET accepted_answer_id = p_answer_id,
+           solved_tldr        = p_tldr,
+           solved_key_insight = p_key_insight,
+           last_activity_at   = now()
+     WHERE id = p_post_id;
+
+    -- Karma bonus for an accepted answer (StackOverflow convention: +15).
+    IF v_answer_author <> v_post_author THEN
+        UPDATE public.community_profiles
+           SET karma = karma + 15
+         WHERE user_id = v_answer_author;
+    END IF;
+
+    -- Auto-grant the problem_solver badge to the answerer (idempotent).
+    INSERT INTO public.community_badge_grants (user_id, badge_slug, granted_by)
+    VALUES (v_answer_author, 'problem_solver', NULL)
+    ON CONFLICT (user_id, badge_slug) DO NOTHING;
+END;
+$$;
+
+
+-- STEP 59 — backend/database/migrations/2026_community_vote_identity.sql
+-- ==================================================================
+-- =====================================================================
+-- Tidbits votes: the caller votes as themselves (STEP 59)
+--
+-- community_cast_vote(p_voter_id, ...) is SECURITY DEFINER, executable by
+-- any signed-in person, and recorded the vote as whoever p_voter_id named.
+-- So anyone could call it directly and vote as anyone else, once for every
+-- account id they know (author ids show on every post). Shown on a local
+-- Postgres with the repo's SQL on 8 Oct 2026; not yet verified against
+-- production.
+--
+-- Now the vote is the signed-in caller's. p_voter_id counts only when the
+-- server calls with the service-role key, which is how the vote routes call
+-- it, so they keep working unchanged. Same signature, so grants stay.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE OR REPLACE FUNCTION public.community_cast_vote(
+    p_voter_id     UUID,
+    p_target_type  TEXT,
+    p_target_id    UUID,
+    p_value        SMALLINT
+) RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_target_author UUID;
+    -- Who is voting: the signed-in caller. p_voter_id counts only when the
+    -- server calls with the service-role key, as the vote routes do.
+    v_voter         UUID := CASE WHEN auth.role() = 'service_role'
+                                 THEN p_voter_id ELSE auth.uid() END;
+BEGIN
+    IF v_voter IS NULL THEN
+        RAISE EXCEPTION 'Sign-in required' USING ERRCODE = '28000';
+    END IF;
+    IF p_value NOT IN (-1, 0, 1) THEN
+        RAISE EXCEPTION 'Vote value must be -1, 0, or 1';
+    END IF;
+
+    -- Identify the target author so we can block self-votes early.
+    IF p_target_type = 'post' THEN
+        SELECT author_id INTO v_target_author
+          FROM public.community_posts WHERE id = p_target_id;
+    ELSIF p_target_type = 'answer' THEN
+        SELECT author_id INTO v_target_author
+          FROM public.community_answers WHERE id = p_target_id;
+    ELSE
+        RAISE EXCEPTION 'Invalid target_type %', p_target_type;
+    END IF;
+    IF v_target_author IS NULL THEN
+        RAISE EXCEPTION 'Vote target not found';
+    END IF;
+    IF v_target_author = v_voter THEN
+        -- Silent no-op: self-votes are a UX dead-end, not an error.
+        RETURN;
+    END IF;
+
+    -- Upsert: 0 = retract the vote, +/-1 = set it.
+    IF p_value = 0 THEN
+        DELETE FROM public.community_votes
+         WHERE voter_id = v_voter
+           AND target_type = p_target_type
+           AND target_id = p_target_id;
+    ELSE
+        INSERT INTO public.community_votes (voter_id, target_type, target_id, value)
+        VALUES (v_voter, p_target_type, p_target_id, p_value)
+        ON CONFLICT (voter_id, target_type, target_id)
+        DO UPDATE SET value = EXCLUDED.value, created_at = now();
+    END IF;
+END;
+$$;
+
+
+-- STEP 60 — backend/database/migrations/2026_similar_group_feedback.sql
+-- ==================================================================
+-- =====================================================================
+-- Similar-group feedback: ground truth for Pattern Recognition (STEP 60)
+--
+-- There are 0 similarity labels (pattern_similarity_labels is unchanged by
+-- this). When the feature is on (SIMILAR_GROUP_FEEDBACK_ENABLED), opening the
+-- "Found N similar users" banner shows an anonymous summary of the group a
+-- plan was matched with: its size, and the conditions at least 3 members
+-- share (condition vocabulary, no placeholders, no free text). It then asks
+-- "Does this sound like people in a situation similar to yours?". This
+-- table keeps the answers (core/similar_group.py).
+--
+--   member_ids        who the summary described. The backend works this
+--                     out from the stored plan; the browser never sends or
+--                     sees it.
+--   shown_conditions  the vocabulary keys the summary named
+--   note              optional, at most 500 characters, for the team to
+--                     read. Nothing sends it to an LLM.
+--
+-- Server-side only: RLS on and no policies, and anon and authenticated have
+-- no grants. Only the service role (the backend, the experiment harness)
+-- reads or writes it. One row per answer; answering again adds a row, and
+-- the harness uses the latest per person and plan.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.similar_group_feedback (
+  id               BIGSERIAL   PRIMARY KEY,
+  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  path_id          TEXT        NOT NULL CHECK (length(path_id) BETWEEN 1 AND 100),
+  answer           TEXT        NOT NULL CHECK (answer IN ('yes', 'somewhat', 'no')),
+  note             TEXT        CHECK (note IS NULL OR length(note) <= 500),
+  member_ids       UUID[]      NOT NULL,
+  group_size       SMALLINT    NOT NULL CHECK (group_size >= 0),
+  shown_conditions TEXT[]      NOT NULL DEFAULT '{}',
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS similar_group_feedback_user_idx
+  ON public.similar_group_feedback (user_id, path_id, created_at DESC);
+
+ALTER TABLE public.similar_group_feedback ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON public.similar_group_feedback FROM anon, authenticated;
+REVOKE ALL ON SEQUENCE public.similar_group_feedback_id_seq FROM anon, authenticated;
+
+COMMENT ON TABLE public.similar_group_feedback IS
+  'Answers to "Does this sound like people in a situation similar to yours?" about the group behind a plan. Server-side only (core/similar_group.py, STEP 60).';
+
+
+-- STEP 61 — backend/database/migrations/2026_evaluation_runs.sql
+-- ==================================================================
+-- =====================================================================
+-- Experiment run log for Pattern Recognition (STEP 61)
+--
+-- One row per run of the experiment harness (scripts/pattern_experiment.py,
+-- core/evaluation_runs.py): the script, its git commit, when it started and
+-- ended, and the inputs that decide its result:
+--   * embeddings, and how many are stale;
+--   * the anonymisation text version;
+--   * a hash of the condition canonicalisation map;
+--   * how many similarity labels there are;
+--   * match_threshold, and the run's own settings.
+-- Counts and settings only: no user ids, emails or free text.
+--
+-- Once this is applied, each run writes its row here, unless
+-- EVALUATION_RUNS_DSN points it at another database. The run doesn't
+-- change any other table. ended_at stays empty for a run that didn't finish.
+--
+-- Server-side only: RLS on, no policies, no grants to anon or authenticated.
+--
+-- Idempotent. Safe to re-run.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS public.evaluation_runs (
+  run_id      UUID        PRIMARY KEY,
+  script      TEXT        NOT NULL CHECK (length(script) BETWEEN 1 AND 200),
+  git_commit  TEXT        CHECK (git_commit IS NULL OR length(git_commit) <= 64),
+  started_at  TIMESTAMPTZ NOT NULL,
+  ended_at    TIMESTAMPTZ,
+  inputs      JSONB       NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS evaluation_runs_started_idx
+  ON public.evaluation_runs (script, started_at DESC);
+
+ALTER TABLE public.evaluation_runs ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.evaluation_runs FROM anon, authenticated;
+
+COMMENT ON TABLE public.evaluation_runs IS
+  'One row per Pattern Recognition experiment run: commit, times, and the inputs that decide its result. No user data (STEP 61).';
+
+
 -- STEP 62 — backend/database/migrations/2026_onboarding_next_step.sql
 -- ==================================================================
--- STEPs 53-61 are on review branches; they were applied in production on
--- 9 October 2026 and go above this one when those branches are merged.
 
 -- =====================================================================
 -- "Do you know what to do next?" after setup (STEP 62)
