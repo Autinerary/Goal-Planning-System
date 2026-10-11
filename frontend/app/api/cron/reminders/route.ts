@@ -13,7 +13,7 @@ export const maxDuration = 60
  * daily reminders whose chosen time it is in their owner's time zone, and
  * any reminder to finish setup that is due. This path does the same, for
  * running it by hand. Vercel sends `Authorization: Bearer <CRON_SECRET>`; it
- * is required when CRON_SECRET is set.
+ * is required in production (lib/cronAuth.ts).
  */
 export async function GET(req: NextRequest) {
   return handleReminderRun(req)

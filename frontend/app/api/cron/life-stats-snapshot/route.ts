@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { loadAndComputeForUser } from '@/lib/life-stats/loader'
+import { cronAuthorized } from '@/lib/cronAuth'
 
 /**
  * POST /api/cron/life-stats-snapshot
@@ -10,9 +11,9 @@ import { loadAndComputeForUser } from '@/lib/life-stats/loader'
  * inactive users still have continuous snapshots (otherwise the trend
  * arrow can't tell "user dropped off" from "user never used the app").
  *
- * Auth: Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}`. We also
- * accept Vercel's own auto-set `x-vercel-cron` header. Local dev can use
- * the bearer if CRON_SECRET is set.
+ * Auth: Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}`
+ * (lib/cronAuth.ts). The `x-vercel-cron` header is not accepted: anyone can
+ * send it.
  */
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
@@ -63,18 +64,8 @@ export async function POST(req: NextRequest) {
 /** Vercel Cron only runs GETs by default; allow that too. */
 export const GET = POST
 
-function isAuthorized(req: NextRequest): boolean {
-  // Vercel sets this header on cron invocations automatically.
-  if (req.headers.get('x-vercel-cron') === '1') return true
-
-  const expected = process.env.CRON_SECRET
-  if (!expected) {
-    // Missing secret = refuse, otherwise the endpoint is a public DoS vector.
-    return false
-  }
-  const got = req.headers.get('authorization') ?? ''
-  return got === `Bearer ${expected}`
-}
+// The x-vercel-cron header it also accepted can be sent by anyone.
+const isAuthorized = (req: NextRequest) => cronAuthorized(req)
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 min — covers a few hundred users

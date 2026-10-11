@@ -11,6 +11,7 @@ import { sendEmail, dailyReminderEmail, finishSetupEmail, storyReadyEmail, email
 import { sendSms, smsEnabled, reminderText } from '@/lib/sms'
 import { reminderDue, setupReminderDue, localParts, validTimeZone } from '@/lib/reminderSchedule'
 import { isPaused } from '@/lib/pause'
+import { cronAuthorized } from '@/lib/cronAuth'
 
 export interface ReminderRunResult {
   ok: true
@@ -125,9 +126,7 @@ export function runLabel(now: Date): string {
 
 /** A cron request: checked against CRON_SECRET, then one run. */
 export async function handleReminderRun(req: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  const auth = req.headers.get('authorization') || ''
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (!cronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const now = new Date()

@@ -5,6 +5,7 @@ import { pushEnabled, pushToUser } from '@/lib/push'
 import { createCheckinToken } from '@/lib/checkinToken'
 import { AWAY_DAYS } from '@/lib/checkin'
 import { pausedIds } from '@/lib/pause'
+import { cronAuthorized } from '@/lib/cronAuth'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -28,7 +29,8 @@ export const maxDuration = 60
  * came back after it and then stopped again, and never within 60 days.
  *
  * ?dry=1 reports how many would be reached without sending anything.
- * Vercel sends `Authorization: Bearer <CRON_SECRET>`; required when set.
+ * Vercel sends `Authorization: Bearer <CRON_SECRET>`; required in production
+ * (lib/cronAuth.ts).
  */
 
 const RESEND_GAP_DAYS = 60
@@ -45,8 +47,7 @@ interface Person {
 }
 
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (secret && (req.headers.get('authorization') || '') !== `Bearer ${secret}`) {
+  if (!cronAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const dry = req.nextUrl.searchParams.get('dry') === '1'

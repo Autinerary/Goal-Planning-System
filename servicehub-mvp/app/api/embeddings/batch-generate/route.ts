@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { onUserBarriersLoadedFromDB, onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Resource } from '@/types/database'
+import { isAdminUser } from '@/lib/auth/admin'
+import { cronAuthorized } from '@/lib/cronAuth'
 
 /**
  * POST /api/embeddings/batch-generate
@@ -16,13 +18,9 @@ import type { Resource } from '@/types/database'
  * every user + resource.
  */
 async function isAuthorized(request: NextRequest, supabase: ReturnType<typeof createClient>): Promise<boolean> {
-  // Vercel cron hits set this header automatically when CRON_SECRET is configured.
-  if (request.headers.get('x-vercel-cron') === '1') return true
-
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && request.headers.get('authorization') === `Bearer ${cronSecret}`) {
-    return true
-  }
+  // The scheduled job, with CRON_SECRET (lib/cronAuth.ts). The x-vercel-cron
+  // header it also accepted can be sent by anyone, and this job costs money.
+  if (process.env.CRON_SECRET && cronAuthorized(request)) return true
 
   const {
     data: { user },
@@ -35,7 +33,7 @@ async function isAuthorized(request: NextRequest, supabase: ReturnType<typeof cr
     .eq('id', user.id)
     .single()
 
-  return profile?.role === 'admin'
+  return (await isAdminUser(supabase, profile?.role))
 }
 
 export async function POST(request: NextRequest) {
