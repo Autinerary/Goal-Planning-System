@@ -31,21 +31,32 @@ repo; no profile has role `admin` today (8 October 2026).
 
 ## Service-role use that is an admin action
 
-| Where | What it does | Gate today | Status |
-| --- | --- | --- | --- |
-| `frontend/app/api/path-models/[id]/approve` | Approve or reject a community path model | `ADMIN_EMAILS` (not set in Vercel, so nobody could) | **Migrated**: `rpc('is_admin')`, then an update under RLS that only admins pass, on the `status` column only |
-| `servicehub-mvp/app/api/community/posts/[id]` (PATCH, DELETE) | Edit or delete anyone's Tidbits post | `profiles.role = 'admin'` | To migrate |
-| `servicehub-mvp/app/api/community/posts/[id]/lock` | Lock a post | same | To migrate |
-| `servicehub-mvp/app/api/community/answers/[id]` | Edit or delete anyone's answer | same | To migrate |
-| `servicehub-mvp/app/api/community/admin/reports` and `/reports/[id]/resolve` | Read and resolve reports | same | To migrate |
-| `servicehub-mvp/app/api/community/profiles/[id]` (PATCH) | Edit someone else's community profile | same | To migrate |
-| `servicehub-mvp/app/api/embeddings/batch-generate` | Embed every resource in bulk (OpenAI spend) | same | To migrate |
+Each row says whether the action needs the service-role key at all. "No"
+means it was using the key for convenience: it moves to `is_admin()` and runs
+as the signed-in admin, under policies in STEP 58
+(`backend/database/migrations/2026_admin_role_tidbits.sql`). Every one of
+those policies is `TO authenticated`, because `is_admin()` is not granted to
+signed-out readers.
 
-All the Tidbits rows write through `getCommunityServiceClient()`
-(`servicehub-mvp/lib/community/client.ts`), with the admin check from
-`getCommunityViewer()`. Moving them is one change: `is_admin` from
-`rpc('is_admin')` in `getCommunityViewer()`, then RLS policies for the
-moderation writes, as for path models.
+| Where | What it does | Needs the service-role key? | Status |
+| --- | --- | --- | --- |
+| `frontend/app/api/path-models/[id]/approve` | Approve or reject a community path model | No | **Migrated** (STEP 55): `rpc('is_admin')`, then an update under RLS that only admins pass, on the `status` column only |
+| `servicehub-mvp/app/api/community/posts/[id]/lock` | Lock or unlock a post | No: one table, one admin update policy | **Migrated** (STEP 58 §1) |
+| `servicehub-mvp/app/api/community/posts/[id]` (PATCH) | Edit anyone's post | No: the same policy as the lock | **Migrated** (STEP 58 §2) |
+| `servicehub-mvp/app/api/community/answers/[id]` (PATCH) | Edit anyone's answer | No: one admin update policy | **Migrated** (STEP 58 §3) |
+| `servicehub-mvp/app/api/community/profiles/[id]` (PATCH) | Edit someone else's community profile | No: admin read and update policies; an admin edits a profile but never creates one | **Migrated** (STEP 58 §4) |
+| `servicehub-mvp/app/api/community/posts/[id]` (DELETE) | Soft-delete anyone's post | No, but a policy is not enough: the deleted row fails the "not deleted" read policy, so this is a function that checks `is_admin()` | **Migrated** (STEP 58 §5: `community_delete_post`) |
+| `servicehub-mvp/app/api/community/answers/[id]` (DELETE) | Soft-delete anyone's answer | No: a function, as for posts; it also keeps the post's answer count right | **Migrated** (STEP 58 §6: `community_delete_answer`) |
+| `servicehub-mvp/app/api/community/admin/reports` (GET) | List reports with what they point at | No: admin read policies on reports, posts, answers and profiles | **Migrated** (STEP 58 §7) |
+| `servicehub-mvp/app/api/community/admin/reports/[id]/resolve` | Resolve a report, and remove or lock what it points at | No: one function, so the steps happen together or not at all | **Migrated** (STEP 58 §8: `community_resolve_report`) |
+| `servicehub-mvp/app/api/community/posts/[id]/accept` | Accept an answer (the post's author, or an admin) | No. Its function also trusted a user id passed in by the caller, so any signed-in person could call it directly and act as anyone | **Migrated** (STEP 58 §9): the session says who is acting |
+| `servicehub-mvp/app/api/embeddings/batch-generate` | Embed every person's conditions and every resource in bulk, with a local model (CPU time, not API spend) | **Yes**: it runs from a cron or with a secret and no user, writes `resource_embeddings` (which has no write policy), and reads everyone's conditions | Left as it is |
+| `servicehub-mvp/app/api/admin/resources/[id]`, `/admin/moderation/[id]` | Approving a resource also embeds it | **Yes**, for the embedding write only (`resource_embeddings`, as above) | Left as it is |
+| `servicehub-mvp/app/api/admin/seed` | Development seed data | **Yes**: it uses the auth admin API. It is refused in production | Left as it is |
+
+What the Tidbits pages show an admin (moderation buttons, private profile
+sections) comes from `getCommunityViewer()`, which now asks `is_admin()` too,
+so they offer only what the routes allow.
 
 Related admin checks that do not use the service role, listed for the same move:
 
@@ -53,8 +64,6 @@ Related admin checks that do not use the service role, listed for the same move:
   but then use the person's own session, where RLS grants admins nothing, so
   parts of them (for example the user list) only see what any user sees.
 - The `moderation_queue` read policy checks `profiles.role = 'admin'`.
-- The Tidbits accept-answer function (SECURITY DEFINER) checks
-  `profiles.role = 'admin'` for a `p_acting_user_id` passed in by its caller.
 - Role model approval has no route; it is done in the database.
 
 ## Service-role use that is legitimate server-only work

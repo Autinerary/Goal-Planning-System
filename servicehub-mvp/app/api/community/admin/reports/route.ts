@@ -2,25 +2,25 @@
  * /api/community/admin/reports
  *   GET — list open reports (with target previews) for the moderation queue.
  *
- * Admin-only. The queue page (/admin/community) uses this directly.
+ * Admin-only (public.admin_users). The queue page (/admin/community) uses
+ * this directly. It reads with the admin's own session, under the admin read
+ * policies in STEP 58, not with the service-role key.
  */
 
 import { NextResponse } from 'next/server';
-import {
-  getCommunityServiceClient,
-  getCommunityViewer,
-} from '@/lib/community/client';
+import { createClient } from '@/lib/supabase/server';
+import { isCommunityAdmin } from '@/lib/community/client';
 import type { CommunityReportEnriched } from '@/types/community';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ reports: [] }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer || !viewer.is_admin) {
+  const client = createClient();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  if (!(await isCommunityAdmin(client))) {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
 

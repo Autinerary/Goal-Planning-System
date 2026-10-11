@@ -33,8 +33,23 @@ export function getCommunityServiceClient(): SupabaseClient | null {
 }
 
 /**
+ * Whether the signed-in caller is an admin: a row in public.admin_users
+ * (STEP 55), checked by the database for this session only. Admin routes
+ * gate on this and then write with the caller's own session, so RLS policies
+ * that call is_admin() decide what they may change (STEP 58).
+ */
+export async function isCommunityAdmin(supabase: SupabaseClient): Promise<boolean> {
+  const { data, error } = await supabase.rpc('is_admin');
+  return !error && data === true;
+}
+
+/**
  * Resolve the currently signed-in user. Returns null if no session.
  * Use the cookie-bound `createClient()` so RLS still applies for reads.
+ *
+ * is_admin is the same answer the admin routes and policies use
+ * (public.admin_users), so a page offers moderation only to the people the
+ * database lets moderate. It used to read profiles.role.
  */
 export async function getCommunityViewer(): Promise<{
   user_id: string;
@@ -46,14 +61,9 @@ export async function getCommunityViewer(): Promise<{
       data: { user },
     } = await supa.auth.getUser();
     if (!user) return null;
-    const { data: profile } = await supa
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
     return {
       user_id: user.id,
-      is_admin: profile?.role === 'admin',
+      is_admin: await isCommunityAdmin(supa),
     };
   } catch (err) {
     console.warn('[community] Failed to load viewer:', err);

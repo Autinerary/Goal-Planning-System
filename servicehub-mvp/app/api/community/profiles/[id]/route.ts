@@ -1,14 +1,18 @@
 /**
  * /api/community/profiles/[id]
  *   GET   — public-facing community profile (visibility-filtered).
- *   PATCH — update one's own profile (pseudonym, bio, visibility flags).
- *           Only the owner can edit. Admins can edit via the admin route.
+ *   PATCH — update a profile (pseudonym, bio, visibility flags): the owner,
+ *           or an admin (public.admin_users). Runs as the signed-in caller
+ *           under RLS (community_profiles_owner, or the admin policies in
+ *           STEP 58), not with the service-role key.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import {
   getCommunityServiceClient,
   getCommunityViewer,
+  isCommunityAdmin,
 } from '@/lib/community/client';
 import { resolveVisibility } from '@/lib/community/visibility';
 import { validatePseudonym } from '@/lib/community/pseudonym';
@@ -187,13 +191,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const client = getCommunityServiceClient();
-  if (!client) {
-    return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
-  }
-  const viewer = await getCommunityViewer();
-  if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
-  if (viewer.user_id !== params.id && !viewer.is_admin) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
+  const isOwner = user.id === params.id;
+  if (!isOwner && !(await isCommunityAdmin(supabase))) {
     return NextResponse.json({ error: 'Not your profile' }, { status: 403 });
   }
 
@@ -235,13 +239,29 @@ export async function PATCH(
     return NextResponse.json({ ok: true });
   }
 
-  // Upsert in case the profile didn't exist yet (first edit from /settings).
-  const { error } = await client
+  if (isOwner) {
+    // Upsert in case the profile didn't exist yet (first edit from /settings).
+    const { error } = await supabase
+      .from('community_profiles')
+      .upsert({ user_id: params.id, ...update }, { onConflict: 'user_id' });
+    if (error) {
+      console.error('[community] PATCH /profiles/[id] failed:', error.message);
+      return NextResponse.json({ error: error.message || 'Update failed' }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // An admin edits a profile that exists. They never create one for someone
+  // who has not opted in to the community.
+  const { data: updated, error } = await supabase
     .from('community_profiles')
-    .upsert({ user_id: params.id, ...update }, { onConflict: 'user_id' });
+    .update(update)
+    .eq('user_id', params.id)
+    .select('user_id');
   if (error) {
     console.error('[community] PATCH /profiles/[id] failed:', error.message);
     return NextResponse.json({ error: error.message || 'Update failed' }, { status: 500 });
   }
+  if (!updated?.length) return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
