@@ -9,9 +9,10 @@ to their connected friends and in data exports.
 
 `without_other_people` returns a copy with those two lists removed and the
 number of matches kept (`similar_users_count`), so "Found N similar users"
-still reads right. The stored plan is not changed: every caller that writes
-a plan back must keep using the stored copy, not this one. Removing the
-filter brings the old responses back.
+still reads right. Since STEP 68 a plan is also saved this way: `other_people`
+takes the two lists out for public.plan_matches, which only the server reads
+(api/routes/onboarding.py, _save_path), and plans saved before were moved
+there by STEP 68 itself.
 
 core/path_privacy.py here and frontend/lib/pathPrivacy.ts in the app do the
 same thing; tests on both sides use the same example.
@@ -43,6 +44,23 @@ def without_other_people(payload: Any) -> Any:
             for key in OTHER_PEOPLE_KEYS:
                 result.pop(key, None)
     return clean
+
+
+def other_people(payload: Any) -> Any:
+    """The two lists a plan holds about other people, for plan_matches:
+    {"similar_users": [...], "retrieved_user_ids": [...]}, or None."""
+    if not isinstance(payload, dict):
+        return None
+    for response in payload.get("agentResponses") or []:
+        if _holds_other_people(response):
+            result = response["result"]
+            matches = result.get("similar_users")
+            ids = result.get("retrieved_user_ids")
+            return {
+                "similar_users": matches if isinstance(matches, list) else [],
+                "retrieved_user_ids": [str(i) for i in ids] if isinstance(ids, list) else [],
+            }
+    return None
 
 
 def _holds_other_people(response: Any) -> bool:

@@ -8,7 +8,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.auth_guard import current_user_id, onboarding_user_id, require_self_or_guardian
-from core.path_privacy import without_other_people
+from core.path_privacy import other_people, without_other_people
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import httpx
@@ -60,10 +60,26 @@ def _save_path(path_id: str, user_id: str, payload: Dict[str, Any], label: Optio
         except Exception:
             pass  # is_active column may not exist yet (pre-migration) — ignore
 
+        # The people the plan was matched with go to plan_matches, which
+        # only the server reads; the saved plan keeps how many (STEP 68).
+        # Before STEP 68 there is no such table and the plan keeps them.
+        stored = payload
+        matches = other_people(payload)
+        if matches is not None:
+            try:
+                client.table("plan_matches").upsert(
+                    {"user_id": user_id, "path_id": path_id, **matches,
+                     "updated_at": datetime.utcnow().isoformat()},
+                    on_conflict="user_id,path_id",
+                ).execute()
+                stored = without_other_people(payload)
+            except Exception:
+                pass
+
         row: Dict[str, Any] = {
             "user_id": user_id,
             "path_id": path_id,
-            "payload": payload,
+            "payload": stored,
             "updated_at": datetime.utcnow().isoformat(),
         }
         # Only send new columns when we have values; tolerate pre-migration DBs.

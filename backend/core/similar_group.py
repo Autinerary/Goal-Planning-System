@@ -101,12 +101,30 @@ def active_plan(sb, user_id: str) -> Optional[Dict[str, Any]]:
     return {"path_id": row.get("path_id"), "payload": row.get("payload")} if row else None
 
 
+def saved_matches(sb, user_id: str, path_id: Optional[str]) -> List[Dict[str, Any]]:
+    """The members kept apart from the plan in plan_matches (STEP 68), in
+    the same shape as plan_members. Empty before STEP 68."""
+    if not path_id:
+        return []
+    try:
+        rows = (sb.table("plan_matches").select("similar_users")
+                .eq("user_id", user_id).eq("path_id", path_id).limit(1).execute().data) or []
+    except Exception:
+        return []
+    if not rows:
+        return []
+    return plan_members({"agentResponses": [{"agentId": "pattern_recognition",
+                                             "result": {"similar_users": rows[0].get("similar_users") or []}}]})
+
+
 def current_group(sb, user_id: str) -> Optional[Dict[str, Any]]:
     """The group behind the person's plan, members whose account still exists."""
     plan = active_plan(sb, user_id)
     if plan is None:
         return None
-    members = plan_members(plan["payload"])
+    # Plans saved since STEP 68 keep their members in plan_matches; older
+    # ones may still hold them.
+    members = plan_members(plan["payload"]) or saved_matches(sb, user_id, plan.get("path_id"))
     ids = [m["user_id"] for m in members]
     if ids:
         alive = {str(r["user_id"]) for r in (sb.table("pattern_user_embeddings").select("user_id")
