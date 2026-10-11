@@ -11,6 +11,7 @@ import {
 } from '@/lib/supabase/vector-queries'
 import { getUserBarriers } from '@/lib/supabase/queries'
 import { getResourceById } from '@/lib/supabase/queries'
+import { isAdminUser } from '@/lib/auth/admin'
 
 /**
  * POST /api/embeddings/generate
@@ -152,7 +153,7 @@ async function generateResourceEmbeddingData(
       .eq('id', requestUserId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
+    const isAdmin = (await isAdminUser(supabase, profile?.role))
     const isSubmitter = resource.submitted_by === requestUserId
 
     if (!isAdmin && !isSubmitter) {

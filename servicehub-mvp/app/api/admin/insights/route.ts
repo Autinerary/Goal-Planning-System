@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!(await isAdminUser(supabase, profile?.role))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import MessageReportsDashboard from '@/components/admin/MessageReportsDashboard'
+import { isAdminUser } from '@/lib/auth/admin'
 
 /** Reported messages from Hare World, for the team (STEPs 66 and 67). */
 export default async function MessageReportsPage() {
@@ -20,7 +21,7 @@ export default async function MessageReportsPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!(await isAdminUser(supabase, profile?.role))) {
     redirect('/')
   }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminResourcesPage from '@/components/admin/AdminResourcesPage'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export default async function ResourcesAdminPage({
   searchParams,
@@ -23,7 +24,7 @@ export default async function ResourcesAdminPage({
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!(await isAdminUser(supabase, profile?.role))) {
     redirect('/')
   }
 

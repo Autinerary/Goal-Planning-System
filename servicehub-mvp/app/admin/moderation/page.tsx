@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ModerationDashboard from '@/components/admin/ModerationDashboard'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export default async function ModerationPage() {
   const supabase = createClient()
@@ -19,7 +20,7 @@ export default async function ModerationPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!(await isAdminUser(supabase, profile?.role))) {
     redirect('/')
   }
 

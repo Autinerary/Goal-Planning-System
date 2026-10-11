@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DataManagementClient from '@/components/admin/DataManagementClient'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export default async function DataManagementPage() {
   const supabase = createClient()
@@ -19,7 +20,7 @@ export default async function DataManagementPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!(await isAdminUser(supabase, profile?.role))) {
     redirect('/')
   }
 

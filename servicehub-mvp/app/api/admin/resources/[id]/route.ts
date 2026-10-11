@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications/service'
 import { onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Resource } from '@/types/database'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export async function POST(
   request: NextRequest,
@@ -25,7 +26,7 @@ export async function POST(
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!(await isAdminUser(supabase, profile?.role))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -138,7 +139,7 @@ export async function DELETE(
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (!(await isAdminUser(supabase, profile?.role))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

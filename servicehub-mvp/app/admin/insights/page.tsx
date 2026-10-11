@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminInsightsPage from '@/components/admin/AdminInsightsPage'
+import { isAdminUser } from '@/lib/auth/admin'
 
 export default async function InsightsAdminPage() {
   const supabase = createClient()
@@ -19,7 +20,7 @@ export default async function InsightsAdminPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!(await isAdminUser(supabase, profile?.role))) {
     redirect('/')
   }
 
