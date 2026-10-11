@@ -32,9 +32,10 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from api.auth_guard import current_user_id, require_self_or_guardian
 from core.orchestrator import Orchestrator
 from core import learning
 from database.supabase_client import get_supabase
@@ -328,10 +329,20 @@ async def create_reflection(
 # ---------------------------------------------------------------------------
 
 @router.get("/user/{user_id}")
-async def get_user_reflections(user_id: str):
+async def get_user_reflections(user_id: str, caller_id: str = Depends(current_user_id)):
     """Return a user's reflection history. Reads from Supabase when available
-    and falls back to the in-memory mirror otherwise."""
+    and falls back to the in-memory mirror otherwise.
+
+    Only for the person themselves, or their guardian. It had no check, and
+    read with the service role, so anyone who knew an account id could read
+    that person's journal entries.
+    """
     from database.supabase_client import get_supabase
+
+    try:
+        require_self_or_guardian(user_id, caller_id)
+    except HTTPException:
+        raise HTTPException(status_code=404, detail="No reflections found.")
 
     uid = learning._try_parse_uuid(user_id)
     supa = get_supabase()
