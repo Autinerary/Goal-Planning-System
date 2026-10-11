@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from core.path_provenance import is_legacy_payload  # noqa: E402
 from database.supabase_client import get_supabase  # noqa: E402
 
 
@@ -141,9 +142,15 @@ def main() -> None:
     # ---- Pathways / milestones --------------------------------------------
     section("PATHWAYS (user_paths.payload)")
     path_rows = sb.table("user_paths").select("user_id, path_id, payload").execute().data or []
+    # Paths written before 064801c carry the old agents' fixed numbers and a
+    # different shape (every milestone in one race), so they are left out of
+    # these figures (user_paths.is_legacy, STEP 53; core/path_provenance.py).
+    legacy = [p for p in path_rows if is_legacy_payload(p.get("payload"))]
+    path_rows = [p for p in path_rows if not is_legacy_payload(p.get("payload"))]
     real_paths = [p for p in path_rows if p["user_id"] in real_ids]
     synth_paths = [p for p in path_rows if p["user_id"] in synthetic_ids]
     print(f"  total path rows      : {len(path_rows)}  (real {len(real_paths)}, synthetic {len(synth_paths)})")
+    print(f"  legacy rows left out : {len(legacy)}  (written before 064801c; see is_legacy)")
 
     def milestone_counts(rows):
         counts = []
