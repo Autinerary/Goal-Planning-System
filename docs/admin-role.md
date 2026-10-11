@@ -63,6 +63,10 @@ Related admin checks that do not use the service role, listed for the same move:
 - ResourceHub's `/api/admin/*` routes and `/admin` pages check `profiles.role`
   but then use the person's own session, where RLS grants admins nothing, so
   parts of them (for example the user list) only see what any user sees.
+  **Since 11 October 2026:** they all use `lib/auth/admin.ts` (role `admin`
+  or `is_admin()`), and the user list, bans and reported messages use the
+  server key after that check. STEP 68 makes `is_admin()` accept role
+  `admin` too, which only the team can set.
 - The `moderation_queue` read policy checks `profiles.role = 'admin'`.
 - Role model approval has no route; it is done in the database.
 

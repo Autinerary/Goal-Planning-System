@@ -13,6 +13,10 @@
 -- holds other people's ids (retrieved_user_ids). Whether production has
 -- these policies is NOT YET VERIFIED; this answers it.
 --
+-- Since STEP 68 the stored plans no longer hold the other people: they are
+-- in public.plan_matches, which only the server reads. user_latest_context
+-- has row security and no policies, so only the server reads it too.
+--
 -- Rows: each policy on the two tables, then whether anon and authenticated
 -- hold SELECT on them (and on user_paths.payload itself).
 -- =====================================================================

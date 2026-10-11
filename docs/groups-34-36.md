@@ -257,6 +257,21 @@ STEP 66): `message_reports.resolution`, and banned accounts refused by the
 same check as blocks (and for memes shared with all connections). 11 local
 checks.
 
+STEP 68 (`backend/database/migrations/2026_security_hardening.sql`, after
+STEP 67) closes what the October review left open:
+- A request to a real person starts pending and only the person asked can
+  accept it, through the database's API too, not only through the app.
+- Nobody gives themselves admin, moderator or banned, or changes a role the
+  team set, so a ban sticks.
+- One admin check for both apps: `is_admin()` is `admin_users` or role
+  `admin`. Reported messages are read by admins only.
+- Saved plans no longer hold the people Pattern Recognition matched them with
+  (ids, conditions, goals summary). Those move to `plan_matches`, which only
+  the server reads, and the plan keeps how many there were. A deleted account
+  leaves every match list.
+
+26 local checks, with the migration run twice.
+
 ## How it was checked
 
 - Unit tests for the new logic: plan-task ticks, daily quotes, calendar
@@ -288,3 +303,12 @@ checks.
   test; and, on the live database, that each says "not switched on yet"
   before STEP 66 while Updates work. axe on every screen: no issues.
 - The planning service's tests (190), including the new sign-in rules.
+- After the 24 review branches were merged (11 October): the planning
+  service's tests (280); both apps type-check with no errors, and a type
+  error now fails their builds; the migrations bundle loads on a new
+  database, with STEPs 64 to 68 checked one by one. Every browser test above
+  was rerun on the merged build against the live database (56, 75, 18, 21,
+  10, 6, 42, 27 and 11 checks), with their "before STEP 64/65/66" checks now
+  expecting what is live. Also: setup's poll sends the person's token, a job
+  answers only its owner, and the accessibility checker found no serious or
+  critical problem on every page of both apps, signed in (66 page views).

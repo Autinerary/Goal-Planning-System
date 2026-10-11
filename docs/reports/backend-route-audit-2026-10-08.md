@@ -19,6 +19,22 @@ dependencies. Callers come from searching the main app, ResourceHub,
   memes, which trust a `?user_id` in the address and whose only caller sends
   no token.
 
+**Status, 11 October 2026**, with every review branch merged:
+- Messaging, calls and memes need a session, act only as the caller, and
+  only between connected people (commit 3d78f99,
+  `api/routes/social_access.py`).
+- `GET /api/onboarding/jobs/{job_id}` answers only the job's owner or their
+  guardian; anyone else gets the 404 of a job that doesn't exist. Setup sends
+  its token on each poll.
+- The login and register stubs are removed. The app's login route that sent
+  passwords to them was already gone.
+- `CRON_SECRET` is set in both Vercel projects (checked), and every scheduled
+  job now needs it in production (`lib/cronAuth.ts` in both apps). The
+  `x-vercel-cron` header is no longer accepted.
+- Unchanged on purpose: signed-out reflections and the assistant, within the
+  anonymous budget. The self-hosted model is listed but not switched on in
+  production, so the model server without a key isn't in use.
+
 ## Every route
 
 **Status** says where each route stands:
