@@ -2,7 +2,7 @@ import { getUserBarriers } from '@/lib/supabase/queries'
 import { findSimilarUsersByBarriers } from './similarity'
 import { getCandidateResources, getFallbackCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
-import { completeJSON, isLLMEnabled } from '@/lib/llm'
+import { completeJSON, isLLMEnabled, USER_TEXT_RULE, userList, userText } from '@/lib/llm'
 import {
   loadUserMemory,
   recordRun,
@@ -219,10 +219,11 @@ export class RecommendationAgent {
     }))
 
     const data = await completeJSON<{ explanations: string[] }>(
-      'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific. When a resource was rated by similar users, frame it as being "based on those who matched your Diagnostics profile".',
-      `Barriers (the user's Diagnostics profile): ${barriers.map((b) => b.type).join(', ') || 'none'}\n` +
-        (supportContext ? `Functional support needs: ${supportContext.slice(0, 3000)}\n` : '') +
-        (memoryHint ? `Prior history:\n${memoryHint}\n` : '') +
+      'You explain why specific community resources fit a neurodivergent user. Be concise, warm, and specific. When a resource was rated by similar users, frame it as being "based on those who matched your Diagnostics profile". ' +
+        USER_TEXT_RULE,
+      `Barriers (the user's Diagnostics profile): ${userList(barriers.map((b) => b.type))}\n` +
+        (supportContext ? `Functional support needs: ${userText(supportContext, 3000)}\n` : '') +
+        (memoryHint ? `Prior history:\n${userText(memoryHint, 1500)}\n` : '') +
         `Resources (JSON): ${JSON.stringify(payload)}\n` +
         `Return JSON: {"explanations": ["sentence about resource 0", "sentence about resource 1", ...]}\n` +
         `One sentence (max 25 words) per resource, same order as input. For resources with similarUsers > 0, start with "Based on those who matched your Diagnostics profile".`,

@@ -69,12 +69,14 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
             ),
         }
 
-    context = (req.context or "").strip()[:2000]
+    context = (req.context or "").strip()
     system = SYSTEM_PROMPT
     if context:
+        # Built by the browser from the person's own answers: fenced, capped
+        # (2000 as before), and marked as information, not instructions.
         system += (
             "\n\nWhat we know about this person (use it to personalise, don't "
-            f"repeat it back verbatim):\n{context}"
+            f"repeat it back verbatim):\n{llm.user_text(context, 2000)}\n\n{llm.USER_TEXT_RULE}"
         )
 
     selection = llm.parse_selection(req.llm_config)

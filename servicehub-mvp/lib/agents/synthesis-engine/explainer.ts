@@ -1,7 +1,7 @@
 import type { AgentOutputs, RankedResult, UserContext } from './types'
 import type { RecommendationAgentOutput } from '@/lib/agents/recommendation-agent/types'
 import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
-import { completeText, isLLMEnabled } from '@/lib/llm'
+import { completeText, isLLMEnabled, USER_TEXT_RULE, userList, userText } from '@/lib/llm'
 
 /**
  * Generates a human-readable top-line synthesis explanation.
@@ -24,14 +24,16 @@ export async function generateExplanation(
   const patterns = Array.isArray(agentOutputs.PatternAgent)
     ? agentOutputs.PatternAgent.slice(0, 3).map((p: any) => p.insight).filter(Boolean)
     : []
-  const barriers = (userContext.barriers || []).map((b: any) => b.type).join(', ')
+  const barriers = (userContext.barriers || []).map((b: any) => b.type)
 
   const llm = await completeText(
-    'You are a warm, plain-language assistant that summarises why a set of community resources were surfaced for a neurodivergent user. Two short sentences, max 45 words total. No markdown, no lists.',
-    `User barriers: ${barriers || 'none'}\n` +
+    'You are a warm, plain-language assistant that summarises why a set of community resources were surfaced for a neurodivergent user. Two short sentences, max 45 words total. No markdown, no lists. ' +
+      USER_TEXT_RULE,
+    `User barriers: ${userList(barriers)}\n` +
       `Top resources: ${JSON.stringify(top)}\n` +
-      `Community patterns: ${JSON.stringify(patterns)}\n` +
-      `Fallback wording: ${ruleBased}`,
+      // Built from other people's typed conditions.
+      `Community patterns: ${userList(patterns, 300, 3)}\n` +
+      `Fallback wording: ${userText(ruleBased, 400)}`,
     { temperature: 0.5, maxTokens: 160 }
   )
   return llm || ruleBased

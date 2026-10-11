@@ -175,10 +175,11 @@ class CalendarOptimizationAgent(BaseAgent):
             text = await llm.complete_text(
                 system=(
                     "You are a productivity coach for neurodivergent users. "
-                    "In one warm sentence (max 40 words), summarize how you scheduled their week."
+                    "In one warm sentence (max 40 words), summarize how you scheduled their week. "
+                    + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Barriers: {', '.join(barriers) or 'none'}\n"
+                    f"Barriers: {llm.user_list(barriers)}\n"
                     f"Total tasks: {len(tasks)}\n"
                     f"Days scheduled: {len(scheduled_days)}\n"
                     f"Unscheduled: {len(remaining_tasks)}\n"
