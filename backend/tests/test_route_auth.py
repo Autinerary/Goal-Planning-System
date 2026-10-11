@@ -18,7 +18,7 @@ from api.routes import memory, messaging, onboarding, paths, reflections
 ROOT = Path(__file__).resolve().parents[1]
 GUARDED = {
     "api/routes/reflections.py": {"get_user_reflections"},
-    "api/routes/onboarding.py": {"update_onboarding", "get_generated_path", "get_latest_job"},
+    "api/routes/onboarding.py": {"update_onboarding", "get_generated_path", "get_latest_job", "get_job"},
     "api/routes/paths.py": {"get_path", "adapt_path"},
     "api/routes/memory.py": {"get_user_memory"},
     "api/routes/messaging.py": {"get_conversations"},
@@ -85,6 +85,20 @@ class RouteAuthTests(unittest.TestCase):
             self.assertEqual(owner.get("/api/memory/owner").status_code, 200)
             self.assertEqual(owner.get("/api/onboarding/jobs/latest/owner").status_code, 200)
             self.assertEqual(client_as(None).get("/api/memory/owner").status_code, 401)
+
+    def test_a_job_is_only_polled_by_its_owner(self):
+        # The error of a job can be the crisis message (a goal that mentions
+        # self-harm). Someone else gets the 404 of a job that doesn't exist.
+        row = {"id": "job_1", "user_id": "owner", "status": "failed", "error": "crisis message"}
+        with patch.object(onboarding.jobs, "get", lambda job_id: row if job_id == "job_1" else None):
+            owner = client_as("owner").get("/api/onboarding/jobs/job_1")
+            self.assertEqual((owner.status_code, owner.json()["error"]), (200, "crisis message"))
+            stranger = client_as("stranger").get("/api/onboarding/jobs/job_1")
+            missing = client_as("stranger").get("/api/onboarding/jobs/job_2")
+            self.assertEqual((stranger.status_code, stranger.json()), (404, {"detail": "Job not found"}))
+            self.assertEqual(stranger.json(), missing.json())
+            self.assertNotIn("crisis", stranger.text)
+            self.assertEqual(client_as(None).get("/api/onboarding/jobs/job_1").status_code, 401)
 
     def test_conversations_are_only_ever_the_callers_own(self):
         # main (3d78f99, api/routes/social_access.py): a user_id naming someone

@@ -1289,8 +1289,14 @@ export default function OnboardingPage() {
         let pathId: string | undefined
         while (Date.now() < deadline) {
           await new Promise((r) => setTimeout(r, 3000))
+          // A job is shown only to the person it belongs to. The session is
+          // read each time, so a token refreshed during a long run is used.
+          const { data: { session: current } } = await createClient().auth.getSession()
           const poll = await axios
-            .get(`${API_URL}/api/onboarding/jobs/${jobId}`, { timeout: 15000 })
+            .get(`${API_URL}/api/onboarding/jobs/${jobId}`, {
+              timeout: 15000,
+              headers: current?.access_token ? { Authorization: `Bearer ${current.access_token}` } : {},
+            })
             .catch(() => null)
           if (!poll) continue // a dropped poll is not a failed job
           const { status, stage, pathId: donePathId, error: jobError } = poll.data || {}

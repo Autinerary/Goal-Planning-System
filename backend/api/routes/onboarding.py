@@ -589,10 +589,20 @@ async def enqueue_onboarding(
 
 
 @router.get("/jobs/{job_id}", response_model=JobStatus)
-async def get_job(job_id: str):
-    """Poll a generation. Terminal states carry either pathId or error."""
+async def get_job(job_id: str, caller_id: str = Depends(current_user_id)):
+    """Poll a generation. Terminal states carry either pathId or error.
+
+    Only for the person whose job it is, or their guardian, as for
+    /jobs/latest: a job's error can be the crisis message shown when a goal
+    mentions self-harm. Anyone else gets the same 404 as for a job that
+    doesn't exist.
+    """
     row = jobs.get(job_id)
-    if not row:
+    try:
+        if not row:
+            raise HTTPException(status_code=404)
+        require_self_or_guardian(str(row.get("user_id") or ""), caller_id)
+    except HTTPException:
         raise HTTPException(status_code=404, detail="Job not found")
     return JobStatus(
         jobId=str(row.get("id")),
