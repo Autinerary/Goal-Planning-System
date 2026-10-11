@@ -131,9 +131,11 @@ async function isDuplicate(item: any, itemType: 'rating' | 'resource' | 'user'):
         return false
       }
 
+      // The location is needed below: with only the id selected, no
+      // existing resource ever matched on city, so duplicates went unnoticed.
       const { data: existing } = await supabase
         .from('resources')
-        .select('id')
+        .select('id, location')
         .eq('name', item.name)
         .limit(10) // Get potential matches
 

@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
-    // MVP deploy: don't fail build on type errors
-    ignoreBuildErrors: true,
+    // Type errors fail the build (the code type-checks clean since 11 Oct 2026).
+    ignoreBuildErrors: false,
   },
   eslint: {
     ignoreDuringBuilds: true,

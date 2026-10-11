@@ -40,7 +40,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database'
 
 /**
  * Refuse to run unless someone explicitly opts in. Calling into this module
@@ -78,7 +77,9 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+// Untyped: types/database.ts predates most of these tables, so with it every
+// row came back as `never`.
+const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -721,7 +722,7 @@ export async function clearTestData() {
       else console.log('✓ Deleted user barriers')
 
       // Delete test user profiles and auth users
-      for (const profile of testProfiles) {
+      for (const profile of testProfiles ?? []) {
         try {
           // Try to delete auth user via admin API
           await supabase.auth.admin.deleteUser(profile.id)
@@ -732,7 +733,7 @@ export async function clearTestData() {
         // Delete profile (cascade should handle related data)
         await supabase.from('profiles').delete().eq('id', profile.id)
       }
-      console.log(`✓ Deleted ${testProfiles.length} test user profiles`)
+      console.log(`✓ Deleted ${testProfiles?.length ?? 0} test user profiles`)
     } else {
       console.log('No test users found to delete')
     }

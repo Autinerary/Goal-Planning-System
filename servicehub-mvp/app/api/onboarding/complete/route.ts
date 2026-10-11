@@ -5,7 +5,7 @@ import { updateProfile, addUserBarrier } from '@/lib/supabase/queries'
 import { generateUserEmbeddingJob } from '@/lib/embeddings/background-jobs'
 import { orchestrator } from '@/lib/agents/orchestrator'
 import type { UserRequest } from '@/lib/agents/orchestrator/types'
-import type { Location } from '@/types/database'
+import type { Json, Location } from '@/types/database'
 import { geocodeLocation } from '@/lib/geocode'
 import {
   summarizeSupportContext,
@@ -114,7 +114,8 @@ export async function POST(request: NextRequest) {
       // A skipped location must not blank one the person already saved.
       const profileUpdate = await updateProfile(user.id, {
         role: body.role as any,
-        ...(location ? { location } : {}),
+        // profiles.location is JSON; Location is its shape.
+        ...(location ? { location: location as unknown as Json } : {}),
       })
 
       if (!profileUpdate) {

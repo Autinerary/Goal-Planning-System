@@ -1,6 +1,10 @@
 /**
  * Toast notification utilities
- * Uses react-hot-toast for lightweight, accessible notifications
+ * Uses react-hot-toast for lightweight, accessible notifications.
+ *
+ * How a screen reader announces a toast is set with ariaProps. These used an
+ * option react-hot-toast doesn't have, so it was ignored and errors were
+ * announced like any other message.
  */
 
 import toast from 'react-hot-toast'
@@ -10,7 +14,7 @@ export const showToast = {
     toast.success(message, {
       duration: 3000,
       position: 'top-right',
-      ariaLive: 'polite',
+      ariaProps: { role: 'status', 'aria-live': 'polite' },
     })
   },
 
@@ -18,7 +22,7 @@ export const showToast = {
     toast.error(message, {
       duration: 4000,
       position: 'top-right',
-      ariaLive: 'assertive',
+      ariaProps: { role: 'alert', 'aria-live': 'assertive' },
     })
   },
 
@@ -27,14 +31,14 @@ export const showToast = {
       duration: 3000,
       position: 'top-right',
       icon: 'ℹ️',
-      ariaLive: 'polite',
+      ariaProps: { role: 'status', 'aria-live': 'polite' },
     })
   },
 
   loading: (message: string) => {
     return toast.loading(message, {
       position: 'top-right',
-      ariaLive: 'polite',
+      ariaProps: { role: 'status', 'aria-live': 'polite' },
     })
   },
 
@@ -55,7 +59,7 @@ export const showToast = {
       },
       {
         position: 'top-right',
-        ariaLive: 'polite',
+        ariaProps: { role: 'status', 'aria-live': 'polite' },
       }
     )
   },

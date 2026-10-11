@@ -1,4 +1,4 @@
-import { pipeline, Pipeline, env } from '@xenova/transformers'
+import { pipeline, env, type FeatureExtractionPipeline } from '@xenova/transformers'
 import type { UserBarrier, Resource } from '@/types/database'
 
 // Configure transformers to use web backend (avoids native Node.js bindings)
@@ -11,24 +11,23 @@ if (typeof window === 'undefined') {
 
 // Use free, open-source sentence-transformer model
 // Runs in browser or Node.js - NO API COSTS!
-let embeddingPipeline: Pipeline | null = null
+let embeddingPipeline: FeatureExtractionPipeline | null = null
 
 /**
  * Initialize the embedding pipeline (loads model once, cached after first load)
  */
-async function initEmbeddings(): Promise<Pipeline> {
-  if (!embeddingPipeline) {
-    // Load model once (cached after first load)
-    // This model is ~80MB and will be downloaded on first use
-    embeddingPipeline = await pipeline(
-      'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2', // Free, 384-dimensional embeddings
-      {
-        quantized: true, // Use quantized model for faster loading
-      }
-    )
-  }
-  return embeddingPipeline
+async function initEmbeddings(): Promise<FeatureExtractionPipeline> {
+  // Load model once (cached after first load)
+  // This model is ~80MB and will be downloaded on first use
+  const ready = embeddingPipeline ?? (await pipeline(
+    'feature-extraction',
+    'Xenova/all-MiniLM-L6-v2', // Free, 384-dimensional embeddings
+    {
+      quantized: true, // Use quantized model for faster loading
+    }
+  ))
+  embeddingPipeline = ready
+  return ready
 }
 
 /**
