@@ -5,6 +5,7 @@ Combines outputs from multiple agents into coherent plans
 
 import re
 from typing import List, Dict, Any, Optional
+from core.path_storage import attach_tasks
 
 class SynthesisEngine:
     """Synthesizes agent outputs into unified responses"""
@@ -155,7 +156,9 @@ class SynthesisEngine:
 
         races: List[Dict[str, Any]] = []
         for race_id in sorted(grouped.keys(), key=self._race_index):
-            race_milestones = grouped[race_id]
+            # Each milestone carries its own tasks (core/path_storage.py):
+            # until now they were stored only in path planning's flat list.
+            race_milestones = attach_tasks(grouped[race_id], path_result.get('tasks'))
             # Name the race by the user's actual goal: prefer the milestone's
             # own goal text, then the goals list by index.
             goal_name = next(

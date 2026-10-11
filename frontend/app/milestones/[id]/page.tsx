@@ -39,7 +39,7 @@ export default function MilestoneDetailView() {
   const params = useParams()
   const router = useRouter()
   const milestoneId = params.id as string
-  const { pathPlanning, toolRecommendation } = useAgentPath()
+  const { payload, pathPlanning, toolRecommendation } = useAgentPath()
   const [milestone, setMilestone] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -82,8 +82,15 @@ export default function MilestoneDetailView() {
         url: t.url,
         rating: typeof t.rating === 'number' ? t.rating : null,
       }))
-      const agentTasks: string[] = ((pathPlanning?.tasks || []) as any[])
-        .filter((t) => t.milestoneId === milestoneId)
+      // A milestone's own tasks (stored with it since this change); older
+      // paths have them only in path planning's flat list.
+      const raceMilestone = ((payload?.races || []) as any[])
+        .flatMap((r) => (Array.isArray(r?.milestones) ? r.milestones : []))
+        .find((m: any) => m?.id === milestoneId)
+      const ownTasks: any[] = Array.isArray(raceMilestone?.tasks) && raceMilestone.tasks.length
+        ? raceMilestone.tasks
+        : ((pathPlanning?.tasks || []) as any[]).filter((t) => t.milestoneId === milestoneId)
+      const agentTasks: string[] = ownTasks
         .slice(0, 6)
         .map((t) => t.name || t.title)
       setMilestone({
@@ -108,7 +115,7 @@ export default function MilestoneDetailView() {
       })
     }
     setLoading(false)
-  }, [milestoneId, pathPlanning, toolRecommendation, isComplete])
+  }, [milestoneId, payload, pathPlanning, toolRecommendation, isComplete])
 
   if (loading) {
     return (
