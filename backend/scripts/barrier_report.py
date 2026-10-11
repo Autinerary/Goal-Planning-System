@@ -67,22 +67,27 @@ def main() -> None:
         print("Supabase not configured.")
         return
 
-    users = sb.auth.admin.list_users()
-    user_list = users if isinstance(users, list) else getattr(users, "users", [])
+    # Every page: list_users() with no arguments returns only the first 50
+    # accounts, which made 319 people with real accounts look "orphaned".
+    # The Vector deck's classifiers, so "real" means the same thing here as
+    # on its slides: not synthetic, and not a team or QA account.
+    from scripts.vector_evaluation_pull import is_synthetic, is_team_test, list_all_users
 
-    def is_synthetic(u) -> bool:
-        e = str(getattr(u, "email", "") or "")
-        return "synthetic+" in e or e.endswith("@autinerary.dev")
-
+    user_list = list_all_users(sb)
     synthetic_ids = {str(u.id) for u in user_list if is_synthetic(u)}
-    real_ids = {str(u.id) for u in user_list} - synthetic_ids
-    known_ids = synthetic_ids | real_ids
+    team_ids = {str(u.id) for u in user_list if not is_synthetic(u) and is_team_test(u)}
+    real_ids = {str(u.id) for u in user_list} - synthetic_ids - team_ids
+    known_ids = synthetic_ids | team_ids | real_ids
 
-    rows = sb.table("user_barriers").select("user_id, barrier_type").execute().data or []
+    from scripts.reembed_pattern_users import fetch_all
+
+    rows = fetch_all(sb, "user_barriers", "user_id, barrier_type")
 
     def bucket(uid: str) -> str:
         if uid in synthetic_ids:
             return "synthetic"
+        if uid in team_ids:
+            return "team"
         if uid in real_ids:
             return "real"
         return "orphaned"
@@ -98,6 +103,7 @@ def main() -> None:
     print("HOW MANY USERS?  (one defensible answer per definition)")
     print("=" * 66)
     print(f"  real signed-up accounts        : {len(real_ids)}")
+    print(f"  team / QA accounts             : {len(team_ids)}")
     print(f"  synthetic / seeded accounts    : {len(synthetic_ids)}")
     print(f"  auth users total               : {len(user_list)}")
     print(f"  user_ids in user_barriers      : {len({r['user_id'] for r in rows})}")
@@ -105,7 +111,7 @@ def main() -> None:
     print("\n  Use 'real signed-up accounts' on stage. The larger figures are")
     print("  seed data and would not survive a follow-up question.")
 
-    for label in ("real", "synthetic", "orphaned"):
+    for label in ("real", "team", "synthetic", "orphaned"):
         c = counts[label]
         if not c:
             continue
