@@ -256,21 +256,31 @@ async def create_reflection(
     # 6. Re-index this user's embedding with the latest success signal so the
     #    similar-user retrieval ranker prefers them when they're doing well.
     #    success_rate is in [0, 1]; reward is in [-1, 1].
+    #
+    #    Only the success signal comes from the reflection. The rest is the
+    #    person's stored profile (core/pattern_reindex.current_profile). This
+    #    used to pass the reflection's user_profile, which is {} here, and a
+    #    "goals" key the analysis never returns, so every reflection with an
+    #    outcome replaced their goals and conditions with nothing and rebuilt
+    #    the vector as "conditions: none shared". Someone with no vector yet
+    #    is left alone rather than indexed from an empty profile.
     success_rate = max(0.0, min(1.0, (reward + 1.0) / 2.0))
-    user_profile = reflection_data.get("user_profile", {}) or {}
-    barriers = list(user_profile.get("barrierTypes", []) or [])
-    goals = list(reflection_response.get("goals", []) or [])
     indexed = False
     if learning_enabled:
         try:
-            indexed = await orchestrator.index_user(
-                user_id=user_id,
-                user_profile=user_profile,
-                goals=goals,
-                barriers=barriers,
-                agent_result={"path": pipeline.get("path"), "milestones": []},
-                success_rate=success_rate,
-            )
+            from core.pattern_reindex import current_profile
+
+            supa = get_supabase()
+            state = current_profile(supa, user_id) if supa is not None else None
+            if state is not None:
+                indexed = await orchestrator.index_user(
+                    user_id=user_id,
+                    user_profile=state["profile"],
+                    goals=state["goals"],
+                    barriers=state["barriers"],
+                    agent_result={"path": state["path"], "milestones": []},
+                    success_rate=success_rate,
+                )
         except Exception as e:
             print(f"[reflections] index_user skipped: {e}")
 
