@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { withoutOtherPeople } from '@/lib/pathPrivacy'
 
 /**
  * GET /api/family/children/[id]/path
@@ -52,7 +53,8 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
       name: (cu?.user_metadata?.name as string) || cu?.email || 'Child',
       email: cu?.email || null,
     },
-    payload: pathRow?.payload || null,
+    // The child's plan, not the strangers it was matched with (lib/pathPrivacy.ts).
+    payload: withoutOtherPeople(pathRow?.payload || null),
     updatedAt: pathRow?.updated_at || null,
     completedMilestoneIds,
   })
