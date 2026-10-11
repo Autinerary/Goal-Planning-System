@@ -32,7 +32,10 @@ Measures, all read-only:
     their plan was matched with (similar_group_feedback, STEP 60); see
     score_against_group_feedback for how a group answer becomes a score
 
-Nothing here calls OpenAI or writes anything.
+Nothing here calls OpenAI or changes any data. Each run logs one row of
+counts and settings to evaluation_runs (core/evaluation_runs.py, STEP 61),
+or to the database EVALUATION_RUNS_DSN names; if neither is there, it says
+the run wasn't logged.
 
   python -m scripts.pattern_experiment               # report to stdout
   python -m scripts.pattern_experiment --k 5 --out docs/experiments/x.md
@@ -56,7 +59,8 @@ from core.condition_taxonomy import (  # noqa: E402
     normalize_conditions,
     vocabulary_entry,
 )
-from core.embedding_privacy import AGE_BANDS  # noqa: E402
+from core.embedding_privacy import AGE_BANDS, EMBEDDING_TEXT_VERSION  # noqa: E402
+from core.evaluation_runs import RunLog, _now  # noqa: E402
 from core.retrieval_eval import (  # noqa: E402
     arm_agreement,
     auc,
@@ -75,6 +79,8 @@ from database.supabase_client import get_supabase  # noqa: E402
 from scripts.vector_evaluation_pull import is_synthetic, is_team_test, list_all_users  # noqa: E402
 
 PAGE = 1000
+MATCH_THRESHOLD = 0.70   # production's, in PatternRecognitionAgent._vector_search
+SCRIPT = "scripts.pattern_experiment"
 THRESHOLDS = [0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
 
 
@@ -306,15 +312,46 @@ def score_against_group_feedback(r: Report, rows: Optional[List[Dict]], pool: Li
     r(f"**Read with care:** {len(usable)} answers can't separate arms statistically.")
 
 
+def count_rows(sb, table: str, column: str) -> Optional[int]:
+    try:
+        return len(fetch_all(sb, table, column))
+    except Exception:
+        return None
+
+
+def run_inputs(all_emb: List[Dict], stale: Dict[str, int], similarity_labels: Optional[int],
+               group_answers: Optional[int], args) -> Dict:
+    """What decides a run's result, for evaluation_runs. Counts and settings only."""
+    return {
+        "embeddings": len(all_emb),
+        "stale": stale["added"],
+        "stale_by_time": stale["by_time"],
+        "text_version": EMBEDDING_TEXT_VERSION,
+        "stored_text_versions": dict(Counter(r.get("embedding_text_version") or "NULL" for r in all_emb)),
+        "condition_map_hash": TAXONOMY_VERSION,
+        "similarity_labels": similarity_labels,
+        "group_feedback_answers": group_answers,
+        "match_threshold": MATCH_THRESHOLD,
+        "settings": {"k": args.k, "conditions": args.conditions, "filter": args.filter},
+    }
+
+
 def run(args) -> Report:
     r = Report()
+    started_at = _now()
     sb = get_supabase()
     real, emb, prefs, fields, fields_note, all_emb, current, added_at = load(sb)
+    group_rows = load_group_feedback(sb)
+    stale_all = stale_counts(all_emb, current, added_at)
+    run_log = RunLog(sb)
+    run_log.start(SCRIPT, run_inputs(all_emb, stale_all, count_rows(sb, "pattern_similarity_labels", "user_a"),
+                                     None if group_rows is None else len(group_rows), args),
+                  started_at=started_at)
 
     r("# Pattern Recognition representation experiment")
     r()
     r(f"Real users in the cohort: {len(real)}. With a stored profile vector: {len(emb)}.")
-    stale_all, stale_real = stale_counts(all_emb, current, added_at), stale_counts(emb, current, added_at)
+    stale_real = stale_counts(emb, current, added_at)
     r(f"Stale vectors (a condition added after the vector was built), by content: "
       f"{stale_all['added']} of {stale_all['vectors']} stored ({stale_real['added']} of "
       f"{stale_real['vectors']} real users); a condition since removed: {stale_all['removed']}. "
@@ -433,7 +470,7 @@ def run(args) -> Report:
     def neighbours(u, sim):
         return [v for v, _ in ranked_neighbours(u, pool, sim) if gate is None or gate(u, v)][:k]
 
-    score_against_group_feedback(r, load_group_feedback(sb), pool, arms, neighbours)
+    score_against_group_feedback(r, group_rows, pool, arms, neighbours)
 
     # ---- Similarity range of the stored vectors ------------------------------
     pair_sims = [arms["1 text"](a, b) for i, a in enumerate(pool) for b in pool[i + 1:]]
@@ -531,6 +568,7 @@ def run(args) -> Report:
         r(f"Pairs with cosine ≥ 0.9995 (effectively identical vectors): {len(dupes)}; "
           f"of those, {same_input} entered identical conditions and goals.")
 
+    run_log.finish()
     return r
 
 
