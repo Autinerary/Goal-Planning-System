@@ -8,6 +8,7 @@ import { useAgentPath } from '../../context/AgentPathContext'
 import { resolveToolLink } from '@/lib/toolLink'
 import CommonMistakes from '@/app/components/CommonMistakes'
 import BackButton from '../../components/BackButton'
+import MilestoneRating from '@/app/components/MilestoneRating'
 
 
 interface Tool {
@@ -227,6 +228,9 @@ export default function MilestoneDetailView() {
           )}
 
           <CommonMistakes milestoneId={milestone.id} />
+
+          {/* A rating per milestone: the first real signal about plans (B6). */}
+          <MilestoneRating pathId={payload?.id} milestoneId={milestone.id} />
         </div>
 
         {/* Tools Section */}
