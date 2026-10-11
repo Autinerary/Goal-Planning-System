@@ -141,6 +141,12 @@ compromised and ensure it's revoked.
 
 ## 5. Known operational notes
 
+- **Read-only checks** live in `setup/checks/`. Paste one into the SQL editor
+  to see how production is set up. They only read the system catalogs and
+  change nothing. `tidbits_function_security.sql` shows whether the Tidbits
+  accept-answer and vote functions act for a user id passed in, and who can
+  execute them.
+
 - **Render free tier sleeps.** The first AI Assistant message after idle takes
   ~40s to wake the backend; the UI shows a "waking up" note. A paid instance or
   a keep-warm ping removes this.
