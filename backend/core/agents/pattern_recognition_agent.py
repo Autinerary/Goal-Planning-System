@@ -19,6 +19,7 @@ from core.agents.base_agent import BaseAgent
 from core.condition_taxonomy import match_keys
 from core.embedding_privacy import EMBEDDING_TEXT_VERSION, build_embedding_text
 from database.supabase_client import get_supabase
+from datetime import datetime, timezone
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
@@ -288,6 +289,19 @@ class PatternRecognitionAgent(BaseAgent):
         """Identify path models backed by retrieved outcomes."""
         return []
 
+    def _has_current_conditions(self, user_id: str, barriers: List[str]) -> bool:
+        """Whether `barriers` are the conditions user_barriers holds for them now."""
+        try:
+            rows = (self.supabase.table('user_barriers').select('barrier_type')
+                    .eq('user_id', str(user_id)).execute().data) or []
+        except Exception:
+            return False
+
+        def norm(values):
+            return {str(v).strip().lower() for v in values if v is not None and str(v).strip()}
+
+        return norm(r.get('barrier_type') for r in rows) == norm(barriers)
+
     async def upsert_user_vector(
         self,
         user_id: str,
@@ -337,22 +351,31 @@ class PatternRecognitionAgent(BaseAgent):
             motivation = user_profile.get('motivationType')
             if motivation:
                 row['motivation_type'] = str(motivation)
+            row['updated_at'] = datetime.now(timezone.utc).isoformat()
+            # Clear the rebuild mark (STEP 56, core/pattern_reindex.py) only
+            # when this write carries the person's current conditions. A
+            # reflection sent from a page loaded before they changed one in
+            # ResourceHub carries the old ones; it leaves the mark for the
+            # sweep, which rebuilds from user_barriers.
+            if self._has_current_conditions(user_id, barriers):
+                row['reindex_requested_at'] = None
 
-            try:
-                self.supabase.table('pattern_user_embeddings').upsert(
-                    row,
-                    on_conflict='user_id',
-                ).execute()
-            except Exception as e:
-                # Deployed before STEP 42 added the column: still index the
-                # user rather than fail onboarding over a bookkeeping field.
-                if 'embedding_text_version' not in str(e):
-                    raise
-                row.pop('embedding_text_version')
-                self.supabase.table('pattern_user_embeddings').upsert(
-                    row,
-                    on_conflict='user_id',
-                ).execute()
+            # Columns a migration adds may not exist yet where this runs:
+            # still index the user rather than fail onboarding over a
+            # bookkeeping field.
+            optional = ('embedding_text_version', 'reindex_requested_at')
+            while True:
+                try:
+                    self.supabase.table('pattern_user_embeddings').upsert(
+                        row,
+                        on_conflict='user_id',
+                    ).execute()
+                    break
+                except Exception as e:
+                    missing = next((c for c in optional if c in row and c in str(e)), None)
+                    if missing is None:
+                        raise
+                    row.pop(missing)
             print(f"   \u2713 Indexed user {user_id} in pgvector")
             return True
         except Exception as e:
