@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # in either frontend ever called them. Unregistered rather than left serving
 # fabricated data on a public API — the real equivalents live under
 # /api/onboarding/* and read from user_paths.
-from api.routes import auth, onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models, milestone_ratings, pattern, similar_group
+from api.routes import onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models, milestone_ratings, pattern, similar_group
 from database.connection import init_db
 
 load_dotenv()
@@ -140,7 +140,9 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+# /api/auth/login and /register were stubs that took any email and password
+# and answered "mock_token"; sign-in is Supabase's, from the apps. Removed
+# 11 October 2026.
 app.include_router(onboarding.router, prefix="/api/onboarding", tags=["onboarding"])
 app.include_router(paths.router, prefix="/api/paths", tags=["paths"])
 app.include_router(reflections.router, prefix="/api/reflections", tags=["reflections"])
