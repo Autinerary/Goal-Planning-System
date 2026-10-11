@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { UUID_RE, socialError } from '@/lib/social'
+import { emailEnabled, messageReportedEmail, sendEmail } from '@/lib/email'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,10 +20,17 @@ export async function POST(req: NextRequest) {
   const message = typeof body?.message_id === 'string' && UUID_RE.test(body.message_id) ? body.message_id : null
   if (!message) return NextResponse.json({ error: 'Choose a message.' }, { status: 400 })
   const reason = typeof body?.reason === 'string' ? body.reason.slice(0, 500) : ''
-  const { error } = await supabase.rpc('report_message', { message, why: reason })
+  const { data: reportId, error } = await supabase.rpc('report_message', { message, why: reason })
   if (error) {
     const e = socialError(error, 'The message could not be reported. Please try again.')
     return NextResponse.json({ error: e.error }, { status: e.status })
+  }
+
+  // Tell the team, with a link to the review page in ResourceHub's admin area.
+  if (emailEnabled()) {
+    const hub = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'https://servicehub-six.vercel.app').replace(/\/$/, '')
+    const { subject, html, text } = messageReportedEmail(`${hub}/admin/messages`)
+    await sendEmail({ to: CONTACT_EMAIL, subject, html, text, idempotencyKey: `message-report-${reportId || message}` }).catch(() => null)
   }
   return NextResponse.json({ reported: message })
 }

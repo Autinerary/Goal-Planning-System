@@ -21,6 +21,11 @@ build/
 .env
 .env.local
 .env.*.local
+# Pulled from Vercel (vercel env pull). They hold secrets: never commit them.
+.env.vercel
+**/.env.vercel
+.env.production
+**/.env.production
 
 # IDE
 .vscode/

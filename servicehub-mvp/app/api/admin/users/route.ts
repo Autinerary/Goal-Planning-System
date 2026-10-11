@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+/**
+ * The admin Users list. The caller is checked with their own session; the
+ * list is then read with the server key, because a person can read only
+ * their own profile row (STEP 64), so with the session it showed only the
+ * admin's own row. Only the fields the table shows are read.
+ */
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,10 +38,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const q = searchParams.get('q') || undefined
 
+    const admin = createAdminClient()
+
     // Build query
-    let query = supabase
+    let query = admin
       .from('profiles')
-      .select('*', { count: 'exact' })
+      .select('id, email, full_name, display_name, role, created_at', { count: 'exact' })
 
     // Apply filters
     if (role && role !== 'all') {
@@ -41,7 +51,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (q) {
-      query = query.or(`email.ilike.%${q}%,full_name.ilike.%${q}%`)
+      // Characters that would change the filter itself are dropped.
+      const term = q.replace(/[,()*%\\]/g, ' ').trim().slice(0, 100)
+      if (term) query = query.or(`email.ilike.%${term}%,full_name.ilike.%${term}%,display_name.ilike.%${term}%`)
     }
 
     // Apply sorting
@@ -71,12 +83,12 @@ export async function GET(request: NextRequest) {
     // Get activity counts for each user
     const usersWithActivity = await Promise.all(
       (users || []).map(async (userProfile) => {
-        const { count: ratingsCount } = await supabase
+        const { count: ratingsCount } = await admin
           .from('ratings')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', userProfile.id)
 
-        const { count: resourcesCount } = await supabase
+        const { count: resourcesCount } = await admin
           .from('resources')
           .select('*', { count: 'exact', head: true })
           .eq('submitted_by', userProfile.id)

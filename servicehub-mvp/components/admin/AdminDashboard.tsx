@@ -27,6 +27,7 @@ interface DashboardStats {
   totalRatings: number
   totalUsers: number
   pendingModeration: number
+  openMessageReports: number
   resourceGrowth: number
   ratingGrowth: number
   userGrowth: number
@@ -38,6 +39,7 @@ export default function AdminDashboard({ userId }: AdminDashboardProps) {
     totalRatings: 0,
     totalUsers: 0,
     pendingModeration: 0,
+    openMessageReports: 0,
     resourceGrowth: 0,
     ratingGrowth: 0,
     userGrowth: 0,
@@ -123,6 +125,17 @@ export default function AdminDashboard({ userId }: AdminDashboardProps) {
                   className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
                 >
                   Tidbits
+                </Link>
+                <Link
+                  href="/admin/messages"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
+                >
+                  Reported messages
+                  {stats.openMessageReports > 0 && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      {stats.openMessageReports}
+                    </span>
+                  )}
                 </Link>
               </div>
             </div>

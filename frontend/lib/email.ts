@@ -150,6 +150,26 @@ export function storyReadyEmail(appUrl: string): { subject: string; html: string
   }
 }
 
+/**
+ * To the team, when someone reports a message in Hare World (STEP 66). Only a
+ * link to the review page (ResourceHub, Admin, then Reported messages): the
+ * message itself stays in the database.
+ */
+export function messageReportedEmail(reviewUrl: string): { subject: string; html: string; text: string } {
+  return {
+    subject: 'A message was reported in Hare World',
+    text: `Someone reported a message they were sent in Hare World.
+
+Review it (admins only):
+${reviewUrl}
+
+- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px;line-height:1.5">Someone reported a message they were sent in Hare World.</p>
+      <p style="margin:24px 0"><a href="${reviewUrl}" style="${BUTTON}">Review it</a></p>
+      <p style="${SMALL}">Admins only. The message isn’t in this email; it stays in the database.</p></div>`,
+  }
+}
+
 export interface NewsletterLink { label: string; detail?: string; href: string }
 
 function footer(unsubscribe: string, postal: string | null, why: string): { text: string; html: string } {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '10 October 2026'
+const UPDATED = '11 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -274,13 +274,17 @@ export default function PrivacyPage() {
             <li>While your account is open.</li>
             <li>
               When you delete your account on Your profile, we delete it and the information linked to it straight away.
-              Copies in our database host’s backups are gone within 30 days. Resources you suggested for ResourceHub stay,
-              without your name.
+              Copies in our database host’s backups are gone within 30 days; photos are deleted at once and are never in
+              backups. Resources you suggested for ResourceHub stay, without your name.
             </li>
             <li>
               If you ask us by email to delete your account, we delete it and the information linked to it within 30 days.
             </li>
             <li>Either way, we keep anything the law requires us to keep. Totals already in our reports, which do not identify anyone, stay.</li>
+            <li>
+              The companies that host Autinerary keep short-term logs of the requests made to it, which include your IP
+              address, to keep it working and secure. They delete them on their own schedule, within 90 days at most.
+            </li>
           </List>
         </Section>
 

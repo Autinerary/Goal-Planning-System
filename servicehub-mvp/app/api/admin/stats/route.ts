@@ -88,6 +88,12 @@ export async function GET(request: NextRequest) {
       .gte('created_at', twoWeeksAgo.toISOString())
       .lt('created_at', weekAgo.toISOString())
 
+    // Reported messages from Hare World not yet resolved (STEP 66; 0 before it).
+    const { count: openMessageReports } = await admin
+      .from('message_reports')
+      .select('*', { count: 'exact', head: true })
+      .is('resolved_at', null)
+
     // Pending moderation
     const { count: pendingModeration } = await supabase
       .from('moderation_queue')
@@ -119,6 +125,7 @@ export async function GET(request: NextRequest) {
         totalRatings: totalRatings || 0,
         totalUsers: totalUsers || 0,
         pendingModeration: pendingModeration || 0,
+        openMessageReports: openMessageReports || 0,
         resourceGrowth,
         ratingGrowth,
         userGrowth,

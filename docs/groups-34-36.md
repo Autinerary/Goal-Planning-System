@@ -124,6 +124,18 @@ blocking clears booked calls, suggestions and invitations between the two.
 Chat inside collab groups and match suggestions in Relationships are still
 "Not working yet".
 
+**Reviewing reports** (11 October): ResourceHub's admin area has **Reported
+messages** (`/admin/messages`, with the number open in the admin menu). Each
+report shows the reported message (only that message, not the conversation),
+the reason, who sent it, how often they have been reported, and who reported
+it. The team writes what was done and marks it resolved, reopens it, or bans
+the sender. The team's address gets an email for each new report, with a link
+and not the message. STEP 67 adds the note of what was done, and makes a ban
+apply in Hare World too. Found on the way: the admin Users list and its Ban
+button used the admin's own session. A ban answered success and changed
+nothing, and since STEP 64 the list showed only the admin. Both now use the
+server key after checking the caller is an admin.
+
 **Found while doing this:** the planning service's message, meme and call
 endpoints took the person from `?user_id=` with no sign-in check, through the
 service-role key, so anyone who knew an id could read that person's
@@ -239,6 +251,11 @@ order. Checked on the live site and database the same day:
 
 Every row between the two test accounts was removed afterwards, their
 profiles and settings were put back, and no throwaway account was left.
+
+STEP 67 (`backend/database/migrations/2026_message_report_review.sql`, after
+STEP 66): `message_reports.resolution`, and banned accounts refused by the
+same check as blocks (and for memes shared with all connections). 11 local
+checks.
 
 ## How it was checked
 
