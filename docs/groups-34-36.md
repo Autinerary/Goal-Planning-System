@@ -164,11 +164,11 @@ Their "10 pages of intake" was cut to two questions in Group 5.
 
 ## Team decisions
 
-1. ~~Hare World's unfinished features: build or remove~~: built (above),
-   once STEP 66 is applied.
+1. ~~Hare World's unfinished features: build or remove~~: built (above);
+   STEP 66 applied on 11 October.
 2. ~~Closing or pausing an account in the app~~: built from the mockup
-   (slide 21), with Privacy updated. Deleting needs STEP 65; until it is
-   applied the page says to email us, as before.
+   (slide 21), with Privacy updated. STEP 65, which deleting needs, was
+   applied on 11 October.
 3. Accent colour as a full theme.
 4. Written moderation rules for Tidbits.
 5. The website's content (Group 36): for whoever runs www.autinerary.ca.
@@ -205,8 +205,9 @@ and `delete_my_account()`. Deleting clears references that would stop it
 rows in tables that hold a person's id without a link to the account (the
 journal, the matching vectors and others), then the profile and the sign-in.
 Where the database may not remove a sign-in, the app finishes with the admin
-API. Both were tested on a local copy of the whole schema (every migration
-file): 46 checks, with each run more than once to show it can be.
+API; on Supabase it can, so the function does it all. Both were tested on a
+local copy of the whole schema (every migration file): 46 checks, with each
+run more than once to show it can be.
 
 STEP 66 (`backend/database/migrations/2026_social_features.sql`, after STEP
 65): the rules for messages and notes of support, reports, memes and likes,
@@ -215,6 +216,29 @@ rules the three older tables had before adding its own. Tested on the local
 copy of the whole schema with function bodies checked as Supabase does: 62
 checks, including deleting an account (everything of theirs goes, reports
 they made included).
+
+**Applied on 11 October and checked live.** STEPs 64, 65 and 66 were run in
+order. Checked on the live site and database the same day:
+
+- Signed out, no profile rows can be read; signed in, only your own; other
+  people's public fields come from the view, which has no email column.
+- The two test accounts connected, then messaged, reported, sent a note of
+  support, shared a meme, booked a call, invited each other to a goal, were
+  refused a task (neither chose the other as mentor), blocked and unblocked,
+  through the app's own routes: 19 checks.
+- Photos: the bucket's settings, writing, listing and removing in your own
+  folder, refusal in someone else's, and a GIF refused: 9 checks.
+- In the browser, nothing answered by the test: username (and a taken one),
+  pronouns, bio, a photo uploaded as a JPEG and removed with its folder, About
+  me, the person card's actions, Messages both ways without reloading, unsend,
+  report, a note of support, and blocking and unblocking from the card and
+  the list: 27 checks.
+- Deleting an account, with two throwaway test accounts made for it: the
+  function on its own (it removes the sign-in too), and the app's Delete with
+  a photo and a newsletter sign-up, all removed and signed out: 13 checks.
+
+Every row between the two test accounts was removed afterwards, their
+profiles and settings were put back, and no throwaway account was left.
 
 ## How it was checked
 
