@@ -255,7 +255,8 @@ profiles and settings were put back, and no throwaway account was left.
 STEP 67 (`backend/database/migrations/2026_message_report_review.sql`, after
 STEP 66): `message_reports.resolution`, and banned accounts refused by the
 same check as blocks (and for memes shared with all connections). 11 local
-checks.
+checks. Applied on 11 October and checked live: a ban stops messages both
+ways and memes.
 
 STEP 68 (`backend/database/migrations/2026_security_hardening.sql`, after
 STEP 67) closes what the October review left open:
@@ -270,7 +271,17 @@ STEP 67) closes what the October review left open:
   the server reads, and the plan keeps how many there were. A deleted account
   leaves every match list.
 
-26 local checks, with the migration run twice.
+26 local checks, with the migration run twice. Applied on 11 October. The
+first run stopped at the copy into `plan_matches`: 5 saved plans belonged to
+accounts deleted earlier, and the editor undid the whole step, so nothing
+changed. The step now copies only plans whose account exists, and empties
+all of them. The second run went through. Checked live with the two test
+accounts (30 checks): a connection needs the other person to accept it; nobody
+gives themselves admin, moderator or banned, or lifts their own ban; role
+`admin` set by the team counts in `is_admin()`; a report is read by the person
+who made it and by admins, not by a moderator; 91 plans' matches are in
+`plan_matches`, which people can't read; and none of the 96 saved plans lists
+other people.
 
 ## How it was checked
 
