@@ -42,4 +42,18 @@ assert.equal(nextProfileItem(['reminders'], 20), undefined)
 assert.equal(nextProfileItem([], 3), undefined)
 assert.equal(profileItem('norms').href, '/profile/diagnostic')
 
+// Groups 23 and 24: a first finished step unlocks the character early; caregivers aren't offered cosmetic items.
+{
+  const { nextProfileItem: next, unlockedEarly } = await import('./profileItems.ts')
+  const todo = ['norms', 'character', 'spiritAnimal']
+  assert.equal(next(todo, 3), 'norms') // nothing's day has come: the first open one
+  assert.equal(next(['character', 'spiritAnimal'], 3), 'character') // fallback, as before
+  assert.equal(next(['norms', 'character'], 3, { stepsDone: 1 }), 'character') // unlocked by a first step
+  assert.equal(unlockedEarly('character', 3, 1), true)
+  assert.equal(unlockedEarly('character', 12, 1), false) // its day had come anyway
+  assert.equal(unlockedEarly('norms', 3, 1), false)
+  assert.equal(next(['character', 'spiritAnimal'], 20, { caregiver: true }), undefined)
+  assert.equal(next(['norms', 'character'], 20, { caregiver: true }), 'norms')
+}
+
 console.log('profileItems: all passed')

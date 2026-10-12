@@ -24,8 +24,18 @@ import { goHubHref } from '@/lib/serviceHub'
  * suggestions), on the fourth part.
  *
  * "Show me" (Group 33) still points at each part on the page. Started once by
- * itself after setup, and from "How it works" in the top bar ("Guide" on a
- * phone). Counted as tour events (lib/funnel.ts, TOUR_STEP; STEP 70).
+ * itself after setup, and from the page guide ("How it works" in the top bar,
+ * components/PageGuide.tsx). Counted as tour events (lib/funnel.ts, TOUR_STEP;
+ * STEP 70).
+ *
+ * Riipen Labs, Group 23 found the tour "blocks active use of the page
+ * content", "automatically changes the background webpage as users advance"
+ * and "resets to step one every time it opens, regardless of which page the
+ * user is currently viewing". So the card sits beside the page with no dark
+ * layer, and the page stays usable; Next and Back never change the page
+ * (a "Go to" button does, when asked); it picks up where it was left, or at
+ * the part about the page it was opened from, with "Start over" there too;
+ * and Escape closes it.
  */
 
 type TaskId = (typeof TOUR_TASK_IDS)[number]
@@ -41,8 +51,8 @@ interface DemoTask {
   id: TaskId
   /** The one thing to try, as an instruction. */
   prompt: string
-  /** What to tap (a CSS selector); done when it is tapped. */
-  target: string
+  /** What to tap (CSS selectors, tried in order); done when it is tapped. */
+  target: string | string[]
   /** Said when it is not on the page. */
   missing: string
 }
@@ -56,8 +66,10 @@ interface DemoStep {
   features?: DemoFeature[]
   task?: DemoTask
   emoji: string
-  /** The page it is about; the tour goes there first unless already on `stayOn`. */
+  /** The page it is about; "Go to" leads there unless already on `stayOn`. */
   route?: string
+  /** That page's name, for "Go to …". */
+  routeName?: string
   stayOn?: RegExp
 }
 
@@ -87,6 +99,7 @@ const STEPS: DemoStep[] = [
       missing: 'Your next step appears here once your plan is made. Skip this one for now.',
     },
     route: '/path',
+    routeName: 'your Path',
   },
   {
     emoji: '🪧',
@@ -99,10 +112,13 @@ const STEPS: DemoStep[] = [
     task: {
       id: 'calendar',
       prompt: 'Open the Calendar, to see when it is planned',
-      target: 'main a[href="/calendar"], a[href="/calendar"]',
+      // The step page's own link first: one selector list would find the
+      // "Your plan" bar's Calendar tab, which comes earlier on the page.
+      target: ['main a[href="/calendar"]', 'a[href="/calendar"]'],
       missing: 'The Calendar link is on a step’s page. Skip this one for now.',
     },
     route: '/milestones',
+    routeName: 'Milestone View',
     stayOn: /^\/milestones(\/|$)/,
   },
   {
@@ -120,6 +136,7 @@ const STEPS: DemoStep[] = [
       missing: 'The energy choice is at the top of the Calendar. Skip this one for now.',
     },
     route: '/calendar',
+    routeName: 'the Calendar',
   },
   {
     emoji: '🎨',
@@ -138,6 +155,7 @@ const STEPS: DemoStep[] = [
       missing: 'Display is at the top of the Path. Skip this one for now.',
     },
     route: '/path',
+    routeName: 'your Path',
   },
   {
     emoji: '🗺️',
@@ -148,16 +166,35 @@ const STEPS: DemoStep[] = [
       { name: 'All places', desc: 'Everything in the app, in groups.', target: 'button[aria-controls="all-places"]' },
     ],
     route: '/path',
+    routeName: 'your Path',
   },
   {
     emoji: '🚀',
     title: 'Last one, if you like: ResourceHub',
     overview: 'ResourceHub has services and places rated by people with similar norms, and Tidbits, where people ask and answer questions. It opens in this window; come back with your browser’s Back button.',
-    connects: 'You can replay this tour any time from “How it works” in the top bar (“Guide” on a phone).',
+    connects: '“How it works” in the top bar (“Guide” on a phone) explains the page you are on, and starts this tour again.',
   },
 ]
 
 const SEEN_KEY = 'autinerary_demo_seen_v1'
+// Where the tour was left, so it picks up there (Group 23: it "resets to step
+// one every time it opens").
+const PROGRESS_KEY = 'autinerary_tour_progress'
+
+/** The first element a target's selectors find, in their order. */
+function findTarget(target: string | string[]): Element | null {
+  for (const selector of Array.isArray(target) ? target : [target]) {
+    const el = document.querySelector(selector)
+    if (el) return el
+  }
+  return null
+}
+
+/** The tour's part about this page, if there is one. */
+function partFor(pathname: string): number | null {
+  const i = STEPS.findIndex((st) => st.stayOn ? st.stayOn.test(pathname) : st.route === pathname)
+  return i >= 0 ? i : null
+}
 // Pages the tour never sits over: setup and signing in.
 const NOT_HERE = ['/', '/login', '/signup', '/onboarding', '/forgot-password', '/reset-password', '/auth/age', '/checkin']
 
@@ -193,7 +230,7 @@ export default function InteractiveDemo() {
   }
 
   const tryIt = (task: DemoTask) => {
-    const el = document.querySelector(task.target)
+    const el = findTarget(task.target)
     if (!el) {
       setNote(task.missing)
       return
@@ -207,6 +244,12 @@ export default function InteractiveDemo() {
     setDone((d) => ({ ...d, [id]: how }))
     track('tour', `${how === 'done' ? 'task' : 'skip'}.${id}`)
   }
+
+  // Kept as it goes, so it picks up where it was left.
+  useEffect(() => {
+    if (!open) return
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify({ step, done })) } catch {}
+  }, [open, step, done])
 
   // Keep the ring on its control as the page scrolls or moves.
   useEffect(() => {
@@ -244,10 +287,17 @@ export default function InteractiveDemo() {
     return () => document.removeEventListener('click', onClick, true)
   }, [trying])
 
+  const autoStarted = useRef(false)
   useEffect(() => {
     // Auto-start once for brand-new users — but only when signed in and onboarded
     // (the tour walks real, logged-in screens; it shouldn't pop over login/signup).
-    if (!user || !user.hasCompletedOnboarding) return
+    // Once per page load: it used to count a new start on every page change.
+    if (!user || !user.hasCompletedOnboarding || autoStarted.current) return
+    // Not for someone who said they had little energy for setup (Riipen Labs,
+    // Group 23): the page after setup told them where "How it works" is.
+    try {
+      if (JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || '{}')?.setupEnergy === 'low') return
+    } catch {}
     // Not over the page after setup, which offers the tour as a button. It
     // still starts by itself once, on the next page.
     if (pathname === '/onboarding-confirmation') return
@@ -256,7 +306,7 @@ export default function InteractiveDemo() {
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.
-        const t = setTimeout(() => { setOpen(true); track('tour', 'start') }, 800)
+        const t = setTimeout(() => { autoStarted.current = true; setOpen(true); track('tour', 'start') }, 800)
         return () => clearTimeout(t)
       }
     } catch {
@@ -264,16 +314,35 @@ export default function InteractiveDemo() {
     }
   }, [user, pathname])
 
+  // Opened again: at the part about this page if asked from there, else where
+  // it was left; "Start over" is in the card.
   useEffect(() => {
-    const start = () => {
-      setStep(0)
-      setDone({})
+    const start = (e: Event) => {
+      let saved: { step?: number; done?: Partial<Record<TaskId, 'done' | 'skipped'>> } = {}
+      try { saved = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}') || {} } catch {}
+      const asked = (e as CustomEvent<{ part?: number | null }>).detail?.part
+      const here = typeof asked === 'number' ? asked : null
+      const resume = typeof saved.step === 'number' && saved.step > 0 && saved.step < STEPS.length - 1 ? saved.step : 0
+      setStep(here ?? resume)
+      setDone(saved.done || {})
+      setNote('')
       setOpen(true)
       track('tour', 'start')
     }
     window.addEventListener('autinerary:start-demo', start)
     return () => window.removeEventListener('autinerary:start-demo', start)
   }, [])
+
+  // Focus moves into the card when it opens, and Escape closes it.
+  const cardRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open || trying || spot) return
+    cardRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') finish('close') }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, step, trying, spot])
 
   // Never over setup or signing in, whatever led there.
   useEffect(() => {
@@ -300,6 +369,7 @@ export default function InteractiveDemo() {
   const finish = (how: 'finish' | 'close') => {
     try {
       localStorage.setItem(SEEN_KEY, '1')
+      if (how === 'finish') localStorage.removeItem(PROGRESS_KEY)
     } catch {
       /* ignore */
     }
@@ -309,12 +379,14 @@ export default function InteractiveDemo() {
     setSpot(null)
   }
 
+  // Next and Back change the part, never the page (Group 23); "Go to" does.
   const go = (next: number) => {
-    const clamped = Math.max(0, Math.min(STEPS.length - 1, next))
     setNote('')
-    setStep(clamped)
-    const { route, stayOn } = STEPS[clamped]
-    if (route && !(stayOn && stayOn.test(pathname)) && route !== pathname) router.push(route)
+    setStep(Math.max(0, Math.min(STEPS.length - 1, next)))
+  }
+  const startOver = () => {
+    setDone({})
+    go(0)
   }
 
   if (!open) return null
@@ -325,13 +397,16 @@ export default function InteractiveDemo() {
   // "before moving to the next feature").
   const canGoOn = !s.task || Boolean(taskState)
 
+  // The ring around a control. A light shade elsewhere, which never takes
+  // taps: the page stays usable (Group 23).
   const ring = rect && (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed rounded-xl ring-4 ring-amber-400 keep-colors"
-      style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.55)' }}
+      style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.25)' }}
     />
   )
+  const onPage = !s.route || (s.stayOn ? s.stayOn.test(pathname) : s.route === pathname)
   const below = !rect || rect.top + rect.height / 2 < window.innerHeight / 2
 
   if (trying) {
@@ -372,9 +447,9 @@ export default function InteractiveDemo() {
     // The explanation sits away from the control: below if it is in the top
     // half of the screen, above if not.
     return (
-      <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-labelledby="tour-spot-name">
+      <div className="pointer-events-none fixed inset-0 z-[100]">
         {ring}
-        <div className={`fixed left-1/2 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl bg-white p-4 shadow-2xl ${below ? 'bottom-4' : 'top-4'}`}>
+        <div role="dialog" aria-modal="false" aria-labelledby="tour-spot-name" className={`pointer-events-auto fixed left-1/2 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl bg-white p-4 shadow-2xl ${below ? 'bottom-4' : 'top-4'}`}>
           <p className="text-xs font-semibold uppercase tracking-wide text-cyan-800">{s.title}</p>
           <p id="tour-spot-name" className="mt-1 font-bold text-slate-900">{spot.name}</p>
           <p className="mt-1 text-sm text-slate-700">{spot.desc}</p>
@@ -393,12 +468,20 @@ export default function InteractiveDemo() {
 
   return (
     /*
-      "Can't scroll at 100% zoom": the overlay scrolls and the card is capped
-      to the viewport. "The tour blurs the whole page": the scrim is a plain
-      dim, so the page stays legible behind the card.
+      Beside the page, not over it (Riipen Labs, Group 23: the tour "blocks
+      active use of the page content instead of displaying explanations
+      alongside it"): no dark layer, and the page stays usable. Capped to the
+      window and scrollable, so it fits at 200% zoom.
     */
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-y-auto bg-black/40 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="tour-title" className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
+    <div
+      ref={cardRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="tour-title"
+      className="fixed bottom-3 right-3 z-[100] w-[min(28rem,calc(100vw-1.5rem))] max-h-[min(40rem,calc(100vh-1.5rem))] overflow-y-auto rounded-2xl border border-slate-300 bg-white p-6 shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300"
+    >
+      <div className="relative">
         <button
           onClick={() => finish('close')}
           className="absolute top-3 right-3 text-slate-500 hover:text-slate-800"
@@ -414,8 +497,20 @@ export default function InteractiveDemo() {
           </span>
         </div>
 
-        <div className="text-5xl mb-3" aria-hidden="true">{s.emoji}</div>
+        <div className="text-4xl mb-2" aria-hidden="true">{s.emoji}</div>
         <h2 id="tour-title" className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
+        {/* The page this part is about, when it is not this one: going there
+            is the person's choice (Group 23: the tour "automatically changes
+            the background webpage"). */}
+        {!onPage && s.route && (
+          <button
+            type="button"
+            onClick={() => router.push(s.route!)}
+            className="mb-3 inline-flex items-center gap-2 rounded-xl border-2 border-indigo-600 bg-white px-3 py-1.5 text-sm font-semibold text-indigo-900 hover:bg-indigo-50"
+          >
+            Go to {s.routeName || 'that page'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
         <p className="text-slate-700 text-sm mb-3">{s.overview}</p>
         {s.connects && <p className="text-slate-700 text-sm mb-4">{s.connects}</p>}
 
@@ -504,7 +599,15 @@ export default function InteractiveDemo() {
             />
           ))}
         </div>
-        <p className="mb-5 text-xs text-slate-600">Part {step + 1} of {STEPS.length}</p>
+        <p className="mb-5 text-xs text-slate-600">
+          Part {step + 1} of {STEPS.length}
+          {step > 0 && (
+            <>
+              {' · '}
+              <button type="button" onClick={startOver} className="underline underline-offset-2 hover:text-slate-900">Start over</button>
+            </>
+          )}
+        </p>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button

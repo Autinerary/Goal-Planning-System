@@ -83,13 +83,46 @@ export function itemDone(id: ProfileItemId, state: ProfileState): boolean {
 }
 
 /**
- * The one the card suggests next, `day` days after sign-up: the first not yet
- * answered whose day has come, or, when none has, the first not answered.
- * Reminders for the first two weeks are not suggested after them.
+ * Rewards for progress (Riipen Labs, Group 23: "place them inside the main app
+ * as unlockable, low-pressure goals users can complete later", "an optional
+ * post-onboarding rewards program"): finishing a first step unlocks the
+ * character and spirit animals before their day. Nothing is ever locked
+ * away: "See all" and Your profile always list them.
  */
-export function nextProfileItem(todo: ProfileItemId[], day: number): ProfileItemId | undefined {
-  const open = todo.filter((id) => !(id === 'reminders' && day >= 14))
-  return open.find((id) => day >= (profileItem(id)?.fromDay ?? 0)) ?? open[0]
+export const UNLOCKED_BY_FIRST_STEP: ProfileItemId[] = ['character', 'spiritAnimal']
+
+/**
+ * Not suggested to people here for a child or another family member (Riipen
+ * Labs, Group 24: "avatar styling and spirit animal questions feel
+ * disrespectful during crises"). Still in "See all" and on Your profile.
+ */
+export const COSMETIC_ITEMS: ProfileItemId[] = ['character', 'spiritAnimal']
+
+export interface NextOptions {
+  /** Milestones finished. */
+  stepsDone?: number
+  /** Here for a child or another family member. */
+  caregiver?: boolean
+}
+
+/** Its day has not come yet, but a first finished step unlocked it. */
+export function unlockedEarly(id: ProfileItemId, day: number, stepsDone = 0): boolean {
+  return stepsDone > 0 && UNLOCKED_BY_FIRST_STEP.includes(id) && day < (profileItem(id)?.fromDay ?? 0)
+}
+
+/**
+ * The one the card suggests next, `day` days after sign-up: the first not yet
+ * answered whose day has come (or that a first step unlocked), or, when none
+ * has, the first not answered. Reminders for the first two weeks are not
+ * suggested after them; the character and spirit animals are not suggested
+ * to caregivers.
+ */
+export function nextProfileItem(todo: ProfileItemId[], day: number, opts: NextOptions = {}): ProfileItemId | undefined {
+  const open = todo
+    .filter((id) => !(id === 'reminders' && day >= 14))
+    .filter((id) => !(opts.caregiver && COSMETIC_ITEMS.includes(id)))
+  const ready = (id: ProfileItemId) => day >= (profileItem(id)?.fromDay ?? 0) || unlockedEarly(id, day, opts.stepsDone)
+  return open.find(ready) ?? open[0]
 }
 
 /** Done and not done, in the card's order. */

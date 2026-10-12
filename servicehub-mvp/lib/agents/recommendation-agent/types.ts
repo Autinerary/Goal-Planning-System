@@ -17,8 +17,18 @@ export interface RecommendationAgentInput {
   context?: string // "new to autism", "looking for therapist", etc.
 }
 
+/**
+ * What a score rests on. 'similar_people': ratings from people whose norms
+ * are like this person's, so the score is a match. 'ratings': no such ratings
+ * yet (the cold-start fallback), so the score is only the community rating
+ * and is not a match (match.ts).
+ */
+export type RecommendationBasis = 'similar_people' | 'ratings'
+
 export interface RecommendationAgentOutput {
   resources: ScoredResource[]
+  /** The same for every resource in one run. Absent when nothing was found. */
+  basis?: RecommendationBasis
   matchScores: number[]
   explanations: string[]
   confidence: number // Agent's confidence in recommendations (0-100)
@@ -37,7 +47,13 @@ export interface ScoredResource extends Resource {
   score: number
   matchReason: string
   similarUsersCount: number
+  /** With basis 'ratings', this is the community's average instead. */
   averageRatingFromSimilarUsers: number
+  basis: RecommendationBasis
+  /** How many ratings averageRatingFromSimilarUsers comes from. */
+  ratingCount: number
+  /** km from the person, when both have a map point. */
+  distance?: number
 }
 
 export interface SimilarUser {
@@ -55,4 +71,9 @@ export interface CandidateResource {
   }>
   similarUsersCount: number
   averageRating: number
+  basis: RecommendationBasis
+  /** How many ratings averageRating comes from. */
+  ratingCount: number
+  /** km from the person, when both have a map point. */
+  distance?: number
 }

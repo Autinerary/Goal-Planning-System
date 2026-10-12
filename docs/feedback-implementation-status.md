@@ -101,7 +101,7 @@ claim that the new changes are already available in production.
 | Spirit animals | General/pair/weekly modes, corrected weekday labels and counts, schedule-based fast/slow description, local full-color Twemoji PNGs and tinted previews with attribution. | Color rotation is approximate, not individually redrawn color variants. Other screens still use existing emoji artwork. Switching modes can discard extra selections. |
 | Recommendation diagnosis and cost | Missing optional life stage uses a valid fallback. Free/cheap eligible candidates are sorted before the upstream shortlist; unknown/invalid prices sort last. No synthetic seeding was used as a cure. | Live inference and catalogue coverage unverified. Currency/billing-period normalization is absent. Proxy errors can still appear as empty results; stale recommendations and cross-app saving need further work. |
 | Final guidance, then welcome | Final Step - Guidance -> Welcome to Dreamland -> Path. Earlier submission is now Create my Path. | Browser-tested with mocked APIs, not a live generated plan. |
-| Related posts to Tidbits | Path/Pit Stop already target ResourceHub community; Races now uses the same handoff helper. | Live authenticated cross-app handoff untested. Existing URL-token transport needs security review. |
+| Related posts to Tidbits | Path/Pit Stop already target ResourceHub community; Races now uses the same handoff helper. | Since 12 October the hand-off sends a one-time sign-in code, not the session's tokens, and every ResourceHub link goes through it (Riipen Labs, Groups 22 and 24; [groups-20-24.md](groups-20-24.md)). Tested end to end locally. |
 
 ## Is It Easier?
 

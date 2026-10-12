@@ -62,6 +62,9 @@ export async function scoreResources(
       matchReason,
       similarUsersCount: candidate.similarUsersCount,
       averageRatingFromSimilarUsers: candidate.averageRating,
+      basis: candidate.basis,
+      ratingCount: candidate.ratingCount,
+      distance: candidate.distance,
     }
   })
 
@@ -207,5 +210,9 @@ function generateMatchReason(
     parts.push('Well-rated by community')
   }
 
-  return parts.length > 0 ? parts.join(' • ') : 'Recommended based on community preferences'
+  if (parts.length > 0) return parts.join(' • ')
+  // Without similar people's ratings, a place rated under 4, or not at all,
+  // has no community preference to point to. Its card says how it is rated,
+  // or "Not rated yet", where a match score would be (RecommendationResult).
+  return candidate.basis === 'ratings' ? '' : 'Recommended based on community preferences'
 }

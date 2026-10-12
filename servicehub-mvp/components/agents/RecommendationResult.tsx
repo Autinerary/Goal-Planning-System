@@ -6,11 +6,30 @@ import AgentExplanation from './AgentExplanation'
 import ConfidenceIndicator from './ConfidenceIndicator'
 import SynthesisExplanation from './SynthesisExplanation'
 import AgentContributionBreakdown from './AgentContributionBreakdown'
+import { showsMatchPercent } from '@/lib/agents/recommendation-agent/match'
 import type { ScoredResource } from '@/lib/agents/recommendation-agent/types'
 import type { AgentContribution } from '@/lib/agents/synthesis-engine/types'
 
+/**
+ * What a card from the agent says where a "% match" that is not one used to
+ * be: a plain fact from its own data (Riipen Labs, Groups 22 and 24: "three
+ * matches at 40%"). Other lists have no basis, and keep their own notes.
+ */
+function plainReason(resource: ScoredResource): string | null {
+  if (!resource.basis) return null
+  const similar = resource.basis === 'similar_people'
+  const count = Number(similar ? resource.similarUsersCount : resource.ratingCount) || 0
+  const average = Number(resource.averageRatingFromSimilarUsers) || 0
+  if (count > 0 && average > 0) {
+    return `Rated ${average.toFixed(1)} by ${count} ${count === 1 ? 'person' : 'people'}${similar ? ' with similar norms' : ''}`
+  }
+  return 'Not rated yet'
+}
+
 interface RecommendationResultProps {
   resources: ScoredResource[]
+  /** The heading. Plain words when the list is not matched to the person. */
+  title?: string
   /** The line under the heading; says what the list is based on. */
   subtitle?: string
   explanations?: string[]
@@ -29,6 +48,7 @@ interface RecommendationResultProps {
 
 export default function RecommendationResult({
   resources,
+  title,
   subtitle = 'Matched to your norms, and to people who share them',
   explanations,
   confidence,
@@ -45,7 +65,7 @@ export default function RecommendationResult({
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-gray-900">AI Agent Recommendations</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{title || 'AI Agent Recommendations'}</h2>
         </div>
         <div className="text-sm text-gray-600">Loading recommendations...</div>
       </div>
@@ -57,7 +77,7 @@ export default function RecommendationResult({
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-gray-900">AI Agent Recommendations</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{title || 'AI Agent Recommendations'}</h2>
         </div>
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
           <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
@@ -77,7 +97,7 @@ export default function RecommendationResult({
         <div className="flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Recommended by AI Agent</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{title || 'Recommended by AI Agent'}</h2>
             <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
           </div>
         </div>
@@ -137,22 +157,39 @@ export default function RecommendationResult({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {resources.map((resource, index) => (
           <div key={resource.id} className="space-y-3">
+            {/* With a distance, the card shows it beside the city. */}
             <ResourceCard
               resource={resource}
               averageRating={resource.averageRatingFromSimilarUsers || 0}
               ratingCount={resource.similarUsersCount || 0}
+              distance={Number.isFinite(resource.distance) ? resource.distance : undefined}
               showBadges={true}
             />
 
-            {/* Match Score Badge: only for a score the agent gave. */}
-            {typeof resource.score === 'number' && (
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                  <Sparkles className="w-3 h-3" aria-hidden="true" />
-                  {resource.score}% match
+            {/* Match Score Badge: only for a score that is a match
+                (lib/agents/recommendation-agent/match.ts). Otherwise how the
+                place is rated, said plainly. */}
+            {(() => {
+              if (showsMatchPercent(resource)) {
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      <Sparkles className="w-3 h-3" aria-hidden="true" />
+                      {resource.score}% match
+                    </div>
+                  </div>
+                )
+              }
+              const reason = plainReason(resource)
+              if (!reason) return null
+              return (
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                    {reason}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* Why this was recommended (Odosa). Reasons are derived from real
                 signals on the resource — nothing is shown unless we have it. */}

@@ -35,6 +35,8 @@ const VIEWPORTS = [
 const SIGNED_OUT = [
   APP + '/', APP + '/start', APP + '/start?for=self&need=services', APP + '/signup', APP + '/login',
   APP + '/privacy', APP + '/help', APP + '/forgot-password', APP + '/emails/weekly-stop', HUB + '/', HUB + '/search?q=autism',
+  // Riipen Labs, Groups 20 to 24: the starter kits, a reminder's choices, ResourceHub's sign-in.
+  APP + '/kits', APP + '/kits/assessment', APP + '/kits/school', APP + '/emails/setup-reminder?a=snooze3', HUB + '/login',
 ]
 const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')

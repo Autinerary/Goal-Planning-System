@@ -10,7 +10,7 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   signUp: (email: string, password: string, fullName?: string, dateOfBirth?: string) => Promise<{ error: AuthError | null; session?: Session }>
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
+  signIn: (email: string, password: string, next?: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
@@ -120,13 +120,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signIn(email: string, password: string): Promise<{ error: AuthError | null }> {
+  // `next`: the page to go back to (a path on this site), so signing in from a
+  // resource's Save goes back to that resource (Riipen Labs, Groups 22 and 24).
+  async function signIn(email: string, password: string, next = '/'): Promise<{ error: AuthError | null }> {
     try {
       const normalizedEmail = email.trim().toLowerCase()
       const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       if (error) return { error }
 
-      router.push('/')
+      router.push(next.startsWith('/') && !next.startsWith('//') ? next : '/')
       router.refresh()
       return { error: null }
     } catch (err: any) {

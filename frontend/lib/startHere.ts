@@ -67,6 +67,9 @@ export const START_GOALS: StartGoal[] = [
   { id: 'school_work', label: 'School or work support', hint: 'Jobs, careers, school and activities', topic: 'school and work', lookingFor: 'services' },
   { id: 'sensory', label: 'Sensory tools', hint: 'For noise, light and touch', topic: 'sensory tools', lookingFor: 'tools' },
   { id: 'unsure', label: 'Not sure yet', hint: 'A few good places to start', topic: null, lookingFor: null },
+  // Riipen Labs, Group 24: "Immediate Need: ... Crisis Support". Who to call
+  // comes first (components/CrisisLines.tsx), then places for when it is calmer.
+  { id: 'urgent', label: 'Help right now', hint: 'Who to call, free and at any time', topic: 'help right now', lookingFor: 'urgent' },
 ]
 
 /** One line of a pathway. `id` names it in the funnel events (start_open). */
@@ -169,6 +172,11 @@ const PATHWAYS: Record<string, Pathway> = {
     items: [AUTISM, THERAPISTS, TIDBITS, books(1)],
     more: { label: 'Explore ResourceHub', params: {} },
   },
+  urgent: {
+    explanation: 'If you or someone else is in danger now, call 911. The lines above are free and open at any time. When things are calmer, these can help with what comes next.',
+    items: [THERAPISTS, AUTISM, DOCTORS],
+    more: { label: 'Explore services', params: {} },
+  },
 }
 
 // Where who it is for changes what comes first (Group 4: "resource tagging or
@@ -205,8 +213,12 @@ export function searchPath(params: Record<string, string>): string {
 const ROLE_FOR_AUDIENCE: Record<string, string> = {
   self: 'self', child: 'child', family: 'family', friend: 'family', work: 'work', ally: 'ally', unsure: 'unsure',
 }
-// "What are you looking for today?" first, then the goal's category.
-const NEED_FOR_LOOKING_FOR: Record<string, string> = { services: 'services', community: 'community', learning: 'learn' }
+// "What are you looking for today?" first, then the goal's category. A
+// parent's "An assessment or diagnosis" and "Support at school" (Group 24)
+// lead to services and school support.
+const NEED_FOR_LOOKING_FOR: Record<string, string> = {
+  urgent: 'urgent', services: 'services', community: 'community', learning: 'learn', assessment: 'services', school: 'school_work',
+}
 const NEED_FOR_GOAL_CATEGORY: Record<string, string> = {
   education: 'school_work', career: 'school_work', health: 'services', relationships: 'community', barrier: 'learn',
 }
@@ -222,9 +234,67 @@ export const START_NEED_KEY = 'autinerary_start_need'
 export const isStartRole = (id: unknown): id is string => START_ROLES.some((r) => r.id === id)
 export const isStartGoal = (id: unknown): id is string => START_GOALS.some((g) => g.id === id)
 
-/** Item ids used in pathways, for validating start_open events. */
-export const PATHWAY_ITEM_IDS = Array.from(new Set(
-  [...Object.values(PATHWAYS), ...Object.values(FOR_ROLE).flatMap((p) => Object.values(p || {}))]
+/** Item ids used in pathways, for validating start_open events; the starter
+ *  kits for parents (lib/starterKits.ts) are opened from pathways too. */
+export const PATHWAY_ITEM_IDS = Array.from(new Set([
+  ...[...Object.values(PATHWAYS), ...Object.values(FOR_ROLE).flatMap((p) => Object.values(p || {}))]
     .flatMap((p) => p?.items || [])
     .map((i) => i.id),
-))
+  'kit_assessment', 'kit_school',
+]))
+
+// ── Start here's three optional questions (Riipen Labs, Group 21) ──
+// Group 21 asked for "a short survey guide ... that asks users 5 targeted
+// simple multiple choice questions and directs them to the most relevant
+// section", and warned that "too many questions could create additional
+// friction". The cohort report asks for "only enough to route by role and
+// immediate goal" before something useful. So two come first, and three more
+// are offered after the starter resources, optional, each changing what is
+// shown at once. Sent as start_refine events ("where.ontario"; STEP 71).
+
+export interface RefineQuestion {
+  id: 'where' | 'soon' | 'how'
+  label: string
+  options: { id: string; label: string }[]
+}
+
+export const REFINE_QUESTIONS: RefineQuestion[] = [
+  { id: 'where', label: 'Where are you?', options: [
+    { id: 'ontario', label: 'Ontario' },
+    { id: 'canada', label: 'Elsewhere in Canada' },
+    { id: 'outside', label: 'Outside Canada' },
+  ] },
+  { id: 'soon', label: 'How soon do you need help?', options: [
+    { id: 'today', label: 'Today, it’s urgent' },
+    { id: 'week', label: 'This week' },
+    { id: 'exploring', label: 'No rush, I’m exploring' },
+  ] },
+  { id: 'how', label: 'How do you like to start?', options: [
+    { id: 'read', label: 'Read something short' },
+    { id: 'talk', label: 'Talk with people' },
+    { id: 'place', label: 'Find a place near me' },
+    { id: 'plan', label: 'Make a plan' },
+  ] },
+]
+
+export type RefineAnswers = Partial<Record<RefineQuestion['id'], string>>
+export const START_REFINE_KEY = 'autinerary_start_refine'
+
+// Which items come first for each way of starting.
+const FIRST_FOR_HOW: Record<string, string[]> = {
+  read: ['autism', 'book', 'tidbits'],
+  talk: ['tidbits', 'centres', 'activities', 'autism'],
+  place: ['therapists', 'doctors', 'autism', 'centres', 'schools', 'afterschool', 'work'],
+}
+const FIRST_FOR_SOON: Record<string, string[]> = {
+  today: ['therapists', 'doctors', 'autism'],
+  exploring: ['book', 'tidbits', 'autism'],
+}
+
+/** The pathway's items in the order the answers ask for; nothing is dropped. */
+export function orderForAnswers<T extends { id: string }>(items: T[], answers: RefineAnswers): T[] {
+  const first = [...(FIRST_FOR_SOON[answers.soon || ''] || []), ...(FIRST_FOR_HOW[answers.how || ''] || [])]
+  if (!first.length) return items
+  const rank = (id: string) => { const i = first.indexOf(id); return i === -1 ? first.length : i }
+  return items.map((it, i) => ({ it, i })).sort((a, b) => rank(a.it.id) - rank(b.it.id) || a.i - b.i).map(({ it }) => it)
+}

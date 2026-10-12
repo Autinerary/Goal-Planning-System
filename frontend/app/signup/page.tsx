@@ -9,6 +9,7 @@ import { computeAge, isAdult, MIN_SIGNUP_AGE } from '@/lib/age'
 import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
 import GoogleSignIn from '../components/GoogleSignIn'
+import PublicDisplay from '../components/PublicDisplay'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -107,10 +108,13 @@ export default function SignupPage() {
       <div className="m-auto w-full max-w-md">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
-          <p className="text-sm text-slate-700">
-            Already have an account?{' '}
-            <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-2">Sign in</Link>
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-slate-700">
+              Already have an account?{' '}
+              <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-2">Sign in</Link>
+            </p>
+            <PublicDisplay />
+          </div>
         </div>
 
         <div className="rounded-2xl p-5 surface">

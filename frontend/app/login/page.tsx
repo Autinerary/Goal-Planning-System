@@ -8,6 +8,7 @@ import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import GoogleSignIn from '../components/GoogleSignIn'
 import { wakeBackend } from '@/lib/wakeBackend'
 import { hubReturnHref } from '@/lib/serviceHub'
+import PublicDisplay from '../components/PublicDisplay'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -77,11 +78,14 @@ export default function LoginPage() {
     // headings).
     <div className="flex min-h-screen px-4 py-4 sm:py-8">
       <div className="m-auto w-full max-w-md">
-        <p className="mb-3 text-center text-sm text-slate-700">
-          <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
-          <span aria-hidden="true"> · </span>
-          Your personalized path
-        </p>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-slate-700">
+            <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
+            <span aria-hidden="true"> · </span>
+            Your personalized path
+          </p>
+          <PublicDisplay />
+        </div>
 
         {/* Login Card */}
         <div className="rounded-2xl p-5 sm:p-7 surface">

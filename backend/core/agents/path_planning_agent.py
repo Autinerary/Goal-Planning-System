@@ -40,6 +40,76 @@ def milestones_per_area(goal_count: int, cap: int = MAX_MILESTONES_PER_PATH) -> 
     return max(1, min(MILESTONES_PER_AREA, cap // (LIFE_AREAS * goal_count)))
 
 
+# Who a plan is for: setup's first question, "Who are you here for?"
+# (frontend/lib/audiences.ts). Riipen Labs, Group 24 (September 2026): a parent
+# whose goal was about their child's education got the same four roadmaps as
+# someone planning for themselves, one of them "Workplace" (job tasks, career
+# moves), so the plan "pivots ... into examining personal career roadblocks,
+# losing focus on the child". Nothing told the model the goal belonged to
+# someone else. For these answers it is told, and every roadmap is about
+# supporting that person.
+SUPPORTED_PEOPLE = {
+    'child': 'their child',
+    'family': 'a family member they support',
+    'friend': 'a friend they support',
+    'work': 'someone they teach, support or work with',
+}
+
+# The same four keys (the app themes and groups milestones by them), with
+# labels and angles for someone supporting another person. The work roadmap
+# becomes that person's day: school or work, routines and independence.
+SUPPORT_DIMENSIONS = [
+    ('education', 'Learning & school', "their learning: school or courses, meetings with teachers, accommodations, learning at home"),
+    ('workplace', 'School, work & daily life', "their day: school or work routines, everyday skills and independence, activities they enjoy"),
+    ('relationships', 'Relationships & support', "their friendships and family, and the user's own support as the person helping them"),
+    ('health', 'Health & routines', "their health, sleep and routines, appointments, and rest for the user as their supporter"),
+]
+
+# Used when the model is unavailable, in place of the career templates, which
+# would put a parent's own job search into their child's plan.
+SUPPORT_TEMPLATES = {
+    'education': [
+        'Write down what is going well and what is hard',
+        'Talk with their teacher or school',
+        'Ask the school about supports or a plan',
+        'Choose one small learning goal together',
+    ],
+    'workplace': [
+        'Map out a usual day together',
+        'Make one part of the day calmer',
+        'Find an activity they enjoy',
+        'Practise one everyday skill together',
+    ],
+    'relationships': [
+        'Find a group for families like yours',
+        'Plan time with a friend or relative',
+        'Share what helps with people around them',
+        'Line up support for yourself',
+    ],
+    'health': [
+        'Book a check-in with their doctor',
+        'Keep a short sleep and energy log',
+        'Plan quiet breaks into the day',
+        'Make time to rest yourself',
+    ],
+}
+
+
+def supported_person(audience: Any) -> Optional[str]:
+    """Who the user is planning for, in words for a prompt, or None for themselves."""
+    return SUPPORTED_PEOPLE.get(str(audience or '').strip().lower())
+
+
+def supporting_rule(who: str) -> str:
+    """The instruction every prompt about a supporting plan carries."""
+    return (
+        f"The user is planning for {who}. The goal is about that person, or the user's "
+        "part in helping them. Write everything as what the user can do to support them "
+        "(for example 'Ask the school about a support plan'). Never write about the "
+        "user's own career, job search or studies unless the goal itself says so. "
+    )
+
+
 def enforce_milestone_cap(milestones: List[Dict[str, Any]], cap: int = MAX_MILESTONES_PER_PATH) -> List[Dict[str, Any]]:
     """The last check: never return more than the cap, and say so if it bites."""
     if len(milestones) <= cap:
@@ -159,6 +229,8 @@ class PathPlanningAgent(BaseAgent):
 
         # Render prior-session memory once so every goal's roadmap can build on it.
         memory_hint = mem.summarize_for_prompt(memory)
+        # None when planning for themselves (Riipen Labs, Group 24).
+        for_person = supported_person(user_profile.get('audience'))
         support_context = user_profile.get('supportContext') or {}
         support_summary = self._summarize_support_context(support_context)
 
@@ -220,6 +292,7 @@ class PathPlanningAgent(BaseAgent):
                 memory_hint=memory_hint,
                 support_summary=support_summary,
                 per_area=per_area,
+                for_person=for_person,
             )
             for goal_idx, goal in enumerate(goals)
         ])
@@ -343,17 +416,20 @@ class PathPlanningAgent(BaseAgent):
         memory_hint: str = "",
         support_summary: str = "",
         per_area: int = MILESTONES_PER_AREA,
+        for_person: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Generate milestones for a specific goal across four life dimensions.
 
         Every goal — regardless of category — gets its own roadmap in each of
         Education, Workplace (career), Relationships, and Health/Lifestyle.
         These four dimensions describe HOW the same goal is supported from
-        different angles of the user's life.
+        different angles of the user's life. When the user is planning for
+        someone they support (`for_person`), the same four keys describe that
+        person's life instead, and nothing is about the user's own career.
         """
 
         # Four life dimensions every goal must address.
-        dimensions = [
+        dimensions = SUPPORT_DIMENSIONS if for_person else [
             ('education',     'Education',        'learning, study habits, courses, credentials, knowledge'),
             ('workplace',     'Workplace',        'job tasks, career moves, professional skills, work environment'),
             ('relationships', 'Relationships',    'mentors, peers, family, networking, communication, support system'),
@@ -372,10 +448,16 @@ class PathPlanningAgent(BaseAgent):
                     f"{per_area} concrete, actionable milestone name{'s' if per_area != 1 else ''} (max 8 words each) that move "
                     "the user toward the SAME goal from that dimension's angle. "
                     "Tailor wording to the user's barriers. No numbering, no commentary. "
+                    + (supporting_rule(for_person)
+                       + "Here the dimensions mean: "
+                       + "; ".join(f"{key} = {focus}" for key, _, focus in dimensions)
+                       + ". "
+                       if for_person else "")
                     + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Goal: {llm.user_text(goal, 300)}\n"
+                    (f"Planning for: {for_person}\n" if for_person else "")
+                    + f"Goal: {llm.user_text(goal, 300)}\n"
                     f"Barriers: {llm.user_list(barriers)}\n"
                     + (f"Functional support needs and successful accommodations: {llm.user_text(support_summary, 5000)}\n" if support_summary else "")
                     + (f"Prior history:\n{llm.user_text(memory_hint, 1500)}\n" if memory_hint else "")
@@ -395,7 +477,7 @@ class PathPlanningAgent(BaseAgent):
                         per_dim_names[key] = [str(m).strip() for m in vals if str(m).strip()][:per_area]
 
         # Fallback templates per dimension when LLM is unavailable.
-        fallback_map = {
+        fallback_map = SUPPORT_TEMPLATES if for_person else {
             'education':     self.goal_templates['education'],
             'workplace':     self.goal_templates['career'],
             'relationships': self.goal_templates['relationships'],
@@ -446,6 +528,8 @@ class PathPlanningAgent(BaseAgent):
                     'dimension': dim_key,
                     'dimensionLabel': dim_label,
                     'category': dim_key if dim_key != 'workplace' else 'career',
+                    # Read by the description and task prompts below.
+                    **({'forPerson': for_person} if for_person else {}),
                 })
                 order_counter += 1
 
@@ -466,6 +550,7 @@ class PathPlanningAgent(BaseAgent):
         # simultaneous users possible.
         descriptions = await self._enrich_descriptions_batch(
             [s['name'] for s in shells], barriers, goal, support_summary,
+            for_person=for_person,
         )
         for shell in shells:
             shell['description'] = descriptions.get(
@@ -530,6 +615,7 @@ class PathPlanningAgent(BaseAgent):
         goal: str,
         support_summary: str = "",
         chunk_size: int = 10,
+        for_person: Optional[str] = None,
     ) -> Dict[str, str]:
         """Describe many milestones in as few LLM calls as possible.
 
@@ -555,11 +641,13 @@ class PathPlanningAgent(BaseAgent):
                         "You are a neurodiversity-aware life coach. For EACH numbered "
                         "milestone write ONE warm, concrete sentence (max 35 words) "
                         "describing it, tailored to the user's barriers. "
-                        'Return JSON: {"descriptions": {"0": "...", "1": "..."}} '
+                        + (supporting_rule(for_person) if for_person else "")
+                        + 'Return JSON: {"descriptions": {"0": "...", "1": "..."}} '
                         + llm.USER_TEXT_RULE
                     ),
                     user=(
-                        f"Goal: {llm.user_text(goal, 300)}\n"
+                        (f"Planning for: {for_person}\n" if for_person else "")
+                        + f"Goal: {llm.user_text(goal, 300)}\n"
                         f"Barriers: {llm.user_list(barriers)}\n"
                         f"{('Support context: ' + llm.user_text(support_summary, 5000)) if support_summary else ''}\n"
                         f"Milestones:\n{listing}"
@@ -679,6 +767,9 @@ class PathPlanningAgent(BaseAgent):
                 f"{j}. [{m.get('id')}] {m.get('name')} (goal: {llm.user_text(m.get('goal', ''), 300)})"
                 for j, m in enumerate(chunk)
             )
+            # Planning for someone else (Riipen Labs, Group 24): one plan has
+            # one audience, so the chunk's first milestone says it for all.
+            for_person = next((m.get('forPerson') for m in chunk if m.get('forPerson')), None)
             try:
                 data = await llm.complete_json(
                     system=(
@@ -687,12 +778,14 @@ class PathPlanningAgent(BaseAgent):
                         "specific imperative action of at most 9 words (e.g. 'Email the disability "
                         "office for the form'), NEVER generic phases like 'Research and gather "
                         "information'. Each description is one concrete sentence. minutes is 10-30. "
-                        'Return JSON: {"milestones": {"0": {"tasks": [{"name": "...", '
+                        + (supporting_rule(for_person) if for_person else "")
+                        + 'Return JSON: {"milestones": {"0": {"tasks": [{"name": "...", '
                         '"description": "...", "minutes": 20}]}}} '
                         + llm.USER_TEXT_RULE
                     ),
                     user=(
-                        f"Barriers: {llm.user_list(barriers)}\n"
+                        (f"Planning for: {for_person}\n" if for_person else "")
+                        + f"Barriers: {llm.user_list(barriers)}\n"
                         f"Milestones:\n{listing}"
                     ),
                     temperature=0.6,
@@ -771,10 +864,12 @@ class PathPlanningAgent(BaseAgent):
                     "action of at most 9 words (e.g. 'Email the disability office for the form'), "
                     "NEVER generic phases like 'Research and gather information' or 'Create action plan'. "
                     "Each description is one concrete sentence. minutes is 10-30. "
+                    + (supporting_rule(milestone['forPerson']) if milestone.get('forPerson') else "")
                     + llm.USER_TEXT_RULE
                 ),
                 user=(
-                    f"Milestone: {milestone.get('name')}\n"
+                    (f"Planning for: {milestone['forPerson']}\n" if milestone.get('forPerson') else "")
+                    + f"Milestone: {milestone.get('name')}\n"
                     f"Goal: {llm.user_text(milestone.get('goal', ''), 300)}\n"
                     f"Barriers: {llm.user_list(barriers)}\n"
                     'Return JSON: {"tasks": [{"name": "...", "description": "...", "minutes": 20}]}'

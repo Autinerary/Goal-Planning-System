@@ -1,13 +1,17 @@
 // The reminder send: run once an hour by Vercel Cron (vercel.json), it sends
-// each daily reminder at the time its owner chose, where they live, and the one
-// reminder to finish setup on the morning after it was asked for. Server-only.
+// each daily reminder at the time its owner chose, where they live, and the
+// reminders to finish setup that someone asked for (up to three, each with
+// "finish now, remind me in a few days, or stop"; lib/setupReminders.ts).
+// Server-only.
 //
 // Riipen Labs, Group 11: re-engage "through Autinerary's own channels: email,
 // in-app, and push reminders ... Users choose the timing."
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail, dailyReminderEmail, finishSetupEmail, storyReadyEmail, emailEnabled } from '@/lib/email'
+import { sendEmail, dailyReminderEmail, finishSetupEmail, setupReminderEmail, storyReadyEmail, emailEnabled } from '@/lib/email'
+import { setupReminderLinks } from '@/lib/setupReminders'
+import { postalAddress } from '@/lib/newsletter'
 import { sendSms, smsEnabled, reminderText } from '@/lib/sms'
 import { reminderDue, setupReminderDue, localParts, validTimeZone } from '@/lib/reminderSchedule'
 import { isPaused } from '@/lib/pause'
@@ -70,17 +74,25 @@ export async function runReminders(now: Date, appUrl: string): Promise<ReminderR
       if (sent) await patchPreferences(row.id, 'reminderState', { lastSentOn: day, channel: rem.channel === 'sms' ? 'sms' : 'email' })
     }
 
-    // The one reminder to finish setup that someone asked for on the setup
-    // page: 9 AM the next day where they are, only if setup is unfinished.
+    // Reminders to finish setup, only if asked for on the setup page and
+    // only while setup is unfinished (skipping it counts as unfinished): up
+    // to three (lib/reminderSchedule.ts, setupReminderDue). An ask saved by
+    // the first version gets its one email, the morning after.
     const ask = prefs.setupReminder
-    if (emailEnabled() && setupReminderDue(ask, now)) {
+    const due = emailEnabled() ? setupReminderDue(ask, now) : null
+    if (due) {
       const { data: found } = await admin.auth.admin.getUserById(row.id)
       const account = found?.user
       if (!account) continue
       const send = account.user_metadata?.has_completed_onboarding !== true && Boolean(account.email)
+      const sequence = ask.plan === 'sequence'
       if (send) {
-        const { subject, html, text } = finishSetupEmail(appUrl)
-        const res = await sendEmail({ to: account.email!, subject, html, text, idempotencyKey: `setup-reminder-${row.id}-${ask.requestedAt}` })
+        const links = setupReminderLinks(appUrl, row.id)
+        const { subject, html, text } = sequence
+          ? setupReminderEmail(appUrl, { index: due, audience: ask.audience, links, postal: postalAddress() })
+          : finishSetupEmail(appUrl)
+        const headers = sequence ? { 'List-Unsubscribe': `<${links.oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined
+        const res = await sendEmail({ to: account.email!, subject, html, text, headers, idempotencyKey: `setup-reminder-${row.id}-${ask.requestedAt}-${due}` })
         if (!res.ok) {
           if (!res.skipped) result.failures.push(`${row.id}: ${res.error}`)
           continue
@@ -88,7 +100,9 @@ export async function runReminders(now: Date, appUrl: string): Promise<ReminderR
         result.setupSent++
       }
       const stamp = now.toISOString()
-      await patchPreferences(row.id, 'setupReminder', send ? { sentAt: stamp } : { closedAt: stamp })
+      await patchPreferences(row.id, 'setupReminder', !send
+        ? { closedAt: stamp }
+        : sequence ? { sends: [...(ask.sends || []), stamp], snoozeUntil: null } : { sentAt: stamp })
     }
   }
   result.failures = result.failures.slice(0, 10)

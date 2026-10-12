@@ -57,6 +57,27 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_profile_card,
     render_tour,
     summarize_tour,
+    NO_ENERGY,
+    SETUP_ENERGY,
+    START_REFINE,
+    render_ages,
+    summarize_ages,
+    render_energy,
+    summarize_energy,
+    render_feature_weeks,
+    summarize_feature_weeks,
+    render_first_resource,
+    summarize_first_resource,
+    render_journal,
+    summarize_journal,
+    render_setup_reminders,
+    summarize_setup_reminders,
+    render_setup_time,
+    summarize_setup_time,
+    render_start_refine,
+    summarize_start_refine,
+    render_still_using,
+    summarize_still_using,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -817,14 +838,17 @@ class Group11Tests(unittest.TestCase):
         }
         saves = {"u0": "2026-10-03T10:00:00+00:00",      # day 2: counts
                  "u1": "2026-10-20T10:00:00+00:00",      # day 19: no
-                 "u2": "2026-09-30T10:00:00+00:00"}      # before sign-up: no
+                 "u2": "2026-09-30T10:00:00+00:00",      # before sign-up: no
+                 "u3": "2026-10-01T20:00:00+00:00"}      # the same evening: the first day and the first week
         r = summarize_return_loop(funnel["people"], prefs, {"u2"}, saves)
         self.assertEqual(r["visited_only"], 1)
         self.assertEqual((r["accounts"], r["stopped"], r["finished"]), (6, 3, 3))
         self.assertEqual(dict(r["stopped_at"]), {"goalsAndDreams": 2, "about": 1})
         self.assertEqual((r["resumed"], r["resumed_finished"]), (1, 0))
         self.assertEqual((r["reminders"], r["checkin"], r["push"], r["weekly"], r["any_opt_in"]), (1, 1, 1, 1, 3))
-        self.assertEqual((r["setup_reminder"], r["saved_first_week"]), (1, 1))
+        self.assertEqual((r["saved_first_day"], r["saved_first_week"]), (1, 2))
+        # Reminders to finish setup have their own section now (Groups 20 and 24).
+        self.assertEqual(summarize_setup_reminders(funnel["people"], prefs)["asked"], 1)
         text = render_return_loop(r)
         self.assertIn("visited, no account yet          <5", text)
         self.assertIn("finished setup                   <5", text)
@@ -857,7 +881,8 @@ class Group11Tests(unittest.TestCase):
 
     def test_helper_events_are_accepted_and_sent(self):
         funnel_ts = (REPO / "frontend/lib/funnel.ts").read_text()
-        self.assertIn("export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat']", funnel_ts)
+        # Later actions are added after these (Groups 20 to 24: life_areas, page_guide).
+        self.assertIn("export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat'", funnel_ts)
         helper = (REPO / "frontend/app/components/GoalHelper.tsx").read_text()
         self.assertIn("track('feature_use', 'goal_helper')", helper)
         self.assertIn("track('feature_use', 'goal_helper_pick')", helper)
@@ -894,7 +919,8 @@ class SkipSetupTests(unittest.TestCase):
                  + [{"user_metadata": {"setup_skipped": True, "has_completed_onboarding": True}}] * 2
                  + [{"user_metadata": {"has_completed_onboarding": True}}, {"user_metadata": {}}, {}])
         s = summarize_skips(users)
-        self.assertEqual(s, {"skipped": 6, "made_a_plan": 2})
+        # None of them recorded where they went (from before paced-2026-10): their path.
+        self.assertEqual(s, {"skipped": 6, "made_a_plan": 2, "to_resources": 0, "to_path": 6})
         text = render_skips(s)
         self.assertIn("skipped setup                      6", text)
         self.assertIn("made a plan later                  2 (33%)", text)
@@ -964,7 +990,7 @@ class ExpressSetupTests(unittest.TestCase):
     def test_the_version_matches_the_app(self):
         ts = (REPO / "frontend/lib/funnel.ts").read_text()
         self.assertIn(f"export const ONBOARDING_VERSION = '{CURRENT_VERSION}'", ts)
-        self.assertEqual(CURRENT_VERSION, "express-2026-10")
+        self.assertEqual(CURRENT_VERSION, "paced-2026-10")
 
     def test_return_within_thirty_days(self):
         signup = "2026-10-01T09:00:00+00:00"
@@ -1039,6 +1065,273 @@ class ExpressSetupTests(unittest.TestCase):
             self.assertIn(f"'{answer}'", sql)
         route = (REPO / "frontend/app/api/events/route.ts").read_text()
         self.assertIn("'tour'", route)
+
+
+class PacedSetupTests(unittest.TestCase):
+    """Riipen Labs, Groups 20 to 24 (paced-2026-10): time spent in setup and
+    the energy check-in (Group 23), a first resource "under 60 seconds", Day 1
+    saves, the Day 14 active rate, where skippers went and setup reminders
+    (Groups 20 and 24), journaling (Group 20), feature adoption by week and
+    ages in the waitlist form's bands (Group 22), and Start here's optional
+    questions (Group 21)."""
+
+    def _ev(self, visitor, event, at, step=None, user=None, version=V):
+        return {**ev(visitor, event, at, step=step, version=version), "user_id": user}
+
+    def signups(self, n, at="2026-10-01T10:00:00+00:00"):
+        return [self._ev(f"v{i}", "signup_complete", at, user=f"u{i}") for i in range(n)]
+
+    def test_setup_time_by_version(self):
+        old, events = "express-2026-10", []
+        for i in range(5):   # express-2026-10: 2, 4, 6, 8 and 10 minutes
+            events += [self._ev(f"e{i}", "onboarding_step_view", "2026-10-05T10:00:00+00:00", "about", version=old),
+                       self._ev(f"e{i}", "onboarding_complete", f"2026-10-05T10:{2 * i + 2:02d}:00+00:00", version=old)]
+        for i in range(3):   # paced: three finished in 3 minutes
+            events += [self._ev(f"p{i}", "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about"),
+                       self._ev(f"p{i}", "onboarding_step_view", "2026-10-12T10:01:00+00:00", "goalsAndDreams"),
+                       self._ev(f"p{i}", "onboarding_complete", "2026-10-12T10:03:00+00:00")]
+        events += [self._ev("p9", "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about"),   # not finished
+                   self._ev("q", "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about", version="qa-x"),
+                   self._ev("q", "onboarding_complete", "2026-10-12T10:30:00+00:00", version="qa-x")]
+        rows = summarize_setup_time(events)
+        self.assertEqual(rows, [{"version": old, "finished": 5, "median_minutes": 6.0},
+                                {"version": V, "finished": 3, "median_minutes": 3.0}])
+        text = render_setup_time(rows)
+        self.assertRegex(text, r"express-2026-10 +5 +6 min")
+        paced = next(l for l in text.splitlines() if l.strip().startswith(V))
+        self.assertIn("<5", paced)
+        self.assertNotIn("min", paced)
+
+    def test_energy_check_in_by_last_answer(self):
+        events = []
+        for i in range(5):   # low energy, after first saying plenty; four finish, in 3 minutes
+            v, u = f"l{i}", f"ul{i}"
+            events += [self._ev(v, "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about", user=u),
+                       self._ev(v, "setup_energy", "2026-10-12T10:00:10+00:00", "plenty", user=u),
+                       self._ev(v, "setup_energy", "2026-10-12T10:00:20+00:00", "low", user=u)]
+            if i < 4:
+                events.append(self._ev(v, "onboarding_complete", "2026-10-12T10:03:00+00:00", user=u))
+        events += [self._ev("s0", "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about", user="us0"),
+                   self._ev("s0", "setup_energy", "2026-10-12T10:00:10+00:00", "some", user="us0")]
+        for i in range(6):   # saw setup and did not answer; three finish, in 10 minutes
+            v, u = f"n{i}", f"un{i}"
+            events.append(self._ev(v, "onboarding_step_view", "2026-10-12T10:00:00+00:00", "about", user=u))
+            if i < 3:
+                events.append(self._ev(v, "onboarding_complete", "2026-10-12T10:10:00+00:00", user=u))
+        # Setup in a version that did not ask is not "didn't answer" (--version all).
+        events.append(self._ev("old", "onboarding_step_view", "2026-10-05T10:00:00+00:00", "about", version="express-2026-10"))
+        events.append(self._ev("x", "landing_view", "2026-10-12T10:00:00+00:00"))   # never saw setup
+        s = summarize_energy(compute_funnel(events, "all")["people"])
+        self.assertEqual(s["low"], {"people": 5, "finished": 4, "median_minutes": 3.0})
+        self.assertEqual((s["some"]["people"], s["plenty"]["people"]), (1, 0))
+        self.assertEqual(s[NO_ENERGY], {"people": 6, "finished": 3, "median_minutes": 10.0})
+        rows = {label: next(l for l in render_energy(s).splitlines() if l.strip().startswith(label))
+                for label in ("low energy", "some energy", "plenty of energy", "didn't answer")}
+        self.assertEqual(rows["low energy"].split()[-4:], ["5", "80%", "3", "min"])
+        self.assertEqual(rows["didn't answer"].split()[-4:], ["6", "50%", "10", "min"])
+        self.assertEqual(rows["some energy"].split()[-3:], ["<5", "-", "-"])
+        self.assertEqual(rows["plenty of energy"].split()[-3:], ["0", "-", "-"])
+
+    def test_time_to_a_first_resource(self):
+        signup = "2026-10-12T10:00:00+00:00"
+        events = [self._ev(v, "signup_complete", signup, user=f"u{v}") for v in "abcdefg"]
+        events += [
+            # a: a starter resource at 20 s, sent without the session: found by this browser
+            self._ev("a", "start_open", "2026-10-12T10:00:20+00:00", "self.services.therapists"),
+            # b: a first place in ResourceHub at 40 s, from ResourceHub's own browser id: found by the account
+            self._ev("rh-b", "rh_first_resource", "2026-10-12T10:00:40+00:00", "browse", user="ub", version="rh-3step-2026-10"),
+            # c: the calendar is not a resource; the starter kits at 90 s are
+            self._ev("c", "feature_use", "2026-10-12T10:00:10+00:00", "calendar", user="uc"),
+            self._ev("c", "feature_use", "2026-10-12T10:01:30+00:00", "kits", user="uc"),
+            # d: ResourceHub at 30 s, then a starter resource
+            self._ev("d", "feature_use", "2026-10-12T10:00:30+00:00", "resourcehub", user="ud"),
+            self._ev("d", "start_open", "2026-10-12T10:05:00+00:00", "self.services.therapists", user="ud"),
+            self._ev("e", "start_open", "2026-10-12T10:00:50+00:00", "self.services.therapists", user="ue"),
+            # f: only before signing up; g: only test traffic; zz: someone else's browser
+            self._ev("f", "start_open", "2026-10-12T09:59:00+00:00", "self.services.therapists"),
+            self._ev("g", "feature_use", "2026-10-12T10:00:05+00:00", "resourcehub", user="ug", version="qa-x"),
+            self._ev("zz", "start_open", "2026-10-12T10:00:05+00:00", "self.services.therapists"),
+        ]
+        s = summarize_first_resource(compute_funnel(events)["people"], events)
+        self.assertEqual(s, {"accounts": 7, "reached": 5, "median_s": 40.0, "under_target": 4})
+        text = render_first_resource(s)
+        self.assertRegex(text, r"reached a resource +5   \(71% of accounts\), median 40 s after sign-up")
+        self.assertRegex(text, r"in under 60 seconds +<5\n")
+        self.assertNotIn("of those who reached one", text)
+        # Everyone under a minute: shares of accounts and of those who reached one.
+        fast = dict(s, under_target=5, median_s=30.0)
+        self.assertIn("(71% of accounts, 100% of those who reached one)", render_first_resource(fast))
+        self.assertRegex(render_first_resource(dict(s, accounts=3)), r"accounts +<5")
+
+    def test_saved_a_resource_on_the_first_day(self):
+        saves = {f"u{i}": "2026-10-01T22:00:00+00:00" for i in range(5)}    # 12 hours after
+        saves["u5"] = "2026-10-02T11:00:00+00:00"                           # 25 hours: the first week only
+        r = summarize_return_loop(compute_funnel(self.signups(6))["people"], {}, set(), saves)
+        self.assertEqual((r["saved_first_day"], r["saved_first_week"]), (5, 6))
+        text = render_return_loop(r)
+        self.assertIn("saved a resource within 24 hours       5   (83%)", text)
+        self.assertIn("saved a resource in their first week   6   (100%)", text)
+
+    def test_where_people_who_skipped_setup_went(self):
+        users = ([{"user_metadata": {"setup_skipped": True, "setup_skipped_to": "resources"}}] * 6
+                 + [{"user_metadata": {"setup_skipped": True, "setup_skipped_to": "path"}}] * 2
+                 + [{"user_metadata": {"setup_skipped": True}}] * 2           # before it was recorded: the path
+                 + [{"user_metadata": {"setup_skipped_to": "resources"}}])    # did not skip
+        s = summarize_skips(users)
+        self.assertEqual((s["skipped"], s["to_resources"], s["to_path"]), (10, 6, 4))
+        text = render_skips(s)
+        self.assertIn("went to resources                  6 (60%)", text)
+        self.assertIn("went to their path                 4 (40%)", text)
+        few = render_skips(summarize_skips(users[:3]))
+        self.assertIn("skipped setup                      <5", few)
+        self.assertNotIn("went to", few)
+
+    def test_still_using_after_two_weeks(self):
+        from datetime import datetime, timezone
+        now = datetime(2026, 10, 30, 12, tzinfo=timezone.utc)
+        events = self.signups(6) + [
+            self._ev("v0", "app_open", "2026-10-15T09:00:00+00:00", user="u0"),                         # day 14
+            self._ev("v1", "app_open", "2026-10-20T09:00:00+00:00", user="u1"),
+            self._ev("v2", "app_open", "2026-10-29T09:00:00+00:00", user="u2", version="next-2026-11"),  # a later version
+            self._ev("phone", "app_open", "2026-10-25T09:00:00+00:00", user="u3"),                      # another browser
+            self._ev("v4", "app_open", "2026-10-16T09:00:00+00:00"),                                    # no session: this browser
+            self._ev("v5", "app_open", "2026-10-14T23:00:00+00:00", user="u5"),                         # day 13: not yet
+            self._ev("new", "signup_complete", "2026-10-20T10:00:00+00:00", user="un"),                  # 10 days old: left out
+            self._ev("new", "app_open", "2026-10-29T10:00:00+00:00", user="un"),
+            self._ev("v5", "app_open", "2026-10-20T09:00:00+00:00", user="u5", version="qa-x"),         # test traffic
+        ]
+        s = summarize_still_using(compute_funnel(events)["people"], events, now)
+        self.assertEqual(s, {"accounts": 6, "active": 5})
+        self.assertRegex(render_still_using(s), r"opened the app on day 14 or later +5   \(83%\)")
+        few = summarize_still_using(compute_funnel(events[:3])["people"], events[:3], now)
+        self.assertRegex(render_still_using(few), r"accounts at least 14 days old +<5")
+
+    def test_setup_reminders_sequence_and_one_email(self):
+        asked = "2026-10-01T10:05:00+00:00"
+        d1, d3, d7 = "2026-10-01T13:05:00+00:00", "2026-10-04T13:00:00+00:00", "2026-10-08T13:00:00+00:00"
+
+        def sequence(sends, **more):
+            return {"setupReminder": {"requestedAt": asked, "timeZone": "America/Toronto", "plan": "sequence",
+                                      "audience": "child", "sends": sends, **more}}
+        prefs = {
+            "u0": sequence([d1, d3], clickedAt="2026-10-04T14:00:00+00:00", snoozes=1, snoozeUntil="2026-10-11"),
+            "u1": sequence([d1, d3, d7], stoppedAt="2026-10-08T15:00:00+00:00"),
+            "u2": sequence([], snoozes=0),
+            "u3": sequence([d1]),
+            "u4": sequence([d1, d3]),
+            # The first version: one email, sentAt when it went, no plan.
+            "u5": {"setupReminder": {"requestedAt": asked, "timeZone": "America/Toronto", "sentAt": "2026-10-02T13:00:00+00:00"}},
+            "u6": {"setupReminder": {"requestedAt": asked, "timeZone": "America/Toronto", "closedAt": "2026-10-02T13:00:00+00:00"}},
+            "u7": {"setupReminder": None},                                   # asked, then cancelled
+        }
+        events = self.signups(8) + [
+            self._ev("phone", "onboarding_complete", "2026-10-04T15:00:00+00:00", user="u0"),   # after an email, on a phone
+            self._ev("v3", "onboarding_complete", "2026-10-01T12:00:00+00:00", user="u3"),      # before the first email
+            self._ev("v5", "onboarding_complete", "2026-10-03T09:00:00+00:00", user="u5"),      # after the one email
+            self._ev("v4", "onboarding_complete", "2026-10-05T09:00:00+00:00", user="u4", version="qa-x"),
+        ]
+        people = compute_funnel(events)["people"]
+        r = summarize_setup_reminders(people, prefs, events)
+        self.assertEqual(r, {"asked": 7, "sequence": 5, "one_email": 2, "emails": 9, "emailed": 5,
+                             "clicked": 1, "snoozed": 1, "stopped": 1, "finished_after": 2})
+        text = render_setup_reminders(r)
+        self.assertIn("asked for them                   7: up to three emails 5, one email (the first version) <5", text)
+        self.assertIn("emails sent                      9, to 5 people", text)
+        self.assertIn("finished setup after an email    <5", text)
+        self.assertNotIn("%", text)
+        old = summarize_setup_reminders(people, {"u5": prefs["u5"]}, events)
+        self.assertEqual((old["asked"], old["one_email"], old["emails"], old["finished_after"]), (1, 1, 1, 1))
+        self.assertIn("asked for them                   <5", render_setup_reminders(old))
+
+    def test_ages_in_the_waitlist_forms_bands(self):
+        from datetime import date
+
+        def account(app=None, user=None, test=False):
+            return {"app_metadata": {"date_of_birth": app} if app else {},
+                    "user_metadata": {"date_of_birth": user} if user else {}, "test": test}
+        users = ([account("2000-01-01")] * 4
+                 + [account("1999-05-05", user="1960-01-01")]   # the server's copy counts: 27
+                 + [account("2004-10-12")]                      # 22 today
+                 + [account(user="2004-10-13")]                 # an older account; 21 until tomorrow
+                 + [account("1971-10-12")]                      # 55: 46-55
+                 + [account("1970-10-11")]                      # 56: 55+
+                 + [account("2015-06-01")]                      # made by a parent for a child
+                 + [account(), account("01/02/1990"), account("2030-01-01")]
+                 + [account("1990-01-01", test=True)])          # team, test or synthetic: left out
+        c = summarize_ages(users, date(2026, 10, 12))
+        self.assertEqual(dict(c), {"25-35": 5, "18-24": 2, "46-55": 1, "55+": 1, "under 18": 1, "not known": 3})
+        text = render_ages(c)
+        self.assertIn("13 accounts", text)
+        self.assertRegex(text, r"\n  25-35 +5  \(38%\)")
+        self.assertRegex(text, r"\n  18-24 +<5  \(-\)")
+        self.assertRegex(text, r"\n  36-45 +0  \(-\)")
+        self.assertRegex(text, r"\n  not known +<5  \(-\)")
+
+    def test_feature_use_by_week_after_sign_up(self):
+        from datetime import datetime, timezone
+        events = []
+        for i in range(6):   # signed up on 1 October; all opened the calendar in their first week
+            v, u = f"v{i}", f"u{i}"
+            events += [self._ev(v, "signup_complete", "2026-10-01T10:00:00+00:00", user=u),
+                       self._ev(v, "feature_use", "2026-10-01T11:00:00+00:00", "calendar", user=u),
+                       self._ev(v, "feature_use", "2026-10-07T11:00:00+00:00", "calendar", user=u)]   # day 6: week 1
+        events += [self._ev("v0", "feature_use", "2026-10-08T09:00:00+00:00", "journal", user="u0"),       # day 7: week 2
+                   self._ev("tablet", "feature_use", "2026-10-23T09:00:00+00:00", "journal", user="u1"),   # week 4, another browser
+                   self._ev("v2", "feature_use", "2026-10-29T09:00:00+00:00", "journal", user="u2"),       # day 28: after week 4
+                   self._ev("v3", "feature_use", "2026-09-30T09:00:00+00:00", "kits", user="u3"),          # before sign-up
+                   self._ev("v3", "feature_use", "2026-10-02T09:00:00+00:00", "goal_helper", user="u3"),   # an action, not a part
+                   self._ev("late", "signup_complete", "2026-10-20T10:00:00+00:00", user="ul")]            # 10 days before now
+        s = summarize_feature_weeks(compute_funnel(events)["people"], events, datetime(2026, 10, 30, tzinfo=timezone.utc))
+        self.assertEqual(s["reached"], [7, 7, 6, 6])
+        self.assertEqual(s["areas"], {"calendar": [6, 0, 0, 0], "journal": [0, 1, 0, 1]})
+        text = render_feature_weeks(s)
+        calendar = next(l for l in text.splitlines() if l.strip().startswith("Calendar"))
+        self.assertEqual(calendar.split()[1:], ["6", "0", "0", "0"])
+        journal = next(l for l in text.splitlines() if l.strip().startswith("Journal"))
+        self.assertEqual(journal.split()[1:], ["0", "<5", "0", "<5"])
+        self.assertNotIn("Starter kits", text)
+
+    def test_start_here_optional_questions(self):
+        events = [ev(f"s{i}", "start_pathway", "2026-10-12T10:00:00+00:00", step="child.services") for i in range(6)]
+        events += [ev(f"s{i}", "start_refine", "2026-10-12T10:02:00+00:00", step="where.ontario") for i in range(5)]
+        events += [ev("s0", "start_refine", "2026-10-12T10:03:00+00:00", step="soon.today"),
+                   ev("s0", "start_refine", "2026-10-12T10:04:00+00:00", step="soon.week"),    # changed: the last answer counts
+                   ev("s1", "start_refine", "2026-10-12T10:03:00+00:00", step="where.mars"),   # not an answer
+                   ev("q", "start_pathway", "2026-10-12T10:00:00+00:00", step="self.learn", version="qa-x"),
+                   ev("q", "start_refine", "2026-10-12T10:01:00+00:00", step="how.read", version="qa-x")]
+        s = summarize_start_refine(events)
+        self.assertEqual((s["pathway"], s["answered"]), (6, 5))
+        self.assertEqual(dict(s["answers"]), {"where.ontario": 5, "soon.week": 1})
+        text = render_start_refine(s)
+        self.assertIn("answered at least one            5   (83% of those who reached a pathway)", text)
+        self.assertIn("Ontario 5 (100%), elsewhere in Canada 0, outside Canada 0", text)
+        self.assertIn("today 0, this week <5, just exploring 0", text)
+        self.assertIn("answered at least one            <5", render_start_refine(summarize_start_refine(events[:7])))
+
+    def test_journal_entries_in_the_first_two_weeks(self):
+        entries = ([{"user_id": f"u{i}", "created_at": "2026-10-03T10:00:00+00:00"} for i in range(5)]   # day 2
+                   + [{"user_id": "u0", "created_at": "2026-10-04T10:00:00+00:00"},
+                      {"user_id": "u5", "created_at": "2026-10-20T10:00:00+00:00"},              # day 19: in all only
+                      {"user_id": "someone-else", "created_at": "2026-10-03T10:00:00+00:00"}])   # not in this report
+        j = summarize_journal(compute_funnel(self.signups(6))["people"], entries)
+        self.assertEqual(j, {"accounts": 6, "wrote_14d": 5, "entries": 7})
+        text = render_journal(j)
+        self.assertIn("wrote an entry in their first 14 days   5   (83%)", text)
+        self.assertIn("entries these accounts have written     7", text)
+        few = render_journal(summarize_journal(compute_funnel(self.signups(2))["people"], entries))
+        self.assertIn("accounts                                <5", few)
+        self.assertNotIn("%", few)
+
+    def test_answers_match_the_app_and_the_database(self):
+        funnel = (REPO / "frontend/lib/funnel.ts").read_text()
+        self.assertIn("SETUP_ENERGY_IDS = [" + ", ".join(f"'{key}'" for key, _ in SETUP_ENERGY) + "]", funnel)
+        for question, _, answers in START_REFINE:
+            self.assertIn(f"{question}\\.({'|'.join(a for a, _ in answers)})", funnel)
+        route = (REPO / "frontend/app/api/events/route.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_paced_setup.sql").read_text()
+        for event in ("setup_energy", "start_refine"):
+            self.assertIn(f"'{event}'", route)
+            self.assertIn(f"'{event}'", sql)
 
 
 if __name__ == "__main__":

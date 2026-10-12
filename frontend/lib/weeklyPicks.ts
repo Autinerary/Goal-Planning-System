@@ -152,12 +152,17 @@ async function sendOne(run: Run, userId: string, prefs: Record<string, any>, add
   if (!run.picks.has(key)) run.picks.set(key, await weeklyLinks(start.for, start.need, now, appUrl))
   const saved = await savedResources(admin, userId)
   const savedHrefs = new Set(saved.links.map((l) => l.href))
+  // ResourceHub links go through the app's hand-off, so someone signed in to
+  // the app on that device arrives signed in (Riipen Labs, Groups 22 and 24).
+  const viaApp = (href: string) => href.startsWith(HUB_URL)
+    ? `${appUrl.replace(/\/$/, '')}/go/servicehub?next=${encodeURIComponent(href.slice(HUB_URL.length) || '/')}`
+    : href
   const { subject, html, text } = weeklyPicksEmail({
     name: typeof prefs.name === 'string' && prefs.name.trim() ? prefs.name.trim() : null,
-    saved: saved.links,
+    saved: saved.links.map((l) => ({ ...l, href: viaApp(l.href) })),
     savedTotal: saved.total,
-    savedUrl: `${HUB_URL}/my-resources`,
-    picks: run.picks.get(key)!.filter((l) => !savedHrefs.has(l.href)),
+    savedUrl: viaApp(`${HUB_URL}/my-resources`),
+    picks: run.picks.get(key)!.filter((l) => !savedHrefs.has(l.href)).map((l) => ({ ...l, href: viaApp(l.href) })),
     tip: run.tip,
     appUrl,
     unsubscribe: stopLink(appUrl, userId, code),

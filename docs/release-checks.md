@@ -35,17 +35,21 @@ cd ../backend && ./venv/bin/python -m unittest discover -s tests
    button should be on the first screen at 1280 by 720 and on a phone, and
    the browser should offer to fill in the fields. (Group 25: testers could
    not reach the end of sign-up.)
-2. **Do setup both ways**: the two questions, and "Skip setup for now". Then
-   check the Path: your next step, Quick Links, Display, and "Complete your
-   profile".
+2. **Do setup three ways**: the two questions, "Skip setup for now" and
+   "Skip to resources" (as a parent it should open the starter kits). Try the
+   energy check-in's "Not much" and "Plenty". Then check the Path: your next
+   step, Quick Links, Display, and "Complete your profile".
 3. **Make a second plan** from the Path with an account that has norms and
    settings saved, and check nothing it had is gone (Settings, your norms in
    ResourceHub). This is where the October data-loss bugs were.
-4. **Take the tour** ("How it works"), trying each task once.
-5. **Run the accessibility checker** against the build:
+4. **Open "How it works"** on a few pages (it should explain the page and
+   leave it usable), then **take the tour** from it, trying each task once.
+5. **Open ResourceHub from the app** and save a resource: no second sign-in,
+   and no token in the address bar.
+6. **Run the accessibility checker** against the build:
    `node scripts/qa/check-accessibility.mjs` (see its header for the
    signed-in pages). It exits 1 on a serious or critical problem.
-6. **Look at the funnel report** after the first testers
+7. **Look at the funnel report** after the first testers
    (`python -m scripts.onboarding_funnel` in `backend/`), comparing the new
    onboarding version with the one before.
 

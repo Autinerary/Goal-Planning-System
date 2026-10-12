@@ -23,6 +23,9 @@ import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
 import ChatSetup from '@/app/components/ChatSetup'
 import { AUDIENCES, AUDIENCE_GROUPS, AUDIENCE_VALUE, AUDIENCE_EFFECT } from '@/lib/audiences'
 import { browserTimeZone } from '@/lib/reminderSchedule'
+import { KIT_AUDIENCES } from '@/lib/starterKits'
+import CrisisLines from '@/app/components/CrisisLines'
+import { DisplayButton, DisplayPanel, useDisplayToggle } from '@/app/components/DisplayToggle'
 import {
   EMPTY_DIAGNOSTIC_PROFILE,
   toRecommendationSupportContext,
@@ -121,12 +124,59 @@ const LOOKING_FOR = [
   { id: 'tools', label: 'Tools, apps and products' },
   { id: 'learning', label: 'To learn and understand more' },
 ]
+// For parents, family and people who support others at school or work
+// (Riipen Labs, Group 24: "Immediate Need: Diagnosis Navigator vs. School IEP
+// vs. Crisis Support"); each leads to a starter kit (lib/starterKits.ts).
+const LOOKING_FOR_CARE = [
+  { id: 'assessment', label: 'An assessment or diagnosis' },
+  { id: 'school', label: 'Support at school, like an IEP' },
+]
+// For everyone: picking it shows who to call at once, before anything else.
+const LOOKING_FOR_URGENT = { id: 'urgent', label: 'Help right now' }
+
+// How much energy someone has for setting up today (Riipen Labs, Group 23:
+// "an initial question asking users to select their current energy level ...
+// so the setup length dynamically adapts to what they can handle in that
+// moment"; it "must remain optional and very brief", and people "should be
+// able to change paths or skip the check-in"). Setup is already the two
+// questions a plan needs, so the answer changes what comes after it: nothing
+// more today, or a few more questions straight away (app/onboarding-confirmation).
+const ENERGY_CHOICES: { id: 'low' | 'some' | 'plenty'; label: string; hint?: string }[] = [
+  { id: 'low', label: 'Not much', hint: 'just the essentials' },
+  { id: 'some', label: 'Some' },
+  { id: 'plenty', label: 'Plenty', hint: 'I’d like to set up more' },
+]
+const ENERGY_NOTE: Record<string, string> = {
+  low: 'Two short questions, then your plan. Nothing else today.',
+  some: 'Two short questions, then your plan. The rest can wait.',
+  plenty: 'Two short questions, then your plan. After that, a few more if you like.',
+}
+
+// The person a connection is about, for the optional relationship question:
+// a parent's is their child (it used to say "Ideal relationship with Parent").
+const OTHER_PERSON: Record<string, string> = {
+  parent: 'your child', sibling: 'your sibling', partner: 'your partner', coworker: 'your coworker',
+  friend: 'your friend', educator: 'your student', employer: 'the person you employ', therapist: 'your client',
+}
+
+// One life area first (Riipen Labs, Group 20: "introduce one life path first
+// instead of showing all four at once ... Choose which life path should be
+// introduced first"). The area that fits the answers so far, or else
+// Education: of 63 people's first goals on 12 October 2026 (test accounts
+// left out), 32 were about education, more than any other area.
+const AREA_FOR_LOOKING: Record<string, string> = {
+  learning: 'education', school: 'education', services: 'health', assessment: 'health', community: 'relationships', tools: 'health',
+}
+const AREA_FOR_START_NEED: Record<string, string> = {
+  services: 'health', community: 'relationships', learn: 'barrier', sensory: 'health',
+}
 
 // Why each question is asked, shown with it (Riipen Labs, Group 28: "each
 // question carries a visible reason for being asked"; Riipen: "show how key
 // features connect"). Each line was checked against where the app reads it.
 const WHY_WE_ASK = {
   age: 'Autinerary is for adults 18 and over for now.',
+  energy: 'So setup asks only what you have energy for today. You can change it at any point.',
   // Who you're here for says why in AUDIENCE_EFFECT (lib/audiences.ts), shared with Settings.
   lookingFor: 'We show you that first once your plan is ready.',
   goal: 'Your plan is built from it: the goal becomes a race of small steps, each with tools that can help.',
@@ -138,6 +188,11 @@ const WHY_WE_ASK = {
 const NEXT_PREVIEW: Record<string, string> = {
   about: 'Next: your goal. Pick an idea or type your own, about a minute.',
   goalsAndDreams: 'Next: we make your plan, in about a minute, then you are on your Path. Everything else is optional and can be added there.',
+}
+// The goal step's preview, by the energy answer.
+const NEXT_PREVIEW_BY_ENERGY: Record<string, string> = {
+  low: 'Next: we make your plan, in about a minute. That is all for today.',
+  plenty: 'Next: we make your plan, in about a minute. Then, if you like, a few more questions to make it fit you.',
 }
 
 // The areas are shared with the Dream Self page (lib/goalAreas.ts).
@@ -291,16 +346,19 @@ export default function OnboardingPage() {
   // "Skip for now" (Riipen Labs, Group 33): into the app without a plan.
   const [skipping, setSkipping] = useState(false)
   const [skipError, setSkipError] = useState('')
-  const skipForNow = async () => {
+  const skipForNow = async (to: 'path' | 'resources' = 'path', href = '/path') => {
     setSkipping(true)
     setSkipError('')
     try {
-      await skipSetup()
+      await skipSetup(to, href)
     } catch {
       setSkipError('That didn’t work. Check your connection and try again.')
       setSkipping(false)
     }
   }
+  // Display, from the first screen (Riipen Labs, Group 22: sensory control
+  // "before the animations load"; it was step 8 of 9).
+  const display = useDisplayToggle()
   // The path is made on the backend at the end of setup; wake it now, while
   // the questions are answered (lib/wakeBackend.ts).
   useEffect(() => {
@@ -337,6 +395,8 @@ export default function OnboardingPage() {
     // Goal-first start: who this is for, and what they came for.
     audience: '' as string,
     lookingFor: [] as string[],
+    // The optional energy check-in (ENERGY_CHOICES): '' when not answered.
+    setupEnergy: '' as '' | 'low' | 'some' | 'plenty',
     bodyType: '' as string,
     hairStyle: '' as string,
     hairColor: DEFAULT_HAIR_COLOR as string,
@@ -428,6 +488,9 @@ export default function OnboardingPage() {
   // The goal step shows the category picked (and any that already hold a
   // goal), not all six at once; the dream box opens on request.
   const [openGoalCategory, setOpenGoalCategory] = useState<string | null>(null)
+  // Every area's button, or only the one setup starts with (Group 20).
+  const [showAllAreas, setShowAllAreas] = useState(false)
+  const [startNeed, setStartNeed] = useState<string | null>(null)
   const [showUltimateDream, setShowUltimateDream] = useState(false)
   // A goal's dream, relationship and obstacle are folded away until asked for
   // (Riipen Labs, Groups 27 and 30: open-ended questions "may be difficult to
@@ -628,30 +691,44 @@ export default function OnboardingPage() {
     track('onboarding_step_view', steps[currentStep].id)
   }, [currentStep, draftReady])
 
-  // A reminder to finish setup, by email, only when asked for (see the
-  // footer). Remembered in this browser so the offer is not repeated.
+  // Reminders to finish setup, by email, only when asked for (see the
+  // footer): up to three, each with "finish now, remind me in a few days, or
+  // stop" (Riipen Labs, Groups 20 and 24; lib/setupReminders.ts). Remembered in
+  // this browser so the offer is not repeated.
   const SETUP_REMINDER_KEY = 'autinerary_setup_reminder'
   const [setupReminder, setSetupReminder] = useState<'none' | 'asked' | 'failed'>('none')
   useEffect(() => {
     try { if (localStorage.getItem(SETUP_REMINDER_KEY)) setSetupReminder('asked') } catch {}
   }, [])
-  const saveSetupReminder = (value: { requestedAt: string; timeZone: string } | null) =>
-    fetch('/api/me/preferences', {
+  const setupReminderAction = (body: Record<string, unknown>) =>
+    fetch('/api/me/setup-reminder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ setupReminder: value }),
+      body: JSON.stringify(body),
     }).then(res => res.ok).catch(() => false)
   const requestSetupReminder = async () => {
-    const ok = await saveSetupReminder({ requestedAt: new Date().toISOString(), timeZone: browserTimeZone() })
+    const ok = await setupReminderAction({ action: 'ask', timeZone: browserTimeZone(), audience: formData.audience || null })
     setSetupReminder(ok ? 'asked' : 'failed')
     if (ok) try { localStorage.setItem(SETUP_REMINDER_KEY, '1') } catch {}
   }
   const cancelSetupReminder = async () => {
-    if (!(await saveSetupReminder(null))) return
+    if (!(await setupReminderAction({ action: 'cancel' }))) return
     setSetupReminder('none')
     try { localStorage.removeItem(SETUP_REMINDER_KEY) } catch {}
   }
+  // Opened from a reminder's "Finish setting up": counted once (the funnel's
+  // "reminder return rate", Group 24).
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      if (new URLSearchParams(window.location.search).get('from') !== 'setup-reminder') return
+      if (sessionStorage.getItem('autinerary_reminder_clicked')) return
+      sessionStorage.setItem('autinerary_reminder_clicked', '1')
+    } catch { return }
+    void setupReminderAction({ action: 'clicked' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   // What the goal helper may suggest: the ideas the goal step shows (and the
   // examples in each field), nothing else (components/GoalHelper, ChatSetup).
@@ -755,6 +832,7 @@ export default function OnboardingPage() {
     } catch {}
     const conn = AUDIENCES.find((a) => a.id === pre)
     const lookingFor = START_GOALS.find((g) => g.id === need)?.lookingFor
+    if (isStartGoal(need)) setStartNeed(need)
     if (!conn && !lookingFor) return
     setFormData((prev) => {
       const next = { ...prev }
@@ -786,6 +864,52 @@ export default function OnboardingPage() {
   // Wording that follows who the person is here for (Riipen: "a parent,
   // sibling and a neurodivergent adult may need different first steps").
   const supporting = ['child', 'family', 'friend', 'work'].includes(formData.audience)
+
+  // The life area setup starts with (AREA_FOR_LOOKING above): a chosen path's,
+  // one that already holds a goal, what they are looking for, what they
+  // needed in Start here, or Education.
+  const firstArea: { id: string; fromAnswers: boolean } = (() => {
+    if (pathSeed?.focusCategory && isGoalArea(pathSeed.focusCategory)) return { id: pathSeed.focusCategory, fromAnswers: true }
+    const withGoal = goalCategories.find(c => (formData.goalsByCategory[c.id] || []).some(e => e.goal.trim()))
+    if (withGoal) return { id: withGoal.id, fromAnswers: true }
+    const looked = formData.lookingFor.map(k => AREA_FOR_LOOKING[k]).find(Boolean)
+    if (looked) return { id: looked, fromAnswers: true }
+    if (startNeed === 'school_work') return { id: ['child', 'work'].includes(formData.audience) ? 'education' : 'career', fromAnswers: true }
+    if (startNeed && AREA_FOR_START_NEED[startNeed]) return { id: AREA_FOR_START_NEED[startNeed], fromAnswers: true }
+    return { id: 'education', fromAnswers: false }
+  })()
+  const areasWithGoals = goalCategories.filter(c => (formData.goalsByCategory[c.id] || []).some(e => e.goal.trim())).length
+  const allAreasShown = showAllAreas || areasWithGoals > 1
+  // On reaching the goal step, its first area is open with the field ready.
+  useEffect(() => {
+    if (currentId !== 'goalsAndDreams' || chatMode || openGoalCategory) return
+    const id = firstArea.id
+    setOpenGoalCategory(id)
+    setFormData(prev => (prev.goalsByCategory[id] || []).length > 0 ? prev : {
+      ...prev,
+      goalsByCategory: { ...prev.goalsByCategory, [id]: [{ goal: '', dreams: '', obstacles: '' }] },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentId, chatMode, openGoalCategory, firstArea.id])
+
+  const chooseEnergy = (id: 'low' | 'some' | 'plenty') => {
+    const next = formData.setupEnergy === id ? '' : id
+    setFormData(prev => ({ ...prev, setupEnergy: next }))
+    if (next) track('setup_energy', next)
+  }
+
+  // "Skip to resources" (Riipen Labs, Group 24: "a visible, permanent 'Skip to
+  // Resources' link on all intake screens"; "time to first resource: under 60
+  // seconds"). Parents and people supporting someone get the starter kits;
+  // everyone else Start here's resources for their answers, or its two
+  // questions when there are none yet.
+  const resourcesHref = (): string => {
+    if (KIT_AUDIENCES.has(formData.audience)) return '/kits'
+    if (!formData.audience) return '/start'
+    const goalCategory = Object.keys(formData.goalsByCategory).find(id => formData.goalsByCategory[id].some(e => e.goal.trim()))
+    const next = suggestedStart(formData.audience, formData.lookingFor, goalCategory)
+    return `/start?for=${next.for}&need=${next.need}`
+  }
   const goalIntro = supporting
     ? 'Start with one goal. It can be yours, or something you are working on for the person you support (for example, \u201cFind an occupational therapist for my child\u201d). More goals, dreams and obstacles are optional.'
     : 'Start with one goal. Pick a category and add it. More goals, dreams and obstacles are optional and can come later.'
@@ -907,6 +1031,10 @@ export default function OnboardingPage() {
         // Asked on the "Complete your profile" card now; the first one, as setup sent it.
         motivationType: saved.motivation?.types?.[0] || formData.motivationType,
         supportContext: agentSupportContext,
+        // Who the plan is for: a parent's plan is about supporting their child,
+        // never the parent's own career (Riipen Labs, Group 24;
+        // backend/core/agents/path_planning_agent.py).
+        audience: formData.audience || null,
         // Only setup's own answers: the backend merges these into the saved
         // preferences (it used to replace them all).
         preferences: {
@@ -1038,6 +1166,8 @@ export default function OnboardingPage() {
         // show first, and lets the funnel be compared by user type.
         audience: formData.audience || null,
         lookingFor: formData.lookingFor,
+        // The energy check-in, so the page after setup and the Path follow it.
+        ...(formData.setupEnergy ? { setupEnergy: formData.setupEnergy } : {}),
         ...(startPath ? { startPath } : {}),
       }).then(() => true, () => false)
       try {
@@ -1047,7 +1177,7 @@ export default function OnboardingPage() {
         const goalCategory = Object.keys(formData.goalsByCategory).find((id) =>
           formData.goalsByCategory[id].some((e) => e.goal.trim()))
         const suggested = suggestedStart(formData.audience, formData.lookingFor, goalCategory)
-        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor, startPath, suggestedStart: suggested }))
+        localStorage.setItem('autinerary_onboarding_choices', JSON.stringify({ audience: formData.audience, lookingFor: formData.lookingFor, startPath, suggestedStart: suggested, setupEnergy: formData.setupEnergy || null }))
         // Saved with the account now, so not left for whoever uses this
         // browser next.
         if (prefsSaved && startPath) {
@@ -1112,6 +1242,11 @@ export default function OnboardingPage() {
           load"), and less above the first question (Group 26: "scroll-free
           sections"). */}
       <div className="relative max-w-3xl mx-auto z-10">
+        <div className="mb-2 flex justify-end">
+          <DisplayButton open={display.open} onToggle={display.toggle} />
+        </div>
+        {display.open && <DisplayPanel onClose={display.close} />}
+
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
@@ -1224,6 +1359,42 @@ export default function OnboardingPage() {
             </div>
           )}
 
+          {/* Skip, on every step (Riipen Labs, Group 33: "Allow users to bypass
+              initial setup prompts with a single tap"; Group 29: a "Skip /
+              Fast-Track" option on step 1; Group 24: "a visible, permanent
+              'Skip to Resources' link on all intake screens"). Straight to
+              resources (the starter kits for parents, or Start here's for
+              everyone else), or into the app; the Path offers to make a plan
+              later. Pronouns and a username were offered here once; they are
+              on the "Complete your profile" card (Groups 25 to 30). */}
+          {!user?.hasCompletedOnboarding && (
+            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-300 bg-white p-3">
+              <p className="w-full text-sm text-slate-800 sm:w-auto sm:flex-1">
+                Not ready for questions? Go straight to resources, or look around and make your plan later.
+              </p>
+              <button
+                type="button"
+                onClick={() => skipForNow('resources', resourcesHref())}
+                disabled={!canAccessOnboarding || skipping}
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-indigo-700 bg-white px-4 py-2 text-sm font-semibold text-indigo-900 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Skip to resources
+              </button>
+              <button
+                type="button"
+                onClick={() => skipForNow('path', '/path')}
+                disabled={!canAccessOnboarding || skipping}
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {skipping ? 'Opening…' : 'Skip setup for now'}
+              </button>
+              {!canAccessOnboarding && !isManagedAccount && (
+                <p className="w-full text-xs text-slate-700">Confirm your age below first.</p>
+              )}
+              {skipError && <p role="alert" className="w-full text-sm text-red-800">{skipError}</p>}
+            </div>
+          )}
+
           {chatMode && (
             <ChatSetup
               name={(user?.name || '').split(' ')[0]}
@@ -1299,33 +1470,33 @@ export default function OnboardingPage() {
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
               )}
 
-              {/* Skip setup for now (Riipen Labs, Group 33: "Allow users to bypass
-                  initial setup prompts with a single tap so they can directly
-                  explore the platform's core tools right away"; Group 29: a
-                  "Skip / Fast-Track" option on step 1). One row, near the top,
-                  so it is easy to find; the Path offers to make a plan, and
-                  says what works without one.
-                  Pronouns and a username were offered here too; they are on
-                  the "Complete your profile" card now (Groups 25 to 30). */}
-              {!user?.hasCompletedOnboarding && (
-                <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-white p-3">
-                  <p className="text-sm text-slate-800">
-                    Not ready for questions? Look around first, and make your plan later from the Path.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={skipForNow}
-                    disabled={!canAccessOnboarding || skipping}
-                    className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {skipping ? 'Opening the app…' : 'Skip setup for now'}
-                  </button>
-                  {!canAccessOnboarding && !isManagedAccount && (
-                    <p className="w-full text-xs text-slate-700">Confirm your age above first.</p>
-                  )}
-                  {skipError && <p role="alert" className="w-full text-sm text-red-800">{skipError}</p>}
+              {/* The energy check-in (ENERGY_CHOICES; Riipen Labs, Group 23). */}
+              <fieldset className="mb-6">
+                <legend className="mb-1 font-medium text-slate-900">
+                  How much energy do you have for this today? <span className="font-normal text-slate-700">(optional)</span>
+                </legend>
+                <p className="mb-2 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.energy}</p>
+                <div className="flex flex-wrap gap-2">
+                  {ENERGY_CHOICES.map((e) => {
+                    const on = formData.setupEnergy === e.id
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => chooseEnergy(e.id)}
+                        className={`rounded-full border-2 px-3 py-1.5 text-sm font-medium shadow-sm transition-colors ${
+                          on ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-400 bg-white text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40'
+                        }`}
+                      >
+                        {on && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
+                        {e.label}{e.hint ? `: ${e.hint}` : ''}
+                      </button>
+                    )
+                  })}
                 </div>
-              )}
+                {formData.setupEnergy && <p role="status" className="mt-2 text-sm text-slate-800">{ENERGY_NOTE[formData.setupEnergy]}</p>}
+              </fieldset>
 
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
                 <legend className="mb-1 font-medium text-slate-900">Who are you here for? <RequiredMark /></legend>
@@ -1382,7 +1553,7 @@ export default function OnboardingPage() {
                 </legend>
                 <p className="mb-2 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.lookingFor}</p>
                 <div className="flex flex-wrap gap-2">
-                  {LOOKING_FOR.map((o) => {
+                  {[...LOOKING_FOR, ...(KIT_AUDIENCES.has(formData.audience) ? LOOKING_FOR_CARE : []), LOOKING_FOR_URGENT].map((o) => {
                     const on = formData.lookingFor.includes(o.id)
                     return (
                       <button
@@ -1403,6 +1574,14 @@ export default function OnboardingPage() {
                     )
                   })}
                 </div>
+                {/* Who to call, at once (Group 24's "Crisis Support"). Setup
+                    can carry on underneath, or wait. */}
+                {formData.lookingFor.includes('urgent') && (
+                  <div className="mt-3">
+                    <CrisisLines ontario={KIT_AUDIENCES.has(formData.audience)} headingLevel={3} />
+                    <p className="mt-2 text-sm text-slate-800">You can carry on with setup whenever you are ready, or come back to it later.</p>
+                  </div>
+                )}
               </fieldset>
 
               <p className="mt-4 text-sm">
@@ -1421,8 +1600,9 @@ export default function OnboardingPage() {
             const otherConnectionIds = Object.keys(formData.barrierConnections).filter(id => id !== 'self')
             const hasOtherPerson = otherConnectionIds.length > 0
             const otherPersonLabel = otherConnectionIds.length === 1
-              ? (connectionTypes.find(c => c.id === otherConnectionIds[0])?.label || 'them').replace(' (Lived Experience)', '')
+              ? OTHER_PERSON[otherConnectionIds[0]] || 'them'
               : 'them'
+            const startArea = goalCategories.find(c => c.id === firstArea.id) || goalCategories[0]
             return (
             <div>
               {/* A small "done" for the first step (Riipen Labs, Group 29:
@@ -1436,10 +1616,30 @@ export default function OnboardingPage() {
               <p className="text-slate-700 mb-2">{goalIntro}</p>
               <p className="mb-6 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.goal}</p>
 
+              {/* One life area first (Riipen Labs, Group 20: "Start with one,
+                  and reveal the others after a first step"): the area that
+                  fits the answers, with the others one tap away. */}
+              {!allAreasShown && (
+                <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <p className="text-sm text-slate-800">
+                    <span aria-hidden="true">{startArea.emoji} </span>
+                    Starting with <strong>{startArea.label}</strong>
+                    {firstArea.fromAnswers ? ', from your answers.' : ', the area people pick most often.'} Other areas can come later.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllAreas(true)}
+                    className="rounded-lg border-2 border-slate-400 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40"
+                  >
+                    Choose a different area
+                  </button>
+                </div>
+              )}
+
               {/* Category tabs: pick one, and only that one opens (Riipen Labs,
                   Group 9: all six used to show at once, each with its own
                   ideas and fields, on a step everyone has to complete). */}
-              <div className="flex flex-wrap gap-2 mb-6">
+              {allAreasShown && <div className="flex flex-wrap gap-2 mb-6">
                 {goalCategories.map((cat) => {
                   const count = (formData.goalsByCategory[cat.id] || []).filter(e => e.goal.trim()).length
                   const isOpen = openGoalCategory === cat.id
@@ -1474,7 +1674,7 @@ export default function OnboardingPage() {
                     </button>
                   )
                 })}
-              </div>
+              </div>}
 
               {/* Optional AI help for the hardest question in setup (Riipen
                   Labs, Group 11): one line until asked for. */}
@@ -1823,7 +2023,9 @@ export default function OnboardingPage() {
             {/* What comes after the button (Riipen Labs, Group 26: "a preview
                 of what the next step involves"). */}
             {!isSubmitting && NEXT_PREVIEW[currentId] && (
-              <p className="w-full text-right text-sm text-slate-700">{NEXT_PREVIEW[currentId]}</p>
+              <p className="w-full text-right text-sm text-slate-700">
+                {(currentId === 'goalsAndDreams' && NEXT_PREVIEW_BY_ENERGY[formData.setupEnergy]) || NEXT_PREVIEW[currentId]}
+              </p>
             )}
 
             </>)}
@@ -1863,8 +2065,10 @@ export default function OnboardingPage() {
 
         {/* Need a break? (Riipen Labs, Group 11: "Your progress is saved ...
             Send an email reminder if the user shared an email.") The draft is
-            kept in this browser (AUTOSAVE_KEY). The email is sent only when
-            asked for here, once, by the daily send (app/api/cron/reminders). */}
+            kept in this browser (AUTOSAVE_KEY). Reminders are sent only when
+            asked for here: up to three, each with finish now, remind me later
+            or stop (Groups 20 and 24; lib/setupReminders.ts, sent by the
+            hourly run, app/api/cron/reminders). */}
         {!isSubmitting && (
           <div className="mt-2 text-center text-sm text-slate-700">
             <p>Need a break? Your answers are saved on this device, so you can close this page and finish later.</p>
@@ -1876,14 +2080,15 @@ export default function OnboardingPage() {
                 onClick={requestSetupReminder}
                 className="mt-1 font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
               >
-                Email me a reminder tomorrow
+                Email me reminders to finish
               </button>
             )}
             {setupReminder === 'asked' && (
               <p role="status" className="mt-1">
-                We&apos;ll send one email to {user?.email} tomorrow morning, and nothing else.{' '}
+                We&apos;ll email {user?.email} at most three times: later today, in 3 days and in a week, and stop
+                once setup is done. Each email lets you finish, wait longer or stop.{' '}
                 <button type="button" onClick={cancelSetupReminder} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
-                  Don&apos;t send it
+                  Don&apos;t send them
                 </button>
               </p>
             )}

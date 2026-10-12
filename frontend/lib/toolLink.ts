@@ -1,3 +1,5 @@
+import { goHubHref } from '@/lib/serviceHub'
+
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
 /**
@@ -14,12 +16,29 @@ const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://local
 export function resolveToolLink(url?: string | null, name?: string): { href: string; usable: boolean } {
   const clean = fromDevHost((url || '').trim())
   if (clean && clean !== '#' && /^https?:\/\//i.test(clean)) {
-    return { href: clean, usable: true }
+    return { href: viaHandoff(clean), usable: true }
   }
   const q = (name || '').trim()
-  const href = q ? `${SERVICE_HUB_URL}/search?q=${encodeURIComponent(q)}` : `${SERVICE_HUB_URL}/search`
-  // Not a real external URL — routed to ResourceHub search as a useful fallback.
-  return { href, usable: false }
+  // Not a real external URL — routed to ResourceHub search as a useful
+  // fallback, through the hand-off so the person arrives signed in.
+  return { href: goHubHref(q ? `/search?q=${encodeURIComponent(q)}` : '/search'), usable: false }
+}
+
+/**
+ * A ResourceHub link goes through the app's hand-off (lib/serviceHub.ts), so
+ * the person arrives signed in and can save it: it used to arrive signed out
+ * and ask for a second sign-in (Riipen Labs, Groups 22 and 24). Any other
+ * link is left as it is.
+ */
+function viaHandoff(href: string): string {
+  try {
+    const hub = new URL(SERVICE_HUB_URL)
+    const target = new URL(href)
+    if (target.origin !== hub.origin) return href
+    return goHubHref(`${target.pathname}${target.search}${target.hash}`)
+  } catch {
+    return href
+  }
 }
 
 /**

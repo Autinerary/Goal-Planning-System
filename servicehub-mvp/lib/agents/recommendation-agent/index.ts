@@ -1,7 +1,9 @@
-import { getUserBarriers } from '@/lib/supabase/queries'
+import { getUserBarriers, nearGroup, NEAR_KM } from '@/lib/supabase/queries'
+import { isSelfListing } from '@/lib/resources/selfListing'
 import { findSimilarUsersByBarriers } from './similarity'
 import { getCandidateResources, getFallbackCandidateResources } from './matcher'
 import { scoreResources } from './scorer'
+import { showsMatchPercent } from './match'
 import { completeJSON, isLLMEnabled, USER_TEXT_RULE, userList, userText } from '@/lib/llm'
 import {
   loadUserMemory,
@@ -14,6 +16,7 @@ import type {
   RecommendationAgentOutput,
   ScoredResource,
   Barrier,
+  Location,
 } from './types'
 
 function isUsefulExplanation(value: unknown): value is string {
@@ -29,6 +32,39 @@ function isUsefulExplanation(value: unknown): value is string {
     'placeholder',
     'undefined',
   ].some((phrase) => lowered.includes(phrase))
+}
+
+const priceOf = (r: ScoredResource): number =>
+  typeof r.price === 'number' && Number.isFinite(r.price) && r.price >= 0 ? r.price : Infinity
+
+/**
+ * Near first, then by score. With coordinates, places fall into distance
+ * bands: within 10 km, within 50 km, then places with no map point that serve
+ * the person's province or all of Canada (as search orders them,
+ * compareNearFirst in lib/supabase/queries.ts), then farther places, then
+ * other provinces' organisations. Within a band the higher score comes first;
+ * a lower price only breaks a tie, then the nearer place.
+ *
+ * The list used to be sorted by price first and score second. That threw
+ * away the matcher's nearest-first order, so the top cards could be anywhere
+ * in Canada (Riipen Labs, Groups 22 and 24: "three matches at 40%, in the
+ * wrong cities"). Free and cheaper places are still preferred, as Chi asked,
+ * but no longer over distance or fit.
+ */
+function orderRecommendations(resources: ScoredResource[], location?: Location): ScoredResource[] {
+  const hasCoords = Boolean(location?.lat && location?.lng)
+  const band = (r: ScoredResource): number => {
+    if (!hasCoords) return 0
+    if (typeof r.distance === 'number') return r.distance <= 10 ? 0 : r.distance <= NEAR_KM ? 1 : 3
+    return nearGroup(r, NEAR_KM, location?.province) === 1 ? 2 : 4
+  }
+  return [...resources].sort((a, b) => {
+    if (band(a) !== band(b)) return band(a) - band(b)
+    if (a.score !== b.score) return b.score - a.score
+    if (priceOf(a) !== priceOf(b)) return priceOf(a) - priceOf(b)
+    if (typeof a.distance === 'number' && typeof b.distance === 'number') return a.distance - b.distance
+    return 0
+  })
 }
 
 /**
@@ -85,17 +121,20 @@ export class RecommendationAgent {
       const learnedScores = await learnedScoresPromise
 
       // Step 3: Score each resource (agent's decision-making)
-      const scoredResources = await this.scoreResources(
+      const scored = await this.scoreResources(
         effectiveCandidates,
         input.barriers,
         input.context,
         learnedScores
       )
-      scoredResources.sort((first, second) => {
-        const firstPrice = typeof first.price === 'number' && Number.isFinite(first.price) && first.price >= 0 ? first.price : Infinity
-        const secondPrice = typeof second.price === 'number' && Number.isFinite(second.price) && second.price >= 0 ? second.price : Infinity
-        return firstPrice === secondPrice ? second.score - first.score : firstPrice - secondPrice
-      })
+
+      // Step 3b: Order near first (orderRecommendations). Autinerary's own
+      // listing never reaches the list (lib/resources/selfListing.ts): the
+      // matcher leaves it out of both pools, and the final list is checked too.
+      const scoredResources = orderRecommendations(
+        scored.filter((r) => !isSelfListing(r)),
+        input.location
+      )
 
       // Step 4: Generate explanations (why agent chose these), memory-aware
       const explanations = await this.generateExplanations(
@@ -110,12 +149,15 @@ export class RecommendationAgent {
 
       const output: RecommendationAgentOutput = {
         resources: scoredResources.slice(0, 20), // Top 20 recommendations
+        // One pool per run, so one basis: the home page words the section by it.
+        basis: scoredResources[0]?.basis,
         matchScores: scoredResources.map((r) => r.score),
         explanations,
         confidence,
         memory: {
           runCount: memory.runCount,
-          lastTopResources: memory.lastTopResources,
+          // Earlier runs may have suggested Autinerary itself.
+          lastTopResources: memory.lastTopResources.filter((name) => !isSelfListing({ name })),
         },
       }
 
@@ -199,8 +241,12 @@ export class RecommendationAgent {
           `Based on those who matched your Diagnostics profile${barrierTypes ? ` (${barrierTypes})` : ''} — recommended by ${resource.similarUsersCount} similar ${resource.similarUsersCount === 1 ? 'person' : 'people'}`
         )
       }
-      if (resource.score >= 80) parts.push(`${resource.score}% match for your profile`)
-      else if (resource.score >= 60) parts.push(`${resource.score}% match`)
+      // A percentage only where the card shows one (match.ts).
+      if (showsMatchPercent(resource)) {
+        parts.push(
+          resource.score >= 80 ? `${resource.score}% match for your profile` : `${resource.score}% match`
+        )
+      }
       if (resource.averageRatingFromSimilarUsers >= 4.5) parts.push('Highly rated (4.5+ stars)')
       return parts.length > 0 ? parts.join(' • ') : resource.matchReason
     }
@@ -213,7 +259,10 @@ export class RecommendationAgent {
     const payload = top.map((r, i) => ({
       i,
       name: (r as any).name || (r as any).resource_name || `Resource ${i}`,
-      score: r.score,
+      // Only a real match has a percentage to give (match.ts); a score was
+      // passed for every resource, so a cold-start "40%" could be called a
+      // match in the explanation too.
+      matchPercent: showsMatchPercent(r) ? r.score : undefined,
       similarUsers: r.similarUsersCount,
       avgRating: r.averageRatingFromSimilarUsers,
     }))
@@ -226,7 +275,8 @@ export class RecommendationAgent {
         (memoryHint ? `Prior history:\n${userText(memoryHint, 1500)}\n` : '') +
         `Resources (JSON): ${JSON.stringify(payload)}\n` +
         `Return JSON: {"explanations": ["sentence about resource 0", "sentence about resource 1", ...]}\n` +
-        `One sentence (max 25 words) per resource, same order as input. For resources with similarUsers > 0, start with "Based on those who matched your Diagnostics profile".`,
+        `One sentence (max 25 words) per resource, same order as input. For resources with similarUsers > 0, start with "Based on those who matched your Diagnostics profile". ` +
+        `Give a match percentage only for resources that have matchPercent, and no other percentage.`,
       { temperature: 0.5, maxTokens: 600 }
     )
 

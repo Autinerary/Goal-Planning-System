@@ -28,7 +28,7 @@ export interface Place {
   info: string
 }
 
-export type PlaceKey = 'races' | 'pitstop' | 'hareworld' | 'journal' | 'tidbits' | 'resourcehub' | 'pathmarket' | 'starter' | 'family' | 'help'
+export type PlaceKey = 'races' | 'pitstop' | 'hareworld' | 'journal' | 'tidbits' | 'resourcehub' | 'pathmarket' | 'starter' | 'family' | 'help' | 'kits'
 
 const BASE: Record<PlaceKey, Omit<Place, 'key'>> = {
   races: { href: '/races', name: 'Races', what: 'Your goals, step by step', info: 'Races: each goal is a race, made of small steps called milestones.' },
@@ -41,6 +41,9 @@ const BASE: Record<PlaceKey, Omit<Place, 'key'>> = {
   starter: { href: '/start', name: 'Starter resources', what: 'Places to start', info: 'Starter resources: a few places to start, for what you need today.' },
   family: { href: '/family', name: 'Family', what: 'Add and support your child', info: 'Family: add a child under 18 and support their account.' },
   help: { href: '/help', name: 'What things are called', what: 'The app’s words, explained', info: 'What things are called: every name in Autinerary, in plain words.' },
+  // Riipen Labs, Group 24: "Surface 2 pre-curated 'Caregiver Starter Kits' on
+  // the main dashboard" (lib/starterKits.ts).
+  kits: { href: '/kits', name: 'Starter kits', what: 'Assessment and school, step by step', info: 'Starter kits: step-by-step guides for parents in Ontario, on getting an autism assessment and on support at school.' },
 }
 
 type Entry = PlaceKey | [PlaceKey, string]
@@ -49,9 +52,9 @@ type Entry = PlaceKey | [PlaceKey, string]
 // each; "All places" under them lists everything.
 const ORDER: Record<string, Entry[]> = {
   self: ['races', 'pitstop', 'hareworld', 'journal', 'tidbits', 'resourcehub', 'pathmarket', 'starter'],
-  child: [['resourcehub', 'Services for your child'], 'family', ['tidbits', 'Ask other parents'], ['starter', 'Starter resources for parents'], ['races', 'The goal you are working on together'], 'journal', 'hareworld', 'pathmarket'],
-  family: [['hareworld', 'Support them as a friend or mentor'], ['tidbits', 'Ask people who have been there'], ['resourcehub', 'Services that could help them'], ['starter', 'For family and friends'], ['races', 'The goal you are helping with'], 'journal', 'pitstop', 'pathmarket'],
-  work: [['resourcehub', 'Services to share'], ['tidbits', 'Answer and ask questions'], ['hareworld', 'Mentor someone'], ['starter', 'For teachers, employers and support workers'], ['races', 'The goal you are helping with'], 'pitstop', 'journal', 'pathmarket'],
+  child: [['resourcehub', 'Services for your child'], 'family', 'kits', ['tidbits', 'Ask other parents'], ['starter', 'Starter resources for parents'], ['races', 'The goal you are working on together'], 'journal', 'pathmarket'],
+  family: [['hareworld', 'Support them as a friend or mentor'], ['tidbits', 'Ask people who have been there'], ['resourcehub', 'Services that could help them'], ['starter', 'For family and friends'], 'kits', ['races', 'The goal you are helping with'], 'journal', 'pathmarket'],
+  work: [['resourcehub', 'Services to share'], ['tidbits', 'Answer and ask questions'], ['hareworld', 'Mentor someone'], ['starter', 'For teachers, employers and support workers'], ['kits', 'Guides to share with parents'], ['races', 'The goal you are helping with'], 'pitstop', 'pathmarket'],
   ally: [['tidbits', 'Learn from people with lived experience'], 'help', ['starter', 'For allies'], 'resourcehub', 'hareworld', ['races', 'Your own plan'], 'journal', 'pathmarket'],
 }
 ORDER.friend = ORDER.family

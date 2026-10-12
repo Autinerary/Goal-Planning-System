@@ -24,9 +24,11 @@ import { gaEvent } from '@/lib/analytics'
 // for, one goal) with norms optional and asked again later (Group 5);
 // express-2026-10 the same two questions with no optional extras after them,
 // those being on the Path's "Complete your profile" card, and the tour's tasks
-// (Groups 25 to 30). The funnel report compares them by this (before and
-// after, which Groups 26, 28 and 29 asked for).
-export const ONBOARDING_VERSION = 'express-2026-10'
+// (Groups 25 to 30). paced-2026-10 added an optional energy check-in that sets
+// how much setup asks, one life area first, "Skip to resources" and the
+// starter kits (Groups 20 to 24). The funnel report compares them by this
+// (before and after, which Groups 26, 28 and 29 asked for).
+export const ONBOARDING_VERSION = 'paced-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'
@@ -58,6 +60,14 @@ export type FunnelEvent =
   // complete a task before moving to the next feature"). Step: "start",
   // "task.<id>" when done, "skip.<id>", "finish" or "close" (TOUR_STEP; STEP 70).
   | 'tour'
+  // Setup's optional energy check-in (Riipen Labs, Group 23: "an initial
+  // question asking users to select their current energy level ... so the
+  // setup length dynamically adapts"). Step: low, some or plenty (STEP 71).
+  | 'setup_energy'
+  // Start here's three optional questions after the starter resources (Group
+  // 21: "5 targeted simple multiple choice questions"). Step:
+  // "<question>.<answer>" (START_REFINE_STEP; STEP 71).
+  | 'start_refine'
 
 // Parts of the app, by address. ResourceHub is opened through /go/servicehub,
 // so its destination decides between Tidbits and the rest of ResourceHub.
@@ -81,6 +91,8 @@ const AREAS: [RegExp, string][] = [
   [/^\/stats(\/|$)/, 'stats'],
   [/^\/help(\/|$)/, 'help'],
   [/^\/start(\/|$)/, 'start'],
+  // The starter kits for parents (Riipen Labs, Group 24).
+  [/^\/kits(\/|$)/, 'kits'],
   [/^\/path-market(\/|$)/, 'path_market'],
   [/^\/paths\/compare(\/|$)/, 'compare'],
 ]
@@ -88,13 +100,20 @@ const AREAS: [RegExp, string][] = [
 // helper answered, and one of its suggestions was added (Riipen Labs, Group
 // 11 suggested testing "the AI guide vs the standard Goals step"), and setup
 // answered as a chat (components/ChatSetup).
-export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat']
+// Since Groups 20 to 24: "Show all areas now" on a plan (lib/lifeAreas.ts), and
+// the page guide opened from the top bar (components/PageGuide.tsx).
+export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat', 'life_areas', 'page_guide']
 
 // The tour's tasks (app/components/InteractiveDemo.tsx), and what its events'
 // steps may be. Listed in backend/scripts/onboarding_funnel.py (TOUR_TASKS).
 export const TOUR_TASK_IDS = ['next_step', 'calendar', 'energy', 'display', 'resourcehub'] as const
 export const TOUR_STEP = new RegExp(`^(start|finish|close|(task|skip)\\.(${TOUR_TASK_IDS.join('|')}))$`)
 export const AREA_IDS = [...AREAS.map(([, id]) => id), 'tidbits', 'resourcehub', ...ACTION_IDS]
+
+// Setup's energy check-in, and Start here's optional questions (STEP 71).
+export const SETUP_ENERGY_IDS = ['low', 'some', 'plenty'] as const
+export const SETUP_ENERGY_STEP = new RegExp(`^(${SETUP_ENERGY_IDS.join('|')})$`)
+export const START_REFINE_STEP = /^(where\.(ontario|canada|outside)|soon\.(today|week|exploring)|how\.(read|talk|place|plan))$/
 
 export function areaFor(pathname: string, search = ''): string | null {
   if (pathname === '/go/servicehub') {

@@ -130,7 +130,11 @@ export default function GoalHelper({
         <span className="text-xs font-semibold uppercase tracking-wide text-violet-800">AI helper</span>
       </div>
       <p className="mt-1 text-sm text-slate-800">
-        For example: &ldquo;I want a job, but interviews stress me out.&rdquo; The helper suggests goals from
+        For example: &ldquo;{audience === 'child' || audience === 'family'
+          ? 'My son finds mornings before school really hard.'
+          : audience === 'work' || audience === 'friend'
+            ? 'I want to help them feel more settled at school or work.'
+            : 'I want a job, but interviews stress me out.'}&rdquo; The helper suggests goals from
         Autinerary&apos;s goal ideas, or puts yours in a few words. Nothing is added until you pick it.
       </p>
       <label htmlFor="goal-helper-text" className="mt-3 block text-sm font-medium text-slate-900">

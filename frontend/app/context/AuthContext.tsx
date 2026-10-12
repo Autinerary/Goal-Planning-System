@@ -31,16 +31,20 @@ interface AuthContextType {
   logout: () => void
   completeOnboarding: (pathId: string) => Promise<void>
   /** Leave setup for now and go to the Path, without a plan. */
-  skipSetup: () => Promise<void>
+  skipSetup: (to?: 'path' | 'resources', href?: string) => Promise<void>
   fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response> // 👈 Add this line
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // '/start' is the guided "Start here", open to everyone (campaign links land there).
-// The newsletter links, and the weekly email's stop link, work from an email,
-// signed in or not (app/newsletter, app/emails).
-const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop']
+// The newsletter links, the weekly email's stop link and the choices in a
+// reminder to finish setup work from an email, signed in or not (app/newsletter,
+// app/emails). The starter kits for parents (app/kits) need no account.
+// /go/servicehub only passes people on to ResourceHub, signed in or not, so
+// setup never interrupts it.
+const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/go/servicehub']
+const isPublicRoute = (pathname: string) => publicRoutes.includes(pathname) || pathname === '/kits' || pathname.startsWith('/kits/')
 const AGE_ROUTE = '/auth/age'
 
 /** Supabase's sign-in errors, in plain words. */
@@ -191,17 +195,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     markSeenToday()
   }, [user])
 
-  // Which parts of the app people use, once they have a path (lib/funnel.ts;
-  // Riipen Labs, Group 5).
+  // Which parts of the app people use, once they have a path or chose to skip
+  // making one (lib/funnel.ts; Riipen Labs, Group 5; Group 24's "time to first
+  // resource" counts people who skipped straight to resources).
   useEffect(() => {
-    if (!user?.hasCompletedOnboarding) return
+    if (!user?.hasCompletedOnboarding && !user?.skippedSetup) return
     trackArea(pathname, window.location.search)
   }, [user, pathname])
 
   // Redirect logic
   useEffect(() => {
     if (isLoading) return
-    const isPublic = publicRoutes.includes(pathname)
+    const isPublic = isPublicRoute(pathname)
     const isOnboarding = pathname === '/onboarding'
 
     // replace, not push: a redirect that adds itself to the history made Back
@@ -283,9 +288,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/')
   }, [supabase, router])
 
-  const skipSetup = useCallback(async () => {
+  // `to`: where they went instead (Riipen Labs, Group 24: "Skip to Resources"),
+  // kept for the funnel report; `href`: the page to open.
+  const skipSetup = useCallback(async (to: 'path' | 'resources' = 'path', href = '/path') => {
     if (!user || !supabase) return
-    const { data, error } = await supabase.auth.updateUser({ data: { setup_skipped: true } })
+    const { data, error } = await supabase.auth.updateUser({ data: { setup_skipped: true, setup_skipped_to: to } })
     if (error || !data?.user) throw new Error(error?.message || 'Could not skip setup')
     setSupabaseUser(data.user)
     const next = profileFromSupabase(data.user)
@@ -293,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // The copy a page load starts from, so the next page doesn't send them
     // back to setup before the session is read.
     try { localStorage.setItem('app_user', JSON.stringify(next)) } catch {}
-    router.replace('/path')
+    router.replace(href)
   }, [user, supabase, router])
 
   const completeOnboarding = useCallback(async (pathId: string) => {

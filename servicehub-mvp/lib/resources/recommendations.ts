@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { findSimilarUsers } from '@/lib/supabase/vector-queries'
 import { getResources, calculateDistance } from '@/lib/supabase/queries'
 import { fetchNearbyApprovedResources } from '@/lib/agents/recommendation-agent/nearby'
+import { isSelfListing, SELF_LISTING_SLACK } from './selfListing'
 import type { Location } from '@/types/database'
 
 interface Recommendation {
@@ -73,30 +74,38 @@ export async function getRecommendedResources(userId: string, limit: number = 8)
       })
     }
 
-    // Sort by score and get top resources
+    // Sort by score and get top resources: a few more than needed, because
+    // Autinerary's own listing is left out once the rows are read
+    // (lib/resources/selfListing.ts).
     recommendations.sort((a, b) => b.score - a.score)
-    const topResourceIds = recommendations.slice(0, limit).map((r) => r.resource_id)
+    const top = recommendations.slice(0, limit + SELF_LISTING_SLACK)
 
     // Get full resource data
     const { data: resources } = await supabase
       .from('resources')
       .select('*')
-      .in('id', topResourceIds)
+      .in('id', top.map((r) => r.resource_id))
       .eq('status', 'approved')
 
     if (!resources) return []
 
-    // Combine with scores
-    return resources.map((resource) => {
-      const rec = recommendations.find((r) => r.resource_id === resource.id)
-      return {
-        ...resource,
-        recommendationScore: rec?.score || 0,
-        averageRating: rec?.averageRating || 0,
-        ratingCount: rec?.ratingCount || 0,
-        similarUsers: rec?.similarUsers || 0,
-      }
-    })
+    // Combine with scores, best first (the rows come back in any order).
+    const resourceMap = new Map(resources.map((r) => [r.id, r]))
+    return top
+      .map((rec) => {
+        const resource = resourceMap.get(rec.resource_id)
+        return resource && !isSelfListing(resource)
+          ? {
+              ...resource,
+              recommendationScore: rec.score,
+              averageRating: rec.averageRating,
+              ratingCount: rec.ratingCount,
+              similarUsers: rec.similarUsers,
+            }
+          : null
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .slice(0, limit)
   } catch (error) {
     console.error('Error getting recommended resources:', error)
     return []
@@ -158,7 +167,8 @@ async function getResourcesByDirectBarrierMatch(userId: string, limit: number) {
       resourceRatings.get(rating.resource_id)!.push(rating.overall_score)
     }
 
-    // Sort by average rating
+    // Sort by average rating. A few more than needed, because Autinerary's
+    // own listing is left out once the rows are read (./selfListing.ts).
     const sortedResources = Array.from(resourceRatings.entries())
       .map(([resourceId, scores]) => ({
         resourceId,
@@ -166,7 +176,7 @@ async function getResourcesByDirectBarrierMatch(userId: string, limit: number) {
         ratingCount: scores.length,
       }))
       .sort((a, b) => b.averageRating - a.averageRating)
-      .slice(0, limit)
+      .slice(0, limit + SELF_LISTING_SLACK)
 
     const resourceIds = sortedResources.map((r) => r.resourceId)
 
@@ -179,15 +189,17 @@ async function getResourcesByDirectBarrierMatch(userId: string, limit: number) {
 
     if (!resources) return []
 
-    // Combine with ratings
-    return resources.map((resource) => {
-      const rec = sortedResources.find((r) => r.resourceId === resource.id)
-      return {
-        ...resource,
-        averageRating: rec?.averageRating || 0,
-        ratingCount: rec?.ratingCount || 0,
-      }
-    })
+    // Combine with ratings, best first (the rows come back in any order).
+    const resourceMap = new Map(resources.map((r) => [r.id, r]))
+    return sortedResources
+      .map((rec) => {
+        const resource = resourceMap.get(rec.resourceId)
+        return resource && !isSelfListing(resource)
+          ? { ...resource, averageRating: rec.averageRating, ratingCount: rec.ratingCount }
+          : null
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .slice(0, limit)
   } catch (error) {
     console.error('Error getting resources by barrier match:', error)
     return []
@@ -543,8 +555,16 @@ export async function getCheapestResources(limit: number = 12) {
   }
 }
 
+/** Approved places, newest first, without Autinerary's own listing. */
+async function newestApproved(limit: number) {
+  const rows = await getResources({ status: 'approved', limit: limit + SELF_LISTING_SLACK })
+  return rows.filter((r) => !isSelfListing(r)).slice(0, limit)
+}
+
 /**
- * Get popular resources (highest rated)
+ * Get popular resources (highest rated). A recommendation (the home page's
+ * "Recommended" when signed out, and its fallback), so Autinerary's own
+ * listing is left out (./selfListing.ts). "Highest Ratings" uses it too.
  */
 export async function getPopularResources(limit: number = 12) {
   const supabase = createClient()
@@ -558,7 +578,7 @@ export async function getPopularResources(limit: number = 12) {
 
     if (!ratings || ratings.length === 0) {
       // Fallback to recently added if no ratings
-      return getResources({ status: 'approved', limit })
+      return newestApproved(limit)
     }
 
     // Aggregate ratings by resource
@@ -570,7 +590,8 @@ export async function getPopularResources(limit: number = 12) {
       resourceRatings.get(rating.resource_id)!.push(rating.overall_score)
     }
 
-    // Sort by average rating (minimum 5 ratings)
+    // Sort by average rating (minimum 5 ratings). A few more than needed,
+    // for leaving out Autinerary's own listing below.
     const sortedResources = Array.from(resourceRatings.entries())
       .filter(([_, scores]) => scores.length >= 5)
       .map(([resourceId, scores]) => ({
@@ -579,7 +600,7 @@ export async function getPopularResources(limit: number = 12) {
         ratingCount: scores.length,
       }))
       .sort((a, b) => b.averageRating - a.averageRating)
-      .slice(0, limit)
+      .slice(0, limit + SELF_LISTING_SLACK)
 
     const resourceIds = sortedResources.map((r) => r.resourceId)
 
@@ -597,7 +618,7 @@ export async function getPopularResources(limit: number = 12) {
     return sortedResources
       .map((rec) => {
         const resource = resourceMap.get(rec.resourceId)
-        return resource
+        return resource && !isSelfListing(resource)
           ? {
               ...resource,
               averageRating: rec.averageRating,
@@ -606,8 +627,9 @@ export async function getPopularResources(limit: number = 12) {
           : null
       })
       .filter((r): r is NonNullable<typeof r> => r !== null)
+      .slice(0, limit)
   } catch (error) {
     console.error('Error getting popular resources:', error)
-    return getResources({ status: 'approved', limit })
+    return newestApproved(limit)
   }
 }

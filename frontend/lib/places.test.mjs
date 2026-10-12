@@ -20,6 +20,9 @@ for (const a of ['self', 'child', 'family', 'work', 'ally']) assert.ok(keys(a).i
 assert.deepEqual(keys('self').slice(0, 4), ['races', 'pitstop', 'hareworld', 'journal'])
 assert.deepEqual(keys('child').slice(0, 2), ['resourcehub', 'family'])
 assert.equal(placesFor('child')[0].what, 'Services for your child')
+// The starter kits for parents in a parent's first four (Riipen Labs, Group 24).
+assert.ok(keys('child').slice(0, 4).includes('kits'))
+assert.ok(keys('family').includes('kits') && keys('work').includes('kits') && !keys('self').includes('kits'))
 assert.equal(keys('work')[0], 'resourcehub')
 assert.equal(keys('ally')[0], 'tidbits')
 assert.ok(keys('ally').includes('help'))

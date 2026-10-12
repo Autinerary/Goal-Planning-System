@@ -11,8 +11,11 @@ import { entryLine } from '@/lib/campaign'
 import {
   START_ROLES, START_GOALS, START_FOR_KEY, START_NEED_KEY,
   isStartRole, isStartGoal, pathwayFor, pathwayTitle, searchPath,
+  REFINE_QUESTIONS, START_REFINE_KEY, orderForAnswers, type RefineAnswers,
 } from '@/lib/startHere'
 import type { StarterItem } from '@/lib/starterItems'
+import { STARTER_KITS } from '@/lib/starterKits'
+import CrisisLines from './CrisisLines'
 
 /**
  * "Start here", on the home page and on its own at /start.
@@ -75,6 +78,22 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const [saveNote, setSaveNote] = useState('')
   const [shareNote, setShareNote] = useState('')
   const [entry, setEntry] = useState<{ welcome: string; line: string } | null>(null)
+  // The three optional questions after the resources (lib/startHere.ts,
+  // REFINE_QUESTIONS), kept in this browser.
+  const [refine, setRefine] = useState<RefineAnswers>({})
+  const [refineOpen, setRefineOpen] = useState(false)
+  useEffect(() => {
+    try {
+      const kept = JSON.parse(localStorage.getItem(START_REFINE_KEY) || '{}')
+      if (kept && typeof kept === 'object') setRefine(kept)
+    } catch {}
+  }, [])
+  const answerRefine = (q: string, a: string) => {
+    const next = { ...refine, [q]: refine[q as keyof RefineAnswers] === a ? undefined : a }
+    setRefine(next)
+    try { localStorage.setItem(START_REFINE_KEY, JSON.stringify(next)) } catch {}
+    if (next[q as keyof RefineAnswers]) track('start_refine', `${q}.${a}`)
+  }
   // "Or get this list by email" (Riipen Labs, Group 11: "Want these saved and
   // emailed to you?"), confirmed by email first (app/api/newsletter).
   const [emailOpen, setEmailOpen] = useState(false)
@@ -364,7 +383,11 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                   onClick={() => chooseGoal(g.id)}
                   aria-pressed={goal === g.id}
                   className={`${CHOICE} ${
-                    goal === g.id ? 'border-indigo-700 bg-indigo-50 text-indigo-950' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+                    goal === g.id
+                      ? 'border-indigo-700 bg-indigo-50 text-indigo-950'
+                      : g.id === 'urgent'
+                        ? 'border-amber-500 bg-amber-50 text-slate-900 hover:border-amber-600'
+                        : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
                   }`}
                 >
                   <span className="block">{g.label}</span>
@@ -383,7 +406,33 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
             <StepH ref={stepHeading} tabIndex={-1} className="text-xl font-semibold focus:outline-none">
               {pathwayTitle(role, goal)}
             </StepH>
+            {/* Who to call comes first (Riipen Labs, Group 24's "Crisis Support"). */}
+            {(goal === 'urgent' || refine.soon === 'today') && (
+              <CrisisLines className="mt-3" headingLevel={3} ontario={['child', 'family', 'work'].includes(role) && refine.where !== 'outside' && refine.where !== 'canada'} />
+            )}
             <p className="mt-2 text-slate-800">{pathway.explanation}</p>
+
+            {/* The starter kits for parents (Riipen Labs, Group 24: "Caregiver
+                Starter Kits"), step by step, from the Government of Ontario's
+                own pages (lib/starterKits.ts). */}
+            {['child', 'family', 'work'].includes(role) && refine.where !== 'outside' && (
+              <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
+                <p className="font-semibold text-slate-900">Starter kits for parents in Ontario</p>
+                <ul className="mt-2 space-y-1">
+                  {[...STARTER_KITS].sort((a, b) => Number(goal === 'school_work' && b.id === 'school') - Number(goal === 'school_work' && a.id === 'school')).map((kit) => (
+                    <li key={kit.id}>
+                      <Link href={`/kits/${kit.id}`} onClick={() => track('start_open', `${answer}.kit_${kit.id}`)} className={TEXT_BUTTON}>
+                        {kit.title}
+                      </Link>
+                      <span className="text-sm text-slate-700">: {kit.summary}</span>
+                    </li>
+                  ))}
+                </ul>
+                {refine.where === 'canada' && (
+                  <p className="mt-2 text-sm text-slate-800">These follow Ontario&apos;s rules. Your province or territory has its own.</p>
+                )}
+              </div>
+            )}
 
             {/* Announce how many were found, not the whole list. */}
             <p role="status" className="sr-only">
@@ -406,7 +455,7 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                 </p>
               ) : (
                 <ol className="mt-4 space-y-3">
-                  {items.map((it) => (
+                  {orderForAnswers(items, refine).map((it) => (
                     <li key={it.path} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                         <a
@@ -441,6 +490,23 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
             <p className="mt-4 text-sm text-slate-700">
               These are places to start looking, not medical or clinical advice. For health decisions, talk with a professional you trust.
             </p>
+            {refine.where === 'outside' && (
+              <p className="mt-2 text-sm text-slate-800">Most places in ResourceHub are in Canada for now, so few may be near you. Tidbits and the shop work from anywhere.</p>
+            )}
+            {refine.how === 'place' && (
+              <p className="mt-2 text-sm text-slate-800">
+                {user ? 'Set your location in ResourceHub to see the places nearest you first.' : 'With a free account, ResourceHub can show the places nearest you first.'}
+              </p>
+            )}
+            {refine.how === 'plan' && (
+              <p className="mt-2 text-sm text-slate-800">
+                You said you&apos;d like a plan:{' '}
+                <Link href={user ? '/onboarding' : '/signup'} className={TEXT_BUTTON}>
+                  {user ? 'make one, in two quick questions' : 'make a free one, in two quick questions'}
+                </Link>
+                . Each goal becomes small steps, with tools for each.
+              </p>
+            )}
 
             {/* The one next action. */}
             <div className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50 p-5">
@@ -560,6 +626,41 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                   <button type="button" onClick={() => rate('no')} className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-800 hover:border-indigo-400">
                     Not really
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Three more, optional (lib/startHere.ts, REFINE_QUESTIONS). */}
+            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+              {!refineOpen && !Object.values(refine).some(Boolean) ? (
+                <button type="button" onClick={() => setRefineOpen(true)} aria-expanded={false} className={TEXT_BUTTON}>
+                  Make this list fit you better: 3 quick questions, optional
+                </button>
+              ) : (
+                <div>
+                  <p className="font-medium text-slate-900">Make this list fit you better <span className="font-normal text-slate-700">(optional; the list changes as you answer)</span></p>
+                  {REFINE_QUESTIONS.map((q) => (
+                    <div key={q.id} role="group" aria-labelledby={`refine-${q.id}`} className="mt-3">
+                      <p id={`refine-${q.id}`} className="text-sm font-medium text-slate-800">{q.label}</p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {q.options.map((o) => {
+                          const on = refine[q.id] === o.id
+                          return (
+                            <button
+                              key={o.id}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => answerRefine(q.id, o.id)}
+                              className={`rounded-full border-2 px-3 py-1.5 text-sm font-medium ${on ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'}`}
+                            >
+                              {on && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
+                              {o.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

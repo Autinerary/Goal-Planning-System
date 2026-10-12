@@ -1,6 +1,8 @@
 'use client'
 
 import NoPlanYet from '../components/NoPlanYet'
+import LifeAreasNote, { useLifeAreasRevealed } from '../components/LifeAreasNote'
+import { lifeAreaView, visibleMilestones } from '@/lib/lifeAreas'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -312,7 +314,13 @@ function RacesContent() {
     ...extraBarriers,
   ]
   const userGoalNames: string[] = (payload?.userProfile?.goals || []) as string[]
-  const agentMilestoneList: any[] = (pathPlanning?.milestones || payload?.milestones || []) as any[]
+  // One life area first (Riipen Labs, Group 20; lib/lifeAreas.ts): until the
+  // first milestone is done, the track and lists show the area the plan
+  // starts in, and say which come next. Nothing is removed from the plan.
+  const allAgentMilestones: any[] = (pathPlanning?.milestones || payload?.milestones || []) as any[]
+  const [areasRevealed, revealAreas] = useLifeAreasRevealed()
+  const areaView = lifeAreaView(allAgentMilestones, completedMilestoneIds, areasRevealed)
+  const agentMilestoneList: any[] = visibleMilestones(allAgentMilestones, areaView)
   const firstMilestoneName: string | undefined = agentMilestoneList[0]?.name || agentMilestoneList[0]?.title
   const raceSources = userGoalNames.length
     ? userGoalNames.map(goal => {
@@ -861,6 +869,8 @@ function RacesContent() {
             </div>
           </div>
         </header>
+
+        <LifeAreasNote view={areaView} onReveal={revealAreas} className="mx-auto mt-3 max-w-5xl" />
 
         {/* Asked where it is used (Riipen Labs, Group 30: "move deferred
             questions into contextual prompts shown when related features are

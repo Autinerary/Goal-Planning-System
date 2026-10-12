@@ -61,7 +61,7 @@ export async function fetchNearbyApprovedResources(
     }
   }
 
-  // Nothing at all within the widest radius: the caller falls back to the
-  // unfiltered query rather than showing nothing.
+  // Nothing at all within the widest radius: recommendations fall back to the
+  // best rated anywhere rather than showing nothing.
   return { resources: [], radiusKm: null }
 }

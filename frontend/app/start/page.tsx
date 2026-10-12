@@ -3,6 +3,7 @@ import Link from 'next/link'
 import FunnelPing from '../components/FunnelPing'
 import StartHere from '../components/StartHere'
 import AccountLink from './AccountLink'
+import PublicDisplay from '../components/PublicDisplay'
 
 export const metadata: Metadata = {
   title: 'Start here · Autinerary',
@@ -30,7 +31,10 @@ export default function StartPage() {
               Beta
             </span>
           </div>
-          <AccountLink />
+          <div className="flex items-center gap-3">
+            <PublicDisplay />
+            <AccountLink />
+          </div>
         </div>
       </header>
       <main>

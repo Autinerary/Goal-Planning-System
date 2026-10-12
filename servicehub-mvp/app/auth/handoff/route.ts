@@ -1,35 +1,42 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { A11Y_COOKIE, cleanA11y } from '@/lib/a11y'
 
 export const dynamic = 'force-dynamic'
 
+// Set by the middleware when a signed-out visitor is sent to the app's sign-in.
+const SENT_TO_APP = 'autinerary_sent_to_app'
+
 /**
- * Cross-app SSO handoff.
+ * Cross-app sign-in: /auth/handoff?token_hash=<one-time code>&next=<path>&a11y=<settings>
  *
- * Goal Planning is the auth authority. Because the two apps live on different
- * domains, ServiceHub can't read Goal Planning's session cookie — so GP's
- * `/go/servicehub` bounce sends the user here with the Supabase tokens (both
- * apps share one Supabase project). We set the session SERVER-SIDE so the very
- * next render is already signed in (the old client-only `ProfileSync` set the
- * session after the page had already rendered signed-out, which is why users
- * saw "signed out" on arrival), then redirect to `next`.
+ * The app is where people sign in. Its /go/servicehub page gets a one-time
+ * code for the signed-in person (frontend/app/api/hub-handoff) and sends them
+ * here; this exchanges it for ResourceHub's own session, server-side, so the
+ * page they asked for opens signed in, with no second sign-in (Riipen Labs,
+ * Groups 22 and 24). The code works once and expires, and it is used at once.
  *
- * `next` must be a same-origin path (open-redirect guard).
+ * This used to take the app's access and refresh tokens from the link and set
+ * them as the session, which put a reusable refresh token in browser history
+ * and request logs. Links with tokens are no longer accepted.
+ *
+ * `next` must be a path on this site (no open redirect). If the code has
+ * expired or was used, the page opens signed out, where it offers sign-in.
  */
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
-  const accessToken = url.searchParams.get('access_token') || ''
-  const refreshToken = url.searchParams.get('refresh_token') || ''
+  const tokenHash = url.searchParams.get('token_hash') || ''
   const nextParam = url.searchParams.get('next') || '/'
-  const origin = url.origin
+  const safeNext = nextParam.startsWith('/') && !nextParam.startsWith('//') && !nextParam.startsWith('/\\') ? nextParam : '/'
+  const response = NextResponse.redirect(new URL(safeNext, url.origin))
 
-  const safeNext = nextParam.startsWith('/') ? nextParam : '/'
-  const response = NextResponse.redirect(`${origin}${safeNext}`)
-
-  // No tokens (e.g. GP user wasn't signed in) — just proceed anonymously.
-  if (!accessToken || !refreshToken) {
-    return response
+  // The app's accessibility settings come along (lib/a11y.ts).
+  const a11y = url.searchParams.get('a11y')
+  if (a11y !== null) {
+    response.cookies.set({ name: A11Y_COOKIE, value: cleanA11y(a11y), path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' })
   }
+  response.cookies.delete(SENT_TO_APP)
+  if (!tokenHash) return response
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,17 +56,18 @@ export async function GET(request: NextRequest) {
     }
   )
 
+  let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    const { error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    })
-    if (error) {
-      console.error('[auth/handoff] setSession failed:', error.message)
-    }
+    const { error } = await Promise.race([
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' }),
+      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('timed out')), 5000) }),
+    ])
+    // Never log the code itself.
+    if (error) console.warn('[auth/handoff] sign-in code not accepted:', error.message)
   } catch (e) {
-    console.error('[auth/handoff] setSession threw:', e)
+    console.warn('[auth/handoff] sign-in code skipped:', (e as Error).message)
+  } finally {
+    if (timer) clearTimeout(timer)
   }
-
   return response
 }

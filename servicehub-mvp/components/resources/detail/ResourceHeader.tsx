@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Star, Bookmark, Share2, MapPin, Plus } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import { showToast } from '@/lib/toast'
 import AddRatingModal from './AddRatingModal'
+import { appSignInHref } from '@/lib/appSignIn'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -21,11 +22,31 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   const city = location?.city || 'Location not specified'
   const province = location?.province || ''
 
+  // Signed out, Save and Rate go through the one Autinerary sign-in and come
+  // back here to finish what was started (Riipen Labs, Group 24: "Enables
+  // 1-click resource saving with unified authentication"). Someone already
+  // signed in to the app is back at once, and the save happens by itself.
+  const signInThen = (then: 'save' | 'rate') => {
+    window.location.href = appSignInHref(`${window.location.pathname}?then=${then}`)
+  }
+  const resumed = useRef(false)
+  useEffect(() => {
+    if (!userId || resumed.current) return
+    const params = new URLSearchParams(window.location.search)
+    const then = params.get('then')
+    if (then !== 'save' && then !== 'rate') return
+    resumed.current = true
+    params.delete('then')
+    const rest = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`)
+    if (then === 'save' && !isSaved) void handleSave()
+    if (then === 'rate') setShowRatingModal(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
+
   const handleSave = async () => {
     if (!userId) {
-      // Send the user to login and bring them back to this resource page.
-      const next = encodeURIComponent(window.location.pathname)
-      window.location.href = `/login?next=${next}`
+      signInThen('save')
       return
     }
 
@@ -56,8 +77,7 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
   const handleRateClick = () => {
     if (!userId) {
-      const next = encodeURIComponent(window.location.pathname)
-      window.location.href = `/login?next=${next}`
+      signInThen('rate')
       return
     }
     setShowRatingModal(true)

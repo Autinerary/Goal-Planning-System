@@ -74,11 +74,21 @@ each feature (Group 27). So: returns within 30 days, the card's answers by
 question, the survey's "Was making your account clear and quick?" (STEP 70)
 and the tour's tasks (STEP 70).
 
+Groups 20 to 24 (September 2026) shaped paced-2026-10: an optional energy
+check-in that sets how much setup asks (Group 23), Start here's optional
+questions (Group 21), "Skip to resources", the starter kits, and reminders to
+finish setup as up to three emails (Groups 20 and 24). They asked for time
+spent in setup and completion by energy (Group 23), a first resource "under
+60 seconds", the Day 1 save rate and the Day 14 active rate (Group 24),
+in-app journaling (Group 20), and long-term feature adoption and ages in the
+waitlist form's bands (Group 22). Each has a section below.
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
-public.checkin_responses (STEP 46) and profiles.preferences. Counts only: no
-user ids, emails or visitor ids are printed. Survey and check-in comments are
-free text and may contain personal details, so they are only printed with
---show-comments, for reading locally.
+public.checkin_responses (STEP 46), profiles.preferences, the journal's dates
+(public.reflections) and the accounts' metadata (dates of birth are only
+counted in age bands). Counts only: no user ids, emails or visitor ids are
+printed. Survey and check-in comments are free text and may contain personal
+details, so they are only printed with --show-comments, for reading locally.
 
 Run (from backend/):
   python -m scripts.onboarding_funnel                    # current version
@@ -88,14 +98,16 @@ Run (from backend/):
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from statistics import median
-from typing import Dict, Iterable, List, Optional
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-# Must match ONBOARDING_VERSION in frontend/lib/funnel.ts.
-CURRENT_VERSION = "express-2026-10"
+# Must match ONBOARDING_VERSION in frontend/lib/funnel.ts. The one before it
+# was express-2026-10; every version stays in the comparisons by version.
+CURRENT_VERSION = "paced-2026-10"
 
 # Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
 # first two are setup. The optional extras were offered after them until
@@ -197,6 +209,33 @@ TOUR_TASKS = [
     ("resourcehub", "Open ResourceHub at the end"),
 ]
 
+# Setup's energy check-in (Riipen Labs, Group 23: "an initial question asking
+# users to select their current energy level ... so the setup length
+# dynamically adapts"), sent as setup_energy from paced-2026-10 (STEP 71), as
+# in frontend/lib/funnel.ts SETUP_ENERGY_IDS. People may change their answer:
+# their last one counts.
+SETUP_ENERGY = [("low", "low energy"), ("some", "some energy"), ("plenty", "plenty of energy")]
+ENERGY_IDS = {key for key, _ in SETUP_ENERGY}
+NO_ENERGY = "unanswered"
+
+# Start here's optional questions after the starter resources (Group 21: "5
+# targeted simple multiple choice questions"), sent as start_refine
+# "<question>.<answer>" (STEP 71; frontend/lib/funnel.ts START_REFINE_STEP).
+START_REFINE = [
+    ("where", "Where they are", [("ontario", "Ontario"), ("canada", "elsewhere in Canada"), ("outside", "outside Canada")]),
+    ("soon", "How soon", [("today", "today"), ("week", "this week"), ("exploring", "just exploring")]),
+    ("how", "How they like to start", [("read", "read"), ("talk", "talk"), ("place", "a place"), ("plan", "a plan")]),
+]
+REFINE_STEPS = {f"{q}.{a}" for q, _, answers in START_REFINE for a, _ in answers}
+
+# The waitlist form's age bands (Group 22: they could not be joined with the
+# app's 18-24 / 25-40 / 40-65 / 65+), by the oldest age in each. The form puts
+# 55 in two bands; here it is in 46-55. Accounts a parent makes for a child
+# are under 18.
+AGE_BANDS = [("18-24", 24), ("25-35", 35), ("36-45", 45), ("46-55", 55), ("55+", None)]
+UNDER_18 = "under 18"
+AGE_NOT_KNOWN = "not known"
+
 # ResourceHub's first session (Riipen Labs, Group 8), as sent by
 # servicehub-mvp/app/api/events/route.ts: setup steps (lib/onboarding/setup.ts)
 # and the prompts that ask for more later (lib/track.ts).
@@ -213,6 +252,12 @@ RH_PROMPTS = [
 # (feature_use), or a starter resource (start_open).
 VALUE_AREAS = ("milestones", "resourcehub", "tools")
 
+# Reaching a first resource after sign-up (Group 24: "under 60 seconds"): a
+# starter resource (start_open), a first place in ResourceHub
+# (rh_first_resource), or ResourceHub or the starter kits opened (feature_use).
+FIRST_RESOURCE_AREAS = ("resourcehub", "kits")
+FIRST_RESOURCE_TARGET = timedelta(seconds=60)
+
 # Time on a setup step counts until the next step was shown, if that came
 # within this long; a longer gap is someone who left and came back.
 STEP_PAUSE_CAP = timedelta(minutes=30)
@@ -222,6 +267,11 @@ RETURN_WINDOW_LONG = timedelta(days=14)
 # Group 30: "day-7 and day-30 retention".
 RETURN_WINDOW_MONTH = timedelta(days=30)
 FIRST_WEEKS = timedelta(days=14)
+# Group 24's "Day 1 save rate" and "Day 14 active rate", and Group 22's
+# feature adoption in each of the first four weeks after sign-up.
+FIRST_DAY = timedelta(hours=24)
+ACTIVE_FROM_DAY = 14
+FEATURE_WEEKS = 4
 
 # Parts of the app counted by feature_use, as in frontend/lib/funnel.ts.
 AREAS = [
@@ -234,6 +284,8 @@ AREAS = [
     # as Pit Stop), and Your profile, Life Stats and the glossary are counted.
     ("hare_world", "Hare World"), ("profile", "Your profile"), ("stats", "Life Stats"),
     ("help", "What things are called"),
+    # Since paced-2026-10 (Group 24): the starter kits.
+    ("kits", "Starter kits"),
 ]
 AREA_IDS = {area for area, _ in AREAS}
 
@@ -260,6 +312,41 @@ def keep_version(version: str, wanted: str) -> bool:
     if str(version).startswith("qa"):
         return False
     return wanted == "all" or version == wanted
+
+
+def _setup_minutes(evs: List[dict]) -> Optional[float]:
+    """Time spent in setup (Group 23): minutes from the first setup step shown
+    to finishing setup, from one browser's events; None if not finished."""
+    shown = [_ts(e["created_at"]) for e in evs if e["event"] == "onboarding_step_view"]
+    if not shown:
+        return None
+    start = min(shown)
+    done = [t for t in (_ts(e["created_at"]) for e in evs if e["event"] == "onboarding_complete") if t >= start]
+    return (min(done) - start).total_seconds() / 60 if done else None
+
+
+def _events_by_person(events: Iterable[dict], wanted: Callable[[dict], bool]) -> Tuple[Dict, Dict]:
+    """The wanted events by user id where they carry one, and by visitor id
+    where they do not, so a person's later events are found from any browser,
+    from ResourceHub, and from any version (the app may have changed since
+    they signed up). Test traffic never counts."""
+    by_user: Dict[str, List[dict]] = defaultdict(list)
+    by_visitor: Dict[str, List[dict]] = defaultdict(list)
+    for e in events:
+        if str(e.get("onboarding_version") or "").startswith("qa") or not wanted(e):
+            continue
+        if e.get("user_id"):
+            by_user[e["user_id"]].append(e)
+        else:
+            by_visitor[e["visitor_id"]].append(e)
+    return by_user, by_visitor
+
+
+def _person_events(p: dict, index: Tuple[Dict, Dict]) -> List[dict]:
+    """One funnel person's events from _events_by_person: their account's, and
+    their browser's that carry no user id."""
+    by_user, by_visitor = index
+    return (by_user.get(p["user_id"], []) if p.get("user_id") else []) + by_visitor.get(p.get("visitor_id"), [])
 
 
 def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
@@ -344,8 +431,11 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             if done_at >= signup_at:
                 first_step_hours = (done_at - signup_at).total_seconds() / 3600
         audience = audience_by_user.get(user_id) if user_id else None
+        # Setup's energy check-in (Group 23): their last answer.
+        energy = next((e["step"] for e in reversed(evs) if e["event"] == "setup_energy" and e.get("step") in ENERGY_IDS), None)
         people.append({
             "user_id": user_id,
+            "visitor_id": vid,
             "channel": channel,
             "device": device,
             "audience": AUDIENCE_LABELS.get(audience, NOT_ANSWERED),
@@ -370,6 +460,9 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "first_value_same_day": first_value_same_day,
             "step_visits": step_visits,
             "step_seconds": step_seconds,
+            "setup_minutes": _setup_minutes(evs),
+            "setup_version": views[0].get("onboarding_version") if views else None,
+            "energy": energy,
         })
 
     def stage_counts(group: List[dict]) -> Dict:
@@ -696,6 +789,42 @@ def render_start_here(s: Dict) -> str:
     return "\n".join(out)
 
 
+def summarize_start_refine(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """Start here's optional questions (Group 21): of the browsers that
+    reached a pathway, how many answered at least one, and how many gave each
+    answer (a browser's last answer to each question). Pure."""
+    pathway: set = set()
+    last: Dict[Tuple[str, str], str] = {}
+    rows = [e for e in events if e["event"] in ("start_pathway", "start_refine")
+            and keep_version(e.get("onboarding_version", ""), wanted_version)]
+    for e in sorted(rows, key=lambda e: e["created_at"]):
+        if e["event"] == "start_pathway":
+            pathway.add(e["visitor_id"])
+        elif e.get("step") in REFINE_STEPS:
+            question, _, answer = e["step"].partition(".")
+            last[(e["visitor_id"], question)] = answer
+    answered = {vid for vid, _ in last}
+    return {"pathway": len(pathway), "answered": len(answered & pathway),
+            "answers": Counter(f"{question}.{answer}" for (_, question), answer in last.items())}
+
+
+def render_start_refine(s: Dict) -> str:
+    n = s["answered"]
+    out = ["== Start here: the optional questions after the starter resources (Group 21)",
+           f"  reached a pathway                {s['pathway']}"]
+    if s["pathway"] < MIN_CELL or 0 < n < MIN_CELL:
+        out.append(f"  answered at least one            {SMALL if n else 0}")
+    else:
+        out.append(f"  answered at least one            {n}   ({pct(n, s['pathway'])} of those who reached a pathway)")
+    for question, label, answers in START_REFINE:
+        counts = [(a_label, s["answers"].get(f"{question}.{a}", 0)) for a, a_label in answers]
+        total = sum(k for _, k in counts)
+        out.append(f"  {label + ':':<32} " + ", ".join(
+            f"{a_label} {SMALL if 0 < k < MIN_CELL else k}" + ("" if k < MIN_CELL else f" ({pct(k, total)})")
+            for a_label, k in counts))
+    return "\n".join(out)
+
+
 def compare_versions(events: Iterable[dict]) -> List[Dict]:
     """Setup completion for each onboarding version, oldest first. Group 5's
     target is 40% less drop-off: accounts that did not finish setup. Pure."""
@@ -743,6 +872,119 @@ def render_versions(rows: List[Dict]) -> str:
     return "\n".join(out)
 
 
+def summarize_setup_time(events: Iterable[dict]) -> List[Dict]:
+    """Time spent in setup for each onboarding version, oldest first (Group
+    23: "time spent"): per browser, minutes from the first setup step shown to
+    finishing setup, and the median. Test traffic never counts. Pure."""
+    first: Dict[str, str] = {}
+    setup: Dict[str, Dict[str, List[dict]]] = defaultdict(lambda: defaultdict(list))
+    for e in events:
+        version = str(e.get("onboarding_version", ""))
+        if version.startswith("qa"):
+            continue
+        if version not in first or e["created_at"] < first[version]:
+            first[version] = e["created_at"]
+        if e["event"] in ("onboarding_step_view", "onboarding_complete"):
+            setup[version][e["visitor_id"]].append(e)
+    rows = []
+    for version in sorted(setup, key=lambda v: first[v]):
+        minutes = [m for evs in setup[version].values() if (m := _setup_minutes(evs)) is not None]
+        rows.append({"version": version, "finished": len(minutes), "median_minutes": median(minutes) if minutes else None})
+    return rows
+
+
+def render_setup_time(rows: List[Dict]) -> str:
+    out = ["== Time spent in setup by onboarding version (Group 23: first step shown to finished)",
+           f"  {'version':<22} {'finished':>8} {'median time':>12}"]
+    for r in rows:
+        if r["finished"] < MIN_CELL:
+            out.append(f"  {r['version'][:22]:<22} {SMALL if r['finished'] else 0:>8} {'-':>12}")
+            continue
+        out.append(f"  {r['version'][:22]:<22} {r['finished']:>8} {_short(r['median_minutes'] * 60):>12}")
+    if not rows:
+        out.append("  (nobody has reached setup yet)")
+    return "\n".join(out)
+
+
+def summarize_energy(people: List[dict]) -> Dict[str, Dict]:
+    """Setup's energy check-in (Group 23 asked to compare "completion,
+    time-to-finish" for the shorter and fuller setups): browsers by their last
+    answer, and those who saw setup without answering, with how many finished
+    setup and their median time in it. Setup in a version that did not ask
+    (no answers, and not the current one) is left out. Pure."""
+    asked = {p.get("setup_version") for p in people if p.get("energy")} | {CURRENT_VERSION}
+    groups: Dict[str, List[dict]] = {key: [] for key, _ in SETUP_ENERGY}
+    groups[NO_ENERGY] = []
+    for p in people:
+        if p.get("energy") in ENERGY_IDS:
+            groups[p["energy"]].append(p)
+        elif p["steps"] and p.get("setup_version") in asked:
+            groups[NO_ENERGY].append(p)
+    out = {}
+    for key, members in groups.items():
+        minutes = [p["setup_minutes"] for p in members if p.get("setup_minutes") is not None]
+        out[key] = {"people": len(members), "finished": sum(p["finished"] for p in members),
+                    "median_minutes": median(minutes) if minutes else None}
+    return out
+
+
+def render_energy(s: Dict[str, Dict]) -> str:
+    out = ["== Energy check-in at the start of setup (Group 23: setup that adapts to energy)",
+           f"  {'answer':<20} {'browsers':>8} {'finished setup':>15} {'median time':>12}"]
+    for key, label in SETUP_ENERGY + [(NO_ENERGY, "didn't answer")]:
+        g = s[key]
+        if g["people"] < MIN_CELL:
+            out.append(f"  {label:<20} {SMALL if g['people'] else 0:>8} {'-':>15} {'-':>12}")
+            continue
+        took = _short(g["median_minutes"] * 60) if g["median_minutes"] is not None else "-"
+        out.append(f"  {label:<20} {g['people']:>8} {pct(g['finished'], g['people']):>15} {took:>12}")
+    out.append("  (their last answer; didn't answer = saw setup and sent none; time = first step shown to finished)")
+    return "\n".join(out)
+
+
+def _is_first_resource(e: dict) -> bool:
+    return e["event"] in ("start_open", "rh_first_resource") or (
+        e["event"] == "feature_use" and e.get("step") in FIRST_RESOURCE_AREAS)
+
+
+def summarize_first_resource(people: List[dict], events: Iterable[dict]) -> Dict:
+    """Time to a first resource (Group 24: "under 60 seconds"): for each
+    account, seconds from signup_complete to the first starter resource
+    opened, first place opened in ResourceHub, or ResourceHub or the starter
+    kits opened, from any browser of theirs. Pure."""
+    index = _events_by_person(events, _is_first_resource)
+    accounts = [p for p in people if p["account"]]
+    seconds = []
+    for p in accounts:
+        after = [t for t in (_ts(e["created_at"]) for e in _person_events(p, index)) if t >= p["signup_at"]]
+        if after:
+            seconds.append((min(after) - p["signup_at"]).total_seconds())
+    return {"accounts": len(accounts), "reached": len(seconds), "median_s": median(seconds) if seconds else None,
+            "under_target": sum(1 for s in seconds if s < FIRST_RESOURCE_TARGET.total_seconds())}
+
+
+def render_first_resource(s: Dict) -> str:
+    target = round(FIRST_RESOURCE_TARGET.total_seconds())
+    out = [f"== Time to a first resource after sign-up (Group 24: \"under {target} seconds\")"]
+    if s["accounts"] < MIN_CELL:
+        out.append(f"  accounts                         {SMALL if s['accounts'] else 0}")
+        return "\n".join(out)
+    out.append(f"  accounts                         {s['accounts']}")
+    if s["reached"] < MIN_CELL:
+        out.append(f"  reached a resource               {SMALL if s['reached'] else 0}")
+    else:
+        n, med = s["under_target"], s["median_s"]
+        # In seconds up to ten minutes, to compare with the target.
+        took = f"{round(med)} s" if med < 600 else _duration(med / 3600)
+        out.append(f"  reached a resource               {s['reached']}   ({pct(s['reached'], s['accounts'])} of accounts), "
+                   f"median {took} after sign-up")
+        out.append(f"  in under {target} seconds              {SMALL if 0 < n < MIN_CELL else n}"
+                   + ("" if 0 < n < MIN_CELL else
+                      f"   ({pct(n, s['accounts'])} of accounts, {pct(n, s['reached'])} of those who reached one)"))
+    out.append("  (a starter resource, a first place in ResourceHub, or ResourceHub or the starter kits opened)")
+    return "\n".join(out)
+
+
 def summarize_feature_use(events: Iterable[dict], wanted_version: str = CURRENT_VERSION,
                           audience_by_user: Optional[Dict[str, str]] = None) -> Dict:
     """Which parts of the app each account opened, by who they are here for.
@@ -778,6 +1020,77 @@ def render_feature_use(f: Dict) -> str:
             f"{pct(f[g]['areas'].get(area, 0), f[g]['accounts']):>16}" for g in shown))
     if hidden:
         out.append(f"  ({hidden} group(s) with fewer than {MIN_CELL} accounts not shown separately)")
+    return "\n".join(out)
+
+
+def summarize_feature_weeks(people: List[dict], events: Iterable[dict], now: Optional[datetime] = None) -> Dict:
+    """Feature adoption over time (Group 22: "long-term tracking of feature
+    adoption"): for each part of the app, how many accounts opened it in each
+    of their first four weeks (week 1 is days 0-6 after signing up, by
+    calendar day), and how many accounts had reached each week by now. Pure."""
+    today = (now or datetime.now().astimezone()).date()
+    index = _events_by_person(events, lambda e: e["event"] == "feature_use" and e.get("step") in AREA_IDS)
+    accounts = [p for p in people if p["account"]]
+    used: Dict[str, List[set]] = defaultdict(lambda: [set() for _ in range(FEATURE_WEEKS)])
+    for i, p in enumerate(accounts):
+        start = p["signup_at"].date()
+        for e in _person_events(p, index):
+            day = (_ts(e["created_at"]).date() - start).days
+            if 0 <= day < 7 * FEATURE_WEEKS:
+                used[e["step"]][day // 7].add(i)
+    return {"reached": [sum(1 for p in accounts if (today - p["signup_at"].date()).days >= 7 * w) for w in range(FEATURE_WEEKS)],
+            "areas": {area: [len(s) for s in weeks] for area, weeks in used.items()}}
+
+
+def render_feature_weeks(s: Dict) -> str:
+    def count(n: int) -> str:
+        return SMALL if 0 < n < MIN_CELL else str(n)
+
+    out = ["== Parts of the app by week after sign-up (Group 22: feature adoption over time; accounts that opened each)",
+           f"  {'part':<24}" + "".join(f"{f'week {w + 1}':>8}" for w in range(FEATURE_WEEKS)),
+           f"  {'accounts that got there':<24}" + "".join(f"{n:>8}" for n in s["reached"])]
+    labels = dict(AREAS)
+    for area in sorted(s["areas"], key=lambda a: [-n for n in s["areas"][a]]):
+        out.append(f"  {labels.get(area, area)[:24]:<24}" + "".join(f"{count(n):>8}" for n in s["areas"][area]))
+    if not s["areas"]:
+        out.append("  (none yet)")
+    return "\n".join(out)
+
+
+def summarize_journal(people: List[dict], entries: Iterable[dict]) -> Dict:
+    """In-app journaling (Group 20): of the accounts in this funnel, how many
+    wrote a journal entry (public.reflections) within 14 days of signing up,
+    and how many entries they have written in all. Pure."""
+    joined: Dict[str, datetime] = {}
+    for p in people:
+        if p["account"] and p.get("user_id"):
+            joined.setdefault(p["user_id"], p["signup_at"])
+    wrote: set = set()
+    total = 0
+    for r in entries:
+        start = joined.get(r.get("user_id"))
+        if start is None or not r.get("created_at"):
+            continue
+        total += 1
+        if timedelta(0) <= _ts(r["created_at"]) - start <= FIRST_WEEKS:
+            wrote.add(r["user_id"])
+    return {"accounts": len(joined), "wrote_14d": len(wrote), "entries": total}
+
+
+def render_journal(j: Dict) -> str:
+    def count(n: int) -> str:
+        return SMALL if 0 < n < MIN_CELL else str(n)
+
+    out = ["== Journal entries (Group 20: in-app journaling)"]
+    if j["accounts"] < MIN_CELL:
+        out.append(f"  accounts                                {count(j['accounts'])}")
+        return "\n".join(out)
+    n = j["wrote_14d"]
+    out += [f"  accounts                                {j['accounts']}",
+            f"  wrote an entry in their first 14 days   {count(n)}"
+            + ("" if 0 < n < MIN_CELL else f"   ({pct(n, j['accounts'])})"),
+            f"  entries these accounts have written     {count(j['entries'])}",
+            "  (opening the journal is counted as Journal in \"Parts of the app people open\")"]
     return "\n".join(out)
 
 
@@ -1059,7 +1372,9 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
     setup after a break, who opted in to reminder emails, check-in emails or
     notifications or the weekly email (what they saved, plus new picks), and
     who saved a resource in their first week (their suggested "proof of
-    impact", to publish once measured). Pure."""
+    impact", to publish once measured) or within 24 hours (Group 24's "Day 1
+    save rate"). Reminders to finish setup have their own section
+    (summarize_setup_reminders). Pure."""
     prefs_by_user = prefs_by_user or {}
     push_users = push_users or set()
     first_save_by_user = first_save_by_user or {}
@@ -1080,11 +1395,11 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
     def weekly(p: dict) -> bool:
         return (prefs(p).get("weeklyPicks") or {}).get("enabled") is True
 
-    def saved_first_week(p: dict) -> bool:
+    def saved_within(p: dict, window: timedelta) -> bool:
         first = first_save_by_user.get(p["user_id"])
         if not first or p.get("signup_at") is None:
             return False
-        return timedelta(0) <= _ts(first) - p["signup_at"] <= RETURN_WINDOW
+        return timedelta(0) <= _ts(first) - p["signup_at"] <= window
 
     return {
         "visited_only": sum(1 for p in people if p["landing"] and not p["account"]),
@@ -1102,8 +1417,8 @@ def summarize_return_loop(people: List[dict], prefs_by_user: Optional[Dict[str, 
         "push": sum(p["user_id"] in push_users for p in known),
         "weekly": sum(weekly(p) for p in known),
         "any_opt_in": sum(reminders(p) or checkin(p) or weekly(p) or p["user_id"] in push_users for p in known),
-        "setup_reminder": sum(bool((prefs(p).get("setupReminder") or {}).get("requestedAt")) for p in known),
-        "saved_first_week": sum(saved_first_week(p) for p in known),
+        "saved_first_day": sum(saved_within(p, FIRST_DAY) for p in known),
+        "saved_first_week": sum(saved_within(p, RETURN_WINDOW) for p in known),
     }
 
 
@@ -1119,7 +1434,7 @@ def render_return_loop(r: Dict) -> str:
            f"  visited, no account yet          {count(r['visited_only'])}   "
            "(Start here keeps their answers and reopens on their starter resources)",
            f"  stopped during setup             {count(r['stopped'])}{share(r['stopped'], r['accounts'])}   "
-           "(setup reopens where they left off; one email only if they asked for it)"]
+           "(setup reopens where they left off; reminder emails only if they asked for them)"]
     if r["stopped"] >= MIN_CELL:
         for step, n in r["stopped_at"].most_common():
             out.append(f"    last step seen: {labels.get(step, step)[:27]:<27} {count(n)}")
@@ -1132,8 +1447,93 @@ def render_return_loop(r: Dict) -> str:
                f"notifications {count(r['push'])}{share(r['push'], r['known'])}, "
                f"weekly email {count(r['weekly'])}{share(r['weekly'], r['known'])}; "
                f"any of them {count(r['any_opt_in'])}{share(r['any_opt_in'], r['known'])}")
-    out.append(f"  asked for a reminder to finish setup   {count(r['setup_reminder'])}")
+    out.append(f"  saved a resource within 24 hours       {count(r['saved_first_day'])}{share(r['saved_first_day'], r['known'])}")
     out.append(f"  saved a resource in their first week   {count(r['saved_first_week'])}{share(r['saved_first_week'], r['known'])}")
+    return "\n".join(out)
+
+
+def summarize_setup_reminders(people: List[dict], prefs_by_user: Optional[Dict[str, dict]] = None,
+                              events: Iterable[dict] = ()) -> Dict[str, int]:
+    """Reminders to finish setup (Groups 20 and 24), from
+    profiles.preferences.setupReminder, for the accounts in this funnel: who
+    asked, for the sequence of up to three emails (plan "sequence") or the
+    first version's one email (no plan; sentAt when it went), how many emails
+    went, who opened setup from one (clickedAt), snoozed, or stopped them, and
+    who finished setup after their first email (an onboarding_complete from
+    their account after it, in any browser). Pure."""
+    prefs_by_user = prefs_by_user or {}
+    finished_at: Dict[str, List[datetime]] = defaultdict(list)
+    for e in events:
+        if e["event"] == "onboarding_complete" and e.get("user_id") \
+                and not str(e.get("onboarding_version") or "").startswith("qa"):
+            finished_at[e["user_id"]].append(_ts(e["created_at"]))
+    out = {k: 0 for k in ("asked", "sequence", "one_email", "emails", "emailed", "clicked", "snoozed", "stopped", "finished_after")}
+    for user_id in {p["user_id"] for p in people if p["account"] and p.get("user_id")}:
+        ask = (prefs_by_user.get(user_id) or {}).get("setupReminder")
+        if not isinstance(ask, dict) or not ask.get("requestedAt"):
+            continue
+        out["asked"] += 1
+        out["sequence" if ask.get("plan") == "sequence" else "one_email"] += 1
+        sends = [s for s in ask.get("sends") or [] if s] if isinstance(ask.get("sends"), list) else []
+        if not sends and ask.get("sentAt"):
+            sends = [ask["sentAt"]]
+        out["emails"] += len(sends)
+        out["emailed"] += bool(sends)
+        out["clicked"] += bool(ask.get("clickedAt"))
+        snoozes = ask.get("snoozes")
+        out["snoozed"] += isinstance(snoozes, (int, float)) and snoozes > 0
+        out["stopped"] += bool(ask.get("stoppedAt"))
+        if sends:
+            first = min(_ts(s) for s in sends)
+            out["finished_after"] += any(t > first for t in finished_at.get(user_id, []))
+    return out
+
+
+def render_setup_reminders(r: Dict[str, int]) -> str:
+    def count(n: int) -> str:
+        return SMALL if 0 < n < MIN_CELL else str(n)
+
+    def share(n: int, d: int) -> str:
+        return "" if d < MIN_CELL or 0 < n < MIN_CELL else f"   ({pct(n, d)})"
+
+    out = ["== Reminders to finish setup (Groups 20 and 24)"]
+    if r["asked"] < MIN_CELL:
+        out.append(f"  asked for them                   {count(r['asked'])}")
+        return "\n".join(out)
+    out += [
+        f"  asked for them                   {r['asked']}: up to three emails {count(r['sequence'])}, "
+        f"one email (the first version) {count(r['one_email'])}",
+        f"  emails sent                      {count(r['emails'])}, to {count(r['emailed'])} people",
+        f"  opened setup from an email       {count(r['clicked'])}{share(r['clicked'], r['emailed'])}",
+        f"  snoozed them                     {count(r['snoozed'])}{share(r['snoozed'], r['asked'])}",
+        f"  stopped them                     {count(r['stopped'])}{share(r['stopped'], r['asked'])}",
+        f"  finished setup after an email    {count(r['finished_after'])}{share(r['finished_after'], r['emailed'])}",
+        "  (opened and finished: shares of those emailed; snoozed and stopped: of those who asked)",
+    ]
+    return "\n".join(out)
+
+
+def summarize_still_using(people: List[dict], events: Iterable[dict], now: Optional[datetime] = None) -> Dict[str, int]:
+    """Still using after two weeks (Group 24: "Day 14 active rate"): of the
+    accounts at least 14 days old, how many opened the app (app_open) on day
+    14 or later after signing up, by calendar day, from any browser. Pure."""
+    today = (now or datetime.now().astimezone()).date()
+    index = _events_by_person(events, lambda e: e["event"] == "app_open")
+    old = [p for p in people if p["account"] and (today - p["signup_at"].date()).days >= ACTIVE_FROM_DAY]
+    active = sum(1 for p in old if any((_ts(e["created_at"]).date() - p["signup_at"].date()).days >= ACTIVE_FROM_DAY
+                                       for e in _person_events(p, index)))
+    return {"accounts": len(old), "active": active}
+
+
+def render_still_using(s: Dict[str, int]) -> str:
+    out = [f"== Still using after two weeks (Group 24: Day {ACTIVE_FROM_DAY} active rate)"]
+    if s["accounts"] < MIN_CELL:
+        out.append(f"  accounts at least {ACTIVE_FROM_DAY} days old        {SMALL if s['accounts'] else 0}")
+        return "\n".join(out)
+    n = s["active"]
+    out.append(f"  accounts at least {ACTIVE_FROM_DAY} days old        {s['accounts']}")
+    out.append(f"  opened the app on day {ACTIVE_FROM_DAY} or later    {SMALL if 0 < n < MIN_CELL else n}"
+               + ("" if 0 < n < MIN_CELL else f"   ({pct(n, s['accounts'])})"))
     return "\n".join(out)
 
 
@@ -1228,10 +1628,14 @@ def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
 def summarize_skips(users: Iterable[dict]) -> Dict[str, int]:
     """Setup skipped for now (Riipen Labs, Group 33: "Add a clear 'Skip
     Onboarding' option"): who skipped, and how many of them made a plan
-    later. From the accounts' metadata, set by setup's "Skip for now". Pure."""
+    later. From the accounts' metadata, set by setup's "Skip for now". Where
+    they went (Group 24's "Skip to resources"): setup_skipped_to, 'resources'
+    or 'path'; accounts that skipped before it was recorded went to the
+    path. Pure."""
     skipped = [u for u in users if (u.get("user_metadata") or {}).get("setup_skipped") is True]
     later = sum(1 for u in skipped if (u.get("user_metadata") or {}).get("has_completed_onboarding") is True)
-    return {"skipped": len(skipped), "made_a_plan": later}
+    went = Counter((u.get("user_metadata") or {}).get("setup_skipped_to") or "path" for u in skipped)
+    return {"skipped": len(skipped), "made_a_plan": later, "to_resources": went["resources"], "to_path": went["path"]}
 
 
 def render_skips(s: Dict[str, int]) -> str:
@@ -1242,7 +1646,58 @@ def render_skips(s: Dict[str, int]) -> str:
     out += [
         f"  skipped setup                      {s['skipped']}",
         f"  made a plan later                  {s['made_a_plan']} ({pct(s['made_a_plan'], s['skipped'])})",
+        f"  went to resources                  {s.get('to_resources', 0)} ({pct(s.get('to_resources', 0), s['skipped'])})",
+        f"  went to their path                 {s.get('to_path', 0)} ({pct(s.get('to_path', 0), s['skipped'])})",
     ]
+    return "\n".join(out)
+
+
+def _age(dob, today: date) -> Optional[int]:
+    """Whole years from a 'YYYY-MM-DD' date of birth (as computeAge in
+    frontend/lib/age.ts), or None if it is missing, not a date or later than
+    today."""
+    text = str(dob or "")
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+        return None
+    try:
+        born = date.fromisoformat(text)
+    except ValueError:
+        return None
+    if born > today:
+        return None
+    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+
+def summarize_ages(users: Iterable[dict], today: Optional[date] = None) -> Counter:
+    """Accounts by age today in the waitlist form's bands (Group 22), from the
+    date of birth given at sign-up: app_metadata, or user_metadata on older
+    accounts. Team, test and synthetic accounts (marked "test" by main()) are
+    left out. Pure."""
+    today = today or date.today()
+    counts: Counter = Counter()
+    for u in users:
+        if u.get("test"):
+            continue
+        age = _age((u.get("app_metadata") or {}).get("date_of_birth")
+                   or (u.get("user_metadata") or {}).get("date_of_birth"), today)
+        if age is None:
+            counts[AGE_NOT_KNOWN] += 1
+        elif age < 18:
+            counts[UNDER_18] += 1
+        else:
+            counts[next(band for band, oldest in AGE_BANDS if oldest is None or age <= oldest)] += 1
+    return counts
+
+
+def render_ages(counts: Counter) -> str:
+    total = sum(counts.values())
+    out = [f"== Age today, in the waitlist form's bands (Group 22; {total} accounts, from the date of birth)"]
+    for label in [band for band, _ in AGE_BANDS] + [UNDER_18, AGE_NOT_KNOWN]:
+        n = counts.get(label, 0)
+        shown = SMALL if 0 < n < MIN_CELL else str(n)
+        share = "-" if n < MIN_CELL else pct(n, total)
+        out.append(f"  {label:<20} {shown:>5}  ({share})")
+    out.append("  (team, test and synthetic accounts left out; 55 is counted in 46-55)")
     return "\n".join(out)
 
 
@@ -1371,6 +1826,8 @@ def main() -> int:
     from dotenv import load_dotenv
     load_dotenv()
     from database.supabase_client import get_supabase
+    # Team, test and synthetic accounts, by email, as the other reports tell them apart.
+    from scripts.vector_evaluation_pull import is_synthetic, is_team_test
 
     sb = get_supabase()
     if sb is None:
@@ -1429,9 +1886,26 @@ def main() -> int:
     print()
     print(render_start_here(compute_start_here(events, args.version)))
     print()
+    print(render_start_refine(summarize_start_refine(events, args.version)))
+    print()
     print(render_versions(compare_versions(events)))
     print()
+    print(render_setup_time(summarize_setup_time(events)))
+    print()
+    print(render_energy(summarize_energy(funnel["people"])))
+    print()
+    # ResourceHub's first place opened counts as a first resource too.
+    print(render_first_resource(summarize_first_resource(funnel["people"], events + rh_events)))
+    print()
     print(render_feature_use(summarize_feature_use(events, args.version, audience_by_user)))
+    print()
+    print(render_feature_weeks(summarize_feature_weeks(funnel["people"], events)))
+    print()
+    try:
+        entries = fetch_all(sb, "reflections", "user_id, created_at")
+        print(render_journal(summarize_journal(funnel["people"], entries)))
+    except Exception:
+        print("== Journal entries: not available (reflections could not be read).")
     print()
     print(render_last_seen(summarize_last_seen(events, args.version)))
     print()
@@ -1453,8 +1927,12 @@ def main() -> int:
                 if r["user_id"] not in first_save_by_user or r["created_at"] < first_save_by_user[r["user_id"]]:
                     first_save_by_user[r["user_id"]] = r["created_at"]
     except Exception:
-        pass  # without it, first-week saves show 0
+        pass  # without it, first-day and first-week saves show 0
     print(render_return_loop(summarize_return_loop(funnel["people"], prefs_by_user, push_users, first_save_by_user)))
+    print()
+    print(render_setup_reminders(summarize_setup_reminders(funnel["people"], prefs_by_user, events)))
+    print()
+    print(render_still_using(summarize_still_using(funnel["people"], events)))
     print()
     print(render_goal_helper(summarize_goal_helper(funnel["people"])))
     print()
@@ -1471,13 +1949,17 @@ def main() -> int:
         users, page = [], 1
         while True:
             batch = sb.auth.admin.list_users(page=page, per_page=1000)
-            users += [{"user_metadata": getattr(u, "user_metadata", None) or {}} for u in batch]
+            users += [{"user_metadata": getattr(u, "user_metadata", None) or {},
+                       "app_metadata": getattr(u, "app_metadata", None) or {},
+                       "test": is_synthetic(u) or is_team_test(u)} for u in batch]
             if len(batch) < 1000:
                 break
             page += 1
         print(render_skips(summarize_skips(users)))
+        print()
+        print(render_ages(summarize_ages(users)))
     except Exception:
-        print("== Setup skipped for now: the accounts could not be read.")
+        print("== Setup skipped for now, and ages: the accounts could not be read.")
     print()
     try:
         generations = fetch_all(sb, "generation_jobs", "user_id, status, created_at, finished_at, error")

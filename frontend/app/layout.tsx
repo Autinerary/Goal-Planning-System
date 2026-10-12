@@ -12,6 +12,7 @@ import MovementTracker from './components/MovementTracker'
 import AccessibilityProvider from './components/AccessibilityProvider'
 import NavTrail from './components/NavTrail'
 import InteractiveDemo from './components/InteractiveDemo'
+import PageGuide from './components/PageGuide'
 import AppWideTranslator from './components/AppWideTranslator'
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
@@ -97,13 +98,15 @@ export default function RootLayout({
 }) {
   return (
     // Settings saved on this device (Settings → Accessibility) are applied
-    // before the first paint, so dark mode doesn't flash white and text
-    // doesn't jump size. AccessibilityProvider keeps them up to date after.
+    // before the first paint, so dark mode doesn't flash white, text doesn't
+    // jump size, and calm motion is calm from the first frame (Riipen Labs,
+    // Group 22: "sensory control before the animations load").
+    // AccessibilityProvider keeps them up to date after.
     <html lang="en" className={bodyFont.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale}catch(e){}`,
+            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale;if(a.reduceMotion)r.dataset.reduceMotion='on'}catch(e){}`,
           }}
         />
       </head>
@@ -125,6 +128,7 @@ export default function RootLayout({
             <FeedbackGate />
             <Toaster />
             <InteractiveDemo />
+            <PageGuide />
             <InfoModeProvider />
             <AnalyticsConsent />
             </LanguageProvider>

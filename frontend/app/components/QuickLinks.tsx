@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Sparkles, Target, Wrench, Users, BookOpen, Map, Compass, Store, Home, HelpCircle, ChevronDown, ExternalLink, type LucideIcon } from 'lucide-react'
+import { Sparkles, Target, Wrench, Users, BookOpen, Map, Compass, Store, Home, HelpCircle, ChevronDown, ExternalLink, ListChecks, type LucideIcon } from 'lucide-react'
 import { goHubHref } from '@/lib/serviceHub'
 import { placesFor, type PlaceKey } from '@/lib/places'
 import { audienceById } from '@/lib/audiences'
@@ -22,6 +22,7 @@ const ICONS: Record<PlaceKey, { Icon: LucideIcon; color: string; tint: string }>
   starter: { Icon: Compass, color: 'text-indigo-700', tint: 'bg-indigo-50' },
   family: { Icon: Home, color: 'text-orange-700', tint: 'bg-orange-50' },
   help: { Icon: HelpCircle, color: 'text-indigo-700', tint: 'bg-indigo-50' },
+  kits: { Icon: ListChecks, color: 'text-emerald-700', tint: 'bg-emerald-50' },
 }
 
 /**

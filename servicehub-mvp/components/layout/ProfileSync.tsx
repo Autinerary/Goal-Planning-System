@@ -2,13 +2,14 @@
 
 import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { A11Y_COOKIE, applyA11y, cleanA11y } from '@/lib/a11y'
 
 /**
  * Reads URL params passed by Goal Planning's "Find Resources" button:
- *  - ?profile=   → stores barrier profile for personalised recommendations
- *  - ?access_token= + ?refresh_token= → sets a real Supabase session
+ *  - ?profile=   → stores the norms profile for personalised recommendations
+ *  - ?a11y=      → the app's accessibility settings
+ * Signing in comes through app/auth/handoff, with a one-time code; session
+ * tokens in a link are only removed from the address bar.
  */
 function ProfileSyncInner() {
   const searchParams = useSearchParams()
@@ -36,19 +37,11 @@ function ProfileSyncInner() {
         }
       }
 
-      if (accessToken) {
-        try {
-          const supabase = createClient()
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken ?? '',
-          })
-        } catch {
-          // token invalid or expired — user can sign in manually
-        }
-      }
+      // Session tokens in a link are no longer used to sign in (the app's
+      // one-time code goes to app/auth/handoff instead; Riipen Labs, Groups 22
+      // and 24). An old link's tokens are only taken out of the address bar.
 
-      if (profileParam || accessToken || a11y !== null) {
+      if (profileParam || accessToken || refreshToken || a11y !== null) {
         const url = new URL(window.location.href)
         url.searchParams.delete('profile')
         url.searchParams.delete('a11y')

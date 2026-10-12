@@ -1,5 +1,7 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
-import { getRatingsByResource } from '@/lib/supabase/queries'
+import { getRatingsByResource, ratingStats } from '@/lib/supabase/queries'
+import { isSelfListing } from '@/lib/resources/selfListing'
 import type { SimilarUser, CandidateResource, Resource, Location } from './types'
 import { fetchNearbyApprovedResources, NEARBY_FETCH_LIMIT } from './nearby'
 
@@ -54,43 +56,32 @@ export async function getCandidateResources(
       return []
     }
 
-    // Build candidate resources with metadata
-    const candidates: CandidateResource[] = resources.map((resource) => {
-      const ratingsForResource = resourceRatingsMap.get(resource.id) || []
-      const averageRating =
-        ratingsForResource.length > 0
-          ? ratingsForResource.reduce((sum, r) => sum + r.overall_score, 0) /
-            ratingsForResource.length
-          : 0
+    // Build candidate resources with metadata. Autinerary's own listing is
+    // not a place to recommend (lib/resources/selfListing.ts).
+    const candidates: CandidateResource[] = resources
+      .filter((resource) => !isSelfListing(resource))
+      .map((resource): CandidateResource => {
+        const ratingsForResource = resourceRatingsMap.get(resource.id) || []
+        const averageRating =
+          ratingsForResource.length > 0
+            ? ratingsForResource.reduce((sum, r) => sum + r.overall_score, 0) /
+              ratingsForResource.length
+            : 0
 
-      return {
-        resource,
-        ratingsFromSimilarUsers: ratingsForResource,
-        similarUsersCount: ratingsForResource.length,
-        averageRating,
-      }
-    })
+        return {
+          resource,
+          ratingsFromSimilarUsers: ratingsForResource,
+          similarUsersCount: ratingsForResource.length,
+          averageRating,
+          basis: 'similar_people',
+          ratingCount: ratingsForResource.length,
+        }
+      })
 
     // Filter by location if provided
     if (location && location.lat && location.lng) {
       // Sort by distance if location provided
-      const candidatesWithDistance = candidates
-        .map((candidate) => {
-          const resourceLocation = candidate.resource.location as Location | null
-          if (resourceLocation?.lat && resourceLocation?.lng) {
-            const distance = calculateDistance(
-              location.lat!,
-              location.lng!,
-              resourceLocation.lat,
-              resourceLocation.lng
-            )
-            return { ...candidate, distance }
-          }
-          return { ...candidate, distance: Infinity }
-        })
-        .sort((a, b) => (a as any).distance - (b as any).distance)
-
-      return candidatesWithDistance.slice(0, limit) as CandidateResource[]
+      return withDistance(candidates, location).sort(nearestFirst).slice(0, limit)
     }
 
     return candidates.slice(0, limit)
@@ -118,83 +109,124 @@ export async function getFallbackCandidateResources(
   try {
     // With coordinates, fetch from around the user. Without them (or when
     // nothing approved is within NEARBY_RADII_KM) there is no "near" to use,
-    // so take approved resources unfiltered as before.
+    // so take the best rated anywhere. Autinerary's own listing is left out
+    // (lib/resources/selfListing.ts); the nearby lookup itself keeps it,
+    // because "Near <city>" is browsing.
     let resources: any[] = []
     if (location?.lat && location?.lng) {
-      resources = (await fetchNearbyApprovedResources(supabase, location)).resources
+      resources = (await fetchNearbyApprovedResources(supabase, location)).resources.filter(
+        (r) => !isSelfListing(r)
+      )
     }
     if (resources.length === 0) {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('status', 'approved')
-        .limit(NEARBY_FETCH_LIMIT)
-      if (error || !data) return []
-      resources = data
+      resources = await bestRatedApprovedResources(supabase, NEARBY_FETCH_LIMIT)
     }
 
     if (resources.length === 0) {
       return []
     }
 
-    // Aggregate community ratings for these resources.
-    const resourceIds = resources.map((r) => r.id)
-    const { data: ratings } = await supabase
-      .from('ratings')
-      .select('resource_id, overall_score')
-      .in('resource_id', resourceIds)
+    // Community ratings for these resources, from the shared index search
+    // uses, which reads every rating. A single query stops at 1,000 rows, and
+    // a count cut short would make a rated place's card say "Not rated yet".
+    const stats = await ratingStats()
 
-    const ratingAgg = new Map<string, { sum: number; count: number }>()
-    ;(ratings || []).forEach((r) => {
-      const agg = ratingAgg.get(r.resource_id) || { sum: 0, count: 0 }
-      agg.sum += r.overall_score
-      agg.count += 1
-      ratingAgg.set(r.resource_id, agg)
-    })
-
-    const candidates: CandidateResource[] = resources.map((resource) => {
-      const agg = ratingAgg.get(resource.id)
-      const averageRating = agg && agg.count > 0 ? agg.sum / agg.count : 0
+    // No ratings from similar people here, so the basis is the community
+    // rating, and the score is not a match (match.ts).
+    const candidates: CandidateResource[] = resources.map((resource): CandidateResource => {
+      const s = stats.get(resource.id)
       return {
         resource,
         ratingsFromSimilarUsers: [],
         similarUsersCount: 0,
-        averageRating,
+        averageRating: s?.averageRating || 0,
+        basis: 'ratings',
+        ratingCount: s?.ratingCount || 0,
       }
     })
 
     // Prefer nearby resources when we have coordinates, otherwise rank by
     // rating quality then volume.
     if (location && location.lat && location.lng) {
-      return candidates
-        .map((candidate) => {
-          const loc = candidate.resource.location as Location | null
-          const distance =
-            loc?.lat && loc?.lng
-              ? calculateDistance(location.lat!, location.lng!, loc.lat, loc.lng)
-              : Infinity
-          return { ...candidate, distance }
-        })
-        .sort((a, b) => {
-          // Nearby first; within similar distance, higher rated first.
-          const da = (a as any).distance as number
-          const db = (b as any).distance as number
-          if (da !== db && (da !== Infinity || db !== Infinity)) return da - db
-          return b.averageRating - a.averageRating
-        })
-        .slice(0, limit) as CandidateResource[]
+      // Nearby first; at the same distance, higher rated first.
+      return withDistance(candidates, location)
+        .sort((a, b) => nearestFirst(a, b) || b.averageRating - a.averageRating)
+        .slice(0, limit)
     }
 
     return candidates
       .sort((a, b) => {
         if (b.averageRating !== a.averageRating) return b.averageRating - a.averageRating
-        return b.ratingsFromSimilarUsers.length - a.ratingsFromSimilarUsers.length
+        return b.ratingCount - a.ratingCount
       })
       .slice(0, limit)
   } catch (error) {
     console.error('Error getting fallback candidate resources:', error)
     return []
   }
+}
+
+// "Highly rated": an average of 4 or more, the same bar the similar-user path
+// sets for the ratings it uses.
+const HIGHLY_RATED = 4
+// Ids per request. A long list of ids in the URL fails (lib/supabase/queries.ts).
+const ID_BATCH = 200
+
+/**
+ * Approved places rated 4 or more on average: best rated first, then the most
+ * rated, then by id, so the same ratings always give the same list. This is
+ * the cold start's pool when there are no coordinates.
+ *
+ * It used to be the first 200 approved rows in whatever order the table
+ * returned them, so someone with no location was shown places in any city,
+ * rated or not (Riipen Labs, Groups 22 and 24: "three matches at 40%, in the
+ * wrong cities"). The home page now calls these "Highly rated places", which
+ * the 4-star bar keeps true.
+ */
+async function bestRatedApprovedResources(supabase: SupabaseClient, limit: number): Promise<any[]> {
+  const stats = await ratingStats()
+  const ranked = Array.from(stats, ([id, s]) => ({ id, ...s }))
+    .filter((s) => s.averageRating >= HIGHLY_RATED)
+    .sort(
+      (a, b) =>
+        b.averageRating - a.averageRating || b.ratingCount - a.ratingCount || (a.id < b.id ? -1 : 1)
+    )
+
+  const out: any[] = []
+  for (let i = 0; i < ranked.length && out.length < limit; i += ID_BATCH) {
+    const ids = ranked.slice(i, i + ID_BATCH).map((s) => s.id)
+    const { data, error } = await supabase
+      .from('resources')
+      .select('*')
+      .in('id', ids)
+      .eq('status', 'approved')
+    if (error) throw error
+    // Rows come back in any order; keep the ranking's.
+    const rows = new Map((data || []).map((r: any) => [r.id, r]))
+    for (const id of ids) {
+      const row = rows.get(id)
+      if (row && !isSelfListing(row)) out.push(row)
+    }
+  }
+  return out.slice(0, limit)
+}
+
+/** Each candidate with its distance in km, when the place has a map point. */
+function withDistance(candidates: CandidateResource[], location: Location): CandidateResource[] {
+  return candidates.map((candidate) => {
+    const loc = candidate.resource.location as Location | null
+    const distance =
+      loc?.lat && loc?.lng
+        ? calculateDistance(location.lat!, location.lng!, loc.lat, loc.lng)
+        : undefined
+    return { ...candidate, distance }
+  })
+}
+
+/** Nearest first, and places with no map point last. */
+function nearestFirst(a: CandidateResource, b: CandidateResource): number {
+  // Two places with no point: Infinity - Infinity is NaN, so 0.
+  return (a.distance ?? Infinity) - (b.distance ?? Infinity) || 0
 }
 
 /**

@@ -275,6 +275,10 @@ class OnboardingRequest(BaseModel):
     # Which model runs the agents, and how hard it thinks. Optional: absent or
     # unrecognised values fall back to the server default.
     llmConfig: Optional[dict] = None
+    # "Who are you here for?" (frontend/lib/audiences.ts). The planner writes a
+    # parent's plan about supporting their child, not about the parent's own
+    # career (Riipen Labs, Group 24). Optional, so older clients keep working.
+    audience: Optional[str] = Field(default=None, max_length=20)
 
 
 NO_ANSWER = "prefer not to share"
@@ -440,6 +444,8 @@ async def _generate_path_for(
         "dreams": request.dreams,
         "currentChallenges": request.currentChallenges,
         "supportContext": request.supportContext.model_dump() if request.supportContext else {},
+        # Unknown answers read as planning for themselves (core/agents/path_planning_agent.py).
+        "audience": (request.audience or "").strip().lower() or None,
         # Carried so the app can render the user's own choices (spirit animals,
         # view style) from the stored path rather than a hardcoded default.
         "preferences": request.preferences or {},

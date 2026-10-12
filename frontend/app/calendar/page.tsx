@@ -683,7 +683,7 @@ function CalendarContent() {
                     name,
                     day: String(f.get('day') || 'Monday'),
                     time: String(f.get('time') || '09:00'),
-                    duration: String(f.get('duration') || '30 min'),
+                    duration: String(f.get('duration') || 'Not sure yet'),
                     priority: String(f.get('priority') || 'medium'),
                   })
                   if (saved) {
@@ -694,8 +694,9 @@ function CalendarContent() {
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Task</label>
+                  <label htmlFor="add-task-name" className="block text-sm font-medium text-slate-700 mb-1">Task</label>
                   <input
+                    id="add-task-name"
                     name="name"
                     autoFocus
                     required
@@ -707,16 +708,16 @@ function CalendarContent() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Day</label>
-                    <select name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <label htmlFor="add-task-day" className="block text-sm font-medium text-slate-700 mb-1">Day</label>
+                    <select id="add-task-day" name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {WEEKDAYS.map(day => (
                         <option key={day} value={day}>{day}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Time</label>
-                    <select name="time" defaultValue="09:00" size={1} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <label htmlFor="add-task-time" className="block text-sm font-medium text-slate-700 mb-1">Time</label>
+                    <select id="add-task-time" name="time" defaultValue="09:00" size={1} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map((t) => (
                         <option key={t} value={t}>{t}</option>
                       ))}
@@ -726,16 +727,20 @@ function CalendarContent() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Duration</label>
-                    <select name="duration" defaultValue="30 min" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
-                      {['15 min', '30 min', '45 min', '1 hr', '1.5 hr', '2 hr'].map((d) => (
+                    {/* Nobody has to know how long it will take (Riipen Labs,
+                        Group 23: "allow flexible task entry for users who may
+                        not know the exact duration at the start"). Unknown
+                        lengths are drawn as half an hour on the time grid. */}
+                    <label htmlFor="add-task-duration" className="block text-sm font-medium text-slate-700 mb-1">How long?</label>
+                    <select id="add-task-duration" name="duration" defaultValue="Not sure yet" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                      {['Not sure yet', '15 min', '30 min', '45 min', '1 hr', '1.5 hr', '2 hr'].map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-                    <select name="priority" defaultValue="medium" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <label htmlFor="add-task-priority" className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+                    <select id="add-task-priority" name="priority" defaultValue="medium" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {['essential', 'high', 'medium', 'low'].map((pr) => (
                         <option key={pr} value={pr} className="capitalize">{pr}</option>
                       ))}
@@ -861,10 +866,21 @@ function CalendarContent() {
             <div className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold rounded-full shadow">🏁 {payload?.races?.[0]?.name || payload?.userProfile?.goals?.[0] || 'Your first race'}</div>
             <div className="px-3 py-1.5 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold rounded-full">📍 Current: {currentMilestoneName}</div>
           </div>
-          {/* Title */}
-          <div className="border border-slate-200 rounded-xl p-6 surface">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2"><Calendar className="w-6 h-6 text-indigo-600" aria-hidden="true" />Your Calendar</h1>
-            <p className="text-slate-500 text-sm">Plan your journey through each day</p>
+          {/* Title, with adding a task beside it (Riipen Labs, Group 23: "Make
+              the 'Add task' action easier to find"). It was the last button
+              in the row of views. */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 rounded-xl p-6 surface">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2"><Calendar className="w-6 h-6 text-indigo-600" aria-hidden="true" />Your Calendar</h1>
+              <p className="text-slate-500 text-sm">Plan your journey through each day</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddTask(true)}
+              className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-700 active:bg-indigo-800"
+            >
+              + Add task
+            </button>
           </div>
         </div>
 
@@ -1052,12 +1068,6 @@ function CalendarContent() {
             className="ml-auto px-4 py-2 rounded-lg font-medium text-sm border border-cyan-300 text-cyan-700 hover:bg-cyan-50 transition-all"
           >
             📷 Add from photo
-          </button>
-          <button
-            onClick={() => setShowAddTask(true)}
-            className="px-4 py-2 rounded-lg font-medium text-sm bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow transition-all"
-          >
-            + Add task
           </button>
         </div>
 

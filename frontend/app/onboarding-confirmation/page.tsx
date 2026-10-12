@@ -12,6 +12,8 @@ import PushOptIn from '../components/PushOptIn'
 import { START_GOALS, isStartGoal, isStartRole, pathwayTitle } from '@/lib/startHere'
 import MediaPlayer from '../components/MediaPlayer'
 import { HOW_TO, lengthLabel } from '@/lib/media'
+import ProfileCompletion from '../components/ProfileCompletion'
+import CrisisLines from '../components/CrisisLines'
 
 /**
  * Post-onboarding: what was built, and what to do first.
@@ -40,12 +42,16 @@ const INTERESTS: Record<string, StartItem> = {
   community: { title: 'Read and ask in Tidbits.', body: 'Questions and answers from people with similar experiences.', href: '/go/servicehub?next=/community', cta: 'See what people say' },
   learning: { title: 'Learn from others in Tidbits.', body: 'Questions and answers from people with similar experiences.', href: '/go/servicehub?next=/community', cta: 'Start learning' },
   tools: { title: 'Browse tools, apps and products.', body: 'Things other people found useful, in the ResourceHub shop.', href: '/go/servicehub?next=/shop', cta: 'Browse tools' },
+  // A parent's needs (Riipen Labs, Group 24): the starter kits, step by step.
+  assessment: { title: 'Open the starter kit for an autism assessment.', body: 'Step by step, from what you notice to the Ontario Autism Program, with places that can help.', href: '/kits/assessment', cta: 'Open the starter kit' },
+  school: { title: 'Open the starter kit for support at school.', body: 'What an IEP and an IPRC are, how to ask, and what the school has to do.', href: '/kits/school', cta: 'Open the starter kit' },
+  urgent: { title: 'Who to call, if you need help right now.', body: 'Free lines, open at any time.', href: '/help#talk-now', cta: 'Who to call' },
 }
 
 // A first step that fits who someone is here for (Riipen Labs, Group 3: "a
 // short personalized starter pathway for each user").
 const FOR_ROLE: Record<string, StartItem> = {
-  child: { title: 'Add your child, if they are under 18.', body: 'On the Family page you can add a family member and manage their path.', href: '/family', cta: 'Open Family' },
+  child: { title: 'Open the starter kits for parents.', body: 'Getting an autism assessment, and support at school, step by step (Ontario).', href: '/kits', cta: 'Open the starter kits' },
   family: { title: 'Planning with a family member under 18?', body: 'On the Family page you can add them and manage their path.', href: '/family', cta: 'Open Family' },
   work: { title: 'Find tools and services to recommend.', body: 'Search ResourceHub for what has helped others, with ratings from people with similar norms.', href: '/go/servicehub?next=/search', cta: 'Find tools and services' },
   ally: { title: 'Learn from people with lived experience.', body: 'Questions and answers in Tidbits, from neurodivergent people and their families.', href: '/go/servicehub?next=/community', cta: 'Read Tidbits' },
@@ -57,7 +63,7 @@ export default function OnboardingConfirmationPage() {
   const [launching, setLaunching] = useState(false)
   const { prefs, update } = usePreferences()
   type Start = { for: string; need: string }
-  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: Start | null; suggestedStart?: Start | null }>({})
+  const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: Start | null; suggestedStart?: Start | null; setupEnergy?: string | null }>({})
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('autinerary_onboarding_choices') || 'null')
@@ -119,6 +125,10 @@ export default function OnboardingConfirmationPage() {
     },
   ]
   const roleItem = FOR_ROLE[choices.audience || prefs.audience || '']
+  // The energy check-in (Riipen Labs, Group 23): "Not much" ends here with one
+  // button and nothing else asked; "Plenty" gets the optional questions now.
+  const energy = choices.setupEnergy || (prefs as { setupEnergy?: string }).setupEnergy || ''
+  const low = energy === 'low'
   const ordered = starterLeads && starterItem
     ? [starterItem, ...pathItems, ...interestItems]
     : primaryInterest
@@ -177,12 +187,21 @@ export default function OnboardingConfirmationPage() {
           </div>
         )}
 
+        {/* Help right now first, if they asked for it (Group 24). */}
+        {lookingFor.includes('urgent') && <CrisisLines className="mb-6" ontario={['child', 'family'].includes(choices.audience || prefs.audience || '')} />}
+
+        {low && (
+          <p className="mb-6 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-slate-800">
+            That&apos;s all for today. Everything else can wait until you have more energy, and nothing changes by itself.
+          </p>
+        )}
+
         {/* Start here: one ordered list, one primary button. The button is
             whatever they said they came for first. */}
         <div className="border border-indigo-200 rounded-2xl p-6 mb-6 surface">
           <h2 className="font-bold text-slate-900 mb-3">Start here</h2>
           <ol className="space-y-3 text-slate-800">
-            {startItems.map((item, i) => (
+            {startItems.slice(0, low ? 2 : 4).map((item, i) => (
               <li key={item.title} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-xs font-bold text-white" aria-hidden="true">{i + 1}</span>
                 <span>
@@ -224,15 +243,33 @@ export default function OnboardingConfirmationPage() {
                 <Rocket className="w-5 h-5" aria-hidden="true" /> Go to my Path
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
-              className="inline-flex items-center gap-2 px-2 py-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
-            >
-              <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the two-minute tour
-            </button>
+            {!low && (
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
+                className="inline-flex items-center gap-2 px-2 py-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+              >
+                <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the two-minute tour
+              </button>
+            )}
           </div>
+          {low && (
+            <p className="mt-3 text-sm text-slate-700">When you have more energy, &ldquo;How it works&rdquo; in the top bar explains each page.</p>
+          )}
         </div>
+
+        {/* "Plenty": the fuller setup, now and still optional (Group 23: route
+            people "to either a short essentials-only path or the fuller
+            setup"). The same questions as the Path's card, all at once. */}
+        {energy === 'plenty' && (
+          <section aria-labelledby="set-up-more" className="mb-6">
+            <h2 id="set-up-more" className="mb-2 text-xl font-bold text-slate-900">Set up more now, if you like</h2>
+            <p className="mb-3 text-sm text-slate-700">You said you had energy for more. Each answer makes your plan fit you better. Skip any of them.</p>
+            <ProfileCompletion variant="page" />
+          </section>
+        )}
+
+        {!low && (<>
 
         {/* The "how to use the app" video (Riipen Labs, Group 11), folded
             away so it is there for anyone who prefers to watch. */}
@@ -299,6 +336,7 @@ export default function OnboardingConfirmationPage() {
         <p className="text-sm text-slate-700 text-center">
           Later, when you&apos;re ready: find role models and mentors in Hare World, from People on your Path.
         </p>
+        </>)}
       </div>
     </div>
   )

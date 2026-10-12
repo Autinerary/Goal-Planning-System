@@ -2,24 +2,23 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { loadPreferences } from '@/lib/preferences'
 import { a11yParam } from '@/lib/a11yHandoff'
 
 const SH = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
 
 /**
- * Single funnel for every Goal Planning → ServiceHub navigation.
+ * Single funnel for every Goal Planning → ResourceHub navigation.
  *
- * All GP links point here (same-origin, so plain <a> works). We read the
- * signed-in user's Supabase session and forward the tokens ON THE DESTINATION
- * URL. ServiceHub's ProfileSync (root layout, already deployed) reads them and
- * establishes the session, then strips them from the URL — so the user lands on
- * the real ServiceHub page signed in.
+ * All links point here (same-origin, so plain <a> works). Signed in, it asks
+ * the server for a one-time sign-in code (app/api/hub-handoff) and opens
+ * ResourceHub's /auth/handoff with it, which signs the person in there and
+ * goes on to the page they asked for: one account, no second sign-in (Riipen
+ * Labs, Groups 22 and 24). Signed out, it opens the page itself. Either way
+ * the accessibility settings go along.
  *
- * We deliberately redirect to the REAL destination (not a dedicated handoff
- * route) so navigation never depends on a not-yet-deployed route: the page
- * always exists, and worst case the user simply lands signed-out.
+ * It used to put the session's access and refresh tokens in the link; a code
+ * that works once replaced them, so nothing reusable is ever in a URL.
  */
 function Redirector() {
   const params = useSearchParams()
@@ -27,10 +26,11 @@ function Redirector() {
 
   useEffect(() => {
     const raw = params.get('next') || '/'
-    const next = raw.startsWith('/') ? raw : `/${raw}`
+    const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : `/${raw.replace(/^\/+/, '')}`
+    const a11y = a11yParam(loadPreferences().accessibility)
     // Text size, contrast, dark mode and the rest go along, signed in or not.
     const withSettings = new URL(`${SH}${next}`)
-    withSettings.searchParams.set('a11y', a11yParam(loadPreferences().accessibility))
+    withSettings.searchParams.set('a11y', a11y)
     const plain = withSettings.toString()
     let navigated = false
 
@@ -43,14 +43,13 @@ function Redirector() {
 
     ;(async () => {
       try {
-        const supabase = createClient()
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        if (session?.access_token) {
-          const url = new URL(plain)
-          url.searchParams.set('access_token', session.access_token)
-          url.searchParams.set('refresh_token', session.refresh_token ?? '')
+        const res = await fetch('/api/hub-handoff', { method: 'POST', credentials: 'include', cache: 'no-store' })
+        const json = res.ok ? await res.json() : null
+        if (json?.tokenHash) {
+          const url = new URL(`${SH}/auth/handoff`)
+          url.searchParams.set('token_hash', json.tokenHash)
+          url.searchParams.set('next', next)
+          url.searchParams.set('a11y', a11y)
           go(url.toString())
           return
         }
@@ -60,8 +59,8 @@ function Redirector() {
       go(plain)
     })()
 
-    // Safety net: never get stuck on this page if the session read stalls.
-    const t = setTimeout(() => go(plain), 2500)
+    // Safety net: never get stuck on this page if the server is slow.
+    const t = setTimeout(() => go(plain), 6000)
     return () => clearTimeout(t)
   }, [params])
 

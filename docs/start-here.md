@@ -20,6 +20,15 @@ and one clear next action" before they see the whole app.
    services"), one plain-language explanation, 3 to 5 resources, a line
    saying these are not medical or clinical advice, and one primary action,
    **Save this path**. Then "Was this useful? Yes / Not really".
+5. **Since Groups 20 to 24 (12 October 2026):** "Help right now" is a need,
+   and shows who to call first. Parents, family and people who support
+   someone see the two **starter kits** for Ontario (an autism assessment,
+   support at school) above the resources. After the resources, **"Make this
+   list fit you better: 3 quick questions, optional"**: where you are, how
+   soon you need help, how you like to start. Each reorders the list or adds
+   a note at once, and none hides anything (Group 21 asked for five
+   questions; two come before anything is shown). See
+   [groups-20-24.md](groups-20-24.md).
 
 One question at a time, with the steps done and still to come shown above
 it, and "Change" next to each answer. The home page's main button, "Find

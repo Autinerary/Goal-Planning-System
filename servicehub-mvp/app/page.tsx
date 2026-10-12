@@ -20,6 +20,7 @@ import {
   getCheapestResources,
   getRecommendedResources
 } from '@/lib/resources/recommendations'
+import { isSelfListing, SELF_LISTING_SLACK } from '@/lib/resources/selfListing'
 import DiscoveryCard from '@/components/agents/DiscoveryCard'
 import SetLocationPrompt from '@/components/resources/SetLocationPrompt'
 import PersonalizedBanner from '@/components/agents/PersonalizedBanner'
@@ -126,6 +127,9 @@ async function RecommendedSection() {
     // Get user location from profile
     const profile = await getProfile(user.id)
     const location = (profile?.location as Location) || undefined
+    // No coordinates means "near you" cannot work. 0,0 counts as none:
+    // ResourceHub onboarding writes it when geocoding fails.
+    const hasCoords = Boolean(location?.lat && location?.lng)
 
     // Use orchestrator to coordinate agents
     const userRequest: UserRequest = {
@@ -177,6 +181,14 @@ async function RecommendedSection() {
     // say only what is true (Riipen Labs, Group 8: "personalization claims
     // match what the product can actually deliver").
     let fromAgent = false
+    // What the heading and the line under it say. Without coordinates nothing
+    // can be near the person, so the section does not call itself their
+    // recommendations: it says plainly what the places are, and each card
+    // shows its city (Riipen Labs, Groups 22 and 24: "three matches at 40%,
+    // in the wrong cities"). Each kind of list below sets its own words.
+    let subtitle: string | undefined
+    let plainTitle = 'Highly rated places'
+    let plainSubtitle = 'Rated highly by people with similar norms. They can be in any city.'
     if (recommendationOutput?.resources && recommendationOutput.resources.length > 0) {
       fromAgent = true
       // Use agent results - ensure scores are percentages (0-100)
@@ -191,6 +203,14 @@ async function RecommendedSection() {
       finalSynthesisExplanation = synthesis?.explanation || orchestrationResult?.explanation
       finalAgentContributions = synthesis?.agentContributions
       finalMemory = recommendationOutput.memory || null
+      // Matched only when ratings from people with similar norms are behind
+      // it. The cold start ('ratings') goes by distance and community rating.
+      if (recommendationOutput.basis === 'ratings') {
+        subtitle = 'Chosen by distance and community rating. None are matched to your norms yet.'
+        plainSubtitle = 'Rated highly by people on ResourceHub. They can be in any city.'
+      } else {
+        subtitle = 'Matched to your norms, and to people who share them. Places near you come first.'
+      }
     } else {
       // Fallback: places rated by people who share these norms, then what is
       // popular, then any places.
@@ -225,11 +245,16 @@ async function RecommendedSection() {
                 : 'Popular in the community'
             )
             finalSynthesisExplanation = `Nothing has been rated for your norms (${barrierTypesList}) yet, so these are popular in the community. Rating a place you know helps people like you.`
+            plainTitle = 'Popular places'
+            plainSubtitle = 'Popular in the community. They can be in any city.'
           } else {
-            const anyResources = await getResources({ status: 'approved', limit: 8 })
-            finalResources = anyResources || []
+            // Not Autinerary's own listing (lib/resources/selfListing.ts).
+            const anyResources = await getResources({ status: 'approved', limit: 8 + SELF_LISTING_SLACK })
+            finalResources = (anyResources || []).filter((r) => !isSelfListing(r)).slice(0, 8)
             finalExplanations = finalResources.map(() => 'From ResourceHub')
             finalSynthesisExplanation = `Nothing has been rated for your norms (${barrierTypesList}) yet. These are places in ResourceHub to start with.`
+            plainTitle = 'Places in ResourceHub'
+            plainSubtitle = 'Places to start with. They can be in any city.'
           }
         }
       } catch (fallbackError) {
@@ -241,19 +266,24 @@ async function RecommendedSection() {
     // RecommendationResult component handles empty state
     return (
       <section className="mb-12" aria-labelledby="recommended-heading">
-        {/* No coordinates means "near you" cannot work. 0,0 counts as none:
-            ResourceHub onboarding writes it when geocoding fails. */}
-        {!(location?.lat && location?.lng) && <SetLocationPrompt />}
+        {!hasCoords && <SetLocationPrompt />}
+        {/* Without coordinates, none of the agent's framing (confidence, its
+            summary, its past sessions, what each agent did): the heading and
+            the line under it say what the places are. */}
         <RecommendationResult
           resources={finalResources}
+          title={hasCoords ? undefined : plainTitle}
+          subtitle={hasCoords ? subtitle : plainSubtitle}
           explanations={finalExplanations}
           confidence={finalConfidence}
-          showConfidence={fromAgent}
+          showConfidence={fromAgent && hasCoords}
           showExplanations={true}
-          synthesisExplanation={finalSynthesisExplanation || orchestrationResult?.explanation}
-          agentContributions={fromAgent ? finalAgentContributions || synthesis?.agentContributions : undefined}
+          synthesisExplanation={
+            hasCoords || !fromAgent ? finalSynthesisExplanation || orchestrationResult?.explanation : undefined
+          }
+          agentContributions={fromAgent && hasCoords ? finalAgentContributions || synthesis?.agentContributions : undefined}
           showSynthesis={true}
-          memory={finalMemory}
+          memory={hasCoords ? finalMemory : null}
         />
       </section>
     )

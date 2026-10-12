@@ -32,7 +32,7 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
   return (
     <section aria-labelledby="quick-settings-heading" className={embedded ? '' : 'mt-6 border-t border-slate-200 pt-6'}>
       <h3 id="quick-settings-heading" className={embedded ? 'text-sm font-semibold text-slate-800' : 'font-semibold text-slate-800'}>
-        {embedded ? 'Light or dark, contrast and text size' : 'Pick your settings'}
+        {embedded ? 'Light or dark, contrast, motion and text size' : 'Pick your settings'}
       </h3>
       <p className="mb-4 mt-0.5 text-xs text-slate-600">For this device. Change them any time in Settings, then Accessibility.</p>
 
@@ -66,6 +66,26 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
         </button>
       </div>
 
+      {/* Calm motion (Riipen Labs, Group 22: "sensory control before the
+          animations load"): the same switch as Settings → Accessibility's
+          "Reduce motion", here so it is one tap from the first screen. */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p id="qs-motion-label" className="text-sm font-medium text-slate-800">Calm motion</p>
+          <p id="qs-motion-help" className="text-xs text-slate-600">Stops moving and bouncing parts.</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={a11y.reduceMotion}
+          aria-labelledby="qs-motion-label"
+          aria-describedby="qs-motion-help"
+          onClick={() => set({ reduceMotion: !a11y.reduceMotion })}
+          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${a11y.reduceMotion ? 'bg-cyan-700' : 'bg-slate-400'}`}
+        >
+          <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${a11y.reduceMotion ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
+      </div>
       <div role="group" aria-labelledby="qs-size-label">
         <p id="qs-size-label" className="mb-2 text-sm font-medium text-slate-800">Text size</p>
         <div className="grid grid-cols-3 gap-3">

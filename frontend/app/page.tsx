@@ -22,9 +22,11 @@ import MediaPlayer from './components/MediaPlayer'
 import ListenSection from './components/ListenSection'
 import StoriesSection from './components/StoriesSection'
 import NewsletterPrompt from './components/NewsletterPrompt'
+import PublicDisplay from './components/PublicDisplay'
 import { EXPLAINER } from '@/lib/media'
 import { gaEnabled } from '@/lib/analytics'
 import StartHere from './components/StartHere'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 /**
  * Landing page: what a visitor needs before deciding to make an account.
@@ -157,7 +159,7 @@ const STEPS = [
   {
     icon: ListChecks,
     title: 'Answer a short setup',
-    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Everything else is optional, and you can add it in the app whenever you like.',
+    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Low on energy today? Say so, and it stops there. Everything else is optional, and you can add it in the app whenever you like.',
   },
   {
     icon: Rocket,
@@ -215,9 +217,12 @@ export default function HomePage() {
               Beta
             </span>
           </div>
-          <Link href="/login" className="text-sm font-medium text-indigo-800 underline-offset-4 underline">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-3">
+            <PublicDisplay />
+            <Link href="/login" className="text-sm font-medium text-indigo-800 underline-offset-4 underline">
+              Sign in
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -417,7 +422,7 @@ export default function HomePage() {
                 <h3 className="font-semibold">If you&apos;re planning for yourself</h3>
               </div>
               <p className="mt-2 text-slate-700">
-                Tell us the norms you navigate and the goals you have. Your plan, schedule and tool
+                Tell us your goal, and, whenever you like, the norms you navigate. Your plan, schedule and tool
                 suggestions are built from those answers, not from generic advice.
               </p>
             </div>
@@ -428,8 +433,9 @@ export default function HomePage() {
               </div>
               <p className="mt-2 text-slate-700">
                 Parents, caregivers, siblings, partners, educators, employers and allies can sign up too.
-                Setup starts by asking who you are here for, so the questions fit. Accounts for people under 18
-                are not available yet.
+                Setup starts by asking who you are here for, so your plan is about the person you support. Parents in
+                Ontario get two step-by-step <Link href="/kits" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">starter kits</Link>:
+                getting an autism assessment, and support at school. Accounts for people under 18 are not available yet.
               </p>
             </div>
           </div>
@@ -442,6 +448,25 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+          {/* Care and safety, said plainly (Riipen Labs, Group 21: "What's also
+              missing is a sense of human care or emotional safety"; people need
+              to understand "that their conditions, disabilities, differences
+              are not a barrier", "the value of completing milestones", and "that
+              they are cared for deeply"). Each line is something the app does. */}
+          <div className="mt-8 rounded-xl border border-emerald-300 bg-emerald-50 p-5">
+            <h3 className="font-semibold">At your own pace</h3>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-800">
+              <li>How you work is not something to fix. Your plan is built around it, and &ldquo;Not sure yet&rdquo; is always an answer.</li>
+              <li>Nothing is a test. Every step is small, and you can stop and come back: your answers are saved.</li>
+              <li>Each step you finish brings up the next one and moves your goal along, so you can see how far you have come.</li>
+              <li>
+                Questions or problems? Email <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">{CONTACT_EMAIL}</a>:
+                it goes to a person on the team, not a bot. Need help right now?{' '}
+                <Link href="/help#talk-now" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">Who to call</Link>.
+              </li>
+            </ul>
+          </div>
+
           <p className="mt-4 max-w-3xl text-sm text-slate-700">
             Many people navigate more than one. In Canada, 1 in 50 children and youth have an autism diagnosis, and more
             than two-thirds of them also have another long-term condition, most often ADHD, a learning disability or

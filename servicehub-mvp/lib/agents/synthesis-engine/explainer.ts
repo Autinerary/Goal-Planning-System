@@ -1,6 +1,7 @@
 import type { AgentOutputs, RankedResult, UserContext } from './types'
 import type { RecommendationAgentOutput } from '@/lib/agents/recommendation-agent/types'
 import type { DiscoveredPattern } from '@/lib/agents/pattern-agent/types'
+import { showsMatchPercent } from '@/lib/agents/recommendation-agent/match'
 import { completeText, isLLMEnabled, USER_TEXT_RULE, userList, userText } from '@/lib/llm'
 
 /**
@@ -18,7 +19,10 @@ export async function generateExplanation(
   const top = results.slice(0, 3).map((r) => ({
     name: (r.resource as any).name,
     category: (r.resource as any).category,
-    score: Math.round((r.finalScore || 0) * 100),
+    // The card's own match percentage, and only when it is one
+    // (lib/agents/recommendation-agent/match.ts). The blended ranking score
+    // went here for every result, so a summary could call any of them a match.
+    matchPercent: showsMatchPercent(r.resource) ? r.resource.score : undefined,
     similarUsers: (r.resource as any).similarUsersCount || 0,
   }))
   const patterns = Array.isArray(agentOutputs.PatternAgent)
@@ -28,6 +32,7 @@ export async function generateExplanation(
 
   const llm = await completeText(
     'You are a warm, plain-language assistant that summarises why a set of community resources were surfaced for a neurodivergent user. Two short sentences, max 45 words total. No markdown, no lists. ' +
+      'Give a match percentage only where matchPercent is given. ' +
       USER_TEXT_RULE,
     `User barriers: ${userList(barriers)}\n` +
       `Top resources: ${JSON.stringify(top)}\n` +
@@ -172,9 +177,15 @@ export function generateAgentContributions(agentOutputs: AgentOutputs): Array<{
   // Recommendation Agent contribution
   const recommendations = agentOutputs.RecommendationAgent
   if (recommendations) {
+    const count = recommendations.resources?.length || 0
     contributions.push({
       agentName: 'Recommendation Agent',
-      contribution: `Matched ${recommendations.resources?.length || 0} resources to your norms using vector similarity`,
+      // The cold start (no similar people's ratings) matches nothing to
+      // norms, so it does not say it did.
+      contribution:
+        recommendations.basis === 'ratings'
+          ? `Found ${count} places. None are matched to your norms yet.`
+          : `Matched ${count} resources to your norms using vector similarity`,
       confidence: recommendations.confidence || 0,
       outputCount: recommendations.resources?.length || 0,
     })

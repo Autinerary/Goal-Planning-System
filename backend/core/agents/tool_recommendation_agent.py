@@ -21,6 +21,7 @@ table is read by the ServiceHub scorer, so the loop is shared across
 products. See backend/core/learning.py and 2026_universal_agent_learning.sql.
 """
 
+import re
 import json
 import os
 from typing import List, Dict, Any, Optional
@@ -32,6 +33,18 @@ from core import llm, learning
 import random
 
 SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
+
+# Autinerary's own listing in ResourceHub ("Autinerary", described as "Us") is
+# not a tool for a step. Riipen Labs, Group 24: "AI engine suggests Autinerary
+# to itself"; Group 24 asked to "filter out self-referential listings".
+# ResourceHub's recommenders use the same rule (servicehub-mvp/lib/resources/selfListing.ts).
+_SELF_NAME = re.compile(r"^\s*(autinerary|resource\s*hub|service\s*hub)\b", re.IGNORECASE)
+
+
+def is_self_listing(row: Dict[str, Any]) -> bool:
+    """True for Autinerary's or ResourceHub's own listing."""
+    return bool(row.get('is_first_party')) or bool(_SELF_NAME.match(str(row.get('name') or '')))
+
 
 class ToolRecommendationAgent(BaseAgent):
     """Recommends services, products, articles, and other tools"""
@@ -291,12 +304,12 @@ class ToolRecommendationAgent(BaseAgent):
         try:
             res = (
                 self.supabase.table('resources')
-                .select('id, name, description, category, contact_info, image_url, price')
+                .select('id, name, description, category, contact_info, image_url, price, is_first_party')
                 .eq('status', 'approved')
                 .limit(500)
                 .execute()
             )
-            rows = res.data or []
+            rows = [r for r in (res.data or []) if not is_self_listing(r)]
         except Exception as e:
             print(f"[tool_recommendation] resources query failed — recommending nothing: {e}")
             self._resource_pool = []

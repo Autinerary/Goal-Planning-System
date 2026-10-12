@@ -23,69 +23,11 @@ export async function middleware(request: NextRequest) {
     name: A11Y_COOKIE, value: cleanA11y(a11yRaw), path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' as const,
   }
 
-  // Cross-app hand-off. Goal Planning's /go/servicehub sends people to the
-  // page they asked for with their Supabase session in the link. ProfileSync
-  // used to pick it up in the browser, but on a protected page (Tidbits, the
-  // shop, your profile) this middleware ran first, found no cookie and sent a
-  // signed-in person to Goal Planning's sign-in, which sends signed-in people
-  // to their Path: the Tidbits link never reached Tidbits. So the session is
-  // set here, server-side, and the same page is reopened without the tokens.
-  // If Supabase can't answer in time, the request goes on and ProfileSync
-  // still tries in the browser.
-  const handoffAccess = request.nextUrl.searchParams.get('access_token')
-  const handoffRefresh = request.nextUrl.searchParams.get('refresh_token')
-  if (handoffAccess && handoffRefresh) {
-    const jar: { name: string; value: string; options: CookieOptions }[] = []
-    const handoff = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            jar.push({ name, value, options })
-          },
-          remove(name: string, options: CookieOptions) {
-            jar.push({ name, value: '', options })
-          },
-        },
-      }
-    )
-    let handoffTimer: ReturnType<typeof setTimeout> | undefined
-    try {
-      const { error } = await Promise.race([
-        handoff.auth.setSession({ access_token: handoffAccess, refresh_token: handoffRefresh }),
-        new Promise<never>((_, reject) => {
-          handoffTimer = setTimeout(() => reject(new Error('hand-off timed out')), 3000)
-        }),
-      ])
-      if (!error && jar.length) {
-        const clean = request.nextUrl.clone()
-        clean.searchParams.delete('access_token')
-        clean.searchParams.delete('refresh_token')
-        clean.searchParams.delete('a11y')
-        const redirect = NextResponse.redirect(clean)
-        for (const c of jar) redirect.cookies.set({ name: c.name, value: c.value, ...c.options })
-        if (a11yCookie) redirect.cookies.set(a11yCookie)
-        redirect.cookies.delete(SENT_TO_APP)
-        return redirect
-      }
-    } catch (e) {
-      console.warn('[middleware] hand-off skipped:', (e as Error).message)
-    } finally {
-      if (handoffTimer) clearTimeout(handoffTimer)
-    }
-    // The hand-off didn't go through (an expired or revoked session, or no
-    // answer in time). Open the page rather than sending the person to sign
-    // in: Goal Planning, still signed in, would send them straight back here
-    // with the same session, and round again, without end (seen on /shop,
-    // 11 October 2026). ProfileSync tries once more in the browser; a
-    // protected page checks for itself and offers ResourceHub's own sign-in.
-    if (a11yCookie) response.cookies.set(a11yCookie)
-    return response
-  }
+  // The cross-app sign-in (app/auth/handoff) handles its own settings and
+  // session; nothing here should redirect it first. It used to arrive here
+  // with session tokens in the link, set in this middleware; a one-time code
+  // replaced them (Riipen Labs, Groups 22 and 24).
+  if (pathname === '/auth/handoff') return response
 
   // Settings with no session: keep them and reopen the page without them.
   if (a11yCookie) {

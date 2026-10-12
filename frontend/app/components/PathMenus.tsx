@@ -96,6 +96,8 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
       // Setup's "AI Recommendations" step, in the app (Riipen Labs, Group 26).
       { label: 'AI suggestions for your steps', href: '/recommend-choices' },
       { label: 'ResourceHub', href: '/', hub: true },
+      // Riipen Labs, Group 24 (lib/starterKits.ts).
+      { label: 'Starter kits for parents', href: '/kits' },
       { label: 'Starter resources', href: '/start' },
       { label: 'Path Market', href: '/path-market' },
     ],

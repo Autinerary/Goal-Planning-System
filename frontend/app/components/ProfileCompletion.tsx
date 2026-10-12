@@ -6,7 +6,8 @@ import { Check, ChevronDown, ChevronRight, UserCog, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { usePreferences } from '../context/usePreferences'
 import { track } from '@/lib/funnel'
-import { PROFILE_ITEMS, itemDone, nextProfileItem, profileProgress, type ProfileItem, type ProfileItemId } from '@/lib/profileItems'
+import { PROFILE_ITEMS, itemDone, nextProfileItem, profileProgress, unlockedEarly, type ProfileItem, type ProfileItemId } from '@/lib/profileItems'
+import { fetchCompletedMilestoneIds } from '@/lib/raceProgress'
 import { dayKey, daysSince } from '@/lib/disclosure'
 import LocationField from './LocationField'
 import MotivationField from './MotivationField'
@@ -47,7 +48,16 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
   const [all, setAll] = useState(variant === 'page')
   const [openItem, setOpenItem] = useState<ProfileItemId | null>(null)
   const [justDone, setJustDone] = useState<ProfileItemId | null>(null)
+  // Milestones finished: a first one unlocks the character and spirit
+  // animals early (lib/profileItems.ts, Group 23).
+  const [stepsDone, setStepsDone] = useState(0)
   const counted = useRef(false)
+  useEffect(() => {
+    if (!supabaseUser?.id || variant !== 'path') return
+    let cancelled = false
+    fetchCompletedMilestoneIds().then((ids) => { if (!cancelled) setStepsDone(ids.size) })
+    return () => { cancelled = true }
+  }, [supabaseUser?.id, variant])
 
   useEffect(() => {
     if (variant === 'path') {
@@ -120,7 +130,12 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
   const total = PROFILE_ITEMS.length
   // Days since the account was made; unknown counts as day 0.
   const day = supabaseUser?.created_at ? daysSince(dayKey(new Date(supabaseUser.created_at))) : 0
-  const next = nextProfileItem(todo, day)
+  const caregiver = prefs.audience === 'child' || prefs.audience === 'family'
+  const next = nextProfileItem(todo, day, { stepsDone, caregiver })
+  const earlyUnlock = next ? unlockedEarly(next, day, stepsDone) : false
+  // Nothing left to suggest on the Path (only what is not offered to them):
+  // the card stays on Your profile.
+  if (variant === 'path' && !all && !next && todo.length > 0) return null
   const shownItems = all ? PROFILE_ITEMS : PROFILE_ITEMS.filter((item) => item.id === next)
   // What is saved, said under the question while it is closed (Riipen Labs,
   // Group 34: "closed, it says what is picked").
@@ -219,6 +234,9 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
                       <span className="sr-only">{isDone ? 'Done: ' : 'Not yet: '}</span>
                       {titleOf(item)}
                     </p>
+                    {!all && earlyUnlock && item.id === next && (
+                      <p className="ml-6 text-sm font-medium text-emerald-800">Unlocked: you finished your first step.</p>
+                    )}
                     <p className="ml-6 text-sm text-slate-700">{unlocksOf(item)}</p>
                     {!isOpen && answerOf(item.id) && (
                       <p className="ml-6 mt-0.5 text-sm text-slate-900"><span className="font-medium">Picked:</span> {answerOf(item.id)}</p>

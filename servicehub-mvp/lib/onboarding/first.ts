@@ -1,5 +1,6 @@
 import { searchResources, ratingCountsForNorm, type SearchFilters } from '@/lib/supabase/queries'
 import { searchProducts } from '@/lib/search/products'
+import { isSelfListing, SELF_LISTING_SLACK } from '@/lib/resources/selfListing'
 import { findNeed, findNorm, isOtherNorm } from './setup'
 
 /**
@@ -56,11 +57,13 @@ export async function matchedPlaces(opts: {
 
   const out: MatchedPlace[] = []
   const seen = new Set<string>()
-  // `upTo`: stop once the list is this long.
+  // `upTo`: stop once the list is this long. Autinerary's own listing is
+  // never one of the places (lib/resources/selfListing.ts), so each search
+  // below asks for a few extra rows to keep the list full.
   const add = (rows: any[], reason: MatchReason, needId?: string, kind: 'place' | 'product' = 'place', upTo = limit) => {
     for (const r of rows) {
       if (out.length >= Math.min(upTo, limit)) return
-      if (!r?.id || seen.has(r.id)) continue
+      if (!r?.id || seen.has(r.id) || isSelfListing(r)) continue
       seen.add(r.id)
       const loc = (r.location || {}) as Record<string, any>
       out.push({
@@ -87,7 +90,7 @@ export async function matchedPlaces(opts: {
       { ...filters, userLocation: opts.userLocation, status: 'approved' },
       opts.userLocation ? 'relevance' : 'rating',
       1,
-      limit
+      limit + SELF_LISTING_SLACK
     )
     return results
   }
@@ -109,7 +112,7 @@ export async function matchedPlaces(opts: {
     }
     for (const { need, s } of placeSearches) add(await find(filtersFor(s)), 'need', need)
     for (const n of needs.filter((n) => n.shop)) {
-      add(await searchProducts({ categories: n.shop }, limit), 'need', n.id, 'product')
+      add(await searchProducts({ categories: n.shop }, limit + SELF_LISTING_SLACK), 'need', n.id, 'product')
     }
     if (out.length === 0) add(await find(STARTER), 'starter')
 

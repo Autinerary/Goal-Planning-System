@@ -82,10 +82,13 @@ export default function Navigation() {
               <span className="hidden sm:inline">{t('nav.findResources')}</span>
             </button>
 
+            {/* How this page works (components/PageGuide.tsx; Riipen Labs,
+                Group 23: "opens guidance specific to the page the user is
+                currently viewing"). The full tour is one button inside it. */}
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
+              onClick={() => window.dispatchEvent(new CustomEvent('autinerary:page-guide'))}
               className={`${ITEM} text-slate-600 hover:text-slate-900 hover:bg-white/40`}
-              title="How it works"
+              title="How this page works"
             >
               <PlayCircle className="w-4 h-4" aria-hidden="true" />
               <span className="sm:hidden">Guide</span>

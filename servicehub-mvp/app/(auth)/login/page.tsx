@@ -1,26 +1,39 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, FormEvent } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { appSignInHref, APP_SIGNUP } from '@/lib/appSignIn'
 import type { AuthError } from '@supabase/supabase-js'
+
+/**
+ * ResourceHub's sign-in. One account with Autinerary (Riipen Labs, Group 22:
+ * "a second sign in at Resource Hub"; Group 24: "Secondary login wall"), so
+ * the first choice is the Autinerary sign-in, which comes back here signed in
+ * (lib/appSignIn.ts); the same email and password also work below. It used to
+ * read "ResourceHub · Sign in to your account", with "create a new account"
+ * and a demo account (which does not exist), as if it were a separate service,
+ * and it always went to the home page afterwards: now it goes back to `next`.
+ */
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [demoLoading, setDemoLoading] = useState(false)
+  const [next, setNext] = useState('/')
   const { signIn } = useAuth()
-  const router = useRouter()
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get('next') || '/'
+    setNext(raw.startsWith('/') && !raw.startsWith('//') ? raw : '/')
+  }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const { error } = await signIn(email.trim().toLowerCase(), password)
+    const { error } = await signIn(email.trim().toLowerCase(), password, next)
 
     if (error) {
       setError(getErrorMessage(error))
@@ -40,35 +53,31 @@ export default function LoginPage() {
     return error.message || 'An error occurred during sign in.'
   }
 
-  async function handleDemoLogin() {
-    setError(null)
-    setDemoLoading(true)
-    const { error } = await signIn('demo@resourcehub.com', 'DemoPassword123!')
-    if (error) {
-      setError('Demo account not available. Please seed the database first.')
-      setDemoLoading(false)
-    }
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h1 className="text-center text-3xl font-extrabold text-gray-900">
-            ResourceHub
+          <p className="text-center text-sm font-semibold text-gray-700">ResourceHub, part of Autinerary</p>
+          <h1 className="mt-2 text-center text-2xl font-bold text-gray-900">
+            Sign in with your Autinerary account
           </h1>
-          <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link
-              href="/signup"
-              className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              create a new account
-            </Link>
+          <p className="mt-2 text-center text-sm text-gray-700">
+            It is one account for Autinerary and ResourceHub. If you are signed in to Autinerary, you&apos;ll come straight back here.
           </p>
+          <a
+            href={appSignInHref(next)}
+            className="mt-6 flex w-full justify-center rounded-md bg-indigo-700 px-4 py-3 text-base font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Continue with Autinerary
+          </a>
+          <p className="mt-3 text-center text-sm text-gray-700">
+            New here?{' '}
+            <a href={APP_SIGNUP} className="font-medium text-indigo-800 underline underline-offset-2">Create your free account</a>
+          </p>
+          <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
+            <div className="relative flex justify-center text-sm"><span className="bg-gray-50 px-2 text-gray-700">or sign in here with the same email and password</span></div>
+          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
@@ -193,23 +202,6 @@ export default function LoginPage() {
           </div>
         </form>
 
-        {/* Demo Login */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-50 text-gray-500">Or</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleDemoLogin}
-          disabled={demoLoading || loading}
-          className="w-full flex justify-center py-2 px-4 border-2 border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {demoLoading ? 'Logging in...' : '🎮 Try Demo Account'}
-        </button>
       </div>
     </div>
   )

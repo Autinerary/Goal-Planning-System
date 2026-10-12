@@ -60,7 +60,7 @@ helper, labelled as AI. The report counts who used it and how many finished.
 people go (`autinerary_onboarding_draft`); it is now said:
 - **"Need a break?"** under the step counter: "Your answers are saved on this device, so you can close this page and finish later."
 - **Welcome back**, on the step they left: "Your answers were saved, so you are where you left off." It shows only when something was answered, and only on that step.
-- **"Email me a reminder tomorrow"**, once the age question is answered. One email, the next morning, sent by the daily run (`app/api/cron/reminders`) at least six hours later, only if setup is still unfinished. It says "This is the only reminder we will send". It can be cancelled ("Don't send it"). The request is kept as `profiles.preferences.setupReminder`, and the privacy page lists it.
+- **"Email me reminders to finish"** (since Groups 20 and 24, 12 October; it was one email, "Email me a reminder tomorrow"). At most three, only while setup is unfinished (skipping counts as unfinished): later the same day, after three days and after a week, between 9 AM and 8 PM where the person is, never two within three days. Each offers "Finish setting up", "Remind me in 3 days", "Remind me in a week" or "Stop these reminders"; those links work without signing in and act only after a button press. The Path's "Make your plan" card has the same choices in the app. Kept as `profiles.preferences.setupReminder` (`lib/setupReminders.ts`, `lib/reminderSchedule.ts`), and the privacy page lists it. See [groups-20-24.md](groups-20-24.md).
 
 The draft is kept on the device people used, so the email says so. Keeping
 drafts in the account, to continue on another device, would be the next step

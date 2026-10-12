@@ -110,6 +110,39 @@ export function finishSetupEmail(appUrl: string): { subject: string; html: strin
 }
 
 /**
+ * A reminder to finish setup, one of up to three (Riipen Labs, Groups 20 and
+ * 24; lib/setupReminders.ts). Group 24: "Messaging acknowledges the
+ * caregiver's load before asking for anything else", and "every reminder
+ * gives three choices: finish now, remind me in a few days, or stop
+ * reminders". Group 20: "its tone should stay positive". Sent only to someone
+ * who asked for reminders, while setup is still unfinished.
+ */
+export function setupReminderEmail(
+  appUrl: string,
+  opts: { index: number; audience?: string | null; links: { finish: string; snooze3: string; snooze7: string; stop: string }; postal: string | null },
+): { subject: string; html: string; text: string } {
+  const { index, links } = opts
+  const caring = opts.audience === 'child' || opts.audience === 'family'
+  const subject = index >= 3 ? 'A last note about your Autinerary setup'
+    : index === 2 ? 'No rush: your Autinerary setup is still here'
+    : 'Your Autinerary setup is waiting'
+  const opening = caring ? 'We know you’re carrying a lot right now.' : 'No rush.'
+  const body = 'Setting up takes about two minutes: who you’re here for, and one goal. Your answers are saved on the device you used, so you can pick up where you left off.'
+  const count = index >= 3 ? 'This is the last one we’ll send.' : `This is reminder ${index} of 3. We won’t send more than three.`
+  const why = 'You get this because you asked for reminders to finish setting up Autinerary.'
+  const foot = footer(links.stop, opts.postal, why)
+  return {
+    subject,
+    text: `Hi,\n\n${opening} ${body}\n\nFinish setting up: ${links.finish}\n\nNot now?\n- Remind me in 3 days: ${links.snooze3}\n- Remind me in a week: ${links.snooze7}\n- Stop these reminders: ${links.stop}\n\n${count}\n${foot.text}\n\n- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>
+      <p style="font-size:16px;line-height:1.5">${esc(opening)} ${esc(body)}</p>
+      <p style="margin:24px 0"><a href="${links.finish}" style="${BUTTON}">Finish setting up</a></p>
+      <p style="font-size:15px;line-height:1.6">Not now? <a href="${links.snooze3}" style="color:#3730a3">Remind me in 3 days</a> · <a href="${links.snooze7}" style="color:#3730a3">Remind me in a week</a> · <a href="${links.stop}" style="color:#3730a3">Stop these reminders</a></p>
+      <p style="${SMALL}">${esc(count)}</p>${foot.html}</div>`,
+  }
+}
+
+/**
  * The inactive-user check-in (Riipen Labs, Group 2): one question, sent only to
  * people who opted in, after two weeks away. The links work without signing
  * in: one answers the question, the other turns these emails off.

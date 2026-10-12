@@ -191,7 +191,7 @@ const SEARCH_ENTRIES: HelpEntry[] = [
   }))),
   { id: 'ai', term: 'AI', section: 'Where AI is used', text: 'AI writes your plan from your goal, the goal helper, Dream Self pictures and journal notes. Starter resources, energy levels and crisis lines are not AI. AI suggestions for your steps are linked from your next step on the Path.' },
   { id: 'tell-us', term: 'Feedback', section: 'It’s in beta', text: 'Tell us what is hard, missing or too much, at any time.' },
-  { id: 'talk-now', term: 'Crisis lines', section: 'Talk to someone now', text: '9-8-8 Suicide Crisis Helpline, 988 Lifeline, emergency 911.' },
+  { id: 'talk-now', term: 'Crisis lines', section: 'Talk to someone now', text: '9-8-8 Suicide Crisis Helpline, Kids Help Phone, 988 Lifeline, emergency 911.' },
 ]
 
 export default function HelpPage() {
@@ -348,6 +348,7 @@ export default function HelpPage() {
           </p>
           <ul className="mt-3 space-y-2 text-slate-900">
             <li><strong>9-8-8 Suicide Crisis Helpline (Canada):</strong> call or text <a href="tel:988" className={linkClass}>9-8-8</a>, any time.</li>
+            <li><strong>Kids Help Phone, for children and young people:</strong> call <a href="tel:18006686868" className={linkClass}>1-800-668-6868</a> or text CONNECT to 686868, any time.</li>
             <li><strong>988 Suicide &amp; Crisis Lifeline (US):</strong> call or text <a href="tel:988" className={linkClass}>988</a>, any time.</li>
             <li><strong>Emergency services:</strong> call <a href="tel:911" className={linkClass}>911</a> if you or someone else is in danger now.</li>
           </ul>

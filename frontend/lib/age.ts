@@ -22,7 +22,9 @@ export function isAdult(dobISO: string | null | undefined): boolean {
 }
 
 /**
- * The setup age band ('18-24' … '65+') for a date of birth, or null. Setup's
+ * The setup age band ('18-24' … '65+') for a date of birth, or null. The ids
+ * read as ranges but are only names: '25-40' holds 25 to 39 and '40-65' holds
+ * 40 to 64, so every age is in exactly one (lib/preferences.ts, AGE_RANGES). Setup's
  * Personalize step stopped asking for an age range (Riipen Labs, Group 36:
  * fewer questions); sign-up already has the date of birth, and Pattern
  * Recognition still matches on the band.

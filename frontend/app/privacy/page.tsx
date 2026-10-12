@@ -239,7 +239,7 @@ export default function PrivacyPage() {
               profiles into numerical summaries (called embeddings), stored in our database.
             </li>
             <li>
-              To send email: a welcome email when you finish setup, one reminder to finish setup if you ask for it, daily
+              To send email: a welcome email when you finish setup, up to three reminders to finish setup if you ask for them (each one lets you wait longer or stop), daily
               reminders at the time you choose if you turn them on, a weekly email with the resources you saved in
               ResourceHub and new picks for you if you turn it on, and a check-in if you opt in. Without an account: a
               Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them

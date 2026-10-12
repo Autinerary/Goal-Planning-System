@@ -1133,6 +1133,14 @@ function ratingIndex(): Promise<RatingIndex> {
 }
 
 /**
+ * Average score and number of ratings for every rated resource, from the same
+ * shared index. The map is shared between requests: read it, never change it.
+ */
+export async function ratingStats(): Promise<Map<string, { averageRating: number; ratingCount: number }>> {
+  return (await ratingIndex()).stats
+}
+
+/**
  * How many ratings scored each of these resources for a norm (its key in
  * barrier_scores, e.g. 'adhd'). Resources with none are left out.
  */

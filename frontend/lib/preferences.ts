@@ -16,6 +16,14 @@
 // Split at 25: distinguishes the student/early-career stage from the rest of
 // working-age adulthood, which is the age boundary most onboarding copy and
 // tone decisions already implicitly assume.
+//
+// The ids are stored, so they never change; they are worked out from the date
+// of birth (lib/age.ts, ageBandFromDob), where 40 is '40-65' and 65 is '65+'.
+// Their names said "25–40" and "40–65", so 40 seemed to fit two (Riipen Labs,
+// Group 22: "Age 40 fits two buckets, so the two datasets cannot be joined").
+// The names now say what the bands hold. The funnel report also counts ages
+// in the waitlist form's bands (18-24, 25-35, 36-45, 46-55, 55+), from the
+// date of birth, so the two can be compared.
 export type AgeRange = '18-24' | '25-40' | '40-65' | '65+'
 export type TechSavvy = 'not_at_all' | 'somewhat' | 'always'
 export type ViewPreference = 'plain' | 'pretty' | 'exciting' | 'fun'
@@ -191,8 +199,8 @@ const LS_KEY = 'autinerary_preferences'
 
 export const AGE_RANGES: { id: AgeRange; label: string }[] = [
   { id: '18-24', label: '18–24' },
-  { id: '25-40', label: '25–40' },
-  { id: '40-65', label: '40–65' },
+  { id: '25-40', label: '25–39' },
+  { id: '40-65', label: '40–64' },
   { id: '65+', label: '65+' },
 ]
 
