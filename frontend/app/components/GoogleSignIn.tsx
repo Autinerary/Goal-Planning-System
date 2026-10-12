@@ -35,7 +35,7 @@ export default function GoogleSignIn({ label = 'Continue with Google' }: { label
   }
 
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <button
         type="button"
         onClick={start}
@@ -53,7 +53,7 @@ export default function GoogleSignIn({ label = 'Continue with Google' }: { label
       {status === 'error' && (
         <p className="mt-2 text-sm text-red-700" role="alert">Could not reach Google. Please try again, or use your email below.</p>
       )}
-      <div className="relative mt-6">
+      <div className="relative mt-4">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
           <div className="w-full border-t border-slate-300" />
         </div>

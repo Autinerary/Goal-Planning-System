@@ -103,34 +103,32 @@ export default function SignupPage() {
     </>
   )
   return (
-    <div className="flex min-h-screen px-4 py-4 sm:py-8">
+    <div className="flex min-h-screen px-4 py-4">
       <div className="m-auto w-full max-w-md">
-        <p className="mb-3 text-center text-sm text-slate-700">
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
-          <span aria-hidden="true"> · </span>
-          Begin your personalized journey
-        </p>
+          <p className="text-sm text-slate-700">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-2">Sign in</Link>
+          </p>
+        </div>
 
-        <div className="rounded-2xl p-5 sm:p-7 surface">
-          <div className="mb-4">
+        <div className="rounded-2xl p-5 surface">
+          <div className="mb-3">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
               <UserPlus className="h-6 w-6 text-purple-600" aria-hidden="true" />
               Create your free account
             </h1>
-            <p className="mt-1 text-sm text-slate-700">
-              Already have one?{' '}
-              <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-2">Sign in</Link>
-            </p>
-            <ul className="mt-3 space-y-1 text-sm text-slate-800">
+            <ul className="mt-2 space-y-0.5 text-sm text-slate-800">
               <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />Free during the beta. No credit card.</li>
               <li className="flex gap-2">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
                 <span>
-                  We don&apos;t sell your information, show ads, or use it to train AI.{' '}
+                  We never sell your information.{' '}
                   <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>
                 </span>
               </li>
-              <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />Next: two quick questions, then your path is ready.</li>
+              <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />Next: two quick questions, then your plan.</li>
             </ul>
           </div>
 
@@ -138,7 +136,8 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <p className="text-xs text-slate-700">{required} Required: all four.</p>
-            {/* Name */}
+            {/* Name and date of birth, side by side on a wider screen */}
+            <div className="grid items-end gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="signup-name" className="mb-1 block text-sm font-medium text-slate-800">
                 Your name {required}
@@ -173,6 +172,7 @@ export default function SignupPage() {
                 required
               />
             </div>
+            </div>
 
             {/* Under-18 explainer */}
             {underAge && (
@@ -203,8 +203,8 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* Password, and the same again, side by side on a wider screen */}
-            <div className="grid gap-3 sm:grid-cols-2">
+            {/* Password, and the same again, side by side */}
+            <div className="grid grid-cols-2 items-end gap-3">
               <div>
                 <label htmlFor="signup-password" className="mb-1 block text-sm font-medium text-slate-800">
                   Password {required}
