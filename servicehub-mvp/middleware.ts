@@ -2,6 +2,10 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { A11Y_COOKIE, cleanA11y } from '@/lib/a11y'
 
+// Set when a signed-out visitor is sent to Goal Planning's sign-in, so a
+// second trip within the minute goes to ResourceHub's own sign-in instead.
+const SENT_TO_APP = 'autinerary_sent_to_app'
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -65,6 +69,7 @@ export async function middleware(request: NextRequest) {
         const redirect = NextResponse.redirect(clean)
         for (const c of jar) redirect.cookies.set({ name: c.name, value: c.value, ...c.options })
         if (a11yCookie) redirect.cookies.set(a11yCookie)
+        redirect.cookies.delete(SENT_TO_APP)
         return redirect
       }
     } catch (e) {
@@ -193,11 +198,23 @@ export async function middleware(request: NextRequest) {
 
   // If user is not authenticated and trying to access a protected route, redirect to Goal Planning login
   if (!user) {
+    // Sent there less than a minute ago and still signed out here: the
+    // hand-off isn't working (no session left in the app, say), and going
+    // again would loop. ResourceHub's own sign-in instead.
+    if (request.cookies.get(SENT_TO_APP)) {
+      const login = request.nextUrl.clone()
+      login.pathname = '/login'
+      login.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`
+      const toLogin = NextResponse.redirect(login)
+      toLogin.cookies.delete(SENT_TO_APP)
+      return toLogin
+    }
     const goalPlanningUrl = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
     const returnUrl = encodeURIComponent(request.nextUrl.href)
     const redirectUrl = `${goalPlanningUrl}/login?returnTo=${returnUrl}`
-    
-    return NextResponse.redirect(redirectUrl)
+    const toApp = NextResponse.redirect(redirectUrl)
+    toApp.cookies.set({ name: SENT_TO_APP, value: '1', path: '/', maxAge: 60, sameSite: 'lax' })
+    return toApp
   }
 
   return response

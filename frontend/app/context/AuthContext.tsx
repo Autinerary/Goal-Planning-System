@@ -137,6 +137,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setSupabaseUser(session.user)
           setUser(profileFromSupabase(session.user))
+        } else {
+          // No session (signed out elsewhere, or it ran out): drop the copy
+          // this page started from. Kept, it made the app act signed in:
+          // sign-in sent a ResourceHub visitor straight back to ResourceHub
+          // with no session, which sent them back here, round and round
+          // (11 October 2026). The sign-in form shows instead.
+          setSupabaseUser(null)
+          setUser(null)
+          try { localStorage.removeItem('app_user') } catch {}
         }
       } catch (err: any) {
         if (err?.name !== 'AbortError') console.error('Auth init error:', err)
