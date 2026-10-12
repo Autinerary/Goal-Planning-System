@@ -15,7 +15,8 @@ import { writeFileSync } from 'fs'
 
 const APP = process.env.APP || 'https://app.autinerary.ca'
 const HUB = process.env.HUB || 'https://servicehub-six.vercel.app'
-const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+// Chrome, with its network service in-process: see chrome.mjs.
+import { chromeOptions } from './chrome.mjs'
 const EMAIL = process.env.QA_EMAIL, PASSWORD = process.env.QA_PASSWORD
 if (!EMAIL || !PASSWORD) {
   console.error('Set QA_EMAIL and QA_PASSWORD (a QA account) to check signed-in pages.')
@@ -116,7 +117,7 @@ async function signIn(browser, base, loginPath) {
   return at
 }
 
-const outBrowser = await puppeteer.launch({ executablePath: CHROME, headless: true })
+const outBrowser = await puppeteer.launch(chromeOptions())
 const setup = async (b) => { const p = await b.newPage(); await p.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'globalPrivacyControl', { get: () => true }); try { localStorage.setItem('autinerary_demo_seen_v1', '1'); localStorage.setItem('autinerary_install_dismissed', '1'); localStorage.setItem('autinerary_feedback_completed_v1', 'true') } catch {} }); await p.close() }
 await setup(outBrowser)
 // A resource page to include.
@@ -126,7 +127,7 @@ await visit(outBrowser, APP, APP_SIGNED_OUT, false, 'app')
 await visit(outBrowser, HUB, [...HUB_SIGNED_OUT, ...(resId ? [`/resources/${resId}`] : [])], false, 'hub')
 await outBrowser.close()
 
-const inBrowser = await puppeteer.launch({ executablePath: CHROME, headless: true })
+const inBrowser = await puppeteer.launch(chromeOptions())
 // Skip first-run overlays, which would cover the pages being checked.
 inBrowser.on('targetcreated', async (t) => { try { const p = await t.page(); if (p) await p.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'globalPrivacyControl', { get: () => true }); try { localStorage.setItem('autinerary_demo_seen_v1', '1'); localStorage.setItem('autinerary_install_dismissed', '1'); localStorage.setItem('autinerary_feedback_completed_v1', 'true') } catch {} }) } catch {} })
 console.log('app sign-in landed on', await signIn(inBrowser, APP, '/login'))

@@ -23,7 +23,8 @@ import { createRequire } from 'module'
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const APP = (process.env.APP || 'https://app.autinerary.ca').replace(/\/$/, '')
 const HUB = (process.env.HUB || 'https://servicehub-six.vercel.app').replace(/\/$/, '')
-const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+// Chrome, with its network service in-process: see chrome.mjs.
+import { chromeOptions } from './chrome.mjs'
 const EMAIL = process.env.QA_EMAIL, PASSWORD = process.env.QA_PASSWORD
 const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
@@ -87,7 +88,7 @@ async function audit(context, url, viewport) {
   }
 }
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: true })
+const browser = await puppeteer.launch(chromeOptions())
 // Signed-out pages in a fresh context first, so no sign-in leaks into them.
 const runs = [{ context: await browser.createBrowserContext(), pages: SIGNED_OUT }]
 if (EMAIL && PASSWORD) {
