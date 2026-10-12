@@ -1085,6 +1085,27 @@ def summarize_generation(rows: Iterable[dict], user_ids: set) -> Dict:
     }
 
 
+def summarize_skips(users: Iterable[dict]) -> Dict[str, int]:
+    """Setup skipped for now (Riipen Labs, Group 33: "Add a clear 'Skip
+    Onboarding' option"): who skipped, and how many of them made a plan
+    later. From the accounts' metadata, set by setup's "Skip for now". Pure."""
+    skipped = [u for u in users if (u.get("user_metadata") or {}).get("setup_skipped") is True]
+    later = sum(1 for u in skipped if (u.get("user_metadata") or {}).get("has_completed_onboarding") is True)
+    return {"skipped": len(skipped), "made_a_plan": later}
+
+
+def render_skips(s: Dict[str, int]) -> str:
+    out = ["== Setup skipped for now (Group 33: \"Skip Onboarding\")"]
+    if s["skipped"] < MIN_CELL:
+        out.append(f"  skipped setup                      {SMALL if s['skipped'] else 0}")
+        return "\n".join(out)
+    out += [
+        f"  skipped setup                      {s['skipped']}",
+        f"  made a plan later                  {s['made_a_plan']} ({pct(s['made_a_plan'], s['skipped'])})",
+    ]
+    return "\n".join(out)
+
+
 def render_generation(g: Dict) -> str:
     out = ["== Making the path (Group 9: setup \"freezing\")"]
     if g["people"] < MIN_CELL:
@@ -1282,6 +1303,18 @@ def main() -> int:
         print("== Email without an account, and shared stories: not available yet (apply STEP 52).")
     print()
     print(render_resourcehub(summarize_resourcehub(rh_events)))
+    print()
+    try:
+        users, page = [], 1
+        while True:
+            batch = sb.auth.admin.list_users(page=page, per_page=1000)
+            users += [{"user_metadata": getattr(u, "user_metadata", None) or {}} for u in batch]
+            if len(batch) < 1000:
+                break
+            page += 1
+        print(render_skips(summarize_skips(users)))
+    except Exception:
+        print("== Setup skipped for now: the accounts could not be read.")
     print()
     try:
         generations = fetch_all(sb, "generation_jobs", "user_id, status, created_at, finished_at, error")

@@ -33,6 +33,8 @@ from scripts.onboarding_funnel import (  # noqa: E402
     _ts,
     render_generation,
     summarize_generation,
+    render_skips,
+    summarize_skips,
     is_resourcehub,
     render_resourcehub,
     summarize_resourcehub,
@@ -875,6 +877,25 @@ class Group11FinishTests(unittest.TestCase):
         self.assertIn("confirmed 6, not yet confirmed <5", text)
         self.assertIn("weekly email 6; lists sent 6", text)
         self.assertIn("submitted <5", text)
+
+
+
+class SkipSetupTests(unittest.TestCase):
+    """Group 33's "Skip Onboarding": who skipped, and who made a plan later."""
+
+    def test_counts_skips_and_plans_made_later(self):
+        users = ([{"user_metadata": {"setup_skipped": True}}] * 4
+                 + [{"user_metadata": {"setup_skipped": True, "has_completed_onboarding": True}}] * 2
+                 + [{"user_metadata": {"has_completed_onboarding": True}}, {"user_metadata": {}}, {}])
+        s = summarize_skips(users)
+        self.assertEqual(s, {"skipped": 6, "made_a_plan": 2})
+        text = render_skips(s)
+        self.assertIn("skipped setup                      6", text)
+        self.assertIn("made a plan later                  2 (33%)", text)
+
+    def test_small_numbers_are_hidden(self):
+        self.assertIn("skipped setup                      <5", render_skips(summarize_skips([{"user_metadata": {"setup_skipped": True}}] * 3)))
+        self.assertIn("skipped setup                      0", render_skips(summarize_skips([])))
 
 
 if __name__ == "__main__":
