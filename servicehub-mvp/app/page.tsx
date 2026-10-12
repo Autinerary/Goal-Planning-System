@@ -74,8 +74,10 @@ async function RecommendedSection() {
         // Popular, not matched to anyone: no match score or confidence.
         return (
           <section className="mb-12" aria-labelledby="recommended-heading">
+            {/* Not recommended to anyone: popular (Riipen Labs, Groups 22 and 24). */}
             <RecommendationResult
               resources={popularResources}
+              title="Popular in ResourceHub"
               subtitle="Popular in the community. Sign in to see places matched to you."
               explanations={['Showing popular community resources. Sign in for personalized recommendations.']}
               confidence={0}
@@ -104,7 +106,7 @@ async function RecommendedSection() {
             <div className="flex items-center gap-3 mb-2">
               <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
               <h2 id="recommended-heading" className="text-2xl font-bold text-gray-900">
-                Recommended by AI Agent
+                Places matched to you
               </h2>
             </div>
             <p className="text-sm text-gray-600">
@@ -296,7 +298,7 @@ async function RecommendedSection() {
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-6 h-6 text-red-600" aria-hidden="true" />
             <h2 id="recommended-heading" className="text-2xl font-bold text-gray-900">
-              Recommended by AI Agent
+              Places to explore
             </h2>
           </div>
           <p className="text-sm text-red-600">
@@ -825,8 +827,10 @@ export default async function Home() {
             fallback={
               <section className="mb-12" aria-labelledby="recommended-heading">
                 <div className="flex items-center mb-6">
+                  {/* Neutral while loading: what follows may be popular,
+                      highly rated or matched (Riipen Labs, Groups 22 and 24). */}
                   <h2 id="recommended-heading" className="text-2xl font-bold text-gray-900">
-                    Recommended by AI Agent
+                    Places to explore
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

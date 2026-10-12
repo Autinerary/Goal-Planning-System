@@ -857,7 +857,9 @@ export default function OnboardingPage() {
       const untouched = prev.barrierTypes.length === 0
       const barrierConnections: Record<string, string[]> = untouched ? (conn ? { [conn]: [] } : {}) : prev.barrierConnections
       const role = untouched ? (conn === 'self' ? 'self_advocate' : conn || '') : prev.role
-      return { ...prev, audience: id, barrierConnections, role }
+      // A parent's needs (LOOKING_FOR_CARE) go when the answer is no longer one they are shown for.
+      const lookingFor = KIT_AUDIENCES.has(id) ? prev.lookingFor : prev.lookingFor.filter((k) => !LOOKING_FOR_CARE.some((c) => c.id === k))
+      return { ...prev, audience: id, barrierConnections, role, lookingFor }
     })
   }
 
