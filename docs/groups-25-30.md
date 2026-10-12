@@ -276,6 +276,19 @@ renamed.
   profile); Settings; the tour's tasks, done, skipped and counted. One
   throwaway account, deleted at the end. `races_default.mjs`: the default
   character on the Track View.
+- On production, 12 October after the deploy (10cd011): `g25.mjs` 69 of 71
+  on the first run, both misses the sign-up button with Google sign-in on
+  (fixed in 10cd011; `signup_sizes.mjs` then 677 of 720, 701 of 768 and 778
+  of 844, and the signed-out checks 15 of 15); a real plan made by the
+  production backend kept the norm, the check-in choice and the spirit
+  animal saved before it. The Groups 31 to 33 suites (43 and 34 checks),
+  `races_default.mjs`, the social features (19) and the accessibility
+  checker (66 page views, nothing serious) all passed. The first
+  production run hit Vercel's Security Checkpoint, which challenges
+  automated browsers after a burst of requests; it lifted within minutes,
+  and the run was repeated with pauses.
+- The first CI run (`checks.yml`) passed all three jobs on both copies of
+  the repository.
 - Unit tests: `lib/profileItems.test.mjs`, `lib/reminderSchedule.test.mjs`;
   backend `tests/test_persist_barriers.py`, `tests/test_persist_preferences.py`,
   `tests/test_pattern_reindex.py` and `tests/test_onboarding_funnel.py`
