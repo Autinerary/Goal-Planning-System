@@ -103,5 +103,8 @@ were done first.
   offering a plan, the top bar, Races and Hare World without a plan, the
   choice saved, Make my plan back to setup), deleted afterwards with the
   app's own account deletion.
-- Every earlier browser test, rerun on the same build, and the accessibility
-  checker on every page of both apps, signed in.
+- Every earlier browser test, rerun on the same build (56, 75, 18, 21, 10,
+  6, 42, 27 and 11 checks; two needed updating: Group 34's menus are now
+  All places, and the simple Path has no quote), and the accessibility
+  checker on every page of both apps, signed in: no serious or critical
+  problems.
