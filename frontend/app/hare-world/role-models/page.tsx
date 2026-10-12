@@ -110,14 +110,14 @@ export default function RoleModelGalleriaPage() {
                     <p className="font-bold text-slate-900">{rm.name}</p>
                     <div className="flex flex-wrap gap-1">
                       {rm.categories.slice(0, 3).map((c) => (
-                        <span key={c} className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">{c}</span>
+                        <span key={c} className="text-[0.625rem] px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600">{c}</span>
                       ))}
                     </div>
                   </div>
                 </div>
                 <p className="text-sm text-slate-600 line-clamp-4">{rm.bio}</p>
                 {rm.source_url && (
-                  <a href={rm.source_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-purple-500 hover:underline mt-1 inline-block">
+                  <a href={rm.source_url} target="_blank" rel="noopener noreferrer" className="text-[0.6875rem] text-purple-500 hover:underline mt-1 inline-block">
                     Source →
                   </a>
                 )}

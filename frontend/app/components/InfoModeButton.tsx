@@ -20,7 +20,8 @@ export default function InfoModeButton() {
       data-info-exempt="true"
       aria-pressed={isOn}
       title={`Help: ${INFO_MODE_META[mode].label}. ${INFO_MODE_META[mode].description}`}
-      className={`flex items-center gap-1.5 rounded-lg border-2 px-2.5 py-1.5 text-sm font-medium transition-all ${
+      // The top bar's look: the name under the icon on a phone (Navigation.tsx).
+      className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 rounded-lg border-2 px-2 sm:px-2.5 py-0.5 sm:py-1.5 text-[0.6875rem] sm:text-sm leading-tight font-medium transition-all ${
         isOn
           ? 'border-cyan-400 bg-cyan-50 text-cyan-800'
           : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'

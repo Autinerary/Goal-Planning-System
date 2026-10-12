@@ -19,7 +19,7 @@ export default function StreakBadge({ className = '' }: { className?: string }) 
 
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 ${className}`}
+      className={`inline-flex items-center gap-1 text-[0.6875rem] font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-600 border border-orange-200 ${className}`}
       title={
         (activeToday
           ? `On a ${current} day streak. Counted today!`

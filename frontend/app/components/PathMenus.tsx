@@ -1,21 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 import { goHubHref } from '@/lib/serviceHub'
 
 /**
- * The menus across the top of the Path (Riipen Labs, Group 34, slide 22:
- * "Stuck? > People > Fun > Mentors > Friends > Tools >", and slide 17:
- * "being able to expand the tabs on the main page"). Each opens a short list
- * of places, so everything is two taps from the Path. Only parts of the app
- * that work are listed; the rest are named under "Not working yet" on /help.
- *
- * Disclosure buttons rather than an ARIA menu: Tab moves through the links,
- * Escape closes and returns to the button, and only one list is open at a
- * time. The row wraps instead of scrolling sideways, so a list is never
- * clipped on a phone.
+ * Every place on the Path, grouped as Riipen Labs Group 34's mockup grouped
+ * them (slide 22: "Stuck? > People > Fun > Mentors > Friends > Tools >"), so
+ * everything is two taps from the Path. They were six dropdown menus across
+ * the top; Groups 31 and 32 found that row and Quick Links were two ways to
+ * the same places ("competing pathways", "too many dropdowns"), so they are
+ * now one list under Quick Links ("All places"), one level deep. Only parts
+ * of the app that work are listed; the rest are under "Not working yet" on
+ * /help.
  */
 
 export interface PathMenuItem {
@@ -101,87 +97,26 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   },
 ]
 
-export default function PathMenus() {
-  const [open, setOpen] = useState<string | null>(null)
-  // A list that would run off the right edge (a button near it, on a phone)
-  // opens leftwards instead, so the page never scrolls sideways.
-  const [alignRight, setAlignRight] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const buttons = useRef<Record<string, HTMLButtonElement | null>>({})
-
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: MouseEvent | TouchEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(null)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      const id = open
-      setOpen(null)
-      buttons.current[id]?.focus()
-    }
-    // Leaving the row with Tab closes it too.
-    const onFocus = (e: FocusEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(null)
-    }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('touchstart', onDown)
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('focusin', onFocus)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('touchstart', onDown)
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('focusin', onFocus)
-    }
-  }, [open])
-
+export default function AllPlaces({ id }: { id: string }) {
   return (
-    <nav aria-label="More places" className="mb-6">
-      <div ref={rootRef} className="flex flex-wrap items-center gap-2">
-        {PATH_MENUS.map((menu) => {
-          const isOpen = open === menu.id
-          return (
-            <div key={menu.id} className="relative">
-              <button
-                ref={(el) => { buttons.current[menu.id] = el }}
-                type="button"
-                aria-expanded={isOpen}
-                aria-controls={`path-menu-${menu.id}`}
-                data-info={`Opens a short list: ${menu.info}.`}
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  setAlignRight(rect.left + 240 > window.innerWidth - 16)
-                  setOpen(isOpen ? null : menu.id)
-                }}
-                className={`inline-flex min-h-[40px] items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
-                  isOpen ? 'border-indigo-700 bg-indigo-700 text-white' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400 hover:bg-indigo-50'
-                }`}
-              >
-                {menu.label}
-                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-              <ul
-                id={`path-menu-${menu.id}`}
-                hidden={!isOpen}
-                className={`absolute ${isOpen && alignRight ? 'right-0' : 'left-0'} top-full z-40 mt-1 w-60 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl`}
-              >
-                {menu.items.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.hub ? goHubHref(item.href) : item.href}
-                      onClick={() => setOpen(null)}
-                      className="block rounded-lg px-3 py-2.5 text-sm text-slate-800 hover:bg-indigo-50 hover:text-indigo-900"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
-      </div>
-    </nav>
+    <div id={id} className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {PATH_MENUS.map((group) => (
+        <section key={group.id} aria-labelledby={`${id}-${group.id}`}>
+          <h3 id={`${id}-${group.id}`} className="text-sm font-bold text-slate-900">{group.label}</h3>
+          <p className="text-xs text-slate-700">{group.info}</p>
+          <ul className="mt-1">
+            {group.items.map((item) => (
+              <li key={item.label}>
+                {item.hub ? (
+                  <a href={goHubHref(item.href)} className="flex min-h-[2.75rem] items-center text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">{item.label}</a>
+                ) : (
+                  <Link href={item.href} className="flex min-h-[2.75rem] items-center text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">{item.label}</Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
   )
 }

@@ -180,7 +180,7 @@ export default function IdealSelfPage() {
               <div className="space-y-3">
                 {influences.roleModels.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Role Models</div>
+                    <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500 mb-1">Role Models</div>
                     <div className="flex flex-wrap gap-1.5">
                       {influences.roleModels.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{n}</span>)}
                     </div>
@@ -188,7 +188,7 @@ export default function IdealSelfPage() {
                 )}
                 {influences.mentors.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Mentors</div>
+                    <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500 mb-1">Mentors</div>
                     <div className="flex flex-wrap gap-1.5">
                       {influences.mentors.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">{n}</span>)}
                     </div>
@@ -196,7 +196,7 @@ export default function IdealSelfPage() {
                 )}
                 {influences.friends.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Friends &amp; Family</div>
+                    <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500 mb-1">Friends &amp; Family</div>
                     <div className="flex flex-wrap gap-1.5">
                       {influences.friends.map((n, i) => <span key={`${i}-${n}`} className="text-xs px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">{n}</span>)}
                     </div>
@@ -239,9 +239,9 @@ export default function IdealSelfPage() {
             )}
             {barriers.length > 0 && (
               <div className="mt-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Navigating</div>
+                <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-500 mb-1">Navigating</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {barriers.slice(0, 6).map(b => <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{b}</span>)}
+                  {barriers.slice(0, 6).map(b => <span key={b} className="text-[0.625rem] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{b}</span>)}
                 </div>
               </div>
             )}
@@ -271,13 +271,13 @@ export default function IdealSelfPage() {
               ))}
             </div>
             {!isSignedIn ? (
-              <div className="mt-3 text-[11px] text-slate-600">Sign in to see your live stats.</div>
+              <div className="mt-3 text-[0.6875rem] text-slate-600">Sign in to see your live stats.</div>
             ) : statsFailed ? (
-              <div className="mt-3 text-[11px] text-slate-600">Couldn&apos;t load your stats just now.</div>
+              <div className="mt-3 text-[0.6875rem] text-slate-600">Couldn&apos;t load your stats just now.</div>
             ) : !stats ? (
-              <div className="mt-3 text-[11px] text-slate-600">Loading your stats…</div>
+              <div className="mt-3 text-[0.6875rem] text-slate-600">Loading your stats…</div>
             ) : stats.every((s) => s.value === null) ? (
-              <div className="mt-3 text-[11px] text-slate-600">
+              <div className="mt-3 text-[0.6875rem] text-slate-600">
                 No stats yet. Check in with your mood or complete a milestone to start them off.
               </div>
             ) : null}

@@ -70,7 +70,7 @@ export default function SignupPage() {
     
     if (result.success) {
       track('signup_complete')
-      router.push('/onboarding')
+      router.replace('/onboarding')
     } else {
       setError(result.error || 'An account with this email already exists.')
     }

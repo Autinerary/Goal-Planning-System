@@ -870,9 +870,9 @@ function CalendarContent() {
 
         {/* View Toggle + Compare + Google Cal */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
-          <div className="flex gap-2">
+          <div className="flex gap-2" data-tour="calendar-view">
             <button
-              onClick={() => router.push(`/calendar?view=list&comparison=${comparisonType}`)}
+              onClick={() => router.replace(`/calendar?view=list&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'list' 
                   ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
@@ -882,7 +882,7 @@ function CalendarContent() {
               📋 List View
             </button>
             <button
-              onClick={() => router.push(`/calendar?view=timeblock&comparison=${comparisonType}`)}
+              onClick={() => router.replace(`/calendar?view=timeblock&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'timeblock' 
                   ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
@@ -894,7 +894,7 @@ function CalendarContent() {
             {/* Real-date views. The two above run on the weekly template the
                 agents generate; these run on actual dates. */}
             <button
-              onClick={() => router.push(`/calendar?view=week&comparison=${comparisonType}`)}
+              onClick={() => router.replace(`/calendar?view=week&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'week'
                   ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
@@ -904,7 +904,7 @@ function CalendarContent() {
               🗓️ Week
             </button>
             <button
-              onClick={() => router.push(`/calendar?view=month&comparison=${comparisonType}`)}
+              onClick={() => router.replace(`/calendar?view=month&comparison=${comparisonType}`)}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                 viewType === 'month'
                   ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
@@ -932,7 +932,7 @@ function CalendarContent() {
           {showComparison && (
             <div className="flex gap-2">
               <button
-                onClick={() => router.push(`/calendar?view=${viewType}&comparison=day`)}
+                onClick={() => router.replace(`/calendar?view=${viewType}&comparison=day`)}
                 className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                   comparisonType === 'day'
                     ? 'bg-purple-100 border border-purple-300 text-purple-800'
@@ -942,7 +942,7 @@ function CalendarContent() {
                 📅 Day
               </button>
               <button
-                onClick={() => router.push(`/calendar?view=${viewType}&comparison=week`)}
+                onClick={() => router.replace(`/calendar?view=${viewType}&comparison=week`)}
                 className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
                   comparisonType === 'week'
                     ? 'bg-purple-100 border border-purple-300 text-purple-800'
@@ -986,7 +986,7 @@ function CalendarContent() {
         </div>
 
         {/* Scenario Selector */}
-        <div className="flex flex-wrap gap-3 mb-8">
+        <div className="flex flex-wrap gap-3 mb-8" data-tour="calendar-energy">
           <button
             onClick={() => {
               chooseScenario('worst')
@@ -1123,8 +1123,8 @@ function CalendarContent() {
               Week/Month show the full pattern. */}
           {!hasAgentSchedule && addedTasks.length === 0 && (
             <div className="mb-4 text-center py-8 px-4 border-2 border-dashed border-slate-200 rounded-xl">
-              <p className="text-sm text-slate-500 mb-3">No activities yet. Add a task, import a calendar, or generate a path.</p>
-              <Link href="/onboarding" className="text-sm font-semibold text-cyan-600 hover:underline">Complete onboarding →</Link>
+              <p className="text-sm text-slate-700 mb-3">No activities yet. Add a task, import a calendar, or make your plan: two questions, about two minutes.</p>
+              <Link href="/onboarding" className="text-sm font-semibold text-cyan-800 underline underline-offset-2">Make my plan →</Link>
             </div>
           )}
           <div>
@@ -1178,14 +1178,14 @@ function CalendarContent() {
                     tasks={datedTasks}
                     month={anchorDate}
                     renderDayIdentity={renderDayIdentity}
-                    onSelectDay={(d) => { setAnchorDate(d); router.push(`/calendar?view=week&comparison=${comparisonType}`) }}
+                    onSelectDay={(d) => { setAnchorDate(d); router.replace(`/calendar?view=week&comparison=${comparisonType}`) }}
                     onSelectTask={(task) =>
                       router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
                     }
                   />
                 )}
 
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[0.6875rem] text-slate-400">
                   Purple blocks repeat every week. That&apos;s the plan your agents built.
                   Blue blocks are on a specific date. Drag any block to move it.
                 </p>

@@ -267,7 +267,7 @@ export default function MilestoneDetailView() {
                         <td className="py-2">
                           <div className="flex flex-wrap gap-1">
                             {(tool.type === 'service' ? ['Access', 'Support'] : tool.type === 'product' ? ['Focus', 'Routine'] : tool.type === 'commentary' ? ['Knowledge', 'Confidence'] : ['Community', 'Connection']).map(b => (
-                              <span key={b} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">{b}</span>
+                              <span key={b} className="text-[0.625rem] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">{b}</span>
                             ))}
                           </div>
                         </td>

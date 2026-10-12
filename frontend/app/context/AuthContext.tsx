@@ -13,6 +13,10 @@ interface User {
   email: string
   name?: string
   hasCompletedOnboarding: boolean
+  /** Chose "Skip for now" in setup (Riipen Labs, Group 33: "Add a clear 'Skip
+   *  Onboarding' option"): they can use the app without a plan, and the Path
+   *  offers to make one. Saved on the account, like hasCompletedOnboarding. */
+  skippedSetup?: boolean
   /** No date of birth yet (a new Google account, or one made before the 18+
    *  rule) and setup not finished: asked at /auth/age first. */
   needsDateOfBirth?: boolean
@@ -26,6 +30,8 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string, dateOfBirth?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   completeOnboarding: (pathId: string) => Promise<void>
+  /** Leave setup for now and go to the Path, without a plan. */
+  skipSetup: () => Promise<void>
   fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response> // 👈 Add this line
 }
 
@@ -56,6 +62,7 @@ function profileFromSupabase(su: SupabaseUser): User {
     email: su.email || '',
     name: su.user_metadata?.full_name || su.user_metadata?.name || undefined,
     hasCompletedOnboarding,
+    skippedSetup: !hasCompletedOnboarding && su.user_metadata?.setup_skipped === true,
     needsDateOfBirth:
       !hasCompletedOnboarding &&
       !su.app_metadata?.date_of_birth &&
@@ -188,18 +195,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isPublic = publicRoutes.includes(pathname)
     const isOnboarding = pathname === '/onboarding'
 
+    // replace, not push: a redirect that adds itself to the history made Back
+    // land on the page that redirects again, a loop (Riipen Labs, Groups 31
+    // and 32: "broken back-button loops").
     if (!user && !isPublic && !isOnboarding) {
-      router.push('/login')
+      router.replace('/login')
     } else if (user && user.needsDateOfBirth && !isPublic) {
-      if (pathname !== AGE_ROUTE) router.push(AGE_ROUTE)
-    } else if (user && !user.hasCompletedOnboarding && !isOnboarding && !isPublic) {
-      router.push('/onboarding')
-    } else if (user && user.hasCompletedOnboarding && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
+      if (pathname !== AGE_ROUTE) router.replace(AGE_ROUTE)
+    } else if (user && !user.hasCompletedOnboarding && !user.skippedSetup && !isOnboarding && !isPublic) {
+      router.replace('/onboarding')
+    } else if (user && (user.hasCompletedOnboarding || user.skippedSetup) && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
       // Sent here by ResourceHub to sign in, but already signed in: go back
       // there through the hand-off rather than to the Path.
       const back = pathname === '/login' ? hubReturnHref(new URLSearchParams(window.location.search).get('returnTo')) : null
       if (back) window.location.replace(back)
-      else router.push('/path')
+      else router.replace('/path')
     }
   }, [user, isLoading, pathname, router])
 
@@ -264,6 +274,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/')
   }, [supabase, router])
 
+  const skipSetup = useCallback(async () => {
+    if (!user || !supabase) return
+    const { data, error } = await supabase.auth.updateUser({ data: { setup_skipped: true } })
+    if (error || !data?.user) throw new Error(error?.message || 'Could not skip setup')
+    setSupabaseUser(data.user)
+    const next = profileFromSupabase(data.user)
+    setUser(next)
+    // The copy a page load starts from, so the next page doesn't send them
+    // back to setup before the session is read.
+    try { localStorage.setItem('app_user', JSON.stringify(next)) } catch {}
+    router.replace('/path')
+  }, [user, supabase, router])
+
   const completeOnboarding = useCallback(async (pathId: string) => {
     if (!user) return
 
@@ -287,7 +310,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, supabase])
 
   return (
-    <AuthContext.Provider value={{ user, supabaseUser, isLoading, login, signup, logout, completeOnboarding, fetchWithAuth }}>
+    <AuthContext.Provider value={{ user, supabaseUser, isLoading, login, signup, logout, completeOnboarding, skipSetup, fetchWithAuth }}>
       {children}
     </AuthContext.Provider>
   )

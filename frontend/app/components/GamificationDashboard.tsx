@@ -115,7 +115,7 @@ export default function GamificationDashboard({
           <span
             key={i}
             aria-hidden
-            className="absolute text-[30px] leading-none text-black pointer-events-none select-none"
+            className="absolute text-[1.875rem] leading-none text-black pointer-events-none select-none"
             style={{ left: s.x, top: s.y }}
           >
             ✨
@@ -141,7 +141,7 @@ function SectorBanner({
 }) {
   return (
     <h2
-      className={`absolute flex h-[84px] items-center justify-center rounded-[42px] border-4 border-white text-[30px] font-bold text-white whitespace-pre shadow-[0px_4px_8px_0px_rgba(0,0,0,0.35)] ${SECTOR_STYLES[sector].fill}`}
+      className={`absolute flex h-[84px] items-center justify-center rounded-[42px] border-4 border-white text-[1.875rem] font-bold text-white whitespace-pre shadow-[0px_4px_8px_0px_rgba(0,0,0,0.35)] ${SECTOR_STYLES[sector].fill}`}
       style={{ left, top, width }}
     >
       {label}
@@ -206,7 +206,7 @@ function LevelNode({
             height={12}
             className="absolute left-[49px] top-[58px] max-w-none pointer-events-none"
           />
-          <span className="absolute left-[5px] top-[88px] flex h-[30px] w-[100px] items-center justify-center text-[24px] font-bold text-white">
+          <span className="absolute left-[5px] top-[88px] flex h-[30px] w-[100px] items-center justify-center text-[1.5rem] font-bold text-white">
             {level.level}
           </span>
         </span>

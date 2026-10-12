@@ -132,7 +132,7 @@ export default function WeekTimeGrid({
               isToday(d) ? 'bg-cyan-50' : ''
             }`}
           >
-            <div className="text-[11px] font-semibold text-slate-500 uppercase">{format(d, 'EEE')}</div>
+            <div className="text-[0.6875rem] font-semibold text-slate-500 uppercase">{format(d, 'EEE')}</div>
             <div className={`text-lg font-bold ${isToday(d) ? 'text-cyan-700' : 'text-slate-800'}`}>
               {format(d, 'd')}
             </div>
@@ -148,7 +148,7 @@ export default function WeekTimeGrid({
             {hours.map((h) => (
               <div
                 key={h}
-                className="text-[10px] text-slate-400 text-right pr-2 -translate-y-1.5"
+                className="text-[0.625rem] text-slate-400 text-right pr-2 -translate-y-1.5"
                 style={{ height: 60 * PX_PER_MINUTE }}
               >
                 {format(new Date(2000, 0, 1, h), 'h a')}
@@ -221,11 +221,11 @@ export default function WeekTimeGrid({
                       cursor: onMove ? 'grab' : 'pointer',
                     }}
                   >
-                    <span className="block text-[10px] font-bold leading-tight line-clamp-2">
+                    <span className="block text-[0.625rem] font-bold leading-tight line-clamp-2">
                       {occ.task.name}
                     </span>
                     {height > 34 && (
-                      <span className="block text-[9px] opacity-70">
+                      <span className="block text-[0.5625rem] opacity-70">
                         {minutesToTime(effStart)}{occ.recurring ? ' · weekly' : ''}
                       </span>
                     )}

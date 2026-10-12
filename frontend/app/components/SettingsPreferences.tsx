@@ -81,7 +81,7 @@ export default function SettingsPreferences() {
                   {l.label}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-600 mt-0.5">
+              <div className="text-[0.6875rem] text-slate-600 mt-0.5">
                 {l.english}
                 {!l.translated && ' · not translated yet'}
               </div>

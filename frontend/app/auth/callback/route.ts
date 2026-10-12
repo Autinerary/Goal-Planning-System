@@ -59,7 +59,9 @@ export async function GET(request: Request) {
       if (!onboarded && !u.app_metadata?.date_of_birth && !u.user_metadata?.date_of_birth) {
         return NextResponse.redirect(`${origin}/auth/age`)
       }
-      return NextResponse.redirect(`${origin}${onboarded ? next || '/path' : '/onboarding'}`)
+      // Setup skipped for now (Riipen Labs, Group 33) goes to the app too.
+      const inApp = onboarded || u.user_metadata?.setup_skipped === true
+      return NextResponse.redirect(`${origin}${inApp ? next || '/path' : '/onboarding'}`)
     }
   }
 

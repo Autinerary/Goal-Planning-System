@@ -74,14 +74,14 @@ export default function NotificationBell() {
           setOpen((o) => !o)
           if (!open && unread > 0) markAllRead()
         }}
-        className="relative flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
+        className="relative flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-lg px-1.5 sm:px-3 py-1 sm:py-2 text-[0.6875rem] sm:text-sm leading-tight text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
         title="Notifications"
-        aria-label="Notifications"
       >
-        <Bell className={`w-4 h-4 anim-bell${unread > 0 ? ' anim-bell--alert' : ''}`} />
+        <Bell className={`w-4 h-4 anim-bell${unread > 0 ? ' anim-bell--alert' : ''}`} aria-hidden="true" />
+        <span>Alerts</span>
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-700 text-white text-[10px] font-bold flex items-center justify-center">
-            {unread > 9 ? '9+' : unread}
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-700 text-white text-[0.625rem] font-bold flex items-center justify-center">
+            {unread > 9 ? '9+' : unread}<span className="sr-only"> unread</span>
           </span>
         )}
       </button>
@@ -136,7 +136,7 @@ export default function NotificationBell() {
                   >
                     <p className="text-sm font-semibold text-slate-800">{n.title}</p>
                     {n.body && <p className="text-xs text-slate-500 mt-0.5">{n.body}</p>}
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <p className="text-[0.625rem] text-slate-400 mt-1">
                       {new Date(n.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </p>
                   </button>

@@ -1,5 +1,6 @@
 'use client'
 
+import NoPlanYet from '../components/NoPlanYet'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -581,8 +582,8 @@ function RacesContent() {
               <>
                 <div className="text-2xl mb-1">{s.emoji}</div>
                 <div className={`font-bold text-xs ${txt}`}>{s.name}</div>
-                <div className={`text-[9px] ${sub} mb-2 leading-snug`}>{s.desc}</div>
-                <div className={`text-[10px] font-bold px-2 py-1 rounded-lg shadow bg-gradient-to-r ${accent} text-white`}>Go to {s.name} →</div>
+                <div className={`text-[0.5625rem] ${sub} mb-2 leading-snug`}>{s.desc}</div>
+                <div className={`text-[0.625rem] font-bold px-2 py-1 rounded-lg shadow bg-gradient-to-r ${accent} text-white`}>Go to {s.name} →</div>
               </>
             )
             const cls = `${pill} border rounded-xl p-3 shadow-sm text-center flex flex-col items-center transition-all hover:scale-[1.03]`
@@ -728,18 +729,7 @@ function RacesContent() {
     )
   }
   if (rawRaces.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <div className="text-5xl">🏁</div>
-        <h1 className="text-xl font-bold text-slate-800">No races yet</h1>
-        <p className="text-sm text-slate-500 max-w-sm">
-          Your goals become races once your path is generated. Complete onboarding to build one.
-        </p>
-        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all">
-          Go to onboarding →
-        </Link>
-      </div>
-    )
+    return <NoPlanYet what="Each goal becomes a race here, made of small steps," />
   }
 
   return (
@@ -851,12 +841,12 @@ function RacesContent() {
                   </svg>
                 </button>
                 {pinwheelHover && (
-                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[0.625rem] px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none">
                     Motivation Pinwheel
                   </div>
                 )}
               </div>
-              <button onClick={() => setIsDayTheme(!isDayTheme)} className={`px-2 py-1 rounded-lg text-xs font-semibold shadow ${day ? 'bg-indigo-600 text-white' : 'bg-amber-400 text-slate-900'}`}>{day ? '🌙' : '☀️'}</button>
+              <button type="button" onClick={() => setIsDayTheme(!isDayTheme)} aria-pressed={!day} aria-label={day ? 'Night colours' : 'Day colours'} title={day ? 'Night colours' : 'Day colours'} className={`px-2 py-1 rounded-lg text-xs font-semibold shadow ${day ? 'bg-indigo-600 text-white' : 'bg-amber-400 text-slate-900'}`}><span aria-hidden="true">{day ? '🌙' : '☀️'}</span></button>
               <div className="relative">
                 <button onClick={() => { setShowCompareMenu(!showCompareMenu); setShowNewViewsMenu(false) }} className={`px-2 py-1 bg-gradient-to-r ${accent} text-white rounded-lg text-xs font-semibold`}><RefreshCw className="w-3 h-3 inline mr-1" />Compare</button>
                 {showCompareMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[190px] p-1.5">{[{ k: 'rolemodel', l: 'With role models', I: Users }, { k: 'friend', l: 'With friends', I: UserPlus }, { k: 'mentor', l: 'With mentors', I: UserCheck }].map(x => (<button key={x.k} onClick={() => { router.push(`/races?compare=${x.k}`); setShowCompareMenu(false) }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700"><x.I className="w-4 h-4" />{x.l}</button>))}</div>}
@@ -939,7 +929,7 @@ function RacesContent() {
               </div>
               {newView === 'avoidance' && (
                 <div className="space-y-1.5">
-                  <p className={`text-[11px] ${sub} mb-1`}>Habits and traps to steer clear of. Based on your obstacles and common pitfalls.</p>
+                  <p className={`text-[0.6875rem] ${sub} mb-1`}>Habits and traps to steer clear of. Based on your obstacles and common pitfalls.</p>
                   {(() => {
                     const obstacles = (payload?.userProfile?.currentChallenges || []) as string[]
                     const fromObstacles = obstacles.map((o) => ({ t: `Avoid: ${o}`, r: 'You flagged this as an obstacle' }))
@@ -955,7 +945,7 @@ function RacesContent() {
                       <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                       <div>
                         <div className={`font-medium text-xs ${day ? 'text-red-900' : 'text-red-300'}`}>{x.t}</div>
-                        <div className={`text-[10px] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div>
+                        <div className={`text-[0.625rem] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div>
                       </div>
                     </div>
                   ))}
@@ -992,25 +982,29 @@ function RacesContent() {
             if (goalsList.length === 0 && dreamsList.length === 0 && obstaclesList.length === 0) return null
             return (
               <div className={`w-full max-w-2xl px-2 pt-4`}>
-                <div className={`${pill} border rounded-2xl p-4 shadow-sm`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className={`w-4 h-4 ${day ? 'text-purple-500' : 'text-purple-300'}`} />
+                {/* Folded: what the races were made from is background, and
+                    Races was crowded with it (Riipen Labs, Group 32: "overloaded
+                    with static goal content in comparison to Milestones"). */}
+                <details className={`${pill} border rounded-2xl p-4 shadow-sm`}>
+                  <summary className="flex cursor-pointer items-center gap-2">
+                    <Sparkles className={`w-4 h-4 ${day ? 'text-purple-500' : 'text-purple-300'}`} aria-hidden="true" />
                     <h3 className={`font-bold text-sm ${txt}`}>Your Goals, Dreams &amp; Obstacles</h3>
-                    <span className={`text-[10px] ${sub} ml-auto`}>Used to generate your races</span>
-                  </div>
+                    <span className={`text-[0.625rem] ${sub} ml-auto`}>What your races were made from</span>
+                  </summary>
+                  <div className="mt-3">
 
                   {goalsList.length > 0 && (
                     <div className="mb-2.5">
-                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>🎯 Goals ({goalsList.length})</div>
+                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>🎯 Goals ({goalsList.length})</div>
                       <div className="flex flex-wrap gap-1.5">
                         {goalsList.map((goal, index) => {
                           const progress = computeRaceProgress(rawRaces[index] || { name: goal }, milestones, completedMilestoneIds)
-                          return <div key={`${index}-${goal}`} className="w-full border-b border-slate-200 py-2">
-                            <div className="flex justify-between gap-3 text-sm"><span className="break-words">{goal}</span><span className="shrink-0">{progress === null ? 'No linked milestones' : `${progress}%`}</span></div>
+                          return <div key={`${index}-${goal}`} className={`w-full border-b py-2 ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                            <div className={`flex justify-between gap-3 text-sm ${txt}`}><span className="break-words">{goal}</span><span className="shrink-0">{progress === null ? 'No linked milestones' : `${progress}%`}</span></div>
                             {progress !== null && <progress aria-label={`${goal} progress`} value={progress} max={100} className="mt-1 h-2 w-full" />}
                             <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'unanswered', context: 'races' })}`)} className="text-cyan-700 underline">Answer related questions</Link>
-                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'solved', context: 'races' })}`)} className="text-cyan-700 underline">Solved threads / share experience</Link>
+                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'unanswered', context: 'races' })}`)} className={`underline ${day ? 'text-cyan-800' : 'text-cyan-200'}`}>Answer related questions</Link>
+                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'solved', context: 'races' })}`)} className={`underline ${day ? 'text-cyan-800' : 'text-cyan-200'}`}>Solved threads / share experience</Link>
                             </div>
                           </div>
                         })}
@@ -1020,10 +1014,10 @@ function RacesContent() {
 
                   {dreamsList.length > 0 && (
                     <div className="mb-2.5">
-                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>🌟 Dreams</div>
+                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>🌟 Dreams</div>
                       <div className="flex flex-wrap gap-1.5">
                         {dreamsList.map((d, i) => (
-                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-900/30 text-purple-200 border border-purple-800'}`}>{d}</span>
+                          <span key={i} className={`text-[0.6875rem] px-2 py-1 rounded-full ${day ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-900/30 text-purple-200 border border-purple-800'}`}>{d}</span>
                         ))}
                       </div>
                     </div>
@@ -1031,15 +1025,16 @@ function RacesContent() {
 
                   {obstaclesList.length > 0 && (
                     <div>
-                      <div className={`text-[10px] font-bold uppercase tracking-wide ${sub} mb-1`}>⛰️ Obstacles</div>
+                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>⛰️ Obstacles</div>
                       <div className="flex flex-wrap gap-1.5">
                         {obstaclesList.map((o, i) => (
-                          <span key={i} className={`text-[11px] px-2 py-1 rounded-full ${day ? 'bg-pink-50 text-pink-700 border border-pink-200' : 'bg-pink-900/30 text-pink-200 border border-pink-800'}`}>{o}</span>
+                          <span key={i} className={`text-[0.6875rem] px-2 py-1 rounded-full ${day ? 'bg-pink-50 text-pink-700 border border-pink-200' : 'bg-pink-900/30 text-pink-200 border border-pink-800'}`}>{o}</span>
                         ))}
                       </div>
                     </div>
                   )}
-                </div>
+                  </div>
+                </details>
               </div>
             )
           })()}
@@ -1047,7 +1042,7 @@ function RacesContent() {
           {/* ═══════════════════
               TRACK / LIST toggle — centered, below the main nav
              ═══════════════════ */}
-          <div className="pt-4 w-full flex justify-center">
+          <div className="pt-4 w-full flex justify-center" data-tour="races-view">
             <GameTabs
               value={layoutMode}
               onChange={(v) => setLayoutMode(v)}
@@ -1123,11 +1118,14 @@ function RacesContent() {
                 </div>
               )}
 
-              {/* ResourceHub + Hare World (moved up) */}
+              {/* ResourceHub + Hare World (moved up). The simple view leaves them
+                  out: both are Quick Links on the Path, and Find resources is in
+                  the top bar (Group 32). */}
+              {!isSimple && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <GamePanel tone="parchment" className="px-4 pt-6 pb-4 flex flex-col">
                   <GameBanner tone="amber">🏪 ResourceHub</GameBanner>
-                  <p className="text-[11px] font-medium text-amber-900/80 mb-3 flex-1 text-center">
+                  <p className="text-[0.6875rem] font-medium text-amber-900/80 mb-3 flex-1 text-center">
                     Curated tools, services &amp; support matched to the barriers you face and your goals.
                   </p>
                   <GameButton tone="amber" size="sm" href={goHubHref('/')} className="w-full">
@@ -1137,7 +1135,7 @@ function RacesContent() {
 
                 <GamePanel tone="rose" className="px-4 pt-6 pb-4 flex flex-col">
                   <GameBanner tone="violet">🐰 Hare World</GameBanner>
-                  <p className="text-[11px] font-medium text-rose-900/80 mb-3 flex-1 text-center">
+                  <p className="text-[0.6875rem] font-medium text-rose-900/80 mb-3 flex-1 text-center">
                     Your role models, mentors &amp; people. See how they&apos;re getting on and learn from them.
                   </p>
                   <GameButton tone="violet" size="sm" href="/hare-world" className="w-full">
@@ -1145,6 +1143,7 @@ function RacesContent() {
                   </GameButton>
                 </GamePanel>
               </div>
+              )}
             </div>
 
           {/* ═══════════════════
@@ -1166,7 +1165,7 @@ function RacesContent() {
                 </div>
               </div>
             </div>
-            <div className="text-lg font-bold text-indigo-700">Dream Self</div>
+            <div className={`text-lg font-bold ${day ? 'text-indigo-700' : 'text-indigo-200'}`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
             <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} hover:underline`}>
               See more
@@ -1262,13 +1261,13 @@ function RacesContent() {
                 <div className={`text-center mb-2 font-bold text-sm ${txt}`}>
                   📋 Checklist View
                 </div>
-                <div className={`text-center mb-4 text-[10px] ${sub}`}>
+                <div className={`text-center mb-4 text-[0.625rem] ${sub}`}>
                   One dimension at a time · Switch between races
                 </div>
 
                 {/* Individual | Combined toggle — always available */}
                 <div className="flex justify-center mb-4">
-                  <div className={`inline-flex rounded-lg border overflow-hidden text-[10px] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                  <div className={`inline-flex rounded-lg border overflow-hidden text-[0.625rem] font-bold ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
                     <button onClick={() => setDimViewMode('individual')} className={`px-3 py-1 ${dimViewMode === 'individual' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-600' : 'bg-indigo-950 text-indigo-300')}`}>Individual</button>
                     <button onClick={() => setDimViewMode('combined')} className={`px-3 py-1 ${dimViewMode === 'combined' ? (day ? 'bg-white text-slate-800' : 'bg-indigo-700 text-white') : (day ? 'bg-slate-50 text-slate-600' : 'bg-indigo-950 text-indigo-300')}`}>Combined</button>
                   </div>
@@ -1277,23 +1276,23 @@ function RacesContent() {
                 {dimViewMode === 'combined' ? (
                   /* ══ COMBINED — four life dimensions, one goal ══ */
                   <div className="w-full">
-                    <div className={`text-center mb-3 text-[11px] font-bold ${txt}`}>🏠 Four life dimensions, one goal</div>
+                    <div className={`text-center mb-3 text-[0.6875rem] font-bold ${txt}`}>🏠 Four life dimensions, one goal</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
                       {dimOrder.filter(d => d.key !== 'barrier').map(dim => {
                         const lanes = dimSubRaces[dim.key] || []
                         const laneSteps = lanes[0]?.steps || []
                         return (
                           <div key={dim.key} className={`rounded-2xl border bg-gradient-to-b ${day ? dim.tint : dim.tintDark} p-3 shadow-sm`}>
-                            <div className={`flex items-center gap-1.5 font-bold text-[11px] mb-1 ${txt}`}>
+                            <div className={`flex items-center gap-1.5 font-bold text-[0.6875rem] mb-1 ${txt}`}>
                               <span className="text-base">{dim.emoji}</span>
                               <span className="uppercase tracking-wider">{dim.label}</span>
                             </div>
                             {userBarrierLabels.length > 0 && (
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {userBarrierLabels.slice(0, 3).map(b => (<span key={b} className={`text-[7px] px-1 py-0.5 rounded-full border ${day ? 'bg-white/70 text-slate-600 border-slate-200' : 'bg-indigo-900/60 text-indigo-300 border-indigo-700'}`}>{b}</span>))}
+                                {userBarrierLabels.slice(0, 3).map(b => (<span key={b} className={`text-[0.4375rem] px-1 py-0.5 rounded-full border ${day ? 'bg-white/70 text-slate-600 border-slate-200' : 'bg-indigo-900/60 text-indigo-300 border-indigo-700'}`}>{b}</span>))}
                               </div>
                             )}
-                            <div className={`text-[9px] font-bold mb-2 ${txt}`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
+                            <div className={`text-[0.5625rem] font-bold mb-2 ${txt}`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
                             <div className="relative pl-4">
                               <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
                               {laneSteps.map((step, i) => {
@@ -1302,11 +1301,11 @@ function RacesContent() {
                                   <div key={step.id} className={`relative mb-1.5 p-1.5 rounded-lg border ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : step.status === 'active' ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}>
                                     <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
                                     <div className="flex items-center gap-1 mb-0.5">
-                                      <span className="text-[8px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
-                                      <span className={`text-[7px] font-mono ${sub}`}>Step {i + 1}</span>
-                                      {step.status === 'active' && !isCompleted && <span className="text-[7px] font-bold text-amber-500 ml-auto">HERE</span>}
+                                      <span className="text-[0.5rem]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
+                                      <span className={`text-[0.4375rem] font-mono ${sub}`}>Step {i + 1}</span>
+                                      {step.status === 'active' && !isCompleted && <span className="text-[0.4375rem] font-bold text-amber-500 ml-auto">HERE</span>}
                                     </div>
-                                    <div className={`text-[9px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                    <div className={`text-[0.5625rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
                                   </div>
                                 )
                               })}
@@ -1323,7 +1322,7 @@ function RacesContent() {
                     <button
                       key={dim.key}
                       onClick={() => { setActiveDimension(dim.key); setActiveDimRace(null) }}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all border ${activeDimension === dim.key
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.6875rem] font-bold transition-all border ${activeDimension === dim.key
                         ? `${day ? 'bg-white shadow-md border-slate-300 text-slate-800' : 'bg-indigo-800 shadow-md border-indigo-500 text-white'} scale-105`
                         : `${day ? 'bg-white/60 border-slate-200 text-slate-500 hover:bg-white/80' : 'bg-indigo-950/40 border-indigo-700 text-indigo-400 hover:bg-indigo-900/60'}`
                       }`}
@@ -1347,7 +1346,7 @@ function RacesContent() {
                   {/* Barriers chips */}
                   <div className="flex flex-wrap items-center gap-1 mb-3">
                     {userBarrierLabels.slice(0, 6).map(b => (
-                      <span key={b} className={`inline-flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
+                      <span key={b} className={`inline-flex items-center gap-1 text-[0.5rem] px-1.5 py-0.5 rounded-full ${day ? 'bg-white/70 text-slate-600' : 'bg-indigo-900/60 text-indigo-300'} border ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
                         {b}
                         {extraBarriers.includes(b) && (
                           <button
@@ -1376,7 +1375,7 @@ function RacesContent() {
                             }
                           }}
                           placeholder="Add norm…"
-                          className={`text-[8px] px-1.5 py-0.5 rounded-full border w-24 focus:outline-none ${day ? 'bg-white border-slate-300 text-slate-700' : 'bg-indigo-950 border-indigo-600 text-indigo-200'}`}
+                          className={`text-[0.5rem] px-1.5 py-0.5 rounded-full border w-24 focus:outline-none ${day ? 'bg-white border-slate-300 text-slate-700' : 'bg-indigo-950 border-indigo-600 text-indigo-200'}`}
                         />
                         <button
                           onClick={() => {
@@ -1384,7 +1383,7 @@ function RacesContent() {
                             if (v && !userBarrierLabels.includes(v)) setExtraBarriers(prev => [...prev, v])
                             setNewBarrierText(''); setAddingBarrier(false)
                           }}
-                          className={`text-[8px] font-bold ${day ? 'text-cyan-600' : 'text-cyan-300'}`}
+                          className={`text-[0.5rem] font-bold ${day ? 'text-cyan-600' : 'text-cyan-300'}`}
                         >
                           Add
                         </button>
@@ -1392,7 +1391,7 @@ function RacesContent() {
                     ) : (
                       <button
                         onClick={() => setAddingBarrier(true)}
-                        className={`text-[8px] px-1.5 py-0.5 rounded-full border border-dashed font-bold ${day ? 'border-slate-300 text-slate-500 hover:bg-white/70' : 'border-indigo-600 text-indigo-300 hover:bg-indigo-900/40'}`}
+                        className={`text-[0.5rem] px-1.5 py-0.5 rounded-full border border-dashed font-bold ${day ? 'border-slate-300 text-slate-500 hover:bg-white/70' : 'border-indigo-600 text-indigo-300 hover:bg-indigo-900/40'}`}
                         title="Add a norm or condition to consider here"
                       >
                         + Add
@@ -1402,8 +1401,8 @@ function RacesContent() {
 
                   {/* Goal(s) for this dimension — shown under the barrier chips */}
                   <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`}>
-                    <div className={`text-[8px] font-bold uppercase tracking-wider ${sub}`}>🎯 Goal</div>
-                    <div className={`text-[11px] font-bold leading-snug ${txt}`}>{goalForDim(activeDim.key, activeDim.goal)}</div>
+                    <div className={`text-[0.5rem] font-bold uppercase tracking-wider ${sub}`}>🎯 Goal</div>
+                    <div className={`text-[0.6875rem] font-bold leading-snug ${txt}`}>{goalForDim(activeDim.key, activeDim.goal)}</div>
                   </div>
 
                   {/* Sub-race tabs (only in individual mode, only if > 1 race) */}
@@ -1413,13 +1412,13 @@ function RacesContent() {
                         <button
                           key={sr.id}
                           onClick={() => setActiveDimRace(sr.id)}
-                          className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${(activeDimRace === sr.id || (!activeDimRace && sr.id === subRaces[0].id))
+                          className={`flex-1 px-2 py-1.5 rounded-lg text-[0.625rem] font-bold transition-all border ${(activeDimRace === sr.id || (!activeDimRace && sr.id === subRaces[0].id))
                             ? `${day ? 'bg-white border-slate-300 shadow-sm text-slate-800' : 'bg-indigo-800 border-indigo-500 text-white'}`
                             : `${day ? 'bg-white/40 border-slate-200 text-slate-500' : 'bg-indigo-950/30 border-indigo-700 text-indigo-400'}`
                           }`}
                         >
                           {sr.name}
-                          <span className={`ml-1 text-[8px] ${day ? 'text-slate-400' : 'text-indigo-500'}`}>{sr.steps.length} steps</span>
+                          <span className={`ml-1 text-[0.5rem] ${day ? 'text-slate-400' : 'text-indigo-500'}`}>{sr.steps.length} steps</span>
                           {/* Liam: a bar per path reads faster than counting check marks. */}
                           {(() => {
                             const srDone = sr.steps.filter(st => completedMilestoneIds.has(st.id)).length
@@ -1441,13 +1440,13 @@ function RacesContent() {
                     <div className={`rounded-xl border-2 border-dashed p-6 text-center ${day ? 'border-slate-300 bg-white/50' : 'border-indigo-700 bg-indigo-950/30'}`}>
                       <div className="text-2xl mb-1">🗺️</div>
                       <div className={`text-xs font-bold ${txt}`}>No steps here yet</div>
-                      <p className={`text-[10px] mt-1 ${sub}`}>
+                      <p className={`text-[0.625rem] mt-1 ${sub}`}>
                         Your plan hasn&apos;t produced any {activeDim.label} steps yet. Add a goal in
                         this area and the agents will build the path.
                       </p>
                       <button
                         onClick={() => router.push('/onboarding?step=3')}
-                        className={`mt-3 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r ${accent} text-white shadow hover:scale-105 transition-all`}
+                        className={`mt-3 text-[0.625rem] font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r ${accent} text-white shadow hover:scale-105 transition-all`}
                       >
                         ➕ Add a goal
                       </button>
@@ -1464,10 +1463,10 @@ function RacesContent() {
                     return (
                       <div className="mb-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className={`text-[10px] font-bold ${txt}`}>
+                          <span className={`text-[0.625rem] font-bold ${txt}`}>
                             {activeSubRace ? activeSubRace.name : 'All steps'} progress
                           </span>
-                          <span className={`text-[10px] font-bold ${txt}`}>
+                          <span className={`text-[0.625rem] font-bold ${txt}`}>
                             {doneCount}/{shown.length} · {pct}%
                           </span>
                         </div>
@@ -1510,13 +1509,13 @@ function RacesContent() {
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                  <span className="text-[10px]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
-                                  <span className={`text-[9px] font-mono ${sub}`}>Step {i + 1}</span>
-                                  {step.status === 'active' && !isCompleted && <span className="text-[10px] font-bold text-amber-800 ml-auto">YOU ARE HERE</span>}
+                                  <span className="text-[0.625rem]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
+                                  <span className={`text-[0.5625rem] font-mono ${sub}`}>Step {i + 1}</span>
+                                  {step.status === 'active' && !isCompleted && <span className="text-[0.625rem] font-bold text-amber-800 ml-auto">YOU ARE HERE</span>}
                                 </div>
-                                <div className={`text-[11px] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                <div className={`text-[0.6875rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
                                 {(step as any).isGeneric && !isCompleted && (
-                                  <div className={`text-[8px] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
+                                  <div className={`text-[0.5rem] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
                                 )}
                               </div>
                               {/* Heart + Complete buttons */}
@@ -1525,7 +1524,7 @@ function RacesContent() {
                                   {isHearted ? '❤️' : '🤍'}
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} role="checkbox" aria-checked={isCompleted} aria-label={`Done: ${step.name}`} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
-                                  {isCompleted && <span className="text-white text-[8px] font-bold">✓</span>}
+                                  {isCompleted && <span className="text-white text-[0.5rem] font-bold">✓</span>}
                                 </button>
                               </div>
                             </div>
@@ -1534,7 +1533,7 @@ function RacesContent() {
                           {/* ── Branching: 3 options after a completed milestone ── */}
                           {justCompletedMilestone && !dismissedBranches.has(step.id) && (
                             <div className={`ml-2 mb-3 p-3 rounded-xl border ${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/20 border-purple-700'}`}>
-                              <div className={`text-[10px] font-bold mb-2 ${txt}`}>🔀 Choose your next path:</div>
+                              <div className={`text-[0.625rem] font-bold mb-2 ${txt}`}>🔀 Choose your next path:</div>
                               <div className="space-y-1.5">
                                 {[
                                   { id: 'opt-a', label: 'Continue on current path', desc: arr[i + 1]?.name || 'Next step', icon: '➡️' },
@@ -1563,8 +1562,8 @@ function RacesContent() {
                                   >
                                     <span className="text-sm mt-0.5">{opt.icon}</span>
                                     <div>
-                                      <div className={`text-[10px] font-bold ${txt}`}>{opt.label}</div>
-                                      <div className={`text-[9px] ${sub}`}>{opt.desc}</div>
+                                      <div className={`text-[0.625rem] font-bold ${txt}`}>{opt.label}</div>
+                                      <div className={`text-[0.5625rem] ${sub}`}>{opt.desc}</div>
                                     </div>
                                   </button>
                                 ))}
@@ -1584,18 +1583,18 @@ function RacesContent() {
                         const prev = dimOrder[(idx - 1 + dimOrder.length) % dimOrder.length]
                         setActiveDimension(prev.key); setActiveDimRace(null)
                       }}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[0.625rem] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
                     >
                       ← {dimOrder[(dimOrder.findIndex(d => d.key === activeDimension) - 1 + dimOrder.length) % dimOrder.length].label}
                     </button>
-                    <span className={`text-[9px] ${sub}`}>{dimOrder.findIndex(d => d.key === activeDimension) + 1} / {dimOrder.length}</span>
+                    <span className={`text-[0.5625rem] ${sub}`}>{dimOrder.findIndex(d => d.key === activeDimension) + 1} / {dimOrder.length}</span>
                     <button
                       onClick={() => {
                         const idx = dimOrder.findIndex(d => d.key === activeDimension)
                         const next = dimOrder[(idx + 1) % dimOrder.length]
                         setActiveDimension(next.key); setActiveDimRace(null)
                       }}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[0.625rem] font-bold ${day ? 'bg-white/60 text-slate-600 hover:bg-white' : 'bg-indigo-950/40 text-indigo-400 hover:bg-indigo-900'} transition-all`}
                     >
                       {dimOrder[(dimOrder.findIndex(d => d.key === activeDimension) + 1) % dimOrder.length].label} →
                     </button>
@@ -1668,7 +1667,7 @@ function RacesContent() {
             <div className="w-full pt-6">
               {/* Dream Self renders once in the shared top block above. */}
               <FanOut count={5} />
-              <div className={`text-center mb-3 text-[10px] ${sub}`}>Each life dimension runs as its own parallel track</div>
+              <div className={`text-center mb-3 text-[0.625rem] ${sub}`}>Each life dimension runs as its own parallel track</div>
 
               {/* One painted world, five territories. Previously a grid of
                   white cards with headers and progress bars — which kept it a
@@ -1707,7 +1706,7 @@ function RacesContent() {
                     <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
                   ))}
                 </div>
-                <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
+                <span className={`px-4 py-1 text-[0.625rem] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
               </div>
 
               {/* Storefronts */}
@@ -1786,14 +1785,14 @@ function RacesContent() {
                     <h4 className={`font-bold text-xs mb-1.5 flex items-center gap-1.5 ${txt}`}><span aria-hidden="true">🏪</span>Pit Stop Shop</h4>
                     <div className="space-y-1">
                       {shopItems.length === 0 && (
-                        <p className={`text-[9px] ${sub} py-1`}>No items yet. They appear as your agents recommend tools.</p>
+                        <p className={`text-[0.5625rem] ${sub} py-1`}>No items yet. They appear as your agents recommend tools.</p>
                       )}
                       {shopItems.slice(0, expandShop ? shopItems.length : 3).map((item, i) => (
                         <button key={i} className={`w-full flex items-center gap-1.5 p-1 rounded-lg text-left transition-all hover:scale-[1.02] ${day ? 'bg-white/60 hover:bg-white/90' : 'bg-indigo-800/40 hover:bg-indigo-700/50'}`}>
                           <span className="text-base">{item.emoji}</span>
                           <div>
-                            <div className={`text-[10px] font-bold ${txt}`}>{item.name}</div>
-                            <div className={`text-[8px] ${sub}`}>{item.cost}</div>
+                            <div className={`text-[0.625rem] font-bold ${txt}`}>{item.name}</div>
+                            <div className={`text-[0.5rem] ${sub}`}>{item.cost}</div>
                           </div>
                         </button>
                       ))}
@@ -1807,7 +1806,7 @@ function RacesContent() {
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
-                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[10px] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'}`}>🏪 Open Full Shop →</a>
+                    <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[0.625rem] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'}`}>🏪 Open Full Shop →</a>
                   </div>
                 </div>
                 </div>
@@ -1844,19 +1843,19 @@ function RacesContent() {
                   <div className="space-y-2">
                     {races.filter((r: any) => r.id !== 'r_placeholder').slice(0, 3).map((r: any) => (
                       <div key={r.id}>
-                        <div className={`text-[10px] font-bold ${txt}`}>{r.name}</div>
+                        <div className={`text-[0.625rem] font-bold ${txt}`}>{r.name}</div>
                         <div className={`h-1.5 rounded-full overflow-hidden mt-0.5 ${day ? 'bg-sky-100' : 'bg-indigo-800'}`}>
                           <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${r.progress}%` }} />
                         </div>
-                        <div className={`text-[9px] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
+                        <div className={`text-[0.5625rem] ${sub} mt-0.5`}>{r.progress}% · {r.milestone}</div>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[10px] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:brightness-105 ${txt}`}>➕ Add another goal</button>
+                  <button onClick={() => router.push('/onboarding?step=3')} className={`w-full mt-2 text-[0.625rem] font-bold px-2 py-1.5 rounded-lg border-2 border-dashed transition-all hover:brightness-105 ${txt}`}>➕ Add another goal</button>
                   {userBarrierLabels.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {userBarrierLabels.slice(0, 5).map((b: string) => (
-                        <span key={b} className={`text-[8px] px-1.5 py-0.5 rounded ${day ? 'bg-sky-100 text-sky-700' : 'bg-sky-900/50 text-sky-300'}`}>{b}</span>
+                        <span key={b} className={`text-[0.5rem] px-1.5 py-0.5 rounded ${day ? 'bg-sky-100 text-sky-700' : 'bg-sky-900/50 text-sky-300'}`}>{b}</span>
                       ))}
                     </div>
                   )}
@@ -1873,15 +1872,15 @@ function RacesContent() {
           <RoadDown h={30} />
 
           {/* Previous steps */}
-          <button onClick={() => setShowPreviousSteps(!showPreviousSteps)} className={`flex items-center gap-1 text-[10px] ${sub} hover:bg-black/10`}>
+          <button onClick={() => setShowPreviousSteps(!showPreviousSteps)} className={`flex items-center gap-1 text-[0.625rem] ${sub} hover:bg-black/10`}>
             {showPreviousSteps ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             <span className="italic">(previous steps)</span>
           </button>
           {showPreviousSteps && (
             <div className="space-y-1 max-w-[240px] mt-1 mb-1">
               {previousSteps.map(s => (
-                <div key={s.id} className="flex items-center gap-1.5 text-[10px]">
-                  <div className="w-3.5 h-3.5 rounded-full bg-sky-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[7px]">✓</span></div>
+                <div key={s.id} className="flex items-center gap-1.5 text-[0.625rem]">
+                  <div className="w-3.5 h-3.5 rounded-full bg-sky-400 flex items-center justify-center flex-shrink-0"><span className="text-white text-[0.4375rem]">✓</span></div>
                   <span className={sub}>{s.name}</span>
                 </div>
               ))}
@@ -1901,7 +1900,7 @@ function RacesContent() {
                 <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
               ))}
             </div>
-            <span className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
+            <span className={`px-4 py-1 text-[0.625rem] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
           </div>
 
 
@@ -1934,7 +1933,7 @@ function RacesContent() {
                 </button>
                 {todaysMotivation ? (
                   <div className={`text-center p-4 rounded-xl border ${day ? 'bg-amber-50 border-amber-200' : 'bg-amber-900/30 border-amber-700'}`}>
-                    <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-1`}>Today&apos;s Motivation</div>
+                    <div className={`text-[0.625rem] font-bold uppercase tracking-wider ${sub} mb-1`}>Today&apos;s Motivation</div>
                     <div className={`text-base italic ${txt}`}>&ldquo;{todaysMotivation}&rdquo;</div>
                   </div>
                 ) : (
@@ -1944,7 +1943,7 @@ function RacesContent() {
 
               {/* Placement customization — records the user's choice */}
               <div className={`mt-6 pt-4 border-t ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
-                <div className={`text-[10px] font-bold uppercase tracking-wider ${sub} mb-2 text-center`}>Pinwheel placement</div>
+                <div className={`text-[0.625rem] font-bold uppercase tracking-wider ${sub} mb-2 text-center`}>Pinwheel placement</div>
                 <div className="flex gap-2 justify-center">
                   {(['left', 'right'] as const).map((side) => (
                     <button

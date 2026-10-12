@@ -14,6 +14,7 @@ import PronounsField from '../components/PronounsField'
 import PhotoField from './PhotoField'
 import ChangeEmail from './ChangeEmail'
 import AccountControls from './AccountControls'
+import { previousPage } from '@/lib/navTrail'
 
 /**
  * Your profile (Riipen Labs, Group 34: "add common application features in
@@ -167,9 +168,10 @@ export default function ProfilePage() {
     setPasswordState('saved')
   }
 
+  // A page in the app to go back to (lib/navTrail.ts), or the Path.
   const goBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) router.back()
-    else router.push('/path')
+    if (previousPage()) router.back()
+    else router.replace('/path')
   }
 
   const shown = saved || profile

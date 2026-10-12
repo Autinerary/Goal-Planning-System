@@ -138,7 +138,7 @@ export default function AssistantPage() {
             </div>
             <div>
               <div className="font-bold text-slate-900 leading-tight">Assistant</div>
-              <div className="text-[11px] text-slate-500 leading-tight">Here to help you get unstuck</div>
+              <div className="text-[0.6875rem] text-slate-500 leading-tight">Here to help you get unstuck</div>
             </div>
           </div>
         </div>

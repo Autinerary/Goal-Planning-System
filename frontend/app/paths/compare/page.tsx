@@ -199,7 +199,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
       <div className="flex items-start justify-between gap-2 mb-3">
         <div>
           <h3 className="font-bold text-slate-800 leading-tight">{snapshot.name}</h3>
-          <p className="text-[11px] text-slate-600">{new Date(snapshot.createdAt).toLocaleDateString()}</p>
+          <p className="text-[0.6875rem] text-slate-600">{new Date(snapshot.createdAt).toLocaleDateString()}</p>
         </div>
         <button onClick={() => onDelete(snapshot.id)} className="p-1 text-slate-300 hover:text-rose-500" title="Delete snapshot">
           <Trash2 className="w-4 h-4" />
@@ -225,7 +225,7 @@ function SnapshotColumn({ snapshot, onDelete, accent }: {
 
       {/* Races */}
       <div className="space-y-2">
-        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-600 flex items-center gap-1">
+        <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-slate-600 flex items-center gap-1">
           <Flag className="w-3 h-3" /> {snapshot.data.races.length} race{snapshot.data.races.length === 1 ? '' : 's'}
         </div>
         {snapshot.data.races.slice(0, 6).map((r, i) => (

@@ -57,7 +57,7 @@ export default function CommonMistakes({ milestoneId }: { milestoneId: string })
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-slate-400">
+      <p className="mt-2 text-[0.6875rem] text-slate-400">
         From {mistakes[0].sample_size} people who reflected at this stage.
       </p>
     </div>

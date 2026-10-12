@@ -41,7 +41,11 @@ export default function ViewTabs() {
   return (
     <div className="border-b border-white/50 surface-veil">
       <div className="max-w-5xl mx-auto px-2 sm:px-4">
-        <nav className="flex items-center gap-1 overflow-x-auto py-2 no-scrollbar" aria-label="Section navigation">
+        {/* "Your plan": these are the pages of your plan, apart from the app's
+            menu above (Riipen Labs, Group 32: no clear difference between the
+            primary menu and the secondary navigation). */}
+        <nav className="flex items-center gap-1 overflow-x-auto py-2 no-scrollbar" aria-label="Your plan">
+          <span className="mr-1 shrink-0 text-xs font-bold uppercase tracking-wide text-slate-700" aria-hidden="true">Your plan</span>
           {visibleTabs.map((tab, i) => {
             const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
             const isDone = activeIndex > -1 && TABS.indexOf(tab) < activeIndex

@@ -241,6 +241,23 @@ export default function HelpPage() {
           </div>
         </Section>
 
+        {/* Riipen Labs, Group 32: people "need to understand that their
+            feedback directly shapes the app", since parts of it are still
+            changing with what people tell us. */}
+        <Section id="beta" title="It’s in beta: what you tell us changes it" intro="Autinerary is new, and parts of it change as people tell us what works. Some recent changes, from what people told us:">
+          <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">
+            <li>Setup is two questions, and you can skip it and look around first.</li>
+            <li>The Path has one set of links, Quick Links, instead of two ways to the same places.</li>
+            <li>Back takes you to the page you came from, and never round in a loop.</li>
+            <li>Larger text, high contrast and dark mode also work in ResourceHub.</li>
+            <li>Races uses words like “Learn from others”, not “Compete”: it isn’t a contest.</li>
+          </ul>
+          <p className="mt-3 text-slate-800">
+            Tell us what is hard or missing: email <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>{CONTACT_EMAIL}</a>, or
+            answer the short questions the app sometimes asks. We read every answer.
+          </p>
+        </Section>
+
         <Section id="not-yet" title="Not working yet" intro="These are planned, but they don’t work yet, so the app doesn’t offer them:">
           <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">
             <li>Match suggestions in Relationships</li>

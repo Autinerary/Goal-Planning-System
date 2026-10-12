@@ -224,7 +224,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
               style={{ left: `${cx}%`, top: 26 }}
             >
               <span
-                className="inline-flex items-center gap-1 max-w-[190px] rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white truncate"
+                className="inline-flex items-center gap-1 max-w-[190px] rounded-full px-3 py-1 text-[0.625rem] font-black uppercase tracking-wider text-white truncate"
                 style={{ background: lane.node, boxShadow: `0 3px 0 ${lane.nodeDark}, 0 6px 12px rgba(0,0,0,.28)` }}
               >
                 <span className="text-xs">{lane.emoji}</span>
@@ -289,7 +289,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   {/* Name on a small wooden plaque, the way a level map labels
                       a stage — not a paragraph of body text. */}
                   <span
-                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[150px] rounded-lg px-2 py-1 text-center text-[10px] font-bold leading-snug line-clamp-3 shadow-md ${
+                    className={`absolute top-[56px] left-1/2 -translate-x-1/2 w-[150px] rounded-lg px-2 py-1 text-center text-[0.625rem] font-bold leading-snug line-clamp-3 shadow-md ${
                       done
                         ? 'bg-emerald-50/95 text-emerald-800 line-through decoration-emerald-600/50'
                         : locked

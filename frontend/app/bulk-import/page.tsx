@@ -274,7 +274,7 @@ function ItemRow({
               className="flex-1 text-sm font-semibold text-slate-800 border-b border-transparent hover:border-slate-300 focus:border-purple-500 outline-none bg-transparent"
             />
             {item.confidence === 'low' && (
-              <span className="text-[10px] font-bold text-amber-700 whitespace-nowrap">check this</span>
+              <span className="text-[0.625rem] font-bold text-amber-700 whitespace-nowrap">check this</span>
             )}
             <button
               onClick={() => onChange(item.id, { included: false })}

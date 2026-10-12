@@ -1,5 +1,6 @@
 'use client'
 
+import NoPlanYet from '../components/NoPlanYet'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
@@ -303,18 +304,7 @@ export default function MilestoneView() {
     )
   }
   if (races.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center bg-gradient-to-b from-amber-50 to-amber-100">
-        <div className="text-5xl">🪧</div>
-        <h1 className="text-xl font-bold text-slate-800">No milestones yet</h1>
-        <p className="text-sm text-slate-500 max-w-sm">
-          Your milestones appear here once your path is generated. Complete onboarding to build one.
-        </p>
-        <Link href="/onboarding" className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold hover:shadow-lg transition-all">
-          Go to onboarding →
-        </Link>
-      </div>
-    )
+    return <NoPlanYet what="Every small step of your plan is listed here" />
   }
 
   return (
@@ -419,7 +409,7 @@ export default function MilestoneView() {
                 <div key={p} className="absolute top-0 bottom-0 w-0.5 bg-amber-600/30" style={{ left: `${p}%` }} />
               ))}
             </div>
-            <div className="flex justify-between text-[9px] text-amber-600 mt-0.5">
+            <div className="flex justify-between text-[0.5625rem] text-amber-600 mt-0.5">
               {['Start', 'Lv 1', 'Lv 2', 'Lv 3', 'Dream'].map((l, i) => (
                 <span key={i}>{l}</span>
               ))}
@@ -465,7 +455,7 @@ export default function MilestoneView() {
           {/* Tool symbol legend (spans both columns) */}
           <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex flex-wrap gap-2">
             {toolSymbols.map((ts, i) => (
-              <div key={i} className="flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+              <div key={i} className="flex items-center gap-1 text-[0.625rem] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                 <span>{ts.emoji}</span><span className="font-medium">{ts.name}</span>
               </div>
             ))}
@@ -526,13 +516,13 @@ export default function MilestoneView() {
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
                       <button
                         onClick={() => setToolStatusFor(tool, 'wishlist')}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.6875rem] font-semibold border transition-all ${status === 'wishlist' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50'}`}
                       >
                         <Bookmark className="w-3 h-3" /> Wishlist
                       </button>
                       <button
                         onClick={() => setToolStatusFor(tool, 'current')}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.6875rem] font-semibold border transition-all ${status === 'current' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-300 hover:bg-green-50'}`}
                       >
                         <CheckCircle2 className="w-3 h-3" /> Currently Using
                       </button>
@@ -543,7 +533,7 @@ export default function MilestoneView() {
 
                     {/* Effectiveness rating (kept; severity removed per Odosa) */}
                     <div className="flex items-center gap-1 mt-3 pt-3 border-t border-amber-100">
-                      <span className="text-[11px] font-semibold text-slate-500 mr-1">How well did it help?</span>
+                      <span className="text-[0.6875rem] font-semibold text-slate-500 mr-1">How well did it help?</span>
                       {[1, 2, 3, 4, 5].map(star => (
                         <button key={star} onClick={() => rateBarrier(tool.barrier, star, tool.resourceId)} className="p-0.5" title={`${star} star${star > 1 ? 's' : ''}`}>
                           <Star className={`w-4 h-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />

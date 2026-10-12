@@ -53,7 +53,8 @@ export default function LoginPage() {
       } else {
         sessionStorage.removeItem('returnTo')
         sessionStorage.removeItem('returnTo_used')
-        router.push('/path')
+        // Back from the Path shouldn't reopen the sign-in page.
+        router.replace('/path')
       }
     } else {
       setError(result.error || 'Login failed. Please check your credentials.')

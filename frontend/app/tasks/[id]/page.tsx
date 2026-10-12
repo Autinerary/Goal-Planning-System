@@ -153,7 +153,9 @@ function TaskViewContent() {
     }
     // Dance for a moment, then navigate to calendar. Give the streak
     // celebration a little longer to be seen when one fires.
-    setTimeout(() => router.push('/calendar'), milestone ? 5200 : 4000)
+    // replace: Back from the Calendar goes where you were before the task,
+    // not back to the task you just finished (Riipen Labs, Group 31).
+    setTimeout(() => router.replace('/calendar'), milestone ? 5200 : 4000)
   }
 
   const playCelebrationMusic = () => {
@@ -371,7 +373,7 @@ function TaskViewContent() {
                     {isPlaying ? 'Pause' : 'Play'}
                   </button>
                 )}
-                <span className="text-[10px] text-slate-400 italic">
+                <span className="text-[0.625rem] text-slate-400 italic">
                   <Music className="w-3 h-3 inline" /> Mascot dances to the beat!
                 </span>
               </div>
@@ -394,7 +396,7 @@ function TaskViewContent() {
         {todaysMotivation && (
           <div className="mt-6 max-w-md mx-auto text-center">
             <div className="border border-amber-200 rounded-xl px-6 py-4 surface">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Today&apos;s Motivation</p>
+              <p className="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400 mb-1">Today&apos;s Motivation</p>
               <p className="text-sm italic text-slate-700">&ldquo;{todaysMotivation}&rdquo;</p>
             </div>
           </div>

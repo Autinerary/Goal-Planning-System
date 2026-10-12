@@ -199,7 +199,7 @@ export default function LifeStatsCard() {
                       {stat.value.toFixed(1)}<span className="text-slate-400 font-medium">/10</span>
                     </span>
                     {key === 'happiness' && (
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[0.625rem] text-slate-400 mt-0.5">
                         {payload.stats.happiness?.source === 'checkin'
                           ? 'from your mood check-ins'
                           : 'estimated, check in to make it exact'}

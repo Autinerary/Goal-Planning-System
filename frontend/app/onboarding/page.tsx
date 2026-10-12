@@ -514,7 +514,20 @@ function CharacterAvatar({
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, supabaseUser, completeOnboarding, isLoading: authLoading } = useAuth()
+  const { user, supabaseUser, completeOnboarding, skipSetup, isLoading: authLoading } = useAuth()
+  // "Skip for now" (Riipen Labs, Group 33): into the app without a plan.
+  const [skipping, setSkipping] = useState(false)
+  const [skipError, setSkipError] = useState('')
+  const skipForNow = async () => {
+    setSkipping(true)
+    setSkipError('')
+    try {
+      await skipSetup()
+    } catch {
+      setSkipError('That didn’t work. Check your connection and try again.')
+      setSkipping(false)
+    }
+  }
   // The path is made on the backend at the end of setup; wake it now, while
   // the questions are answered (lib/wakeBackend.ts).
   useEffect(() => {
@@ -908,7 +921,7 @@ export default function OnboardingPage() {
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/signup')
+      router.replace('/signup')
     }
   }, [user, authLoading, router])
 
@@ -1454,7 +1467,8 @@ export default function OnboardingPage() {
         await axios.post('/api/me/location', formData.location, { timeout: 8000 }).catch(() => {})
       }
       clearAutosave()
-      router.push('/onboarding-confirmation')
+      // Back from the confirmation shouldn't reopen an emptied setup.
+      router.replace('/onboarding-confirmation')
     } catch (error: any) {
       console.error('Error creating path:', error)
       console.error('Error details:', {
@@ -1666,7 +1680,10 @@ export default function OnboardingPage() {
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Welcome. Let&apos;s start with you</h2>
               <p className="text-slate-600 mb-4">Two quick questions, then your path is ready. There are no wrong answers.</p>
 
-              <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-800">
+              {/* A note, not a box: tinted and bordered it looked like the chosen
+                  answers below (Riipen Labs, Group 33: "clickable options
+                  blending into static text"). */}
+              <div className="mb-6 border-l-4 border-indigo-400 pl-4 text-sm text-slate-800">
                 <p className="font-semibold text-slate-900">How setup works</p>
                 <p className="mt-1">
                   This step and one goal. Then we build your path, with starter resources for what you need. Everything
@@ -1697,6 +1714,31 @@ export default function OnboardingPage() {
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
               )}
 
+              {/* Skip for now (Riipen Labs, Group 33: "Allow users to bypass initial
+                  setup prompts with a single tap so they can directly explore the
+                  platform's core tools right away"). After the age question,
+                  because the app is for adults; the Path offers to make a plan. */}
+              {!user?.hasCompletedOnboarding && (
+                <div className="mb-6 rounded-xl border border-slate-300 bg-white p-4">
+                  <p className="text-sm text-slate-800">
+                    Not ready for questions? Look around first: ResourceHub, Tidbits, Hare World and the glossary work
+                    without a plan. You can make your plan any time from the Path.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={skipForNow}
+                    disabled={!canAccessOnboarding || skipping}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {skipping ? 'Opening the app…' : 'Skip for now'}
+                  </button>
+                  {!canAccessOnboarding && !isManagedAccount && (
+                    <p className="mt-2 text-xs text-slate-700">Confirm your age above first.</p>
+                  )}
+                  {skipError && <p role="alert" className="mt-2 text-sm text-red-800">{skipError}</p>}
+                </div>
+              )}
+
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
                 <legend className="mb-2 font-medium text-slate-900">Who are you here for?</legend>
                 {(() => {
@@ -1706,10 +1748,10 @@ export default function OnboardingPage() {
                       type="button"
                       onClick={() => chooseAudience(a.id)}
                       aria-pressed={formData.audience === a.id}
-                      className={`rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                      className={`rounded-lg border-2 px-4 py-3 text-left text-sm font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                         formData.audience === a.id
                           ? 'border-indigo-700 bg-indigo-50 text-indigo-900'
-                          : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+                          : 'border-slate-400 bg-white text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40'
                       }`}
                     >
                       {formData.audience === a.id && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
@@ -1756,8 +1798,8 @@ export default function OnboardingPage() {
                           ...prev,
                           lookingFor: on ? prev.lookingFor.filter(x => x !== o.id) : [...prev.lookingFor, o.id],
                         }))}
-                        className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                          on ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+                        className={`rounded-full border-2 px-3 py-1.5 text-sm font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                          on ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-400 bg-white text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40'
                         }`}
                       >
                         {on && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}

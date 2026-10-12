@@ -382,7 +382,7 @@ export default function JournalHistory() {
                     </span>
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500">
+                <p className="mt-2 text-[0.6875rem] text-slate-500">
                   Shares of one whole. These add up to 100%, so a style rising means another falls.
                 </p>
               </div>

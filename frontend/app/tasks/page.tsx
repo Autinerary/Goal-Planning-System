@@ -254,7 +254,7 @@ export default function TasksPage() {
                     {isPlaying ? 'Pause' : 'Play'}
                   </button>
                 )}
-                <span className="text-[10px] text-slate-600 italic">
+                <span className="text-[0.625rem] text-slate-600 italic">
                   <Music className="w-3 h-3 inline" /> Mascot dances to the beat!
                 </span>
               </div>

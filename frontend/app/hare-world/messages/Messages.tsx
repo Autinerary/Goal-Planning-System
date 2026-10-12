@@ -191,7 +191,7 @@ export default function Messages() {
                         <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${m.kind === 'support' ? 'border border-pink-300 bg-pink-50 text-slate-900' : m.from_me ? 'bg-purple-700 text-white' : 'bg-slate-100 text-slate-900'}`}>
                           {m.kind === 'support' && <p className="text-xs font-semibold text-pink-900">Note of support</p>}
                           <p className="whitespace-pre-wrap break-words text-sm">{m.content}</p>
-                          <p className={`mt-1 flex flex-wrap items-center gap-2 text-[11px] ${m.from_me && m.kind !== 'support' ? 'text-purple-100' : 'text-slate-600'}`}>
+                          <p className={`mt-1 flex flex-wrap items-center gap-2 text-[0.6875rem] ${m.from_me && m.kind !== 'support' ? 'text-purple-100' : 'text-slate-600'}`}>
                             <span>{time(m.created_at)}{m.from_me && m.read_at ? ' · seen' : ''}</span>
                             {m.from_me ? (
                               <button type="button" onClick={() => unsend(m)} className="underline underline-offset-2">Unsend</button>

@@ -252,7 +252,7 @@ export default function MilestoneTrail({
           return (
             <span
               key={`l${i}`}
-              className="absolute left-3 z-20 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white border-2 border-white/60 shadow"
+              className="absolute left-3 z-20 rounded-full px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-wider text-white border-2 border-white/60 shadow"
               style={{ top: r.startY + 6, background: z.accent }}
             >
               {r.label}
@@ -312,7 +312,7 @@ export default function MilestoneTrail({
                     <Check className="w-6 h-6 text-white drop-shadow" aria-hidden="true" />
                     {/* Keep the number visible on finished steps — otherwise a
                         run of green ticks loses all sense of where you are. */}
-                    <span className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-full bg-white text-[10px] font-black text-emerald-700 shadow tabular-nums">
+                    <span className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-full bg-white text-[0.625rem] font-black text-emerald-700 shadow tabular-nums">
                       {startIndex + i + 1}
                     </span>
                   </>
@@ -331,7 +331,7 @@ export default function MilestoneTrail({
                   You are here
                 </span>
               )}
-              <span className="absolute top-[62px] left-1/2 w-32 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-[11px] font-semibold leading-tight text-slate-800">
+              <span className="absolute top-[62px] left-1/2 w-32 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-[0.6875rem] font-semibold leading-tight text-slate-800">
                 <span className="line-clamp-2">{m.name}</span>
                 <span className="mt-1 block text-sky-700">{locked ? 'Locked' : 'Tap to view'}</span>
               </span>

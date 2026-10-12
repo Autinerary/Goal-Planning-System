@@ -117,7 +117,7 @@ export default function RainDayBanner({
               <button
                 key={p}
                 onClick={() => savePrefs({ ...prefs, preference: p })}
-                className={`px-2.5 py-1 rounded-full border text-[11px] font-semibold ${
+                className={`px-2.5 py-1 rounded-full border text-[0.6875rem] font-semibold ${
                   prefs.preference === p ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-300'
                 }`}
               >

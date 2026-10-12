@@ -371,13 +371,13 @@ export default function PathMarketPage() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-semibold text-slate-900 text-sm">{m.name}</span>
-                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${status.cls}`}>
+                              <span className={`text-[0.625rem] font-semibold px-1.5 py-0.5 rounded-full ${status.cls}`}>
                                 {m.status === 'coming' && <Clock className="inline w-2.5 h-2.5 mr-0.5" aria-hidden="true" />}
                                 {status.label}
                               </span>
                             </div>
                             {m.contributor && (
-                              <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <div className="text-[0.6875rem] text-slate-500 flex items-center gap-1 mt-0.5">
                                 <User className="w-3 h-3" /> by {m.contributor}
                               </div>
                             )}
@@ -403,7 +403,7 @@ export default function PathMarketPage() {
                     )
                   })}
                   {/* Invitation for community models */}
-                  <p className="text-[11px] text-slate-400 italic px-1">
+                  <p className="text-[0.6875rem] text-slate-400 italic px-1">
                     More models from the community appear here as people share their path.
                   </p>
                 </div>

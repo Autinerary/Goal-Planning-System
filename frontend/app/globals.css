@@ -84,9 +84,14 @@ html[data-dark-mode="on"] .keep-colors .keep-colors {
   filter: none;
 }
 
-/* High contrast — darken text and strengthen borders/links. */
+/* High contrast — darken text and strengthen borders/links. A link drawn as
+   a button keeps its own colours: recolouring every link turned white text
+   on indigo, like the plan tabs, into dark blue on indigo (Riipen Labs,
+   Group 32). Grey text and pale borders get darker instead. */
 html[data-high-contrast="on"] body { filter: contrast(1.15); }
-html[data-high-contrast="on"] a { color: #0b3d91; }
+html[data-high-contrast="on"] a:not([class*="bg-"]):not([class*="text-white"]) { color: #0b3d91; }
+html[data-high-contrast="on"] :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600) { color: #1e293b; }
+html[data-high-contrast="on"] :is(.border-slate-100, .border-slate-200, .border-gray-100, .border-gray-200, .border-white\/40, .border-white\/50) { border-color: #64748b; }
 
 /* Reduce motion — neutralize animations and transitions. */
 html[data-reduce-motion="on"] *,
@@ -124,6 +129,27 @@ html[data-dyslexia-font="on"] body {
 
 /* Always underline links for clearer affordance. */
 html[data-underline-links="on"] a { text-decoration: underline; }
+
+/* Touch screens: buttons, tabs, menus, fields and links drawn as buttons are
+   at least 44 px tall, and buttons at least 44 px wide (Riipen Labs, Group 33:
+   "enlarge tap targets on mobile web browsers to prevent visual clutter and
+   accidental clicks"). A button drawn as text (underlined) gets the same
+   reach without moving the text around it. Dense drawings, like the race
+   track and the calendar's grids, mark themselves tap-dense and keep their
+   own sizes. */
+@media (pointer: coarse) {
+  :is(button, [role="button"], [role="tab"], summary, select, a[class*="bg-"], a[class*="border"], a[class*="rounded"]):not([class*="underline"]):not(.tap-dense *),
+  input:is([type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"], [type="date"], [type="time"], :not([type])):not(.tap-dense *) {
+    min-height: 44px;
+  }
+  :is(button, [role="button"]):not([class*="underline"]):not(.tap-dense *) {
+    min-width: 44px;
+  }
+  :is(button, a, summary)[class*="underline"]:not(.tap-dense *) {
+    padding-block: 0.75rem;
+    margin-block: -0.75rem;
+  }
+}
 
 /* ── View & layout preferences (driven by data-attributes on <html>) ── */
 /* Accent color — exposed as a CSS variable other rules/components can read. */

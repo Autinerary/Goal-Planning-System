@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, BookOpen, Lock, Loader2, ChevronRight, Settings, Map, Wrench, RotateCcw, Quote, GitCompare, Save, Compass } from 'lucide-react'
+import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Lock, Loader2, ChevronRight, Settings, Map, RotateCcw, Quote, GitCompare, Save, Compass } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
 import StreakBadge from '../components/StreakBadge'
@@ -23,7 +23,8 @@ import MoreFeaturesOffer from '../components/MoreFeaturesOffer'
 import CheckinPrompt from '../components/CheckinPrompt'
 import { usePreferences } from '../context/usePreferences'
 import { quoteOfTheDay } from '@/lib/quotes'
-import PathMenus from '../components/PathMenus'
+import QuickLinks from '../components/QuickLinks'
+import NoPlanYet from '../components/NoPlanYet'
 import PausedBanner from '../components/PausedBanner'
 import SupportNotesCard from '../components/SupportNotesCard'
 
@@ -339,9 +340,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Menus across the top (Riipen Labs, Group 34, slide 22) */}
         <PausedBanner />
-        <PathMenus />
         <SupportNotesCard />
 
         {/* ── Header ── */}
@@ -363,7 +362,7 @@ useEffect(() => {
                 <p className="text-sm text-slate-600">Your journey snapshot</p>
                 <StreakBadge />
                 {pathData && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+                  <span className="inline-flex items-center gap-1 text-[0.625rem] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
                     <Sparkles className="w-3 h-3" /> AI-Generated
                   </span>
                 )}
@@ -373,6 +372,7 @@ useEffect(() => {
           <div className="flex max-w-full flex-wrap items-center gap-2">
             {/* Simple / Full view toggle (progressive disclosure override) */}
             <button
+              data-tour="simplify"
               onClick={() => setOverride(isSimple ? 'full' : 'simple')}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-purple-700 border border-slate-300 rounded-lg hover:bg-white hover:border-purple-300 transition-all"
               title={isSimple
@@ -476,6 +476,9 @@ useEffect(() => {
           )
         )}
 
+        {/* ── No plan yet (setup skipped, Riipen Labs, Group 33): its step one ── */}
+        {!isLoadingPath && !pathData && <NoPlanYet variant="card" />}
+
         {/* ── Your next step: the clear "step one" ── */}
         {pathMilestones.length > 0 && (
           <section aria-labelledby="next-step-heading" className="mb-6 rounded-2xl border border-cyan-200 bg-white p-5 shadow-sm">
@@ -506,56 +509,21 @@ useEffect(() => {
           </section>
         )}
 
-        {/* ── Quick Links. Each themed name says plainly what it is (Riipen
-             Labs, Group 3: "unfamiliar terms such as Pit Stop"). Near the top,
-             not at the bottom, so the main places are there as soon as the
-             Path opens, and two to a row on a phone (Group 34: "move the quick
-             links from the bottom of the page to the top"). Each has a
-             data-info line for Help, and the words are explained at /help. ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6">
-          <h2 className="font-bold text-lg text-slate-800 mb-3 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" aria-hidden="true" /> Quick Links
-          </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            {[
-              { href: '/races', Icon: Target, color: 'text-cyan-600', name: 'Races', what: 'Your goals, step by step', info: 'Races: each goal is a race, made of small steps called milestones.' },
-              { href: '/pit-stop', Icon: Wrench, color: 'text-purple-600', name: 'Pit Stop', what: 'Tools for your steps', info: 'Pit Stop: tools and supports for the steps in your plan.' },
-              { href: '/hare-world', Icon: Users, color: 'text-pink-600', name: 'Hare World', what: 'Friends, mentors, role models', info: 'Hare World: the people side of Autinerary. Connect with friends, mentors and role models.' },
-              { href: '/reflection?contextType=path', Icon: BookOpen, color: 'text-amber-600', name: 'Journal', what: 'Write how it is going', info: 'Journal: write how things went, and look back on what is working.' },
-              { href: goHubHref('/community?from=hare-world&context=path'), Icon: Sparkles, color: 'text-emerald-600', name: 'Tidbits', what: 'Questions and answers', external: true, info: 'Tidbits: questions and answers from people with similar experiences, in ResourceHub.' },
-              { href: goHubHref('/search'), Icon: Map, color: 'text-cyan-600', name: 'ResourceHub', what: 'Services near you', external: true, info: 'ResourceHub: services and places, rated by people with similar norms. It shares your account.' },
-              // The guided "Start here" (Riipen Labs, Group 4), and the path saved from it.
-              { href: '/start', Icon: Compass, color: 'text-indigo-600', name: 'Starter resources', what: prefs.startPath ? 'The path you saved' : 'Places to start', info: 'Starter resources: a few places to start, for what you need today.' },
-            ].map(({ href, Icon, color, name, what, external, info }) => {
-              const body = (
-                <>
-                  <Icon className={`w-5 h-5 shrink-0 ${color}`} aria-hidden="true" />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-slate-800">{name}</span>
-                    <span className="block text-xs text-slate-600">{what}</span>
-                  </span>
-                </>
-              )
-              const cls = 'flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-3 sm:px-4 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm'
-              return external ? (
-                <a key={name} href={href} target="_blank" rel="noopener noreferrer" className={cls} data-info={info}>{body}</a>
-              ) : (
-                <Link key={name} href={href} className={cls} data-info={info}>{body}</Link>
-              )
-            })}
-          </div>
-          <p className="mt-3 text-sm text-slate-700">
-            New words? <Link href="/help" className="font-medium text-indigo-800 underline underline-offset-2">See what things are called</Link>
-          </p>
-        </div>
+        {/* ── Quick Links, with All places under them (components/QuickLinks.tsx) ── */}
+        <QuickLinks audience={prefs.audience} startPath={Boolean(prefs.startPath)} simple={isSimple} />
 
-        {/* ── Motivational message (mood-aware; reshuffles each visit) ── */}
+        {/* ── Motivational message (mood-aware; reshuffles each visit). The
+             simple view leaves it out, with the dashboard below: Simplify
+             changed only the top of the page (Riipen Labs, Group 31). Now
+             the simple Path is your next step, four Quick Links and one card. ── */}
+        {!isSimple && (
         <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
           <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white/70 flex items-center justify-center">
             <Quote className="w-6 h-6 text-indigo-700" />
           </div>
           <p className="text-lg md:text-xl font-semibold text-indigo-950 leading-snug">{motivationalQuote}</p>
         </div>
+        )}
 
         {/* ── A check-in question when one is due; otherwise the optional
              setup questions they skipped; otherwise, from the second day, an
@@ -563,7 +531,8 @@ useEffect(() => {
              checklist (Riipen Labs, Group 11). One card at a time. ── */}
         <CheckinPrompt fallback={<AskLaterCard fallback={<MoreFeaturesOffer fallback={<StarterChecklist stepsDone={doneSteps} />} />} />} />
 
-        {/* ── 2x2 Dashboard Grid ── */}
+        {/* ── 2x2 Dashboard Grid (full view; Races and ResourceHub are Quick Links) ── */}
+        {!isSimple && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
           {/* ── Card 1: Races ── */}
@@ -746,6 +715,7 @@ useEffect(() => {
             </a>
           </div>
         </div>
+        )}
 
         {!isSimple && (
           <>

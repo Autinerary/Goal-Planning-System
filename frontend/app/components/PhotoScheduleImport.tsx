@@ -156,7 +156,7 @@ export default function PhotoScheduleImport({
                           className="flex-1 text-sm font-semibold text-slate-800 border-b border-transparent hover:border-slate-300 focus:border-cyan-500 outline-none bg-transparent"
                         />
                         {e.confidence === 'low' && (
-                          <span className="text-[10px] font-bold text-amber-700 flex items-center gap-1">
+                          <span className="text-[0.625rem] font-bold text-amber-700 flex items-center gap-1">
                             <Pencil className="w-3 h-3" /> unsure
                           </span>
                         )}

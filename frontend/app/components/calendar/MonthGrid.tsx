@@ -36,7 +36,7 @@ export default function MonthGrid({
     <div className="min-w-[560px] rounded-lg border border-slate-200 bg-white overflow-hidden">
       <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-          <div key={d} className="px-2 py-2 text-center text-[11px] font-bold text-slate-500 uppercase">
+          <div key={d} className="px-2 py-2 text-center text-[0.6875rem] font-bold text-slate-500 uppercase">
             {d}
           </div>
         ))}
@@ -82,7 +82,7 @@ export default function MonthGrid({
                     type="button"
                     onClick={() => onSelectTask?.(occ.task)}
                     title={`${occ.task.name}: open`}
-                    className={`block w-full text-left text-[9px] leading-tight truncate rounded px-1 py-0.5 transition-opacity hover:brightness-105 ${
+                    className={`block w-full text-left text-[0.5625rem] leading-tight truncate rounded px-1 py-0.5 transition-opacity hover:brightness-105 ${
                       occ.task.completed
                         ? 'bg-slate-100 text-slate-400 line-through'
                         : occ.recurring
@@ -97,7 +97,7 @@ export default function MonthGrid({
                   <button
                     type="button"
                     onClick={() => onSelectDay?.(day)}
-                    className="text-[9px] text-slate-400 px-1 hover:text-slate-600"
+                    className="text-[0.5625rem] text-slate-400 px-1 hover:text-slate-600"
                   >
                     +{extra} more
                   </button>

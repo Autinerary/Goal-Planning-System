@@ -10,6 +10,7 @@ import FeedbackGate from './components/FeedbackGate'
 import Toaster from './components/Toaster'
 import MovementTracker from './components/MovementTracker'
 import AccessibilityProvider from './components/AccessibilityProvider'
+import NavTrail from './components/NavTrail'
 import InteractiveDemo from './components/InteractiveDemo'
 import AppWideTranslator from './components/AppWideTranslator'
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
@@ -107,6 +108,7 @@ export default function RootLayout({
           <AgentPathProvider>
             <LanguageProvider>
             <AccessibilityProvider />
+            <NavTrail />
             <ServiceWorkerRegistrar />
             <InstallPrompt />
             <AppWideTranslator />

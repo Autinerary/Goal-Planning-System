@@ -117,7 +117,7 @@ export default function MoodCalendar({ onPayload }: { onPayload?: (payload: any)
                               b ? b.cell : future ? 'border-transparent bg-transparent text-slate-500' : 'border-dashed border-slate-200 bg-slate-50 text-slate-600'
                             } ${key === todayKey ? 'ring-2 ring-indigo-600 ring-offset-1' : ''}`}
                           >
-                            <span aria-hidden="true" className="text-[10px] leading-none">{date.getUTCDate()}</span>
+                            <span aria-hidden="true" className="text-[0.625rem] leading-none">{date.getUTCDate()}</span>
                             <span aria-hidden="true" className="text-base font-bold leading-tight">{mood ?? ''}</span>
                             <span className="sr-only">
                               {label}{key === todayKey ? ' (today)' : ''}: {mood != null ? `mood ${mood} out of 10, ${b!.word}` : future ? 'not yet' : 'no check-in'}

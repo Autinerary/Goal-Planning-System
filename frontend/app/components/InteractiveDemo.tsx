@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -18,6 +18,10 @@ import { useAuth } from '../context/AuthContext'
 interface DemoFeature {
   name: string
   desc: string
+  /** Where it is on the page (a CSS selector): "Show me" points at it.
+   *  Riipen Labs, Group 33: the tour "isn't really showing where all these
+   *  functions are but more so explaining what they do". */
+  target?: string
 }
 
 interface DemoStep {
@@ -39,14 +43,15 @@ const STEPS: DemoStep[] = [
   },
   {
     emoji: '🧭',
-    title: 'Paths View',
+    title: 'The Path',
     overview:
-      'This is the Paths View: your home base. It gives a general overview of your progress: your goals (as “races”), a motivational message, your streak, and quick actions.',
+      'This is the Path: your home base. It shows the one thing to do next, and the places you’ll use most. Tap “Show me” to see where each part is.',
     features: [
-      { name: 'Show more / Simplify', desc: 'Switch between a simple layout and the full set of features.' },
-      { name: 'Compare', desc: 'Compare different saved versions of your path side by side.' },
-      { name: 'Save snapshot', desc: 'Save the current path so you can look back and compare later.' },
-      { name: 'Streak 🔥', desc: 'Shows how many days in a row you’ve completed a task.' },
+      { name: 'Your next step', desc: 'The one thing to do now. Open it to see how, and the tools that help.', target: 'section[aria-labelledby="next-step-heading"], section[aria-labelledby="no-plan-heading"]' },
+      { name: 'Your plan', desc: 'The pages of your plan: Path, Races, Milestones, Calendar and Tasks.', target: 'nav[aria-label="Your plan"]' },
+      { name: 'Quick Links', desc: 'The places you’ll use most. “All places” lists everything.', target: 'section[aria-labelledby="quick-links-heading"]' },
+      { name: 'Show more / Simplify', desc: 'Switch between a simple layout and the full set of features.', target: '[data-tour="simplify"]' },
+      { name: 'Find resources', desc: 'Opens ResourceHub: services and places, rated by people with similar norms.', target: 'button[aria-label="Find resources"]' },
     ],
     route: '/path',
   },
@@ -56,6 +61,8 @@ const STEPS: DemoStep[] = [
     overview:
       'This is the Races View. Each goal is a “race”, broken into milestones. It shows how far along each goal is.',
     features: [
+      { name: 'Track or List', desc: 'See your races as a track, or as a checklist.', target: '[data-tour="races-view"]' },
+      { name: 'Night colours', desc: 'Darker colours for Races. Tap again for day colours.', target: 'button[aria-label="Night colours"], button[aria-label="Day colours"]' },
       { name: 'A race card', desc: 'Tap one to open its milestones and see the next steps.' },
       { name: 'Motivation Pinwheel', desc: 'Spin it for an encouraging message for the day.' },
       { name: 'Progress bar', desc: 'Fills in automatically as you check off milestones.' },
@@ -80,8 +87,8 @@ const STEPS: DemoStep[] = [
     overview:
       'This is the Calendar View: your schedule as a travel guide for each day, built around your energy.',
     features: [
-      { name: 'List / Time Blocks', desc: 'Switch between a simple list and a time-blocked layout.' },
-      { name: 'Low / Balanced / High energy', desc: 'See a schedule that matches how much energy you have.' },
+      { name: 'List / Time Blocks', desc: 'Switch between a simple list and a time-blocked layout.', target: '[data-tour="calendar-view"]' },
+      { name: 'Low / Balanced / High energy', desc: 'See a schedule that matches how much energy you have.', target: '[data-tour="calendar-energy"]' },
       { name: 'Day / Week / Month', desc: 'Change how much of your schedule you see at once.' },
       { name: 'Compare', desc: 'Line your day up against a role model or mentor’s.' },
     ],
@@ -132,6 +139,41 @@ export default function InteractiveDemo() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
+  // "Show me": one control on the page, ringed, the rest dimmed, with what it
+  // does beside it (Riipen Labs, Group 33).
+  const [spot, setSpot] = useState<{ name: string; desc: string; el: Element } | null>(null)
+  const [rect, setRect] = useState<DOMRect | null>(null)
+  const [note, setNote] = useState('')
+  const backRef = useRef<HTMLButtonElement>(null)
+
+  const showMe = (f: DemoFeature) => {
+    const el = f.target ? document.querySelector(f.target) : null
+    if (!el) {
+      setNote(`${f.name} isn’t on this screen right now.`)
+      return
+    }
+    setNote('')
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.reduceMotion === 'on'
+    el.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' })
+    setSpot({ name: f.name, desc: f.desc, el })
+  }
+
+  useEffect(() => {
+    if (!spot) return
+    const update = () => setRect(spot.el.getBoundingClientRect())
+    update()
+    // Follows a smooth scroll and anything that moves the page.
+    const timer = window.setInterval(update, 200)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSpot(null) }
+    window.addEventListener('resize', update)
+    window.addEventListener('keydown', onKey)
+    backRef.current?.focus()
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('resize', update)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [spot])
 
   useEffect(() => {
     // Auto-start once for brand-new users — but only when signed in and onboarded
@@ -174,6 +216,7 @@ export default function InteractiveDemo() {
 
   const go = (next: number) => {
     const clamped = Math.max(0, Math.min(STEPS.length - 1, next))
+    setNote('')
     setStep(clamped)
     const route = STEPS[clamped].route
     if (route) router.push(route)
@@ -182,6 +225,36 @@ export default function InteractiveDemo() {
   if (!open) return null
   const s = STEPS[step]
   const isLast = step === STEPS.length - 1
+
+  if (spot) {
+    // The explanation sits away from the control: below if it is in the top
+    // half of the screen, above if not.
+    const below = !rect || rect.top + rect.height / 2 < window.innerHeight / 2
+    return (
+      <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-labelledby="tour-spot-name">
+        {rect && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed rounded-xl ring-4 ring-amber-400 keep-colors"
+            style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.55)' }}
+          />
+        )}
+        <div className={`fixed left-1/2 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl bg-white p-4 shadow-2xl ${below ? 'bottom-4' : 'top-4'}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-cyan-800">{s.title}</p>
+          <p id="tour-spot-name" className="mt-1 font-bold text-slate-900">{spot.name}</p>
+          <p className="mt-1 text-sm text-slate-700">{spot.desc}</p>
+          <button
+            ref={backRef}
+            type="button"
+            onClick={() => setSpot(null)}
+            className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to the tour
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     /*
@@ -238,11 +311,24 @@ export default function InteractiveDemo() {
           <div className="mb-6 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What the buttons do</p>
             {s.features.map((f) => (
-              <div key={f.name} className="flex gap-2 text-sm">
-                <span className="font-semibold text-slate-800 whitespace-nowrap">{f.name}</span>
-                <span className="text-slate-500">: {f.desc}</span>
+              <div key={f.name} className="flex items-start justify-between gap-2 text-sm">
+                <span>
+                  <span className="font-semibold text-slate-800">{f.name}</span>
+                  <span className="text-slate-700">: {f.desc}</span>
+                </span>
+                {f.target && (
+                  <button
+                    type="button"
+                    onClick={() => showMe(f)}
+                    aria-label={`Show me ${f.name}`}
+                    className="shrink-0 rounded-lg border border-cyan-700 bg-white px-2 py-1 text-xs font-semibold text-cyan-800 hover:bg-cyan-50"
+                  >
+                    Show me
+                  </button>
+                )}
               </div>
             ))}
+            <p role="status" className="text-xs text-slate-700">{note}</p>
           </div>
         )}
 

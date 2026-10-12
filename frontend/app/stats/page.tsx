@@ -120,13 +120,13 @@ function StreakDetail() {
   return (
     <div className="grid grid-cols-2 gap-3 mb-3">
       <div className="bg-orange-50 border border-orange-200 rounded-xl px-3 py-2">
-        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-orange-800">
+        <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-wide text-orange-800">
           <Flame className="w-3.5 h-3.5" /> Current streak
         </div>
         <div className="text-xl font-bold text-orange-700">
           {current} <span className="text-sm font-medium text-orange-800">day{current === 1 ? '' : 's'}</span>
         </div>
-        <div className="text-[11px] text-orange-800">
+        <div className="text-[0.6875rem] text-orange-800">
           {current === 0
             ? 'Open the app tomorrow to start one'
             : activeToday
@@ -136,11 +136,11 @@ function StreakDetail() {
       </div>
 
       <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Longest streak</div>
+        <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500">Longest streak</div>
         <div className="text-xl font-bold text-slate-700">
           {longest} <span className="text-sm font-medium text-slate-500">day{longest === 1 ? '' : 's'}</span>
         </div>
-        <div className="text-[11px] text-slate-500">
+        <div className="text-[0.6875rem] text-slate-500">
           {longest > 0 && current >= longest ? 'Your best run. Right now' : 'Your best run so far'}
         </div>
       </div>
@@ -174,7 +174,7 @@ function RamificationsBar({ stats, order, meta }: {
         </h2>
         <div className="text-right">
           <div className="text-2xl font-bold text-slate-800">{composite.toFixed(1)}<span className="text-sm text-slate-400"> / 10</span></div>
-          <div className="text-[11px] text-slate-400">overall wellbeing</div>
+          <div className="text-[0.6875rem] text-slate-400">overall wellbeing</div>
         </div>
       </div>
       <p className="text-sm text-slate-600 mb-3">
@@ -190,7 +190,7 @@ function RamificationsBar({ stats, order, meta }: {
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
         {order.map((k) => (
-          <span key={k} className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
+          <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] text-slate-500">
             <span className={`w-2.5 h-2.5 rounded-full ${meta[k].bar}`} /> {meta[k].label}
           </span>
         ))}
@@ -199,11 +199,11 @@ function RamificationsBar({ stats, order, meta }: {
       {/* Weakest link + strongest driver */}
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="bg-rose-50 border border-rose-100 rounded-xl p-3">
-          <div className="text-[11px] font-bold uppercase tracking-wide text-rose-500 mb-1">Needs attention · {meta[lowest].label}</div>
+          <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-rose-500 mb-1">Needs attention · {meta[lowest].label}</div>
           <p className="text-xs text-slate-600">{RAMIFICATIONS[lowest][levelOf(val(lowest))]}</p>
         </div>
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
-          <div className="text-[11px] font-bold uppercase tracking-wide text-emerald-600 mb-1">Your strength · {meta[highest].label}</div>
+          <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-emerald-600 mb-1">Your strength · {meta[highest].label}</div>
           <p className="text-xs text-slate-600">{RAMIFICATIONS[highest][levelOf(val(highest))]}</p>
         </div>
       </div>
@@ -303,7 +303,7 @@ export default function StatsBreakdownPage() {
                       <meta.Icon className={`w-5 h-5 ${meta.color}`} />
                       <h2 className="font-bold text-slate-800">{meta.label}</h2>
                       {key === 'happiness' && stat.source && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{stat.source === 'checkin' ? 'from check-ins' : 'inferred'}</span>
+                        <span className="text-[0.625rem] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{stat.source === 'checkin' ? 'from check-ins' : 'inferred'}</span>
                       )}
                     </div>
                     <div className="text-right">
@@ -330,7 +330,7 @@ export default function StatsBreakdownPage() {
                   {/* What's driving it */}
                   {stat.parts.length > 0 && (
                     <div className="bg-slate-50 rounded-xl p-3 mb-3">
-                      <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-2">What&apos;s driving this</div>
+                      <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500 mb-2">What&apos;s driving this</div>
                       <div className="space-y-1.5">
                         {stat.parts.map((p, i) => (
                           <div key={i} className="flex items-center gap-2 text-xs">

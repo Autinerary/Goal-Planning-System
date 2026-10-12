@@ -64,7 +64,7 @@ export function GameBanner({ children, tone = 'amber' }: { children: ReactNode; 
   return (
     <div className="flex justify-center -mt-5 mb-2">
       <span
-        className="rounded-full px-4 py-1.5 text-[13px] font-black uppercase tracking-wider text-white border-2 border-white/60"
+        className="rounded-full px-4 py-1.5 text-[0.8125rem] font-black uppercase tracking-wider text-white border-2 border-white/60"
         style={{ background: tones.bg, boxShadow: `0 3px 0 ${tones.edge}, 0 6px 12px rgba(0,0,0,.25)` }}
       >
         {children}
@@ -192,8 +192,8 @@ export function GameMeter({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-amber-900/70">{label}</span>
-        <span className="text-[11px] font-black tabular-nums text-amber-900">{value}</span>
+        <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-amber-900/70">{label}</span>
+        <span className="text-[0.6875rem] font-black tabular-nums text-amber-900">{value}</span>
       </div>
       <div
         className="h-3 rounded-full overflow-hidden border-2 border-white/70"

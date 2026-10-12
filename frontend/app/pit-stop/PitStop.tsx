@@ -1,5 +1,6 @@
 'use client'
 
+import { previousPage } from '@/lib/navTrail'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -239,22 +240,6 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   // Real role models only — no invented metrics (modelCount/rating were fake).
   const roleModelsWithMetrics = roleModels
 
-  const handleToolsRedirect = () => {
-    // Route through /go/servicehub so the session is forwarded (lands signed in).
-    const target = goHubHref('/?from=hare-world')
-    try {
-      // Try replace first, fallback to href
-      if (window.location.replace) {
-        window.location.replace(target)
-      } else {
-        window.location.href = target
-      }
-    } catch (error) {
-      console.error('Redirect error:', error)
-      // Fallback: open in new tab
-      window.open(target, '_blank')
-    }
-  }
 
   // NOTE: auto-redirect to ServiceHub removed — users now stay on the Tools tab
   // and explicitly click "Go to Resource Hub" at the bottom to navigate away.
@@ -822,12 +807,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         {/* Back button — always visible, goes to previous page (or /path if no history) */}
         <button
           onClick={() => {
-            // Use history.length to decide whether we have a real previous page within this tab
-            if (typeof window !== 'undefined' && window.history.length > 1) {
-              router.back()
-            } else {
-              router.push('/path')
-            }
+            // A page in the app to go back to (lib/navTrail.ts), or the Path.
+            if (previousPage()) router.back()
+            else router.replace('/path')
           }}
           className="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all"
         >
@@ -983,10 +965,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                                   <div className="mt-1.5 space-y-1">
                                     {t.helpsWith.slice(0, 2).map((g: any, gi: number) => (
                                       <div key={gi}>
-                                        <div className="text-[11px] font-semibold text-slate-700">Category: {g.category}</div>
+                                        <div className="text-[0.6875rem] font-semibold text-slate-700">Category: {g.category}</div>
                                         <ul className="mt-0.5 space-y-0.5">
                                           {(g.points || []).slice(0, 2).map((p: string, pi: number) => (
-                                            <li key={pi} className="text-[11px] text-slate-500 flex gap-1">
+                                            <li key={pi} className="text-[0.6875rem] text-slate-500 flex gap-1">
                                               <span className="text-purple-400 flex-shrink-0">•</span><span>{p}</span>
                                             </li>
                                           ))}
@@ -1007,32 +989,11 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               )
             })()}
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-            <div className="text-center">
-              <div className="text-5xl mb-4">🏪</div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Looking for more tools & services?</h3>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                Browse the full <strong>Resource Hub</strong> for a complete catalog of autism-friendly services, products, and community resources.
-              </p>
-              <div className="space-y-3 max-w-sm mx-auto">
-                <button
-                  onClick={handleToolsRedirect}
-                  className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-                >
-                  Go to Resource Hub →
-                </button>
-                <a
-                  href={goHubHref('/?from=hare-world')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-sm text-cyan-800 hover:text-cyan-900 hover:underline"
-                >
-                  Or open Resource Hub in a new tab ↗
-                </a>
-              </div>
-            </div>
-          </div>
-
+          {/* "Looking for more tools & services?" was a third way to ResourceHub
+              on this page, after "Browse resources by life area" above and Find
+              resources in the top bar (Riipen Labs, Group 31: Pit Stop "only
+              leads to more options that are already displayed"). Its button
+              also replaced this page in the history, so Back skipped it. */}
           {/* The shopkeeper. Line is built from the real shelf count — never a
               greeting that implies stock we do not have. */}
           {(() => {
@@ -1625,8 +1586,12 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   }}
                   className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left cursor-pointer"
                 >
-                  <Sparkles className="w-5 h-5 text-slate-600" />
-                  <span className="font-medium">Journal</span>
+                  <Sparkles className="w-5 h-5 text-slate-600" aria-hidden="true" />
+                  {/* Not the Path's Journal: this one asks about your people. */}
+                  <span>
+                    <span className="block font-medium">Journal about your people</span>
+                    <span className="block text-xs text-slate-600">How it is going with the people in your life</span>
+                  </span>
                 </button>
                 {/* Was Share/Restrict/Private buttons that only showed an alert.
                     Discoverable is the real control over who can find you. */}

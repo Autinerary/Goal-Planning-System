@@ -480,7 +480,7 @@ function ReflectionContent() {
                   className="block w-full h-2 rounded-full appearance-none cursor-pointer"
                   style={{ background: `linear-gradient(to right, #0891b2 ${completionPercent}%, #e2e8f0 ${completionPercent}%)` }}
                 />
-                <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                <div className="flex justify-between text-[0.625rem] text-slate-400 mt-1">
                   <span>0%</span><span>100%</span>
                 </div>
               </div>

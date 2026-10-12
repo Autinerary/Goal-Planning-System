@@ -195,7 +195,7 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
-      <p className="pointer-events-none text-[9px] text-center text-slate-500 mt-1 font-medium">
+      <p className="pointer-events-none text-[0.5625rem] text-center text-slate-500 mt-1 font-medium">
         {energized ? 'Race complete! 🎉' : 'Racing with you'}
       </p>
     </div>

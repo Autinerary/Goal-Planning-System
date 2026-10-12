@@ -67,7 +67,7 @@ export default function OnboardingConfirmationPage() {
 
   useEffect(() => {
     if (!launching) return
-    const timer = window.setTimeout(() => router.push('/path'), 1200)
+    const timer = window.setTimeout(() => router.replace('/path'), 1200)
     return () => window.clearTimeout(timer)
   }, [launching, router])
 
