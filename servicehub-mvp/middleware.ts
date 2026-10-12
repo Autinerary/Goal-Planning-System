@@ -69,15 +69,20 @@ export async function middleware(request: NextRequest) {
       }
     } catch (e) {
       console.warn('[middleware] hand-off skipped:', (e as Error).message)
-      return response
     } finally {
       if (handoffTimer) clearTimeout(handoffTimer)
     }
+    // The hand-off didn't go through (an expired or revoked session, or no
+    // answer in time). Open the page rather than sending the person to sign
+    // in: Goal Planning, still signed in, would send them straight back here
+    // with the same session, and round again, without end (seen on /shop,
+    // 11 October 2026). ProfileSync tries once more in the browser; a
+    // protected page checks for itself and offers ResourceHub's own sign-in.
+    if (a11yCookie) response.cookies.set(a11yCookie)
+    return response
   }
 
-  // Settings with no session, or a hand-off that didn't go through: keep
-  // them and reopen the page without them (session tokens, if any, stay for
-  // ProfileSync to try in the browser).
+  // Settings with no session: keep them and reopen the page without them.
   if (a11yCookie) {
     const clean = request.nextUrl.clone()
     clean.searchParams.delete('a11y')
