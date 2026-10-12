@@ -152,20 +152,26 @@ ALTER TABLE public.plan_matches ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.plan_matches FROM anon, authenticated;
 
 -- Move what the saved plans hold. Each step leaves alone anything that isn't
--- the shape it expects.
+-- the shape it expects. Only plans whose account still exists are copied:
+-- production has plans left by deleted accounts (5 on 11 October), and one
+-- of them stopped the whole step. Those are still emptied below; there is
+-- nobody to keep their matches for. One copy per plan, its last answer.
 INSERT INTO public.plan_matches (user_id, path_id, similar_users, retrieved_user_ids)
-SELECT up.user_id,
+SELECT DISTINCT ON (up.user_id, up.path_id)
+       up.user_id,
        up.path_id,
-       CASE WHEN jsonb_typeof(r->'result'->'similar_users') = 'array' THEN r->'result'->'similar_users' ELSE '[]'::jsonb END,
-       CASE WHEN jsonb_typeof(r->'result'->'retrieved_user_ids') = 'array' THEN r->'result'->'retrieved_user_ids' ELSE '[]'::jsonb END
+       CASE WHEN jsonb_typeof(e.r->'result'->'similar_users') = 'array' THEN e.r->'result'->'similar_users' ELSE '[]'::jsonb END,
+       CASE WHEN jsonb_typeof(e.r->'result'->'retrieved_user_ids') = 'array' THEN e.r->'result'->'retrieved_user_ids' ELSE '[]'::jsonb END
   FROM public.user_paths up
  CROSS JOIN LATERAL jsonb_array_elements(
          CASE WHEN jsonb_typeof(up.payload->'agentResponses') = 'array' THEN up.payload->'agentResponses' ELSE '[]'::jsonb END
-       ) AS r
+       ) WITH ORDINALITY AS e(r, ord)
  WHERE up.path_id IS NOT NULL
-   AND r->>'agentId' = 'pattern_recognition'
-   AND jsonb_typeof(r->'result') = 'object'
-   AND (r->'result' ? 'similar_users' OR r->'result' ? 'retrieved_user_ids')
+   AND EXISTS (SELECT 1 FROM auth.users u WHERE u.id = up.user_id)
+   AND e.r->>'agentId' = 'pattern_recognition'
+   AND jsonb_typeof(e.r->'result') = 'object'
+   AND (e.r->'result' ? 'similar_users' OR e.r->'result' ? 'retrieved_user_ids')
+ ORDER BY up.user_id, up.path_id, e.ord DESC
 ON CONFLICT (user_id, path_id) DO UPDATE
   SET similar_users = EXCLUDED.similar_users,
       retrieved_user_ids = EXCLUDED.retrieved_user_ids,
