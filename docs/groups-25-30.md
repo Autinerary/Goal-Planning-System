@@ -256,10 +256,10 @@ renamed.
     people from a search reach sign-up.
   - Its homepage is about 8,700 pixels tall on a phone: shorter sections
     with headings, as Group 25 suggested, and as the app's home page now has.
-- **Apply STEP 70** (`backend/database/migrations/2026_express_setup.sql`),
-  after STEP 69: it keeps the tour's events and the answer to "Was making
-  your account clear and quick?". Until then both are dropped and nothing
-  else changes.
+- **STEP 70** (`backend/database/migrations/2026_express_setup.sql`), which
+  keeps the tour's events and the answer to "Was making your account clear
+  and quick?", was applied on 12 October and checked live
+  (`scratchpad/browser/step70_live.mjs`, 13 checks).
 - **Test with neurodivergent community members** (Groups 26, 27, 28): the
   beta sessions.
 
