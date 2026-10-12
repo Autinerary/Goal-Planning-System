@@ -1225,7 +1225,7 @@ function CalendarContent() {
                   return (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
                       <p className="text-sm text-slate-600 mb-3">No mentors or role models connected yet. Comparisons use your real connections&apos; shared schedules.</p>
-                      <Link href="/hare-world" className="text-sm font-semibold text-purple-600 hover:underline">Find your people →</Link>
+                      <Link href="/hare-world" className="text-sm font-semibold text-purple-600 underline underline-offset-2">Find your people →</Link>
                     </div>
                   )
                 }

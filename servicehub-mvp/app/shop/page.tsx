@@ -129,7 +129,7 @@ export default async function ShopPage({
             <p className="text-sm text-amber-900">
               <strong>Design preview.</strong> These are sample products with generated images — nothing here is saved to the catalog.
             </p>
-            <Link href="/shop" className="text-xs font-semibold text-amber-800 hover:underline whitespace-nowrap">
+            <Link href="/shop" className="text-xs font-semibold text-amber-800 underline underline-offset-2 whitespace-nowrap">
               Exit preview
             </Link>
           </div>

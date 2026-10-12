@@ -526,7 +526,7 @@ export default function MilestoneView() {
                       >
                         <CheckCircle2 className="w-3 h-3" /> Currently Using
                       </button>
-                      <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-sky-600 hover:underline inline-flex items-center gap-1">
+                      <a href={resolveToolLink(tool.url, tool.name).href} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-sky-600 underline underline-offset-2 inline-flex items-center gap-1">
                         Open <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>

@@ -160,7 +160,7 @@ export default function FeedbackGate() {
               href={FORM_URL.replace('?embedded=true', '').replace('&embedded=true', '')}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-700 hover:underline"
+              className="text-xs text-blue-700 underline underline-offset-2"
             >
               Open in new tab
             </a>

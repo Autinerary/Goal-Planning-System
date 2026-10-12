@@ -134,7 +134,7 @@ export default function MilestoneDetailView() {
       <div className="flex items-center justify-center min-h-screen surface-veil">
         <div className="text-center">
           <p className="text-slate-600 mb-4">Milestone not found</p>
-          <Link href="/races" className="text-cyan-600 hover:underline">Back to Races</Link>
+          <Link href="/races" className="text-cyan-600 underline underline-offset-2">Back to Races</Link>
         </div>
       </div>
     )
@@ -322,7 +322,7 @@ export default function MilestoneDetailView() {
           {milestone.tools?.length === 0 && (
             <div className="text-center py-8 text-slate-500">
               <p>No tools recommended for this milestone yet.</p>
-              <Link href="/pit-stop" className="text-cyan-600 hover:underline mt-2 inline-block">
+              <Link href="/pit-stop" className="text-cyan-600 underline underline-offset-2 mt-2 inline-block">
                 Browse all tools in Pit Stop →
               </Link>
             </div>

@@ -419,7 +419,7 @@ export default function PathMarketPage() {
             ) : (
               <>
                 No categories or models match “{query}”. Try a different search, or{' '}
-                <Link href="/onboarding" className="text-cyan-600 hover:underline">start from scratch</Link>.
+                <Link href="/onboarding" className="text-cyan-600 underline underline-offset-2">start from scratch</Link>.
               </>
             )}
           </div>

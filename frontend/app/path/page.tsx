@@ -568,7 +568,7 @@ useEffect(() => {
             {races.length === 0 && (
               <div className="text-center py-6">
                 <p className="text-sm text-slate-500 mb-3">No races yet: your goals become races once your path is generated.</p>
-                <Link href="/onboarding" className="text-sm font-semibold text-cyan-800 hover:underline">Complete onboarding →</Link>
+                <Link href="/onboarding" className="text-sm font-semibold text-cyan-800 underline underline-offset-2">Complete onboarding →</Link>
               </div>
             )}
 
@@ -640,7 +640,7 @@ useEffect(() => {
             {!hasAnyPeople && (
               <div className="text-center py-6">
                 <p className="text-sm text-slate-500 mb-3">No connections yet. Find role models, mentors, and peers in Hare World.</p>
-                <Link href="/hare-world" className="text-sm font-semibold text-purple-600 hover:underline">
+                <Link href="/hare-world" className="text-sm font-semibold text-purple-600 underline underline-offset-2">
                   Meet people →
                 </Link>
               </div>

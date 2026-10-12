@@ -211,7 +211,7 @@ export default function IdealSelfPage() {
                 once you add them in Hare World.
               </p>
             )}
-            <Link href="/hare-world" className="inline-block mt-4 text-xs font-semibold text-purple-600 hover:underline">
+            <Link href="/hare-world" className="inline-block mt-4 text-xs font-semibold text-purple-600 underline underline-offset-2">
               See all people in Hare World →
             </Link>
           </div>
@@ -234,7 +234,7 @@ export default function IdealSelfPage() {
             ) : (
               <div className="text-sm text-slate-500">
                 No goals yet.{' '}
-                <Link href="/onboarding?step=3" className="text-sky-600 font-semibold hover:underline">Add one →</Link>
+                <Link href="/onboarding?step=3" className="text-sky-600 font-semibold underline underline-offset-2">Add one →</Link>
               </div>
             )}
             {barriers.length > 0 && (

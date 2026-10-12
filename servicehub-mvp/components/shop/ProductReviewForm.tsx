@@ -39,7 +39,7 @@ export default function ProductReviewForm({
   if (!signedIn) {
     return (
       <p className="text-sm text-gray-500">
-        <a href="/login" className="text-purple-700 font-medium hover:underline">Sign in</a>{' '}
+        <a href="/login" className="text-purple-700 font-medium underline underline-offset-2">Sign in</a>{' '}
         to rate this product.
       </p>
     )

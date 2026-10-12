@@ -265,8 +265,9 @@ function TaskViewContent() {
         className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2"
         title="Journal / Reflection"
       >
-        <BookOpen className="w-6 h-6" />
-        <span className="hidden sm:inline font-semibold">Journal</span>
+        <BookOpen className="w-6 h-6" aria-hidden="true" />
+        {/* Named on a phone too; it was an icon alone there. */}
+        <span className="font-semibold">Journal</span>
       </Link>
 
       <div className="relative z-10 max-w-5xl mx-auto">
@@ -293,7 +294,7 @@ function TaskViewContent() {
                 {todaysTasks.length === 0 && (
                   <div className="text-center py-6 px-2">
                     <p className="text-sm text-slate-500 mb-3">No tasks scheduled yet.</p>
-                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 hover:underline">Open your Calendar →</Link>
+                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">Open your Calendar →</Link>
                   </div>
                 )}
                 {todaysTasks.map((task: any) => {

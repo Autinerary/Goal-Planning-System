@@ -117,7 +117,7 @@ export default function RoleModelGalleriaPage() {
                 </div>
                 <p className="text-sm text-slate-600 line-clamp-4">{rm.bio}</p>
                 {rm.source_url && (
-                  <a href={rm.source_url} target="_blank" rel="noopener noreferrer" className="text-[0.6875rem] text-purple-500 hover:underline mt-1 inline-block">
+                  <a href={rm.source_url} target="_blank" rel="noopener noreferrer" className="text-[0.6875rem] text-purple-500 underline underline-offset-2 mt-1 inline-block">
                     Source →
                   </a>
                 )}

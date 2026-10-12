@@ -224,7 +224,7 @@ export default async function SearchAllPage({
                 )
               })}
               {norms.length > 0 && (
-                <Link href={buildHref({ q, kinds, norms: [], sort })} className="text-xs text-blue-600 hover:underline ml-1">
+                <Link href={buildHref({ q, kinds, norms: [], sort })} className="text-xs text-blue-600 underline underline-offset-2 ml-1">
                   Clear norms
                 </Link>
               )}
@@ -288,7 +288,7 @@ export default async function SearchAllPage({
                       {section.label}
                       <span className="text-sm font-normal text-gray-500">({rows.length})</span>
                     </h2>
-                    <Link href={section.browseHref} className="text-xs font-medium text-blue-600 hover:underline">
+                    <Link href={section.browseHref} className="text-xs font-medium text-blue-600 underline underline-offset-2">
                       {section.browseLabel} →
                     </Link>
                   </div>

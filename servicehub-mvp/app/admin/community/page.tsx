@@ -117,7 +117,7 @@ export default function AdminCommunityPage() {
                   {r.target_type === 'post' ? (
                     <Link
                       href={`/community/post/${r.target_id}`}
-                      className="text-blue-700 hover:underline"
+                      className="text-blue-700 underline underline-offset-2"
                     >
                       {r.target_title}
                     </Link>
@@ -134,7 +134,7 @@ export default function AdminCommunityPage() {
                   Author:{' '}
                   <Link
                     href={`/community/profile/${r.target_author_id}`}
-                    className="text-blue-700 hover:underline"
+                    className="text-blue-700 underline underline-offset-2"
                   >
                     {r.target_author_pseudonym}
                   </Link>

@@ -215,7 +215,7 @@ export default function HomePage() {
               Beta
             </span>
           </div>
-          <Link href="/login" className="text-sm font-medium text-indigo-800 underline-offset-4 hover:underline">
+          <Link href="/login" className="text-sm font-medium text-indigo-800 underline-offset-4 underline">
             Sign in
           </Link>
         </div>

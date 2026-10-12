@@ -1167,7 +1167,7 @@ function RacesContent() {
             </div>
             <div className={`text-lg font-bold ${day ? 'text-indigo-700' : 'text-indigo-200'}`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
-            <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} hover:underline`}>
+            <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} underline underline-offset-2`}>
               See your Dream Self
             </Link>
             {/* Path view already surfaces the multi-path switcher; Races did
@@ -1327,8 +1327,10 @@ function RacesContent() {
                         : `${day ? 'bg-white/60 border-slate-200 text-slate-500 hover:bg-white/80' : 'bg-indigo-950/40 border-indigo-700 text-indigo-400 hover:bg-indigo-900/60'}`
                       }`}
                     >
-                      <span>{dim.emoji}</span>
-                      <span className="hidden sm:inline">{dim.label}</span>
+                      <span aria-hidden="true">{dim.emoji}</span>
+                      {/* Named on a phone too: there it was the emoji alone,
+                          for screen readers as well (Riipen Labs, Group 33). */}
+                      <span>{dim.label}</span>
                     </button>
                   ))}
                 </div>

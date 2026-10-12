@@ -87,7 +87,7 @@ export default function ThreadedAnswer({
             )}
             <Link
               href={`/community/profile/${answer.author.user_id}`}
-              className="font-medium text-blue-700 hover:underline"
+              className="font-medium text-blue-700 underline underline-offset-2"
             >
               {answer.author.pseudonym}
             </Link>

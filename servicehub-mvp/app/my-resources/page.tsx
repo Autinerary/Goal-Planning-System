@@ -100,7 +100,9 @@ export default function MyResourcesPage() {
 
           {/* Tabs */}
           <div className="mt-8 border-b border-gray-200">
-            <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide" aria-label="Tabs">
+            {/* Named on a phone too, wrapping onto a second line if needed:
+                they were icons alone there (Riipen Labs, Group 33). */}
+            <nav className="-mb-px flex flex-wrap gap-x-4 sm:gap-x-8" aria-label="Tabs">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -113,7 +115,7 @@ export default function MyResourcesPage() {
                   aria-current={activeTab === tab.id ? 'page' : undefined}
                 >
                   {tab.icon}
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </nav>

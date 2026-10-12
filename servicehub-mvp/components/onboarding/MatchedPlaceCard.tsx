@@ -96,7 +96,7 @@ export default function MatchedPlaceCard({
         )}
         <div className="min-w-0">
           <h3 className="font-semibold text-gray-900">
-            <Link href={href} onClick={markFromSetup} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
+            <Link href={href} onClick={markFromSetup} className="underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
               {place.name}
             </Link>
           </h3>

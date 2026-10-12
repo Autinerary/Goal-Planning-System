@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 export default function AccountLink() {
   const { user } = useAuth()
   return (
-    <Link href={user ? '/path' : '/login'} className="text-sm font-medium text-indigo-800 underline-offset-4 hover:underline">
+    <Link href={user ? '/path' : '/login'} className="text-sm font-medium text-indigo-800 underline-offset-4 underline">
       {user ? 'Back to your Path' : 'Sign in'}
     </Link>
   )

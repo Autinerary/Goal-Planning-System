@@ -146,7 +146,7 @@ export default function LoginPage() {
               </div>
               {/* There was no way back in without ResourceHub (Riipen Labs, Group 34). */}
               <p className="mt-2 text-right text-sm">
-                <Link href="/forgot-password" className="font-medium text-blue-700 underline-offset-2 hover:underline">
+                <Link href="/forgot-password" className="font-medium text-blue-700 underline-offset-2 underline">
                   Forgot password?
                 </Link>
               </p>

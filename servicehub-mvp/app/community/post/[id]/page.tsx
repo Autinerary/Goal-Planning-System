@@ -204,7 +204,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
           <Link
             href={`/community/profile/${post.author.user_id}${contextQuery}`}
-            className="font-medium text-blue-700 hover:underline"
+            className="font-medium text-blue-700 underline underline-offset-2"
           >
             {post.author.pseudonym}
           </Link>

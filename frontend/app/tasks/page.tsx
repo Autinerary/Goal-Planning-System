@@ -173,7 +173,7 @@ export default function TasksPage() {
                 {tasksToRender.length === 0 && (
                   <div className="text-center py-8 px-2">
                     <p className="text-sm text-slate-500 mb-3">No tasks scheduled yet.</p>
-                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 hover:underline">
+                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">
                       Open your Calendar →
                     </Link>
                   </div>
@@ -267,7 +267,7 @@ export default function TasksPage() {
                 {goalsToRender.length === 0 && (
                   <div className="text-center py-8 px-2">
                     <p className="text-sm text-slate-500 mb-3">No goals set yet.</p>
-                    <Link href="/onboarding?step=3" className="text-xs font-semibold text-cyan-600 hover:underline">
+                    <Link href="/onboarding?step=3" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">
                       Add your goals →
                     </Link>
                   </div>

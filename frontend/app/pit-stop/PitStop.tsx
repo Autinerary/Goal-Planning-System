@@ -906,10 +906,13 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                       Filter resources by life domain: insurance &amp; legacy planning, workplace
                       fit, independent living, and after-school activities, in ResourceHub Search.
                     </p>
+                    {/* Said on a phone too: hidden there, the card read as text
+                        (Riipen Labs, Group 33: the same on a phone and a
+                        computer, and actions that look like actions). */}
+                    <span className="mt-3 inline-block text-sm font-semibold text-cyan-800 underline underline-offset-2">
+                      Open ResourceHub search →<span className="sr-only"> (opens in a new tab)</span>
+                    </span>
                   </div>
-                  <span className="hidden sm:block text-xs font-medium text-cyan-700 group-hover:underline whitespace-nowrap">
-                    Open search →
-                  </span>
                 </div>
               </div>
             </a>
@@ -958,7 +961,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                                     a distinction the data does not carry. */}
                                 <span aria-hidden="true" className="mt-0.5 flex-shrink-0 text-base leading-none">{b.icon}</span>
                                 <div className="min-w-0">
-                                <a href={resolveToolLink(t.url, t.name).href} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 hover:underline">{t.name}</a>
+                                <a href={resolveToolLink(t.url, t.name).href} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 underline underline-offset-2">{t.name}</a>
                                 {t.description && <div className="text-xs text-slate-600 line-clamp-2">{t.description}</div>}
                                 {/* What this helps with (agent-generated, when present) */}
                                 {Array.isArray(t.helpsWith) && t.helpsWith.length > 0 && (
@@ -1047,6 +1050,11 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     <p className="text-sm text-slate-600 mt-1">
                       Read tagged barriers, ask for help, and learn what worked in our autistic community Q&amp;A.
                     </p>
+                    {/* On a phone the action beside the card is hidden, so it is
+                        said here (Riipen Labs, Group 33). */}
+                    <span className="mt-3 inline-block text-sm font-semibold text-emerald-800 underline underline-offset-2 sm:hidden">
+                      View related posts →
+                    </span>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1">
                     <span className="text-3xl">💡</span>

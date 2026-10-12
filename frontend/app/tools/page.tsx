@@ -255,7 +255,7 @@ function ToolsContent() {
                 href={goHubHref('/')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-3 text-blue-600 hover:underline font-medium"
+                className="inline-block mt-3 text-blue-600 underline underline-offset-2 font-medium"
               >
                 Browse ResourceHub →
               </a>

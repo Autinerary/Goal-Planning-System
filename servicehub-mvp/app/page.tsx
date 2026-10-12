@@ -711,8 +711,8 @@ export default async function Home() {
                   className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-lg sm:rounded-l-none font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center"
                   aria-label="Search"
                 >
-                  <Search className="w-5 h-5 sm:mr-2" aria-hidden="true" />
-                  <span className="hidden sm:inline">Search</span>
+                  <Search className="w-5 h-5 mr-2" aria-hidden="true" />
+                  <span>Search</span>
                 </button>
               </form>
             </div>

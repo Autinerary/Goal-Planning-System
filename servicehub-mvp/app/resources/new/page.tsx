@@ -268,7 +268,7 @@ export default function NewResourcePage() {
               </ol>
               <p className="mt-3 text-xs text-gray-500">
                 Track status anytime under{' '}
-                <Link href="/my-resources" className="text-blue-600 hover:underline">
+                <Link href="/my-resources" className="text-blue-600 underline underline-offset-2">
                   My Resources
                 </Link>
                 .

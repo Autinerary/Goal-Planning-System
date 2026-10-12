@@ -49,7 +49,7 @@ export default function ChildSupervisionPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-4 text-center">
         <p className="text-slate-600">{error}</p>
-        <Link href="/family" className="text-sm font-semibold text-purple-600 hover:underline">← Back to Family</Link>
+        <Link href="/family" className="text-sm font-semibold text-purple-600 underline underline-offset-2">← Back to Family</Link>
       </div>
     )
   }

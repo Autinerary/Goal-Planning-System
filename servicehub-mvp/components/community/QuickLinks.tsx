@@ -49,7 +49,7 @@ export default function QuickLinks({ source }: { source: string }) {
           <li key={h.id} style={{ paddingLeft: `${(h.level - minLevel) * 12}px` }}>
             <a
               href={`#${h.id}`}
-              className="text-sm text-blue-700 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              className="text-sm text-blue-700 underline-offset-2 underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
               {h.text}
             </a>

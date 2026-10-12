@@ -516,7 +516,7 @@ export default function JournalHistory() {
                     <div className="mt-6 pt-4 border-t border-slate-300">
                       <Link 
                         href={`/reflection?contextType=${journal.contextType}&journalId=${journal.id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium flex items-center gap-1"
+                        className="text-blue-600 hover:text-blue-800 underline underline-offset-2 text-sm font-medium flex items-center gap-1"
                       >
                         View full entry →
                       </Link>
@@ -532,7 +532,7 @@ export default function JournalHistory() {
           <div className="text-center py-16 rounded-xl surface">
             <div className="text-6xl mb-4">📝</div>
             <p className="text-slate-700 text-lg mb-4">No journal entries found for this filter.</p>
-            <Link href="/reflection" className="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-2">
+            <Link href="/reflection" className="text-blue-600 hover:text-blue-800 underline underline-offset-2 font-medium inline-flex items-center gap-2">
               Write your first reflection →
             </Link>
           </div>
