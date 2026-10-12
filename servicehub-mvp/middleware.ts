@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { A11Y_COOKIE, cleanA11y } from '@/lib/a11y'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -9,6 +10,14 @@ export async function middleware(request: NextRequest) {
   })
 
   const { pathname } = request.nextUrl
+
+  // The app's accessibility settings come with its hand-off link (lib/a11y.ts).
+  // They are kept for a year and the page reopens without them; with session
+  // tokens too, the redirect below carries the cookie.
+  const a11yRaw = request.nextUrl.searchParams.get('a11y')
+  const a11yCookie = a11yRaw === null ? null : {
+    name: A11Y_COOKIE, value: cleanA11y(a11yRaw), path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' as const,
+  }
 
   // Cross-app hand-off. Goal Planning's /go/servicehub sends people to the
   // page they asked for with their Supabase session in the link. ProfileSync
@@ -52,8 +61,10 @@ export async function middleware(request: NextRequest) {
         const clean = request.nextUrl.clone()
         clean.searchParams.delete('access_token')
         clean.searchParams.delete('refresh_token')
+        clean.searchParams.delete('a11y')
         const redirect = NextResponse.redirect(clean)
         for (const c of jar) redirect.cookies.set({ name: c.name, value: c.value, ...c.options })
+        if (a11yCookie) redirect.cookies.set(a11yCookie)
         return redirect
       }
     } catch (e) {
@@ -62,6 +73,17 @@ export async function middleware(request: NextRequest) {
     } finally {
       if (handoffTimer) clearTimeout(handoffTimer)
     }
+  }
+
+  // Settings with no session, or a hand-off that didn't go through: keep
+  // them and reopen the page without them (session tokens, if any, stay for
+  // ProfileSync to try in the browser).
+  if (a11yCookie) {
+    const clean = request.nextUrl.clone()
+    clean.searchParams.delete('a11y')
+    const redirect = NextResponse.redirect(clean)
+    redirect.cookies.set(a11yCookie)
+    return redirect
   }
 
   // Work out whether this route needs auth BEFORE doing any network calls.

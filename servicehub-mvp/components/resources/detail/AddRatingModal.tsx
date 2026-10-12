@@ -153,7 +153,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
                   </span>
                 ))}
               </div>
-              <p className="text-[11px] text-blue-700/80 mt-1">Your rating helps others who share these norms, broken down by level.</p>
+              <p className="text-[0.6875rem] text-blue-700/80 mt-1">Your rating helps others who share these norms, broken down by level.</p>
 
               {/* How norms are verified + this rater's earned trust (Odosa).
                   We never collect diagnosis documents — see lib/trust. */}
@@ -163,7 +163,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
                   const vm = VERIFICATION_META[method]
                   return (
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`}
+                      className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`}
                       title={vm.description}
                     >
                       {vm.label}
@@ -172,7 +172,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
                 })()}
                 {trust && (
                   <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TRUST_META[trust.tier].className}`}
+                    className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${TRUST_META[trust.tier].className}`}
                     title={TRUST_META[trust.tier].description}
                   >
                     {TRUST_META[trust.tier].label}

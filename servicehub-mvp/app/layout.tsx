@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import { Suspense } from 'react'
 import ProfileSync from '@/components/layout/ProfileSync'
 import VisitTracker from '@/components/layout/VisitTracker'
+import { A11Y_SCRIPT } from '@/lib/a11y'
 
 export const metadata: Metadata = {
   title: "ResourceHub",
@@ -26,7 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the script below sets <html>'s accessibility
+    // attributes before React loads.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* The app's accessibility settings (lib/a11y.ts), before the first
+            paint, so dark mode doesn't flash white or text jump in size. */}
+        <script dangerouslySetInnerHTML={{ __html: A11Y_SCRIPT }} />
+      </head>
       <body>
         {/* Skip to main content link for keyboard navigation */}
         <a

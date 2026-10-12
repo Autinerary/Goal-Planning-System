@@ -173,12 +173,12 @@ export default function RecommendationResult({
               if (reasons.length === 0) return null
               return (
                 <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">
+                  <div className="text-[0.625rem] font-bold uppercase tracking-wide text-blue-700 mb-1">
                     Why this was recommended
                   </div>
                   <ul className="space-y-0.5">
                     {reasons.map((r, i) => (
-                      <li key={i} className="text-[11px] text-blue-900 flex gap-1.5">
+                      <li key={i} className="text-[0.6875rem] text-blue-900 flex gap-1.5">
                         <span className="text-blue-400 flex-shrink-0">•</span>
                         <span>{r}</span>
                       </li>

@@ -271,7 +271,7 @@ export default function FilterSidebar({
       {onSourceTypeToggle && selectedCategories.includes('commentary') && (
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-1">Commentary Source</h3>
-          <p className="text-[11px] text-gray-500 mb-2">Where the commentary came from.</p>
+          <p className="text-[0.6875rem] text-gray-500 mb-2">Where the commentary came from.</p>
 
           {/* Odosa: when a source is selected, link out to everything from
               that source. Built from the current selection rather than
@@ -288,7 +288,7 @@ export default function FilterSidebar({
           <div className="space-y-2">
             {SOURCE_TYPE_GROUPS.map((group) => (
               <div key={group.label}>
-                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-gray-400 mb-1">
                   {group.label}
                 </div>
                 <div className="space-y-1 pl-1">
@@ -346,7 +346,7 @@ export default function FilterSidebar({
       {onConnectionTypeToggle && (
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-1">Connection Type to Norm</h3>
-          <p className="text-[11px] text-gray-500 mb-2">Whose experience the ratings come from.</p>
+          <p className="text-[0.6875rem] text-gray-500 mb-2">Whose experience the ratings come from.</p>
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {CONNECTION_TYPES.map((c) => (
               <label key={c.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">

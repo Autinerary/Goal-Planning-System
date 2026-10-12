@@ -207,7 +207,7 @@ export default function RatingsBreakdown({
               </p>
               {/* Say plainly where these norms come from, rather than implying
                   clinical verification we don't do (Odosa). */}
-              <p className="text-[11px] text-gray-400 mb-4">
+              <p className="text-[0.6875rem] text-gray-400 mb-4">
                 Norms are self-identified. We don&apos;t ask for diagnosis paperwork — assessment is
                 costly and hard to access, and self-identification is valid here.
               </p>
@@ -230,7 +230,7 @@ export default function RatingsBreakdown({
                       {isOpen && (
                         <div className="px-4 py-3 space-y-4">
                           <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                            <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
                               All levels
                             </div>
                             {areaRows(sortedAreas(d.areas))}
@@ -239,7 +239,7 @@ export default function RatingsBreakdown({
                             .filter((l) => l.level >= 1)
                             .map((l) => (
                               <div key={l.level}>
-                                <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                                <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
                                   Level {l.level} · {l.count} {l.count === 1 ? 'rater' : 'raters'}
                                 </div>
                                 {areaRows(sortedAreas(l.areas))}
@@ -275,7 +275,7 @@ export default function RatingsBreakdown({
                     >
                       <div className="min-w-0 flex items-center gap-2">
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.className}`}
+                          className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${meta.className}`}
                           title={meta.description}
                         >
                           {meta.label}

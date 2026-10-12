@@ -113,11 +113,11 @@ export default function OrganizationsPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-gray-900">{o.name}</span>
                       {o.is_verified && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <span className="inline-flex items-center gap-1 text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                           <ShieldCheck className="w-3 h-3" /> Verified
                         </span>
                       )}
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 capitalize">{o.role}</span>
+                      <span className="text-[0.625rem] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 capitalize">{o.role}</span>
                     </div>
                     {o.description && <p className="text-sm text-gray-600 mt-1">{o.description}</p>}
                   </div>

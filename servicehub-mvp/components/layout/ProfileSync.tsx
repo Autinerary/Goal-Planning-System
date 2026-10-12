@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { A11Y_COOKIE, applyA11y, cleanA11y } from '@/lib/a11y'
 
 /**
  * Reads URL params passed by Goal Planning's "Find Resources" button:
@@ -17,6 +18,14 @@ function ProfileSyncInner() {
       const profileParam = searchParams.get('profile')
       const accessToken = searchParams.get('access_token')
       const refreshToken = searchParams.get('refresh_token')
+      const a11y = searchParams.get('a11y')
+
+      // The app's accessibility settings, if the middleware didn't keep them.
+      if (a11y !== null) {
+        const value = cleanA11y(a11y)
+        document.cookie = `${A11Y_COOKIE}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
+        applyA11y(value)
+      }
 
       if (profileParam) {
         try {
@@ -39,9 +48,10 @@ function ProfileSyncInner() {
         }
       }
 
-      if (profileParam || accessToken) {
+      if (profileParam || accessToken || a11y !== null) {
         const url = new URL(window.location.href)
         url.searchParams.delete('profile')
+        url.searchParams.delete('a11y')
         url.searchParams.delete('access_token')
         url.searchParams.delete('refresh_token')
         window.history.replaceState({}, '', url.toString())

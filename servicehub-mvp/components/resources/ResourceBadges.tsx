@@ -19,17 +19,17 @@ export default function ResourceBadges({ trending, highlyRequested, rare }: Reso
   return (
     <div className="flex flex-wrap gap-1.5">
       {trending && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+        <span className="inline-flex items-center gap-1 text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
           <Flame className="w-3 h-3" /> Trending
         </span>
       )}
       {highlyRequested && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+        <span className="inline-flex items-center gap-1 text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
           <TrendingUp className="w-3 h-3" /> Highly requested
         </span>
       )}
       {rare && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+        <span className="inline-flex items-center gap-1 text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
           <Gem className="w-3 h-3" /> Rare find
         </span>
       )}

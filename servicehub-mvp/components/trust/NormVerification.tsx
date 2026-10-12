@@ -149,7 +149,7 @@ export default function NormVerification() {
               <li key={n.type} className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-gray-900">{normLabel(n.type)}</div>
-                  <span className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`} title={vm.description}>
+                  <span className={`inline-block mt-1 text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${vm.className}`} title={vm.description}>
                     {vm.label}
                   </span>
 
@@ -157,7 +157,7 @@ export default function NormVerification() {
                       Tidbits answers are weighted — so we ask rather than assume. */}
                   <div className="mt-2">
                     {!n.relationshipDeclared && (
-                      <p className="text-[11px] text-amber-700 mb-1">
+                      <p className="text-[0.6875rem] text-amber-700 mb-1">
                         How do you relate to this norm?
                       </p>
                     )}
@@ -170,7 +170,7 @@ export default function NormVerification() {
                             key={r}
                             onClick={() => declareRelationship(n.type, r)}
                             title={rm.description}
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                            className={`text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
                               active
                                 ? rm.className
                                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
@@ -212,7 +212,7 @@ export default function NormVerification() {
                           Ask a peer
                         </button>
                         {typeof n.peerVouches === 'number' && n.peerVouches > 0 && n.method !== 'peer' && (
-                          <span className="text-[10px] text-gray-500">
+                          <span className="text-[0.625rem] text-gray-500">
                             {n.peerVouches} of 2 vouches
                           </span>
                         )}

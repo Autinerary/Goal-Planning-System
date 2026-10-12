@@ -21,7 +21,7 @@ export default function RelationshipBadge({
   if (!meta) return null
   return (
     <span
-      className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.className} ${className}`}
+      className={`inline-flex items-center text-[0.625rem] font-semibold px-2 py-0.5 rounded-full border ${meta.className} ${className}`}
       title={meta.description}
     >
       {meta.label}

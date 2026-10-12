@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { loadPreferences } from '@/lib/preferences'
+import { a11yParam } from '@/lib/a11yHandoff'
 
 const SH = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
 
@@ -26,7 +28,10 @@ function Redirector() {
   useEffect(() => {
     const raw = params.get('next') || '/'
     const next = raw.startsWith('/') ? raw : `/${raw}`
-    const plain = `${SH}${next}`
+    // Text size, contrast, dark mode and the rest go along, signed in or not.
+    const withSettings = new URL(`${SH}${next}`)
+    withSettings.searchParams.set('a11y', a11yParam(loadPreferences().accessibility))
+    const plain = withSettings.toString()
     let navigated = false
 
     const go = (url: string) => {

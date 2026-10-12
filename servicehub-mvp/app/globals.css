@@ -237,3 +237,70 @@ input[type="radio"] {
   border-radius: 8px;
   margin: 0.5em 0;
 }
+
+/* ── The app's accessibility settings (lib/a11y.ts), the same rules as the
+   app's globals.css. Riipen Labs, Group 32: Large text and the other
+   settings didn't reach ResourceHub. ── */
+html[data-font-scale="large"] { font-size: 18px; }
+html[data-font-scale="xlarge"] { font-size: 20px; }
+
+/* Dark mode: the page as its negative with the hues turned back; photos,
+   maps and video turned back again. */
+html[data-dark-mode="on"] {
+  filter: invert(1) hue-rotate(180deg) contrast(0.92);
+  background: #fff;
+}
+html[data-dark-mode="on"] img,
+html[data-dark-mode="on"] video,
+html[data-dark-mode="on"] picture,
+html[data-dark-mode="on"] canvas,
+html[data-dark-mode="on"] iframe,
+html[data-dark-mode="on"] .keep-colors {
+  filter: invert(1) hue-rotate(180deg);
+}
+html[data-dark-mode="on"] .keep-colors img,
+html[data-dark-mode="on"] .keep-colors .keep-colors {
+  filter: none;
+}
+
+/* High contrast: darker grey text and borders, plain links dark blue; a link
+   drawn as a button keeps its own colours. */
+html[data-high-contrast="on"] body { filter: contrast(1.15); }
+html[data-high-contrast="on"] a:not([class*="bg-"]):not([class*="text-white"]) { color: #0b3d91; }
+html[data-high-contrast="on"] :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600) { color: #1e293b; }
+html[data-high-contrast="on"] :is(.border-slate-100, .border-slate-200, .border-gray-100, .border-gray-200) { border-color: #64748b; }
+
+html[data-reduce-motion="on"] *,
+html[data-reduce-motion="on"] *::before,
+html[data-reduce-motion="on"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-dyslexia-font="on"],
+html[data-dyslexia-font="on"] body {
+  font-family: 'Comic Sans MS', 'Trebuchet MS', Verdana, sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}
+
+html[data-underline-links="on"] a { text-decoration: underline; }
+
+/* Touch screens: buttons, tabs, menus, fields and links drawn as buttons at
+   least 44 px (Riipen Labs, Group 33), as in the app. Text-style buttons
+   get the reach without moving text; tap-dense drawings keep their sizes. */
+@media (pointer: coarse) {
+  :is(button, [role="button"], [role="tab"], summary, select, a[class*="bg-"], a[class*="border"], a[class*="rounded"]):not([class*="underline"]):not(.tap-dense *),
+  input:is([type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"], [type="date"], [type="time"], :not([type])):not(.tap-dense *) {
+    min-height: 44px;
+  }
+  :is(button, [role="button"]):not([class*="underline"]):not(.tap-dense *) {
+    min-width: 44px;
+  }
+  :is(button, a, summary)[class*="underline"]:not(.tap-dense *) {
+    padding-block: 0.75rem;
+    margin-block: -0.75rem;
+  }
+}

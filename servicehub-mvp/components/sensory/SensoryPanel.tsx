@@ -207,7 +207,7 @@ export default function SensoryPanel({
                 </p>
               )}
 
-              <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400">
+              <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.6875rem] text-gray-400">
                 <span className="inline-flex items-center gap-1">
                   <Ear className="h-3 w-3" aria-hidden="true" /> measured, not rated
                 </span>
