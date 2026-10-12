@@ -58,6 +58,12 @@ share of users who saved a resource in their first week" once measured, and
 testing the AI goal helper against the standard goal step. Those are the
 next-day and 14-day columns, "Bringing people back" and "The goal helper".
 
+Group 33 asked for "mobile metrics" and to "track onboarding completion rate
+and time-to-first-action". The funnel is also split by device (phone, tablet
+or computer, recorded from STEP 69). Group 31 asked to keep letting people
+send feedback; what they send from the glossary at any time ("Tell us how
+it's going", STEP 69) is counted apart from the check-ins the app asks for.
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
 public.checkin_responses (STEP 46) and profiles.preferences. Counts only: no
 user ids, emails or visitor ids are printed. Survey and check-in comments are
@@ -108,6 +114,8 @@ AUDIENCE_LABELS = {
     "unsure": "not sure yet",
 }
 NOT_ANSWERED = "(not answered)"
+# Events from before STEP 69 have no device.
+NOT_RECORDED = "(not recorded)"
 
 # "Start here" answers, as in frontend/lib/startHere.ts. Its "family" covers
 # friends too.
@@ -238,6 +246,8 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         names = {e["event"] for e in evs}
         steps = {e.get("step") for e in evs if e["event"] == "onboarding_step_view"}
         channel = next((e.get("channel") for e in evs if e.get("channel")), None) or "(none)"
+        # Phone, tablet or computer (STEP 69; Group 33: "mobile metrics").
+        device = next((e.get("device") for e in evs if e.get("device")), None) or NOT_RECORDED
         user_id = next((e.get("user_id") for e in evs if e.get("user_id")), None)
         signup_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "signup_complete"), None)
         returned = returned_long = returned_next_day = False
@@ -295,6 +305,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         people.append({
             "user_id": user_id,
             "channel": channel,
+            "device": device,
             "audience": AUDIENCE_LABELS.get(audience, NOT_ANSWERED),
             "landing": "landing_view" in names,
             "signup_view": "signup_view" in names,
@@ -351,6 +362,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         "overall": stage_counts(people),
         "by_channel": grouped("channel"),
         "by_audience": grouped("audience"),
+        "by_device": grouped("device"),
         "people": people,
         "first_event": min(all_times) if all_times else None,
         "last_event": max(all_times) if all_times else None,
@@ -486,6 +498,10 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.extend(_comparison("By who they are here for", funnel.get("by_audience", {}), feedback.get("by_audience", {})))
     out.append("")
     out.extend(_comparison("By channel (utm_source of the first visit)", funnel["by_channel"], feedback.get("by_channel", {})))
+    out.append("")
+    # Group 33 asked for "mobile metrics": setup and returns on a phone and a
+    # computer. Recorded from STEP 69; earlier events are "(not recorded)".
+    out.extend(_comparison("By device (phone, tablet or computer)", funnel.get("by_device", {}), {}))
     out.append("  (clarity ok = answered \"about right\" to how much they knew before making an account;")
     out.append("   knows next = answered \"yes\" to \"Do you know what to do next?\" after setup;")
     out.append(f"   groups smaller than {MIN_CELL} show {SMALL})")
@@ -1139,6 +1155,9 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
 
     stopped = [r for r in rows if r.get("kind") in ("inactive_email", "welcome_back")]
     useful = [r for r in rows if r.get("kind") == "usefulness"]
+    # "Tell us how it's going" in the glossary (STEP 69): people who came to
+    # say something, so not mixed into the share who find it useful.
+    sent = [r for r in rows if r.get("kind") == "feedback"]
     joined_by_user = joined_by_user or {}
 
     def early(r: dict) -> bool:
@@ -1160,6 +1179,8 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
         "usefulness": Counter(r["usefulness"] for r in useful if r.get("usefulness")),
         "usefulness_early": Counter(r["usefulness"] for r in useful if r.get("usefulness") and early(r)),
         "by_audience": dict(by_audience),
+        "sent": len(sent),
+        "sent_usefulness": Counter(r["usefulness"] for r in sent if r.get("usefulness")),
         "comments": [(r["kind"], r["comment"]) for r in rows if r.get("comment")],
     }
 
@@ -1194,6 +1215,12 @@ def render_checkins(c: Dict, show_comments: bool) -> str:
             u = m["usefulness"]
             out.append(f"  {g[:20]:<20} {n_stop:>7}  {top_label[:30]:<30} {sum(u.values()):>7}  "
                        f"{u.get('very', 0)}/{u.get('somewhat', 0)}/{u.get('not_yet', 0)}")
+    sent_total = sum(c.get("sent_usefulness", Counter()).values())
+    out.append("")
+    out.append(f"== Sent at any time (\"Tell us how it's going\" in the glossary): {c.get('sent', 0)} answers")
+    if c.get("sent", 0):
+        out.append("  " + "   ".join(f"{label}: {c['sent_usefulness'].get(key, 0)} ({pct(c['sent_usefulness'].get(key, 0), sent_total)})"
+                                    for key, label in USEFULNESS))
     out.append(f"  comments: {len(c['comments'])}" + ("" if show_comments else "  (use --show-comments to read them)"))
     if show_comments:
         for kind, text in c["comments"]:
@@ -1226,8 +1253,13 @@ def main() -> int:
         print("Supabase not configured.")
         return 1
     try:
-        events = fetch_all(sb, "onboarding_events",
-                           "visitor_id, user_id, event, step, channel, onboarding_version, created_at")
+        try:
+            events = fetch_all(sb, "onboarding_events",
+                               "visitor_id, user_id, event, step, channel, device, onboarding_version, created_at")
+        except Exception:
+            # device comes with STEP 69.
+            events = fetch_all(sb, "onboarding_events",
+                               "visitor_id, user_id, event, step, channel, onboarding_version, created_at")
         try:
             feedback = fetch_all(sb, "onboarding_feedback",
                                  "user_id, info_before_signup, setup_ease, comment, onboarding_version, next_step")

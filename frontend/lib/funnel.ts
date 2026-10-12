@@ -143,6 +143,21 @@ function firstTouch(): FirstTouch {
   }
 }
 
+/**
+ * Phone, tablet or computer, from the screen and whether it is a touch
+ * screen (Riipen Labs, Group 33: "mobile metrics", so the funnel report can
+ * compare setup on a phone and a computer; STEP 69). The screen, not the
+ * window, so a narrow window on a computer still counts as a computer.
+ */
+export function deviceClass(): 'phone' | 'tablet' | 'computer' {
+  try {
+    if (!window.matchMedia('(pointer: coarse)').matches) return 'computer'
+    return Math.min(window.screen.width, window.screen.height) < 600 ? 'phone' : 'tablet'
+  } catch {
+    return 'computer'
+  }
+}
+
 export function track(event: FunnelEvent, step?: string): void {
   if (typeof window === 'undefined' || optedOut()) return
   // The same event to Google Analytics, only if it is on and allowed (lib/analytics.ts).
@@ -157,7 +172,7 @@ export function track(event: FunnelEvent, step?: string): void {
       // keepalive lets the request finish if the page navigates straight
       // after (e.g. "signup_complete" followed by a redirect).
       keepalive: true,
-      body: JSON.stringify({ visitorId: id, event, step: step ?? null, ...touch, version: ONBOARDING_VERSION }),
+      body: JSON.stringify({ visitorId: id, event, step: step ?? null, ...touch, device: deviceClass(), version: ONBOARDING_VERSION }),
     }).catch(() => {})
   } catch {}
 }

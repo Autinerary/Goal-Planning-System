@@ -1129,7 +1129,7 @@ function RacesContent() {
                     Curated tools, services &amp; support matched to the barriers you face and your goals.
                   </p>
                   <GameButton tone="amber" size="sm" href={goHubHref('/')} className="w-full">
-                    Enter →
+                    Open ResourceHub →
                   </GameButton>
                 </GamePanel>
 
@@ -1139,7 +1139,7 @@ function RacesContent() {
                     Your role models, mentors &amp; people. See how they&apos;re getting on and learn from them.
                   </p>
                   <GameButton tone="violet" size="sm" href="/hare-world" className="w-full">
-                    Enter →
+                    Open Hare World →
                   </GameButton>
                 </GamePanel>
               </div>
@@ -1148,7 +1148,7 @@ function RacesContent() {
 
           {/* ═══════════════════
               SHARED TOP (2 of 2) — Dream Self, hovering figure through
-              "See more" ONLY. Odosa: both views get this, second.
+              "See your Dream Self" ONLY. Odosa: both views get this, second.
               The Stats / goals grid / "Add another goal" / "Today's
               Motivation" that used to sit under it in Track View are
               deleted — the block above already covers stats, and the race
@@ -1168,7 +1168,7 @@ function RacesContent() {
             <div className={`text-lg font-bold ${day ? 'text-indigo-700' : 'text-indigo-200'}`}>Dream Self</div>
             <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
             <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} hover:underline`}>
-              See more
+              See your Dream Self
             </Link>
             {/* Path view already surfaces the multi-path switcher; Races did
                 not (Odosa asked for it at the top of Path and/or Race view). */}

@@ -107,14 +107,18 @@ export default function GoalHelper({
 
   if (!open) {
     return (
+      // One outlined button, with "AI helper" inside it as words, not as a
+      // second pill: underlined text with a pill beside it read as a link
+      // and a separate button (Riipen Labs, Group 33: "clickable options
+      // blending into static text").
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+        className="mb-6 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border-2 border-violet-400 bg-white px-4 py-3 text-left text-sm font-semibold text-violet-950 shadow-sm hover:bg-violet-50"
       >
-        <MessageSquareText className="h-4 w-4" aria-hidden="true" />
+        <MessageSquareText className="h-4 w-4 shrink-0" aria-hidden="true" />
         Not sure how to put it? Describe it in your own words
-        <span className="rounded-full border border-violet-300 bg-violet-50 px-2 py-0.5 inline-block text-xs font-semibold text-violet-900">AI helper</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-violet-800">AI helper</span>
       </button>
     )
   }
@@ -123,7 +127,7 @@ export default function GoalHelper({
     <section aria-labelledby="goal-helper-heading" className="mb-6 rounded-xl border border-violet-200 bg-violet-50 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <h3 id="goal-helper-heading" className="font-semibold text-slate-900">Describe it in your own words</h3>
-        <span className="rounded-full border border-violet-300 bg-white px-2 py-0.5 text-xs font-semibold text-violet-900">AI helper</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-violet-800">AI helper</span>
       </div>
       <p className="mt-1 text-sm text-slate-800">
         For example: &ldquo;I want a job, but interviews stress me out.&rdquo; The helper suggests goals from

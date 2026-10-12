@@ -127,7 +127,7 @@ const STEPS: DemoStep[] = [
     emoji: '🚀',
     title: 'You’re ready!',
     overview:
-      'That’s the tour. Start checking off milestones and watch your Dream Land come to life. You can replay this anytime from “How it works”.',
+      'That’s the tour. Start checking off milestones and watch your Dream Land come to life. You can replay this anytime from “How it works” in the top bar (“Guide” on a phone).',
   },
 ]
 
@@ -365,7 +365,7 @@ export default function InteractiveDemo() {
               onClick={finish}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
             >
-              Get started
+              Finish the tour
             </button>
           ) : (
             <button

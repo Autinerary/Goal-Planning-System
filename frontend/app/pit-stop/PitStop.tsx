@@ -2110,7 +2110,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   }}
                   className="px-6 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-all"
                 >
-                  OK
+                  Close
                 </button>
               </div>
             </div>
@@ -2877,7 +2877,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 onClick={() => setShowFeatureModal('mentor-call')}
                 className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium"
               >
-                View
+                View call
               </button>
             </div>
           </div>

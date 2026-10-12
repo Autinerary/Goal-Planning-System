@@ -124,7 +124,7 @@ export default function MatchedPlaceCard({
           onClick={markFromSetup}
           className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          Open
+          See details<span className="sr-only"> about {place.name}</span>
         </Link>
         {place.kind === 'place' &&
           (saved ? (

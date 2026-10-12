@@ -5,12 +5,11 @@ import { useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from '../context/LanguageContext'
-import { LogOut, User, ExternalLink, Settings, PlayCircle, Film, Users } from 'lucide-react'
+import { LogOut, User, ExternalLink, Settings, PlayCircle } from 'lucide-react'
 import InfoModeButton from './InfoModeButton'
 import VoiceNavigation from './VoiceNavigation'
 import NotificationBell from './NotificationBell'
 import { goHubHref } from '@/lib/serviceHub'
-import { useDisclosure } from '@/lib/disclosure'
 import { useCssHeightVar } from '@/lib/useCssHeightVar'
 
 function goToServiceHub() {
@@ -28,10 +27,9 @@ const ITEM = 'flex min-w-[2.75rem] flex-col sm:flex-row items-center justify-cen
 const hideNavRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/auth/age', '/onboarding', '/checkin']
 
 export default function Navigation() {
-  const { user, supabaseUser, logout, isLoading } = useAuth()
+  const { user, logout, isLoading } = useAuth()
   const { t } = useTranslation()
   const pathname = usePathname()
-  const { isSimple } = useDisclosure()
   const navRef = useRef<HTMLElement>(null)
   // Setup finished, or skipped for now (Riipen Labs, Group 33): the bar was
   // hidden until setup was done, so the app was a dead end without a plan.
@@ -75,7 +73,7 @@ export default function Navigation() {
 
             <button
               onClick={goToServiceHub}
-              aria-label="Find resources"
+              aria-label="Find resources in ResourceHub"
               data-info="Opens ResourceHub to find services and tools for your goals."
               className={`${ITEM} font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800`}
             >
@@ -96,27 +94,12 @@ export default function Navigation() {
 
             <NotificationBell />
 
-            {/* Family — supervise children (hidden for managed child accounts) */}
-            {!isSimple && !supabaseUser?.user_metadata?.managed_by_guardian && !supabaseUser?.app_metadata?.managed_by_guardian && (
-              <Link
-                href="/family"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
-                title="Family: add & supervise children"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden lg:inline">Family</span>
-              </Link>
-            )}
-
-            {!isSimple && <Link
-              href="/reels"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-white/40 rounded-lg transition-all"
-              title="Progress Reels"
-            >
-              <Film className="w-4 h-4 anim-reel" />
-              <span className="hidden lg:inline">Reels</span>
-            </Link>}
-
+            {/* Family and Reels were here too, as icons only below 1024 pixels,
+                and pushed the bar to three rows on a phone (Riipen Labs, Group
+                32: "the navigation bar is condensed with various options";
+                Group 33: the same layout on a phone and a computer, and less
+                clutter on small screens). Both are places, so they are in All
+                places on the Path, and Family is a Quick Link for parents. */}
             <InfoModeButton />
             <VoiceNavigation />
 

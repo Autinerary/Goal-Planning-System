@@ -573,7 +573,7 @@ function TeamCard({ row }: { row: BuildTeamRow }) {
             href={resource ? `/resources/${resource.id}` : '#'}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700"
           >
-            Learn More
+            See details<span className="sr-only"> about {resource?.name ?? 'this service'}</span>
           </Link>
         </div>
       </div>

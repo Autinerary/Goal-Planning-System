@@ -469,9 +469,11 @@ useEffect(() => {
                   Running more than one path at a time is part of Multi-Path Management.
                 </p>
               </div>
-              <button className="ml-auto px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-lg hover:shadow-md transition-all text-xs whitespace-nowrap">
-                Learn More
-              </button>
+              {/* This "Learn More" button did nothing (Riipen Labs, Group 31:
+                  "fix the small technical issues"). The paths can be compared. */}
+              <Link href="/paths/compare" className="ml-auto px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold rounded-lg hover:shadow-md transition-all text-xs whitespace-nowrap">
+                Compare your paths
+              </Link>
             </div>
           )
         )}

@@ -1137,7 +1137,7 @@ function CalendarContent() {
                     onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, -1) : addDays(anchorDate, -7))}
                     className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
                   >
-                    ← Previous
+                    ← {viewType === 'month' ? 'Previous month' : 'Previous week'}
                   </button>
                   <div className="text-sm font-bold text-slate-700">
                     {viewType === 'month'
@@ -1155,7 +1155,7 @@ function CalendarContent() {
                       onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, 1) : addDays(anchorDate, 7))}
                       className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
                     >
-                      Next →
+                      {viewType === 'month' ? 'Next month' : 'Next week'} →
                     </button>
                   </div>
                 </div>

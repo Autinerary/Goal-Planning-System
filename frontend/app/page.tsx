@@ -498,7 +498,7 @@ export default function HomePage() {
                 Your path is generated in about a minute. You land on a summary that starts with what you said
                 you were looking for (a plan, services, or advice from others), with starter resources picked from
                 your answers, and shows your first milestone, with an optional one-minute tour of each screen. You can
-                replay the tour anytime from “How it works”. Optional questions, like your location or sensory needs,
+                replay the tour anytime from “How it works” in the top bar (“Guide” on a phone). Optional questions, like your location or sensory needs,
                 come back gently over your first two weeks.
               </p>
             </details>
@@ -537,7 +537,8 @@ export default function HomePage() {
               </summary>
               <p className="mt-3 text-slate-700">
                 To find where setup is confusing, we count page visits, sign-ups, which setup step people reach,
-                and return visits, plus which link someone first arrived from (for example TikTok or Facebook).
+                and return visits, plus which link someone first arrived from (for example TikTok or Facebook) and
+                whether it was a phone, a tablet or a computer.
                 In &ldquo;Start here&rdquo; we count the answers chosen, which starter resources are opened, and
                 whether people found them useful. Once you have an account, we count which parts of the app you
                 open. These counts never include anything you type. There are no advertising trackers on this site, and if

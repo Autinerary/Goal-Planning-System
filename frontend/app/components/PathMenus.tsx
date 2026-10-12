@@ -31,6 +31,9 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
       { label: 'Ask the assistant', href: '/assistant' },
       { label: 'What things are called', href: '/help' },
       { label: 'Talk to someone now', href: '/help#talk-now' },
+      // Riipen Labs, Group 31: let people "continuously send feedback about
+      // what they liked/found overwhelming" (the glossary's form, STEP 69).
+      { label: 'Tell us what’s hard', href: '/help#tell-us' },
     ],
   },
   {

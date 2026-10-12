@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { goHubHref } from '@/lib/serviceHub'
 import { CONTACT_EMAIL } from '@/lib/contact'
+import TellUsForm from '../components/TellUsForm'
 
 export const metadata: Metadata = {
   title: 'What things are called · Autinerary',
@@ -138,7 +139,11 @@ export default function HelpPage() {
           </p>
         </Section>
 
-        <Section id="plan" title="Your plan">
+        {/* Riipen Labs, Group 32: people should know "value requires
+            engagement, the overall benefits they receive from the service
+            directly correlate with the time and effort they invest". Each
+            part of this is something the app does (STEP_PURPOSE in setup). */}
+        <Section id="plan" title="Your plan" intro="What you get grows with what you put in. Each step you tick off brings up the next one, and each optional answer, like your norms or your city, makes the tools and services suggested fit you better.">
           <Terms items={[
             { term: 'Path', body: 'Your home page in the app. It shows your next step, a check-in when one is due, and Quick Links to everything else.', href: '/path', linkText: 'Open your Path' },
             { id: 'races', term: 'Races', body: 'Your goals, each set out as a race made of milestones, so a big goal becomes small steps. It is your own race, at your own pace: not a contest with anyone.', href: '/races', linkText: 'Open Races' },
@@ -216,7 +221,7 @@ export default function HelpPage() {
         <Section id="help-on-pages" title="Help on every page">
           <Terms items={[
             { term: 'Help', body: 'At the top of every page. Turn it on, then tap any button: you see what it does first, and tap again to use it.' },
-            { term: 'How it works', body: 'A one-minute tour of each part of the app. It starts once by itself, and you can replay it any time from the top of the app.' },
+            { term: 'How it works', body: 'A one-minute tour of each part of the app. It starts once by itself, and you can replay it any time from the top bar, where the button says “How it works”, or “Guide” on a phone. “Show me” beside each part points at it on the page.' },
             { term: 'Back', body: 'Most pages have a Back button at the top left. The bar of tabs above Path, Calendar and Tasks moves between them.' },
             { term: 'Settings', body: 'How the app looks, language, reminders and emails, spirit animals, and backing up your data.', href: '/profile/settings', linkText: 'Open Settings' },
           ]} />
@@ -248,14 +253,21 @@ export default function HelpPage() {
           <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">
             <li>Setup is two questions, and you can skip it and look around first.</li>
             <li>The Path has one set of links, Quick Links, instead of two ways to the same places.</li>
+            <li>Quick Links come in the order that suits who you are here for, and you can change that in Settings.</li>
             <li>Back takes you to the page you came from, and never round in a loop.</li>
             <li>Larger text, high contrast and dark mode also work in ResourceHub.</li>
             <li>Races uses words like “Learn from others”, not “Compete”: it isn’t a contest.</li>
           </ul>
           <p className="mt-3 text-slate-800">
-            Tell us what is hard or missing: email <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>{CONTACT_EMAIL}</a>, or
-            answer the short questions the app sometimes asks. We read every answer.
+            Tell us what is hard, missing or too much, here at any time, by email to{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>{CONTACT_EMAIL}</a>, or in the short questions the app
+            sometimes asks. We read every answer. ResourceHub is new too: it grows from the services people rate, and the ones you tell us are missing.
           </p>
+          {/* Riipen Labs, Group 31: feedback at any time, not only when asked
+              (STEP 69). "Tell us what's hard" in All places opens this. */}
+          <div id="tell-us" className="scroll-mt-20">
+            <TellUsForm />
+          </div>
         </Section>
 
         <Section id="not-yet" title="Not working yet" intro="These are planned, but they don’t work yet, so the app doesn’t offer them:">

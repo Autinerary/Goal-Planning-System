@@ -21,7 +21,9 @@ export const USEFULNESS = [
   { id: 'not_yet', label: 'Not yet' },
 ] as const
 
-export type CheckinKind = 'inactive_email' | 'welcome_back' | 'usefulness'
+// 'feedback': the glossary's "Tell us how it's going", at any time (STEP 69),
+// asked as the usefulness question plus a comment.
+export type CheckinKind = 'inactive_email' | 'welcome_back' | 'usefulness' | 'feedback'
 
 /**
  * What the app can change, offered once someone answers. Riipen Labs Group

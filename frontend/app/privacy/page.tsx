@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '11 October 2026'
+const UPDATED = '12 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -187,6 +187,7 @@ export default function PrivacyPage() {
           <Sub title="Feedback and check-ins">
             <List>
               <li>Your answers to our questions in the app: after setup, and the occasional check-in.</li>
+              <li>What you send with &ldquo;Tell us how it&rsquo;s going&rdquo; in the glossary: whether the app is useful to you so far, and what you write. Only the Autinerary team reads it.</li>
               <li>If you opt in to check-in emails or notifications: the last day you opened the app, so we only check in with people who have been away.</li>
               <li>Our feedback form is a Google Form, so your answers to it are stored by Google.</li>
             </List>
@@ -197,7 +198,8 @@ export default function PrivacyPage() {
                 When you view the home page, open the sign-up form, create an account, reach each setup step, finish setup,
                 and open the app (at most once a day), and which parts of the app you open, such as the calendar or the
                 journal (each at most once a day). With each: a random ID kept in your browser, the website that sent
-                you, and the campaign link you used, if any.
+                you, the campaign link you used, if any, and whether it was a phone, a tablet or a computer (from the
+                screen size and whether it is a touch screen, nothing else).
               </li>
               <li>
                 In &ldquo;Start here&rdquo;: the answers you choose (who you are here for and what you need), which starter

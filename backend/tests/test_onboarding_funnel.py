@@ -898,5 +898,56 @@ class SkipSetupTests(unittest.TestCase):
         self.assertIn("skipped setup                      0", render_skips(summarize_skips([])))
 
 
+class DeviceAndFeedbackTests(unittest.TestCase):
+    """Group 33's "mobile metrics" and Group 31's feedback at any time (STEP 69)."""
+
+    def test_funnel_is_split_by_device(self):
+        events = []
+        for i in range(5):
+            events.append(dict(ev(f"p{i}", "signup_complete", "2026-10-12T10:00:00+00:00"), device="phone"))
+            events.append(dict(ev(f"p{i}", "onboarding_complete", "2026-10-12T10:05:00+00:00"), device="phone"))
+        for i in range(6):
+            events.append(dict(ev(f"c{i}", "signup_complete", "2026-10-12T10:00:00+00:00"), device="computer"))
+        events.append(ev("old", "signup_complete", "2026-10-01T10:00:00+00:00"))  # before STEP 69
+        f = compute_funnel(events)
+        self.assertEqual(f["by_device"]["phone"]["accounts"], 5)
+        self.assertEqual(f["by_device"]["phone"]["finished"], 5)
+        self.assertEqual(f["by_device"]["computer"]["finished"], 0)
+        self.assertEqual(f["by_device"]["(not recorded)"]["accounts"], 1)
+        text = render(f, summarize_feedback([]), show_comments=False)
+        self.assertIn("== By device (phone, tablet or computer)", text)
+        phone = next(line for line in text.splitlines() if line.strip().startswith("phone"))
+        self.assertIn("100%", phone)
+        not_recorded = next(line for line in text.splitlines() if line.strip().startswith("(not recorded)"))
+        self.assertIn("<5", not_recorded)
+
+    def test_feedback_sent_any_time_is_counted_apart(self):
+        rows = [
+            {"user_id": "u1", "kind": "usefulness", "reason": None, "usefulness": "very", "comment": None},
+            {"user_id": "u2", "kind": "feedback", "reason": None, "usefulness": "not_yet", "comment": "Races is a lot"},
+            {"user_id": "u3", "kind": "feedback", "reason": None, "usefulness": None, "comment": "Missing a dentist"},
+        ]
+        c = summarize_checkins(rows)
+        self.assertEqual(c["useful"], 1)
+        self.assertEqual(c["usefulness"]["not_yet"], 0)
+        self.assertEqual(c["sent"], 2)
+        self.assertEqual(c["sent_usefulness"]["not_yet"], 1)
+        text = render_checkins(c, show_comments=False)
+        self.assertIn("Sent at any time", text)
+        self.assertIn(": 2 answers", text)
+        self.assertNotIn("Races is a lot", text)
+        self.assertIn("[feedback] Races is a lot", render_checkins(c, show_comments=True))
+
+    def test_the_kinds_match_the_app_and_the_database(self):
+        ts = (REPO / "frontend/lib/checkin.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_feedback_and_device.sql").read_text()
+        for kind in ("inactive_email", "welcome_back", "usefulness", "feedback"):
+            self.assertIn(f"'{kind}'", ts)
+            self.assertIn(f"'{kind}'", sql)
+        for device in ("phone", "tablet", "computer"):
+            self.assertIn(f"'{device}'", sql)
+            self.assertIn(f"'{device}'", (REPO / "frontend/lib/funnel.ts").read_text())
+
+
 if __name__ == "__main__":
     unittest.main()

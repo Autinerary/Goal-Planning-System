@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Loader2, Download, Upload, RotateCcw, Trash2, AlertTriangle, Route, ShieldCheck } from 'lucide-react'
 import { loadMovement, movementSummary, exportMovement, clearMovement, type RouteVisit } from '@/lib/movement'
 import SettingsPreferences from '../../components/SettingsPreferences'
+import HereForSetting from '../../components/HereForSetting'
 import GamificationSettings from '../../components/GamificationSettings'
 import { usePreferences } from '../../context/usePreferences'
 
@@ -146,9 +147,10 @@ export default function ProfileSettingsPage() {
           onClick={() => router.push('/settings/models')}
           className="mb-4 ml-2 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50 shadow-sm"
         >
-          Models →
+          AI models →
         </button>
 
+        <HereForSetting />
         <SettingsPreferences />
         <GamificationSettings />
 

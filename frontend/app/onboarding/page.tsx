@@ -32,6 +32,7 @@ import QuickSettings from '@/app/components/QuickSettings'
 import ChoiceDropdown from '@/app/components/ChoiceDropdown'
 import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
+import { AUDIENCES, AUDIENCE_GROUPS, AUDIENCE_VALUE, AUDIENCE_EFFECT } from '@/lib/audiences'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import {
   CONDITION_GROUPS,
@@ -142,6 +143,10 @@ const steps = [
   { id: 'personalize', title: 'Personalize', short: 'Personalize', icon: Palette },
 ]
 const CORE_STEP_COUNT = 2
+// Every action in setup that isn't the next step: outlined, never underlined
+// text (see the buttons at the bottom of each step).
+const SECONDARY_BUTTON =
+  'inline-flex items-center gap-2 rounded-xl border-2 border-slate-400 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-indigo-500 hover:bg-indigo-50/40 disabled:cursor-not-allowed disabled:opacity-60'
 const stepIndex = (id: string) => steps.findIndex((s) => s.id === id)
 // Only these must be answered (age is confirmed inside 'about').
 const REQUIRED_STEP_IDS = new Set(['about', 'goalsAndDreams'])
@@ -149,42 +154,8 @@ const REQUIRED_STEP_IDS = new Set(['about', 'goalsAndDreams'])
 // held the age question, which now lives in 'about'.
 const LEGACY_STEP_ORDER = ['about', 'barrierConnections', 'location', 'goalsAndDreams', 'motivation', 'profile', 'spiritAnimal', 'personalize', 'recommendations']
 
-// "Who are you here for?" `connection` is the Norms step connection type it
-// pre-selects; null where the right one is ambiguous (the person picks it).
-const AUDIENCES: { id: string; label: string; connection: string | null }[] = [
-  { id: 'self', label: 'Myself', connection: 'self' },
-  { id: 'child', label: 'My child', connection: 'parent' },
-  { id: 'family', label: 'Another family member', connection: null },
-  { id: 'friend', label: 'A friend', connection: 'friend' },
-  { id: 'work', label: 'Someone I teach, support or work with', connection: null },
-  { id: 'ally', label: "I'm an ally, or just learning", connection: 'ally' },
-  // Riipen Labs, Group 4: "Include 'not sure' to avoid blocking progress".
-  // Setup then reads as if for themselves, the default.
-  { id: 'unsure', label: 'Not sure yet', connection: null },
-]
-
-// The same answers under three headings (Riipen Labs, Group 34, slide 25:
-// "Who are you?" in three groups). Their mockup's first group was
-// "Neurodivergent"; it is "Yourself" here, since not everyone planning for
-// themselves uses that word. "Not sure yet" follows the groups.
-const AUDIENCE_GROUPS: { label: string; ids: string[] }[] = [
-  { label: 'Yourself', ids: ['self'] },
-  { label: 'Family', ids: ['child', 'family'] },
-  { label: 'Friends, work and others', ids: ['friend', 'work', 'ally'] },
-]
-
-// What Autinerary does for each of them, shown once they choose (Riipen Labs,
-// Group 5: "make the value of Autinerary clearer for each user group during
-// onboarding"). Matches what "Start here" says for the same answer.
-const AUDIENCE_VALUE: Record<string, string> = {
-  self: 'You\u2019ll turn your goal into small, clear steps planned around your energy, and find services rated by people with similar norms.',
-  child: 'You\u2019ll plan a goal you are working on together in small, clear steps, and find services and places for families. If your child is under 18, you can add them from the Family page.',
-  family: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find services and ideas that fit how they work.',
-  friend: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find services and ideas that fit how they work.',
-  work: 'You\u2019ll plan a goal you are helping with in small, clear steps, and find tools and services to recommend.',
-  ally: 'You\u2019ll learn from questions and answers in Tidbits, browse services, and can start a plan of your own.',
-  unsure: 'That\u2019s fine. You\u2019ll get one goal turned into small, clear steps, and can explore the rest whenever you like.',
-}
+// "Who are you here for?", its groups and what each answer gets: lib/audiences.ts,
+// shared with Settings, where the answer can be changed later.
 
 // The "Start here" answers kept in this browser, if both were given.
 function keptStartPath(): { for: string; need: string; savedAt: string } | null {
@@ -230,17 +201,19 @@ const skippableSteps = new Set(['barrierConnections', 'location', 'motivation', 
 
 // One line per step on what the answer is used for, so people can see how
 // setup connects to the plan they get (Riipen: "show how key features
-// connect"). Each line was checked against where the app reads it.
+// connect"). Each line was checked against where the app reads it. Said
+// once per step: Riipen Labs, Group 33 asked to "remove redundant setup
+// text", and several steps said the same thing two or three times. The
+// first step says what its question changes beside the question instead.
 const STEP_PURPOSE: Record<string, string> = {
-  about: 'The wording of the next questions, and what you see first once your path is ready.',
   character: 'Your character on the race track in Races, at the step you are on.',
-  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms. Optional: skipped, it counts as “Prefer not to share”.',
+  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms.',
   location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
   goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
   motivation: 'Matching you with people who are motivated in similar ways.',
   profile: 'Your Ideal Self page: a picture of who you are working toward.',
   spiritAnimal: 'The guides shown on your Path.',
-  personalize: 'How the app looks and how much it shows at once. You can change this later in Settings.',
+  personalize: 'How the app looks and reads, and reminders. You can change all of it later in Settings.',
 }
 
 // The areas are shared with the Dream Self page (lib/goalAreas.ts).
@@ -1533,7 +1506,14 @@ export default function OnboardingPage() {
           <h1 className="text-4xl font-bold mb-2 text-slate-800">
             Welcome{user?.name ? `, ${user.name}` : ''}
           </h1>
-          <p className="text-slate-600 text-lg">Let's build your personalized path to success</p>
+          {/* One line on what this is (Riipen Labs, Group 33: "remove redundant
+              setup text"). It was "Let's build your personalized path to
+              success", then a second welcome inside the first step. */}
+          <p className="text-slate-700 text-lg">
+            {inExtras
+              ? 'Optional extras: skip any of them, or create your path now.'
+              : 'Two quick questions, then your path is ready.'}
+          </p>
 
           {/* Pathway banner — shows this onboarding is tailored to the chosen
               Path Market template, not the generic "start your own path" flow. */}
@@ -1576,15 +1556,17 @@ export default function OnboardingPage() {
           </div>
 
           {/* Step Labels Below Path */}
-          {inExtras && (
-            <p className="mt-3 text-center text-sm text-slate-700">Optional extras: skip any of them, or create your path now.</p>
-          )}
           <div className={`grid ${inExtras ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-2'} gap-4 mt-4 px-2`}>
             {groupSteps.map((step, i) => {
               const idx = groupStart + i
               const Icon = step.icon
               const isActive = idx === currentStep
-              const isCompleted = canProceed(idx)
+              // An optional extra counts as done once it has been seen and
+              // left. Before, every extra with nothing required showed a tick
+              // before anyone had opened it.
+              const isCompleted = REQUIRED_STEP_IDS.has(step.id)
+                ? canProceed(idx)
+                : idx !== currentStep && stepsSeen.current.has(idx) && canProceed(idx)
               
               return (
                 <button
@@ -1662,35 +1644,39 @@ export default function OnboardingPage() {
             />
           )}
 
+          {(!REQUIRED_STEP_IDS.has(currentId) || STEP_PURPOSE[currentId]) && (
           <div className={`mb-5 flex flex-wrap items-center gap-2 text-sm ${chatMode && !inExtras ? 'hidden' : ''}`}>
             {!REQUIRED_STEP_IDS.has(currentId) && (
-              <span className="rounded-full border border-slate-300 bg-slate-50 px-2.5 py-0.5 font-semibold text-slate-700">Optional step</span>
+              // A label, not a pill: in a rounded border it looked like a
+              // button (Riipen Labs, Group 33: "clickable options blending
+              // into static text").
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Optional step</span>
             )}
             {STEP_PURPOSE[steps[currentStep].id] && (
               <p className="text-slate-700"><span className="font-semibold text-slate-900">How this is used:</span> {STEP_PURPOSE[steps[currentStep].id]}</p>
             )}
           </div>
+          )}
 
           {/* About you: the short goal-first start. Age is required (18+ for
               now); who this is for is one tap; what they came for is optional. */}
           {currentId === 'about' && !chatMode && (
             <div>
-              {/* A welcoming, plain first screen (Riipen Labs, Group 6: "a cohesive
-                  and empathetic voice to build immediate trust"; docs/voice.md). */}
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Welcome. Let&apos;s start with you</h2>
-              <p className="text-slate-600 mb-4">Two quick questions, then your path is ready. There are no wrong answers.</p>
+              {/* One heading and one short note before the first question
+                  (Riipen Labs, Group 33: "reduce text density", "remove
+                  redundant setup text"). There were two welcomes, a slogan
+                  and a box saying again that setup is two questions. The
+                  warm voice (Group 6; docs/voice.md) is in the welcome above
+                  and in "There are no wrong answers". */}
+              <h2 className="text-2xl font-bold mb-3 text-slate-800">About you</h2>
 
               {/* A note, not a box: tinted and bordered it looked like the chosen
-                  answers below (Riipen Labs, Group 33: "clickable options
-                  blending into static text"). */}
-              <div className="mb-6 border-l-4 border-indigo-400 pl-4 text-sm text-slate-800">
-                <p className="font-semibold text-slate-900">How setup works</p>
-                <p className="mt-1">
-                  This step and one goal. Then we build your path, with starter resources for what you need. Everything
-                  else (norms, location, your character, spirit animals, how the app looks) is optional, and you can add it later.
-                </p>
-                <p className="mt-2">We don&apos;t sell your information, show ads, or use it to train AI.</p>
-              </div>
+                  answers below (Group 33: "clickable options blending into
+                  static text"). */}
+              <p className="mb-4 border-l-4 border-indigo-400 pl-4 text-sm text-slate-800">
+                There are no wrong answers, and everything after your goal is optional. We don&apos;t sell your
+                information, show ads, or use it to train AI.
+              </p>
               <p className="mb-6 text-sm">
                 <button type="button" onClick={() => setChatMode(true)} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
                   Prefer to answer by chatting? Try the chat version
@@ -1714,15 +1700,16 @@ export default function OnboardingPage() {
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
               )}
 
-              {/* Skip for now (Riipen Labs, Group 33: "Allow users to bypass initial
-                  setup prompts with a single tap so they can directly explore the
-                  platform's core tools right away"). After the age question,
-                  because the app is for adults; the Path offers to make a plan. */}
+              {/* Skip setup for now (Riipen Labs, Group 33: "Allow users to bypass
+                  initial setup prompts with a single tap so they can directly
+                  explore the platform's core tools right away"). After the age
+                  question, because the app is for adults; the Path offers to make
+                  a plan, and says what works without one. Named so it isn't
+                  mistaken for "Skip this step" on the optional steps. */}
               {!user?.hasCompletedOnboarding && (
                 <div className="mb-6 rounded-xl border border-slate-300 bg-white p-4">
                   <p className="text-sm text-slate-800">
-                    Not ready for questions? Look around first: ResourceHub, Tidbits, Hare World and the glossary work
-                    without a plan. You can make your plan any time from the Path.
+                    Not ready for questions? Look around first, and make your plan later from the Path.
                   </p>
                   <button
                     type="button"
@@ -1730,7 +1717,7 @@ export default function OnboardingPage() {
                     disabled={!canAccessOnboarding || skipping}
                     className="mt-3 inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {skipping ? 'Opening the app…' : 'Skip for now'}
+                    {skipping ? 'Opening the app…' : 'Skip setup for now'}
                   </button>
                   {!canAccessOnboarding && !isManagedAccount && (
                     <p className="mt-2 text-xs text-slate-700">Confirm your age above first.</p>
@@ -1740,7 +1727,11 @@ export default function OnboardingPage() {
               )}
 
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
-                <legend className="mb-2 font-medium text-slate-900">Who are you here for?</legend>
+                <legend className="mb-1 font-medium text-slate-900">Who are you here for?</legend>
+                {/* What the answer changes, and that it can be changed (Riipen
+                    Labs, Group 32: "assurance that their selected role will
+                    tailor the content visible to them"). */}
+                <p className="mb-2 text-sm text-slate-700">{AUDIENCE_EFFECT}</p>
                 {(() => {
                   const audienceButton = (a: typeof AUDIENCES[number]) => (
                     <button
@@ -1756,6 +1747,7 @@ export default function OnboardingPage() {
                     >
                       {formData.audience === a.id && <Check className="mr-1 inline h-4 w-4" aria-hidden="true" />}
                       {a.label}
+                      {a.hint && <span className="mt-0.5 block text-xs font-normal text-slate-700">{a.hint}</span>}
                     </button>
                   )
                   return (
@@ -2033,7 +2025,7 @@ export default function OnboardingPage() {
           {currentId === 'barrierConnections' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">{normsCopy.heading}</h2>
-              <p className="text-slate-600 mb-2">{normsCopy.intro} Either describe them in your own words, or select manually below. This step is optional: skip it and it counts as &ldquo;Prefer not to share&rdquo;.</p>
+              <p className="text-slate-600 mb-2">{normsCopy.intro} Describe them in your own words, or pick from the lists below. Skip it and it counts as &ldquo;Prefer not to share&rdquo;.</p>
               <p className="text-xs text-slate-500 mb-4 italic">Your identity is not the problem. Things like your disability, ethnicity, or gender aren&apos;t obstacles themselves: the obstacles are the systemic ones society puts in the way. We use this only to find support built for them.</p>
 
               {/* Mode toggle */}
@@ -2376,7 +2368,7 @@ export default function OnboardingPage() {
           {currentId === 'location' && (
             <div>
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Where are you located?</h2>
-              <p className="text-slate-600 mb-6">This helps us find resources in your area. All location data is private and optional.</p>
+              <p className="text-slate-600 mb-6">It stays private.</p>
               
               <div className="space-y-4">
                 <div>
@@ -2473,7 +2465,8 @@ export default function OnboardingPage() {
                     ...prev,
                     additionalLocations: [...prev.additionalLocations, { city: '', province: '', country: '' }]
                   }))}
-                  className="text-cyan-800 hover:text-cyan-900 text-sm font-medium"
+                  type="button"
+                  className="rounded-xl border-2 border-dashed border-cyan-600 bg-white px-4 py-2.5 text-sm font-semibold text-cyan-900 hover:bg-cyan-50"
                 >
                   + Add another location
                 </button>
@@ -2517,12 +2510,16 @@ export default function OnboardingPage() {
                         })
                         setTimeout(() => document.getElementById(`goal-cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
                       }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      // Drawn like setup's other answers, with a firm border and a
+                      // shadow: with a pale border on white they read as labels
+                      // (Riipen Labs, Group 33: "clickable options blending into
+                      // static text").
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-medium shadow-sm transition-all ${
                         isOpen
-                          ? 'bg-indigo-600 text-white border border-indigo-600'
+                          ? 'bg-indigo-600 text-white border-indigo-600'
                           : count > 0
-                            ? 'bg-cyan-100 text-cyan-700 border border-cyan-300'
-                            : 'bg-white border border-slate-200 text-slate-600 hover:border-cyan-400'
+                            ? 'bg-cyan-50 text-cyan-900 border-cyan-600'
+                            : 'bg-white border-slate-400 text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40'
                       }`}
                     >
                       {cat.label}
@@ -2669,9 +2666,10 @@ export default function OnboardingPage() {
                                   return { ...prev, goalsByCategory: updated }
                                 })
                               }}
+                              aria-label="Remove this goal"
                               className="px-2 text-slate-600 hover:text-red-700 text-sm"
                             >
-                              ×
+                              <span aria-hidden="true">×</span>
                             </button>
                           </div>
                           
@@ -2747,7 +2745,8 @@ export default function OnboardingPage() {
                             return { ...prev, goalsByCategory: updated }
                           })
                         }}
-                        className="text-cyan-800 hover:text-cyan-900 text-xs font-medium"
+                        type="button"
+                        className="rounded-xl border-2 border-dashed border-cyan-600 bg-white px-4 py-2.5 text-sm font-semibold text-cyan-900 hover:bg-cyan-50"
                       >
                         + Add a {cat.label.toLowerCase()} goal
                       </button>
@@ -2761,7 +2760,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setShowUltimateDream(true)}
-                  className="mt-6 text-sm font-medium text-purple-700 underline hover:text-purple-900"
+                  className="mt-6 rounded-xl border-2 border-dashed border-purple-400 bg-white px-4 py-2.5 text-sm font-semibold text-purple-800 hover:bg-purple-50"
                 >
                   + Add your biggest dream (optional)
                 </button>
@@ -3136,11 +3135,10 @@ export default function OnboardingPage() {
           {/* Step 7: Personalize — view & interaction preferences */}
           {currentId === 'personalize' && (
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Palette className="w-6 h-6 text-cyan-600" />
+              <div className="flex items-center gap-2 mb-6">
+                <Palette className="w-6 h-6 text-cyan-600" aria-hidden="true" />
                 <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
               </div>
-              <p className="text-slate-600 mb-6">How it looks and reads, and reminders. You can change all of it later in Settings.</p>
 
               {/* Age range and "How often do you use apps?" were asked here too.
                   They only capped the liveliness chosen below, so they asked the
@@ -3217,19 +3215,28 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Navigation Buttons (the chat has its own) */}
-          <div className="flex flex-wrap justify-between items-center mt-8 pt-6 border-t border-slate-200">
+          {/* Navigation Buttons (the chat has its own). One filled button, the
+              next step, named for where it goes; every other action is an
+              outlined button, never underlined text (Riipen Labs, Group 33:
+              "Fix Visual Button Hierarchies", "clearly separate interactive
+              buttons from static text content"; the Government of Canada's
+              guidance for autistic users: "make buttons descriptive"). */}
+          <div className="flex flex-wrap justify-between items-center gap-3 mt-8 pt-6 border-t border-slate-200">
             {!(chatMode && !inExtras) && (<>
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900 disabled:invisible transition-all"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              Back
-            </button>
+            {/* Not there on the first step (it was hidden but kept its space,
+                which left a gap above the next button on a phone). */}
+            {currentStep > 0 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                className={SECONDARY_BUTTON}
+              >
+                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+                Back
+              </button>
+            )}
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
               {/* In the extras the path can be created at any point: everything
                   required was answered in the first two steps. */}
               {inExtras && requiredDone && (
@@ -3237,17 +3244,18 @@ export default function OnboardingPage() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950 disabled:text-slate-600"
+                  className={SECONDARY_BUTTON}
                 >
                   Create my path now
                 </button>
               )}
               {skippableSteps.has(currentId) && currentStep < steps.length - 1 && (
                 <button
+                  type="button"
                   onClick={handleSkip}
-                  className="px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 underline underline-offset-2 transition-all"
+                  className={SECONDARY_BUTTON}
                 >
-                  Skip for now
+                  Skip this step
                 </button>
               )}
               {/* End of the short start: the extras are offered, not required. */}
@@ -3256,9 +3264,9 @@ export default function OnboardingPage() {
                   type="button"
                   onClick={() => setCurrentStep(CORE_STEP_COUNT)}
                   disabled={isSubmitting}
-                  className="px-2 py-3 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950 disabled:text-slate-600"
+                  className={SECONDARY_BUTTON}
                 >
-                  Add more details first (optional)
+                  Add optional details first
                 </button>
               )}
 
@@ -3287,8 +3295,8 @@ export default function OnboardingPage() {
                   aria-describedby={continueHint() ? 'continue-hint' : undefined}
                   className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-cyan-600 hover:to-blue-600 disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:text-slate-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all"
                 >
-                  Continue
-                  <ChevronRight className="w-5 h-5" />
+                  {currentStep === 0 ? 'Continue to your goal' : `Next: ${steps[currentStep + 1].title}`}
+                  <ChevronRight className="w-5 h-5" aria-hidden="true" />
                 </button>
               )}
             </div>

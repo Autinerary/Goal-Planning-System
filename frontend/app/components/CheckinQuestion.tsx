@@ -28,11 +28,13 @@ interface Props {
   /** Shows a "Not now" button. */
   onDismiss?: () => void
   /** h1 when the question is the whole page. */
-  headingLevel?: 'h1' | 'h2'
+  headingLevel?: 'h1' | 'h2' | 'h3'
+  /** What the send button says (default "Send"). */
+  submitLabel?: string
 }
 
 export default function CheckinQuestion({
-  kind, heading, intro, legend, options, commentLabel, thanks, token, layout = 'list', onAnswered, onDismiss, headingLevel = 'h2',
+  kind, heading, intro, legend, options, commentLabel, thanks, token, layout = 'list', onAnswered, onDismiss, headingLevel = 'h2', submitLabel = 'Send',
 }: Props) {
   const Heading = headingLevel
   const [choice, setChoice] = useState('')
@@ -49,7 +51,7 @@ export default function CheckinQuestion({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           kind,
-          [kind === 'usefulness' ? 'usefulness' : 'reason']: choice || undefined,
+          [kind === 'usefulness' || kind === 'feedback' ? 'usefulness' : 'reason']: choice || undefined,
           comment: comment.trim() || undefined,
           version: ONBOARDING_VERSION,
           token,
@@ -76,7 +78,7 @@ export default function CheckinQuestion({
         <p>{thanks}</p>
         {/* Someone it helps may want to say so (Riipen Labs, Group 11:
             lived-experience stories, shared with consent). Only an offer. */}
-        {kind === 'usefulness' && choice === 'very' && (
+        {(kind === 'usefulness' || kind === 'feedback') && choice === 'very' && (
           <p className="mt-3 text-sm">
             Glad it helps. A few sentences about it could help someone like you decide to try it.{' '}
             <a href="/share-your-story" className="font-medium underline underline-offset-2">
@@ -168,7 +170,7 @@ export default function CheckinQuestion({
           disabled={!canSubmit || status === 'expired'}
           className="rounded-lg bg-indigo-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-800 disabled:bg-slate-200 disabled:text-slate-700"
         >
-          {status === 'saving' ? 'Sending…' : 'Send'}
+          {status === 'saving' ? 'Sending…' : submitLabel}
         </button>
         {onDismiss && (
           <button type="button" onClick={onDismiss} className="text-sm font-medium text-slate-700 underline underline-offset-2 hover:text-slate-900">

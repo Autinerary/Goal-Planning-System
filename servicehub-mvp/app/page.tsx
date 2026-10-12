@@ -297,7 +297,7 @@ async function HighestRatingsSection() {
           href="/search?sort=popular"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
-          View all
+          See all, highest rated first
         </Link>
       </div>
 
@@ -441,7 +441,7 @@ async function CheapestSection() {
           href="/search?sort=price"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
-          View all
+          See all, cheapest first
         </Link>
       </div>
 
@@ -554,7 +554,7 @@ async function QualityListsSection() {
           href="/search?sort=helpful"
           className="text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
         >
-          View all
+          See all, most helpful first
         </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -604,7 +604,7 @@ async function RecentlyAddedSection() {
           href="/search?sort=newest"
           className="text-sm text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
         >
-          View all
+          See all, newest first
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

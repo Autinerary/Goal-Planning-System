@@ -68,7 +68,7 @@ export default function NotificationList({
             href="/notifications"
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
-            View all
+            All notifications
           </Link>
         </div>
       </div>

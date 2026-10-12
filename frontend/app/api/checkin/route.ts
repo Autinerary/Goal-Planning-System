@@ -16,6 +16,9 @@ export const dynamic = 'force-dynamic'
  *                          identifies the person, no sign-in needed
  *   kind 'welcome_back' | 'usefulness'
  *                          answered in the app with the person's own session
+ *   kind 'feedback'        the glossary's "Tell us how it's going", at any
+ *                          time: the usefulness question plus a comment
+ *                          (STEP 69; before it, kept as 'usefulness')
  *
  * Every field is validated against the lists in lib/checkin.ts.
  *
@@ -25,7 +28,8 @@ export const dynamic = 'force-dynamic'
 
 const REASONS = new Set<string>(STOP_REASONS.map((r) => r.id))
 const USEFUL = new Set<string>(USEFULNESS.map((u) => u.id))
-const KINDS = new Set<CheckinKind>(['inactive_email', 'welcome_back', 'usefulness'])
+const KINDS = new Set<CheckinKind>(['inactive_email', 'welcome_back', 'usefulness', 'feedback'])
+const ASKS_USEFULNESS = new Set<CheckinKind>(['usefulness', 'feedback'])
 
 export async function POST(req: NextRequest) {
   let body: any
@@ -40,8 +44,8 @@ export async function POST(req: NextRequest) {
   const kind = KINDS.has(body?.kind) ? (body.kind as CheckinKind) : null
   if (!kind) return NextResponse.json({ error: 'Unknown check-in' }, { status: 400 })
 
-  const reason = kind !== 'usefulness' && REASONS.has(body?.reason) ? body.reason : null
-  const usefulness = kind === 'usefulness' && USEFUL.has(body?.usefulness) ? body.usefulness : null
+  const reason = !ASKS_USEFULNESS.has(kind) && REASONS.has(body?.reason) ? body.reason : null
+  const usefulness = ASKS_USEFULNESS.has(kind) && USEFUL.has(body?.usefulness) ? body.usefulness : null
   const comment = typeof body?.comment === 'string' ? body.comment.trim().slice(0, 1000) || null : null
   const version = typeof body?.version === 'string' && /^[a-z0-9._-]{1,40}$/i.test(body.version) ? body.version : null
   if (!reason && !usefulness && !comment) return NextResponse.json({ error: 'Nothing to save' }, { status: 400 })
@@ -59,7 +63,12 @@ export async function POST(req: NextRequest) {
   const supabase = createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-  const { error } = await supabase.from('checkin_responses').insert({ ...row, user_id: user.id })
+  let { error } = await supabase.from('checkin_responses').insert({ ...row, user_id: user.id })
+  // 23514: the kind check refuses 'feedback' until STEP 69. Keep the answer
+  // as a usefulness check-in rather than lose it.
+  if (error && error.code === '23514' && kind === 'feedback') {
+    ;({ error } = await supabase.from('checkin_responses').insert({ ...row, kind: 'usefulness', user_id: user.id }))
+  }
   if (error) return NextResponse.json({ error: 'Could not save your answer' }, { status: 500 })
   return NextResponse.json({ saved: true })
 }

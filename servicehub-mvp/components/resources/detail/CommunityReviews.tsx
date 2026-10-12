@@ -277,14 +277,14 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
                   disabled={page === 1}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  Previous
+                  Previous reviews
                 </button>
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page * pageSize >= total}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  Next
+                  More reviews
                 </button>
               </div>
             </div>

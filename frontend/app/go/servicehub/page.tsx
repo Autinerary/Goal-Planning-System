@@ -66,10 +66,12 @@ function Redirector() {
   }, [params])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-slate-500">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-slate-700">
       <p>Opening ResourceHub…</p>
-      <a href={manualHref} className="text-cyan-600 hover:underline text-sm">
-        Click here if you’re not redirected
+      {/* Says where it goes, not "Click here" (the Government of Canada's
+          guidance for autistic users, Riipen Labs, Group 31). */}
+      <a href={manualHref} className="text-sm font-medium text-indigo-800 underline underline-offset-2">
+        Not opening? Open ResourceHub
       </a>
     </div>
   )

@@ -19,8 +19,8 @@ export const dynamic = 'force-dynamic'
  * Everything is validated against a fixed vocabulary; anything else is
  * dropped. Always answers 204: analytics must never break or slow a page,
  * including before STEP 45 has been applied (or STEP 48, which allows the
- * "Start here" events, STEP 49, which allows feature_use, or STEP 50, which
- * allows ask_later).
+ * "Start here" events, STEP 49, which allows feature_use, STEP 50, which
+ * allows ask_later, or STEP 69, which adds the device).
  */
 
 const EVENTS = new Set([
@@ -65,6 +65,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const TOKEN = /^[a-z0-9._-]{1,40}$/i
 const CAMPAIGN = /^[a-z0-9 ._-]{1,80}$/i
 const HOST = /^[a-z0-9.-]{1,120}$/i
+// Phone, tablet or computer (lib/funnel.ts deviceClass; STEP 69).
+const DEVICE = /^(phone|tablet|computer)$/
 
 function clean(value: unknown, pattern: RegExp): string | null {
   return typeof value === 'string' && pattern.test(value) ? value : null
@@ -95,17 +97,22 @@ export async function POST(req: NextRequest) {
     userId = data.user?.id ?? null
   } catch {}
 
+  const row = {
+    visitor_id: visitorId,
+    user_id: userId,
+    event,
+    step,
+    channel: clean(body?.channel, TOKEN),
+    campaign: clean(body?.campaign, CAMPAIGN),
+    referrer_host: clean(body?.referrerHost, HOST),
+    onboarding_version: version,
+  }
+  const device = clean(body?.device, DEVICE)
   try {
-    await createAdminClient().from('onboarding_events').insert({
-      visitor_id: visitorId,
-      user_id: userId,
-      event,
-      step,
-      channel: clean(body?.channel, TOKEN),
-      campaign: clean(body?.campaign, CAMPAIGN),
-      referrer_host: clean(body?.referrerHost, HOST),
-      onboarding_version: version,
-    })
+    const admin = createAdminClient()
+    const { error } = await admin.from('onboarding_events').insert(device ? { ...row, device } : row)
+    // PGRST204: no device column yet (STEP 69 not applied). Keep the event.
+    if (error && device && error.code === 'PGRST204') await admin.from('onboarding_events').insert(row)
   } catch {
     // Table missing (migration not applied) or a transient error: drop it.
   }

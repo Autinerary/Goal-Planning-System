@@ -168,6 +168,12 @@ export default function OnboardingConfirmationPage() {
             {milestoneCount > 0 && (
               <div className="text-sm text-slate-700"><span className="font-semibold">Milestones planned: </span>{milestoneCount}</div>
             )}
+            {/* Riipen Labs, Group 32: "value requires engagement". Said once,
+                plainly, as the glossary's "Your plan" says it. */}
+            <p className="mt-3 text-sm text-slate-800">
+              It grows with what you put in: each step you tick off brings up the next one, and each optional answer
+              you add later makes the suggestions fit you better.
+            </p>
           </div>
         )}
 
@@ -252,7 +258,7 @@ export default function OnboardingConfirmationPage() {
           </ol>
           <p className="mt-3 text-sm text-slate-700">
             Milestones suggest tools, ResourceHub finds services, the calendar schedules the next steps, and the
-            journal is where you look back. You can replay the tour anytime with &ldquo;How it works&rdquo; (the &#9654; button) in the top bar.
+            journal is where you look back. You can replay the tour anytime with the &#9654; button in the top bar: &ldquo;How it works&rdquo;, or &ldquo;Guide&rdquo; on a phone.
           </p>
         </div>
 
