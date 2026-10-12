@@ -71,6 +71,13 @@ now `paced-2026-10`, so the funnel report compares it with `express-2026-10`.
   passes people on, so setup no longer interrupts it.
 - **ResourceHub's sign-in had "Try Demo Account"**, for an account that does
   not exist in production. Removed.
+- **Someone signed in who had not finished setup**, sent from ResourceHub to
+  the app's sign-in (Save, Rate, a protected page), saw the sign-in form
+  again: only people who had finished or skipped setup went straight back.
+  Now anyone signed in does. Found by the production check.
+- **ResourceHub called popular lists "Recommended by AI Agent"**, for
+  visitors and while loading. Now "Popular in ResourceHub", "Places to
+  explore", or "Places matched to you" with a prompt to add a topic.
 - **A ResourceHub example settings file in the repository held a service
   key** for an older Supabase project. That project no longer answers, so
   the key opens nothing; the value is still worth treating as spent.
@@ -277,6 +284,19 @@ now `paced-2026-10`, so the funnel report compares it with `express-2026-10`.
   sign-in, and no "% match" under 50. Someone who skips to resources: on the
   kits in seconds, recorded, and the Path's card's choices. Two throwaway
   accounts, deleted at the end.
+- On production, 12 October (b9d41e3, then d5a4a65 and 762d792): `g20.mjs`
+  75 of 76 on the first run. Production leaves out the three checks that
+  sign reminder links, since the test can read the signing secret only from
+  a local build. The miss was the test reading Start here's list before it
+  had loaded. A real plan made by the production backend for a parent had
+  the four supporting areas and no career steps, ResourceHub opened signed in
+  from the app with no token in any link, and Save through the one sign-in
+  saved the resource. A rerun without a new plan found the sign-in problem
+  above, fixed in 762d792; rerun after it, 52 of 52. `g25.mjs` 72/72, the Groups 31 to 33 suites 43/43
+  and 34/34 (one miss on the first run, a page that took more than 20 seconds
+  once; checked directly, it loads in a second), `races_default.mjs` 2/2, the
+  social features 19/19, and the accessibility checker on 76 page views,
+  including the kits and ResourceHub's sign-in: nothing serious.
 - Backend: 326 tests, including `tests/test_path_planning_supporting.py`,
   `tests/test_self_listing.py` and the funnel report's new sections
   (`PacedSetupTests`), in a clean copy with no secrets.
