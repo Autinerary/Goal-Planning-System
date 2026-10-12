@@ -22,7 +22,7 @@ function UnderConstructionContent() {
           <Hammer className="w-10 h-10 text-amber-500" />
         </div>
         <div className="text-5xl mb-4">🚧</div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
           {feature ? `${feature} is under construction` : 'Under construction'}
         </h1>
         <p className="text-slate-600 mb-8">

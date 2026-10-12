@@ -24,8 +24,11 @@ export default function GamificationSettings() {
     items[index] = text
     patch({ [field]: items })
   }
-  return <section className="my-6 border-y border-slate-200 py-4" aria-label="Gamification">
-    <h2 className="mb-4 text-xl font-semibold text-slate-900">Gamification</h2>
+  // #spirit-animals: the "Complete your profile" card links here (Riipen Labs,
+  // Groups 25 to 30: spirit animals left setup for the app).
+  return <section id="spirit-animals" className="my-6 scroll-mt-24 border-y border-slate-200 py-4" aria-labelledby="spirit-animals-heading">
+    <h2 id="spirit-animals-heading" className="mb-1 text-xl font-semibold text-slate-900">Spirit animals and themes</h2>
+    <p className="mb-4 text-sm text-slate-700">Spirit animals are friendly guides shown at the top of your Path: one for every day, one for busy and one for lighter days, or one per weekday.</p>
     {saveError && <p role="alert" className="mb-3 text-sm text-red-700">{saveError}</p>}
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="text-sm">Spirit animals (0-7)<input aria-label="Number of spirit animals" type="number" min={0} max={7} value={value.animals.length} onChange={event => {

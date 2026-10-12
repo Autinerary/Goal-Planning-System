@@ -53,7 +53,7 @@ export default function RoleModelGalleriaPage() {
         </Link>
 
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
             <Users className="w-6 h-6 text-purple-600" /> Role Model Galleria
           </h1>
           <button

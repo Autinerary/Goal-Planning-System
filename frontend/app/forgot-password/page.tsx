@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/20 rounded-full mb-4">
               <KeyRound className="w-8 h-8 text-blue-700" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Forgot your password?</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Forgot your password?</h1>
             <p className="text-slate-700 text-sm mt-1">
               Type the email address you sign in with. We’ll email you a link to choose a new password.
             </p>

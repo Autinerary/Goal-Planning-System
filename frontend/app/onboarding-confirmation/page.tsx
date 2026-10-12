@@ -137,7 +137,7 @@ export default function OnboardingConfirmationPage() {
       {launching && (
         <div role="status" className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white p-6 text-center">
           <Rocket aria-hidden="true" className="mb-4 h-16 w-16 text-cyan-700 motion-safe:animate-bounce" />
-          <h1 className="text-3xl font-bold">Opening your Path</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Opening your Path</h1>
         </div>
       )}
       <div className="max-w-3xl mx-auto px-4 py-8">
@@ -145,7 +145,7 @@ export default function OnboardingConfirmationPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3" aria-hidden="true">🎉</div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Your path is ready</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Your path is ready</h1>
           <p className="text-slate-700">Here&apos;s what was built from your answers, and where to start.</p>
         </div>
 
@@ -172,7 +172,7 @@ export default function OnboardingConfirmationPage() {
                 plainly, as the glossary's "Your plan" says it. */}
             <p className="mt-3 text-sm text-slate-800">
               It grows with what you put in: each step you tick off brings up the next one, and each optional answer
-              you add later makes the suggestions fit you better.
+              you add later, on your Path under &ldquo;Complete your profile&rdquo;, makes the suggestions fit you better.
             </p>
           </div>
         )}
@@ -229,7 +229,7 @@ export default function OnboardingConfirmationPage() {
               onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
               className="inline-flex items-center gap-2 px-2 py-2 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
             >
-              <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the one-minute tour
+              <PlayCircle className="w-4 h-4" aria-hidden="true" /> Take the two-minute tour
             </button>
           </div>
         </div>

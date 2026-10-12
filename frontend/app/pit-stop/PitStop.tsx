@@ -822,7 +822,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
             <div className="flex items-center gap-3 mb-2">
               <span className="text-4xl" aria-hidden="true">🐇</span>
               <div>
-                <h1 className="text-3xl font-bold text-slate-800">Hare World</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Hare World</h1>
                 <p className="text-slate-600 text-sm">Your people: friends, mentors and role models, and groups to join</p>
               </div>
             </div>
@@ -836,7 +836,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
             <div className="flex items-center gap-3 mb-2">
               <span className="text-4xl" aria-hidden="true">🛒</span>
               <div>
-                <h1 className="text-3xl font-bold text-slate-800">Pit Stop</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Pit Stop</h1>
                 <p className="text-slate-600 text-sm italic">Your cart of tools &amp; supports. Add what helps, skip the rest</p>
               </div>
               <div className="flex gap-1 ml-auto text-2xl" aria-hidden="true">

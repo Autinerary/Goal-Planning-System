@@ -29,7 +29,7 @@ export default function CheckinPage({ searchParams }: { searchParams: { t?: stri
 
         {!valid ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h1 className="mb-2 text-xl font-bold text-slate-900">This link has expired</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">This link has expired</h1>
             <p className="mb-4 text-slate-700">
               Check-in links work for 30 days. Thank you for opening it all the same. You can change check-in emails in Settings after signing in.
             </p>

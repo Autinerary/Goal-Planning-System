@@ -76,7 +76,7 @@ export default function ModelSettingsPage() {
         <Link href="/profile/settings" className="text-sm text-slate-500 hover:text-slate-800">
           ← Settings
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900">Models</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Models</h1>
         <p className="text-sm text-slate-600">
           Choose which model runs your plan and how much thinking it does. You can give
           individual agents their own model, for example a stronger one for planning and a

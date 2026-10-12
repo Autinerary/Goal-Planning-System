@@ -59,7 +59,7 @@ export default function AccessibilitySettingsPage() {
         </button>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <h1 className="text-2xl font-bold mb-1">Accessibility</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">Accessibility</h1>
           <p className="text-slate-600 mb-6 text-sm">
             Tune how the app looks and moves. Changes apply instantly and are saved on this device.
           </p>

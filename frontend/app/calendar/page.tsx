@@ -863,7 +863,7 @@ function CalendarContent() {
           </div>
           {/* Title */}
           <div className="border border-slate-200 rounded-xl p-6 surface">
-            <h1 className="text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2"><Calendar className="w-6 h-6 text-indigo-600" aria-hidden="true" />Your Calendar</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2"><Calendar className="w-6 h-6 text-indigo-600" aria-hidden="true" />Your Calendar</h1>
             <p className="text-slate-500 text-sm">Plan your journey through each day</p>
           </div>
         </div>

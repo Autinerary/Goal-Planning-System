@@ -12,7 +12,7 @@ import { usePreferences } from '../context/usePreferences'
  * First, "Do you know what to do next?" (Riipen Labs' cohort report: "one
  * short qualitative question such as 'Did you know what to do next?'", so
  * completion is not mistaken for understanding). "Not sure" or "No" is met
- * at once with where to start and the one-minute tour, not only counted.
+ * at once with where to start and the two-minute tour, not only counted.
  *
  * Optional and dismissible, shown once per browser per onboarding version,
  * and placed below the "Start here" steps so it never competes with the
@@ -24,6 +24,13 @@ const DONE_KEY = `autinerary_onboarding_feedback_${ONBOARDING_VERSION}`
 const NEXT_STEP_OPTIONS = [
   { id: 'yes', label: 'Yes' },
   { id: 'not_sure', label: 'Not sure' },
+  { id: 'no', label: 'No' },
+]
+
+// Riipen Labs, Group 25: "ask beta testers if signup felt clear and quick".
+const SIGNUP_CLEAR_OPTIONS = [
+  { id: 'yes', label: 'Yes' },
+  { id: 'mostly', label: 'Mostly' },
   { id: 'no', label: 'No' },
 ]
 
@@ -57,6 +64,7 @@ export const HEARD_FROM = [
 export default function OnboardingFeedback() {
   const [hidden, setHidden] = useState(true)
   const [nextStep, setNextStep] = useState('')
+  const [signupClear, setSignupClear] = useState('')
   const [info, setInfo] = useState('')
   const [ease, setEase] = useState(0)
   const [heardFrom, setHeardFrom] = useState('')
@@ -79,15 +87,16 @@ export default function OnboardingFeedback() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!nextStep && !info && !ease && !comment.trim() && !heardFrom) return
+    if (!nextStep && !signupClear && !info && !ease && !comment.trim() && !heardFrom) return
     setStatus('saving')
     try {
-      if (nextStep || info || ease || comment.trim()) {
+      if (nextStep || signupClear || info || ease || comment.trim()) {
         const res = await fetch('/api/onboarding-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             nextStep: nextStep || undefined,
+            signupClear: signupClear || undefined,
             infoBeforeSignup: info || undefined,
             setupEase: ease || undefined,
             comment: comment.trim() || undefined,
@@ -115,13 +124,13 @@ export default function OnboardingFeedback() {
     )
   }
 
-  const canSubmit = Boolean(nextStep || info || ease || comment.trim() || heardFrom) && status !== 'saving'
+  const canSubmit = Boolean(nextStep || signupClear || info || ease || comment.trim() || heardFrom) && status !== 'saving'
 
   return (
     <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-200 p-6 surface" aria-labelledby="feedback-heading">
       <div className="mb-1 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-indigo-700" aria-hidden="true" />
-        <h2 id="feedback-heading" className="font-bold text-slate-900">Four quick questions (optional)</h2>
+        <h2 id="feedback-heading" className="font-bold text-slate-900">Five quick questions (optional)</h2>
       </div>
       <p className="mb-5 text-sm text-slate-700">Autinerary is in beta. This tells us what to fix in setup.</p>
 
@@ -155,11 +164,35 @@ export default function OnboardingFeedback() {
               onClick={() => window.dispatchEvent(new CustomEvent('autinerary:start-demo'))}
               className="font-semibold text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
             >
-              Take the one-minute tour
+              Take the two-minute tour
             </button>{' '}
             to see the rest.
           </p>
         )}
+      </fieldset>
+
+      <fieldset className="mb-5">
+        <legend className="mb-2 text-sm font-semibold text-slate-900">Was making your account clear and quick?</legend>
+        <div className="flex flex-wrap gap-2">
+          {SIGNUP_CLEAR_OPTIONS.map((o) => (
+            <label
+              key={o.id}
+              className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1 ${
+                signupClear === o.id ? 'border-indigo-700 bg-indigo-50 text-indigo-900' : 'border-slate-300 bg-white text-slate-800 hover:border-indigo-400'
+              }`}
+            >
+              <input
+                type="radio"
+                name="signup_clear"
+                value={o.id}
+                checked={signupClear === o.id}
+                onChange={() => setSignupClear(o.id)}
+                className="sr-only"
+              />
+              {o.label}
+            </label>
+          ))}
+        </div>
       </fieldset>
 
       <fieldset className="mb-5">

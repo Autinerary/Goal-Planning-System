@@ -13,7 +13,7 @@ export default function OfflinePage() {
     <main className="min-h-screen grid place-items-center bg-gradient-to-b from-sky-50 to-white p-6">
       <div className="max-w-sm text-center">
         <div className="text-5xl mb-4" aria-hidden="true">🌙</div>
-        <h1 className="text-xl font-bold text-slate-800 mb-2">You&apos;re offline</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">You&apos;re offline</h1>
         <p className="text-sm text-slate-600 mb-6">
           Autinerary needs a connection to load your path. Nothing has been lost. Everything
           you&apos;ve done is saved and will be here when you&apos;re back.

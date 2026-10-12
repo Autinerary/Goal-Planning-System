@@ -1,13 +1,20 @@
 /**
- * When the optional setup questions someone skipped come back on the Path
- * (app/components/AskLaterCard.tsx), in days after sign-up.
+ * The optional questions setup skipped, asked later on the Path.
  *
  * Riipen Labs, Group 5: "essential account setup is captured on Day 1, while
  * deeper preferences (sensory needs, specific conditions) are gathered
- * gradually over Days 7 to 14". One group at a time: location first (it finds
- * services near them), sensory needs and conditions from day 7, the personal
- * touches from day 10. Closing a group moves on to the next once it is due.
+ * gradually over Days 7 to 14". The Path's "ask later" card showed these
+ * groups one at a time: location first, sensory needs and conditions from day
+ * 7, the personal touches from day 10. Groups 25 to 30 moved every optional
+ * question out of setup, and the "Complete your profile" card
+ * (components/ProfileCompletion.tsx, lib/profileItems.ts) replaced that card,
+ * with the same timing for what it suggests next.
+ *
+ * The groups stay for the funnel's ask_later events (app/api/events), which
+ * the profile card sends too: "shown.profile" and "done.profile.<item>".
  */
+
+import { PROFILE_ITEMS } from './profileItems'
 
 export interface AskLaterGroup {
   /** Names the group in the funnel events (ask_later). */
@@ -24,12 +31,15 @@ export const ASK_LATER_GROUPS: AskLaterGroup[] = [
   { id: 'makeItYours', ids: ['character', 'spiritAnimal', 'personalize'], fromDay: 10, title: 'Make it yours (optional)', intro: 'You skipped these during setup. Add any of them whenever you like.' },
 ]
 
-/** Steps of the ask_later event: "shown.aboutYou", "done.location", "closed.makeItYours". */
-export const ASK_LATER_STEP = new RegExp(
-  `^(shown|done|closed)\\.(${[...new Set(ASK_LATER_GROUPS.flatMap((g) => [g.id, ...g.ids]))].join('|')})$`,
-)
+// The "Complete your profile" card's items.
+const PROFILE_ITEM_IDS = PROFILE_ITEMS.map((item) => item.id)
 
-/** The group to show `day` days after sign-up, if any is due. */
-export function dueAskLaterGroup(items: string[], day: number): AskLaterGroup | undefined {
-  return ASK_LATER_GROUPS.find((g) => day >= g.fromDay && g.ids.some((id) => items.includes(id)))
-}
+/**
+ * Steps of the ask_later event: "shown.aboutYou", "done.location",
+ * "closed.makeItYours"; and the profile card's "shown.profile" and
+ * "done.profile.motivation".
+ */
+export const ASK_LATER_STEP = new RegExp(
+  `^((shown|done|closed)\\.(${[...new Set(ASK_LATER_GROUPS.flatMap((g) => [g.id, ...g.ids]))].join('|')})` +
+    `|shown\\.profile|done\\.profile\\.(${PROFILE_ITEM_IDS.join('|')}))$`,
+)

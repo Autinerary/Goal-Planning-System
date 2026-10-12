@@ -112,7 +112,7 @@ export default function Messages() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
         <BackButton fallback="/hare-world" />
-        <h1 className="mt-4 text-3xl font-bold text-slate-900">Messages</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-4">Messages</h1>
         <p className="mt-1 text-sm text-slate-700">
           Only people you’re connected to can message you. Report a message from the message itself, or block someone from their card in{' '}
           <Link href="/hare-world" className="font-medium text-purple-800 underline underline-offset-2">Hare World</Link>.

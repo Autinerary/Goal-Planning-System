@@ -2,36 +2,63 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle, Check, MousePointerClick } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { track, TOUR_TASK_IDS } from '@/lib/funnel'
+import { goHubHref } from '@/lib/serviceHub'
 
 /**
- * Interactive demo / tutorial.
+ * The app tour (Riipen Labs, Group 27, September 2026).
  *
- * A dependency-free guided walkthrough that explains how to use the app. It
- * shows a sequence of cards, each optionally routing the user to the relevant
- * screen so they see the real UI as they learn. Triggered automatically on a
- * user's first visit (once), or manually via the `autinerary:start-demo` event
- * (e.g. a "How it works" button).
+ * Group 27 found the tour explained features without asking people to do
+ * anything: "add prompts that have users complete a task before moving to the
+ * next feature, and explain how features connect", and "identify the 3 to 4
+ * features that best show Autinerary's value", introducing the rest
+ * "gradually". So the tour is four parts, each with one small thing to try
+ * (open your next step, open the Calendar, pick today's energy, open
+ * Display), and Next comes after it is done or skipped; then a page on where
+ * the rest is, and ResourceHub at the end (Group 26: the most distinctive
+ * part). Skipping stays possible at every point: a task nobody can leave is a
+ * trap, not a prompt. Group 26 asked for the tour to show where setup's
+ * optional questions went (Display, "Complete your profile", AI
+ * suggestions), on the fourth part.
+ *
+ * "Show me" (Group 33) still points at each part on the page. Started once by
+ * itself after setup, and from "How it works" in the top bar ("Guide" on a
+ * phone). Counted as tour events (lib/funnel.ts, TOUR_STEP; STEP 70).
  */
+
+type TaskId = (typeof TOUR_TASK_IDS)[number]
 
 interface DemoFeature {
   name: string
   desc: string
-  /** Where it is on the page (a CSS selector): "Show me" points at it.
-   *  Riipen Labs, Group 33: the tour "isn't really showing where all these
-   *  functions are but more so explaining what they do". */
+  /** Where it is on the page (a CSS selector): "Show me" points at it. */
   target?: string
+}
+
+interface DemoTask {
+  id: TaskId
+  /** The one thing to try, as an instruction. */
+  prompt: string
+  /** What to tap (a CSS selector); done when it is tapped. */
+  target: string
+  /** Said when it is not on the page. */
+  missing: string
 }
 
 interface DemoStep {
   title: string
-  /** A general description of the page/view (shown first). */
+  /** What the part is for (shown first). */
   overview: string
-  /** What the key buttons/features on this view do. */
+  /** How it connects to the rest (Group 27: "explain how features connect"). */
+  connects?: string
   features?: DemoFeature[]
+  task?: DemoTask
   emoji: string
+  /** The page it is about; the tour goes there first unless already on `stayOn`. */
   route?: string
+  stayOn?: RegExp
 }
 
 const STEPS: DemoStep[] = [
@@ -39,99 +66,100 @@ const STEPS: DemoStep[] = [
     emoji: '👋',
     title: 'Welcome to Autinerary',
     overview:
-      'This quick tour walks you through each screen. First what the page is for, then what the main buttons do. It takes about a minute, and you can leave anytime. How it fits together: your goals become races, each milestone suggests tools, the calendar schedules your next steps, and the journal is where you look back.',
+      'Four parts, about two minutes. Each one asks you to try one small thing, so you know where it is next time. You can skip any of them, or the whole tour.',
+    connects:
+      'How it fits together: your goal is broken into small steps on your Path. Each step suggests tools that can help. The Calendar spreads the steps over your week, at the energy you have. And you can change how the app looks, and add more about you, whenever you like.',
   },
   {
     emoji: '🧭',
-    title: 'The Path',
-    overview:
-      'This is the Path: your home base. It shows the one thing to do next, and the places you’ll use most. Tap “Show me” to see where each part is.',
+    title: '1. Your next step',
+    overview: 'This is the Path, your home base. It shows the one thing to do next: the first small step of your goal.',
+    connects: 'Each step you finish brings up the next one, and moves your goal along in Races.',
     features: [
       { name: 'Your next step', desc: 'The one thing to do now. Open it to see how, and the tools that help.', target: 'section[aria-labelledby="next-step-heading"], section[aria-labelledby="no-plan-heading"]' },
-      { name: 'Your plan', desc: 'The pages of your plan: Path, Races, Milestones, Calendar and Tasks.', target: 'nav[aria-label="Your plan"]' },
       { name: 'Quick Links', desc: 'The places you’ll use most. “All places” lists everything.', target: 'section[aria-labelledby="quick-links-heading"]' },
-      { name: 'Show more / Simplify', desc: 'Switch between a simple layout and the full set of features.', target: '[data-tour="simplify"]' },
-      { name: 'Find resources', desc: 'Opens ResourceHub: services and places, rated by people with similar norms.', target: 'button[aria-label="Find resources"]' },
+      { name: 'Find resources', desc: 'Opens ResourceHub: services and places, rated by people with similar norms.', target: 'button[aria-label="Find resources in ResourceHub"]' },
+    ],
+    task: {
+      id: 'next_step',
+      prompt: 'Open your next step',
+      target: 'section[aria-labelledby="next-step-heading"] a[href^="/milestones/"]',
+      missing: 'Your next step appears here once your plan is made. Skip this one for now.',
+    },
+    route: '/path',
+  },
+  {
+    emoji: '🪧',
+    title: '2. Tools for each step',
+    overview: 'A step says what to do, in small parts, and suggests tools and services that can help. Tick it off when it is done, and the next one opens.',
+    connects: 'Tools you save go to Pit Stop. When this step is planned is on the Calendar.',
+    features: [
+      { name: 'Recommended tools', desc: 'Apps, services and reads that can help with this step.', target: '[data-tour="milestone-tools"]' },
+    ],
+    task: {
+      id: 'calendar',
+      prompt: 'Open the Calendar, to see when it is planned',
+      target: 'main a[href="/calendar"], a[href="/calendar"]',
+      missing: 'The Calendar link is on a step’s page. Skip this one for now.',
+    },
+    route: '/milestones',
+    stayOn: /^\/milestones(\/|$)/,
+  },
+  {
+    emoji: '📅',
+    title: '3. Your week, at your energy',
+    overview: 'The Calendar spreads your plan’s tasks across the week. Tell it how much energy you have today and the day fits it: low, balanced or high.',
+    connects: 'Ticks here count on your Path and in Life Stats too.',
+    features: [
+      { name: 'List or time blocks', desc: 'A simple list, or the day laid out in blocks.', target: '[data-tour="calendar-view"]' },
+    ],
+    task: {
+      id: 'energy',
+      prompt: 'Pick how much energy you have today',
+      target: '[data-tour="calendar-energy"]',
+      missing: 'The energy choice is at the top of the Calendar. Skip this one for now.',
+    },
+    route: '/calendar',
+  },
+  {
+    emoji: '🎨',
+    title: '4. Make it yours',
+    overview: 'Change how the app looks at any time: light or dark, larger text, higher contrast. Setup asked only what your plan needed; the rest is on the Path, for whenever you like.',
+    connects: 'Each answer changes what you see: your city finds services near you, your character stands on your race track.',
+    features: [
+      { name: 'Display', desc: 'Light or dark, text size, contrast, and how lively it looks.', target: '[data-tour="display"]' },
+      { name: 'Complete your profile', desc: 'Your city, what motivates you, your norms, your character and more. All optional.', target: 'section[aria-labelledby="profile-card-heading-path"]' },
+      { name: 'AI suggestions', desc: 'What the AI suggests for each step of your plan.', target: '[data-tour="ai-suggestions"]' },
+    ],
+    task: {
+      id: 'display',
+      prompt: 'Open Display',
+      target: '[data-tour="display"]',
+      missing: 'Display is at the top of the Path. Skip this one for now.',
+    },
+    route: '/path',
+  },
+  {
+    emoji: '🗺️',
+    title: 'More, when you are ready',
+    overview: 'There is more, for later: Races shows your goals as a race, Pit Stop keeps your tools, the Journal is for looking back, and Hare World is for your people.',
+    connects: 'Find them under Quick Links, then “All places”, when you want them.',
+    features: [
+      { name: 'All places', desc: 'Everything in the app, in groups.', target: 'button[aria-controls="all-places"]' },
     ],
     route: '/path',
   },
   {
-    emoji: '🏁',
-    title: 'Races & Milestones',
-    overview:
-      'This is the Races View. Each goal is a “race”, broken into milestones. It shows how far along each goal is.',
-    features: [
-      { name: 'Track or List', desc: 'See your races as a track, or as a checklist.', target: '[data-tour="races-view"]' },
-      { name: 'Night colours', desc: 'Darker colours for Races. Tap again for day colours.', target: 'button[aria-label="Night colours"], button[aria-label="Day colours"]' },
-      { name: 'A race card', desc: 'Tap one to open its milestones and see the next steps.' },
-      { name: 'Motivation Pinwheel', desc: 'Spin it for an encouraging message for the day.' },
-      { name: 'Progress bar', desc: 'Fills in automatically as you check off milestones.' },
-    ],
-    route: '/races',
-  },
-  {
-    emoji: '🪧',
-    title: 'Milestone View',
-    overview:
-      'This is the Milestone View. It pairs the tools you can use with the norms they help with, for the current milestone.',
-    features: [
-      { name: 'Tools to Use dropdown', desc: 'Collapse or expand the list to keep the page tidy.' },
-      { name: 'Wishlist / Currently Using', desc: 'Save a tool to your ResourceHub list or mark that you’re using it.' },
-      { name: 'Effectiveness stars', desc: 'Rate how well a tool worked. This also marks that norm as unlocked.' },
-    ],
-    route: '/milestones',
-  },
-  {
-    emoji: '📅',
-    title: 'Calendar View',
-    overview:
-      'This is the Calendar View: your schedule as a travel guide for each day, built around your energy.',
-    features: [
-      { name: 'List / Time Blocks', desc: 'Switch between a simple list and a time-blocked layout.', target: '[data-tour="calendar-view"]' },
-      { name: 'Low / Balanced / High energy', desc: 'See a schedule that matches how much energy you have.', target: '[data-tour="calendar-energy"]' },
-      { name: 'Day / Week / Month', desc: 'Change how much of your schedule you see at once.' },
-      { name: 'Compare', desc: 'Line your day up against a role model or mentor’s.' },
-    ],
-    route: '/calendar',
-  },
-  {
-    emoji: '🛒',
-    title: 'Pit Stop',
-    overview:
-      'This is the Pit Stop: your cart of tools and supports. Everything is tailored to your Diagnostics profile.',
-    features: [
-      { name: 'Search', desc: 'Find autism-friendly services, products, and communities.' },
-      { name: 'Add to cart', desc: 'Save what helps to your list; skip the rest.' },
-    ],
-    route: '/pit-stop',
-  },
-  {
-    emoji: '📖',
-    title: 'Journal & Reflections',
-    overview:
-      'This is the Journal. Reflect on how things are going. You can import past journals and get a monthly Motivation Style report.',
-    route: '/reflection',
-  },
-  {
-    emoji: '🎨',
-    title: 'Settings & Personalize',
-    overview:
-      'This is Settings. Make the app yours. Adjust the look, move widgets, set accessibility options, and manage reminders.',
-    features: [
-      { name: 'View energy', desc: 'Dial how playful vs. calm the interface feels.' },
-      { name: 'Accessibility', desc: 'Larger text, reduced motion, high contrast, and more.' },
-    ],
-    route: '/profile/accessibility',
-  },
-  {
     emoji: '🚀',
-    title: 'You’re ready!',
-    overview:
-      'That’s the tour. Start checking off milestones and watch your Dream Land come to life. You can replay this anytime from “How it works” in the top bar (“Guide” on a phone).',
+    title: 'Last one, if you like: ResourceHub',
+    overview: 'ResourceHub has services and places rated by people with similar norms, and Tidbits, where people ask and answer questions. It opens in this window; come back with your browser’s Back button.',
+    connects: 'You can replay this tour any time from “How it works” in the top bar (“Guide” on a phone).',
   },
 ]
 
 const SEEN_KEY = 'autinerary_demo_seen_v1'
+// Pages the tour never sits over: setup and signing in.
+const NOT_HERE = ['/', '/login', '/signup', '/onboarding', '/forgot-password', '/reset-password', '/auth/age', '/checkin']
 
 export default function InteractiveDemo() {
   const router = useRouter()
@@ -139,12 +167,19 @@ export default function InteractiveDemo() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
-  // "Show me": one control on the page, ringed, the rest dimmed, with what it
-  // does beside it (Riipen Labs, Group 33).
+  // "Show me": one control on the page, ringed, the rest dimmed.
   const [spot, setSpot] = useState<{ name: string; desc: string; el: Element } | null>(null)
+  // "Try it": the task's control, ringed, and the page usable around it.
+  const [trying, setTrying] = useState<{ task: DemoTask; el: Element } | null>(null)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [note, setNote] = useState('')
+  const [done, setDone] = useState<Partial<Record<TaskId, 'done' | 'skipped'>>>({})
   const backRef = useRef<HTMLButtonElement>(null)
+  const stepRef = useRef(step)
+  stepRef.current = step
+
+  const ringed = spot?.el || trying?.el || null
+  const calm = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.reduceMotion === 'on'
 
   const showMe = (f: DemoFeature) => {
     const el = f.target ? document.querySelector(f.target) : null
@@ -153,42 +188,75 @@ export default function InteractiveDemo() {
       return
     }
     setNote('')
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.reduceMotion === 'on'
-    el.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' })
+    el.scrollIntoView({ block: 'center', behavior: calm() ? 'auto' : 'smooth' })
     setSpot({ name: f.name, desc: f.desc, el })
   }
 
+  const tryIt = (task: DemoTask) => {
+    const el = document.querySelector(task.target)
+    if (!el) {
+      setNote(task.missing)
+      return
+    }
+    setNote('')
+    el.scrollIntoView({ block: 'center', behavior: calm() ? 'auto' : 'smooth' })
+    setTrying({ task, el })
+  }
+
+  const markTask = (id: TaskId, how: 'done' | 'skipped') => {
+    setDone((d) => ({ ...d, [id]: how }))
+    track('tour', `${how === 'done' ? 'task' : 'skip'}.${id}`)
+  }
+
+  // Keep the ring on its control as the page scrolls or moves.
   useEffect(() => {
-    if (!spot) return
-    const update = () => setRect(spot.el.getBoundingClientRect())
+    if (!ringed) { setRect(null); return }
+    const update = () => setRect(ringed.getBoundingClientRect())
     update()
-    // Follows a smooth scroll and anything that moves the page.
     const timer = window.setInterval(update, 200)
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSpot(null) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSpot(null); setTrying(null) } }
     window.addEventListener('resize', update)
     window.addEventListener('keydown', onKey)
-    backRef.current?.focus()
+    // "Try it": focus the control to use, so Enter does the task; "Show me":
+    // focus "Back to the tour".
+    const control = trying ? (trying.el.matches('a, button') ? trying.el : trying.el.querySelector('a, button')) : null
+    if (control instanceof HTMLElement) control.focus({ preventScroll: true })
+    else backRef.current?.focus()
     return () => {
       window.clearInterval(timer)
       window.removeEventListener('resize', update)
       window.removeEventListener('keydown', onKey)
     }
-  }, [spot])
+  }, [ringed])
+
+  // The task is done when its control is used: a tap inside it. Links go
+  // where they lead; the tour follows, on to the next part.
+  useEffect(() => {
+    if (!trying) return
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as Node | null
+      if (!target || !trying.el.contains(target)) return
+      if (!(target instanceof Element) || !target.closest('a, button')) return
+      markTask(trying.task.id, 'done')
+      setTrying(null)
+    }
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
+  }, [trying])
 
   useEffect(() => {
     // Auto-start once for brand-new users — but only when signed in and onboarded
     // (the tour walks real, logged-in screens; it shouldn't pop over login/signup).
     if (!user || !user.hasCompletedOnboarding) return
-    // Not over the post-setup summary: someone who has just finished nine
-    // steps of setup gets a page of next steps there, with the tour offered
-    // as a button. It still starts by itself once, on the next page.
+    // Not over the page after setup, which offers the tour as a button. It
+    // still starts by itself once, on the next page.
     if (pathname === '/onboarding-confirmation') return
     // Nor over the one-question check-in someone opened from an email.
     if (['/checkin', '/privacy', '/help', '/forgot-password', '/reset-password'].includes(pathname)) return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.
-        const t = setTimeout(() => setOpen(true), 800)
+        const t = setTimeout(() => { setOpen(true); track('tour', 'start') }, 800)
         return () => clearTimeout(t)
       }
     } catch {
@@ -199,46 +267,113 @@ export default function InteractiveDemo() {
   useEffect(() => {
     const start = () => {
       setStep(0)
+      setDone({})
       setOpen(true)
+      track('tour', 'start')
     }
     window.addEventListener('autinerary:start-demo', start)
     return () => window.removeEventListener('autinerary:start-demo', start)
   }, [])
 
-  const finish = () => {
+  // Never over setup or signing in, whatever led there.
+  useEffect(() => {
+    if (open && NOT_HERE.includes(pathname)) {
+      setOpen(false)
+      setTrying(null)
+      setSpot(null)
+    }
+  }, [open, pathname])
+
+  // After a task that leads to another page, go on to the next part there.
+  useEffect(() => {
+    if (!open || trying) return
+    const s = STEPS[stepRef.current]
+    if (s?.task && done[s.task.id] === 'done' && s.task.id !== 'display') {
+      const next = Math.min(STEPS.length - 1, stepRef.current + 1)
+      if (STEPS[next].stayOn?.test(pathname) || !STEPS[next].route || STEPS[next].route === pathname) {
+        setStep(next)
+        setNote('')
+      }
+    }
+  }, [pathname, done, open, trying])
+
+  const finish = (how: 'finish' | 'close') => {
     try {
       localStorage.setItem(SEEN_KEY, '1')
     } catch {
       /* ignore */
     }
+    track('tour', how)
     setOpen(false)
+    setTrying(null)
+    setSpot(null)
   }
 
   const go = (next: number) => {
     const clamped = Math.max(0, Math.min(STEPS.length - 1, next))
     setNote('')
     setStep(clamped)
-    const route = STEPS[clamped].route
-    if (route) router.push(route)
+    const { route, stayOn } = STEPS[clamped]
+    if (route && !(stayOn && stayOn.test(pathname)) && route !== pathname) router.push(route)
   }
 
   if (!open) return null
   const s = STEPS[step]
   const isLast = step === STEPS.length - 1
+  const taskState = s.task ? done[s.task.id] : undefined
+  // Next waits for the task, done or skipped (Group 27: complete a task
+  // "before moving to the next feature").
+  const canGoOn = !s.task || Boolean(taskState)
+
+  const ring = rect && (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed rounded-xl ring-4 ring-amber-400 keep-colors"
+      style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.55)' }}
+    />
+  )
+  const below = !rect || rect.top + rect.height / 2 < window.innerHeight / 2
+
+  if (trying) {
+    // The page stays usable: only the bar takes taps, and the ringed control
+    // is the thing to tap.
+    return (
+      <div className="pointer-events-none fixed inset-0 z-[100]">
+        {ring}
+        <div role="dialog" aria-labelledby="tour-try-prompt" className={`pointer-events-auto fixed left-1/2 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl bg-white p-4 shadow-2xl ${below ? 'bottom-4' : 'top-4'}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-cyan-800">Try it</p>
+          <p id="tour-try-prompt" className="mt-1 flex items-center gap-2 font-bold text-slate-900">
+            <MousePointerClick className="h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+            {trying.task.prompt}: tap the ringed button.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              ref={backRef}
+              type="button"
+              onClick={() => setTrying(null)}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-400 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:border-indigo-500"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to the tour
+            </button>
+            <button
+              type="button"
+              onClick={() => { markTask(trying.task.id, 'skipped'); setTrying(null) }}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-400 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:border-indigo-500"
+            >
+              Skip this one
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (spot) {
     // The explanation sits away from the control: below if it is in the top
     // half of the screen, above if not.
-    const below = !rect || rect.top + rect.height / 2 < window.innerHeight / 2
     return (
       <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-labelledby="tour-spot-name">
-        {rect && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none fixed rounded-xl ring-4 ring-amber-400 keep-colors"
-            style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12, boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.55)' }}
-          />
-        )}
+        {ring}
         <div className={`fixed left-1/2 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl bg-white p-4 shadow-2xl ${below ? 'bottom-4' : 'top-4'}`}>
           <p className="text-xs font-semibold uppercase tracking-wide text-cyan-800">{s.title}</p>
           <p id="tour-spot-name" className="mt-1 font-bold text-slate-900">{spot.name}</p>
@@ -258,23 +393,14 @@ export default function InteractiveDemo() {
 
   return (
     /*
-      Two tester reports met here.
-
-      "Can't scroll at 100% zoom": this is a fixed inset-0 overlay, which
-      does not scroll with the page, and the card had no height limit. At
-      100% zoom a step with a features list runs past the bottom of the
-      viewport and its buttons become unreachable, while zooming out makes
-      it fit and hides the problem. The overlay now scrolls and the card is
-      capped to the viewport.
-
-      "The tour blurs the whole page": backdrop-blur-sm over everything
-      defeats a tour whose job is to describe what is on screen. The scrim
-      is now a plain dim, so the page stays legible behind the card.
+      "Can't scroll at 100% zoom": the overlay scrolls and the card is capped
+      to the viewport. "The tour blurs the whole page": the scrim is a plain
+      dim, so the page stays legible behind the card.
     */
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
+      <div role="dialog" aria-modal="true" aria-labelledby="tour-title" className="relative my-auto w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
         <button
-          onClick={finish}
+          onClick={() => finish('close')}
           className="absolute top-3 right-3 text-slate-500 hover:text-slate-800"
           aria-label="Close tour"
         >
@@ -282,15 +408,16 @@ export default function InteractiveDemo() {
         </button>
 
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-cyan-700" />
+          <Sparkles className="w-4 h-4 text-cyan-700" aria-hidden="true" />
           <span className="text-xs font-semibold uppercase tracking-wide text-cyan-800">
             Interactive tour
           </span>
         </div>
 
-        <div className="text-5xl mb-3">{s.emoji}</div>
-        <h2 className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
-        <p className="text-slate-600 text-sm mb-4">{s.overview}</p>
+        <div className="text-5xl mb-3" aria-hidden="true">{s.emoji}</div>
+        <h2 id="tour-title" className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
+        <p className="text-slate-700 text-sm mb-3">{s.overview}</p>
+        {s.connects && <p className="text-slate-700 text-sm mb-4">{s.connects}</p>}
 
         {/* The voice-guided intro (narration plus spoken "next"/"back"),
             offered instead of shown as a second tour. It lives on the Path. */}
@@ -298,18 +425,52 @@ export default function InteractiveDemo() {
           <button
             type="button"
             onClick={() => {
-              finish()
+              finish('close')
               window.dispatchEvent(new CustomEvent('autinerary:start-voice-intro'))
             }}
-            className="-mt-2 mb-4 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+            className="-mt-1 mb-4 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
           >
             Prefer it read aloud? Use the voice-guided intro
           </button>
         )}
 
+        {s.task && (
+          <div className={`mb-4 rounded-xl border-2 p-3 ${taskState === 'done' ? 'border-emerald-300 bg-emerald-50' : 'border-amber-300 bg-amber-50'}`}>
+            {taskState === 'done' ? (
+              <p role="status" className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> Done: {s.task.prompt.toLowerCase()}.
+              </p>
+            ) : (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">Try it</p>
+                <p className="mt-0.5 text-sm font-semibold text-slate-900">{s.task.prompt}.</p>
+                {taskState === 'skipped' && <p className="mt-1 text-xs text-slate-700">Skipped. You can still try it.</p>}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => tryIt(s.task!)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                  >
+                    <MousePointerClick className="h-4 w-4" aria-hidden="true" /> Try it
+                  </button>
+                  {!taskState && (
+                    <button
+                      type="button"
+                      onClick={() => markTask(s.task!.id, 'skipped')}
+                      className="rounded-xl border-2 border-slate-400 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:border-indigo-500"
+                    >
+                      Skip this one
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {s.features && s.features.length > 0 && (
           <div className="mb-6 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What the buttons do</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Where things are</p>
             {s.features.map((f) => (
               <div key={f.name} className="flex items-start justify-between gap-2 text-sm">
                 <span>
@@ -328,23 +489,24 @@ export default function InteractiveDemo() {
                 )}
               </div>
             ))}
-            <p role="status" className="text-xs text-slate-700">{note}</p>
           </div>
         )}
+        <p role="status" className="mb-3 text-xs text-slate-700">{note}</p>
 
-        {/* Progress dots */}
-        <div className="flex items-center gap-1.5 mb-6">
+        {/* Progress: dots, and the part in words */}
+        <div className="flex items-center gap-1.5 mb-1" aria-hidden="true">
           {STEPS.map((_, i) => (
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? 'w-6 bg-cyan-500' : 'w-1.5 bg-slate-200'
+                i === step ? 'w-6 bg-cyan-500' : i < step ? 'w-1.5 bg-cyan-700' : 'w-1.5 bg-slate-200'
               }`}
             />
           ))}
         </div>
+        <p className="mb-5 text-xs text-slate-600">Part {step + 1} of {STEPS.length}</p>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => go(step - 1)}
             disabled={step === 0}
@@ -354,28 +516,45 @@ export default function InteractiveDemo() {
           </button>
 
           <button
-            onClick={finish}
+            onClick={() => finish('close')}
             className="text-xs text-slate-600 hover:text-slate-900 underline underline-offset-2"
           >
             Skip tour
           </button>
 
           {isLast ? (
-            <button
-              onClick={finish}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
-            >
-              Finish the tour
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => finish('finish')}
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-400 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:border-indigo-500"
+              >
+                Finish the tour
+              </button>
+              <button
+                onClick={() => {
+                  track('tour', 'task.resourcehub')
+                  finish('finish')
+                  window.location.href = goHubHref('/')
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
+              >
+                Open ResourceHub <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => go(step + 1)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg"
+              disabled={!canGoOn}
+              aria-describedby={!canGoOn ? 'tour-next-hint' : undefined}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg disabled:bg-slate-200 disabled:text-slate-700 disabled:shadow-none"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>
           )}
         </div>
+        {!canGoOn && (
+          <p id="tour-next-hint" className="mt-2 text-right text-xs text-slate-700">Try it or skip it to go on.</p>
+        )}
       </div>
     </div>
   )

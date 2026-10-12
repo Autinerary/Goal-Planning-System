@@ -59,7 +59,7 @@ export default function AboutMePage() {
       <div className="mx-auto max-w-2xl space-y-6">
         <BackButton fallback="/reflection" />
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">About me</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">About me</h1>
           <p className="mt-1 text-slate-700">
             You, in your own words. Write as much or as little as you like; every part is optional. Only you can see this page.
           </p>

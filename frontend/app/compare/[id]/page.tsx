@@ -207,7 +207,7 @@ export default function ComparePage() {
           )}
         </div>
 
-        <h1 className="text-3xl font-bold text-slate-900 mb-1">Side-by-side</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">Side-by-side</h1>
         <p className="text-slate-600 mb-6">See how your pathway, calendar, and progress stack up.</p>
 
         {loading && (

@@ -134,7 +134,7 @@ const EXCHANGE = [
   {
     icon: ListChecks,
     title: 'What you share',
-    body: 'Required: that you are 18 or older, who you are here for, and one goal. Everything else is optional, and \u201cPrefer not to share\u201d is always an answer.',
+    body: 'Required: that you are 18 or older, who you are here for, and one goal. Everything else is optional and asked later, in the app, when you choose, and \u201cPrefer not to share\u201d is always an answer.',
   },
   {
     icon: Sparkles,
@@ -157,12 +157,12 @@ const STEPS = [
   {
     icon: ListChecks,
     title: 'Answer a short setup',
-    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Everything else is optional and can wait.',
+    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Everything else is optional, and you can add it in the app whenever you like.',
   },
   {
     icon: Rocket,
     title: 'Get your path and start',
-    body: 'Your plan is built in about a minute. Then you start with your first milestone, and a short tour shows you around.',
+    body: 'Your plan is built in about a minute. Then you start with your first milestone, and a short tour has you try the main parts.',
   },
 ]
 
@@ -173,7 +173,7 @@ const PLACES = [
 ]
 
 const CONNECTIONS = [
-  { label: 'Your answers', detail: 'norms, goals, what motivates you' },
+  { label: 'Your answers', detail: 'your goal, and anything you add later' },
   { label: 'Your path', detail: 'goals become races with milestones' },
   { label: 'Tools & ResourceHub', detail: 'supports for each milestone' },
   { label: 'Your calendar', detail: 'next steps scheduled around your energy' },
@@ -253,7 +253,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="text-sm text-slate-700">
-              Free during the beta · No credit card · For adults 18+
+              Free during the beta · No credit card · For adults 18+ · We never sell your information
             </p>
             <p className="text-sm">
               <a href={`${SERVICE_HUB_URL}/search`} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
@@ -268,11 +268,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* The page in short sections, each one reachable from here (Riipen
+          Labs, Group 25: "shorter, more scannable sections"; Group 28:
+          before signing up, people should understand what Autinerary is,
+          who it is for, how it helps them, what it costs, how their
+          information is protected and what comes next). */}
+      <nav aria-label="On this page" className="border-t border-slate-200 bg-white px-4 py-3">
+        <ul className="mx-auto flex max-w-5xl flex-wrap gap-x-5 gap-y-2 text-sm">
+          {[
+            ['#start', 'Start here'],
+            ['#why', 'Why Autinerary'],
+            ['#inside', 'A look inside'],
+            ['#how', 'How it works'],
+            ['#who', 'Who it’s for'],
+            ['#before-you-sign-up', 'Cost, privacy and what setup asks'],
+          ].map(([href, label]) => (
+            <li key={href}>
+              <a href={href} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">{label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       <StartHere />
 
       {/* Why Autinerary: what you get, and what makes it different (Group
           11: "most neurodivergent apps focus on one job"). */}
-      <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
+      <section id="why" className="scroll-mt-4 border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="what-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="what-heading" className="text-2xl font-bold md:text-3xl">Why Autinerary</h2>
           <p className="mt-2 max-w-3xl text-lg text-slate-700">
@@ -294,7 +316,7 @@ export default function HomePage() {
       </section>
 
       {/* A look inside, before any account. */}
-      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="inside-heading">
+      <section id="inside" className="scroll-mt-4 border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="inside-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="inside-heading" className="text-2xl font-bold md:text-3xl">A look inside</h2>
           <p className="mt-2 text-slate-700">
@@ -385,7 +407,7 @@ export default function HomePage() {
       </section>
 
       {/* Who it's for: two short paths, one per kind of visitor. */}
-      <section className="border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="who-heading">
+      <section id="who" className="scroll-mt-4 border-t border-slate-200 bg-white px-4 py-12 md:py-16" aria-labelledby="who-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="who-heading" className="text-2xl font-bold md:text-3xl">Who it&apos;s for</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -453,7 +475,7 @@ export default function HomePage() {
 
       {/* Details people asked for, folded away until wanted so the page does
           not front-load everything (the review's main risk to avoid). */}
-      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="details-heading">
+      <section id="before-you-sign-up" className="scroll-mt-4 border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="details-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="details-heading" className="text-2xl font-bold md:text-3xl">Before you sign up</h2>
           <ul className="mt-6 grid gap-4 md:grid-cols-3">
@@ -482,10 +504,15 @@ export default function HomePage() {
                   who you are here for, and one goal. You can create your path as soon as those are done.
                 </p>
                 <p>
-                  <span className="font-semibold text-slate-900">Optional:</span> the norms you navigate (or
-                  &ldquo;Prefer not to share&rdquo;), what you are looking for, your location (to find services near
-                  you), what motivates you, your character and spirit animals, and how the app looks. You can add
-                  any of these later.
+                  <span className="font-semibold text-slate-900">Optional, in setup:</span> what you are looking for
+                  today, so it is shown first.
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-900">Optional, later, in the app:</span> the norms you
+                  navigate (or &ldquo;Prefer not to share&rdquo;), your city (to find services near you), what
+                  motivates you, your character and spirit animals, how the app looks, and reminders. Your Path
+                  suggests them one at a time, under &ldquo;Complete your profile&rdquo;, and says what each one
+                  changes. Answer any of them whenever you like, or never.
                 </p>
               </div>
             </details>
@@ -497,9 +524,10 @@ export default function HomePage() {
               <p className="mt-3 text-slate-700">
                 Your path is generated in about a minute. You land on a summary that starts with what you said
                 you were looking for (a plan, services, or advice from others), with starter resources picked from
-                your answers, and shows your first milestone, with an optional one-minute tour of each screen. You can
-                replay the tour anytime from “How it works” in the top bar (“Guide” on a phone). Optional questions, like your location or sensory needs,
-                come back gently over your first two weeks.
+                your answers, and shows your first milestone, with an optional short tour that has you try the main
+                parts. You can replay the tour anytime from “How it works” in the top bar (“Guide” on a phone). The
+                optional questions, like your city or sensory needs, are on your Path under “Complete your profile”,
+                one at a time, for whenever you like.
               </p>
             </details>
             {/* Riipen Labs' cohort report: "explain where AI is used, what user
@@ -541,7 +569,8 @@ export default function HomePage() {
                 whether it was a phone, a tablet or a computer.
                 In &ldquo;Start here&rdquo; we count the answers chosen, which starter resources are opened, and
                 whether people found them useful. Once you have an account, we count which parts of the app you
-                open. These counts never include anything you type. There are no advertising trackers on this site, and if
+                open, which optional questions you have answered (not the answers), and which parts of the tour you
+                tried. These counts never include anything you type. There are no advertising trackers on this site, and if
                 your browser sends Do Not Track or Global Privacy Control, you are not counted.
                 {gaEnabled() && ' If you allow it when asked, Google Analytics gets the same counts; it is off until you say yes.'}
               </p>

@@ -33,7 +33,7 @@ export default function ConfirmPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-16">
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{state === 'done' ? 'Confirmed. Thank you.' : 'Confirm your email'}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{state === 'done' ? 'Confirmed. Thank you.' : 'Confirm your email'}</h1>
         {state === 'done' || state === 'error' ? (
           <p role="status" className="mt-3 text-slate-800">{message}</p>
         ) : (

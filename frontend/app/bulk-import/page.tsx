@@ -112,7 +112,7 @@ export default function BulkImportPage() {
           <ArrowLeft className="w-4 h-4" /> Back
         </Link>
 
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-purple-600" /> Recommend a batch
         </h1>
         <p className="text-sm text-slate-500 mb-6">

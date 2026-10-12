@@ -32,6 +32,26 @@ def _rows(result: Any) -> List[Dict[str, Any]]:
     return getattr(result, "data", None) or []
 
 
+def _chosen_motivation(sb, user_id: str) -> Optional[str]:
+    """The first of the motivations they picked in the app, if any."""
+    try:
+        rows = _rows(sb.table("profiles").select("preferences").eq("id", user_id).limit(1).execute())
+    except Exception:
+        return None
+    prefs = (rows[0].get("preferences") if rows else None) or {}
+    if isinstance(prefs, str):
+        try:
+            prefs = json.loads(prefs)
+        except ValueError:
+            return None
+    types = (prefs.get("motivation") or {}).get("types") if isinstance(prefs, dict) else None
+    if isinstance(types, list):
+        for t in types:
+            if isinstance(t, str) and t.strip():
+                return t.strip()[:40]
+    return None
+
+
 def current_profile(sb, user_id: str) -> Optional[Dict[str, Any]]:
     """What the vector should be built from now, or None if they have no vector."""
     existing = _rows(sb.table("pattern_user_embeddings")
@@ -53,7 +73,13 @@ def current_profile(sb, user_id: str) -> Optional[Dict[str, Any]]:
         except ValueError:
             payload = {}
     profile = dict(payload.get("userProfile") or {})
-    if not profile.get("motivationType") and row.get("motivation_type"):
+    # What motivates them is asked in the app now, not in setup (Riipen Labs,
+    # Groups 25 to 30), and kept in profiles.preferences.motivation; the
+    # newest answer wins over the one a path was made with.
+    chosen = _chosen_motivation(sb, user_id)
+    if chosen:
+        profile["motivationType"] = chosen
+    elif not profile.get("motivationType") and row.get("motivation_type"):
         profile["motivationType"] = row["motivation_type"]
     return {
         "profile": profile,

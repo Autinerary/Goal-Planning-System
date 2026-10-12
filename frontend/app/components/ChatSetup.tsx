@@ -17,10 +17,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
  * identical. It is scripted, not a chatbot: AI is used only when someone
  * types a goal in their own words, through the goal helper
  * (core/goal_helper.py), and its suggestions are labelled as AI.
+ *
+ * Riipen Labs, Groups 25 to 30: setup is the two required questions, so the
+ * chat no longer asks for a town or city (Group 26: "remove ... Location"),
+ * or offers "more details first"; those are in the app. The age is not asked
+ * when sign-up's date of birth already says 18 or older.
  */
 
 interface Line { from: 'bot' | 'you'; text: string; ai?: boolean }
-type Step = 'age' | 'audience' | 'category' | 'goal' | 'own' | 'city' | 'done' | 'under18'
+type Step = 'age' | 'audience' | 'category' | 'goal' | 'own' | 'done' | 'under18'
 
 const AUDIENCE_PHRASE: Record<string, string> = {
   self: 'here for yourself',
@@ -34,7 +39,7 @@ const AUDIENCE_PHRASE: Record<string, string> = {
 
 export default function ChatSetup({
   name, audiences, audienceValue, categories, ideasFor, helperIdeas,
-  onAge, onAudience, onGoal, onUndoGoal, onCity, onCreate, onMore, onForm, isSubmitting,
+  onAge, ageKnown = false, onAudience, onGoal, onUndoGoal, onCreate, onForm, isSubmitting,
 }: {
   name: string
   audiences: { id: string; label: string }[]
@@ -43,22 +48,22 @@ export default function ChatSetup({
   ideasFor: (category: string) => string[]
   helperIdeas: GoalIdea[]
   onAge: (value: 'adult' | 'under18') => void
+  /** Sign-up's date of birth already says 18 or older: the age is not asked. */
+  ageKnown?: boolean
   onAudience: (id: string) => void
   onGoal: (category: string, goal: string) => void
   onUndoGoal: (category: string, goal: string) => void
-  onCity: (city: string) => void
   onCreate: () => void
-  onMore: () => void
   onForm: () => void
   isSubmitting: boolean
 }) {
   const hello = name ? `Hi ${name}.` : 'Hi.'
   const [lines, setLines] = useState<Line[]>([
-    { from: 'bot', text: `${hello} I'll ask a few short questions, one at a time. Tap an answer, or type when you'd like to. There are no wrong answers.` },
-    { from: 'bot', text: 'First: are you 18 or older?' },
+    { from: 'bot', text: `${hello} I'll ask two short questions, one at a time. Tap an answer, or type when you'd like to. There are no wrong answers.` },
+    { from: 'bot', text: ageKnown ? 'First: who are you here for?' : 'First: are you 18 or older?' },
   ])
-  const [step, setStep] = useState<Step>('age')
-  const [chosen, setChosen] = useState({ audience: '', category: '', goal: '', city: '' })
+  const [step, setStep] = useState<Step>(ageKnown ? 'audience' : 'age')
+  const [chosen, setChosen] = useState({ audience: '', category: '', goal: '' })
   const [text, setText] = useState('')
   const [suggestions, setSuggestions] = useState<{ category: string; text: string }[] | null>(null)
   const [busy, setBusy] = useState(false)
@@ -110,8 +115,12 @@ export default function ChatSetup({
     setChosen((c) => ({ ...c, category, goal: g }))
     setText('')
     setSuggestions(null)
-    say({ from: 'you', text: g }, { from: 'bot', text: 'Where are you? A town or city helps find services near you. You can skip this.' })
-    setStep('city')
+    say(
+      { from: 'you', text: g },
+      { from: 'bot', text: `Great to meet you${name ? `, ${name}` : ''}. You're ${AUDIENCE_PHRASE[chosen.audience] || 'here'}, and focused on ${label(category)}: “${g}”.` },
+      { from: 'bot', text: 'That is all your path needs. Anything else, like your norms or your city, you can add in the app whenever you like.' },
+    )
+    setStep('done')
   }
 
   const ask = async () => {
@@ -147,23 +156,9 @@ export default function ChatSetup({
     }
   }
 
-  const city = (value: string) => {
-    const c = value.trim()
-    if (c) onCity(c)
-    setChosen((x) => ({ ...x, city: c }))
-    setText('')
-    const where = c ? `, in ${c}` : ''
-    say(
-      { from: 'you', text: c || 'Skip' },
-      { from: 'bot', text: `Great to meet you${name ? `, ${name}` : ''}. You're ${AUDIENCE_PHRASE[chosen.audience] || 'here'}${where}, and focused on ${label(chosen.category)}: “${chosen.goal}”.` },
-      { from: 'bot', text: 'That is all your path needs. Create it now, or add more details first, like your norms. Everything else is optional.' },
-    )
-    setStep('done')
-  }
-
   const restart = () => {
     if (chosen.goal) onUndoGoal(chosen.category, chosen.goal)
-    setChosen({ audience: '', category: '', goal: '', city: '' })
+    setChosen({ audience: '', category: '', goal: '' })
     setLines([{ from: 'bot', text: 'No problem. Who are you here for?' }])
     setSuggestions(null)
     setText('')
@@ -243,20 +238,11 @@ export default function ChatSetup({
             </>
           )
         )}
-        {step === 'city' && (
-          <form className="flex w-full flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); city(text) }}>
-            <label htmlFor="chat-city" className="sr-only">Town or city</label>
-            <input id="chat-city" value={text} onChange={(e) => setText(e.target.value)} maxLength={80} placeholder="e.g., Toronto" className={input} />
-            <button type="submit" className={send} disabled={!text.trim()}>Send</button>
-            <button type="button" className={chip} onClick={() => city('')}>Skip</button>
-          </form>
-        )}
         {step === 'done' && (
           <>
             <button type="button" onClick={onCreate} disabled={isSubmitting} className="rounded-xl bg-indigo-700 px-5 py-3 font-semibold text-white hover:bg-indigo-800 disabled:bg-slate-300 disabled:text-slate-700">
               {isSubmitting ? 'Creating your path…' : 'Create my path'}
             </button>
-            <button type="button" onClick={onMore} disabled={isSubmitting} className={chip}>Add more details first</button>
             <button type="button" onClick={restart} disabled={isSubmitting} className={chip}>Change my answers</button>
           </>
         )}

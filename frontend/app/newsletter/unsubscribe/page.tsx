@@ -18,7 +18,7 @@ export default function UnsubscribePage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-16">
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{state === 'done' ? 'You won’t get these emails again' : 'Stop emails from Autinerary'}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{state === 'done' ? 'You won’t get these emails again' : 'Stop emails from Autinerary'}</h1>
         {state === 'done' ? (
           <p role="status" className="mt-3 text-slate-800">Done. If you change your mind, you can sign up again on autinerary.ca.</p>
         ) : state === 'error' ? (

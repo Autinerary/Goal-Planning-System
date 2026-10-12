@@ -48,9 +48,13 @@ const bodyFont = Atkinson_Hyperlegible({
   fallback: ['Verdana', 'Geneva', 'system-ui', 'sans-serif'],
 })
 
+// What a search result shows (Riipen Labs, Group 25: people found Autinerary
+// "through a Google search to find an outdated title link"; the website's
+// "(2025)" is for the website's team, in docs/groups-25-30.md). Says what it
+// is and who it is for, with no year to go stale.
 export const metadata: Metadata = {
-  title: 'Autinerary - Goal Planning System',
-  description: 'Personalized life planning for neurodivergent people and the people who support them',
+  title: 'Autinerary: a life plan built around how you work',
+  description: 'Free during the beta. Turn your goals into small, clear steps, planned around your energy, with services rated by people with similar norms. For neurodivergent adults and the people who support them.',
   manifest: '/manifest.json',
   // Apple ignores the web manifest when installing to the home screen, so
   // the icon and standalone behaviour have to be declared separately or an

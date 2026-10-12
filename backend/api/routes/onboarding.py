@@ -4,6 +4,7 @@ Step 0: Questionnaire → Agent Orchestration → Path Generation
 """
 
 import asyncio
+import json
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -276,8 +277,22 @@ class OnboardingRequest(BaseModel):
     llmConfig: Optional[dict] = None
 
 
+NO_ANSWER = "prefer not to share"
+
+
 def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[str]) -> None:
-    """Write barriers to the shared public.user_barriers table.
+    """Add the norms from setup to the shared public.user_barriers table.
+
+    Only adds. It used to delete every norm the person had and write the new
+    list, so making a new plan without answering the norms question replaced
+    norms added since, in ResourceHub or the app, with "Prefer not to share",
+    and lost their severity and any confirmation by an organisation. Setup no
+    longer asks about norms at all (Riipen Labs, Groups 25 to 30: optional
+    questions move into the app), which would have done that on every new
+    plan. Norms are removed where they are shown, in ResourceHub's profile.
+
+    "Prefer not to share" stands for no answer: it is added only when the
+    person has no norms, and the placeholder goes once a real norm is added.
 
     No-op when Supabase isn't configured. Failures are swallowed so onboarding
     never breaks if the shared DB is unreachable.
@@ -292,8 +307,22 @@ def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[
             on_conflict="id",
         ).execute()
 
-        # Replace any existing barriers for this user so re-onboarding is idempotent
-        client.table("user_barriers").delete().eq("user_id", user_id).execute()
+        existing = getattr(client.table("user_barriers").select("id, barrier_type").eq("user_id", user_id).execute(), "data", None) or []
+        have = {str(r.get("barrier_type") or "").strip().casefold() for r in existing}
+        wanted: List[str] = []
+        for b in barrier_types or []:
+            name = str(b or "").strip()
+            if name and name.casefold() not in {w.casefold() for w in wanted}:
+                wanted.append(name)
+        real = [b for b in wanted if b.casefold() != NO_ANSWER]
+        if real:
+            to_add = [b for b in real if b.casefold() not in have]
+            # A real answer replaces the "no answer" placeholder, and nothing else.
+            for r in existing:
+                if str(r.get("barrier_type") or "").strip().casefold() == NO_ANSWER and r.get("id"):
+                    client.table("user_barriers").delete().eq("id", r["id"]).execute()
+        else:
+            to_add = [b for b in wanted if not have]
         rows = [
             {
                 "user_id": user_id,
@@ -301,8 +330,7 @@ def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[
                 "barrier_type": b,
                 "severity": 3,
             }
-            for b in barrier_types
-            if b
+            for b in to_add
         ]
         if rows:
             client.table("user_barriers").insert(rows).execute()
@@ -310,21 +338,52 @@ def _persist_barriers_to_supabase(user_id: str, email: str, barrier_types: List[
         print(f"[onboarding] Supabase barrier sync skipped: {e}")
 
 
-def _persist_preferences_to_supabase(user_id: str, email: str, preferences: Optional[dict]) -> None:
-    """Store view/interaction preferences on the shared profiles row.
+# Setup's own answers about the plan it makes. Everything else in
+# profiles.preferences belongs to the rest of the app.
+SETUP_OWNED_PREFERENCES = {"pathModel", "ageRange"}
 
-    Writes into profiles.preferences (JSON). No-op when Supabase isn't
-    configured or preferences are empty. Failures are swallowed.
+
+def _persist_preferences_to_supabase(user_id: str, email: str, preferences: Optional[dict]) -> None:
+    """Store setup's view/interaction preferences on the shared profiles row.
+
+    Merges into profiles.preferences (JSON). It used to write setup's object
+    over the whole column, so making a second plan reset everything the
+    person had set since: email and check-in choices, a paused account,
+    spirit animals, their character, Dream Self goals, notes about people,
+    ticked plan tasks. Now setup's own keys (SETUP_OWNED_PREFERENCES) are
+    updated, an empty age band never erases one, and any other key is only
+    filled in when the person has nothing saved for it, so a page still
+    sending setup's old defaults cannot reset a choice made since.
+
+    No-op when Supabase isn't configured or preferences are empty. Failures
+    are swallowed.
     """
     client = get_supabase()
     if client is None or not user_id or not preferences:
         return
     try:
+        rows = getattr(client.table("profiles").select("preferences").eq("id", user_id).limit(1).execute(), "data", None) or []
+        current = rows[0].get("preferences") if rows else None
+        if isinstance(current, str):
+            try:
+                current = json.loads(current)
+            except ValueError:
+                current = None
+        current = current if isinstance(current, dict) else {}
+        merged = dict(current)
+        for key, value in preferences.items():
+            if key == "ageRange":
+                if value:
+                    merged[key] = value
+            elif key in SETUP_OWNED_PREFERENCES:
+                merged[key] = value
+            elif key not in current:
+                merged[key] = value
         client.table("profiles").upsert(
             {
                 "id": user_id,
                 "email": email,
-                "preferences": preferences,
+                "preferences": merged,
             },
             on_conflict="id",
         ).execute()

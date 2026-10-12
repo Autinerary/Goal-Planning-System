@@ -198,7 +198,7 @@ export default function FriendProfilePage() {
               <div className="flex items-start gap-4">
                 <div className="text-6xl">{bundle.profile?.avatar_emoji || '👤'}</div>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl font-bold text-slate-900 truncate">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 truncate">
                     {bundle.profile?.display_name || 'Unnamed friend'}
                   </h1>
                   <p className="text-sm text-slate-500 mb-2">

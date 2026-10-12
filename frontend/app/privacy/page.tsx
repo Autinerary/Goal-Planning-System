@@ -80,7 +80,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <article className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
         <p className="text-sm font-semibold text-indigo-800">Autinerary</p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">Privacy</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">Privacy</h1>
         <p className="mt-2 text-sm text-slate-700">Last updated {UPDATED}. Autinerary is in beta.</p>
         <p className="mt-6 leading-relaxed text-slate-800">
           This page explains what Autinerary collects, why, who else handles it, and what you can do about it. It covers
@@ -112,7 +112,10 @@ export default function PrivacyPage() {
                 If you use the goal helper during setup: what you type is sent to OpenAI to suggest goals, and is not saved.
                 We only count that the helper was used.
               </li>
-              <li>Your motivation style, character and Dream Self choices, spirit animals, and display and accessibility settings.</li>
+              <li>
+                If you add them, on your Path or in Settings: what motivates you and your life stage, your character and
+                Dream Self choices, spirit animals, and display and accessibility settings.
+              </li>
               <li>Your plan and progress: milestones, races, calendar tasks, Life Stats check-ins and reflections.</li>
               <li>
                 If you turn on daily reminders: the time you chose, your time zone, and how to reach you. For texts, your mobile
@@ -200,6 +203,10 @@ export default function PrivacyPage() {
                 journal (each at most once a day). With each: a random ID kept in your browser, the website that sent
                 you, the campaign link you used, if any, and whether it was a phone, a tablet or a computer (from the
                 screen size and whether it is a touch screen, nothing else).
+              </li>
+              <li>
+                Which of the optional questions on your Path&apos;s &ldquo;Complete your profile&rdquo; you have answered (not
+                the answers), and in the app tour, which of its small tasks you tried or skipped.
               </li>
               <li>
                 In &ldquo;Start here&rdquo;: the answers you choose (who you are here for and what you need), which starter

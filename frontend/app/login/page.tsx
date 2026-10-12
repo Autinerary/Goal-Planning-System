@@ -71,28 +71,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Autinerary</h1>
-          <p className="text-slate-600">Your personalized path to success</p>
-        </div>
+    // The same layout as sign-up (Riipen Labs, Group 25): centred with
+    // margins, which never cut off the top of a tall form the way flex
+    // centring can, and one heading for the page (Group 27: consistent
+    // headings).
+    <div className="flex min-h-screen px-4 py-4 sm:py-8">
+      <div className="m-auto w-full max-w-md">
+        <p className="mb-3 text-center text-sm text-slate-700">
+          <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
+          <span aria-hidden="true"> · </span>
+          Your personalized path
+        </p>
 
         {/* Login Card */}
-        <div className="rounded-2xl p-8 surface">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/20 rounded-full mb-4">
-              <LogIn className="w-8 h-8 text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
-            <p className="text-slate-600 text-sm mt-1">Sign in to continue your journey</p>
+        <div className="rounded-2xl p-5 sm:p-7 surface">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <LogIn className="h-6 w-6 text-blue-600" aria-hidden="true" />
+              Welcome back
+            </h1>
+            <p className="text-slate-700 text-sm mt-1">Sign in to continue your journey.</p>
           </div>
 
           {deleted && (
@@ -112,6 +110,8 @@ export default function LoginPage() {
               <input
                 id="login-email"
                 type="email"
+                autoComplete="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
@@ -129,6 +129,7 @@ export default function LoginPage() {
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all pr-12"

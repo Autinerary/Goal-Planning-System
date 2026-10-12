@@ -51,6 +51,12 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_return_loop,
     render_newsletter_and_stories,
     summarize_newsletter_and_stories,
+    PROFILE_ITEMS,
+    TOUR_TASKS,
+    render_profile_card,
+    summarize_profile_card,
+    render_tour,
+    summarize_tour,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -947,6 +953,92 @@ class DeviceAndFeedbackTests(unittest.TestCase):
         for device in ("phone", "tablet", "computer"):
             self.assertIn(f"'{device}'", sql)
             self.assertIn(f"'{device}'", (REPO / "frontend/lib/funnel.ts").read_text())
+
+
+
+class ExpressSetupTests(unittest.TestCase):
+    """Riipen Labs, Groups 25 to 30: setup without the optional extras
+    (express-2026-10), the "Complete your profile" card, the tour's tasks,
+    day-30 returns, and "Was making your account clear and quick?"."""
+
+    def test_the_version_matches_the_app(self):
+        ts = (REPO / "frontend/lib/funnel.ts").read_text()
+        self.assertIn(f"export const ONBOARDING_VERSION = '{CURRENT_VERSION}'", ts)
+        self.assertEqual(CURRENT_VERSION, "express-2026-10")
+
+    def test_return_within_thirty_days(self):
+        signup = "2026-10-01T09:00:00+00:00"
+        events = [ev("a", "signup_complete", signup), ev("a", "app_open", "2026-10-25T10:00:00+00:00"),   # day 24
+                  ev("b", "signup_complete", signup), ev("b", "app_open", "2026-11-05T10:00:00+00:00")]   # day 35
+        o = compute_funnel(events)["overall"]
+        self.assertEqual((o["returned_14"], o["returned_30"]), (0, 1))
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        self.assertIn("returned within 30 days         1   (50% of accounts)", text)
+        header = next(l for l in text.splitlines() if "in 14d" in l and "in 30d" in l)
+        self.assertTrue(header)
+
+    def test_extras_nobody_reached_are_left_out(self):
+        events = [ev("a", "onboarding_step_view", "2026-10-12T10:00:00+00:00", step="about")]
+        text = render(compute_funnel(events), summarize_feedback([]), False)
+        self.assertNotIn("extra: Norms", text)
+        old = [ev("a", "onboarding_step_view", "2026-10-02T10:00:00+00:00", step="barrierConnections", version="twostep-2026-10")]
+        self.assertIn("extra: Norms", render(compute_funnel(old, "twostep-2026-10"), summarize_feedback([]), False))
+
+    def test_signup_clear_is_counted(self):
+        rows = [{"user_id": f"u{i}", "signup_clear": c, "onboarding_version": V} for i, c in enumerate(["yes", "yes", "mostly", "no"])]
+        text = render(compute_funnel([]), summarize_feedback(rows), False)
+        self.assertIn("making the account was clear and quick: yes 2 (50%)   mostly 1 (25%)   no 1 (25%)", text)
+
+    def test_profile_card_answers_by_question(self):
+        events = []
+        for i in range(6):
+            events.append(ev(f"v{i}", "ask_later", "2026-10-12T10:00:00+00:00", step="shown.profile"))
+        for i in range(5):
+            events.append(ev(f"v{i}", "ask_later", "2026-10-12T10:05:00+00:00", step="done.profile.location"))
+        events.append(ev("v0", "ask_later", "2026-10-12T10:06:00+00:00", step="done.profile.motivation"))
+        events.append(ev("v0", "ask_later", "2026-10-12T10:07:00+00:00", step="done.profile.nonsense"))
+        s = summarize_profile_card(events)
+        self.assertEqual((s["shown"], s["any_done"]), (6, 5))
+        self.assertEqual(s["done"]["location"], 5)
+        self.assertEqual(s["done"]["motivation"], 1)
+        text = render_profile_card(s)
+        self.assertIn("answered at least one          5   (83% of those shown)", text)
+        city = next(l for l in text.splitlines() if l.strip().startswith("Your city"))
+        self.assertIn("83%", city)
+        motivation = next(l for l in text.splitlines() if l.strip().startswith("What motivates you"))
+        self.assertIn("<5", motivation)
+        # The old ask-later summary does not count the card's events.
+        self.assertEqual(summarize_ask_later(events)["location"]["done"], 0)
+
+    def test_tour_tasks(self):
+        events = []
+        for i in range(5):
+            events.append(ev(f"t{i}", "tour", "2026-10-12T10:00:00+00:00", step="start"))
+            events.append(ev(f"t{i}", "tour", "2026-10-12T10:01:00+00:00", step="task.next_step" if i < 4 else "skip.next_step"))
+        events.append(ev("t0", "tour", "2026-10-12T10:05:00+00:00", step="finish"))
+        events.append(ev("t1", "tour", "2026-10-12T10:05:00+00:00", step="close"))
+        s = summarize_tour(events)
+        self.assertEqual((s["started"], s["finished"], s["closed"]), (5, 1, 1))
+        self.assertEqual(s["tasks"]["next_step"], {"done": 4, "skipped": 1})
+        text = render_tour(s)
+        row = next(l for l in text.splitlines() if l.strip().startswith("Open your next step"))
+        self.assertEqual(row.split()[-2:], ["80%", "20%"])
+        self.assertIn("fewer than 5", render_tour(summarize_tour(events[:2])))
+
+    def test_items_and_tasks_match_the_app_and_the_database(self):
+        items = (REPO / "frontend/lib/profileItems.ts").read_text()
+        for item, _ in PROFILE_ITEMS:
+            self.assertIn(f"id: '{item}'", items)
+        funnel = (REPO / "frontend/lib/funnel.ts").read_text()
+        for task, _ in TOUR_TASKS:
+            self.assertIn(f"'{task}'", funnel)
+            self.assertIn(f"id: '{task}'" if task != "resourcehub" else "task.resourcehub", (REPO / "frontend/app/components/InteractiveDemo.tsx").read_text())
+        sql = (REPO / "backend/database/migrations/2026_express_setup.sql").read_text()
+        self.assertIn("'tour'", sql)
+        for answer in ("yes", "mostly", "no"):
+            self.assertIn(f"'{answer}'", sql)
+        route = (REPO / "frontend/app/api/events/route.ts").read_text()
+        self.assertIn("'tour'", route)
 
 
 if __name__ == "__main__":

@@ -43,6 +43,12 @@ export interface ReminderPreferences {
   timeZone?: string
   /** Texts only: the number was confirmed with a texted code. The number itself is kept server-side. */
   smsVerified?: boolean
+  /**
+   * The last day (YYYY-MM-DD, where they live) to send it; none means no end.
+   * "For my first two weeks" sets it (Riipen Labs, Group 29: "gentle in-app
+   * and email reminders during the first 7 to 14 days").
+   */
+  until?: string
 }
 
 export interface LayoutPositions {
@@ -92,6 +98,8 @@ export interface UserPreferences {
   planTaskDone?: Record<string, string>
   /** The weekly email: what they saved, plus new picks (lib/weeklyPicks.ts; default off). */
   weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
+  /** What motivates them and their life stage, from the "Complete your profile" card (lib/motivationChoices.ts). */
+  motivation?: import('./motivationChoices').MotivationAnswer
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }

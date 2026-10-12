@@ -74,14 +74,29 @@ export interface ReminderChoice {
   consent?: boolean
   time?: string
   timeZone?: string
+  /** The last day to send it ("YYYY-MM-DD" where they live); none means no end. */
+  until?: string
 }
 
-/** Due now: opted in, their chosen hour where they live, not yet sent that day. */
+/** Due now: opted in, their chosen hour where they live, not yet sent that day, and not past its last day. */
 export function reminderDue(rem: ReminderChoice | null | undefined, lastSentOn: string | undefined, now: Date): string | null {
   if (!rem?.enabled || !rem.consent) return null
   const local = localParts(now, validTimeZone(rem.timeZone))
   if (local.hour !== reminderHour(rem.time) || lastSentOn === local.date) return null
+  if (rem.until && /^\d{4}-\d{2}-\d{2}$/.test(rem.until) && local.date > rem.until) return null
   return local.date
+}
+
+/**
+ * The last day of someone's first two weeks, where they live: "For my first
+ * two weeks" stops there (Riipen Labs, Group 29: "gentle in-app and email
+ * reminders during the first 7 to 14 days"). Counted from when the account
+ * was made, so turning it on later does not stretch the two weeks.
+ */
+export function firstWeeksEnd(accountCreated: string | Date | null | undefined, timeZone: string, now: Date = new Date()): string {
+  const created = accountCreated ? new Date(accountCreated) : now
+  const start = Number.isNaN(created.getTime()) ? now : created
+  return localParts(new Date(start.getTime() + 14 * 86_400_000), validTimeZone(timeZone)).date
 }
 
 export interface SetupReminderAsk {

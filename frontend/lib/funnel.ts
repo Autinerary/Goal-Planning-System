@@ -21,8 +21,12 @@ import { gaEvent } from '@/lib/analytics'
 // separately (Riipen: "create a revised onboarding group"). riipen-2026-10 was
 // the first revision (readability, info before sign-up); goalfirst-2026-10 the
 // goal-first start of three steps; twostep-2026-10 the two-question start (who
-// for, one goal) with norms optional and asked again later (Group 5).
-export const ONBOARDING_VERSION = 'twostep-2026-10'
+// for, one goal) with norms optional and asked again later (Group 5);
+// express-2026-10 the same two questions with no optional extras after them,
+// those being on the Path's "Complete your profile" card, and the tour's tasks
+// (Groups 25 to 30). The funnel report compares them by this (before and
+// after, which Groups 26, 28 and 29 asked for).
+export const ONBOARDING_VERSION = 'express-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'
@@ -47,8 +51,13 @@ export type FunnelEvent =
   // Optional setup questions asked later on the Path (Riipen Labs, Group 7:
   // "assumption to test, not assume: users will actually engage ... later if
   // not asked upfront"). Step: "shown.<group>", "done.<question>" or
-  // "closed.<group>" (lib/askLater.ts).
+  // "closed.<group>" (lib/askLater.ts); the "Complete your profile" card's
+  // "shown.profile" and "done.profile.<item>" (lib/profileItems.ts).
   | 'ask_later'
+  // The tour's tasks (Riipen Labs, Group 27: "prompts that have users
+  // complete a task before moving to the next feature"). Step: "start",
+  // "task.<id>" when done, "skip.<id>", "finish" or "close" (TOUR_STEP; STEP 70).
+  | 'tour'
 
 // Parts of the app, by address. ResourceHub is opened through /go/servicehub,
 // so its destination decides between Tidbits and the rest of ResourceHub.
@@ -80,6 +89,11 @@ const AREAS: [RegExp, string][] = [
 // 11 suggested testing "the AI guide vs the standard Goals step"), and setup
 // answered as a chat (components/ChatSetup).
 export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat']
+
+// The tour's tasks (app/components/InteractiveDemo.tsx), and what its events'
+// steps may be. Listed in backend/scripts/onboarding_funnel.py (TOUR_TASKS).
+export const TOUR_TASK_IDS = ['next_step', 'calendar', 'energy', 'display', 'resourcehub'] as const
+export const TOUR_STEP = new RegExp(`^(start|finish|close|(task|skip)\\.(${TOUR_TASK_IDS.join('|')}))$`)
 export const AREA_IDS = [...AREAS.map(([, id]) => id), 'tidbits', 'resourcehub', ...ACTION_IDS]
 
 export function areaFor(pathname: string, search = ''): string | null {

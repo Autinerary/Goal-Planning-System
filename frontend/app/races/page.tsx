@@ -14,6 +14,7 @@ import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
 import LaneWorld from '../components/LaneWorld'
+import DefaultAvatar from '../components/DefaultAvatar'
 import UserAvatar from '../components/UserAvatar'
 import AnyOrderPond from './AnyOrderPond'
 import GoalsTogether from './GoalsTogether'
@@ -49,7 +50,9 @@ function RacesContent() {
   // browser's copy for people who set up before), shown at "You are here".
   // It used to appear nowhere after setup.
   const myCharacter = prefs.character || (characterAppearance.hairStyle ? characterAppearance : null)
-  const trailCharacter = myCharacter ? <UserAvatar {...myCharacter} size={28} /> : undefined
+  // No character yet: a plain placeholder, not nobody (Riipen Labs, Group 29:
+  // "default avatar settings ... if skipped"; components/DefaultAvatar.tsx).
+  const trailCharacter = myCharacter ? <UserAvatar {...myCharacter} size={28} /> : <DefaultAvatar size={28} />
 
   const [isDayTheme, setIsDayTheme] = useState(true)
   const [showRocketEntry, setShowRocketEntry] = useState(false)
@@ -859,6 +862,16 @@ function RacesContent() {
           </div>
         </header>
 
+        {/* Asked where it is used (Riipen Labs, Group 30: "move deferred
+            questions into contextual prompts shown when related features are
+            first used"): the character stands on this track. */}
+        {!myCharacter && milestones.length > 0 && (
+          <p className={`mx-auto mt-2 max-w-5xl px-4 text-sm ${day ? 'text-slate-800' : 'text-indigo-100'}`}>
+            On the track you are a placeholder for now.{' '}
+            <Link href="/ideal-self" className="font-semibold underline underline-offset-2">Design your character</Link>
+          </p>
+        )}
+
         {/* ═══ COMPARISON — real connections only. Picking a person opens their
             real shared view (/friend/[id]); no fabricated races or stats. ═══ */}
         {comparisonView && (comparisonView === 'rolemodel' || comparisonView === 'friend' || comparisonView === 'mentor') && (() => {
@@ -1660,7 +1673,7 @@ function RacesContent() {
                 completedIds={completedMilestoneIds}
                 onToggle={toggleMilestoneComplete}
                 day={day}
-                character={myCharacter ? <UserAvatar {...myCharacter} size={32} /> : undefined}
+                character={myCharacter ? <UserAvatar {...myCharacter} size={32} /> : <DefaultAvatar size={32} />}
               />
             )
           )}

@@ -73,7 +73,7 @@ export default function DateOfBirthPage() {
       <div className="w-full max-w-md">
         <p className="mb-6 text-center text-3xl font-bold text-slate-900">Autinerary</p>
         <form onSubmit={onSubmit} className="surface rounded-2xl p-8">
-          <h1 className="mb-2 text-2xl font-bold text-slate-900">One question before setup</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">One question before setup</h1>
           <p className="mb-6 text-sm text-slate-700">
             {user.name ? `Welcome, ${user.name}. ` : 'Welcome. '}
             Autinerary is for adults (18+) for now, so we need your date of birth. It is only used for that (see{' '}

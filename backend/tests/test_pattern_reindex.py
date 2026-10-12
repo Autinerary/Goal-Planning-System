@@ -87,6 +87,21 @@ class ReindexTests(unittest.TestCase):
         self.assertEqual(kw["user_profile"]["motivationType"], "curiosity")
         self.assertEqual(kw["agent_result"]["path"], {"id": "p"})
 
+    def test_a_motivation_picked_in_the_app_wins(self):
+        # Asked in the app now, not in setup (Riipen Labs, Groups 25 to 30).
+        db = DB()
+        db.tables["profiles"] = [{"id": "u1", "preferences": {"motivation": {"types": ["social", "curiosity"]}}}]
+        orchestrator = SimpleNamespace(index_user=AsyncMock(return_value=True))
+        self.assertTrue(asyncio.run(pr.reindex_user(db, orchestrator, "u1")))
+        self.assertEqual(orchestrator.index_user.await_args.kwargs["user_profile"]["motivationType"], "social")
+
+    def test_without_one_the_vector_keeps_its_motivation(self):
+        db = DB()
+        db.tables["profiles"] = [{"id": "u1", "preferences": {"motivation": {"types": []}}}]
+        orchestrator = SimpleNamespace(index_user=AsyncMock(return_value=True))
+        asyncio.run(pr.reindex_user(db, orchestrator, "u1"))
+        self.assertEqual(orchestrator.index_user.await_args.kwargs["user_profile"]["motivationType"], "curiosity")
+
     def test_someone_without_a_vector_is_left_alone(self):
         orchestrator = SimpleNamespace(index_user=AsyncMock())
         self.assertFalse(asyncio.run(pr.reindex_user(DB(), orchestrator, "nobody")))

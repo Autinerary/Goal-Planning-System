@@ -277,7 +277,7 @@ function TaskViewContent() {
           {/* Task Title */}
           <div className="relative text-center py-4 px-4">
             <BackButton fallback="/tasks" className="mb-3 sm:absolute sm:left-4 sm:top-4 sm:mb-0" />
-            <h1 className="text-2xl font-bold text-slate-800">Task View</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Task View</h1>
             <p className="text-sm text-slate-600 mt-1">{taskName}</p>
             <div className="h-px bg-slate-300 w-32 mx-auto mt-2" />
           </div>

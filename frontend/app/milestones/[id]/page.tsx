@@ -9,6 +9,7 @@ import { resolveToolLink } from '@/lib/toolLink'
 import CommonMistakes from '@/app/components/CommonMistakes'
 import BackButton from '../../components/BackButton'
 import MilestoneRating from '@/app/components/MilestoneRating'
+import NormsPrompt from '@/app/components/NormsPrompt'
 
 
 interface Tool {
@@ -172,7 +173,7 @@ export default function MilestoneDetailView() {
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{milestone.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">{milestone.name}</h1>
               <p className="text-slate-600">{milestone.description}</p>
             </div>
 
@@ -233,9 +234,10 @@ export default function MilestoneDetailView() {
           <MilestoneRating pathId={payload?.id} milestoneId={milestone.id} />
         </div>
 
-        {/* Tools Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+        {/* Tools Section (the tour points at it: data-tour) */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm" data-tour="milestone-tools">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Recommended Tools</h2>
+          <NormsPrompt />
 
           {/* Barriers Unlocked */}
           {(milestone.tools?.length > 0) && (

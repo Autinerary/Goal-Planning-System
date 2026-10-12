@@ -35,7 +35,7 @@ export default function StopCheckinEmails({ token, prominent = false }: { token:
   if (prominent) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="mb-2 text-xl font-bold text-slate-900">Stop check-in emails?</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Stop check-in emails?</h1>
         <p className="mb-4 text-slate-700">
           We only send one when you haven&apos;t opened Autinerary for two weeks. Nothing else about your account changes.
         </p>

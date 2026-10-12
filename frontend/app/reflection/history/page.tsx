@@ -190,7 +190,7 @@ export default function JournalHistory() {
           <Link href="/reflection" aria-label="Back to the journal" className="p-2 border-2 border-black rounded hover:bg-gray-100">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-bold">All Entries</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">All Entries</h1>
         </div>
         <div className="text-center py-12">
           <p className="text-red-500 mb-4">{error}</p>
@@ -222,7 +222,7 @@ export default function JournalHistory() {
           </Link>
           <div className="flex items-center gap-3">
             <div className="text-4xl">📖</div>
-            <h1 className="text-3xl font-bold text-slate-800">All Entries</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">All Entries</h1>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button

@@ -127,7 +127,7 @@ export default function DiagnosticProfilePage() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-1 h-6 w-6 flex-none text-cyan-700" />
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Condition &amp; Support Profile</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Condition &amp; Support Profile</h1>
               {/* Same split as the onboarding consent box, worded the same
                   way on purpose. A reader who saw one should recognise the
                   other rather than having to work out whether they agree. */}

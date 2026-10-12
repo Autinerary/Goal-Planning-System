@@ -1,148 +1,76 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
-import { 
-  User, Check, ChevronRight, ChevronLeft, ChevronDown, Loader2,
-  Target, Sparkles, Heart, Zap, AlertCircle, Palette, Rocket
-} from 'lucide-react'
 import {
-  VIEW_PREFERENCES, DEFAULT_REMINDERS,
-  savePreferences, type ReminderPreferences,
-} from '@/lib/preferences'
-import { isSimpleView } from '@/lib/disclosure'
-import { buildAvatarSvg, HAIR_GROUPS, HAIR_OPTIONS, ACCESSORIES, FACIAL_HAIR, CLOTHING,
-  HAIR_COLORS, SKIN_TONES, DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
-import UserAvatar from '@/app/components/UserAvatar'
-import AppearanceEditor, { type Appearance } from '@/app/components/AvatarEditor'
-import { ageBandFromDob } from '@/lib/age'
+  User, Check, ChevronRight, ChevronLeft, Loader2,
+  Target, Sparkles, Rocket
+} from 'lucide-react'
+import { DEFAULT_REMINDERS, loadPreferences, type ReminderPreferences } from '@/lib/preferences'
+import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
+import { type Appearance } from '@/app/components/AvatarEditor'
+import { ageBandFromDob, isAdult } from '@/lib/age'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
-import DiagnosticProfileSection from './DiagnosticProfileSection'
 import GoalHelper from '@/app/components/GoalHelper'
-import ReminderFields from '@/app/components/ReminderFields'
 import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
-import QuickSettings from '@/app/components/QuickSettings'
-import ChoiceDropdown from '@/app/components/ChoiceDropdown'
-import ProfileBasics from '@/app/components/ProfileBasics'
 import ChatSetup from '@/app/components/ChatSetup'
 import { AUDIENCES, AUDIENCE_GROUPS, AUDIENCE_VALUE, AUDIENCE_EFFECT } from '@/lib/audiences'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import {
-  CONDITION_GROUPS,
   EMPTY_DIAGNOSTIC_PROFILE,
   toRecommendationSupportContext,
   type DiagnosticProfile,
 } from '@/lib/diagnostic-profile'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-// Character avatar options — spirit animal selection is done later in the Spirit Animals step
-const characterTypes = [
-  { id: 'avatar', label: 'Create Your Avatar', description: 'Design a character that looks like you', icon: '👤' },
-]
-
-// The hair vocabulary lives in lib/avatar.ts now — all 34 avataaars options
-// grouped for browsing, rather than the 7 this file used to hard-code.
-// Legacy ids from profiles saved before that still render, via HAIR_TOP.
-
-const bodyTypes = [
-  { id: 'tall', label: 'Tall' },
-  { id: 'short', label: 'Short' },
-]
-
-const cloudThemes = [
-  { id: 'sunrise', label: 'Sunrise', colors: 'from-orange-200 via-pink-200 to-purple-200' },
-  { id: 'daydream', label: 'Daydream', colors: 'from-sky-200 via-blue-100 to-indigo-200' },
-  { id: 'sunset', label: 'Sunset', colors: 'from-amber-200 via-rose-200 to-violet-200' },
-  { id: 'night', label: 'Night Sky', colors: 'from-indigo-300 via-purple-300 to-slate-300' },
-]
-
-// Spirit animal options for the spirit animal step
-const spiritAnimalOptions = [
-  { id: 'bunny', emoji: '🐰', label: 'Bunny' },
-  { id: 'fox', emoji: '🦊', label: 'Fox' },
-  { id: 'owl', emoji: '🦉', label: 'Owl' },
-  { id: 'cat', emoji: '🐱', label: 'Cat' },
-  { id: 'dog', emoji: '🐶', label: 'Dog' },
-  { id: 'bear', emoji: '🐻', label: 'Bear' },
-  { id: 'deer', emoji: '🦌', label: 'Deer' },
-  { id: 'butterfly', emoji: '🦋', label: 'Butterfly' },
-  { id: 'turtle', emoji: '🐢', label: 'Turtle' },
-  { id: 'penguin', emoji: '🐧', label: 'Penguin' },
-  { id: 'dolphin', emoji: '🐬', label: 'Dolphin' },
-  { id: 'dragon', emoji: '🐉', label: 'Dragon' },
-]
-
-const spiritAnimalColors = [
-  { id: 'pink', label: 'Pink', hex: '#f472b6', bg: 'bg-pink-300' },
-  { id: 'blue', label: 'Blue', hex: '#60a5fa', bg: 'bg-blue-300' },
-  { id: 'purple', label: 'Purple', hex: '#a78bfa', bg: 'bg-purple-300' },
-  { id: 'green', label: 'Green', hex: '#4ade80', bg: 'bg-green-300' },
-  { id: 'orange', label: 'Orange', hex: '#fb923c', bg: 'bg-orange-300' },
-  { id: 'gold', label: 'Gold', hex: '#fbbf24', bg: 'bg-yellow-300' },
-  { id: 'teal', label: 'Teal', hex: '#2dd4bf', bg: 'bg-teal-300' },
-  { id: 'red', label: 'Red', hex: '#f87171', bg: 'bg-red-300' },
-]
-
-const animalHue: Record<string, number> = { pink: 290, blue: 170, purple: 230, green: 70, orange: 0, gold: 20, teal: 120, red: 330 }
-
-// Spirit animal modes (Odosa): how many animals the user assigns.
-const spiritAnimalModes = [
-  { id: 'general', label: 'One spirit animal', desc: 'A single guide for every day.', count: 1, emoji: '🐾' },
-  { id: 'fastSlow', label: 'Fast & slow day', desc: 'Two guides: one for busier schedules, one for lighter schedules.', count: 2, emoji: '⚡' },
-  { id: 'weekly', label: 'One per weekday', desc: 'Seven guides: a different animal for each day of the week.', count: 7, emoji: '📅' },
-] as const
-
-// Labels for the 7-per-week mode slots.
-const weekdayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-/** How many spirit-animal slots a mode uses. */
-function spiritAnimalSlotCount(mode: 'general' | 'fastSlow' | 'weekly'): number {
-  return spiritAnimalModes.find(m => m.id === mode)?.count ?? 2
-}
-
-/** Label for a spirit-animal slot given the mode and index. */
-function spiritAnimalSlotLabel(mode: 'general' | 'fastSlow' | 'weekly', idx: number): string {
-  if (mode === 'general') return '🐾 Your Spirit Animal'
-  if (mode === 'fastSlow') return idx === 0 ? '⚡ Fast Day Spirit Animal' : '🌙 Slow Day Spirit Animal'
-  return `${weekdayLabels[idx] || `Day ${idx + 1}`} Spirit Animal`
+/** A required question's red asterisk, with the word for screen readers. */
+function RequiredMark() {
+  return (
+    <>
+      <span className="font-bold text-red-700" aria-hidden="true">*</span>
+      <span className="sr-only"> (required)</span>
+    </>
+  )
 }
 
 // Step components
-// `short` is what the progress rail shows. Up to seven labels share one row,
-// so "Character Select" and "AI Recommendations" wrapped to three lines each,
-// pushed their neighbours out of line and collided with the circle above.
-// `title` stays the full name and remains the accessible label.
+// `short` is what the progress rail shows; `title` stays the full name and
+// remains the accessible label.
 //
 // Goal-first order (Riipen Labs, Group 2): "sort the questions into need now
 // and ask later", then an optional condition question. Group 5 then asked to
 // "reduce initial sign-up to 3 core steps (account setup, primary role,
 // immediate goal)" and to ask about conditions and sensory needs later. So
-// the first CORE_STEP_COUNT steps (after the account) are the whole start,
-// and the path is created at the end of them. Norms are the first optional
-// extra; if nothing about the person was shared, the Path asks about sensory
-// needs and conditions in the second week (app/components/AskLaterCard.tsx).
+// the two steps (after the account) are the whole start, and the path is
+// created at the end of them. The Path suggests norms and sensory needs from
+// the second week (components/ProfileCompletion.tsx).
 // The AI recommendations step was dropped from setup (Group 5: keep the AI
 // "running behind the scenes until basic onboarding is fully completed");
 // Start here's resources follow setup instead.
+//
+// Riipen Labs, Groups 25 to 30 (September 2026) then asked for the optional
+// extras to leave setup altogether: "move personalization questions after
+// users enter the app" (25), "remove the Location, Personalize, and AI
+// Recommendations steps" (26), "reduce open-ended questions and personal
+// information requests before users see value" (27), "everything else ...
+// should move inside, where it can come up at the moment it is useful" (28),
+// character, avatar and preferences on "an optional 'Complete Your Profile'
+// card" (29), and "move deferred questions into contextual prompts" (30). So
+// setup is these two steps, and the rest (norms, city, what motivates you,
+// character and Dream Self, spirit animals, how the app looks, reminders) is
+// on the Path's "Complete your profile" card (components/ProfileCompletion),
+// each where it is used, and in Settings.
 const steps = [
   { id: 'about', title: 'About you', short: 'About you', icon: User },
   { id: 'goalsAndDreams', title: 'Your goal', short: 'Goal', icon: Target },
-  { id: 'barrierConnections', title: 'Your Norms', short: 'Norms', icon: AlertCircle },
-  { id: 'location', title: 'Location', short: 'Location', icon: User },
-  { id: 'motivation', title: 'Motivation Style', short: 'Motivation', icon: Zap },
-  { id: 'character', title: 'Character', short: 'Character', icon: User },
-  { id: 'profile', title: 'Dream Self', short: 'Dream Self', icon: Palette },
-  { id: 'spiritAnimal', title: 'Spirit Animals', short: 'Animals', icon: Heart },
-  { id: 'personalize', title: 'Personalize', short: 'Personalize', icon: Palette },
 ]
-const CORE_STEP_COUNT = 2
 // Every action in setup that isn't the next step: outlined, never underlined
 // text (see the buttons at the bottom of each step).
 const SECONDARY_BUTTON =
@@ -151,7 +79,8 @@ const stepIndex = (id: string) => steps.findIndex((s) => s.id === id)
 // Only these must be answered (age is confirmed inside 'about').
 const REQUIRED_STEP_IDS = new Set(['about', 'goalsAndDreams'])
 // Drafts saved before the reorder stored a position in this order; position 0
-// held the age question, which now lives in 'about'.
+// held the age question, which now lives in 'about'. A draft saved on a step
+// that has since left setup resumes on the goal (see the restore below).
 const LEGACY_STEP_ORDER = ['about', 'barrierConnections', 'location', 'goalsAndDreams', 'motivation', 'profile', 'spiritAnimal', 'personalize', 'recommendations']
 
 // "Who are you here for?", its groups and what each answer gets: lib/audiences.ts,
@@ -193,27 +122,22 @@ const LOOKING_FOR = [
   { id: 'learning', label: 'To learn and understand more' },
 ]
 
-// Steps the user is allowed to skip without filling anything in. Only the
-// core steps (age, norms, goals) stay required. Location joined the
-// optional set after Riipen Labs' review ("reduce mandatory questions"):
-// its own copy already called it optional while the form required it.
-const skippableSteps = new Set(['barrierConnections', 'location', 'motivation', 'character', 'profile', 'spiritAnimal', 'personalize'])
+// Why each question is asked, shown with it (Riipen Labs, Group 28: "each
+// question carries a visible reason for being asked"; Riipen: "show how key
+// features connect"). Each line was checked against where the app reads it.
+const WHY_WE_ASK = {
+  age: 'Autinerary is for adults 18 and over for now.',
+  // Who you're here for says why in AUDIENCE_EFFECT (lib/audiences.ts), shared with Settings.
+  lookingFor: 'We show you that first once your plan is ready.',
+  goal: 'Your plan is built from it: the goal becomes a race of small steps, each with tools that can help.',
+}
 
-// One line per step on what the answer is used for, so people can see how
-// setup connects to the plan they get (Riipen: "show how key features
-// connect"). Each line was checked against where the app reads it. Said
-// once per step: Riipen Labs, Group 33 asked to "remove redundant setup
-// text", and several steps said the same thing two or three times. The
-// first step says what its question changes beside the question instead.
-const STEP_PURPOSE: Record<string, string> = {
-  character: 'Your character on the race track in Races, at the step you are on.',
-  barrierConnections: 'The tools and services suggested for each milestone, and matching you with people who share similar norms.',
-  location: 'Showing services near you in ResourceHub. Skip it and everything else still works.',
-  goalsAndDreams: 'Your races. Each goal becomes a race with its own milestones.',
-  motivation: 'Matching you with people who are motivated in similar ways.',
-  profile: 'Your Ideal Self page: a picture of who you are working toward.',
-  spiritAnimal: 'The guides shown on your Path.',
-  personalize: 'How the app looks and reads, and reminders. You can change all of it later in Settings.',
+// What the next step involves, beside the button that leads to it (Riipen
+// Labs, Group 26: "a preview of what the next step involves"; Group 28:
+// people should know "what their next step should be").
+const NEXT_PREVIEW: Record<string, string> = {
+  about: 'Next: your goal. Pick an idea or type your own, about a minute.',
+  goalsAndDreams: 'Next: we make your plan, in about a minute, then you are on your Path. Everything else is optional and can be added there.',
 }
 
 // The areas are shared with the Dream Self page (lib/goalAreas.ts).
@@ -361,130 +285,6 @@ const connectionTypes = [
   { id: 'medical', label: 'Medical Professional (coming soon)', icon: '🏥', disabled: true },
 ]
 
-// Autinerary is 18+ for now (Odosa), so the stages nobody over 18 can be in
-// are gone: Preschool, Elementary and Middle School. High School stays
-// because final-year students are commonly 18.
-//
-// People are also routinely in more than one of these at once — working
-// through a degree, studying while employed, retraining after retirement —
-// so this is a multi-select. Picking "Employment" used to mean unpicking
-// "University", which described almost nobody accurately.
-const lifeStages = [
-  { id: 'high_school', label: 'High School / Secondary' },
-  { id: 'post_secondary', label: 'University / College / Trade School' },
-  { id: 'post_graduate', label: 'Post-Graduate' },
-  { id: 'employment', label: 'Employment / Career' },
-  { id: 'retirement', label: 'Retirement' },
-  { id: 'not_sure', label: "I'm Not Sure" },
-]
-
-const barrierCategories = [
-  {
-    name: 'Combined Norms',
-    subcategories: [{ name: 'Combined experiences', items: ['AuDHD'] }],
-  },
-  ...CONDITION_GROUPS.map((group) => ({
-    name: group.label,
-    subcategories: [{ name: 'Conditions and differences', items: group.conditions.map((condition) => condition.label) }],
-  })),
-  {
-    name: 'Social & Cultural',
-    subcategories: [
-      // "Visible Minority" is the Statistics Canada term, but a tester found
-      // it vague sitting next to a label as specific as LGBTQ+, so the
-      // plainer word leads and the official one stays in parentheses for
-      // anyone who recognises it from a form.
-      //
-      // "Language Barrier" is renamed on Odosa's standing instruction not to
-      // use that word anywhere in the product.
-      { name: 'Identity', items: ['Racialized Person (Visible Minority)', 'LGBTQ+', 'Gender Identity', 'Religious Minority'] },
-      { name: 'Circumstance', items: ['English as an Additional Language', 'First Generation', 'Immigrant / Refugee'] },
-    ]
-  },
-  {
-    name: 'Economic & Access',
-    subcategories: [
-      { name: 'Economic', items: ['Limited Income', 'Food Insecurity', 'Housing Instability'] },
-      { name: 'Access', items: ['Limited Technology Access', 'Rural / Remote Area', 'Limited Transportation'] },
-    ]
-  },
-]
-
-const motivationOptions = [
-  { 
-    value: 'intrinsic', 
-    label: 'Intrinsic', 
-    description: 'Driven by personal satisfaction and internal goals',
-    emoji: '🧠'
-  },
-  { 
-    value: 'achievement', 
-    label: 'Achievement', 
-    description: 'Motivated by accomplishments and milestones',
-    emoji: '🏆'
-  },
-  { 
-    value: 'social', 
-    label: 'Social Connection', 
-    description: 'Energized by community and relationships',
-    emoji: '👥'
-  },
-  { 
-    value: 'reward', 
-    label: 'Reward-Based', 
-    description: 'Responds well to incentives and treats',
-    emoji: '🎁'
-  },
-  { 
-    value: 'deadline', 
-    label: 'Deadline-Driven', 
-    description: 'Works best with time pressure',
-    emoji: '⏰'
-  },
-  { 
-    value: 'curiosity', 
-    label: 'Curiosity', 
-    description: 'Motivated by learning and discovery',
-    emoji: '🔍'
-  },
-]
-
-// ── Character-select avatar ───────────────────────────────────────────────
-// Code-generated character avatar (DiceBear "avataaars", inline SVG) so people
-// can actually see what they're picking — a video-game-style character select.
-// Replaces the old hand-drawn SVG, which looked "wonky" (Odosa/Eliyana). Only
-// the user's choices (hairstyle, hair colour, skin tone) vary; see lib/avatar.
-function CharacterAvatar({
-  hairStyle = '',
-  hairColor,
-  skinColor,
-  accessory,
-  facialHair,
-  clothing,
-  size = 96,
-}: {
-  hairStyle?: string
-  hairColor?: string
-  skinColor?: string
-  accessory?: string
-  facialHair?: string
-  clothing?: string
-  size?: number
-}) {
-  const svg = useMemo(
-    () => buildAvatarSvg({ hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size }),
-    [hairStyle, hairColor, skinColor, accessory, facialHair, clothing, size]
-  )
-  return (
-    <div
-      style={{ width: size, height: size }}
-      role="img"
-      aria-label="Character preview"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  )
-}
-
 export default function OnboardingPage() {
   const router = useRouter()
   const { user, supabaseUser, completeOnboarding, skipSetup, isLoading: authLoading } = useAuth()
@@ -591,6 +391,12 @@ export default function OnboardingPage() {
     spiritAnimalMode: 'general' as 'general' | 'fastSlow' | 'weekly',
     spiritAnimals: [] as Array<{ type: string; color: string }>,
   })
+  // Sign-up asks for the date of birth (18+), so setup does not ask the age
+  // again when that says 18 or older.
+  const ageFromSignup = !isManagedAccount && isAdult(supabaseUser?.app_metadata?.date_of_birth || supabaseUser?.user_metadata?.date_of_birth)
+  useEffect(() => {
+    if (ageFromSignup) setFormData(prev => prev.ageConfirmation === 'adult' ? prev : { ...prev, ageConfirmation: 'adult' })
+  }, [ageFromSignup])
   const canAccessOnboarding = isManagedAccount ? guardianApproved : formData.ageConfirmation === 'adult'
 
   useEffect(() => {
@@ -619,40 +425,53 @@ export default function OnboardingPage() {
   // True when we prefilled stable answers (barriers/location/etc.) from a prior
   // completed onboarding so a returning user doesn't re-enter everything.
   const [carriedOver, setCarriedOver] = useState(false)
-  // Simple view starts new users with just one spirit animal (Eliyana: "cut the
-  // fast/slow day spirit animals for simple view"). Set after mount to avoid a
-  // hydration mismatch. `showAdvancedModes` lets them opt into fast/slow/weekly.
-  const [simpleView, setSimpleView] = useState(false)
-  const [showAdvancedModes, setShowAdvancedModes] = useState(false)
-
-  const [barrierInputMode, setBarrierInputMode] = useState<'text' | 'manual'>('manual')
-  // Which section of the norms list is open, per connection: one at a time.
-  const [openNormSection, setOpenNormSection] = useState<Record<string, string | null>>({})
   // The goal step shows the category picked (and any that already hold a
   // goal), not all six at once; the dream box opens on request.
   const [openGoalCategory, setOpenGoalCategory] = useState<string | null>(null)
   const [showUltimateDream, setShowUltimateDream] = useState(false)
-  // Free-text custom barriers the user adds per connection (e.g. "public speaking").
-  const [customBarrierDraft, setCustomBarrierDraft] = useState<Record<string, string>>({})
-  // Sensitive optional details intentionally stay out of the localStorage
-  // onboarding draft. They are persisted only after explicit consent.
-  const [diagnosticProfile, setDiagnosticProfile] = useState<DiagnosticProfile>(() => ({
-    ...EMPTY_DIAGNOSTIC_PROFILE,
-    conditions: [],
-    supportContext: { ...EMPTY_DIAGNOSTIC_PROFILE.supportContext },
-  }))
+  // A goal's dream, relationship and obstacle are folded away until asked for
+  // (Riipen Labs, Groups 27 and 30: open-ended questions "may be difficult to
+  // answer immediately"). Keyed "<category>:<index>".
+  const [openGoalDetails, setOpenGoalDetails] = useState<Record<string, boolean>>({})
+  // Norms and the private condition and support details are no longer asked
+  // in setup (Riipen Labs, Groups 25 to 30): they are added in the app, from
+  // the "Complete your profile" card, ResourceHub or /profile/diagnostic. What
+  // someone has saved there is sent with the path request, as setup's own
+  // answers used to be, so a plan made later still fits them. Neither is
+  // written back from here (the backend only ever adds norms).
+  const [savedNorms, setSavedNorms] = useState<string[]>([])
+  const [savedSupport, setSavedSupport] = useState<DiagnosticProfile | null>(null)
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+    fetch('/api/me/norms', { cache: 'no-store', credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (!cancelled && Array.isArray(json?.norms)) setSavedNorms(json.norms) })
+      .catch(() => {})
+    fetch('/api/me/diagnostic-profile', { cache: 'no-store', credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const saved = json?.diagnosticProfile?.profile
+        if (cancelled || !saved) return
+        setSavedSupport({ ...EMPTY_DIAGNOSTIC_PROFILE, ...saved, consentToStore: true, supportContext: { ...EMPTY_DIAGNOSTIC_PROFILE.supportContext, ...(saved.supportContext || {}) } })
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user?.id])
 
-  // Norms are optional now. Left unanswered, they are sent exactly as an
-  // explicit "Prefer not to share", the value existing rows and the condition
-  // taxonomy already use, so nothing downstream sees a new shape.
+  // Norms are optional. Left unanswered, they are sent exactly as an explicit
+  // "Prefer not to share", the value existing rows and the condition taxonomy
+  // already use, so nothing downstream sees a new shape.
   const selectedBarrierTypes = formData.barrierTypes.length > 0
     ? formData.barrierTypes
-    : formData.barrierConnectionText.trim()
-      ? [formData.barrierConnectionText.trim()]
-      : ['Prefer not to share']
-  // The consented, non-clinical part of the detailed profile, sent with the
-  // path request. Empty when nothing was shared.
-  const agentSupportContext = toRecommendationSupportContext(diagnosticProfile)
+    : savedNorms.length > 0
+      ? savedNorms
+      : formData.barrierConnectionText.trim()
+        ? [formData.barrierConnectionText.trim()]
+        : ['Prefer not to share']
+  // The non-clinical part of the private profile they saved, sent with the
+  // path request. Empty when nothing was saved.
+  const agentSupportContext = savedSupport ? toRecommendationSupportContext(savedSupport) : undefined
 
   // ─── Autosave: persist progress to localStorage so it survives page reloads ───
   const AUTOSAVE_KEY = 'autinerary_onboarding_draft'
@@ -898,53 +717,6 @@ export default function OnboardingPage() {
     }
   }, [user, authLoading, router])
 
-  // Progressive disclosure: brand-new users start in simple view. Read once
-  // after mount (SSR-safe — avoids a hydration mismatch).
-  useEffect(() => {
-    setSimpleView(isSimpleView())
-  }, [])
-
-  // While simple view is on and advanced modes aren't expanded, keep the
-  // spirit-animal mode at the single "general" guide (cut fast/slow + weekly).
-  useEffect(() => {
-    if (simpleView && !showAdvancedModes && formData.spiritAnimalMode !== 'general') {
-      setSpiritAnimalMode('general')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [simpleView, showAdvancedModes])
-
-  const handleBarrierToggle = (barrier: string) => {
-    setFormData(prev => ({
-      ...prev,
-      barrierTypes: prev.barrierTypes.includes(barrier)
-        ? prev.barrierTypes.filter(b => b !== barrier)
-        : [...prev.barrierTypes, barrier]
-    }))
-  }
-
-  const updateArrayField = (field: 'goals' | 'dreams' | 'currentChallenges', index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }))
-  }
-
-  const addArrayItem = (field: 'goals' | 'dreams' | 'currentChallenges') => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }))
-  }
-
-  const removeArrayItem = (field: 'goals' | 'dreams' | 'currentChallenges', index: number) => {
-    if (formData[field].length > 1) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: prev[field].filter((_, i) => i !== index)
-      }))
-    }
-  }
-
   const canProceed = (step = currentStep) => {
     if (!canAccessOnboarding) return false
     switch (steps[step]?.id) {
@@ -953,13 +725,6 @@ export default function OnboardingPage() {
         const hasGoal = Object.values(formData.goalsByCategory).some(entries => entries.some(e => e.goal.trim()))
         return hasGoal
       }
-      case 'barrierConnections': return true // optional (Riipen Group 2: "an optional condition question")
-      case 'location': return true // optional; skipping it only turns off "near you" sorting
-      case 'motivation': return formData.motivationTypes.length > 0 && formData.lifeStages.length > 0
-      case 'character': return true // optional
-      case 'profile': return formData.dreamSelf.trim() !== ''
-      case 'spiritAnimal': return formData.spiritAnimals.length === spiritAnimalSlotCount(formData.spiritAnimalMode) && formData.spiritAnimals.every(a => a.type && a.color) // every slot for the chosen mode filled
-      case 'personalize': return true // all optional
       default: return false
     }
   }
@@ -972,14 +737,10 @@ export default function OnboardingPage() {
     switch (currentId) {
       case 'about': return 'Choose who you are here for to continue.'
       case 'goalsAndDreams': return 'Add one goal to continue.'
-      case 'motivation': return 'Pick at least one motivation and one life stage, or skip this step.'
-      case 'profile': return 'Describe your dream self, or skip this step.'
-      case 'spiritAnimal': return 'Choose an animal and colour for each guide, or skip this step.'
       default: return ''
     }
   }
-  // Once age, norms and goals are in, the optional steps can be skipped in
-  // one go instead of one at a time.
+  // Both steps answered: the path can be made.
   const requiredDone = canAccessOnboarding && canProceed(stepIndex('about')) && canProceed(stepIndex('goalsAndDreams'))
 
   // "Start here" (Riipen Labs, Groups 3 and 4) may already have asked who this
@@ -1025,13 +786,6 @@ export default function OnboardingPage() {
   // Wording that follows who the person is here for (Riipen: "a parent,
   // sibling and a neurodivergent adult may need different first steps").
   const supporting = ['child', 'family', 'friend', 'work'].includes(formData.audience)
-  const normsCopy = formData.audience === 'child'
-    ? { heading: 'Your child\u2019s norms', intro: 'Which norms does your child navigate? You can add your own too.' }
-    : supporting
-      ? { heading: 'Their norms', intro: 'Which norms does the person you support navigate? You can add your own too.' }
-      : formData.audience === 'ally'
-        ? { heading: 'Norms you care about', intro: 'Which norms would you like to understand or support?' }
-        : { heading: 'Your Norms', intro: 'Tell us about your norms: the systemic realities you navigate.' }
   const goalIntro = supporting
     ? 'Start with one goal. It can be yours, or something you are working on for the person you support (for example, \u201cFind an occupational therapist for my child\u201d). More goals, dreams and obstacles are optional.'
     : 'Start with one goal. Pick a category and add it. More goals, dreams and obstacles are optional and can come later.'
@@ -1086,51 +840,6 @@ export default function OnboardingPage() {
     }
   }
 
-  // Skip an optional step without validating its fields.
-  const handleSkip = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1)
-    }
-  }
-
-  const addSpiritAnimal = () => {
-    const max = spiritAnimalSlotCount(formData.spiritAnimalMode)
-    if (formData.spiritAnimals.length < max) {
-      setFormData(prev => ({
-        ...prev,
-        spiritAnimals: [...prev.spiritAnimals, { type: '', color: '' }]
-      }))
-    }
-  }
-
-  // Switch mode and resize the slot list to fit (trim extras, keep existing).
-  const setSpiritAnimalMode = (mode: 'general' | 'fastSlow' | 'weekly') => {
-    const max = spiritAnimalSlotCount(mode)
-    setFormData(prev => ({
-      ...prev,
-      spiritAnimalMode: mode,
-      spiritAnimals: prev.spiritAnimals.slice(0, max),
-    }))
-  }
-
-  const updateSpiritAnimal = (index: number, field: 'type' | 'color', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      spiritAnimals: prev.spiritAnimals.map((a, i) => i === index ? { ...a, [field]: value } : a)
-    }))
-  }
-
-  const removeSpiritAnimal = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      spiritAnimals: prev.spiritAnimals.filter((_, i) => i !== index)
-    }))
-  }
-
-  const updateReminders = (patch: Partial<ReminderPreferences>) => {
-    setFormData(prev => ({ ...prev, reminders: { ...prev.reminders, ...patch } }))
-  }
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
@@ -1152,26 +861,11 @@ export default function OnboardingPage() {
     setIsSubmitting(true)
     setSubmitError('')
     try {
-      // Only persist a reminder opt-in that's actually complete (enabled +
-      // explicit consent + a contact). Otherwise store it disabled so we never
-      // record a half-opted-in reminder we couldn't honor.
-      const r = formData.reminders
-      const reachable = r.channel === 'sms' ? Boolean(r.smsVerified) : Boolean(r.contact.trim())
-      const remindersToSave: ReminderPreferences =
-        r.enabled && r.consent && reachable
-          ? { ...r, contact: r.contact.trim(), timeZone: r.timeZone || browserTimeZone() }
-          : { ...DEFAULT_REMINDERS }
-
-      // Record view/interaction preferences (age, tech savvy, view style) so the
-      // rest of the app can adapt and we can learn from intersecting profiles.
-      savePreferences({
-        dreamAppearance: formData.dreamAppearance,
-        alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
-        ageRange: (formData.ageRange || '') as any,
-        techSavvy: (formData.techSavvy || '') as any,
-        viewPreference: (formData.viewPreference || '') as any,
-        reminders: remindersToSave,
-      })
+      // What the person has set in the app since (Settings, the "Complete
+      // your profile" card). Setup no longer asks for any of it, so nothing
+      // here is written over it: reminders, the look, the character, spirit
+      // animals and the Dream Self stay as they are.
+      const saved = loadPreferences()
 
       // Flatten categorized goals into flat arrays for backend compat
       const allGoals: string[] = []
@@ -1190,22 +884,6 @@ export default function OnboardingPage() {
       if (formData.dreamSelf.trim()) allDreams.push(`Dream for self: ${formData.dreamSelf.trim()}`)
       if (formData.dreamForOther.trim()) allDreams.push(`Dream for another person: ${formData.dreamForOther.trim()}`)
       if (formData.dreamRelationship.trim()) allDreams.push(`Dream for the relationship: ${formData.dreamRelationship.trim()}`)
-
-      // The full private profile never enters local autosave or agent payloads.
-      // After consent, it is saved separately; agents receive only the bounded
-      // functional support context built above (no status, subtype, medication).
-      if (diagnosticProfile.consentToStore) {
-        const selectedLabels = new Set(formData.barrierTypes.map((barrier) => barrier.toLowerCase()))
-        await axios.put('/api/me/diagnostic-profile', {
-          ...diagnosticProfile,
-          conditions: diagnosticProfile.conditions.filter((condition) =>
-            selectedLabels.has(condition.conditionLabel.toLowerCase())
-          ),
-        }, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 15000,
-        })
-      }
 
       // Send to Goal Planning backend.
       //
@@ -1226,18 +904,14 @@ export default function OnboardingPage() {
         goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
-        motivationType: formData.motivationType,
+        // Asked on the "Complete your profile" card now; the first one, as setup sent it.
+        motivationType: saved.motivation?.types?.[0] || formData.motivationType,
         supportContext: agentSupportContext,
+        // Only setup's own answers: the backend merges these into the saved
+        // preferences (it used to replace them all).
         preferences: {
           pathModel: chosenModel,
           ageRange: formData.ageRange || ageBandFromDob(supabaseUser?.app_metadata?.date_of_birth || supabaseUser?.user_metadata?.date_of_birth) || '',
-          techSavvy: formData.techSavvy,
-          viewPreference: formData.viewPreference,
-          spiritAnimalMode: formData.spiritAnimalMode,
-          spiritAnimals: formData.spiritAnimals,
-          dreamAppearance: formData.dreamAppearance,
-          alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
-          reminders: remindersToSave,
         },
         llmConfig: toLlmConfig(),
       }
@@ -1306,48 +980,22 @@ export default function OnboardingPage() {
         throw new Error('Invalid response from server: missing pathId')
       }
 
-      // Save the barrier profile so ServiceHub can personalize recommendations
-      const serviceHubBarriers = mapBarriersToServiceHub(selectedBarrierTypes)
+      // This browser's copy of the plan's answers, read by the assistant,
+      // Path Market and lib/pathModel. Kept from the copy already here: the
+      // character, spirit animals and Dream Self in it came from setup's old
+      // steps (the pages that read them now prefer the saved preferences), and
+      // setup no longer asks for them, so they are not reset to defaults.
+      let previous: Record<string, any> = {}
+      try { previous = JSON.parse(localStorage.getItem('autinerary_profile') || '{}') || {} } catch {}
       localStorage.setItem('autinerary_profile', JSON.stringify({
-        barriers: serviceHubBarriers,
-        // The character the user builds in step 0 was never persisted — it was
-        // collected, rendered, and dropped on submit. Anything that shows an
-        // avatar later had nothing to read.
-        avatar: {
-          bodyType: formData.bodyType,
-          hairStyle: formData.hairStyle,
-          hairColor: formData.hairColor,
-          skinColor: formData.skinColor,
-          accessory: formData.accessory,
-          facialHair: formData.facialHair,
-          clothing: formData.clothing,
-        },
+        ...previous,
+        barriers: mapBarriersToServiceHub(selectedBarrierTypes),
         goals: onboardingBody.goals,
         dreams: onboardingBody.dreams,
         currentChallenges: onboardingBody.currentChallenges,
         goalsByCategory: formData.goalsByCategory,
         barrierTypes: selectedBarrierTypes,
-        lifeStage: formData.lifeStage,
-        lifeStages: formData.lifeStages,
-        location: formData.location,
         role: formData.role,
-        alternatePersona: {
-          name: formData.alternatePersonaName.trim(),
-          note: formData.alternatePersonaNote.trim(),
-          appearance: formData.personaAppearance,
-        },
-        dreamSelf: { description: formData.dreamSelf, appearance: formData.dreamAppearance },
-        dreamForOther: formData.dreamForOther,
-        dreamRelationship: formData.dreamRelationship,
-        preferences: {
-          ageRange: formData.ageRange,
-          techSavvy: formData.techSavvy,
-          viewPreference: formData.viewPreference,
-          // The Path header reads these; without them it fell back to a
-          // default owl/fox pair that was nobody's actual choice.
-          spiritAnimalMode: formData.spiritAnimalMode,
-          spiritAnimals: formData.spiritAnimals,
-        },
         // Norms are the user's own answers, not the model's — a model does not
         // know which norms the person selected.
         pathModel: chosenModel
@@ -1386,21 +1034,6 @@ export default function OnboardingPage() {
       // kept with the account so it can be reopened from the Path.
       const startPath = keptStartPath()
       const prefsSaved = await axios.post('/api/me/preferences', {
-        dreamAppearance: formData.dreamAppearance,
-        // The character from the Character step, kept with the account so the
-        // race track can show it on any device. Only if they saw that step:
-        // an untouched default would stand in for someone it may not look like.
-        ...(stepsSeen.current.has(stepIndex('character')) ? {
-          character: {
-            hairStyle: formData.hairStyle,
-            hairColor: formData.hairColor,
-            skinColor: formData.skinColor,
-            accessory: formData.accessory,
-            facialHair: formData.facialHair,
-            clothing: formData.clothing,
-          },
-        } : {}),
-        alternatePersona: { name: formData.alternatePersonaName.trim(), note: formData.alternatePersonaNote.trim(), appearance: formData.personaAppearance },
         // Who this is for and what they came for: drives what the next pages
         // show first, and lets the funnel be compared by user type.
         audience: formData.audience || null,
@@ -1421,18 +1054,10 @@ export default function OnboardingPage() {
           localStorage.removeItem(START_FOR_KEY)
           localStorage.removeItem(START_NEED_KEY)
         }
-        // "Ask later": the optional extras this person did not get to, offered
-        // on the Path later (app/components/AskLaterCard.tsx). "aboutYou" is
-        // sensory needs and conditions (the detailed profile), asked in the
-        // second week when nothing about them was shared (Group 5: "gradually
-        // prompt for secondary preferences ... over Days 7 to 14").
-        const sharedAboutThem = formData.barrierTypes.length > 0 || formData.barrierConnectionText.trim() !== '' ||
-          diagnosticProfile.conditions.length > 0 || agentSupportContext !== undefined
-        const askLater = ['location', 'aboutYou', 'character', 'spiritAnimal', 'personalize'].filter((id) =>
-          id === 'location' ? !formData.location.city.trim()
-            : id === 'aboutYou' ? !sharedAboutThem
-            : !stepsSeen.current.has(stepIndex(id)))
-        localStorage.setItem('autinerary_ask_later', JSON.stringify(askLater))
+        // The optional questions are on the Path's "Complete your profile"
+        // card (components/ProfileCompletion.tsx), which works out for itself
+        // what is answered; the list the old "ask later" card read is gone.
+        localStorage.removeItem('autinerary_ask_later')
       } catch {}
       // Save the location to the profile so ResourceHub can recommend places
       // near this person. Bounded and best-effort: never holds up the path.
@@ -1476,44 +1101,26 @@ export default function OnboardingPage() {
     : 'Laying out your schedule. Nearly there…'
   const displayStage = generationStage || localStage
 
-  // The rail shows one group at a time: the two-step start, or the
-  // optional extras once someone chooses to add more. Nine labels in a row
-  // read as "a lot"; two do not.
-  const inExtras = currentStep >= CORE_STEP_COUNT
-  const groupStart = inExtras ? CORE_STEP_COUNT : 0
-  const groupSteps = inExtras ? steps.slice(CORE_STEP_COUNT) : steps.slice(0, CORE_STEP_COUNT)
-  const progressPercentage = groupSteps.length > 1 ? ((currentStep - groupStart) / (groupSteps.length - 1)) * 100 : 100
-  
+  // The rail: the two steps. (The optional extras that followed them are in
+  // the app now; Riipen Labs, Groups 25 to 30.)
+  const progressPercentage = steps.length > 1 ? (currentStep / (steps.length - 1)) * 100 : 100
 
   return (
     <div className="min-h-screen text-slate-900 p-4 md:p-8 relative overflow-hidden surface-veil">
-      {/* Cloudy Background — static, soft gradients. Previously each cloud ran a
-          continuous `animate-pulse` (5 stacked blur-2xl/3xl layers repainting
-          nonstop), which caused scroll jank on lower-end machines. The look is
-          preserved without the per-frame repaint cost. */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Clouds */}
-        <div className="absolute top-10 left-10 w-64 h-32 bg-white/40 rounded-full blur-2xl" />
-        <div className="absolute top-32 right-20 w-80 h-40 bg-white/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-72 h-36 bg-white/35 rounded-full blur-2xl" />
-        <div className="absolute top-1/3 right-1/3 w-56 h-28 bg-white/40 rounded-full blur-2xl" />
-        <div className="absolute bottom-1/4 right-10 w-96 h-44 bg-white/30 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative max-w-4xl mx-auto z-10">
+      {/* The five blurred clouds that sat behind setup are gone: a plain
+          background (Riipen Labs, Group 30: "calmer visuals, reduced sensory
+          load"), and less above the first question (Group 26: "scroll-free
+          sections"). */}
+      <div className="relative max-w-3xl mx-auto z-10">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-2 text-slate-800">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
             Welcome{user?.name ? `, ${user.name}` : ''}
           </h1>
           {/* One line on what this is (Riipen Labs, Group 33: "remove redundant
               setup text"). It was "Let's build your personalized path to
               success", then a second welcome inside the first step. */}
-          <p className="text-slate-700 text-lg">
-            {inExtras
-              ? 'Optional extras: skip any of them, or create your path now.'
-              : 'Two quick questions, then your path is ready.'}
-          </p>
+          <p className="text-slate-700 text-lg">Two quick questions, then your path is ready.</p>
 
           {/* Pathway banner — shows this onboarding is tailored to the chosen
               Path Market template, not the generic "start your own path" flow. */}
@@ -1539,8 +1146,10 @@ export default function OnboardingPage() {
             emojis, bright colours, and game-like visual elements" made setup
             feel less polished, and motion that never stops is hard on
             attention (WCAG 2.2.2). The bunny stays, the one playful touch,
-            and moves only when the step does. */}
-        <div className="mb-12 relative">
+            and moves only when the step does. A step's circle turns into a
+            tick once it is answered (Group 29: "progress bars and ... mini-
+            rewards so account creation feels small and doable"). */}
+        <div className="mb-6 relative">
           <div className="relative mx-4 h-10" aria-hidden="true">
             <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-slate-200" />
             <div
@@ -1556,22 +1165,15 @@ export default function OnboardingPage() {
           </div>
 
           {/* Step Labels Below Path */}
-          <div className={`grid ${inExtras ? 'grid-cols-4 sm:grid-cols-7' : 'grid-cols-2'} gap-4 mt-4 px-2`}>
-            {groupSteps.map((step, i) => {
-              const idx = groupStart + i
+          <div className="grid grid-cols-2 gap-4 mt-4 px-2">
+            {steps.map((step, idx) => {
               const Icon = step.icon
               const isActive = idx === currentStep
-              // An optional extra counts as done once it has been seen and
-              // left. Before, every extra with nothing required showed a tick
-              // before anyone had opened it.
-              const isCompleted = REQUIRED_STEP_IDS.has(step.id)
-                ? canProceed(idx)
-                : idx !== currentStep && stepsSeen.current.has(idx) && canProceed(idx)
-              
+              const isCompleted = canProceed(idx)
               return (
                 <button
                   type="button"
-                  key={step.id} 
+                  key={step.id}
                   onClick={() => setCurrentStep(idx)}
                   disabled={isSubmitting || (idx !== 0 && !canAccessOnboarding)}
                   aria-current={isActive ? 'step' : undefined}
@@ -1580,10 +1182,10 @@ export default function OnboardingPage() {
                 >
                   <div
                     className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
-                      isActive 
-                        ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 scale-125 ring-4 ring-cyan-300' 
-                        : isCompleted 
-                          ? 'bg-green-500 scale-110' 
+                      isActive
+                        ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 scale-125 ring-4 ring-cyan-300'
+                        : isCompleted
+                          ? 'bg-green-500 scale-110'
                           : 'bg-slate-300 scale-100'
                     }`}
                   >
@@ -1594,9 +1196,7 @@ export default function OnboardingPage() {
                     )}
                   </div>
                   {/* mt-3 clears the active circle, which is scale-125 and
-                      grows downward into whatever sits directly beneath it.
-                      leading-tight plus a wider box keeps two short words on
-                      one or two tidy lines instead of a ragged stack. */}
+                      grows downward into whatever sits directly beneath it. */}
                   <span className={`text-xs leading-tight mt-3 text-center w-full max-w-[76px] ${isActive ? 'text-slate-900 font-bold' : isCompleted ? 'text-green-800 font-medium' : 'text-slate-700'}`}>
                     {step.short}
                   </span>
@@ -1607,7 +1207,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Content Card */}
-        <div className="rounded-2xl p-6 md:p-8 surface">
+        <div className="rounded-2xl p-5 md:p-8 surface">
           {resumedStep === currentStep && (
             <p role="status" className="mb-5 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-slate-800">
               Welcome back. Your answers were saved, so you are where you left off.
@@ -1624,7 +1224,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {chatMode && !inExtras && (
+          {chatMode && (
             <ChatSetup
               name={(user?.name || '').split(' ')[0]}
               audiences={AUDIENCES}
@@ -1633,68 +1233,67 @@ export default function OnboardingPage() {
               ideasFor={ideasFor}
               helperIdeas={helperIdeas}
               onAge={(value) => setFormData(prev => ({ ...prev, ageConfirmation: value }))}
+              ageKnown={ageFromSignup}
               onAudience={chooseAudience}
               onGoal={addGoal}
               onUndoGoal={removeGoal}
-              onCity={(city) => setFormData(prev => ({ ...prev, location: { ...prev.location, city } }))}
               onCreate={handleSubmit}
-              onMore={() => { setChatMode(false); setCurrentStep(CORE_STEP_COUNT) }}
               onForm={() => setChatMode(false)}
               isSubmitting={isSubmitting}
             />
           )}
 
-          {(!REQUIRED_STEP_IDS.has(currentId) || STEP_PURPOSE[currentId]) && (
-          <div className={`mb-5 flex flex-wrap items-center gap-2 text-sm ${chatMode && !inExtras ? 'hidden' : ''}`}>
-            {!REQUIRED_STEP_IDS.has(currentId) && (
-              // A label, not a pill: in a rounded border it looked like a
-              // button (Riipen Labs, Group 33: "clickable options blending
-              // into static text").
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Optional step</span>
-            )}
-            {STEP_PURPOSE[steps[currentStep].id] && (
-              <p className="text-slate-700"><span className="font-semibold text-slate-900">How this is used:</span> {STEP_PURPOSE[steps[currentStep].id]}</p>
-            )}
-          </div>
+          {/* Required questions carry a red asterisk, said in words too
+              (Riipen Labs, Group 26: "red indicators for required fields";
+              WCAG 1.4.1, not by colour alone). */}
+          {!chatMode && (
+            <p className="mb-4 text-sm text-slate-700">
+              <RequiredMark /> Required. Everything else is optional.
+            </p>
           )}
 
-          {/* About you: the short goal-first start. Age is required (18+ for
-              now); who this is for is one tap; what they came for is optional. */}
+          {/* About you: the short goal-first start. Age comes from sign-up;
+              who this is for is one tap; what they came for is optional. */}
           {currentId === 'about' && !chatMode && (
             <div>
               {/* One heading and one short note before the first question
                   (Riipen Labs, Group 33: "reduce text density", "remove
-                  redundant setup text"). There were two welcomes, a slogan
-                  and a box saying again that setup is two questions. The
-                  warm voice (Group 6; docs/voice.md) is in the welcome above
-                  and in "There are no wrong answers". */}
+                  redundant setup text"). The warm voice (Group 6;
+                  docs/voice.md) is in the welcome above and in "There are no
+                  wrong answers". */}
               <h2 className="text-2xl font-bold mb-3 text-slate-800">About you</h2>
 
               {/* A note, not a box: tinted and bordered it looked like the chosen
                   answers below (Group 33: "clickable options blending into
                   static text"). */}
-              <p className="mb-4 border-l-4 border-indigo-400 pl-4 text-sm text-slate-800">
-                There are no wrong answers, and everything after your goal is optional. We don&apos;t sell your
-                information, show ads, or use it to train AI.
-              </p>
-              <p className="mb-6 text-sm">
-                <button type="button" onClick={() => setChatMode(true)} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
-                  Prefer to answer by chatting? Try the chat version
-                </button>
+              <p className="mb-5 border-l-4 border-indigo-400 pl-4 text-sm text-slate-800">
+                There are no wrong answers. We don&apos;t sell your information, show ads, or use it to train AI.
               </p>
 
-              <label className="block mb-6 font-medium">
-                Confirm your age
-                <select
-                  value={formData.ageConfirmation}
-                  onChange={event => setFormData(previous => ({ ...previous, ageConfirmation: event.target.value as '' | 'adult' | 'under18' }))}
-                  className="mt-2 block w-full rounded-lg border border-slate-300 p-3"
-                >
-                  <option value="">Select your age group</option>
-                  <option value="adult">I am 18 or older</option>
-                  <option value="under18">I am under 18</option>
-                </select>
-              </label>
+              {/* Age: sign-up already asked for the date of birth, so it is not
+                  asked twice (Riipen Labs, Groups 25 to 30: fewer questions
+                  before the app). Asked here only when it is not known. */}
+              {ageFromSignup ? (
+                <p className="mb-5 flex items-center gap-2 text-sm text-slate-800" role="status">
+                  <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                  Age: 18 or older, from the date of birth you gave when you signed up.
+                </p>
+              ) : (
+                <label className="block mb-5 font-medium">
+                  Confirm your age <RequiredMark />
+                  <span className="mt-0.5 block text-sm font-normal text-slate-700">Why we ask: {WHY_WE_ASK.age}</span>
+                  <select
+                    value={formData.ageConfirmation}
+                    onChange={event => setFormData(previous => ({ ...previous, ageConfirmation: event.target.value as '' | 'adult' | 'under18' }))}
+                    className="mt-2 block w-full rounded-lg border border-slate-300 p-3"
+                    aria-required="true"
+                  >
+                    <option value="">Select your age group</option>
+                    <option value="adult">I am 18 or older</option>
+                    <option value="under18">I am under 18</option>
+                  </select>
+                </label>
+              )}
               {guardianApproved && <p role="status" className="mb-4 text-sm text-emerald-700">Your legal adult has approved this supervised account.</p>}
               {!guardianApproved && (formData.ageConfirmation === 'under18' || isManagedAccount) && (
                 <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
@@ -1702,12 +1301,14 @@ export default function OnboardingPage() {
 
               {/* Skip setup for now (Riipen Labs, Group 33: "Allow users to bypass
                   initial setup prompts with a single tap so they can directly
-                  explore the platform's core tools right away"). After the age
-                  question, because the app is for adults; the Path offers to make
-                  a plan, and says what works without one. Named so it isn't
-                  mistaken for "Skip this step" on the optional steps. */}
+                  explore the platform's core tools right away"; Group 29: a
+                  "Skip / Fast-Track" option on step 1). One row, near the top,
+                  so it is easy to find; the Path offers to make a plan, and
+                  says what works without one.
+                  Pronouns and a username were offered here too; they are on
+                  the "Complete your profile" card now (Groups 25 to 30). */}
               {!user?.hasCompletedOnboarding && (
-                <div className="mb-6 rounded-xl border border-slate-300 bg-white p-4">
+                <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-slate-300 bg-white p-3">
                   <p className="text-sm text-slate-800">
                     Not ready for questions? Look around first, and make your plan later from the Path.
                   </p>
@@ -1715,23 +1316,24 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={skipForNow}
                     disabled={!canAccessOnboarding || skipping}
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {skipping ? 'Opening the app…' : 'Skip setup for now'}
                   </button>
                   {!canAccessOnboarding && !isManagedAccount && (
-                    <p className="mt-2 text-xs text-slate-700">Confirm your age above first.</p>
+                    <p className="w-full text-xs text-slate-700">Confirm your age above first.</p>
                   )}
-                  {skipError && <p role="alert" className="mt-2 text-sm text-red-800">{skipError}</p>}
+                  {skipError && <p role="alert" className="w-full text-sm text-red-800">{skipError}</p>}
                 </div>
               )}
 
               <fieldset className="mb-6" disabled={!canAccessOnboarding}>
-                <legend className="mb-1 font-medium text-slate-900">Who are you here for?</legend>
-                {/* What the answer changes, and that it can be changed (Riipen
-                    Labs, Group 32: "assurance that their selected role will
-                    tailor the content visible to them"). */}
-                <p className="mb-2 text-sm text-slate-700">{AUDIENCE_EFFECT}</p>
+                <legend className="mb-1 font-medium text-slate-900">Who are you here for? <RequiredMark /></legend>
+                {/* Why it is asked, and that it can be changed (Riipen Labs,
+                    Group 32: "assurance that their selected role will tailor
+                    the content visible to them"; Group 28: "each question
+                    carries a visible reason for being asked"). */}
+                <p className="mb-2 text-sm text-slate-700">Why we ask: {AUDIENCE_EFFECT}</p>
                 {(() => {
                   const audienceButton = (a: typeof AUDIENCES[number]) => (
                     <button
@@ -1768,6 +1370,7 @@ export default function OnboardingPage() {
                 })()}
                 {AUDIENCE_VALUE[formData.audience] && (
                   <p role="status" className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+                    <Check className="mr-1 inline h-4 w-4 text-emerald-700" aria-hidden="true" />
                     {AUDIENCE_VALUE[formData.audience]}
                   </p>
                 )}
@@ -1777,7 +1380,7 @@ export default function OnboardingPage() {
                 <legend className="mb-1 font-medium text-slate-900">
                   What are you looking for today? <span className="font-normal text-slate-700">(optional, pick any)</span>
                 </legend>
-                <p className="mb-2 text-sm text-slate-700">We&apos;ll show you that first once your path is ready.</p>
+                <p className="mb-2 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.lookingFor}</p>
                 <div className="flex flex-wrap gap-2">
                   {LOOKING_FOR.map((o) => {
                     const on = formData.lookingFor.includes(o.id)
@@ -1802,675 +1405,11 @@ export default function OnboardingPage() {
                 </div>
               </fieldset>
 
-              {canAccessOnboarding && <ProfileBasics />}
-            </div>
-          )}
-
-          {/* Character (optional extra): the avatar designer. */}
-          {currentId === 'character' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Create Your Character</h2>
-              <p className="text-slate-600 mb-6">Design a character to represent you. It stands on your race track at the step you're on, and you can change it later on your Ideal Self page.</p>
-
-              <div className="space-y-6">
-                {/* Body Type */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Body Type</h3>
-                  <div className="flex gap-3">
-                    {bodyTypes.map((bt) => (
-                      <button
-                        key={bt.id}
-                        onClick={() => setFormData(prev => ({ ...prev, bodyType: bt.id }))}
-                        className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                          formData.bodyType === bt.id
-                            ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                        }`}
-                      >
-                        {bt.label}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, bodyType: 'skip' }))}
-                      className={`px-6 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                        formData.bodyType === 'skip'
-                          ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                          : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                      }`}
-                    >
-                      Skip / None
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Hair & headwear.
-                    A tester asked for the full Avataaars range; this offered
-                    7 of 34. All of them are here now, grouped so the list
-                    stays browsable, and each swatch previews in the user's
-                    own colours rather than as a generic thumbnail. */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-1">Hair &amp; headwear</h3>
-                  <p className="text-xs text-slate-600 mb-3">Tap any option to try it. You can change it later.</p>
-                  <div className="space-y-4">
-                    {HAIR_GROUPS.map((group) => (
-                      <div key={group.name}>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">{group.name}</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                          {group.options.map((hs) => (
-                            <button
-                              key={hs.id}
-                              type="button"
-                              aria-pressed={formData.hairStyle === hs.id}
-                              onClick={() => setFormData(prev => ({ ...prev, hairStyle: hs.id }))}
-                              className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
-                                formData.hairStyle === hs.id
-                                  ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-300'
-                                  : 'border-slate-200 hover:border-cyan-400'
-                              }`}
-                            >
-                              <CharacterAvatar
-                                hairStyle={hs.id}
-                                hairColor={formData.hairColor}
-                                skinColor={formData.skinColor}
-                                accessory={formData.accessory}
-                                facialHair={formData.facialHair}
-                                clothing={formData.clothing}
-                                size={44}
-                              />
-                              <span className="text-xs leading-tight text-center text-slate-700">{hs.label}</span>
-                              {formData.hairStyle === hs.id && (
-                                <Check className="absolute top-1 right-1 w-3.5 h-3.5 text-cyan-700" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Glasses and other face accessories */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Glasses &amp; accessories</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {ACCESSORIES.map((a) => (
-                      <button
-                        key={a.id}
-                        type="button"
-                        aria-pressed={formData.accessory === a.id}
-                        onClick={() => setFormData(prev => ({ ...prev, accessory: a.id }))}
-                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
-                          formData.accessory === a.id
-                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
-                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                        }`}
-                      >
-                        {a.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Facial hair */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Facial hair</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {FACIAL_HAIR.map((f) => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        aria-pressed={formData.facialHair === f.id}
-                        onClick={() => setFormData(prev => ({ ...prev, facialHair: f.id }))}
-                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
-                          formData.facialHair === f.id
-                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
-                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Clothing */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Outfit</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {CLOTHING.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        aria-pressed={formData.clothing === c.id}
-                        onClick={() => setFormData(prev => ({ ...prev, clothing: c.id }))}
-                        className={`px-3 py-2 rounded-lg border-2 text-xs font-medium transition-all ${
-                          formData.clothing === c.id
-                            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700'
-                            : 'border-slate-200 hover:border-cyan-400 text-slate-600'
-                        }`}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hair colour */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Hair Colour</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {HAIR_COLORS.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setFormData(prev => ({ ...prev, hairColor: c.id }))}
-                        title={c.label}
-                        aria-label={c.label}
-                        aria-pressed={formData.hairColor === c.id}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          formData.hairColor === c.id ? 'border-cyan-500 ring-2 ring-cyan-300 scale-110' : 'border-slate-300 hover:border-cyan-400'
-                        }`}
-                        style={{ backgroundColor: `#${c.id}` }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Skin tone */}
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Skin Tone</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {SKIN_TONES.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setFormData(prev => ({ ...prev, skinColor: c.id }))}
-                        title={c.label}
-                        aria-label={c.label}
-                        aria-pressed={formData.skinColor === c.id}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          formData.skinColor === c.id ? 'border-cyan-500 ring-2 ring-cyan-300 scale-110' : 'border-slate-300 hover:border-cyan-400'
-                        }`}
-                        style={{ backgroundColor: `#${c.id}` }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Live Character Preview */}
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-sm font-medium text-slate-700 mb-3">Your Character Preview</h3>
-                  <div className="flex justify-center">
-                    <div className="relative w-44 rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center overflow-hidden py-4">
-                      <UserAvatar
-                        hairStyle={formData.hairStyle}
-                        hairColor={formData.hairColor}
-                        skinColor={formData.skinColor}
-                        accessory={formData.accessory}
-                        facialHair={formData.facialHair}
-                        clothing={formData.clothing}
-                        size={120}
-                      />
-                      <p className="text-xs text-slate-600 font-medium mt-1 text-center px-2">
-                        {formData.bodyType && formData.bodyType !== 'skip' ? bodyTypes.find(b => b.id === formData.bodyType)?.label : ''}
-                        {formData.hairStyle && formData.hairStyle !== 'skip' ? ` · ${HAIR_OPTIONS.find(h => h.id === formData.hairStyle)?.label || ''}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-          )}
-
-          {/* Step 1: Role */}
-          {currentId === 'barrierConnections' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">{normsCopy.heading}</h2>
-              <p className="text-slate-600 mb-2">{normsCopy.intro} Describe them in your own words, or pick from the lists below. Skip it and it counts as &ldquo;Prefer not to share&rdquo;.</p>
-              <p className="text-xs text-slate-500 mb-4 italic">Your identity is not the problem. Things like your disability, ethnicity, or gender aren&apos;t obstacles themselves: the obstacles are the systemic ones society puts in the way. We use this only to find support built for them.</p>
-
-              {/* Mode toggle */}
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => setBarrierInputMode('text')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    barrierInputMode === 'text'
-                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
-                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  Describe in your words
+              <p className="mt-4 text-sm">
+                <button type="button" onClick={() => setChatMode(true)} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">
+                  Prefer to answer by chatting? Try the chat version
                 </button>
-                <button
-                  onClick={() => setBarrierInputMode('manual')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    barrierInputMode === 'manual'
-                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
-                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  Manual selection
-                </button>
-              </div>
-
-              <div className="mb-6 flex flex-wrap gap-2">
-                {['No current barriers', 'Prefer not to share'].map((choice) => {
-                  const selected = formData.barrierTypes.length === 1 && formData.barrierTypes[0] === choice
-                  return (
-                    <button
-                      key={choice}
-                      type="button"
-                      onClick={() => setFormData((prev) => ({
-                        ...prev,
-                        barrierTypes: selected ? [] : [choice],
-                        barrierConnections: selected ? ({} as Record<string, string[]>) : { self: [choice] },
-                        role: selected ? '' : 'self_advocate',
-                      }))}
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                        selected
-                          ? 'border-cyan-600 bg-cyan-50 text-cyan-800'
-                          : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-400'
-                      }`}
-                    >
-                      {selected && <Check className="mr-1 inline h-4 w-4" />}
-                      {/* Shown as "norms" (Odosa); the saved value is unchanged so existing data still matches. */}
-                      {choice === 'No current barriers' ? 'No current norms' : choice}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Mode 1: Free-text */}
-              {barrierInputMode === 'text' && (
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-500">
-                    Example: &quot;I identify as Black, have ADHD, and a sibling who is autistic&quot;
-                  </p>
-                  <textarea
-                    value={formData.barrierConnectionText}
-                    onChange={(e) => setFormData(prev => ({ ...prev, barrierConnectionText: e.target.value }))}
-                    placeholder="Describe the norms you navigate in a sentence..."
-                    rows={3}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                  <button
-                    onClick={() => setFormData(prev => ({ ...prev, barrierConnectionText: '' }))}
-                    className="text-sm text-slate-600 hover:text-red-700 transition-colors"
-                  >
-                    Reset text
-                  </button>
-                </div>
-              )}
-
-              {/* Mode 2: Manual selection */}
-              {barrierInputMode === 'manual' && (
-                <div className="space-y-6">
-                  {/* Connection type multi-select */}
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700 mb-3">Your connection to these norms (select all that apply)</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {connectionTypes.map((conn) => (
-                        <button
-                          key={conn.id}
-                          disabled={'disabled' in conn && conn.disabled}
-                          onClick={() => {
-                            setFormData(prev => {
-                              const current = { ...prev.barrierConnections }
-                              if (current[conn.id]) {
-                                delete current[conn.id]
-                              } else {
-                                current[conn.id] = []
-                              }
-                              // Derive role from first selected connection for backend compat
-                              const selectedKeys = Object.keys(current)
-                              const role = selectedKeys.includes('self') ? 'self_advocate' : selectedKeys.length > 0 ? selectedKeys[0] : ''
-                              return { ...prev, barrierConnections: current, role, barrierTypes: [...new Set(Object.values(current).flat())] }
-                            })
-                          }}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            'disabled' in conn && conn.disabled
-                              ? 'bg-slate-100 border border-slate-200 text-slate-600 cursor-not-allowed'
-                              : formData.barrierConnections[conn.id] !== undefined
-                                ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
-                                : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-cyan-400'
-                          }`}
-                        >
-                          {conn.label}
-                          {formData.barrierConnections[conn.id] !== undefined && <Check className="w-4 h-4 ml-1" />}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Yourself + whoever else — when you've picked someone
-                        other than yourself, quickly add that these barriers
-                        also apply to you (you can pick both). */}
-                    {Object.keys(formData.barrierConnections).some(id => id !== 'self') && (
-                      <label className="mt-3 flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={formData.barrierConnections['self'] !== undefined}
-                          onChange={() => {
-                            setFormData(prev => {
-                              const current = { ...prev.barrierConnections }
-                              if (current['self'] !== undefined) {
-                                delete current['self']
-                              } else {
-                                current['self'] = []
-                              }
-                              const selectedKeys = Object.keys(current)
-                              const role = selectedKeys.includes('self') ? 'self_advocate' : selectedKeys.length > 0 ? selectedKeys[0] : ''
-                              const allBarriers = [...new Set(Object.values(current).flat())]
-                              return { ...prev, barrierConnections: current, role, barrierTypes: allBarriers }
-                            })
-                          }}
-                          className="w-4 h-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
-                        />
-                        <span>These norms also apply to me (add yourself)</span>
-                      </label>
-                    )}
-                  </div>
-
-                  {/* Per-connection barrier selectors */}
-                  {Object.keys(formData.barrierConnections).length > 0 && (
-                    <div className="space-y-4">
-                      {Object.keys(formData.barrierConnections).map((connId) => {
-                        const conn = connectionTypes.find(c => c.id === connId)
-                        if (!conn) return null
-                        // How well you can be expected to know someone's
-                        // clinical details varies enormously by relationship.
-                        // You know your own. A parent usually knows a child's.
-                        // You very likely do not know whether a coworker or a
-                        // friend has a diagnosis, and a guessed diagnosis is
-                        // worse input than a blank one, because it shapes the
-                        // plan around something that may not be true.
-                        const isSelf = connId === 'self'
-                        const distantRelationship = ['coworker', 'friend', 'employer', 'educator', 'ally'].includes(connId)
-                        return (
-                          <div key={connId} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                            <h4 className="font-medium text-slate-800 mb-1 flex items-center gap-2">
-                              Norms for: {conn.label}
-                            </h4>
-                            <p className="text-xs text-slate-500 mb-3">
-                              {isSelf
-                                ? 'Pick whatever applies to you. Nothing here is required.'
-                                : distantRelationship
-                                  ? `Only pick what you actually know about your ${conn.label.toLowerCase()}. If you are not sure whether they have a diagnosis, leave it blank: a guess would shape their plan around something that may not be true. What you have seen yourself, like sensory needs or accommodations, is the useful part.`
-                                  : 'Pick what you know. Anything you are unsure about is better left blank than guessed.'}
-                            </p>
-                            {/* What is picked so far, so a closed section hides nothing. */}
-                            {(formData.barrierConnections[connId] || []).length > 0 && (
-                              <p className="mb-3 text-xs text-slate-700">
-                                <span className="font-semibold text-slate-900">Picked:</span>{' '}
-                                {(formData.barrierConnections[connId] || []).join(', ')}
-                              </p>
-                            )}
-                            {/* Nine groups, one open at a time. Every one used to be
-                                open at once, repeated for each connection picked:
-                                Riipen Labs Group 9's "too much information at once",
-                                against W3C's advice to present "smaller, easier-to-
-                                understand sections". */}
-                            <div className="space-y-2">
-                              {barrierCategories.map((category) => {
-                                const sectionItems = category.subcategories.flatMap((sub) => sub.items)
-                                const pickedHere = sectionItems.filter((item) => formData.barrierConnections[connId]?.includes(item)).length
-                                const isOpen = openNormSection[connId] === category.name
-                                return (
-                                <div key={category.name} className="rounded-lg border border-slate-200 bg-white">
-                                  <button
-                                    type="button"
-                                    aria-expanded={isOpen}
-                                    onClick={() => setOpenNormSection(prev => ({ ...prev, [connId]: isOpen ? null : category.name }))}
-                                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-800 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                                  >
-                                    <span>
-                                      {category.name}
-                                      {pickedHere > 0 && <span className="ml-2 text-xs font-semibold text-indigo-700">{pickedHere} picked</span>}
-                                    </span>
-                                    <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-                                  </button>
-                                  {isOpen && (
-                                  <div className="space-y-2 border-t border-slate-100 px-3 pb-3 pt-2">
-                                    {category.subcategories.map((sub) => (
-                                      <div key={sub.name}>
-                                        {category.subcategories.length > 1 && <p className="text-xs text-slate-600 mb-1">{sub.name}</p>}
-                                        <div className="flex flex-wrap gap-1.5 mb-2">
-                                          {sub.items.map((barrier) => {
-                                            const isSelected = formData.barrierConnections[connId]?.includes(barrier)
-                                            const includedInCombination = ['Autism', 'Autism spectrum disorder', 'ADHD'].includes(barrier) && formData.barrierConnections[connId]?.includes('AuDHD')
-                                            return (
-                                              <button
-                                                key={barrier}
-                                                disabled={includedInCombination}
-                                                title={includedInCombination ? 'Already included in AuDHD for this person' : undefined}
-                                                onClick={() => {
-                                                  setFormData(prev => {
-                                                    const current = { ...prev.barrierConnections }
-                                                    const list = [...(current[connId] || [])]
-                                                    if (list.includes(barrier)) {
-                                                      current[connId] = list.filter(b => b !== barrier)
-                                                    } else {
-                                                      current[connId] = barrier === 'AuDHD'
-                                                        ? [...list.filter(item => !['Autism', 'Autism spectrum disorder', 'ADHD'].includes(item)), barrier]
-                                                        : [...list, barrier]
-                                                    }
-                                                    // Flatten all barriers into barrierTypes for backend compat
-                                                    const allBarriers = [...new Set(Object.values(current).flat())]
-                                                    return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
-                                                  })
-                                                }}
-                                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                                                  isSelected
-                                                    ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'
-                                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-cyan-400'
-                                                }`}
-                                              >
-                                                {isSelected && <Check className="w-3 h-3 inline mr-1" />}
-                                                {barrier}
-                                              </button>
-                                            )
-                                          })}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  )}
-                                </div>
-                                )
-                              })}
-                            </div>
-
-                            {/* Add your own — custom / more specific barriers */}
-                            <div className="mt-4 pt-3 border-t border-slate-200">
-                              <p className="text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Add your own</p>
-                              <p className="text-xs text-slate-600 mb-2">Don&apos;t see a norm that fits? Add something specific: e.g. &quot;public speaking&quot;, &quot;test anxiety&quot;, &quot;sensory overload in crowds&quot;.</p>
-                              {/* Chips for already-added custom barriers on this connection */}
-                              {(formData.barrierConnections[connId] || []).filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b)))).length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mb-2">
-                                  {(formData.barrierConnections[connId] || [])
-                                    .filter(b => !barrierCategories.some(c => c.subcategories.some(s => s.items.includes(b))))
-                                    .map(b => (
-                                      <button
-                                        key={b}
-                                        onClick={() => {
-                                          setFormData(prev => {
-                                            const current = { ...prev.barrierConnections }
-                                            current[connId] = (current[connId] || []).filter(x => x !== b)
-                                            const allBarriers = [...new Set(Object.values(current).flat())]
-                                            return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
-                                          })
-                                        }}
-                                        className="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white"
-                                      >
-                                        {b} ✕
-                                      </button>
-                                    ))}
-                                </div>
-                              )}
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={customBarrierDraft[connId] || ''}
-                                  onChange={(e) => setCustomBarrierDraft(prev => ({ ...prev, [connId]: e.target.value }))}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault()
-                                      const val = (customBarrierDraft[connId] || '').trim()
-                                      if (!val) return
-                                      setFormData(prev => {
-                                        const current = { ...prev.barrierConnections }
-                                        const list = current[connId] || []
-                                        if (!list.some(x => x.toLowerCase() === val.toLowerCase())) current[connId] = [...list, val]
-                                        const allBarriers = [...new Set(Object.values(current).flat())]
-                                        return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
-                                      })
-                                      setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
-                                    }
-                                  }}
-                                  placeholder="Type a specific norm and press Enter"
-                                  maxLength={60}
-                                  className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                                />
-                                <button
-                                  onClick={() => {
-                                    const val = (customBarrierDraft[connId] || '').trim()
-                                    if (!val) return
-                                    setFormData(prev => {
-                                      const current = { ...prev.barrierConnections }
-                                      const list = current[connId] || []
-                                      if (!list.some(x => x.toLowerCase() === val.toLowerCase())) current[connId] = [...list, val]
-                                      const allBarriers = [...new Set(Object.values(current).flat())]
-                                      return { ...prev, barrierConnections: current, barrierTypes: allBarriers }
-                                    })
-                                    setCustomBarrierDraft(prev => ({ ...prev, [connId]: '' }))
-                                  }}
-                                  className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white"
-                                >
-                                  Add
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <DiagnosticProfileSection
-                selectedBarriers={formData.barrierTypes}
-                value={diagnosticProfile}
-                onChange={setDiagnosticProfile}
-              />
-            </div>
-          )}
-
-          {/* Step 2: Location */}
-          {currentId === 'location' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Where are you located?</h2>
-              <p className="text-slate-600 mb-6">It stays private.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">City</label>
-                  <input
-                    type="text"
-                    value={formData.location.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
-                    placeholder="e.g., Toronto"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Province/State</label>
-                  <input
-                    type="text"
-                    value={formData.location.province}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, province: e.target.value } }))}
-                    placeholder="e.g., Ontario"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Country</label>
-                  <input
-                    type="text"
-                    value={formData.location.country}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
-                    placeholder="e.g., Canada"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-
-              {/* Additional resource locations */}
-              <div className="mt-8 border-t border-slate-200 pt-6">
-                <h3 className="text-sm font-medium text-slate-700 mb-1">Where else can you access resources? <span className="text-slate-600 font-normal">(optional)</span></h3>
-                <p className="text-xs text-slate-500 mb-4">For example, dual citizenship, family in another city, etc. Not including online.</p>
-
-                {formData.additionalLocations.map((loc, idx) => (
-                  <div key={idx} className="mb-4 bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-slate-600">Additional location {idx + 1}</span>
-                      <button
-                        onClick={() => setFormData(prev => ({
-                          ...prev,
-                          additionalLocations: prev.additionalLocations.filter((_, i) => i !== idx)
-                        }))}
-                        className="text-slate-600 hover:text-red-700 text-sm"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <input
-                        type="text"
-                        value={loc.city}
-                        onChange={(e) => setFormData(prev => {
-                          const updated = [...prev.additionalLocations]
-                          updated[idx] = { ...updated[idx], city: e.target.value }
-                          return { ...prev, additionalLocations: updated }
-                        })}
-                        placeholder="City"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                      />
-                      <input
-                        type="text"
-                        value={loc.province}
-                        onChange={(e) => setFormData(prev => {
-                          const updated = [...prev.additionalLocations]
-                          updated[idx] = { ...updated[idx], province: e.target.value }
-                          return { ...prev, additionalLocations: updated }
-                        })}
-                        placeholder="Province/State"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                      />
-                      <input
-                        type="text"
-                        value={loc.country}
-                        onChange={(e) => setFormData(prev => {
-                          const updated = [...prev.additionalLocations]
-                          updated[idx] = { ...updated[idx], country: e.target.value }
-                          return { ...prev, additionalLocations: updated }
-                        })}
-                        placeholder="Country"
-                        className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    additionalLocations: [...prev.additionalLocations, { city: '', province: '', country: '' }]
-                  }))}
-                  type="button"
-                  className="rounded-xl border-2 border-dashed border-cyan-600 bg-white px-4 py-2.5 text-sm font-semibold text-cyan-900 hover:bg-cyan-50"
-                >
-                  + Add another location
-                </button>
-              </div>
+              </p>
             </div>
           )}
 
@@ -2486,9 +1425,17 @@ export default function OnboardingPage() {
               : 'them'
             return (
             <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal</h2>
-              <p className="text-slate-600 mb-6">{goalIntro}</p>
-              
+              {/* A small "done" for the first step (Riipen Labs, Group 29:
+                  "mini-rewards so account creation feels small and doable"). */}
+              {canProceed(stepIndex('about')) && (
+                <p role="status" className="mb-4 flex items-center gap-2 text-sm font-medium text-emerald-800">
+                  <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> About you is done. This is the last question.
+                </p>
+              )}
+              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal <RequiredMark /></h2>
+              <p className="text-slate-700 mb-2">{goalIntro}</p>
+              <p className="mb-6 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.goal}</p>
+
               {/* Category tabs: pick one, and only that one opens (Riipen Labs,
                   Group 9: all six used to show at once, each with its own
                   ideas and fields, on a step everyone has to complete). */}
@@ -2605,9 +1552,11 @@ export default function OnboardingPage() {
                         if (suggestions.length === 0) return null
                         return (
                           <div className="mb-3">
-                            <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
-                              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                              Goal ideas
+                            {/* Pick instead of typing (Riipen Labs, Groups 27 and
+                                30: fewer open-ended questions). */}
+                            <p className="text-xs text-slate-700 mb-2 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+                              Goal ideas: pick one, or type your own below
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {suggestions.map((sug) => (
@@ -2639,11 +1588,24 @@ export default function OnboardingPage() {
                         )
                       })()}
 
-                      {entries.map((entry, idx) => (
+                      {/* Predictive text: typing offers this area's ideas
+                          (Riipen Labs, Group 26: "autofill, autocomplete, or
+                          predictive text to reduce the amount of typing"). */}
+                      <datalist id={`goal-ideas-${cat.id}`}>
+                        {ideasFor(cat.id).map((idea) => <option key={idea} value={idea} />)}
+                      </datalist>
+                      {entries.map((entry, idx) => {
+                        const detailsKey = `${cat.id}:${idx}`
+                        const detailsOpen = openGoalDetails[detailsKey] || Boolean(entry.dreams?.trim() || entry.selfDream?.trim() || entry.idealRelationship?.trim() || entry.obstacles?.trim())
+                        return (
                         <div key={idx} className="mb-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
                           <div className="flex gap-2 mb-2">
                             <input
                               type="text"
+                              list={`goal-ideas-${cat.id}`}
+                              autoComplete="off"
+                              aria-label={`${cat.label} goal${entries.length > 1 ? ` ${idx + 1}` : ''}`}
+                              aria-required="true"
                               value={entry.goal}
                               onChange={(e) => {
                                 setFormData(prev => {
@@ -2672,7 +1634,22 @@ export default function OnboardingPage() {
                               <span aria-hidden="true">×</span>
                             </button>
                           </div>
-                          
+
+                          {/* A dream, a relationship and an obstacle for the goal:
+                              optional, open-ended, and folded away until asked
+                              for (Riipen Labs, Group 30: "open-ended questions,
+                              such as goals, dreams, and obstacles, may be
+                              difficult to answer immediately"). */}
+                          {!detailsOpen && (
+                            <button
+                              type="button"
+                              onClick={() => setOpenGoalDetails(prev => ({ ...prev, [detailsKey]: true }))}
+                              className="ml-4 rounded-lg border-2 border-dashed border-slate-400 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40"
+                            >
+                              + Add a dream or an obstacle (optional)
+                            </button>
+                          )}
+                          {detailsOpen && (<>
                           {/* Per-goal dream */}
                           {(() => {
                             const fields: Array<{ key: 'dreams' | 'selfDream'; label: string }> = [{ key: 'dreams', label: hasOtherPerson ? 'Dream for the other person' : 'Dream for Self' }]
@@ -2734,8 +1711,10 @@ export default function OnboardingPage() {
                               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 mt-1"
                             />
                           </div>
+                          </>)}
                         </div>
-                      ))}
+                        )
+                      })}
                       
                       <button
                         onClick={() => {
@@ -2783,438 +1762,6 @@ export default function OnboardingPage() {
             )
           })()}
 
-          {/* Step 4: Motivation & Life Stage */}
-          {currentId === 'motivation' && (
-            <div className="space-y-4">
-              {/* Each question opens like a dropdown (Group 34, slides 12 and 16),
-                  with the same large choices inside (Group 36). */}
-              <p className="text-slate-600">Two optional questions. Open one to answer it.</p>
-              <ChoiceDropdown
-                question="What motivates you most?"
-                hint="Select all that apply: most people are motivated by more than one thing."
-                picked={formData.motivationTypes.map(v => motivationOptions.find(o => o.value === v)?.label).filter(Boolean).join(', ')}
-              >
-                <div className="grid gap-3">
-                  {motivationOptions.map((option) => {
-                    const isSelected = formData.motivationTypes.includes(option.value)
-                    return (
-                      <button
-                        key={option.value}
-                        onClick={() => setFormData(prev => ({
-                          ...prev,
-                          motivationTypes: isSelected
-                            ? prev.motivationTypes.filter(v => v !== option.value)
-                            : [...prev.motivationTypes, option.value],
-                          // Keep first selection as primary for backward compat
-                          motivationType: isSelected && prev.motivationTypes.length === 1
-                            ? ''
-                            : (!isSelected && prev.motivationTypes.length === 0 ? option.value : prev.motivationType)
-                        }))}
-                        className={`flex items-center gap-4 p-4 rounded-xl text-left transition-all ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500'
-                            : 'bg-white border border-slate-200 hover:bg-slate-50 hover:border-cyan-400'
-                        }`}
-                      >
-                        <span className="text-2xl">{option.emoji}</span>
-                        <div className="flex-1">
-                          <div className="font-medium text-slate-800">{option.label}</div>
-                          <div className="text-sm text-slate-500">{option.description}</div>
-                        </div>
-                        {isSelected && (
-                          <Check className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              </ChoiceDropdown>
-
-              <ChoiceDropdown
-                question="What life stage are you in?"
-                hint="Pick as many as apply. Plenty of people are studying and working at the same time."
-                picked={formData.lifeStages.map(id => lifeStages.find(st => st.id === id)?.label).filter(Boolean).join(', ')}
-              >
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {lifeStages.map((stage) => {
-                    const selected = formData.lifeStages.includes(stage.id)
-                    return (
-                      <button
-                        key={stage.id}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => setFormData(prev => {
-                          // "I'm Not Sure" is the absence of an answer, so it
-                          // cannot sit alongside a real one.
-                          let next: string[]
-                          if (stage.id === 'not_sure') {
-                            next = selected ? [] : ['not_sure']
-                          } else {
-                            next = selected
-                              ? prev.lifeStages.filter(id => id !== stage.id)
-                              : [...prev.lifeStages.filter(id => id !== 'not_sure'), stage.id]
-                          }
-                          return { ...prev, lifeStages: next, lifeStage: next[0] || '' }
-                        })}
-                        className={`px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                          selected
-                            ? 'border-cyan-500 bg-cyan-500/20 text-cyan-700'
-                            : 'border-slate-200 hover:border-cyan-400 text-slate-700'
-                        }`}
-                      >
-                        {stage.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </ChoiceDropdown>
-            </div>
-          )}
-
-          {/* Step 5: Profile Customization - Dreams & Dream Self */}
-          {currentId === 'profile' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6 text-slate-800">Dream Self &amp; Alternate Persona</h2>
-              
-              {/* Dreams Summary — pulled from per-goal dreams + ultimate dream */}
-              {(() => {
-                const allDreams = Object.values(formData.goalsByCategory)
-                  .flatMap(entries => entries.map(e => e.dreams).filter(d => d.trim()))
-                if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
-                // Fallback to old flat dreams array
-                const legacyDreams = formData.dreams.filter(d => d.trim())
-                const dreamsToShow = allDreams.length > 0 ? allDreams : legacyDreams
-                if (dreamsToShow.length === 0) return null
-                return (
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
-                    <h3 className="text-sm font-medium text-purple-700 mb-2">Your Dreams So Far</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {dreamsToShow.map((dream, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-white/80 border border-purple-200 rounded-full text-sm text-purple-700">{dream}</span>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* Dream Self Description */}
-              <div className="space-y-4">
-                {(() => {
-                  const hasOther = Object.keys(formData.barrierConnections).some(key => key !== 'self' && formData.barrierConnections[key].length > 0)
-                  const hasSelf = !!formData.barrierConnections.self?.length || !hasOther || !!formData.dreamSelf
-                  const fields: Array<{ key: 'dreamSelf' | 'dreamForOther' | 'dreamRelationship'; label: string }> = []
-                  if (hasSelf) fields.push({ key: 'dreamSelf', label: 'Dream for Self' })
-                  if (hasOther) {
-                    const other = { key: 'dreamForOther' as const, label: 'Dream for the other person' }
-                    if (formData.barrierConnections.parent !== undefined) fields.unshift(other)
-                    else fields.push(other)
-                    fields.push({ key: 'dreamRelationship', label: 'Dream for your relationship with them' })
-                  }
-                  return fields.map(field => (
-                    <label key={field.key} className="block text-sm font-medium text-slate-700">
-                      {field.label} (optional)
-                      <textarea value={formData[field.key]} onChange={event => setFormData(previous => ({ ...previous, [field.key]: event.target.value }))} rows={3} className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-3" />
-                    </label>
-                  ))
-                })()}
-                <AppearanceEditor title="Dream Self appearance" value={formData.dreamAppearance} onChange={value => setFormData(previous => ({ ...previous, dreamAppearance: value }))} />
-
-                {/* Alternate Persona (optional) — a named alter-ego for the Dream Self */}
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-lg font-bold text-slate-800 mb-1">Alternate Persona <span className="text-xs font-normal text-slate-600">(optional)</span></h3>
-                  <p className="text-slate-600 text-sm mb-4">Some people picture their Dream Self as a named alter-ego: a confident version of them they can step into. Give yours a name if you like.</p>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Persona name</label>
-                      <input
-                        type="text"
-                        value={formData.alternatePersonaName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaName: e.target.value }))}
-                        placeholder="e.g. Nova, Captain Focus, Future Me"
-                        maxLength={60}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">What are they like? <span className="text-slate-600">(optional)</span></label>
-                      <textarea
-                        value={formData.alternatePersonaNote}
-                        onChange={(e) => setFormData(prev => ({ ...prev, alternatePersonaNote: e.target.value }))}
-                        placeholder="Bold, calm under pressure, speaks up in meetings, takes the first step..."
-                        rows={3}
-                        maxLength={400}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
-                      />
-                    </div>
-                    <AppearanceEditor title="Alternate Persona appearance" value={formData.personaAppearance} onChange={value => setFormData(previous => ({ ...previous, personaAppearance: value }))} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Spirit Animals */}
-          {currentId === 'spiritAnimal' && (() => {
-            const slotCount = spiritAnimalSlotCount(formData.spiritAnimalMode)
-            // In simple view we hide the fast/slow + per-day modes behind a
-            // "More options" toggle so new users just pick one guide.
-            const modesCollapsed = simpleView && !showAdvancedModes
-            const visibleModes = modesCollapsed
-              ? spiritAnimalModes.filter(m => m.id === 'general')
-              : spiritAnimalModes
-            return (
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Choose Your Spirit Animal(s)</h2>
-              <p className="text-slate-600 mb-4">Your spirit animals are friendly guides that represent you.{modesCollapsed ? ' Keeping it simple with one guide. You can add more anytime.' : " Pick how many you'd like."}</p>
-
-              {/* Mode selector (Odosa's 3 options; simplified in simple view) */}
-              <div className={`grid grid-cols-1 gap-3 mb-4 ${modesCollapsed ? '' : 'sm:grid-cols-3'}`}>
-                {visibleModes.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setSpiritAnimalMode(m.id)}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      formData.spiritAnimalMode === m.id
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-slate-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 font-medium text-slate-800">
-                      <span className="text-lg">{m.emoji}</span> {m.label}
-                    </div>
-                    <p className="text-xs text-slate-600 mt-1">{m.desc}</p>
-                  </button>
-                ))}
-              </div>
-
-              {/* Simple-view expander: reveal fast/slow + per-day guides on demand */}
-              {simpleView && (
-                <button
-                  type="button"
-                  onClick={() => setShowAdvancedModes(v => !v)}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium mb-4"
-                >
-                  {showAdvancedModes
-                    ? '← Keep it simple (one guide)'
-                    : 'Want fast/slow or a guide per day? Show more options →'}
-                </button>
-              )}
-
-              {/* Fast vs slow day explainer (answers Eliyana's question) */}
-              {formData.spiritAnimalMode === 'fastSlow' && (
-                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-                  <p className="font-medium mb-1">⚡ Fast day vs 🌙 slow day</p>
-                  <p>
-                    A <strong>fast day</strong> has more planned activity. A <strong>slow day</strong> has fewer
-                    activities or more room for rest. Neither is better. Your Path chooses the guide from
-                    your schedule; it does not infer how you feel.
-                  </p>
-                </div>
-              )}
-
-              {/* Spirit Animal Slots */}
-              {formData.spiritAnimals.map((animal, idx) => (
-                <div key={idx} className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-purple-700">
-                      {spiritAnimalSlotLabel(formData.spiritAnimalMode, idx)}
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => removeSpiritAnimal(idx)}
-                      className="text-sm text-red-400 hover:text-red-500"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  
-                  {/* Step ① Select Animal
-                      A tester reported the animal "won't change without
-                      clicking Remove first". The grid stays live and tapping
-                      another animal always worked, but once a slot was filled
-                      nothing said so, and Remove was the only visible action.
-                      The hint below is the affordance that was missing. */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      ① Choose Animal
-                      {animal.type && (
-                        <span className="ml-2 font-normal text-slate-500">
-, tap a different one to change it
-                        </span>
-                      )}
-                    </label>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {spiritAnimalOptions.map((opt) => (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          aria-pressed={animal.type === opt.id}
-                          onClick={() => updateSpiritAnimal(idx, 'type', opt.id)}
-                          className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
-                            animal.type === opt.id
-                              ? 'border-purple-500 bg-purple-100 scale-105'
-                              : 'border-slate-200 hover:border-purple-300 hover:bg-purple-50'
-                          }`}
-                        >
-                          <img src={`/spirit-animals/${opt.id}.png`} alt="" width={48} height={48} className="h-12 w-12 object-contain" />
-                          <span className="text-xs mt-1 text-slate-600">{opt.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Step ② Select Color */}
-                  {animal.type && (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        ② Choose Color
-                        {animal.color && (
-                          <span className="ml-2 font-normal text-slate-500">
-, tap a different one to change it
-                          </span>
-                        )}
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {spiritAnimalColors.map((color) => (
-                          <button
-                            key={color.id}
-                            type="button"
-                            aria-pressed={animal.color === color.id}
-                            onClick={() => updateSpiritAnimal(idx, 'color', color.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
-                              animal.color === color.id
-                                ? 'border-purple-500 ring-2 ring-purple-300'
-                                : 'border-slate-200 hover:border-purple-300'
-                            }`}
-                          >
-                            <span className={`w-4 h-4 rounded-full ${color.bg}`} />
-                            <span className="text-sm text-slate-700">{color.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* Preview */}
-                      {animal.color && (
-                        <div className="mt-3 flex items-center gap-3 bg-white rounded-lg p-3 border border-purple-100">
-                          <img src={`/spirit-animals/${spiritAnimalOptions.find(option => option.id === animal.type)?.id || 'owl'}.png`} alt={`${animal.color} ${animal.type}`} width={72} height={72} className="h-16 w-16 object-contain" style={{ filter: `hue-rotate(${animalHue[animal.color] || 0}deg)` }} />
-                          <span className="text-sm text-purple-600 font-medium">
-                            {spiritAnimalColors.find(c => c.id === animal.color)?.label} {spiritAnimalOptions.find(o => o.id === animal.type)?.label}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              <a href="/spirit-animals/ATTRIBUTION.md" target="_blank" rel="noopener noreferrer" className="mb-3 block text-xs text-slate-500 underline">Twemoji artwork · CC BY 4.0</a>
-
-              {/* Add Spirit Animal Button */}
-              {formData.spiritAnimals.length < slotCount && (
-                <button
-                  onClick={addSpiritAnimal}
-                  className="w-full py-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-700 hover:bg-purple-50 hover:border-purple-400 transition-all font-medium"
-                >
-                  {formData.spiritAnimalMode === 'general' ? 'Choose your spirit animal' : `Choose ${spiritAnimalSlotLabel(formData.spiritAnimalMode, formData.spiritAnimals.length).replace(/^(?:🐾|⚡|🌙)\s*/u, '')}`}
-                  {slotCount > 1 && <span className="text-purple-700 text-sm"> ({formData.spiritAnimals.length + 1}/{slotCount})</span>}
-                </button>
-              )}
-              
-              {formData.spiritAnimals.length === slotCount && formData.spiritAnimals.every(animal => animal.type && animal.color) && (
-                <p className="text-sm text-slate-500 text-center mt-2">
-                  {formData.spiritAnimalMode === 'general' && 'Your spirit animal is set! 🐾'}
-                  {formData.spiritAnimalMode === 'fastSlow' && 'You\u2019ve got both: your \u26A1 Fast Day and \uD83C\uDF19 Slow Day spirit animals!'}
-                  {formData.spiritAnimalMode === 'weekly' && 'All 7 days have a spirit animal! 📅'}
-                </p>
-              )}
-            </div>
-            )
-          })()}
-
-          {/* Step 7: Personalize — view & interaction preferences */}
-          {currentId === 'personalize' && (
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <Palette className="w-6 h-6 text-cyan-600" aria-hidden="true" />
-                <h2 className="text-2xl font-bold text-slate-800">Personalize your experience</h2>
-              </div>
-
-              {/* Age range and "How often do you use apps?" were asked here too.
-                  They only capped the liveliness chosen below, so they asked the
-                  same thing twice (Riipen Labs, Group 36: "condense the number of
-                  questions on the personalization page", "combine overlapping
-                  sections"). The age band now comes from the date of birth given
-                  at sign-up (lib/age.ts, ageBandFromDob). */}
-              {/* View Preference */}
-              <div className="mb-2">
-                <label className="block font-semibold text-slate-800 mb-2">How lively should it look?</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {VIEW_PREFERENCES.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, viewPreference: o.id }))}
-                      className={`px-4 py-4 rounded-xl border-2 text-center transition-all ${
-                        formData.viewPreference === o.id
-                          ? 'border-cyan-500 bg-cyan-50'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{o.emoji}</div>
-                      <div className={`font-medium text-sm ${formData.viewPreference === o.id ? 'text-cyan-700' : 'text-slate-700'}`}>{o.label}</div>
-                      <div className="text-xs text-slate-600 leading-tight mt-0.5">{o.hint}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Dark mode, contrast and text size (Group 34, slide 25). */}
-              <QuickSettings />
-
-              {/* Daily goal reminders (opt-in) */}
-              <div className="mt-6 border-t border-slate-200 pt-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <label htmlFor="reminders-toggle" className="block font-semibold text-slate-800">
-                      Daily goal reminders
-                    </label>
-                    <p className="text-xs text-slate-600 mt-0.5">A gentle nudge about the day’s goals. Off unless you turn it on.</p>
-                  </div>
-                  <button
-                    id="reminders-toggle"
-                    type="button"
-                    role="switch"
-                    aria-checked={formData.reminders.enabled}
-                    onClick={() => updateReminders({
-                      enabled: !formData.reminders.enabled,
-                      // Prefill the account's email when turning on.
-                      contact: !formData.reminders.enabled && !formData.reminders.contact
-                        ? (user?.email || '')
-                        : formData.reminders.contact,
-                    })}
-                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                      formData.reminders.enabled ? 'bg-cyan-500' : 'bg-slate-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                        formData.reminders.enabled ? 'translate-x-5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {formData.reminders.enabled && (
-                  <div className="mt-4">
-                    {/* When, and by email or text (components/ReminderFields). */}
-                    <ReminderFields value={formData.reminders} onChange={updateReminders} />
-                  </div>
-                )}
-              </div>
-
-            </div>
-          )}
-
           {/* Navigation Buttons (the chat has its own). One filled button, the
               next step, named for where it goes; every other action is an
               outlined button, never underlined text (Riipen Labs, Group 33:
@@ -3222,7 +1769,7 @@ export default function OnboardingPage() {
               buttons from static text content"; the Government of Canada's
               guidance for autistic users: "make buttons descriptive"). */}
           <div className="flex flex-wrap justify-between items-center gap-3 mt-8 pt-6 border-t border-slate-200">
-            {!(chatMode && !inExtras) && (<>
+            {!chatMode && (<>
             {/* Not there on the first step (it was hidden but kept its space,
                 which left a gap above the next button on a phone). */}
             {currentStep > 0 && (
@@ -3237,40 +1784,7 @@ export default function OnboardingPage() {
             )}
 
             <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
-              {/* In the extras the path can be created at any point: everything
-                  required was answered in the first two steps. */}
-              {inExtras && requiredDone && (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className={SECONDARY_BUTTON}
-                >
-                  Create my path now
-                </button>
-              )}
-              {skippableSteps.has(currentId) && currentStep < steps.length - 1 && (
-                <button
-                  type="button"
-                  onClick={handleSkip}
-                  className={SECONDARY_BUTTON}
-                >
-                  Skip this step
-                </button>
-              )}
-              {/* End of the short start: the extras are offered, not required. */}
-              {currentStep === CORE_STEP_COUNT - 1 && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(CORE_STEP_COUNT)}
-                  disabled={isSubmitting}
-                  className={SECONDARY_BUTTON}
-                >
-                  Add optional details first
-                </button>
-              )}
-
-              {currentStep === CORE_STEP_COUNT - 1 || currentStep === steps.length - 1 ? (
+              {currentStep === steps.length - 1 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={!requiredDone || isSubmitting}
@@ -3306,6 +1820,11 @@ export default function OnboardingPage() {
                 {continueHint()}
               </p>
             )}
+            {/* What comes after the button (Riipen Labs, Group 26: "a preview
+                of what the next step involves"). */}
+            {!isSubmitting && NEXT_PREVIEW[currentId] && (
+              <p className="w-full text-right text-sm text-slate-700">{NEXT_PREVIEW[currentId]}</p>
+            )}
 
             </>)}
 
@@ -3339,9 +1858,7 @@ export default function OnboardingPage() {
 
         {/* Step indicator for mobile */}
         <div className="text-center mt-4 text-slate-700 text-sm">
-          {inExtras
-            ? <>Optional extra {currentStep - CORE_STEP_COUNT + 1} of {steps.length - CORE_STEP_COUNT}</>
-            : <>Step {currentStep + 1} of {CORE_STEP_COUNT}</>}
+          Step {currentStep + 1} of {steps.length}
         </div>
 
         {/* Need a break? (Riipen Labs, Group 11: "Your progress is saved ...

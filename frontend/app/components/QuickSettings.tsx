@@ -5,10 +5,12 @@ import { usePreferences } from '../context/usePreferences'
 import type { AccessibilitySettings, FontScale } from '@/lib/preferences'
 
 /**
- * "Pick your settings" in setup (Riipen Labs, Group 34, slide 25): light or
- * dark, higher contrast, and text size, the three that change how every
- * page reads. They are the Settings → Accessibility switches, kept on this
- * device, and take effect at once.
+ * "Pick your settings" (Riipen Labs, Group 34, slide 25): light or dark,
+ * higher contrast, and text size, the three that change how every page
+ * reads. They are the Settings → Accessibility switches, kept on this
+ * device, and take effect at once. They were in setup; since Groups 25 to 30
+ * they are behind the Path's Display button and on the "Complete your
+ * profile" card (components/DisplaySettings.tsx), so setup is two questions.
  */
 
 const SIZES: { id: FontScale; label: string; sample: string }[] = [
@@ -17,7 +19,7 @@ const SIZES: { id: FontScale; label: string; sample: string }[] = [
   { id: 'xlarge', label: 'Largest', sample: 'text-xl' },
 ]
 
-export default function QuickSettings() {
+export default function QuickSettings({ embedded = false }: { embedded?: boolean }) {
   const { prefs, update } = usePreferences()
   const a11y = prefs.accessibility
   const set = (patch: Partial<AccessibilitySettings>) => update({ accessibility: { ...a11y, ...patch } })
@@ -28,8 +30,10 @@ export default function QuickSettings() {
     }`
 
   return (
-    <section aria-labelledby="quick-settings-heading" className="mt-6 border-t border-slate-200 pt-6">
-      <h3 id="quick-settings-heading" className="font-semibold text-slate-800">Pick your settings</h3>
+    <section aria-labelledby="quick-settings-heading" className={embedded ? '' : 'mt-6 border-t border-slate-200 pt-6'}>
+      <h3 id="quick-settings-heading" className={embedded ? 'text-sm font-semibold text-slate-800' : 'font-semibold text-slate-800'}>
+        {embedded ? 'Light or dark, contrast and text size' : 'Pick your settings'}
+      </h3>
       <p className="mb-4 mt-0.5 text-xs text-slate-600">For this device. Change them any time in Settings, then Accessibility.</p>
 
       <div role="group" aria-labelledby="qs-look-label" className="mb-4">

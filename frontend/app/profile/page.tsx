@@ -9,6 +9,8 @@ import { usePreferences } from '../context/usePreferences'
 import { createClient } from '@/lib/supabase/client'
 import { newPasswordError } from '@/lib/passwordRules'
 import UserAvatar from '../components/UserAvatar'
+import DefaultAvatar from '../components/DefaultAvatar'
+import ProfileCompletion from '../components/ProfileCompletion'
 import NewPasswordFields from '../components/NewPasswordFields'
 import PronounsField from '../components/PronounsField'
 import PhotoField from './PhotoField'
@@ -186,7 +188,11 @@ export default function ProfilePage() {
           <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Back
         </button>
 
-        <h1 className="text-3xl font-bold text-slate-900">Your profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Your profile</h1>
+
+        {/* The optional questions setup no longer asks, all of them, open
+            (Riipen Labs, Group 29: "optional cards inside user settings"). */}
+        <ProfileCompletion variant="page" />
 
         {/* How friends see you */}
         <section aria-labelledby="seen-heading" className={card}>
@@ -216,10 +222,10 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {prefs.character && <UserAvatar {...prefs.character} size={72} />}
+              {prefs.character ? <UserAvatar {...prefs.character} size={72} /> : <DefaultAvatar size={72} />}
               <div className="text-sm">
                 <p className="font-semibold text-slate-900">Your character</p>
-                <p className="text-slate-600">On your race track</p>
+                <p className="text-slate-600">{prefs.character ? 'On your race track' : 'A placeholder for now, on your race track'}</p>
                 <Link href="/ideal-self" className="font-medium text-indigo-800 underline underline-offset-2">
                   {prefs.character ? 'Change it' : 'Design it'}
                 </Link>

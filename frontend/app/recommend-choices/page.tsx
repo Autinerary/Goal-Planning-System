@@ -118,7 +118,7 @@ export default function RecommendChoicesPage() {
             </button>
             <div className="flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-purple-600" />
-              <h1 className="text-3xl font-bold text-slate-800">Recommended Choices</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Recommended Choices</h1>
             </div>
           </div>
           <p className="text-slate-600 text-lg">

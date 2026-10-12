@@ -30,6 +30,9 @@ export interface ScheduleDay {
 export const SPIRIT_ANIMAL_EMOJI: Record<string, string> = {
   owl: '🦉', fox: '🦊', wolf: '🐺', bear: '🐻', eagle: '🦅', dolphin: '🐬',
   lion: '🦁', tiger: '🐯', hawk: '🦅', rabbit: '🐰', deer: '🦌', turtle: '🐢',
+  // The rest of the animals Settings offers (lib/gamification.ts, ANIMAL_TYPES),
+  // now that the Path shows the ones chosen there.
+  bunny: '🐰', cat: '🐱', dog: '🐶', butterfly: '🦋', penguin: '🐧', dragon: '🐉',
 }
 
 // Onboarding stores weekly animals Monday-first; JS getDay() is Sunday-first.

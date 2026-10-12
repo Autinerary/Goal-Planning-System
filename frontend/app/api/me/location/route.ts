@@ -23,6 +23,24 @@ export const dynamic = 'force-dynamic'
  * page asks anyone without a location instead.
  */
 
+/**
+ * GET /api/me/location: the city saved for the signed-in user (without the
+ * coordinates), or null. The "Complete your profile" card shows it, so it can
+ * be changed there (Riipen Labs, Group 26: location moves out of setup "to
+ * profile completion").
+ */
+export async function GET() {
+  const supabase = createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  const { data, error } = await supabase.from('profiles').select('location').eq('id', user.id).maybeSingle()
+  if (error) return NextResponse.json({ error: 'Could not read your location' }, { status: 500 })
+  const loc = (data?.location || null) as { city?: string; province?: string; country?: string } | null
+  return NextResponse.json({
+    location: loc?.city ? { city: loc.city, province: loc.province || '', country: loc.country || '' } : null,
+  })
+}
+
 function text(v: unknown, max = 100): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : ''
 }

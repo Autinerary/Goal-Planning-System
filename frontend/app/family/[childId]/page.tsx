@@ -69,7 +69,7 @@ export default function ChildSupervisionPage() {
 
         <div className="flex items-center gap-2 mb-1">
           <Eye className="w-5 h-5 text-purple-500" />
-          <h1 className="text-2xl font-bold text-slate-900">{data?.child.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{data?.child.name}</h1>
         </div>
         <p className="text-slate-500 text-sm mb-6">
           Supervision view: read-only. {data?.child.email}

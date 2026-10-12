@@ -36,6 +36,9 @@ function persistPreferences(patch: Partial<UserPreferences>) {
 export function usePreferences() {
   const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFERENCES)
   const [saveError, setSaveError] = useState('')
+  // True once the server's copy has been read (or could not be): until then
+  // prefs may be only this device's, e.g. on a new device.
+  const [synced, setSynced] = useState(false)
 
   useEffect(() => {
     const sync = () => setPrefs(loadPreferences())
@@ -76,6 +79,8 @@ export function usePreferences() {
         setPrefs(merged)
       } catch {
         /* offline — keep local */
+      } finally {
+        if (!cancelled) setSynced(true)
       }
     })()
     return () => { cancelled = true }
@@ -101,5 +106,5 @@ export function usePreferences() {
     return saved
   }, [])
 
-  return { prefs, update, updateLayout, saveError }
+  return { prefs, update, updateLayout, saveError, synced }
 }

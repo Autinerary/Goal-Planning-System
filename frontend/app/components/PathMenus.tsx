@@ -93,6 +93,8 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
     items: [
       { label: 'Pit Stop', href: '/pit-stop' },
       { label: 'Tools for your steps', href: '/tools' },
+      // Setup's "AI Recommendations" step, in the app (Riipen Labs, Group 26).
+      { label: 'AI suggestions for your steps', href: '/recommend-choices' },
       { label: 'ResourceHub', href: '/', hub: true },
       { label: 'Starter resources', href: '/start' },
       { label: 'Path Market', href: '/path-market' },
@@ -100,14 +102,17 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
   },
 ]
 
+// Each group's name is larger than the places under it, which are indented
+// beneath it (Riipen Labs, Group 27: "text size variation in the table of
+// contents to indicate sub-heading/pages within a larger topic").
 export default function AllPlaces({ id }: { id: string }) {
   return (
-    <div id={id} className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div id={id} className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {PATH_MENUS.map((group) => (
         <section key={group.id} aria-labelledby={`${id}-${group.id}`}>
-          <h3 id={`${id}-${group.id}`} className="text-sm font-bold text-slate-900">{group.label}</h3>
+          <h3 id={`${id}-${group.id}`} className="text-base font-bold text-slate-900">{group.label}</h3>
           <p className="text-xs text-slate-700">{group.info}</p>
-          <ul className="mt-1">
+          <ul className="mt-1 border-l-2 border-slate-200 pl-3">
             {group.items.map((item) => (
               <li key={item.label}>
                 {item.hub ? (

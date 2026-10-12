@@ -260,13 +260,19 @@ export default function SettingsPreferences() {
           <input
             type="checkbox"
             checked={Boolean(prefs.reminders?.enabled)}
-            onChange={(e) => update({
-              reminders: {
-                ...prefs.reminders,
-                enabled: e.target.checked,
-                contact: prefs.reminders?.contact || user?.email || '',
-              },
-            })}
+            onChange={(e) => {
+              // Turned on here, it has no end date: an old "first two weeks"
+              // end would otherwise stop it before it started.
+              const { until, ...rest } = prefs.reminders || ({} as typeof prefs.reminders)
+              update({
+                reminders: {
+                  ...rest,
+                  ...(e.target.checked ? {} : until ? { until } : {}),
+                  enabled: e.target.checked,
+                  contact: prefs.reminders?.contact || user?.email || '',
+                },
+              })
+            }}
             className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
           />
           <span>Daily reminder to check my Path, at a time I choose.</span>
@@ -277,6 +283,20 @@ export default function SettingsPreferences() {
               value={prefs.reminders}
               onChange={(patch) => update({ reminders: { ...loadReminders(), ...patch } })}
             />
+            {/* Turned on for the first two weeks only (the "Complete your
+                profile" card): say when it stops, and let it go on. */}
+            {prefs.reminders.until && (
+              <p className="mt-2 text-sm text-slate-700">
+                Stops after {new Date(`${prefs.reminders.until}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}, the end of your first two weeks.{' '}
+                <button
+                  type="button"
+                  onClick={() => { const { until, ...rest } = loadReminders(); void until; update({ reminders: rest }) }}
+                  className="font-medium text-indigo-800 underline underline-offset-2"
+                >
+                  Keep sending after that
+                </button>
+              </p>
+            )}
           </div>
         )}
         <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">

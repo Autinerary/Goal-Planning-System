@@ -64,6 +64,16 @@ or computer, recorded from STEP 69). Group 31 asked to keep letting people
 send feedback; what they send from the glossary at any time ("Tell us how
 it's going", STEP 69) is counted apart from the check-ins the app asks for.
 
+Groups 25 to 30 (September 2026) moved the optional questions out of setup
+and into the app (express-2026-10): setup is the two required steps, and the
+rest is on a "Complete your profile" card on the Path. They asked to track
+"return rate for deferred questions, day-7 and day-30 retention, short
+post-onboarding survey" (Group 30) and to "ask beta testers if signup felt
+clear and quick" (Group 25), and for a tour whose prompts have people try
+each feature (Group 27). So: returns within 30 days, the card's answers by
+question, the survey's "Was making your account clear and quick?" (STEP 70)
+and the tour's tasks (STEP 70).
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
 public.checkin_responses (STEP 46) and profiles.preferences. Counts only: no
 user ids, emails or visitor ids are printed. Survey and check-in comments are
@@ -85,12 +95,14 @@ from statistics import median
 from typing import Dict, Iterable, List, Optional
 
 # Must match ONBOARDING_VERSION in frontend/lib/funnel.ts.
-CURRENT_VERSION = "twostep-2026-10"
+CURRENT_VERSION = "express-2026-10"
 
 # Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
-# first two are the required start; the rest are optional extras. (Before
-# twostep-2026-10, norms were the third step of the start, and there was an
-# AI recommendations step at the end.)
+# first two are setup. The optional extras were offered after them until
+# express-2026-10, which moved them into the app (the "Complete your profile"
+# card); they stay listed for older versions, and are left out of the report
+# while nobody reached them. (Before twostep-2026-10, norms were the third step
+# of the start, and there was an AI recommendations step at the end.)
 STEPS = [
     ("about", "About you (age, who for)"),
     ("goalsAndDreams", "One goal"),
@@ -159,6 +171,32 @@ ASK_LATER = [
     ("makeItYours", "Character, spirit animals, look", ["character", "spiritAnimal", "personalize"]),
 ]
 
+# The "Complete your profile" card on the Path (frontend/lib/profileItems.ts;
+# Groups 29 and 30), sent as ask_later events: "shown.profile" the first time
+# the card is shown in a browser, "done.profile.<item>" when an answer is
+# saved from it.
+PROFILE_ITEMS = [
+    ("location", "Your city"),
+    ("norms", "Norms and support needs"),
+    ("motivation", "What motivates you"),
+    ("character", "Character and Dream Self"),
+    ("spiritAnimal", "Spirit animals"),
+    ("look", "How the app looks"),
+    ("reminders", "Reminders, first two weeks"),
+]
+
+# The tour's tasks (frontend/app/components/InteractiveDemo.tsx; Group 27:
+# "prompts that have users complete a task before moving to the next
+# feature"), sent as tour events from STEP 70: "start", "task.<id>" (done),
+# "skip.<id>", "finish" and "close".
+TOUR_TASKS = [
+    ("next_step", "Open your next step"),
+    ("calendar", "Open the Calendar"),
+    ("energy", "Pick today's energy"),
+    ("display", "Open Display"),
+    ("resourcehub", "Open ResourceHub at the end"),
+]
+
 # ResourceHub's first session (Riipen Labs, Group 8), as sent by
 # servicehub-mvp/app/api/events/route.ts: setup steps (lib/onboarding/setup.ts)
 # and the prompts that ask for more later (lib/track.ts).
@@ -181,6 +219,8 @@ STEP_PAUSE_CAP = timedelta(minutes=30)
 
 RETURN_WINDOW = timedelta(days=7)
 RETURN_WINDOW_LONG = timedelta(days=14)
+# Group 30: "day-7 and day-30 retention".
+RETURN_WINDOW_MONTH = timedelta(days=30)
 FIRST_WEEKS = timedelta(days=14)
 
 # Parts of the app counted by feature_use, as in frontend/lib/funnel.ts.
@@ -250,12 +290,14 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
         device = next((e.get("device") for e in evs if e.get("device")), None) or NOT_RECORDED
         user_id = next((e.get("user_id") for e in evs if e.get("user_id")), None)
         signup_at = next((_ts(e["created_at"]) for e in evs if e["event"] == "signup_complete"), None)
-        returned = returned_long = returned_next_day = False
+        returned = returned_long = returned_month = returned_next_day = False
         if signup_at is not None:
             for e in evs:
                 if e["event"] != "app_open":
                     continue
                 t = _ts(e["created_at"])
+                if t.date() > signup_at.date() and t - signup_at <= RETURN_WINDOW_MONTH:
+                    returned_month = True
                 if t.date() > signup_at.date() and t - signup_at <= RETURN_WINDOW_LONG:
                     returned_long = True
                     if t - signup_at <= RETURN_WINDOW:
@@ -314,6 +356,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "finished": "onboarding_complete" in names,
             "returned": returned,
             "returned_14": returned_long,
+            "returned_30": returned_month,
             "returned_next_day": returned_next_day,
             "signup_at": signup_at,
             "last_step": views[-1]["step"] if views else None,
@@ -338,6 +381,7 @@ def compute_funnel(events: Iterable[dict], wanted_version: str = CURRENT_VERSION
             "finished": sum(p["finished"] for p in group),
             "returned": sum(p["returned"] for p in group),
             "returned_14": sum(p["returned_14"] for p in group),
+            "returned_30": sum(p.get("returned_30", False) for p in group),
             "returned_next_day": sum(p["returned_next_day"] for p in group),
             "first_step": sum(p["first_step_hours"] is not None for p in group),
             "first_open": sum(p["first_open_hours"] is not None for p in group),
@@ -374,6 +418,8 @@ def _survey_stats(rows: List[dict]) -> Dict:
     infos = [r["info_before_signup"] for r in rows if r.get("info_before_signup")]
     # "Do you know what to do next?" (the cohort report; STEP 62).
     nexts = [r["next_step"] for r in rows if r.get("next_step")]
+    # "Was making your account clear and quick?" (Group 25; STEP 70).
+    clears = [r["signup_clear"] for r in rows if r.get("signup_clear")]
     return {
         "responses": len(rows),
         "info_before_signup": Counter(infos),
@@ -382,6 +428,7 @@ def _survey_stats(rows: List[dict]) -> Dict:
         "ease_median": median(eases) if eases else None,
         "next_step": Counter(nexts),
         "knows_next_share": (sum(1 for n in nexts if n == "yes") / len(nexts)) if nexts else None,
+        "signup_clear": Counter(clears),
     }
 
 
@@ -408,20 +455,20 @@ def pct(n: int, d: int) -> str:
 
 def _comparison(title: str, funnel_groups: Dict[str, Dict], survey_groups: Dict[str, Dict]) -> List[str]:
     out = [f"== {title}",
-           f"  {'group':<20} {'accounts':>8} {'finished':>9} {'next day':>9} {'back in 7d':>10} {'in 14d':>7} "
+           f"  {'group':<20} {'accounts':>8} {'finished':>9} {'next day':>9} {'back in 7d':>10} {'in 14d':>7} {'in 30d':>7} "
            f"{'surveyed':>8} {'clarity ok':>10} {'ease (1-5)':>10} {'knows next':>10}"]
     for g in list(funnel_groups) + [g for g in survey_groups if g not in funnel_groups]:
-        f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0, "returned_next_day": 0, "returned_14": 0})
+        f = funnel_groups.get(g, {"accounts": 0, "finished": 0, "returned": 0, "returned_next_day": 0, "returned_14": 0, "returned_30": 0})
         s = survey_groups.get(g)
         if max(f["accounts"], s["responses"] if s else 0) < MIN_CELL:
-            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>9} {'-':>10} {'-':>7} {'-':>8} {'-':>10} {'-':>10} {'-':>10}")
+            out.append(f"  {g[:20]:<20} {SMALL:>8} {'-':>9} {'-':>9} {'-':>10} {'-':>7} {'-':>7} {'-':>8} {'-':>10} {'-':>10} {'-':>10}")
             continue
         clarity = f"{100 * s['about_right_share']:.0f}%" if s and s["about_right_share"] is not None else "-"
         ease = f"{s['ease_median']}" if s and s["ease_median"] is not None else "-"
         knows = f"{100 * s['knows_next_share']:.0f}%" if s and s.get("knows_next_share") is not None else "-"
         out.append(f"  {g[:20]:<20} {f['accounts']:>8} {pct(f['finished'], f['accounts']):>9} "
                    f"{pct(f.get('returned_next_day', 0), f['accounts']):>9} {pct(f['returned'], f['accounts']):>10} "
-                   f"{pct(f.get('returned_14', 0), f['accounts']):>7} "
+                   f"{pct(f.get('returned_14', 0), f['accounts']):>7} {pct(f.get('returned_30', 0), f['accounts']):>7} "
                    f"{(s['responses'] if s else 0):>8} {clarity:>10} {ease:>10} {knows:>10}")
     return out
 
@@ -468,6 +515,8 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     prev: Optional[int] = None
     for i, (sid, label) in enumerate(STEPS):
         n = o["steps"][sid]
+        if i >= CORE_STEPS and not n:
+            continue
         drop = f"   (-{prev - n} from the step before)" if prev is not None and prev > n and i < CORE_STEPS else ""
         out.append(f"  reached setup: {label:<27} {n}{drop}")
         prev = n
@@ -475,6 +524,7 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append(f"  returned the next day           {o['returned_next_day']}   ({pct(o['returned_next_day'], o['accounts'])} of accounts)")
     out.append(f"  returned within 7 days          {o['returned']}   ({pct(o['returned'], o['accounts'])} of accounts)")
     out.append(f"  returned within 14 days         {o['returned_14']}   ({pct(o['returned_14'], o['accounts'])} of accounts)")
+    out.append(f"  returned within 30 days         {o.get('returned_30', 0)}   ({pct(o.get('returned_30', 0), o['accounts'])} of accounts)")
     out.append(f"  opened their first step         {o['first_open']}   ({pct(o['first_open'], o['accounts'])} of accounts)"
                + (f", median {_duration(o['first_open_median_hours'])} after sign-up" if o['first_open_median_hours'] is not None else ""))
     out.append(f"  marked a first step done        {o['first_step']}   ({pct(o['first_step'], o['accounts'])} of accounts)"
@@ -486,8 +536,10 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append("")
     out.append("== Setup steps: where people pause and what they come back to (Group 10)")
     out.append(f"  {'step':<29} {'reached':>7} {'median time':>12} {'came back':>10}")
-    for sid, label in STEPS:
+    for i, (sid, label) in enumerate(STEPS):
         n = o["steps"][sid]
+        if i >= CORE_STEPS and not n:
+            continue
         if n < MIN_CELL:
             out.append(f"  {label[:29]:<29} {SMALL if n else 0:>7} {'-':>12} {'-':>10}")
             continue
@@ -516,6 +568,11 @@ def render(funnel: Dict, feedback: Dict, show_comments: bool) -> str:
     out.append("  knows what to do next: " + "   ".join(
         f"{label} {nexts.get(key, 0)} ({pct(nexts.get(key, 0), total_next)})"
         for key, label in (("yes", "yes"), ("not_sure", "not sure"), ("no", "no"))))
+    clears = feedback.get("signup_clear") or Counter()
+    total_clear = sum(clears.values())
+    out.append("  making the account was clear and quick: " + "   ".join(
+        f"{label} {clears.get(key, 0)} ({pct(clears.get(key, 0), total_clear)})"
+        for key, label in (("yes", "yes"), ("mostly", "mostly"), ("no", "no"))))
     ease = feedback["ease"]
     out.append("  setup ease (1 very hard .. 5 very easy): " +
                "  ".join(f"{k}:{ease.get(k, 0)}" for k in range(1, 6)) +
@@ -782,6 +839,73 @@ def render_ask_later(s: Dict) -> str:
             out.append(f"  {label:<32} {SMALL if g['shown'] else 0:>6} {'-':>9} {'-':>7}")
             continue
         out.append(f"  {label:<32} {g['shown']:>6} {pct(g['done'], g['shown']):>9} {pct(g['closed'], g['shown']):>7}")
+    return "\n".join(out)
+
+
+def summarize_profile_card(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """The "Complete your profile" card: browsers that saw it, and that saved
+    each answer from it (Group 30: "return rate for deferred questions"). Pure."""
+    shown: set = set()
+    done: Dict[str, set] = {item: set() for item, _ in PROFILE_ITEMS}
+    any_done: set = set()
+    for e in events:
+        if e["event"] != "ask_later" or not e.get("step") or not keep_version(e.get("onboarding_version", ""), wanted_version):
+            continue
+        step = str(e["step"])
+        if step == "shown.profile":
+            shown.add(e["visitor_id"])
+        elif step.startswith("done.profile."):
+            item = step[len("done.profile."):]
+            if item in done:
+                done[item].add(e["visitor_id"])
+                any_done.add(e["visitor_id"])
+    return {"shown": len(shown), "any_done": len(any_done & shown) if shown else len(any_done),
+            "done": {item: len(v) for item, v in done.items()}}
+
+
+def render_profile_card(s: Dict) -> str:
+    out = ["== Complete your profile: the questions moved out of setup (Groups 29 and 30)",
+           f"  card shown                     {s['shown']}"]
+    if s["shown"] < MIN_CELL:
+        out.append(f"  answered at least one          {SMALL if s['any_done'] else 0}")
+    else:
+        out.append(f"  answered at least one          {s['any_done']}   ({pct(s['any_done'], s['shown'])} of those shown)")
+    for item, label in PROFILE_ITEMS:
+        n = s["done"].get(item, 0)
+        shown = SMALL if 0 < n < MIN_CELL else str(n)
+        share = "-" if n < MIN_CELL or not s["shown"] else pct(n, s["shown"])
+        out.append(f"  {label:<30} {shown:>5}  ({share})")
+    return "\n".join(out)
+
+
+def summarize_tour(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """The tour: browsers that started it, finished it or closed it, and did or
+    skipped each task. Pure."""
+    seen: Dict[str, set] = defaultdict(set)
+    for e in events:
+        if e["event"] != "tour" or not e.get("step") or not keep_version(e.get("onboarding_version", ""), wanted_version):
+            continue
+        seen[str(e["step"])].add(e["visitor_id"])
+    return {
+        "started": len(seen["start"]),
+        "finished": len(seen["finish"]),
+        "closed": len(seen["close"]),
+        "tasks": {t: {"done": len(seen[f"task.{t}"]), "skipped": len(seen[f"skip.{t}"])} for t, _ in TOUR_TASKS},
+    }
+
+
+def render_tour(s: Dict) -> str:
+    out = ["== The tour's tasks (Group 27: try each feature before the next)"]
+    if s["started"] < MIN_CELL:
+        out.append(f"  started the tour               {SMALL if s['started'] else 0}  (fewer than {MIN_CELL} so far)")
+        return "\n".join(out)
+    out.append(f"  started the tour               {s['started']}")
+    out.append(f"  finished it                    {s['finished']}   ({pct(s['finished'], s['started'])})")
+    out.append(f"  closed it early                {s['closed']}   ({pct(s['closed'], s['started'])})")
+    out.append(f"  {'task':<30} {'did it':>7} {'skipped':>8}")
+    for t, label in TOUR_TASKS:
+        g = s["tasks"][t]
+        out.append(f"  {label:<30} {pct(g['done'], s['started']):>7} {pct(g['skipped'], s['started']):>8}")
     return "\n".join(out)
 
 
@@ -1260,13 +1384,16 @@ def main() -> int:
             # device comes with STEP 69.
             events = fetch_all(sb, "onboarding_events",
                                "visitor_id, user_id, event, step, channel, onboarding_version, created_at")
-        try:
-            feedback = fetch_all(sb, "onboarding_feedback",
-                                 "user_id, info_before_signup, setup_ease, comment, onboarding_version, next_step")
-        except Exception:
-            # next_step comes with STEP 62.
-            feedback = fetch_all(sb, "onboarding_feedback",
-                                 "user_id, info_before_signup, setup_ease, comment, onboarding_version")
+        feedback = None
+        # signup_clear comes with STEP 70, next_step with STEP 62.
+        for extra in (", next_step, signup_clear", ", next_step", ""):
+            try:
+                feedback = fetch_all(sb, "onboarding_feedback",
+                                     "user_id, info_before_signup, setup_ease, comment, onboarding_version" + extra)
+                break
+            except Exception:
+                if not extra:
+                    raise
     except Exception as e:
         print(f"Could not read the funnel tables ({str(e)[:90]}). Has STEP 45 been applied?")
         return 1
@@ -1309,6 +1436,10 @@ def main() -> int:
     print(render_last_seen(summarize_last_seen(events, args.version)))
     print()
     print(render_ask_later(summarize_ask_later(events, args.version)))
+    print()
+    print(render_profile_card(summarize_profile_card(events, args.version)))
+    print()
+    print(render_tour(summarize_tour(events, args.version)))
     print()
     push_users: set = set()
     first_save_by_user: Dict[str, str] = {}

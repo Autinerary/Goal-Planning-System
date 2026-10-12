@@ -45,7 +45,7 @@ function ResetPassword() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/20 rounded-full mb-4">
               <KeyRound className="w-8 h-8 text-blue-700" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Choose a new password</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Choose a new password</h1>
           </div>
 
           {isLoading && params.get('link') !== 'invalid' ? (

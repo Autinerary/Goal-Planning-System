@@ -85,47 +85,71 @@ export default function SignupPage() {
     )
   }
 
+  // Compact, so the button is on the first screen of a laptop or a phone
+  // (Riipen Labs, Group 25: three testers "encountered scrolling/completion
+  // issues during signup" on a phone and a laptop). Centred with margins, not
+  // flex centring, which cuts off the top of a form taller than the window
+  // so it cannot be scrolled to. The decorative blurs behind it are gone.
+  // What it costs, how information is handled and what comes next are said
+  // before the first field (Group 28: before signing up, people should know
+  // "any costs or subscriptions", "how their personal information is
+  // protected" and "what their next step should be"). The browser can fill
+  // every field in (Group 26: "autofill, autocomplete").
+  const field = 'w-full bg-white/60 border border-slate-300 rounded-lg px-3 py-2.5 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
+  const required = (
+    <>
+      <span className="font-bold text-red-700" aria-hidden="true">*</span>
+      <span className="sr-only"> (required)</span>
+    </>
+  )
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 left-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      </div>
+    <div className="flex min-h-screen px-4 py-4 sm:py-8">
+      <div className="m-auto w-full max-w-md">
+        <p className="mb-3 text-center text-sm text-slate-700">
+          <Link href="/" className="text-lg font-bold text-slate-900">Autinerary</Link>
+          <span aria-hidden="true"> · </span>
+          Begin your personalized journey
+        </p>
 
-      <div className="relative w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Autinerary</h1>
-          <p className="text-slate-600">Begin your personalized journey</p>
-        </div>
-
-        {/* Signup Card */}
-        <div className="rounded-2xl p-8 surface">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-500/20 rounded-full mb-4">
-              <UserPlus className="w-8 h-8 text-purple-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900">Create your free account</h2>
-            <p className="text-slate-700 text-sm mt-1">
-              Next: two quick questions (who you&apos;re here for, and one goal), then your path is ready.
+        <div className="rounded-2xl p-5 sm:p-7 surface">
+          <div className="mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <UserPlus className="h-6 w-6 text-purple-600" aria-hidden="true" />
+              Create your free account
+            </h1>
+            <p className="mt-1 text-sm text-slate-700">
+              Already have one?{' '}
+              <Link href="/login" className="font-medium text-indigo-800 underline underline-offset-2">Sign in</Link>
             </p>
+            <ul className="mt-3 space-y-1 text-sm text-slate-800">
+              <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />Free during the beta. No credit card.</li>
+              <li className="flex gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                <span>
+                  We don&apos;t sell your information, show ads, or use it to train AI.{' '}
+                  <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>
+                </span>
+              </li>
+              <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />Next: two quick questions, then your path is ready.</li>
+            </ul>
           </div>
 
           <GoogleSignIn label="Sign up with Google" />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <p className="text-xs text-slate-700">{required} Required: all four.</p>
             {/* Name */}
             <div>
-              <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700 mb-2">
-                Your Name
+              <label htmlFor="signup-name" className="mb-1 block text-sm font-medium text-slate-800">
+                Your name {required}
               </label>
               <input
                 id="signup-name"
                 type="text"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className={field}
                 placeholder="What should we call you?"
                 required
               />
@@ -133,20 +157,21 @@ export default function SignupPage() {
 
             {/* Date of birth (18+ gate) */}
             <div>
-              <label htmlFor="signup-dob" className="block text-sm font-medium text-slate-700 mb-2">
-                Date of birth
+              <label htmlFor="signup-dob" className="mb-1 block text-sm font-medium text-slate-800">
+                Date of birth {required}{' '}
+                <span id="signup-dob-help" className="font-normal text-slate-700">(18 or older, for now)</span>
               </label>
               <input
                 id="signup-dob"
                 type="date"
+                autoComplete="bday"
                 value={dob}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setDob(e.target.value)}
                 aria-describedby="signup-dob-help"
-                className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className={field}
                 required
               />
-              <p id="signup-dob-help" className="text-xs text-slate-500 mt-1">You must be 18 or older to create your own account.</p>
             </div>
 
             {/* Under-18 explainer */}
@@ -162,89 +187,86 @@ export default function SignupPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="signup-email" className="block text-sm font-medium text-slate-700 mb-2">
-                Email
+              <label htmlFor="signup-email" className="mb-1 block text-sm font-medium text-slate-800">
+                Email {required}
               </label>
               <input
                 id="signup-email"
                 type="email"
+                autoComplete="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className={field}
                 placeholder="you@example.com"
                 required
               />
             </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="signup-password" className="block text-sm font-medium text-slate-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
+            {/* Password, and the same again, side by side on a wider screen */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="signup-password" className="mb-1 block text-sm font-medium text-slate-800">
+                  Password {required}
+                </label>
+                <div className="relative">
+                  <input
+                    id="signup-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${field} pr-11`}
+                    placeholder="Create a password"
+                    aria-describedby="signup-password-rules"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="signup-confirm" className="mb-1 block text-sm font-medium text-slate-800">
+                  Type it again {required}
+                </label>
                 <input
-                  id="signup-password"
+                  id="signup-confirm"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/60 border border-slate-300 rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
-                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`${field} ${confirmPassword && confirmPassword !== password ? 'border-red-500/50' : ''}`}
+                  placeholder="Same password"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
-              
-              {/* Password Requirements */}
-              {password && (
-                <div className="mt-2 space-y-1">
-                  {passwordRequirements.map((req, idx) => (
-                    <div 
-                      key={idx}
-                      className={`flex items-center gap-2 text-xs ${
-                        req.test(password) ? 'text-green-600' : 'text-slate-500'
-                      }`}
-                    >
-                      <Check className={`w-3 h-3 ${req.test(password) ? 'opacity-100' : 'opacity-30'}`} />
-                      {req.label}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="signup-confirm" className="block text-sm font-medium text-slate-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                id="signup-confirm"
-                type={showPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`w-full bg-white/60 border rounded-lg px-4 py-3 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                  confirmPassword && confirmPassword !== password 
-                    ? 'border-red-500/50' 
-                    : 'border-slate-300'
-                }`}
-                placeholder="Confirm your password"
-                required
-              />
-              {confirmPassword && confirmPassword !== password && (
-                <p className="text-red-600 text-xs mt-1">Passwords don't match</p>
-              )}
-            </div>
+            {/* The password rules: one line, ticked as they are met */}
+            <p id="signup-password-rules" className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+              {passwordRequirements.map((req, idx) => {
+                const met = Boolean(password) && req.test(password)
+                return (
+                  <span key={idx} className={`flex items-center gap-1 ${met ? 'text-green-700' : 'text-slate-700'}`}>
+                    <Check className={`w-3 h-3 ${met ? 'opacity-100' : 'opacity-30'}`} aria-hidden="true" />
+                    {req.label}{met && <span className="sr-only"> (done)</span>}
+                  </span>
+                )
+              })}
+            </p>
+            {confirmPassword && confirmPassword !== password && (
+              <p className="text-red-600 text-xs" role="status">The two passwords don&apos;t match yet.</p>
+            )}
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-600 text-sm">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-600 text-sm" role="alert">
                 {error}
               </div>
             )}
@@ -253,7 +275,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isSubmitting || password !== confirmPassword}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -265,32 +287,6 @@ export default function SignupPage() {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-transparent text-slate-600">or</span>
-            </div>
-          </div>
-
-          <p className="mb-4 text-center text-sm text-slate-700">
-            How we handle your information:{' '}
-            <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy</Link>
-          </p>
-
-          {/* Login Link */}
-          <p className="text-center text-slate-600">
-            Already have an account?{' '}
-            <Link 
-              href="/login" 
-              className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
-            >
-              Sign in
-            </Link>
-          </p>
         </div>
       </div>
     </div>

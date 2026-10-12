@@ -17,7 +17,9 @@ import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/l
 import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
-import AskLaterCard from '../components/AskLaterCard'
+import ProfileCompletion from '../components/ProfileCompletion'
+import { DisplayButton, DisplayPanel, useDisplayToggle } from '../components/DisplayToggle'
+import { normalizeGamification } from '@/lib/gamification'
 import StarterChecklist from '../components/StarterChecklist'
 import MoreFeaturesOffer from '../components/MoreFeaturesOffer'
 import CheckinPrompt from '../components/CheckinPrompt'
@@ -49,6 +51,8 @@ export default function PathView() {
   const { supabaseUser, fetchWithAuth } = useAuth()
   const { isSimple, level, setOverride } = useDisclosure()
   const { prefs } = usePreferences()
+  // Display (Riipen Labs, Group 26: "Personalize" as a toggle on the home page).
+  const display = useDisplayToggle()
   // Reshuffle the motivational message on every visit (new mount = new seed),
   // so returning to the Path always surfaces a fresh line (Liam/pinwheel).
 
@@ -195,11 +199,17 @@ try {
 
   const userName = supabaseUser?.user_metadata?.name || supabaseUser?.email?.split('@')[0] || 'Explorer'
 
-  // Spirit animals live in onboarding preferences. They reach us on the stored
-  // path, or from the local profile for a user whose path predates that.
+  // Spirit animals: the ones chosen in Settings (the "Complete your profile"
+  // card links there), which setup no longer asks for (Riipen Labs, Groups 25
+  // to 30). Before, the Path read only setup's answer, on the stored path or
+  // the local profile, so a choice made in Settings never showed here; those
+  // stay as the fallback for people who chose them in setup.
   // No default pair here: the old fallback showed everyone an owl and a fox,
   // so a user who picked a wolf saw someone else's animals as their own.
-  const spiritPrefs = (pathData?.userProfile?.preferences || localProfilePrefs) as
+  const chosen = prefs.gamification ? normalizeGamification(prefs.gamification) : null
+  const spiritPrefs = (chosen && chosen.animals.some((a) => a.type)
+    ? { spiritAnimals: chosen.animals, spiritAnimalMode: chosen.mode }
+    : pathData?.userProfile?.preferences || localProfilePrefs) as
     | { spiritAnimals?: any[]; spiritAnimalMode?: any }
     | undefined
   const todaysAnimal = selectTodaysAnimal(
@@ -357,7 +367,7 @@ useEffect(() => {
               </div>
             )}
             <div>
-              <h1 className="break-words text-2xl md:text-3xl font-bold text-slate-800">{userName}&apos;s Path</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 break-words">{userName}&apos;s Path</h1>
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <p className="text-sm text-slate-600">Your journey snapshot</p>
                 <StreakBadge />
@@ -382,8 +392,10 @@ useEffect(() => {
               <Map className="w-4 h-4 pref-icon-anim" />
               {isSimple ? 'Show more' : 'Simplify'}
             </button>
-            {/* Everything else waits for "Show more", so the first screen offers one
-                choice (Riipen Labs, Group 3: fewer actions at once, and no Reset
+            {/* How the app looks, in both views (Riipen Labs, Group 26). */}
+            <DisplayButton open={display.open} onToggle={display.toggle} />
+            {/* Everything else waits for "Show more", so the first screen offers few
+                choices (Riipen Labs, Group 3: fewer actions at once, and no Reset
                 next to everything). */}
             {!isSimple && (
               <>
@@ -430,6 +442,8 @@ useEffect(() => {
             )}
           </div>
         </div>
+
+        {display.open && <DisplayPanel onClose={display.close} />}
 
         {/* ── Multi-path switcher — paid feature ── */}
         {serverPaths.length > 1 && (
@@ -498,12 +512,26 @@ useEffect(() => {
                 {/* What the one button leads to (Riipen Labs, Group 7: "one clear
                     first action" on the dashboard). */}
                 <p className="mt-1 text-sm text-slate-700">Open it to see what to do, and the tools that can help.</p>
-                <Link
-                  href={`/milestones/${encodeURIComponent(nextMilestone.id)}`}
-                  className="mt-3 inline-flex items-center gap-1 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800"
-                >
-                  Open this step <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <Link
+                    href={`/milestones/${encodeURIComponent(nextMilestone.id)}`}
+                    className="inline-flex items-center gap-1 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800"
+                  >
+                    Open this step <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                  {/* The AI's suggestions for each step, which setup used to
+                      show as its "AI Recommendations" step (Riipen Labs, Group
+                      26: "AI Recommendations should also be accessible within
+                      the app, whether through a button or a specific
+                      location"). */}
+                  <Link
+                    href="/recommend-choices"
+                    data-tour="ai-suggestions"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
+                  >
+                    <Sparkles className="h-4 w-4" aria-hidden="true" /> AI suggestions for your steps
+                  </Link>
+                </div>
               </>
             ) : (
               <p className="mt-1 text-sm text-slate-700">You have done every step in this plan. Well done.</p>
@@ -527,11 +555,16 @@ useEffect(() => {
         </div>
         )}
 
-        {/* ── A check-in question when one is due; otherwise the optional
-             setup questions they skipped; otherwise, from the second day, an
-             offer to show the rest of the Path; otherwise the getting-started
-             checklist (Riipen Labs, Group 11). One card at a time. ── */}
-        <CheckinPrompt fallback={<AskLaterCard fallback={<MoreFeaturesOffer fallback={<StarterChecklist stepsDone={doneSteps} />} />} />} />
+        {/* ── A check-in question when one is due; otherwise, from the second
+             day, an offer to show the rest of the Path; otherwise the
+             getting-started checklist (Riipen Labs, Group 11). One card at a
+             time. ── */}
+        <CheckinPrompt fallback={<MoreFeaturesOffer fallback={<StarterChecklist stepsDone={doneSteps} />} />} />
+
+        {/* ── The optional questions setup no longer asks (Riipen Labs, Groups
+             25 to 30), one at a time, whenever the person likes. It replaced
+             the "ask later" card in the slot above. ── */}
+        <ProfileCompletion />
 
         {/* ── 2x2 Dashboard Grid (full view; Races and ResourceHub are Quick Links) ── */}
         {!isSimple && (

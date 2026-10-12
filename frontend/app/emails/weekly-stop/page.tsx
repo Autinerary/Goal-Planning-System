@@ -21,7 +21,7 @@ export default function WeeklyStopPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-16">
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{state === 'done' ? 'You won’t get the weekly email again' : 'Stop the weekly email'}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{state === 'done' ? 'You won’t get the weekly email again' : 'Stop the weekly email'}</h1>
         {state === 'done' ? (
           <p role="status" className="mt-3 text-slate-800">Done. Your other emails and settings are unchanged. You can turn it back on in Settings, under Emails.</p>
         ) : state === 'error' ? (

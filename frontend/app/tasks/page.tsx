@@ -145,7 +145,7 @@ export default function TasksPage() {
           <button onClick={() => router.back()} aria-label="Back" className="p-2 rounded-lg hover:bg-white/30 text-slate-700">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-bold text-slate-800">Task View</h1>
+          <h1 className="text-lg font-bold text-slate-900">Task View</h1>
           <Link href="/reflection?contextType=task" className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-lg flex items-center gap-1">
             <Sparkles className="w-3 h-3" />Journal
           </Link>

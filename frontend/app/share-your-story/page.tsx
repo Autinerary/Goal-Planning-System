@@ -75,7 +75,7 @@ export default function ShareYourStoryPage() {
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto mb-4 max-w-2xl"><BackButton /></div>
       <article className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
-        <h1 className="text-3xl font-bold text-slate-900">Share your story</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Share your story</h1>
         <p className="mt-3 text-slate-800">
           Has Autinerary helped you, even a little? A few honest sentences can help someone like you decide to try it. It is
           completely up to you, and saying no changes nothing.
