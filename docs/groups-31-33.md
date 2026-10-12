@@ -184,8 +184,9 @@ posters and social media out of scope, as they said.
 - On production after deploying (566c3a1): both Groups 31 to 33 browser
   tests (43 and 41 checks), the earlier live tests (19, 27 and 11 checks,
   and the job poll), and the accessibility checker on every page of both
-  apps, signed in: no serious or critical problems. The test account,
-  answer and throwaway accounts were removed afterwards.
+  apps, signed in: no serious or critical problems. The test answer and
+  the throwaway accounts were removed afterwards, and the test account put
+  back as it was.
 - Quick Links per role (`frontend/lib/places.test.mjs`), the funnel report's
   tests (64) and the planning service's tests (280).
 - A browser test of the local build at phone width, with the live database
