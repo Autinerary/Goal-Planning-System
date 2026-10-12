@@ -212,18 +212,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // replace, not push: a redirect that adds itself to the history made Back
     // land on the page that redirects again, a loop (Riipen Labs, Groups 31
     // and 32: "broken back-button loops").
-    if (!user && !isPublic && !isOnboarding) {
+    // Sent here by ResourceHub to sign in, but already signed in: go straight
+    // back through the hand-off, set up or not (Riipen Labs, Group 24: "Secondary
+    // login wall"). It used to do this only after setup, so anyone else saw the
+    // sign-in form again.
+    const hubBack = user && pathname === '/login' ? hubReturnHref(new URLSearchParams(window.location.search).get('returnTo')) : null
+    if (hubBack) {
+      window.location.replace(hubBack)
+    } else if (!user && !isPublic && !isOnboarding) {
       router.replace('/login')
     } else if (user && user.needsDateOfBirth && !isPublic) {
       if (pathname !== AGE_ROUTE) router.replace(AGE_ROUTE)
     } else if (user && !user.hasCompletedOnboarding && !user.skippedSetup && !isOnboarding && !isPublic) {
       router.replace('/onboarding')
     } else if (user && (user.hasCompletedOnboarding || user.skippedSetup) && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
-      // Sent here by ResourceHub to sign in, but already signed in: go back
-      // there through the hand-off rather than to the Path.
-      const back = pathname === '/login' ? hubReturnHref(new URLSearchParams(window.location.search).get('returnTo')) : null
-      if (back) window.location.replace(back)
-      else router.replace('/path')
+      router.replace('/path')
     }
   }, [user, isLoading, pathname, router])
 
