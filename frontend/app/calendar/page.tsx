@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft, Download, Upload } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import ScheduleFeedback from '../components/ScheduleFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
@@ -1220,6 +1221,10 @@ function CalendarContent() {
               />
             )}
           </div>
+
+          {/* "Did this schedule work for you?": once per generated schedule, off
+              unless NEXT_PUBLIC_SCHEDULE_FEEDBACK_ENABLED (Calendar Optimization, STEP 72). */}
+          {hasAgentSchedule && <ScheduleFeedback pathId={payload?.id} />}
 
           {/* COMPARISON — real connections only; no fabricated schedules. A linked
               mentor/role model's actual shared day lives on their friend page. */}

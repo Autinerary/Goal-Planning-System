@@ -210,3 +210,70 @@ confidence appears nowhere.
 - `tests/test_calendar_confidence.py`: null for a full week, a short plan, and
   with learned preferences.
 - `frontend/lib/agentInsights.test.mjs`.
+
+## Item 3. "Did this schedule work for you?"
+
+Built on the milestone-ratings pattern (STEP 54), behind a flag that is off
+by default. **The migration is written, not applied:**
+`backend/database/migrations/2026_schedule_feedback.sql`, **STEP 72**, also
+added to `setup/all_migrations.sql`.
+
+**Wording and placement:**
+- **Where:** on the Calendar page, right under the week's schedule and above
+  "Compare with your people". Only when there is a schedule from the plan.
+- **Heading:** **"Did this schedule work for you?"**
+- **Under it:** "Optional, and asked once for each schedule. Your answer helps
+  Autinerary plan better weeks."
+- **Buttons:** **Yes** and **No**.
+- **Once answered**, the card is replaced by a line: "Thank you. You said this
+  schedule worked for you." (or "didn't work"). It doesn't ask again for that
+  schedule. If saving fails: "This could not be saved just now. Please try
+  again."
+- **Component:** `frontend/app/components/ScheduleFeedback.tsx`.
+
+**Once per generated schedule:**
+- **The schedule id:** every schedule the agent makes now has a `scheduleId`.
+  A schedule made before has none, and is named `path:<path id>`: a path held
+  one schedule.
+- **Storage:** a row in `schedule_feedback` with `user_id`, `path_id`,
+  `schedule_id`, `answer` ('yes' or 'no') and `created_at`. `path_id` is kept
+  too, so an answer can be joined to its path.
+- **Never changed:** the key is unique per person and schedule, and there is
+  no update policy.
+
+**The route** (`backend/api/routes/schedule_feedback.py`):
+- `GET /api/schedule-feedback/{pathId}` returns the schedule's id and the
+  answer, if one was given.
+- `POST /api/schedule-feedback` takes `{ pathId, scheduleId, answer }`.
+- **It checks** that the path is the person's own and that the schedule is the
+  one stored in it.
+- **A second answer** returns the first. It isn't saved.
+
+**The flags:**
+- `SCHEDULE_FEEDBACK_ENABLED=true` on the backend (otherwise 404);
+- `NEXT_PUBLIC_SCHEDULE_FEEDBACK_ENABLED=true` in the app (otherwise the card
+  isn't rendered).
+
+Until STEP 72 is applied, the route says feedback isn't available and the app
+shows nothing, even with both flags on.
+
+**Tested:**
+- **The route** (`tests/test_schedule_feedback.py`, 9 tests):
+  - off by default;
+  - asked once (a second answer returns the first);
+  - older schedules named by their path;
+  - only the schedule in the person's own path;
+  - yes or no only;
+  - "not available" before the migration;
+  - a new id for every generated schedule.
+- **The migration,** on a throwaway local Postgres with a Supabase auth stub:
+  - applies twice;
+  - a person can add their own answer, but not someone else's;
+  - a second answer for the same schedule is refused;
+  - answers other than yes or no are refused;
+  - people see only their own rows, and can't change or delete them;
+  - deleting the account deletes the answers.
+
+**Not done, as with milestone ratings:** the app's "download my data" route
+(`frontend/app/api/me/data`) doesn't list this table. It doesn't list
+`milestone_ratings` either.

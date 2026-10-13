@@ -28,6 +28,7 @@ from core.condition_taxonomy import match_keys
 from core.config import Config
 from core import llm, learning
 import random
+import uuid
 
 # Which rule sets each canonical condition gets. Conditions are compared with
 # condition_taxonomy.match_keys, the same canonicalisation Pattern
@@ -244,6 +245,9 @@ class CalendarOptimizationAgent(BaseAgent):
         days_with_work = sum(1 for d in days if (d.get('tasks') or []))
 
         return {
+            # One id per generated schedule, so "Did this schedule work for
+            # you?" is asked once for each (api/routes/schedule_feedback.py).
+            'scheduleId': uuid.uuid4().hex,
             'schedule': scheduled_days,
             # Not this person's energy (see the module docstring).
             'energySource': 'condition' if rules.get('flexible_scheduling') else 'weekday',
