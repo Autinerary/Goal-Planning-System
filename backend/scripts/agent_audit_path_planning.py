@@ -40,12 +40,13 @@ import statistics
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from itertools import combinations
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
+from core.condition_taxonomy import match_keys  # noqa: E402
 from core.agents.path_planning_agent import (  # noqa: E402
     LIFE_AREAS, MAX_MILESTONES_PER_PATH, MILESTONES_PER_AREA, SUPPORT_TEMPLATES, PathPlanningAgent,
 )
@@ -174,10 +175,11 @@ def count_rows(sb, table: str) -> Optional[int]:
         return None
 
 
-def fetch_where(sb, table: str, cols: str, column: str, value: Any, page: int = 1000) -> List[Dict[str, Any]]:
+def fetch_paged(sb, table: str, cols: str, page: int = 1000) -> List[Dict[str, Any]]:
+    """Every row, in id order so pages don't overlap."""
     rows, start = [], 0
     while True:
-        batch = (sb.table(table).select(cols).eq(column, value).order("id")
+        batch = (sb.table(table).select(cols).order("id")
                  .range(start, start + page - 1).execute().data or [])
         rows.extend(batch)
         if len(batch) < page:
@@ -222,13 +224,14 @@ def race_milestones(race: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [m for m in ms if isinstance(m, dict)] if isinstance(ms, list) else []
 
 
-def known_template_names() -> Set[str]:
+def agent_constants() -> Tuple[Set[str], Set[str]]:
+    """The template names (normalized) and the curated barrier models' keys."""
     agent = PathPlanningAgent()
     asyncio.run(agent.initialize())
     names = [n for lst in agent.goal_templates.values() for n in lst]
     names += [n for lst in SUPPORT_TEMPLATES.values() for n in lst]
     names += [name for name, _ in _FALLBACK_STAGES]
-    return {normalized(n) for n in names}
+    return {normalized(n) for n in names}, set(agent.barrier_models)
 
 
 def job_category(message: Any) -> str:
@@ -283,9 +286,13 @@ class Era:
         self.paths_goal_missing = 0
         self.empty_races = 0
         self.dates: List[str] = []
+        self.milestone_counts = Counter()
+        self.long_estimates = Counter()
+        self.conditions = Counter()
+        self.missed_labels = Counter()
 
 
-def audit_path(era: Era, row: Dict[str, Any], templates: Set[str], who: str) -> None:
+def audit_path(era: Era, row: Dict[str, Any], templates: Set[str], curated: Set[str], who: str) -> None:
     p = payload_of(row)
     plan = planner(p)
     result = plan.get("result") if isinstance(plan.get("result"), dict) else {}
@@ -297,6 +304,26 @@ def audit_path(era: Era, row: Dict[str, Any], templates: Set[str], who: str) -> 
     era.paths += 1
     era.dates.append(str(row.get("created_at") or "")[:10])
     era.milestones.append(len(ms))
+    era.milestone_counts[len(ms)] += 1
+    if any(isinstance(m.get("estimatedDays"), int) and m["estimatedDays"] >= 6 for m in ms):
+        era.long_estimates[str(row.get("created_at") or "")[:10]] += 1
+
+    # Which barrier labels reach a curated model (the key is the label
+    # lowercased with spaces as underscores) and the ADHD task-length rule
+    # (the label 'adhd', exactly), against the condition map.
+    barriers = [str(b) for b in (p.get("userProfile") or {}).get("barrierTypes") or []]
+    keys = match_keys(barriers)
+    era.conditions["paths with any barrier"] += bool(barriers)
+    era.conditions["paths with a curated model"] += any(b.lower().replace(" ", "_") in curated for b in barriers)
+    for condition in ("autism", "adhd", "ocd"):
+        if condition in keys or (condition in ("autism", "adhd") and "audhd" in keys):
+            era.conditions[f"{condition}: paths"] += 1
+            labels = [b for b in barriers if condition in match_keys([b]) or
+                      (condition in ("autism", "adhd") and "audhd" in match_keys([b]))]
+            if any(b.lower().replace(" ", "_") == condition for b in labels):
+                era.conditions[f"{condition}: its curated model used"] += 1
+            else:
+                era.missed_labels.update(labels)
     expected = 16 * goal_count
     era.goals_vs_16["equal" if len(ms) == expected else "fewer" if len(ms) < expected else "more"] += 1
     era.over_cap += len(ms) > MAX_MILESTONES_PER_PATH
@@ -415,7 +442,7 @@ def audit_path(era: Era, row: Dict[str, Any], templates: Set[str], who: str) -> 
 def print_era(era: Era) -> None:
     print(f"\n== {era.name}: {era.paths} paths, generated {min(era.dates) if era.dates else '-'} to "
           f"{max(era.dates) if era.dates else '-'}")
-    print(f"  milestones per path: {summary(era.milestones, 0)}")
+    print(f"  milestones per path: {summary(era.milestones, 0)}  values: {dict(sorted(era.milestone_counts.items()))}")
     print(f"  against 16 per goal: {dict(era.goals_vs_16)}; over the cap of {MAX_MILESTONES_PER_PATH}: {era.over_cap}; "
           f"race and agent copies differ in count: {era.copies_differ}")
     print(f"  tasks per milestone: {summary(era.tasks_per_milestone, 0)}  "
@@ -436,6 +463,10 @@ def print_era(era: Era) -> None:
     print(f"  descriptions from the fallback ('<name> - tailored for <goal>'): {era.description_fallback}")
     print(f"  recommendedChoices: {dict(era.fixed_choices)}")
     print(f"  estimatedDays: {dict(sorted(era.est_days.items(), key=lambda kv: (isinstance(kv[0], str), kv[0])))}")
+    print(f"  paths with an estimate of 6 days or more, by day generated: {dict(sorted(era.long_estimates.items()))}")
+    print(f"  barriers: {dict(era.conditions)}")
+    print(f"  condition labels that missed their curated model (in 2+ paths): "
+          f"{ {k: v for k, v in era.missed_labels.items() if v >= 2} }")
     total = sum(era.milestones)
     print(f"  duplicate milestones (of {total} milestones):")
     for key in sorted(era.dups):
@@ -452,7 +483,7 @@ def main() -> None:
         return
 
     # The run log first, with what decides the result: counts and settings.
-    templates = known_template_names()
+    templates, curated = agent_constants()
     inputs = {
         "user_paths": count_rows(sb, "user_paths"),
         "generation_jobs": count_rows(sb, "generation_jobs"),
@@ -483,9 +514,9 @@ def main() -> None:
     print(f"  is_legacy column against the payload rule (column, rule): {dict(legacy_flag)}")
     current, everything = Era("current (is_legacy = false)"), Era("all paths, legacy included")
     for r in rows:
-        audit_path(everything, r, templates, account(r["user_id"]))
+        audit_path(everything, r, templates, curated, account(r["user_id"]))
         if not r.get("is_legacy"):
-            audit_path(current, r, templates, account(r["user_id"]))
+            audit_path(current, r, templates, curated, account(r["user_id"]))
     print_era(current)
     print_era(everything)
 
@@ -540,6 +571,14 @@ def main() -> None:
 
     print(f"  goals in the request, failed: {dict(Counter(goal_bucket(j) for j in failed))}; "
           f"succeeded: {dict(Counter(goal_bucket(j) for j in jobs if j['status'] == 'succeeded'))}")
+    exact = Counter((min(len(((json.loads(j['request']) if isinstance(j.get('request'), str) else j.get('request')) or {}).get('goals') or []), 5),
+                     j["status"]) for j in jobs)
+    print(f"  status by goals in the request (5 = 5+): {dict(sorted(exact.items()))}")
+    running, total = [], 0
+    for day, n in sorted(Counter(str(j["created_at"])[:10] for j in jobs).items()):
+        total += n
+        running.append(f"{day}:{total}")
+    print(f"  running total of jobs by day created: {' '.join(running)}")
     print(f"  failed, by day: {dict(sorted(Counter(str(j['created_at'])[:10] for j in failed).items()))}")
 
     def seconds(j: Dict[str, Any]) -> Optional[float]:
@@ -558,12 +597,18 @@ def main() -> None:
     print(f"  queued or running for over an hour: {len(stale)}")
 
     # Which model answered: the usage ledger (core/budget.py, llm_usage).
-    print("\n== llm_usage, agent_id = 'path_planning'")
-    usage = fetch_where(sb, "llm_usage", "id, model_id, created_at, prompt_tokens, completion_tokens", "agent_id", "path_planning")
-    print(f"  calls: {len(usage)}  by model: {dict(Counter(u['model_id'] for u in usage))}  "
+    print("\n== llm_usage (the usage ledger, core/budget.py)")
+    ledger = fetch_paged(sb, "llm_usage", "id, agent_id, model_id, created_at, completion_tokens")
+    print(f"  rows: {len(ledger)}  from {min(str(u['created_at'])[:10] for u in ledger) if ledger else '-'}  "
+          f"by agent: {dict(Counter(u['agent_id'] for u in ledger))}")
+    usage = [u for u in ledger if u.get("agent_id") == "path_planning"]
+    print(f"  path_planning calls: {len(usage)}  by model: {dict(Counter(u['model_id'] for u in usage))}  "
           f"from {min(str(u['created_at'])[:10] for u in usage) if usage else '-'} "
           f"to {max(str(u['created_at'])[:10] for u in usage) if usage else '-'}")
     print(f"  completion tokens per call: {summary([float(u.get('completion_tokens') or 0) for u in usage], 0)}")
+    first = min(str(u["created_at"])[:10] for u in ledger) if ledger else None
+    print(f"  current paths generated before the ledger's first day: "
+          f"{sum(1 for d in current.dates if first and d < first)} of {current.paths}")
 
     # What exists to judge the plans by.
     print("\n== Signals about plans")
