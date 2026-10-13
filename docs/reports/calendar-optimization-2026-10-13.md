@@ -166,3 +166,47 @@ asked):
 
 "It changes from day to day" is a real answer, and should keep the defaults
 rather than guess.
+
+## Item 2. Confidence
+
+**What the 0.75 measured.**
+- **The formula:** (days with at least one task ÷ days scheduled) ×
+  (1.0 if the person has learned time-of-day preferences, otherwise 0.75).
+- **Learned preferences** need 10 or more rewards per time slot in
+  `calendar_outcomes`. That table has 0 rows, so the second factor is always
+  0.75.
+- **The first factor is always 1:** every stored schedule fills all 7 of its
+  7 days (80 current paths, 16 legacy). A plan has dozens of tasks, and the
+  week holds about 30.
+- **So it is 0.75 for everyone:** 79 of the 80 current paths. The other one
+  holds 0.28, from a formula replaced on 26 August. The 16 legacy paths hold
+  the old constant 0.82.
+- **It measures nothing about the schedule:** whether it fits the person,
+  can be done, or was done.
+
+**What changed:**
+- **The agent stores null** (`'confidence': None`). The two facts it was made
+  of are kept as what they are: `daysWithWork`, and `learnedPreferences`
+  (true or false).
+- **The orchestrator** already copies whatever the agent returns, so
+  `agentResponses[calendar_optimization].confidence` is null too.
+- **The UI never shows a confidence for the calendar.** The only place it
+  could appear was the "Why your week looks like this" banner (on Tasks), as
+  a last fallback ("Confidence: 75%") when there was no explanation.
+  - Every stored schedule has an explanation (0 without one), so it never
+    actually showed.
+  - The banner's message is now `insightMessage` in
+    `frontend/lib/agentInsights.ts`, and leaves out Calendar Optimization's
+    confidence whatever is stored. That includes the 0.75 older paths still
+    hold.
+  - Other agents' fallbacks are unchanged.
+- **The type** `confidence` in `AgentPathContext` may be null.
+
+**What the UI shows now:** on the Tasks page, the collapsed banner "Why your
+week looks like this" with the explanation sentence, as before. A calendar
+confidence appears nowhere.
+
+**Tests:**
+- `tests/test_calendar_confidence.py`: null for a full week, a short plan, and
+  with learned preferences.
+- `frontend/lib/agentInsights.test.mjs`.

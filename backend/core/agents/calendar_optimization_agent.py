@@ -233,23 +233,15 @@ class CalendarOptimizationAgent(BaseAgent):
             if text:
                 explanation = text
 
-        # Derived from whether the schedule came out WELL-FORMED, not from how
-        # much of the backlog it consumed.
-        #
-        # The previous version divided placed tasks by every task the path
-        # planner produced. Measured on a real run that read 30/80 = 0.28,
-        # which looked like failure but was the agent behaving correctly: it
-        # plans one week, and 80 tasks across 16 milestones is several weeks of
-        # work. Rewarding backlog exhaustion would push it to cram everything
-        # in — the opposite of what this product is for.
+        # No confidence. It used to be (days with work / days scheduled) x
+        # (1.0 with learned time-of-day preferences, else 0.75). Every schedule
+        # fills all 7 days and no learned preferences exist (calendar_outcomes
+        # has 0 rows), so it came out 0.75 for everyone: a constant, saying
+        # nothing about this schedule (item 2, docs/reports/
+        # calendar-optimization-2026-10-13.md). It is stored as null, and the
+        # two facts it was made of are reported as what they are.
         days = scheduled_days or []
-        if days:
-            days_with_work = sum(1 for d in days if (d.get('tasks') or []))
-            fill = days_with_work / len(days)
-            personalised = 1.0 if preferred_buckets else 0.75
-            confidence = round(min(fill * personalised, 1.0), 2)
-        else:
-            confidence = 0.0
+        days_with_work = sum(1 for d in days if (d.get('tasks') or []))
 
         return {
             'schedule': scheduled_days,
@@ -259,7 +251,9 @@ class CalendarOptimizationAgent(BaseAgent):
             'scenarios': scenarios,
             'rules_applied': rules,
             'unscheduled_tasks': remaining_tasks,
-            'confidence': confidence,
+            'confidence': None,
+            'daysWithWork': days_with_work,
+            'learnedPreferences': bool(preferred_buckets),
             'explanation': explanation
         }
     

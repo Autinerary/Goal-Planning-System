@@ -171,6 +171,28 @@ def item1(sb, account: Callable[[Any], str]) -> Dict[str, Any]:
     return out
 
 
+def item2(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    print("\n== Item 2: the confidence stored with each schedule")
+    out: Dict[str, Any] = {}
+    for label, keep in (("current", lambda r: not r.get("is_legacy")), ("legacy", lambda r: bool(r.get("is_legacy")))):
+        values, days_with_work, no_explanation = Counter(), Counter(), 0
+        for r in rows:
+            if not keep(r):
+                continue
+            p = payload_of(r)
+            response = next((a for a in p.get("agentResponses") or []
+                             if isinstance(a, dict) and a.get("agentId") == "calendar_optimization"), {})
+            values[response.get("confidence")] += 1
+            result = calendar_result(p)
+            days = result.get("schedule") or []
+            days_with_work[(sum(1 for d in days if d.get("tasks")), len(days))] += 1
+            no_explanation += not str(result.get("explanation") or "").strip()
+        print(f"  {label}: confidence values {dict(values)}; (days with work, days) {dict(days_with_work)}; "
+              f"without an explanation (when the banner would show the confidence): {no_explanation}")
+        out[label] = {str(k): v for k, v in values.items()}
+    return out
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -182,6 +204,7 @@ def main() -> None:
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(rows, account)
     item1(sb, account)
+    item2(rows)
 
 
 if __name__ == "__main__":
