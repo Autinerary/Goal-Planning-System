@@ -225,3 +225,57 @@ conditions.
 - **`tool_outcomes`:** 0 rows. It is the learned reward the agent blends in.
 
 Nothing was changed.
+
+## Item 3. "Was this useful?" feedback
+
+**A feedback path already exists, so a second one was not built.**
+
+**Wording and placement (the existing one):**
+- **Where:** the Milestone View (`/milestones`), in the Tools panel. It shows
+  up to 8 recommended tools, taken from the per-milestone recommendations and
+  the pit stop shelf without repeats.
+- **What each tool shows:**
+  - the tool's name and type;
+  - "What this helps with";
+  - **Wishlist**, **Currently Using** and **Open**;
+  - below a rule, **"How well did it help?"** with 1 to 5 stars
+    (`frontend/app/milestones/page.tsx:536`).
+- **What it stores:**
+  - a row in `ratings` (`user_id`, `resource_id`, `overall_score`,
+    `created_at`), through `POST /api/me/resource-rating`;
+  - one per tool per person: rating again replaces the score
+    (`onConflict: 'resource_id,user_id'`);
+  - no feature flag: it is always on.
+
+Against what was asked for (Yes or No, once per tool per person, with
+`user_id`, `path_id`, `tool_id`, `answer`, `created_at`), it records a 1–5
+score instead of Yes or No, and **no path id**.
+
+**What's wrong with it.** Found by reading the code; not exercised in a
+browser, because that would write to production.
+
+1. **Ratings can't be tied to a recommendation.** There's no path id, and a
+   score is about the resource, not the recommendation that showed it. The
+   rating can't be traced back to the path the tool came from.
+2. **Most stars save nothing, silently.** The route refuses resources that
+   aren't approved (`route.ts:81`, 400 "Resource is not available for
+   rating"). 82% of stored recommendations are rejected seed rows (item 0).
+   The page doesn't read the response (`page.tsx:170`), so the stars light up
+   and nothing is saved.
+3. **The stars shown belong to a slot, not a tool.**
+   - The page keeps its star state per "barrier" slot, `b1` to `b5`,
+     assigned as milestone number modulo 5 (pit stop tools always get `b1`),
+     and saves it in `localStorage` (`page.tsx:80`, `262`, `473`).
+   - Rating one tool lights up the same stars on every other tool in that
+     slot, though only the rated tool is sent.
+4. **Few people see it.** The milestone pages have been opened 3 times ever
+   (the Path Planning audit, 13 October).
+5. **The agent reads every rating.** Seed personas' included (item 2).
+
+Changing this control is a behaviour change the request didn't ask for, so
+it is left for a decision. What fixing it would take:
+- **Add a path id** to what is stored: a column on `ratings`, or a small
+  table like `milestone_ratings`.
+- **Tell the person** when a rating isn't saved.
+- **Keep the star state per tool.**
+- **Count only real ratings** in the agent.
