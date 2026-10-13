@@ -86,6 +86,12 @@ class ConditionRuleTests(unittest.TestCase):
         adhd = run_agent(['Attention Deficit Hyperactivity Disorder'])
         lengths = [t['adjustedDuration'] for d in adhd['schedule'] for t in d['tasks']]
         self.assertTrue(lengths and max(lengths) <= 25, lengths)   # ADHD: at most 25 minutes
+        ocd = run_agent(['Obsessive-compulsive and related conditions'])
+        lengths = [t['adjustedDuration'] for d in ocd['schedule'] for t in d['tasks']]
+        self.assertTrue(lengths and min(lengths) == 60, lengths)   # OCD: 1.5 x 40 minutes
+        both = run_agent(['OCD', 'ADHD'])
+        lengths = [t['adjustedDuration'] for d in both['schedule'] for t in d['tasks']]
+        self.assertTrue(lengths and set(lengths) == {37}, lengths)   # capped at 25, then 1.5 x
         autism = run_agent(['ASD'])
         self.assertEqual(autism['rules_applied'].get('buffer_between_tasks'), 15)
         nobody = run_agent(['Anxiety'])

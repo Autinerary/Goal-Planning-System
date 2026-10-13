@@ -77,3 +77,21 @@ with a stored path, counted on each one's latest path:
   - ADHD tasks are capped at 25 minutes;
   - autism adds a 15-minute buffer;
   - bipolar makes every day flexible.
+
+**Found while testing: OCD's extra time never applied.**
+- **The bug:** the OCD rule set gives tasks 1.5 × their time. But the rules
+  are combined by copying task-length caps, transitions, buffers and true or
+  false flags, and the 1.5 is none of those. So it was never passed on, and
+  the schedule never saw it.
+- **The evidence:** none of the 96 stored paths has it in `rules_applied`.
+  Only the OCD rule set's flags ever arrived, and nothing in scheduling reads
+  them.
+- **The fix:** a second commit on this branch carries `time_for_completion`
+  through, taking the larger value. It is separate so it can be left out.
+- **Tested:**
+  - an OCD task of 40 minutes becomes 60;
+  - with ADHD as well, it is capped at 25 first, then becomes 37.
+- **Also unused, left as it was:** OCD's `checking_buffer`, autism's
+  `max_transitions` and `preferred_task_length`, and most flags (for example
+  `sensory_breaks`, `movement_breaks`). They are stored in `rules_applied`,
+  but nothing in scheduling reads them.

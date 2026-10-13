@@ -275,6 +275,16 @@ class CalendarOptimizationAgent(BaseAgent):
                         barrier_rules['buffer_between_tasks'],
                         combined.get('buffer_between_tasks', 5)
                     )
+
+                # OCD's extra time. It is a number, so the boolean pass below
+                # never carried it, and _schedule_day never saw it: until now
+                # the 1.5x was written and applied to nobody (none of the 96
+                # stored paths has it, 13 October 2026).
+                if 'time_for_completion' in barrier_rules:
+                    combined['time_for_completion'] = max(
+                        barrier_rules['time_for_completion'],
+                        combined.get('time_for_completion', 1.0)
+                    )
                 
                 # Add all boolean flags
                 for key, value in barrier_rules.items():
