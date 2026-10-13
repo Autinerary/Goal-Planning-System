@@ -41,8 +41,10 @@ def payload():
 class Query:
     def __init__(self, db, table):
         self.db, self.table, self.filters, self.op, self.row, self.patch = db, table, {}, "select", None, None
+        self.cols = "*"
 
-    def select(self, *_):
+    def select(self, cols="*", *_):
+        self.cols = cols
         return self
 
     def eq(self, k, v):
@@ -67,6 +69,8 @@ class Query:
         rows = self.db.tables.setdefault(self.table, [])
         if self.table == "adaptation_outcomes" and self.db.missing_columns:
             raise RuntimeError("column adaptation_outcomes.suggestion_id does not exist")
+        if self.table == "adaptation_outcomes" and self.db.missing_helped and "helped_" in str(getattr(self, "cols", "")):
+            raise RuntimeError("column adaptation_outcomes.helped_first does not exist")
         if self.op == "insert":
             if self.table == "adaptation_outcomes" and any(
                     r.get("user_id") == self.row["user_id"] and r.get("suggestion_id") == self.row.get("suggestion_id")
@@ -82,8 +86,8 @@ class Query:
 
 
 class FakeDB:
-    def __init__(self, missing_columns=False):
-        self.missing_columns = missing_columns
+    def __init__(self, missing_columns=False, missing_helped=False):
+        self.missing_columns, self.missing_helped = missing_columns, missing_helped
         self.tables = {
             "user_paths": [{"user_id": USER, "path_id": "p1", "is_active": True,
                             "created_at": (NOW - timedelta(days=5)).isoformat(), "payload": payload()}],

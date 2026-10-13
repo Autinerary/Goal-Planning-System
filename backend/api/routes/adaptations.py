@@ -1,7 +1,14 @@
 """Adaptation offers: a suggested change, and only Accept applies it (STEP 73).
 
-  GET  /api/adaptations/{pathId}                  the suggestions for this path
+  GET  /api/adaptations/{pathId}                  the suggestions for this path, and the
+                                                  "Did that help?" questions due
   POST /api/adaptations/{suggestionId}/respond    { pathId, response: 'accept' | 'not_now' }
+  POST /api/adaptations/{suggestionId}/helped     { pathId, answer: 'yes' | 'no' }
+
+"Did that help?" (STEP 74) is asked once after Accept, and once more on the
+first visit to the Path at least SECOND_ASK_DAYS days after accepting. There
+is no scheduled job: which question is due is worked out when the Path asks
+for its suggestions. Both answers are kept on the offer's row.
 
 Adaptation never changed anyone's plan (8 October audit). Now, for the
 person's own path, Reflection Analysis's analysis (computed on read) goes
@@ -18,7 +25,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -32,6 +39,8 @@ router = APIRouter()
 
 TABLE = "adaptation_outcomes"
 OFFER_COLUMNS = "suggestion_id, rule_fired, path_id, milestone_id, change, offered_at, accepted_at, dismissed_at"
+HELPED_COLUMNS = "helped_first, helped_first_at, helped_second, helped_second_at"
+SECOND_ASK_DAYS = 7
 
 
 def enabled() -> bool:
@@ -69,9 +78,39 @@ def _done_ids(sb, user_id: str) -> List[str]:
 
 
 def _offers(sb, user_id: str, path_id: str) -> Dict[str, Dict[str, Any]]:
-    rows = (sb.table(TABLE).select(OFFER_COLUMNS).eq("user_id", user_id).eq("path_id", path_id)
-            .execute().data or [])
+    """The person's offers on this path, with the "Did that help?" answers
+    when STEP 74 is applied (without them, no question is asked)."""
+    query = lambda cols: (sb.table(TABLE).select(cols).eq("user_id", user_id).eq("path_id", path_id)
+                          .execute().data or [])
+    try:
+        rows = query(f"{OFFER_COLUMNS}, {HELPED_COLUMNS}")
+        for r in rows:
+            r["_asks"] = True
+    except Exception:
+        rows = query(OFFER_COLUMNS)
     return {str(r["suggestion_id"]): r for r in rows if r.get("suggestion_id")}
+
+
+def _parse(value: Any) -> Optional[datetime]:
+    from core.reflection_analysis import parse_ts
+    return parse_ts(value)
+
+
+def ask_due(row: Dict[str, Any], now: Optional[datetime] = None) -> Optional[str]:
+    """'first', 'second' or None: which "Did that help?" this accepted offer is due.
+
+    first: once accepted, until answered, for SECOND_ASK_DAYS days.
+    second: from SECOND_ASK_DAYS days after accepting, until answered.
+    """
+    if not row.get("_asks"):
+        return None
+    accepted = _parse(row.get("accepted_at"))
+    if accepted is None:
+        return None
+    now = now or datetime.now(timezone.utc)
+    if now - accepted >= timedelta(days=SECOND_ASK_DAYS):
+        return "second" if not row.get("helped_second") else None
+    return "first" if not row.get("helped_first") else None
 
 
 def _shown(s: Dict[str, Any]) -> Dict[str, Any]:
@@ -121,7 +160,15 @@ async def get_suggestions(path_id: str, user_id: str = Depends(current_user_id))
             shown.append(_shown(s))
         elif not row.get("accepted_at") and not row.get("dismissed_at"):
             shown.append(_shown(s))
-    return {"available": True, "offers": shown}
+    asks = []
+    for sid, row in offered.items():
+        due = ask_due(row)
+        if due:
+            change = row.get("change") or {}
+            asks.append({"id": sid, "ask": due, "milestone_id": row.get("milestone_id"),
+                         "milestone_name": change.get("milestone_name") or "This step",
+                         "text": change.get("text") or "", "accepted_at": row.get("accepted_at")})
+    return {"available": True, "offers": shown, "asks": asks}
 
 
 class ResponseIn(BaseModel):
@@ -166,3 +213,28 @@ async def respond(suggestion_id: str, body: ResponseIn, user_id: str = Depends(c
     _forget_cached(body.pathId)
     mark("accepted_at")
     return {"answered": True, "accepted": True}
+
+
+class HelpedIn(BaseModel):
+    pathId: str = Field(..., min_length=1, max_length=100)
+    answer: str = Field(..., min_length=2, max_length=3)
+
+
+@router.post("/{suggestion_id}/helped")
+async def helped(suggestion_id: str, body: HelpedIn, user_id: str = Depends(current_user_id)):
+    """The answer to whichever "Did that help?" is due for this accepted offer."""
+    if body.answer not in ("yes", "no"):
+        raise HTTPException(status_code=422, detail="The answer is yes or no.")
+    sb = _client()
+    try:
+        row = _offers(sb, user_id, body.pathId).get(suggestion_id)
+    except Exception:
+        raise HTTPException(status_code=503, detail="Suggestions are not available yet.")
+    if row is None:
+        raise HTTPException(status_code=404, detail="That suggestion was not offered to you.")
+    due = ask_due(row)
+    if due is None:
+        raise HTTPException(status_code=409, detail="No question is due for this change.")
+    sb.table(TABLE).update({f"helped_{due}": body.answer, f"helped_{due}_at": _now()}) \
+        .eq("user_id", user_id).eq("suggestion_id", suggestion_id).execute()
+    return {"saved": True, "ask": due, "answer": body.answer}

@@ -232,3 +232,50 @@ until it reloads it. Every other write to a path has the same limit.
   - a signed-in person reads nothing.
 - **No adaptation was applied to any real path:** fixtures and local
   databases only.
+
+## Item 4. "Did that help?"
+
+**Asked twice, with no scheduled job:**
+- **First:** once the person accepts, within the same card: **"Did that
+  help?"**, with **Yes** and **No**.
+  - **If they don't answer then,** the next Path visit within 7 days shows it
+    again as its own card: **"A change you accepted"**, "For" and the step's
+    name, the change, and "Did that help?".
+- **Second:** on the first Path visit 7 days or more after accepting, once
+  more, as a card: **"A change you accepted"**, "A week ago you accepted this
+  change for" and the step's name, the change, and **"Did it help?"** with
+  **Yes** and **No**.
+  - **If the first was never answered,** only the second is asked.
+- **After an answer:** "Thank you."
+- **How it's worked out:** `GET /api/adaptations/{pathId}` decides which
+  question is due each time the Path asks for its suggestions (`ask_due`).
+  Nothing runs on a timer.
+
+**Both answers kept** on the offer's row in `adaptation_outcomes`: STEP 74,
+`backend/database/migrations/2026_adaptation_helped.sql`, written, not
+applied.
+- `helped_first` and `helped_first_at`;
+- `helped_second` and `helped_second_at`.
+
+**The checks:**
+- answers are yes or no;
+- only an accepted offer can have one;
+- `POST /api/adaptations/{suggestionId}/helped` takes `{ pathId, answer }` and
+  stores whichever answer is due;
+- when none is due, it answers 409.
+
+**Before STEP 74 is applied,** offers still work and no question is asked.
+
+**Tested:**
+- **The route** (`tests/test_adaptation_helped.py`, 5, on an in-memory
+  database):
+  - when each question is due;
+  - asked after Accept, then a week later, each once, both answers kept;
+  - a first answer never given leaves only the second;
+  - only after accepting, never after Not now, and only yes or no;
+  - offers still work before STEP 74.
+- **The migration,** on a throwaway local Postgres:
+  - applies twice;
+  - an answer before accepting is refused;
+  - both answers are kept;
+  - an answer other than yes or no is refused.
