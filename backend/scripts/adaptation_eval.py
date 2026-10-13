@@ -3,9 +3,10 @@
 Which of Adaptation's rules can fire on today's data, and for how many real
 people each would (core/adaptation_rules.py): run on each person's own
 analysis (core/reflection_analysis.py), and named on their active path. And,
-labelled as a what-if, how many the two completion rules would reach if
-completions alone counted as data (they don't: the analysis needs a journal
-entry or a rating). Then the offers recorded so far, when STEP 73 is applied.
+labelled as a what-if, how many the rules would reach if the completion rate
+alone counted as data, for everyone with a path (it doesn't: the analysis
+needs a journal entry or a rating), and how many of those have completed
+any step. Then the offers recorded so far, when STEP 73 is applied.
 
 Read-only: it only selects, and nothing is offered, recorded or applied. It
 prints counts, never ids, emails or anything people typed.
@@ -85,19 +86,24 @@ def main() -> None:
             done = [str(x["milestone_id"]) for x in c if (x.get("kind") or "completed") == "completed"]
             payload = ra._payload(active.get("payload"))
             named.update({s["rule"] for s in rules.suggestions(analysis, payload, str(active.get("path_id")), done)})
-            # What-if: completions alone as data. The analysis doesn't allow it.
+            # What-if: the completion rate alone as data. The analysis doesn't allow it.
             if analysis["status"] == "no_data":
                 completion = ra.completion_part(active, [x for x in c if (x.get("kind") or "completed") == "completed"], now)
                 pretend = {"version": ra.VERSION, "status": "ok", "completion": completion,
                            "ratings": {"low": []}, "concerns": []}
-                what_if.update({s["rule"] for s in rules.suggestions(pretend, payload, str(active.get("path_id")), done)})
+                what_if["(people with a path)"] += 1
                 what_if["(rate known)"] += completion["rate_status"] == "known"
+                what_if["(with a completed step)"] += completion["completed"] > 0
+                what_if["(rate 0)"] += completion["rate"] == 0
+                what_if.update({s["rule"] for s in rules.suggestions(pretend, payload, str(active.get("path_id")), done)})
 
     print(f"\n== Real accounts: {len(real)}; analysis: {dict(status)}")
-    print(f"  {'rule':20} {'fires for':>10} {'names a step for':>17}  {'what-if, completions as data':>30}")
+    print(f"  {'rule':20} {'fires for':>10} {'names a step for':>17}  {'what-if: the rate alone as data':>32}")
     for rule in RULES:
-        print(f"  {rule:20} {fired[rule]:>10} {named[rule]:>17}  {what_if[rule]:>30}")
-    print(f"  what-if: completion rate known for {what_if['(rate known)']} of the people with completions and no data")
+        print(f"  {rule:20} {fired[rule]:>10} {named[rule]:>17}  {what_if[rule]:>32}")
+    print(f"  what-if, people with a path and no data: {what_if['(people with a path)']}; rate known "
+          f"{what_if['(rate known)']}; rate 0 {what_if['(rate 0)']}; with a completed step on that path "
+          f"{what_if['(with a completed step)']}")
     print(f"\n== Offers: {offers_note or str(len(offer_rows)) + ' rows'}"
           + (f"; accepted {sum(1 for o in offer_rows if o.get('accepted_at'))}, "
              f"not now {sum(1 for o in offer_rows if o.get('dismissed_at'))}, "
