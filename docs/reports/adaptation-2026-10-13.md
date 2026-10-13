@@ -279,3 +279,70 @@ applied.
   - an answer before accepting is refused;
   - both answers are kept;
   - an answer other than yes or no is refused.
+
+## Item 5. Run log, and what can fire today
+
+`python -m scripts.adaptation_eval` (from backend/), run on 13 October against
+production.
+- **Read-only:** nothing is offered, recorded or applied.
+- **Same code as the app:** for every real account, it runs Reflection
+  Analysis's analysis and Adaptation's rules on that person's own rows, and
+  names steps on their active path.
+- **The run log:** `core/evaluation_runs.py` is called at the start and the
+  end, never through the Supabase client.
+
+**Which rules can fire on today's data:** 113 real accounts. Every analysis
+is "no data": no journal entries, no milestone ratings.
+
+| Rule | Fires for | Names a step for | What-if: if the completion rate alone counted |
+| --- | --- | --- | --- |
+| `behind_schedule` | **0** | **0** | 61 |
+| `ahead_of_schedule` | **0** | **0** | 0 |
+| `rated_low` | **0** | **0** | 0 (there are no ratings) |
+| `stress` | **0** | **0** | 0 (there are no journal entries) |
+
+**The what-if is not what the code does.** The analysis needs a journal entry
+or a rating, so these 61 get nothing.
+- **Who:** the 61 real people with a path. Their completion rate is known
+  for all 61 (their plans are older than their first estimates), and it is
+  **0 for 54**. Only 7 have completed a step on that path.
+- **What it would mean:** if the rate alone were enough to act on, everyone
+  with a plan would be told they are behind. Two causes:
+  - almost nobody marks steps done;
+  - path planning's estimates are about 2 days a step (Path Planning audit,
+    13 October).
+- **Why the gate matters:** the "no data" gate is what keeps that from
+  happening. And the estimates themselves are worth a look before this flag
+  is turned on.
+
+**Offers recorded:** none. STEP 73 and STEP 74 are not applied, and the flags
+are off.
+
+**One row**, logged in a local Postgres:
+
+```json
+{
+  "run_id": "1f91f556-8553-4617-8df1-4d0eff6c63c0",
+  "script": "scripts.adaptation_eval",
+  "git_commit": "df23618",
+  "started_at": "2026-10-13T04:03:44.113757-04:00",
+  "ended_at": "2026-10-13T04:03:44.124745-04:00",
+  "inputs": {
+    "analysis_version": "reflection-analysis/1",
+    "real_accounts": 113,
+    "rows": {"reflections": 0, "milestone_ratings": 0, "race_progress": 94, "user_paths": 96, "adaptation_offers": 0},
+    "settings": {"low_completion": 0.5, "positive_momentum": 0.8, "keep_tasks": 3, "max_offers": 3,
+                 "rules": ["behind_schedule", "ahead_of_schedule", "rated_low", "stress"]}
+  }
+}
+```
+
+**To run it,** from backend/:
+
+```
+EVALUATION_RUNS_DSN=postgresql://... python -m scripts.adaptation_eval
+```
+
+**No bandit or learning policy** was added:
+- the old threshold reader (`best_rule_threshold`) still has no caller;
+- the journal no longer feeds it fired rules.
