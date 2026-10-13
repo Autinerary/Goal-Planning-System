@@ -271,3 +271,61 @@ many such people there are is in item 4.
 - nothing computed is stored as nothing;
 - a known rate is stored as it is;
 - the reflection step reports no confidence.
+
+## Item 4. Evaluation
+
+`python -m scripts.reflection_analysis_eval` (from backend/), run on
+13 October against production.
+- **Read-only.** It reads each table once and runs the same pure analysis the
+  app runs, for every real account.
+- **Counts only.** Journal text would be read to find concerns, never
+  printed; there was none.
+
+**Real accounts: 113.**
+
+| | People | Rows |
+| --- | --- | --- |
+| Any journal entry | **0** | 0 |
+| Any milestone rating | **0** | 0 |
+| Either | **0** | |
+| The analysis returns **"no data"** | **113 of 113** | |
+| Completed milestones, but no entries or ratings | 7 | 84 completions |
+| A stored path | 61 | |
+
+**So Adaptation has nothing to act on for anyone today.**
+- **What it would take:** one journal entry, or one milestone rating, puts a
+  person into "ok".
+- **If completions counted as data,** 7 real people would have an analysis,
+  but the request defines "no data" by entries and ratings.
+- **Why nobody rates:** the milestone pages have been opened 3 times ever,
+  the last on 10 October, before the rating went live (Path Planning audit,
+  13 October).
+
+**Run log.** `core/evaluation_runs.py` is called at the start (once the
+inputs are read) and at the end, never through the Supabase client. One row,
+logged in a local Postgres:
+
+```json
+{
+  "run_id": "f3989f98-60b7-4bbe-b298-c2d09a37718f",
+  "script": "scripts.reflection_analysis_eval",
+  "git_commit": "ddc81fe",
+  "started_at": "2026-10-13T03:47:27.314730-04:00",
+  "ended_at": "2026-10-13T03:47:27.318004-04:00",
+  "inputs": {
+    "analysis_version": "reflection-analysis/1",
+    "real_accounts": 113,
+    "rows": {"reflections": 0, "milestone_ratings": 0, "race_progress": 94,
+             "user_paths": 96, "adaptation_outcomes": 0},
+    "settings": {"low_rating": 2, "weeks": 8, "recent_days": 14, "min_expected": 2}
+  }
+}
+```
+
+The rows are all accounts' rows; the analysis then keeps the 113 real ones.
+
+**To run it,** from backend/:
+
+```
+EVALUATION_RUNS_DSN=postgresql://... python -m scripts.reflection_analysis_eval
+```
