@@ -346,3 +346,31 @@ EVALUATION_RUNS_DSN=postgresql://... python -m scripts.adaptation_eval
 **No bandit or learning policy** was added:
 - the old threshold reader (`best_rule_threshold`) still has no caller;
 - the journal no longer feeds it fired rules.
+
+## Checked in a browser
+
+**The setup:**
+- **The flags:** the app ran locally with `NEXT_PUBLIC_ADAPTATION_OFFERS_ENABLED=true`.
+- **The page:** `SuggestedChanges` was rendered on a throwaway page (never
+  committed), signed out.
+- **The backend:** a mock backend answered with two suggestions and one
+  week-later question.
+- **Nothing escaped:** every request that wasn't a read, or a call to the
+  mock, would have been stopped. None was attempted.
+
+**The run** (screenshot kept locally, not in the repository):
+
+| Step | The card showed | Request sent |
+| --- | --- | --- |
+| On load | The two cards and the third, with the wording in item 3 | |
+| Accept | "Done. Your plan has changed." then "Did that help?" | `respond` with `accept` |
+| Yes | "Thank you." | `helped` with `yes` |
+| Not now, on the second card | "Okay. Your plan stays as it is, and this won't be suggested again." | `respond` with `not_now` |
+| No, on the week-later "Did it help?" | "Thank you." | `helped` with `no` |
+
+**No page errors.**
+
+**Not checked:** the cards on the real Path page, signed in. Doing that
+would have needed a production account's password to be set, which is a
+write. The placement is the one line in `app/path/page.tsx`, under "Your next
+step", and it builds.
