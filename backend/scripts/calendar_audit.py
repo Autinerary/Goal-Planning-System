@@ -20,6 +20,14 @@ task was added: the view starts at 'average', so only 'worst' or 'best' is a
 choice), setup_energy events, calendar_outcomes, milestone ratings and
 reflections. Names of keys and counts only.
 
+Item 4, the run log: core/evaluation_runs.py is called at the start and the
+end, but never with the Supabase client, so it writes only to the Postgres
+named by EVALUATION_RUNS_DSN (a run against production writes nothing
+there); without it the run isn't logged, and says so. It records counts and
+hashes only: tasks scheduled and calendar_tasks, the rules applied per rule
+name (as stored, and before and after for real accounts), the condition
+map's hash and the real feedback answers. No user ids, emails or free text.
+
 Accounts are split with the Vector deck's email rules, so "real" means the
 same as in the other audits.
 
@@ -36,7 +44,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from core.agents.calendar_optimization_agent import rule_keys  # noqa: E402
-from core.condition_taxonomy import match_keys  # noqa: E402
+from core.condition_taxonomy import TAXONOMY_VERSION, match_keys  # noqa: E402
+from core.evaluation_runs import RunLog  # noqa: E402
 from database.supabase_client import get_supabase  # noqa: E402
 from scripts.reembed_pattern_users import fetch_all  # noqa: E402
 from scripts.vector_evaluation_pull import is_synthetic, is_team_test, list_all_users  # noqa: E402
@@ -193,6 +202,43 @@ def item2(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     return out
 
 
+SCRIPT = "scripts.calendar_audit"
+
+
+def run_inputs(sb, rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict[str, Any]:
+    """What decides this run's result, for evaluation_runs. Counts and hashes only."""
+    current = [r for r in rows if not r.get("is_legacy")]
+    scheduled = [sum(len(d.get("tasks") or []) for d in calendar_result(payload_of(r)).get("schedule") or [])
+                 for r in current]
+    applied = Counter()
+    for r in current:
+        flags = calendar_result(payload_of(r)).get("rules_applied") or {}
+        applied.update(rule for rule, flag in SIGNATURE.items() if flags.get(flag))
+    people = latest_paths(rows, account)
+    labels = [(payload_of(r).get("userProfile") or {}).get("barrierTypes") or [] for r in people]
+    tasks = fetch_all(sb, "calendar_tasks", "user_id")
+    try:
+        answers = fetch_all(sb, "schedule_feedback", "user_id, answer")
+        feedback: Any = dict(Counter(a["answer"] for a in answers if account(a["user_id"]) == "real"))
+    except Exception:
+        feedback = "table not present (STEP 72 not applied)"
+    return {
+        "paths": len(rows),
+        "is_legacy_excluded": len(rows) - len(current),
+        "tasks": {"scheduled_current_paths": sum(scheduled), "per_path_max": max(scheduled or [0]),
+                  "calendar_tasks": len(tasks),
+                  "calendar_tasks_real_accounts": sum(1 for t in tasks if account(t["user_id"]) == "real")},
+        "rules_applied_current_paths": dict(applied),
+        "rules_real_accounts": {
+            "people": len(people),
+            "before": dict(Counter(k for x in labels for k in old_rule_keys(x))),
+            "after": dict(Counter(k for x in labels for k in rule_keys(x))),
+        },
+        "condition_map_hash": TAXONOMY_VERSION,
+        "real_feedback_answers": feedback,
+    }
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -200,11 +246,16 @@ def main() -> None:
         return
     account = accounts(sb)
     rows = fetch_all(sb, "user_paths", "user_id, path_id, is_legacy, created_at, payload")
+    run_log = RunLog()  # never the Supabase client: EVALUATION_RUNS_DSN or nothing
+    run_id = run_log.start(SCRIPT, run_inputs(sb, rows, account))
+    print(f"run log: {'run ' + run_id + ' in ' + str(run_log.where) if run_id else 'not logged (EVALUATION_RUNS_DSN not set)'}")
     print(f"== Stored paths: {len(rows)}  legacy {sum(1 for r in rows if r.get('is_legacy'))}  "
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(rows, account)
     item1(sb, account)
     item2(rows)
+    run_log.finish()
+    print(f"\nrun log: {'finished ' + run_id if run_id else 'not logged'}")
 
 
 if __name__ == "__main__":
