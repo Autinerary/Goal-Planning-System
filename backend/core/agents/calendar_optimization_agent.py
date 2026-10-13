@@ -3,6 +3,15 @@ Agent 6: Calendar Optimization Agent
 Schedules tasks realistically based on energy and patterns
 SIMULATION MODE: Uses rule-based scheduling with barrier-aware heuristics
 
+Energy is a default, not the person's. Each day's energy level comes from the
+day of the week (day_themes below: Tuesday high, Friday and Sunday low, ...),
+or is 'flexible' for everyone the bipolar rules apply to. Nothing stored says
+anything about a person's own energy by day or time (13 October 2026: no
+setup energy answers, no energy chosen in the Calendar, no calendar outcomes,
+reflections or milestone ratings). So every day says where its energy came
+from (energySource), the result says it isn't personal (energyPersonal), and
+the explanation is told not to claim otherwise.
+
 Learning: every reflection feeds a reward into `calendar_outcomes` keyed by
 (user_id, time_bucket) where time_bucket is a coarse string like
 "high_energy_high" or "recovery_low". On the next optimization we pull the
@@ -205,6 +214,9 @@ class CalendarOptimizationAgent(BaseAgent):
                 system=(
                     "You are a productivity coach for neurodivergent users. "
                     "In one warm sentence (max 40 words), summarize how you scheduled their week. "
+                    "Each day's energy level is a default set by the day of the week, the same "
+                    "for everyone: never say the schedule follows the user's own energy, rhythm "
+                    "or best times. "
                     + llm.USER_TEXT_RULE
                 ),
                 user=(
@@ -241,6 +253,9 @@ class CalendarOptimizationAgent(BaseAgent):
 
         return {
             'schedule': scheduled_days,
+            # Not this person's energy (see the module docstring).
+            'energySource': 'condition' if rules.get('flexible_scheduling') else 'weekday',
+            'energyPersonal': False,
             'scenarios': scenarios,
             'rules_applied': rules,
             'unscheduled_tasks': remaining_tasks,
@@ -310,8 +325,10 @@ class CalendarOptimizationAgent(BaseAgent):
             
             # Adjust energy based on rules
             energy = theme_data['energy']
+            source = 'weekday'
             if rules.get('flexible_scheduling'):
                 energy = 'flexible'
+                source = 'condition'
             
             # Determine day type
             if i == 0:
@@ -331,6 +348,7 @@ class CalendarOptimizationAgent(BaseAgent):
                 'theme': theme_data['theme'],
                 'focus': theme_data['focus'],
                 'energy_level': energy,
+                'energy_source': source,
                 'motivation': f"Today's focus: {theme_data['focus'].replace('_', ' ').title()}"
             })
         
@@ -396,6 +414,10 @@ class CalendarOptimizationAgent(BaseAgent):
             'theme': day_type['theme'],
             'type': day_type['type'],
             'energyLevel': energy,
+            # Where this day's energy level came from: 'weekday' (the same
+            # for everyone on that day of the week) or 'condition' (the
+            # bipolar rules). Never the person's own energy: nothing records it.
+            'energySource': day_type.get('energy_source', 'weekday'),
             # Stable bucket key the learning loop aggregates against.
             'time_bucket': f"{day_type['type']}_{energy}",
             'motivation': day_type['motivation'],

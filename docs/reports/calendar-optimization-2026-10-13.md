@@ -95,3 +95,74 @@ with a stored path, counted on each one's latest path:
   `max_transitions` and `preferred_task_length`, and most flags (for example
   `sensory_breaks`, `movement_breaks`). They are stored in `rules_applied`,
   but nothing in scheduling reads them.
+
+## Item 1. Energy levels
+
+**Each day's energy level comes from the day of the week**, the same for
+everyone:
+- Monday, Wednesday and Thursday are medium;
+- Tuesday is high;
+- Friday and Sunday are low;
+- Saturday "varies".
+
+The bipolar rules make every day "flexible".
+
+**What per-person signals are stored.** Counts are of the 113 real
+accounts' profiles, unless a row says otherwise:
+
+| Signal | What it is | Real accounts with it | Energy by day or time? |
+| --- | --- | --- | --- |
+| `profiles.preferences.reminders.time` | When the daily reminder email goes out | 69, **all "09:00"**, the value it starts at | No: when to send email, not energy |
+| `profiles.preferences.setupEnergy` and `setup_energy` events | "How much energy do you have for this today?" at setup (since 12 October) | **0** | One answer about one day, and nobody has given it yet |
+| The Calendar's energy view (Low, Medium, High) | Chosen in the Calendar for the rest of the day | Kept in the browser only (`localStorage`). `calendar_tasks.scenario` records the view when a task is added: 2 rows from real accounts, both "average", which is where the view starts. **0 chosen** | Not stored |
+| `life_stats_checkins` | Daily mood, 1–10, self-reported | 23 people, 33 rows | Mood, not energy, and one or two days per person |
+| `life_stats_snapshots.energy` | A score computed from app activity (days active in the last week, streak) | 56 people, 1,933 rows | **Not reported by the person**: it counts visits |
+| `calendar_outcomes`, `milestone_ratings`, `reflections` | Feedback the schedule could learn from | 0, 0, 0 | — |
+| Other preference keys (age range, tech comfort, view, spirit animals, reminders, ...) | | | No energy or time of day |
+
+**No real per-person energy signal exists, so none was used.** Instead the
+output is marked as a generic default, and the app no longer implies
+otherwise:
+
+- **The agent** (`core/agents/calendar_optimization_agent.py`):
+  - every day carries `energySource`: `'weekday'`, or `'condition'` for the
+    bipolar rules;
+  - the result carries `energySource` and `energyPersonal: false`;
+  - the explanation sentence's prompt now says: "Each day's energy level is a
+    default set by the day of the week, the same for everyone: never say the
+    schedule follows the user's own energy, rhythm or best times."
+- **The app.** The only place a schedule's energy reaches anyone is the
+  Path's guide.
+  - **Who sees it:** 7 real accounts chose two spirit animals, one for fast
+    days and one for slow days. The other 62 use one. The guide picks the
+    slow animal on the weekday's low days.
+  - **The change:** its label (the icon's tooltip) said "Slow Day" or "Fast
+    Day", as if the app knew the person's day. It now says "Slow day (default
+    for Fridays)", or "Fast day (default)" for the bipolar rules
+    (`frontend/lib/spiritAnimal.ts`). Schedules made before this change have
+    no `energySource` and are treated as weekday defaults too.
+  - **Unchanged:** which animal shows.
+  - **Elsewhere:** the Calendar page shows no day energy from the agent, only
+    its tasks, and the energy buttons there are the person's own choice.
+- **Tests:** `tests/test_calendar_energy.py` (3) and
+  `frontend/lib/spiritAnimal.test.mjs`.
+
+**What onboarding would need to ask to make it personal** (not added, as
+asked):
+1. "When in the day do you usually have the most energy?"
+   - Morning
+   - Midday
+   - Afternoon
+   - Evening
+   - It changes from day to day
+2. "Are some days of the week usually harder?"
+   - Optional; choose any of Monday to Sunday, or "Not really".
+
+**How the agent could use the answers:**
+- Store them in `profiles.preferences` (for example `energyPattern`).
+- Harder days become low-energy, recovery days.
+- High-priority tasks go into the best time of day.
+- The weekday default stays the fallback for anyone who skips the questions.
+
+"It changes from day to day" is a real answer, and should keep the defaults
+rather than guess.

@@ -12,6 +12,14 @@ labels on its latest path, and the rule sets that apply to them,
     canonicalisation Pattern Recognition's live filter uses;
   * and which rule sets ran when that path was generated (rules_applied).
 
+Item 1, the per-person signals stored that could set someone's energy, for
+real accounts: profiles.preferences (key names and the reminder time and
+setup energy values), life_stats check-ins (mood) and snapshots (an energy
+score inferred from activity), calendar_tasks (the energy view chosen when a
+task was added: the view starts at 'average', so only 'worst' or 'best' is a
+choice), setup_energy events, calendar_outcomes, milestone ratings and
+reflections. Names of keys and counts only.
+
 Accounts are split with the Vector deck's email rules, so "real" means the
 same as in the other audits.
 
@@ -114,6 +122,55 @@ def item0(rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict[str
     return {"people": len(people), "has": dict(has), "before": dict(before), "after": dict(after), "ran": dict(ran)}
 
 
+def count_rows(sb, table: str) -> int:
+    try:
+        return sb.table(table).select("*", count="exact").limit(1).execute().count or 0
+    except Exception:
+        return -1
+
+
+def item1(sb, account: Callable[[Any], str]) -> Dict[str, Any]:
+    print("\n== Item 1: per-person signals stored (real accounts)")
+    out: Dict[str, Any] = {}
+    profiles = fetch_all(sb, "profiles", "id, preferences")
+    real = [p for p in profiles if account(p["id"]) == "real"]
+    prefs = [p.get("preferences") if isinstance(p.get("preferences"), dict) else {} for p in real]
+    print(f"  profiles of real accounts: {len(real)}; with any preferences: {sum(1 for x in prefs if x)}")
+    print(f"    preference keys, by how many real accounts have them: "
+          f"{dict(Counter(k for x in prefs for k in x).most_common())}")
+    times = Counter(str((x.get('reminders') or {}).get('time')) for x in prefs
+                    if isinstance(x.get('reminders'), dict) and (x['reminders'].get('enabled') or x['reminders'].get('time')))
+    print(f"    reminder time (when they want reminders, not their energy): {dict(times)}")
+    print(f"    setup energy (one answer, about the day of setup): "
+          f"{dict(Counter(x.get('setupEnergy') for x in prefs if x.get('setupEnergy')))}")
+    out["reminder_times"] = dict(times)
+    # Who sees the weekday's energy at all: the Path's guide picks the fast or
+    # the slow animal from it when the person chose two (lib/spiritAnimal.ts).
+    print(f"    guide mode (fastSlow uses the schedule's energy): "
+          f"{dict(Counter(str(x.get('spiritAnimalMode')) for x in prefs if x.get('spiritAnimalMode')))}")
+
+    checkins = fetch_all(sb, "life_stats_checkins", "user_id, mood")
+    snapshots = fetch_all(sb, "life_stats_snapshots", "user_id, energy")
+    for label, rows in (("life_stats_checkins (mood 1-10, self-reported)", checkins),
+                        ("life_stats_snapshots (energy inferred from activity, not reported)", snapshots)):
+        mine = [r for r in rows if account(r["user_id"]) == "real"]
+        print(f"  {label}: {len(rows)} rows; real accounts {len({r['user_id'] for r in mine})}, rows {len(mine)}")
+    tasks = fetch_all(sb, "calendar_tasks", "user_id, source, scenario, time, day")
+    mine = [t for t in tasks if account(t["user_id"]) == "real"]
+    chosen = [t for t in mine if t.get("scenario") in ("worst", "best")]
+    print(f"  calendar_tasks: {len(tasks)}; real accounts {len({t['user_id'] for t in mine})}, rows {len(mine)}; "
+          f"scenario: {dict(Counter(t.get('scenario') for t in mine))}; "
+          f"an energy chosen ('worst' or 'best'): {len(chosen)} rows, {len({t['user_id'] for t in chosen})} people")
+    events = (sb.table("onboarding_events").select("user_id, onboarding_version").eq("event", "setup_energy")
+              .limit(5000).execute().data or [])
+    events = [e for e in events if not str(e.get("onboarding_version") or "").startswith("qa")]
+    print(f"  setup_energy events: {len(events)}; real accounts {len({e['user_id'] for e in events if e.get('user_id') and account(e['user_id']) == 'real'})}")
+    for table in ("calendar_outcomes", "milestone_ratings", "reflections"):
+        print(f"  {table}: {count_rows(sb, table)}")
+    out.update({"chosen_energy_people": len({t['user_id'] for t in chosen}), "checkins": len(checkins)})
+    return out
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -124,6 +181,7 @@ def main() -> None:
     print(f"== Stored paths: {len(rows)}  legacy {sum(1 for r in rows if r.get('is_legacy'))}  "
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(rows, account)
+    item1(sb, account)
 
 
 if __name__ == "__main__":

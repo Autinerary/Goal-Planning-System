@@ -25,6 +25,14 @@ export interface ScheduleDay {
   dayName?: string
   type?: string
   energyLevel?: string
+  /**
+   * Where the day's energy level came from (Calendar Optimization):
+   * 'weekday', the same for everyone on that day of the week, or
+   * 'condition', from the bipolar rules. Schedules made before the field
+   * existed are weekday defaults too. Never the person's own energy:
+   * nothing records it (docs/reports/calendar-optimization-2026-10-13.md).
+   */
+  energySource?: string
 }
 
 export const SPIRIT_ANIMAL_EMOJI: Record<string, string> = {
@@ -51,11 +59,22 @@ export type DayPace = 'fast' | 'slow' | 'unknown'
  * the agent scheduled is a working day. Absent a schedule entry we say so
  * rather than defaulting, so the caller can avoid mislabelling the day.
  */
+function todaysScheduleDay(schedule: ScheduleDay[] | undefined, now: Date): ScheduleDay | undefined {
+  if (!Array.isArray(schedule)) return undefined
+  const today = todayWeekdayName(now).toLowerCase()
+  return schedule.find((d) => String(d?.dayName || '').toLowerCase() === today)
+}
+
+/** True when the day's pace is a default (the weekday's, or a condition rule's), not the person's. */
+export function isDefaultEnergy(day: ScheduleDay | undefined): boolean {
+  const source = String(day?.energySource || 'weekday')
+  return source === 'weekday' || source === 'condition'
+}
+
 export function paceForToday(schedule: ScheduleDay[] | undefined, now: Date = new Date()): DayPace {
   if (!Array.isArray(schedule) || schedule.length === 0) return 'unknown'
 
-  const today = todayWeekdayName(now).toLowerCase()
-  const day = schedule.find((d) => String(d?.dayName || '').toLowerCase() === today)
+  const day = todaysScheduleDay(schedule, now)
   if (!day) return 'unknown'
 
   const type = String(day.type || '').toLowerCase()
@@ -99,8 +118,16 @@ export function selectTodaysAnimal(
 
   if (resolvedMode === 'fastSlow' && list.length >= 2) {
     const pace = paceForToday(schedule, now)
-    if (pace === 'slow') return { animal: list[1], label: 'Slow Day', pace }
-    if (pace === 'fast') return { animal: list[0], label: 'Fast Day', pace }
+    // The pace comes from the schedule's energy, which is a default (the
+    // weekday's), so the label says so rather than reading as the person's
+    // own day: "Slow day (default for Fridays)", not "Slow Day".
+    const day = todaysScheduleDay(schedule, now)
+    const name = (p: 'Fast' | 'Slow') =>
+      !isDefaultEnergy(day) ? `${p} Day`
+        : day?.energySource === 'condition' ? `${p} day (default)`
+          : `${p} day (default for ${todayWeekdayName(now)}s)`
+    if (pace === 'slow') return { animal: list[1], label: name('Slow'), pace }
+    if (pace === 'fast') return { animal: list[0], label: name('Fast'), pace }
     return { animal: list[0], label: 'Your guide', pace: 'unknown' }
   }
 
