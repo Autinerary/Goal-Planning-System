@@ -638,6 +638,15 @@ def main() -> None:
     print(f"  milestone pages opened since {RATINGS_LIVE} (feature_use 'milestones'): {len(visits)} events, "
           f"signed-in people by account: {dict(Counter(account(u) for u in people))}, "
           f"signed out: {sum(1 for v in visits if not v.get('user_id'))}")
+    # To tell "nobody saw it" from "the event isn't sent": the same event, any
+    # part of the app, since then; and the milestone pages at any time.
+    since = (sb.table("onboarding_events").select("step, onboarding_version").eq("event", "feature_use")
+             .gte("created_at", RATINGS_LIVE).limit(5000).execute().data or [])
+    since = [e for e in since if not str(e.get("onboarding_version") or "").startswith("qa")]
+    ever = (sb.table("onboarding_events").select("created_at").eq("event", "feature_use").eq("step", "milestones")
+            .order("created_at", desc=True).limit(5000).execute().data or [])
+    print(f"  feature_use since {RATINGS_LIVE}, any part of the app: {len(since)}  {dict(Counter(e['step'] for e in since))}")
+    print(f"  milestone pages opened at any time: {len(ever)}, the last on {str(ever[0]['created_at'])[:10] if ever else '-'}")
     print(f"  reflections: {count_rows(sb, 'reflections')}")
     progress = fetch_all(sb, "race_progress", "user_id, milestone_id, kind")
     print(f"  race_progress: {len(progress)}  by kind: {dict(Counter(p['kind'] for p in progress))}  "
