@@ -328,3 +328,28 @@ local Postgres that has STEP 61's table:
 ```
 EVALUATION_RUNS_DSN=postgresql://... python -m scripts.calendar_audit
 ```
+
+## Checked in a browser
+
+**The setup:**
+- **The flags:** the app ran locally with `NEXT_PUBLIC_SCHEDULE_FEEDBACK_ENABLED=true`.
+- **The page:** `ScheduleFeedback` was rendered on a throwaway page (never
+  committed), signed out.
+- **The backend:** a mock backend answered with a schedule id and no answer
+  yet.
+- **Nothing escaped:** every request that wasn't a read, or a call to the
+  mock, would have been stopped. None was attempted.
+
+**The run:**
+- **On load:** "Did this schedule work for you?", "Optional, and asked once
+  for each schedule. Your answer helps Autinerary plan better weeks.", and
+  Yes and No.
+- **On Yes:** it sent `{ pathId, scheduleId, answer: "yes" }`, and the card
+  became "Thank you. You said this schedule worked for you."
+
+**No page errors.**
+
+**Not checked:** the card on the real Calendar page, signed in. That would
+have needed a production account's password to be set, which is a write. The
+placement is the one line in `app/calendar/page.tsx`, under the week, and it
+builds.
