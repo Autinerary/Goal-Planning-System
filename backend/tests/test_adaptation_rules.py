@@ -88,7 +88,10 @@ class AgentTests(unittest.TestCase):
 
     def test_the_agent_reports_what_fired_and_changes_nothing(self):
         result = self.adapt(ok(0.25, "known"))
-        self.assertEqual([a["rule"] for a in result["adaptations"]], ["behind_schedule"])
+        # No path in this fixture, so no milestone to name (item 2): the rule
+        # fired, and produced nothing.
+        self.assertEqual(result["adaptations"], [])
+        self.assertEqual(result["unnamed_rules"], ["behind_schedule"])
         self.assertEqual((result["updated_milestones"], result["updated_tasks"], result["needs_calendar_update"]),
                          ([], [], False))
         self.assertIsNone(result["confidence"])

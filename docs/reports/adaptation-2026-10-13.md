@@ -79,3 +79,52 @@ an input.
   `behind_schedule`; 3 done fires nothing; 4 done fires `ahead_of_schedule`;
   a path 1 day old fires nothing;
 - the agent reports what fired and changes nothing.
+
+## Item 2. Naming a milestone
+
+**Every adaptation names one milestone, by path id and milestone id, or is
+not produced** (`suggestions()` in `core/adaptation_rules.py`).
+- **Why both ids:** milestone ids repeat across one person's paths
+  (`milestone_g0_education_0` is in each), so the path id is always part of
+  the name.
+- **Which path:** the active one, as the analysis reports it.
+
+**Each change is one the app shows.** The plan's day estimates
+(`estimatedDays`) appear nowhere in the app, so a suggestion like "give it
+more time" would change nothing anyone sees. The changes are to:
+- **the step's tasks,** listed on its page;
+- **the order of steps,** in "Your next step" on the Path and in the race
+  lanes;
+- **its status,** the "In Progress" badge on its page.
+
+| Rule | The milestone it names | The change | Produces nothing when |
+| --- | --- | --- | --- |
+| `stress` | The step the journal entry was about | Moved later: after the other steps in its part of the plan | The entry was about the path or the calendar, not a step; or the step is done, or already last in its part |
+| `behind_schedule` | The earliest step due and not done | Lighter: its first 3 tasks kept, the rest set aside (kept in the offer's record) | No step that is due has more than 3 tasks; or the analysis is about another path |
+| `rated_low` | The step rated 2 or less, newest first, on this path | Moved later | The rating is for another path's step with the same id; or the step is done, or already last in its part |
+| `ahead_of_schedule` | The next step not yet due | Started now (In Progress) | It is already started; or the analysis is about another path |
+
+**One at a time:**
+- **One suggestion per step,** in that order of rules.
+- **At most three** at once.
+- **Ids are fixed:** a suggestion's id is fixed by its rule, path and
+  milestone. Once offered, it is never offered again, whether it was
+  accepted or not (item 3).
+
+**Where it shows up:**
+- **The agent** (`adapt_path(analysis=...)`) reads the person's stored path
+  and completed steps, read-only. It returns the named suggestions, plus
+  `unnamed_rules`: the rules that fired but could name no step.
+- **Nothing is applied here.**
+
+**Tests** (`tests/test_adaptation_milestones.py`, 10, fixtures only):
+- each rule names its step;
+- a step that is already light, done, already started or already last is
+  skipped;
+- completion rules name nothing on another path;
+- a rating on another path's step with the same id doesn't count;
+- a journal entry about the calendar names nothing;
+- one suggestion per step, in order, at most three;
+- ids are stable;
+- naming changes nothing;
+- the agent reports the rules that named none.
