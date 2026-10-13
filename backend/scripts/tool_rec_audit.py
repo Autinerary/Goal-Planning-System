@@ -35,6 +35,14 @@ which form most likely wrote the row (ResourceHub's form records the rater's
 conditions; the app's Milestone View writes only a score), and how many
 ratings fall on the resources in today's pool.
 
+Item 4, the run log: core/evaluation_runs.py is called at the start and the
+end, but never with the Supabase client, so it writes only to the Postgres
+named by EVALUATION_RUNS_DSN (a run against production writes nothing
+there); without it the run isn't logged, and says so. It records counts and
+hashes only: recommendations, how many point at approved items, the is_legacy
+rows excluded, the condition map's hash and the real feedback answers. No
+user ids, emails or free text.
+
 Accounts are split with the Vector deck's email rules, so "real" means the
 same as in the other audits.
 
@@ -50,7 +58,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import hashlib  # noqa: E402
 import statistics  # noqa: E402
+
+from core.evaluation_runs import RunLog  # noqa: E402
 
 from core.agents.tool_recommendation_agent import is_self_listing  # noqa: E402
 from core.condition_taxonomy import TAXONOMY_VERSION, normalize_conditions  # noqa: E402
@@ -313,6 +324,40 @@ def item2(sb, account: Callable[..., str]) -> Dict[str, Any]:
             "on_pool": len(on_pool), "on_approved": len(on_approved)}
 
 
+SCRIPT = "scripts.tool_rec_audit"
+
+
+def run_inputs(rows: List[Dict[str, Any]], statuses: Dict[str, str], ratings: List[Dict[str, Any]],
+               account: Callable[..., str]) -> Dict[str, Any]:
+    """What decides this run's result, for evaluation_runs. Counts and hashes only."""
+    current = [r for r in rows if not r.get("is_legacy")]
+    recs = [t for r in current for t in stored_recommendations(payload_of(r))]
+    real_ratings = [r for r in ratings if account(r["user_id"]) == "real"]
+    return {
+        "paths": len(rows),
+        "is_legacy_excluded": len(rows) - len(current),
+        "recommendations": {
+            "current": len(recs),
+            "current_real_accounts": sum(len(stored_recommendations(payload_of(r))) for r in current
+                                         if account(r["user_id"]) == "real"),
+            "legacy": sum(len(stored_recommendations(payload_of(r))) for r in rows if r.get("is_legacy")),
+        },
+        "point_at_approved": sum(1 for t in recs if status_of(t, statuses) == "approved"),
+        "point_at": dict(Counter(status_of(t, statuses) for t in recs)),
+        "resources": dict(Counter(statuses.values())),
+        "condition_map_hash": TAXONOMY_VERSION,
+        "real_feedback_answers": {
+            "ratings": len(real_ratings),
+            "scores": dict(Counter(str(r.get("overall_score")) for r in real_ratings)),
+        },
+        "settings": {
+            "pool_limit": POOL_LIMIT, "llm_scored": LLM_SCORED,
+            "relevance_map_hash": hashlib.sha1(json.dumps(
+                {k: sorted(v) for k, v in sorted(SERVES.items())}).encode()).hexdigest()[:12],
+        },
+    }
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -320,11 +365,18 @@ def main() -> None:
         return
     account = accounts(sb)
     rows = fetch_all(sb, "user_paths", "user_id, path_id, is_legacy, created_at, payload")
+    statuses = {str(r["id"]): r["status"] for r in fetch_all(sb, "resources", "id, status")}
+    ratings = fetch_all(sb, "ratings", "user_id, overall_score")
+    run_log = RunLog()  # never the Supabase client: EVALUATION_RUNS_DSN or nothing
+    run_id = run_log.start(SCRIPT, run_inputs(rows, statuses, ratings, account))
+    print(f"run log: {'run ' + run_id + ' in ' + str(run_log.where) if run_id else 'not logged (EVALUATION_RUNS_DSN not set)'}")
     print(f"== Stored paths: {len(rows)}  legacy {sum(1 for r in rows if r.get('is_legacy'))}  "
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(sb, rows, account)
     item1(sb, rows, account)
     item2(sb, account)
+    run_log.finish()
+    print(f"\nrun log: {'finished ' + run_id if run_id else 'not logged'}")
 
 
 if __name__ == "__main__":
