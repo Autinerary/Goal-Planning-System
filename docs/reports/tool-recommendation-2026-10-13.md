@@ -101,3 +101,71 @@ in each stored path, by the status their resource has today:
   Whether the app hides rejected entries when it shows a path's tools was not
   checked: **NOT YET VERIFIED**. The Path's weekly picks and "Your saved
   resources" do hide them (`docs/first-visit-to-return.md`).
+
+## Item 1. Baseline
+
+Current paths (`is_legacy` = false) from real accounts only: **69 paths**.
+
+| Measure | Value |
+| --- | --- |
+| Paths with at least one recommendation | 69 of 69 (100%) |
+| Recommendations per path | mean 101.6, median 96, min 16, max 192 (6 per milestone, 16 milestones per goal) |
+| Distinct items recommended | 68, across 7,008 recommendations |
+| **Concentration: the top 5 items' share** | **52%** (3,678 of 7,008); the top item alone 12% |
+| **Relevance proxy** | **55%** of the 4,224 recommendations made to people with a normalised condition (below) |
+
+**The top 5 items are all seed rows, rejected since:**
+
+| Item | Recommendations |
+| --- | --- |
+| "Sensory-Friendly Movie Theater - Montreal 2" | 845 |
+| "Sensory-Friendly Retail Store - Montreal 6" | 800 |
+| "Adult Autism Meetup" | 754 |
+| "Parent Support Network - Toronto 5" | 657 |
+| "Accessible Community Park - Vancouver 2" | 622 |
+
+**The relevance proxy, defined:**
+- **The person's conditions:** the path's `barrierTypes`, normalised with
+  `core/condition_taxonomy.py`. Each condition has one broad category:
+  neurodevelopmental, learning, mental health, and so on.
+- **A match:** a recommendation counts as relevant when its resource
+  category serves one of those broad categories, in the map `SERVES` in
+  `scripts/tool_rec_audit.py`:
+
+  | Broad category of condition | Resource categories that serve it |
+  | --- | --- |
+  | Neurodevelopmental, learning, intellectual or developmental, communication | therapist, doctor, support group, organisation, school |
+  | Sensory processing, mental health, sensory disability, physical, chronic health | therapist, doctor, support group, organisation |
+  | Socioeconomic | food support, social services, supported housing, shelter, employment, organisation |
+  | Language | community centre, school, social services, organisation |
+  | Identity | support group, community centre, organisation |
+
+  Parks, recreation, stores, books and apps serve everyone, so they count
+  for no one.
+- **Read literally**, "a category that matches a condition" gives **0%**: no
+  ResourceHub category names a condition.
+- **Who is counted:** 2,784 recommendations (40%) went to people with no
+  normalised condition ("none", "prefer not to share" or free text), and
+  are left out of the 55%.
+- **It's coarse.** A park can help an autistic child, and a school isn't
+  "for" anxiety. It is a proxy, not a judgment of fit.
+
+**Recommendations by resource category:**
+
+| Support group | Store | Park | Recreation | Therapist | School | Organisation | Doctor | Community centre | Social services | Senior care |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1,605 | 1,362 | 1,021 | 849 | 750 | 619 | 338 | 195 | 195 | 73 | 1 |
+
+**The agent's confidence:**
+
+| Paths | n | Mean | Median | Quartiles | Range | Distinct values | By range |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Current, real accounts | 69 | 0.46 | 0.45 | 0.44–0.53 | 0.00–0.76 | 25 | 0: 2 · up to 0.2: 6 · 0.2–0.4: 7 · 0.4–0.6: 41 · 0.6–0.8: 13 |
+| Current, all accounts | 80 | 0.44 | 0.45 | 0.26–0.53 | 0.00–0.76 | 27 | |
+| Legacy, real accounts | 9 | 0.78 | 0.78 | — | 0.78 | 1 (the old constant) | |
+| Legacy, all accounts | 16 | 0.78 | 0.78 | — | 0.78 | 1 | |
+
+- **What it is:** the mean relevance score of what was returned, times
+  (0.6 + 0.4 × the share of returned items that have any rating).
+- **What it rewards:** most of those ratings are from seed personas (item 2),
+  so the confidence is highest where the seed ratings are.

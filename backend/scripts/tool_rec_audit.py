@@ -15,6 +15,20 @@ Item 0, the pool:
     ('sh_<uuid>'); legacy paths store ids from the old built-in catalogue
     ('svc_...'), which are not ResourceHub rows.
 
+Item 1, the baseline (current paths, real accounts only, unless it says):
+  * paths with at least one recommendation, and recommendations per path;
+  * concentration: the share of all recommendations taken by the 5 items
+    recommended most;
+  * relevance proxy: the share of recommendations whose resource category
+    serves one of the person's normalised conditions. Conditions come from
+    the path's barrierTypes through core/condition_taxonomy.py; each broad
+    category of condition is served by the resource categories in SERVES
+    (below). A resource category is compared lowercased, with spaces as
+    underscores. Recommendations for people with no normalised condition
+    are counted apart. Read literally, "a category that names a condition"
+    matches nothing: no ResourceHub category names one;
+  * the agent's confidence, for current and legacy paths apart.
+
 Accounts are split with the Vector deck's email rules, so "real" means the
 same as in the other audits.
 
@@ -30,13 +44,36 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import statistics  # noqa: E402
+
 from core.agents.tool_recommendation_agent import is_self_listing  # noqa: E402
+from core.condition_taxonomy import TAXONOMY_VERSION, normalize_conditions  # noqa: E402
 from database.supabase_client import get_supabase  # noqa: E402
 from scripts.reembed_pattern_users import fetch_all  # noqa: E402
 from scripts.vector_evaluation_pull import is_synthetic, is_team_test, list_all_users  # noqa: E402
 
 POOL_LIMIT = 500      # _fetch_resource_pool's .limit(500)
 LLM_SCORED = 60       # _barrier_fit_scores scores pool[:60]; the rest get 0.5
+
+# Item 1's relevance proxy: which resource categories serve each broad
+# category of condition in core/condition_taxonomy.py. A judgement, kept
+# deliberately narrow: a service or organisation for that kind of need. Parks,
+# recreation, stores, books and apps serve everyone and count for no one.
+_HEALTH = {"therapist", "doctor", "support_group", "organization"}
+SERVES: Dict[str, set] = {
+    "neurodevelopmental": _HEALTH | {"school"},
+    "learning": _HEALTH | {"school"},
+    "intellectual_developmental": _HEALTH | {"school"},
+    "communication": _HEALTH | {"school"},
+    "sensory_processing": _HEALTH,
+    "mental_health": _HEALTH,
+    "sensory_disability": _HEALTH,
+    "physical": _HEALTH,
+    "chronic_health": _HEALTH,
+    "socioeconomic": {"food_support", "social_services", "supported_housing", "shelter", "employment", "organization"},
+    "language": {"community_center", "school", "social_services", "organization"},
+    "identity": {"support_group", "community_center", "organization"},
+}
 
 
 def payload_of(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -150,6 +187,83 @@ def item0(sb, rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict
     return out
 
 
+def category_key(value: Any) -> str:
+    return str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
+
+
+def condition_categories(payload: Dict[str, Any]) -> set:
+    """The broad categories of the person's normalised conditions."""
+    conditions, _counts = normalize_conditions((payload.get("userProfile") or {}).get("barrierTypes") or [])
+    return {c.category for c in conditions}
+
+
+def serves(tool: Dict[str, Any], categories: set) -> bool:
+    return any(category_key(tool.get("category")) in SERVES.get(c, set()) for c in categories)
+
+
+def summary(values: List[float], digits: int = 2) -> str:
+    if not values:
+        return "none"
+    v = sorted(values)
+    f = f"{{:.{digits}f}}"
+    return (f"n={len(v)}  mean={f.format(statistics.mean(v))}  median={f.format(statistics.median(v))}  "
+            f"min={f.format(v[0])}  max={f.format(v[-1])}")
+
+
+def item1(sb, rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict[str, Any]:
+    print("\n== Item 1: baseline (current paths, real accounts)")
+    statuses = {str(r["id"]): r["status"] for r in fetch_all(sb, "resources", "id, status")}
+    names = {str(r["id"]): r["name"] for r in fetch_all(sb, "resources", "id, name")}
+    current = [r for r in rows if not r.get("is_legacy") and account(r["user_id"]) == "real"]
+    per_path = [len(stored_recommendations(payload_of(r))) for r in current]
+    with_any = sum(1 for n in per_path if n > 0)
+    print(f"  paths: {len(current)}; with at least one recommendation: {with_any} ({with_any / len(current):.0%})")
+    print(f"  recommendations per path: {summary([float(n) for n in per_path], 1)}")
+
+    items = Counter()
+    proxy = Counter()
+    for r in current:
+        p = payload_of(r)
+        cats = condition_categories(p)
+        for t in stored_recommendations(p):
+            items[resource_id(t) or str(t.get("id"))] += 1
+            if not cats:
+                proxy["person has no normalised condition"] += 1
+            else:
+                proxy["serves a condition" if serves(t, cats) else "doesn't"] += 1
+                literal = {c.key for c in normalize_conditions((p.get("userProfile") or {}).get("barrierTypes") or [])[0]}
+                proxy["category names a condition (literal)"] += any(k.replace("_", " ") in category_key(t.get("category")).replace("_", " ") for k in literal)
+    total = sum(items.values())
+    top = items.most_common(5)
+    print(f"  recommendations: {total}, to {len(items)} distinct items")
+    print(f"  top 5 items take {sum(n for _, n in top)} ({sum(n for _, n in top) / total:.0%}); the top one {top[0][1] / total:.0%}" if total else "  no recommendations")
+    for rid, n in top:
+        print(f"    {n:5}  {names.get(rid, rid)!r} ({statuses.get(rid, 'not in the directory')})")
+    judged = proxy["serves a condition"] + proxy["doesn't"]
+    print(f"  relevance proxy: {dict(proxy)}; serves a condition: "
+          f"{proxy['serves a condition'] / judged:.0%} of {judged}" if judged else f"  relevance proxy: {dict(proxy)}")
+    by_category = Counter(category_key(t.get("category")) for r in current for t in stored_recommendations(payload_of(r)))
+    print(f"  recommendations by resource category: {dict(by_category.most_common())}")
+    print(f"  people's condition categories (paths): "
+          f"{dict(Counter(c for r in current for c in condition_categories(payload_of(r))).most_common())}")
+
+    out: Dict[str, Any] = {"paths": len(current), "with_any": with_any, "per_path": per_path,
+                           "top5_share": round(sum(n for _, n in top) / total, 3) if total else None,
+                           "relevance": dict(proxy)}
+    for label, keep in (("current", lambda r: not r.get("is_legacy")), ("legacy", lambda r: bool(r.get("is_legacy")))):
+        for who in ("real", "all"):
+            conf = [c for r in rows if keep(r) and (who == "all" or account(r["user_id"]) == "real")
+                    if (c := agent_confidence(payload_of(r), "tool_recommendation")) is not None]
+            q = statistics.quantiles(conf, n=4) if len(conf) > 1 else [None] * 3
+            buckets = Counter("0" if c == 0 else "0.01-0.2" if c <= 0.2 else "0.2-0.4" if c <= 0.4
+                              else "0.4-0.6" if c <= 0.6 else "0.6-0.8" if c <= 0.8 else "0.8-1" for c in conf)
+            print(f"  confidence, {label} paths, {who} accounts: {summary(conf)}  "
+                  f"q1={q[0] if q[0] is None else round(q[0], 2)} q3={q[2] if q[2] is None else round(q[2], 2)}  "
+                  f"distinct={len(set(conf))}  by range: {dict(sorted(buckets.items()))}")
+            out[f"confidence_{label}_{who}"] = conf
+    return out
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -160,6 +274,7 @@ def main() -> None:
     print(f"== Stored paths: {len(rows)}  legacy {sum(1 for r in rows if r.get('is_legacy'))}  "
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(sb, rows, account)
+    item1(sb, rows, account)
 
 
 if __name__ == "__main__":
