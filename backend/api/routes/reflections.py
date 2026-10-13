@@ -196,22 +196,11 @@ async def create_reflection(
     )
     # Deliberately do not update learned_patterns from reflection-agent output.
 
-    # 5. Record each adaptation rule that fired so it can be rewarded by the
-    #    NEXT reflection.
+    # 5. A rule that fires is not an adaptation: nothing is changed unless
+    #    the person accepts it when it is offered, and offers are recorded
+    #    where they are made (api/routes/adaptations.py). Logging fired rules
+    #    here fed a threshold policy, and there is none this round.
     rules_logged = 0
-    for adapt in (adaptation_response.get("adaptations", []) or []):
-        if not learning_enabled:
-            break
-        rule = adapt.get("type") or adapt.get("rule") or "unknown"
-        threshold = adapt.get("threshold_used")
-        ok = await learning.record_adaptation_outcome(
-            user_id=user_id,
-            reflection_id=reflection_id,
-            rule_fired=str(rule),
-            threshold_used=threshold,
-        )
-        if ok:
-            rules_logged += 1
 
     # 5b. Close the universal-agent feedback loops.
     #     The orchestrator snapshotted (profile_signature, milestone_count,

@@ -16,6 +16,7 @@ from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
 from core import llm, learning
+from core import adaptation_rules
 
 class AdaptationAgent(BaseAgent):
     """Adapts paths based on user progress and feedback"""
@@ -107,13 +108,12 @@ class AdaptationAgent(BaseAgent):
     ) -> Dict[str, Any]:
         """Adapt the path based on insights and progress"""
 
-        # Reflection Analysis now hands over its whole analysis
-        # (core/reflection_analysis.py). Until the rules read it (Adaptation,
-        # item 1), it changes nothing: the old inputs held a constant
-        # completion rate that fired no rule, and defaulting it would fire
-        # one for everyone.
+        # The rules read Reflection Analysis's whole analysis
+        # (core/reflection_analysis.py, core/adaptation_rules.py): a completion
+        # rate computed from stored milestone completions, unknown until two
+        # are due, and nothing at all when there is no data.
         if analysis is not None:
-            return self._no_adaptation(analysis)
+            return self._from_analysis(analysis)
 
         reflection_insights = reflection_insights or {}
         current_progress = current_progress or {}
@@ -217,19 +217,28 @@ class AdaptationAgent(BaseAgent):
         }
     
     @staticmethod
-    def _no_adaptation(analysis: Dict[str, Any]) -> Dict[str, Any]:
+    def _from_analysis(analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Which rules fire on the analysis. Nothing is changed here."""
+        fired = adaptation_rules.decide(analysis)
+        if analysis.get('status') != 'ok':
+            explanation = 'No change: there is no journal entry or rating to go on yet.'
+        elif not fired:
+            explanation = 'No change: nothing in the analysis calls for one.'
+        else:
+            explanation = f"Rules that fired: {', '.join(f['rule'] for f in fired)}."
         return {
-            'adaptations': [],
+            'adaptations': fired,
             'barrier_adjustments': [],
             'updated_milestones': [],
             'updated_tasks': [],
             'updated_path': None,
             'updated_races': [],
             'needs_calendar_update': False,
-            'confidence': 0.0,
+            # Nothing is measured about these, so no confidence is given.
+            'confidence': None,
             'analysis_version': analysis.get('version'),
             'analysis_status': analysis.get('status'),
-            'explanation': 'No change: the adaptation rules do not read this analysis yet.',
+            'explanation': explanation,
         }
 
     async def _adapt_for_low_completion(
