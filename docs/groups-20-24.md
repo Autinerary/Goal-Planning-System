@@ -233,9 +233,10 @@ now `paced-2026-10`, so the funnel report compares it with `express-2026-10`.
 
 ## For the team
 
-- **Apply STEP 71** (`backend/database/migrations/2026_paced_setup.sql`),
-  after STEP 70. It keeps the energy check-in's answer and Start here's
-  optional questions; until then both are dropped and nothing else changes.
+- **STEP 71** (`backend/database/migrations/2026_paced_setup.sql`), which
+  keeps the energy check-in's answer and Start here's optional questions,
+  was applied and checked live on 13 October
+  (`scratchpad/browser/step71_live.mjs`, 13 checks).
 - **The website, www.autinerary.ca (Groups 21, 22 and 24).** It is not in
   this repository.
   - A "Find where to start" button near the top, pointing at
