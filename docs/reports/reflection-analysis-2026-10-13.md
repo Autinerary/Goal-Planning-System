@@ -89,3 +89,105 @@ is stored. Possible reasons:
 - they went with deleted accounts.
 
 Which of these it was is **NOT YET VERIFIED**.
+
+## Item 1. The smallest useful version
+
+**Deterministic, no model.** `backend/core/reflection_analysis.py` analyses
+one person from three sources:
+- their journal entries (`reflections`);
+- their milestone ratings (`milestone_ratings`);
+- their milestone completions (`race_progress`).
+
+The agent's entry point is `ReflectionAnalysisAgent.analyze_person`.
+
+**Where the result lives: nowhere. It is computed when it is read.** The
+analysis is a few small selects for one person, made each time it is asked
+for:
+- by the adaptation graph, when a journal entry comes in;
+- by Adaptation's offers (its item 3);
+- by the evaluation script (item 4).
+
+Why compute it instead of storing it:
+- **It can't go stale.** A new rating or completion counts at once; a stored
+  copy would need refreshing on every write.
+- **No migration**, and nothing new to back up, export or delete.
+- **The volumes are tiny:** a person has a few dozen rows at most.
+
+**Definitions:**
+
+| Part | Definition |
+| --- | --- |
+| Ratings per milestone and path | The latest rating of each milestone counts. Ratings are keyed by path, because milestone ids repeat across one person's paths. A path's score is the mean of (rating − 1) ÷ 4, as in `path_rating_scores` |
+| **Rated low** | A latest rating of **2 or less**: "Not useful" (1) or "A little" (2), on the milestone page's five-point scale |
+| Completion over time | Milestones completed per week for the last 8 weeks (hearts don't count). The trend is the last 4 weeks against the 4 before: up, down or flat, or unknown when both are 0 |
+| Completion rate | For the person's active path, against its own estimates. Each life area of each goal is a lane, done in order. A milestone is due once its lane's `estimatedDays`, added up from the day the path was made, have passed. The rate is completed ÷ due, at most 1. It is **"unknown" until at least 2 milestones are due.** This replaces Adaptation's constant 0.65 |
+| `behind`, `next_up` | `behind` is the milestones due and not done, earliest first. `next_up` is the first milestone not yet due. So a rule can name a milestone |
+| Outcomes recorded | For each journal entry, the answer to "Did this suggestion help you?" (helped, no change, made worse, not sure, or unrecorded), plus the count of `adaptation_outcomes` rows |
+| Concerns | Journal entries of the last 14 days, by the same keyword rules as before (burnout, negative self-talk, isolation, sustained negative mood). Each says what the entry was about (`context_type` and `context_id`, for example a milestone) |
+
+**The structure**, `"reflection-analysis/1"`:
+
+```
+version      "reflection-analysis/1"
+status       "ok" | "no_data"
+computed_at  ISO 8601, UTC
+counts       {reflections, ratings, completions}
+explanation  one sentence of what it was computed from (counts, never a score)
+-- only when status is "ok":
+ratings      {low_threshold: 2,
+              by_path: [{path_id, rated, score, milestones: {milestone_id: rating}}],
+              low: [{path_id, milestone_id, rating, rated_at}]}          newest first
+completion   {path_id, milestones, completed, expected_by_now, rate, rate_status,
+              behind: [milestone_id], next_up, by_week: [{week_start, completed}], trend}
+outcomes     {reflections: {helped, no_change, made_worse, not_sure, unrecorded},
+              adaptations: {recorded}}
+concerns     [{type, severity, at, context_type, context_id}]            newest first
+themes       null (the optional theme step, item 2)
+```
+
+- **The entry being written counts.** A journal entry is analysed before it
+  is stored, so the graph hands it in as `current_entry`.
+- **Signed out:** someone without an account id has nothing to read. Only
+  the entry being written can count.
+
+**Adaptation receives exactly this structure.**
+- **In the graph** (`core/orchestrator.py`), the reflection step now calls
+  `analyze_person`, and the adaptation step passes the whole result as
+  `adapt_path(..., analysis=...)`.
+- **What it used to get:** only `insights` and the constant `progress`.
+- **The one change in the Adaptation agent:** `adapt_path` accepts
+  `analysis`, and on this branch makes no change when given one.
+  - **Why:** its rules don't read the analysis yet; that is Adaptation's own
+    item 1.
+  - **The alternative was unsafe:** feeding the old inputs from the new
+    structure would have defaulted the completion rate to 1.0, firing the
+    momentum rule for everyone.
+  - **So it's safe:** today nothing fires either, because 0.65 sits between
+    the two thresholds.
+
+**Also changed, in the journal route** (`api/routes/reflections.py`):
+- **Each entry's own answer is kept** in the stored row, as
+  `reflection_response.explicitFeedback`. Only its reward was stored before,
+  and "no change", "not sure" and no answer all store 0, so outcomes couldn't
+  be counted.
+- **That answer reaches the analysis** for the entry being written.
+
+**No longer called by the graph:** the old per-entry text analysis,
+`analyze_reflection`, with its model calls and made-up correlations. It is
+left in the file, unused, and could be deleted.
+
+**Tests** (`tests/test_reflection_analysis.py`, 14, fixtures only):
+- no data;
+- signed out;
+- the entry being written;
+- latest rating, path scores and low ratings (with a milestone id that
+  repeats across paths);
+- completion against the estimates, "unknown" before 2 are due, hearts not
+  counted;
+- weeks and trend;
+- outcomes from the stored answer and from this entry;
+- concerns from the last 14 days, with their context;
+- no model called;
+- the graph hands Adaptation the very same object;
+- Adaptation makes no change yet;
+- the route keeps the answer.

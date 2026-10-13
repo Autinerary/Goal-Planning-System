@@ -314,19 +314,24 @@ class Orchestrator:
         return graph.compile()
 
     async def _node_reflection_analysis(self, state: AdaptationState) -> Dict[str, Any]:
-        response = await self.agents['reflection_analysis'].analyze_reflection(
-            reflection_data=state['reflection_data'],
+        # The person's analysis (core/reflection_analysis.py), with the
+        # journal entry being written counted in.
+        response = await self.agents['reflection_analysis'].analyze_person(
             user_id=state['user_id'],
+            path_id=state.get('path_id'),
+            current_entry=state.get('reflection_data'),
         )
         return {"reflection_response": response}
 
     async def _node_adaptation(self, state: AdaptationState) -> Dict[str, Any]:
         reflection = state.get('reflection_response', {})
+        # Adaptation receives exactly the analysis, not a part of it. It used
+        # to get only `insights` and the constant `progress`, while the
+        # concerns its rules read sat beside them (8 October audit).
         response = await self.agents['adaptation'].adapt_path(
             user_id=state['user_id'],
             path_id=state['path_id'],
-            reflection_insights=reflection.get('insights', {}),
-            current_progress=reflection.get('progress', {}),
+            analysis=reflection,
         )
         return {
             "adaptation_response": response,
@@ -340,7 +345,7 @@ class Orchestrator:
         reflection = state.get('reflection_response', {})
         adaptation = state.get('adaptation_response', {})
         response = await self.agents['calendar_optimization'].optimize_calendar(
-            user_profile=reflection.get('user_profile'),
+            user_profile=reflection.get('user_profile') or {},
             milestones=adaptation.get('updated_milestones', []),
             tasks=adaptation.get('updated_tasks', []),
         )

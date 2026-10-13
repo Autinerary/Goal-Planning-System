@@ -12,7 +12,7 @@ Both pieces fall back to the original hardcoded behavior when Supabase isn't
 configured.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
 from core import llm, learning
@@ -101,11 +101,22 @@ class AdaptationAgent(BaseAgent):
         self,
         user_id: str,
         path_id: str,
-        reflection_insights: Dict[str, Any],
-        current_progress: Dict[str, Any]
+        reflection_insights: Optional[Dict[str, Any]] = None,
+        current_progress: Optional[Dict[str, Any]] = None,
+        analysis: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Adapt the path based on insights and progress"""
-        
+
+        # Reflection Analysis now hands over its whole analysis
+        # (core/reflection_analysis.py). Until the rules read it (Adaptation,
+        # item 1), it changes nothing: the old inputs held a constant
+        # completion rate that fired no rule, and defaulting it would fire
+        # one for everyone.
+        if analysis is not None:
+            return self._no_adaptation(analysis)
+
+        reflection_insights = reflection_insights or {}
+        current_progress = current_progress or {}
         adaptations = []
 
         # Keep thresholds on curated defaults until feedback identifies the
@@ -205,6 +216,22 @@ class AdaptationAgent(BaseAgent):
             'explanation': explanation
         }
     
+    @staticmethod
+    def _no_adaptation(analysis: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            'adaptations': [],
+            'barrier_adjustments': [],
+            'updated_milestones': [],
+            'updated_tasks': [],
+            'updated_path': None,
+            'updated_races': [],
+            'needs_calendar_update': False,
+            'confidence': 0.0,
+            'analysis_version': analysis.get('version'),
+            'analysis_status': analysis.get('status'),
+            'explanation': 'No change: the adaptation rules do not read this analysis yet.',
+        }
+
     async def _adapt_for_low_completion(
         self,
         path_id: str,

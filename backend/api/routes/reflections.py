@@ -138,6 +138,9 @@ async def create_reflection(
         "contextType": request.contextType,
         "contextId": request.contextId,
         "user_profile": {},  # filled when we have a real user lookup
+        # The answer to "Did this suggestion help you?", so the analysis
+        # counts this entry's outcome (core/reflection_analysis.py).
+        "learningFeedback": request.learningFeedback.model_dump() if request.learningFeedback else None,
     }
 
     # 1. Run reflection_analysis + adaptation (+ optional calendar) via
@@ -173,13 +176,20 @@ async def create_reflection(
         await learning.close_previous_adaptation_loops(user_id, reward)
         if learning_enabled else 0
     )
+    # Keep the entry's own answer with it. Only its reward was stored, and
+    # "no change", "not sure" and no answer all store 0, so the outcomes
+    # recorded couldn't be counted.
+    stored_response = {
+        **reflection_response,
+        "explicitFeedback": feedback.model_dump() if feedback else None,
+    }
     reflection_id = learning.persist_reflection(
         user_id=user_id,
         context_type=request.contextType,
         context_id=request.contextId,
         questions=request.questions,
         free_form_text=request.freeFormText,
-        reflection_response=reflection_response,
+        reflection_response=stored_response,
         adaptation_response=adaptation_response,
         reward_signal=reward,
         indicators=indicators,
