@@ -62,6 +62,9 @@ SCRIPT = "scripts.agent_audit_path_planning"
 NEAR_DUPLICATE = 0.6
 SENSITIVITY = (0.5, 0.8)
 MIN_SAMPLES = 20  # get_best_path_shape's min_samples in generate_path
+# The milestone rating reached production with 0670fc0 (merged and deployed
+# 11 October 2026); visits to the milestone pages since then could see it.
+RATINGS_LIVE = "2026-10-11"
 
 STOPWORDS = {
     "a", "an", "the", "and", "or", "but", "of", "to", "for", "with", "in", "on", "at", "by", "from",
@@ -622,6 +625,19 @@ def main() -> None:
         m = next((m for r in races(p or {}) for m in race_milestones(r) if m.get("id") == rt.get("milestone_id")), None)
         rated_source[m.get("nameSource", "unmarked") if m else "path not stored"] += 1
     print(f"  ratings by the rated milestone's name source: {dict(rated_source)}")
+    visits, start = [], 0
+    while True:
+        batch = (sb.table("onboarding_events").select("id, user_id, onboarding_version")
+                 .eq("event", "feature_use").eq("step", "milestones").gte("created_at", RATINGS_LIVE)
+                 .order("id").range(start, start + 999).execute().data or [])
+        visits += [v for v in batch if not str(v.get("onboarding_version") or "").startswith("qa")]
+        if len(batch) < 1000:
+            break
+        start += 1000
+    people = {str(v["user_id"]) for v in visits if v.get("user_id")}
+    print(f"  milestone pages opened since {RATINGS_LIVE} (feature_use 'milestones'): {len(visits)} events, "
+          f"signed-in people by account: {dict(Counter(account(u) for u in people))}, "
+          f"signed out: {sum(1 for v in visits if not v.get('user_id'))}")
     print(f"  reflections: {count_rows(sb, 'reflections')}")
     progress = fetch_all(sb, "race_progress", "user_id, milestone_id, kind")
     print(f"  race_progress: {len(progress)}  by kind: {dict(Counter(p['kind'] for p in progress))}  "
