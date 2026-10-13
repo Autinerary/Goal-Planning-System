@@ -279,3 +279,52 @@ it is left for a decision. What fixing it would take:
 - **Tell the person** when a rating isn't saved.
 - **Keep the star state per tool.**
 - **Count only real ratings** in the agent.
+
+## Item 4. Run log
+
+`scripts/tool_rec_audit.py` calls `core/evaluation_runs.py` at the start of
+a run (`start`, once its inputs are read) and at the end (`finish`).
+- **Never through the Supabase client.** The row goes only to the Postgres
+  named by `EVALUATION_RUNS_DSN`, so a run against production writes nothing
+  there. Production's `evaluation_runs` stays empty.
+- **Without `EVALUATION_RUNS_DSN`,** the run says it wasn't logged.
+- **What it records:** counts and hashes only. No user ids, emails or free
+  text.
+
+**One row**, from the run on 13 October against production, logged in a
+local Postgres that has STEP 61's table:
+
+```json
+{
+  "run_id": "f3ea7f0c-537d-4ea1-b0d6-411778615deb",
+  "script": "scripts.tool_rec_audit",
+  "git_commit": "068e570",
+  "started_at": "2026-10-13T02:15:29.198956-04:00",
+  "ended_at": "2026-10-13T02:15:32.870247-04:00",
+  "inputs": {
+    "paths": 96,
+    "is_legacy_excluded": 16,
+    "recommendations": {"current": 8064, "current_real_accounts": 7008, "legacy": 4920},
+    "point_at_approved": 1440,
+    "point_at": {"approved": 1440, "rejected": 6624},
+    "resources": {"approved": 9561, "rejected": 131},
+    "condition_map_hash": "841a277543",
+    "real_feedback_answers": {"ratings": 2, "scores": {"3": 1, "4": 1}},
+    "settings": {"pool_limit": 500, "llm_scored": 60, "relevance_map_hash": "65506ed4ff84"}
+  }
+}
+```
+
+- **`condition_map_hash`** is `TAXONOMY_VERSION` from
+  `core/condition_taxonomy.py`.
+- **`real_feedback_answers`** are the real accounts' rows in `ratings`, the
+  table the existing "How well did it help?" control writes to (item 3).
+
+**To run it,** from backend/:
+
+```
+EVALUATION_RUNS_DSN=postgresql://... python -m scripts.tool_rec_audit
+```
+
+Left alone, as asked: the community-written resource list inside the
+tool-ranking prompt, and ResourceHub's moderation prompt.
