@@ -169,3 +169,59 @@ Current paths (`is_legacy` = false) from real accounts only: **69 paths**.
   (0.6 + 0.4 × the share of returned items that have any rating).
 - **What it rewards:** most of those ratings are from seed personas (item 2),
   so the confidence is highest where the seed ratings are.
+
+## Item 2. What ratings exist
+
+**Confirmed: 2 of 521 ratings are from real users.** The rest are 515 from
+seed personas (`@test.com`, created by ResourceHub's seeding,
+`servicehub-mvp/scripts/SEEDING.md`) and 4 from team accounts.
+
+| Question | Answer |
+| --- | --- |
+| Which table | ResourceHub's `ratings` (shared Supabase), 521 rows from 12 raters on 105 resources |
+| What they rate | A ResourceHub place: an overall score of 1–5, and optionally a score per barrier and a comment (413 rows have one). ResourceHub's form also copies the rater's conditions and relationships onto the row |
+| Who writes them | Three sources, listed below |
+| Whether Tool Recommendation reads them | **Yes: every row, whoever wrote it.** Details below |
+
+**Who writes them:**
+1. **ResourceHub's rating form** (`servicehub-mvp/app/api/resources/[id]/ratings/route.ts`): signed in, approved resources only.
+2. **The app's Milestone View**, through "How well did it help?" (`frontend/app/api/me/resource-rating/route.ts`): a score only, approved resources only, one per person per resource.
+3. **ResourceHub's seed data:** the 515 persona rows.
+
+**How Tool Recommendation reads them.** `_fetch_resource_pool` reads
+`resource_id` and `overall_score`, with no filter on who rated. It uses the
+mean and count per resource:
+- **in ranking:** 0.30 × mean ÷ 5 × min(count ÷ 10, 1);
+- **in the confidence:** the share of returned items that have any rating.
+
+It doesn't read the per-barrier scores, the comments or the rater's
+conditions.
+
+**What the ratings point at now:**
+- **On rejected seed rows:** 520 of the 521.
+- **On today's pool:** none. None of its 499 places has a rating, so ratings
+  don't affect any recommendation made today.
+
+  For paths made before 22 September, the seed personas' ratings did shape
+  the ranking: they rated the seed rows that were then the pool.
+- **The 2 real ratings:**
+  - scores 4 and 3, written on 22 and 24 September;
+  - one on a now-rejected seed row, one on an approved place that isn't in
+    the pool.
+- **Which form wrote each row,** going by which fields are filled:
+
+  | Form | Rows | Real ratings |
+  | --- | --- | --- |
+  | ResourceHub's form (the rater's conditions or barrier scores are recorded) | 455 | 1 |
+  | A score only | 66 | 1 |
+
+  "A score only" means the Milestone View, or ResourceHub's form with
+  nothing else filled. The table doesn't record its source, so this split is
+  **NOT YET VERIFIED**.
+
+**Related signals:**
+- **`saved_resources`:** 8 rows, 6 of them from real accounts. 7 of the 8
+  are now-rejected seed rows.
+- **`tool_outcomes`:** 0 rows. It is the learned reward the agent blends in.
+
+Nothing was changed.

@@ -29,6 +29,12 @@ Item 1, the baseline (current paths, real accounts only, unless it says):
     matches nothing: no ResourceHub category names one;
   * the agent's confidence, for current and legacy paths apart.
 
+Item 2, the ratings it reads: the `ratings` table by rater (seed personas
+apart from other team accounts), by the status of the rated resource, by
+which form most likely wrote the row (ResourceHub's form records the rater's
+conditions; the app's Milestone View writes only a score), and how many
+ratings fall on the resources in today's pool.
+
 Accounts are split with the Vector deck's email rules, so "real" means the
 same as in the other audits.
 
@@ -136,7 +142,13 @@ def status_of(tool: Dict[str, Any], statuses: Dict[str, str]) -> str:
 def accounts(sb) -> Callable[[Any], str]:
     users = list_all_users(sb)
     kind = {str(u.id): "synthetic" if is_synthetic(u) else "team" if is_team_test(u) else "real" for u in users}
-    return lambda uid: kind.get(str(uid), "no account")
+    persona = {str(u.id) for u in users if str(getattr(u, "email", "") or "").lower().endswith("@test.com")}
+
+    def account(uid: Any, personas: bool = False) -> str:
+        if personas and str(uid) in persona:
+            return "seed persona (@test.com)"
+        return kind.get(str(uid), "no account")
+    return account
 
 
 def item0(sb, rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict[str, Any]:
@@ -264,6 +276,43 @@ def item1(sb, rows: List[Dict[str, Any]], account: Callable[[Any], str]) -> Dict
     return out
 
 
+def filled(value: Any) -> bool:
+    return bool(value) and value not in ({}, [], "")
+
+
+def item2(sb, account: Callable[..., str]) -> Dict[str, Any]:
+    print("\n== Item 2: the ratings it reads")
+    ratings = fetch_all(sb, "ratings", "user_id, resource_id, overall_score, barrier_scores, comment, "
+                                      "rater_diagnostics, rater_relationships, created_at")
+    statuses = {str(r["id"]): r["status"] for r in fetch_all(sb, "resources", "id, status")}
+    who = Counter(account(r["user_id"], personas=True) for r in ratings)
+    print(f"  ratings: {len(ratings)}  by rater: {dict(who)}")
+    print(f"  raters: {len({r['user_id'] for r in ratings})}; resources rated: {len({r['resource_id'] for r in ratings})}")
+    print(f"  by the rated resource's status now: {dict(Counter(statuses.get(str(r['resource_id']), 'not in the directory') for r in ratings))}")
+    for r in ratings:
+        r["_form"] = ("ResourceHub's form (rater's conditions or barrier scores recorded)"
+                      if filled(r.get("rater_diagnostics")) or filled(r.get("barrier_scores")) or filled(r.get("rater_relationships"))
+                      else "a score only (the app's Milestone View, or ResourceHub with nothing else)")
+    print(f"  by the form that most likely wrote it: {dict(Counter(r['_form'] for r in ratings))}")
+    real = [r for r in ratings if account(r["user_id"]) == "real"]
+    print(f"  real accounts: {len(real)}  scores: {dict(Counter(r['overall_score'] for r in real))}  "
+          f"rated resource now: {dict(Counter(statuses.get(str(r['resource_id']), 'not in the directory') for r in real))}  "
+          f"form: {dict(Counter(r['_form'] for r in real))}  written: {sorted(str(r['created_at'])[:10] for r in real)}")
+    print(f"  with a comment: {sum(1 for r in ratings if filled(r.get('comment')))}")
+    pool = (sb.table("resources").select("id, name, is_first_party").eq("status", "approved")
+            .limit(POOL_LIMIT).execute().data or [])
+    pool_ids = {str(r["id"]) for r in pool if not is_self_listing(r)}
+    on_pool = [r for r in ratings if str(r["resource_id"]) in pool_ids]
+    on_approved = [r for r in ratings if statuses.get(str(r["resource_id"])) == "approved"]
+    print(f"  ratings on approved resources: {len(on_approved)}; on today's pool: {len(on_pool)}")
+    saved = fetch_all(sb, "saved_resources", "user_id, resource_id, status")
+    print(f"  saved_resources: {len(saved)}  by account: {dict(Counter(account(x['user_id'], personas=True) for x in saved))}  "
+          f"resource now: {dict(Counter(statuses.get(str(x['resource_id']), 'not in the directory') for x in saved))}")
+    print(f"  tool_outcomes: {len(fetch_all(sb, 'tool_outcomes', '*'))}")
+    return {"ratings": len(ratings), "real": len(real), "by_rater": dict(who),
+            "on_pool": len(on_pool), "on_approved": len(on_approved)}
+
+
 def main() -> None:
     sb = get_supabase()
     if sb is None:
@@ -275,6 +324,7 @@ def main() -> None:
           f"by account: {dict(Counter(account(r['user_id']) for r in rows))}")
     item0(sb, rows, account)
     item1(sb, rows, account)
+    item2(sb, account)
 
 
 if __name__ == "__main__":
