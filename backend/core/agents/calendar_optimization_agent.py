@@ -12,12 +12,41 @@ enough data. See backend/core/learning.py and
 2026_universal_agent_learning.sql.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Iterable, List, Optional
 from datetime import datetime, timedelta
 from core.agents.base_agent import BaseAgent
+from core.condition_taxonomy import match_keys
 from core.config import Config
 from core import llm, learning
 import random
+
+# Which rule sets each canonical condition gets. Conditions are compared with
+# condition_taxonomy.match_keys, the same canonicalisation Pattern
+# Recognition's live filter uses, so "Autism spectrum disorder", "ASD" and
+# "autistic" all get the autism rules. Until now the agent lowercased the
+# raw label and looked it up as a key, so only the exact labels "autism",
+# "ADHD", "OCD" and "bipolar" ever matched: the autism rules reached 6 of 20
+# autistic people's paths and the OCD rules 2 of 10 (8 October 2026 audit).
+# AuDHD gets both the autism and the ADHD rules. Free text gets none, even
+# when it mentions a condition, as in the live filter.
+RULES_FOR_CONDITION: Dict[str, tuple] = {
+    'autism': ('autism',),
+    'adhd': ('adhd',),
+    'audhd': ('autism', 'adhd'),
+    'ocd': ('ocd',),
+    'bipolar': ('bipolar',),
+}
+
+
+def rule_keys(barriers: Optional[Iterable[Any]]) -> List[str]:
+    """The condition rule sets that apply to someone, from their labels as recorded."""
+    out: List[str] = []
+    for key in sorted(match_keys(list(barriers or []))):
+        for rule in RULES_FOR_CONDITION.get(key, ()):
+            if rule not in out:
+                out.append(rule)
+    return out
+
 
 class CalendarOptimizationAgent(BaseAgent):
     """Optimizes calendar scheduling based on user patterns"""
@@ -110,7 +139,7 @@ class CalendarOptimizationAgent(BaseAgent):
         """Optimize calendar schedule"""
         
         barriers = user_profile.get('barrierTypes', [])
-        barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
+        barrier_keys = rule_keys(barriers)
         
         # Get combined scheduling rules
         rules = await self._get_combined_rules(barrier_keys)
