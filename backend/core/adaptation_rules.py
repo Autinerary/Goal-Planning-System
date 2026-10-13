@@ -198,3 +198,59 @@ def suggestions(analysis: Any, path_payload: Any, path_id: str, done_ids: Iterab
             })
             break
     return out[:MAX_OFFERS]
+
+
+# ---- applying an accepted suggestion -----------------------------------------------
+
+def _move_later(milestones: List[Any], mid: str) -> bool:
+    """Move a milestone after the last one of its part of the plan, in one list."""
+    index = next((i for i, m in enumerate(milestones) if isinstance(m, dict) and str(m.get("id")) == mid), None)
+    if index is None:
+        return False
+    moving = milestones[index]
+    last = max((i for i, m in enumerate(milestones)
+                if isinstance(m, dict) and _lane(m) == _lane(moving)), default=index)
+    if last == index:
+        return False
+    orders = [m.get("order") for m in milestones if isinstance(m, dict) and _lane(m) == _lane(moving)
+              and isinstance(m.get("order"), (int, float))]
+    milestones.pop(index)
+    milestones.insert(last, moving)          # `last` shifted down by one with the pop
+    if orders:
+        moving["order"] = max(orders) + 1
+    return True
+
+
+def apply(payload: Dict[str, Any], milestone_id: str, change: Dict[str, Any]) -> Dict[str, Any]:
+    """A copy of the stored path with one accepted change made, in every copy
+    the app reads (core/path_storage.py): the race milestones, path planning's
+    milestones and its flat task list, and path.milestones. Raises ValueError
+    when the milestone isn't in the path or the change isn't one of these."""
+    from core.path_storage import apply_adaptation   # the same merge adaptations always used
+    mid = str(milestone_id)
+    if mid not in _milestones(payload):
+        raise ValueError("That step is not in this path.")
+    if change.get("keepTasks"):
+        keep = int(change["keepTasks"])
+        kept = [dict(t, milestoneId=mid) for t in tasks_of(payload, mid)[:keep]]
+        out, counts = apply_adaptation(payload, [], kept)
+        return out
+    if change.get("status") in ("in_progress",):
+        out, counts = apply_adaptation(payload, [{"id": mid, "status": change["status"]}], [])
+        return out
+    if change.get("moveLater"):
+        import copy
+        out = copy.deepcopy(payload)
+        lists = _race_lists(out)
+        path = out.get("path") if isinstance(out.get("path"), dict) else {}
+        if isinstance(path.get("milestones"), list):
+            lists.append(path["milestones"])
+        for response in out.get("agentResponses") or []:
+            if isinstance(response, dict) and response.get("agentId") == "path_planning":
+                result = response.get("result")
+                if isinstance(result, dict) and isinstance(result.get("milestones"), list):
+                    lists.append(result["milestones"])
+        if not any([_move_later(lst, mid) for lst in lists]):
+            raise ValueError("That step is already last in its part of the plan.")
+        return out
+    raise ValueError("Not a change this can make.")

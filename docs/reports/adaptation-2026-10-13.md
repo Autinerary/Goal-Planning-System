@@ -128,3 +128,107 @@ more time" would change nothing anyone sees. The changes are to:
 - ids are stable;
 - naming changes nothing;
 - the agent reports the rules that named none.
+
+## Item 3. Offer, don't apply
+
+Behind a flag that is off by default:
+- `ADAPTATION_OFFERS_ENABLED=true` on the backend (otherwise 404);
+- `NEXT_PUBLIC_ADAPTATION_OFFERS_ENABLED=true` in the app (otherwise nothing
+  renders).
+
+**The migration is written, not applied:**
+`backend/database/migrations/2026_adaptation_offers.sql`, **STEP 73**, also
+added to `setup/all_migrations.sql`. It is independent of STEP 72 (schedule
+feedback, on the Calendar branches).
+
+**Wording and placement:**
+- **Where:** on the Path page (`/path`), directly under "Your next step". Up
+  to three cards, one per suggestion.
+- **Each card:**
+  - the heading **"Suggested change"**;
+  - **"For"** and the step's name, linked to that step's page, so each card
+    names its milestone and leads to it;
+  - the change in plain words;
+  - the reason;
+  - two buttons, **Accept** and **Not now**.
+- **The texts:**
+
+  | Rule | The change, as shown | The reason, as shown |
+  | --- | --- | --- |
+  | `behind_schedule` | "This step is taking longer than planned. Make it lighter: keep its first 3 tasks and set the other 2 aside." | "By your plan's own estimates, 4 steps would be done by now. 1 is." |
+  | `stress` | "You wrote that things are a lot right now. Move this step later, after the other steps in its part of the plan." | "From your journal entry on 12 October." |
+  | `rated_low` | "You rated this step "Not useful". Move it later, after the other steps in its part of the plan." | "Your rating on 12 October." |
+  | `ahead_of_schedule` | "You're ahead of your plan. Start this step now?" | "4 of the 4 steps due by now are done." |
+
+- **After Accept:** "Done. Your plan has changed." The Path reloads the plan.
+- **After Not now:** "Okay. Your plan stays as it is, and this won't be
+  suggested again."
+- **If saving fails:** "This could not be saved just now. Please try again."
+- **Component:** `frontend/app/components/SuggestedChanges.tsx`.
+
+**Only Accept changes the stored path** (`backend/api/routes/adaptations.py`):
+- **`GET /api/adaptations/{pathId}`**, for the person's own path only, computes:
+  - Reflection Analysis's analysis, on read;
+  - Adaptation's suggestions;
+  - the person's completed steps.
+
+  It records each new suggestion once and returns those not yet answered.
+  Showing an offer changes nothing.
+- **`POST /api/adaptations/{suggestionId}/respond`** takes `{ pathId,
+  response: 'accept' | 'not_now' }`. It accepts only a suggestion that was
+  offered to this person.
+  - **Accept** applies the change that was offered, to the step it named,
+    with `core/adaptation_rules.apply`:
+    - "lighter" keeps the first 3 tasks, through the same merge adaptations
+      always used (`core/path_storage.py`);
+    - "start now" sets the status;
+    - "move later" moves the step after the last one of its part of the plan,
+      in all three copies the app reads.
+
+    It then saves the path, drops the path routes' cached copy of it, and
+    sets `accepted_at`.
+  - **Not now** sets `dismissed_at` and doesn't touch the path.
+  - **A second answer** changes nothing.
+
+**Every offer and response is a row in `adaptation_outcomes`** (STEP 73):
+
+| Column | Holds |
+| --- | --- |
+| `rule_fired` | The rule |
+| `path_id`, `milestone_id` | The step it names |
+| `suggestion_id` | Unique per person: offered once |
+| `change` | What it would change, and the words it was offered with |
+| `offered_at` | When it was offered |
+| `accepted_at` or `dismissed_at` | The answer; one at most, a check enforces it |
+
+The journal's reward loop (`close_adaptation_loop`) now leaves offers out:
+they are not fired adaptations. As before, only the backend writes the table
+(RLS on, no policies).
+
+**Known limit:** the path routes keep a copy of each path per server process.
+Accept drops its own process's copy; another process may show the old plan
+until it reloads it. Every other write to a path has the same limit.
+
+**Tested:**
+- **The route** (`tests/test_adaptation_offers.py`, 8, on an in-memory
+  database):
+  - offered once, and named;
+  - showing changes nothing;
+  - Accept applies exactly the offered change (3 tasks kept, in both copies),
+    drops the cached copy, and isn't applied twice;
+  - Not now changes nothing and isn't offered again;
+  - only the person's own path and offers;
+  - off by default;
+  - "not available" before the migration;
+  - only accept or not_now.
+- **Applying:** "move later" moves the step in every copy and nothing else;
+  "start now" works; the refusals hold.
+- **The migration,** on a throwaway local Postgres:
+  - applies twice;
+  - the same suggestion can't be offered twice;
+  - an offer must name its step;
+  - accepted and dismissed together is refused;
+  - the journal's loop credits the old row and leaves the offer out;
+  - a signed-in person reads nothing.
+- **No adaptation was applied to any real path:** fixtures and local
+  databases only.

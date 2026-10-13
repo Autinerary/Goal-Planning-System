@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # in either frontend ever called them. Unregistered rather than left serving
 # fabricated data on a public API — the real equivalents live under
 # /api/onboarding/* and read from user_paths.
-from api.routes import onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models, milestone_ratings, pattern, similar_group
+from api.routes import onboarding, paths, reflections, messaging, calls, memes, memory, assistant, models, milestone_ratings, pattern, similar_group, adaptations
 from database.connection import init_db
 
 load_dotenv()
@@ -152,6 +152,7 @@ app.include_router(memes.router, prefix="/api/memes", tags=["memes"])
 app.include_router(memory.router, prefix="/api/memory", tags=["memory"])
 app.include_router(assistant.router, prefix="/api/assistant", tags=["assistant"])
 app.include_router(milestone_ratings.router, prefix="/api/milestone-ratings", tags=["milestone-ratings"])
+app.include_router(adaptations.router, prefix="/api/adaptations", tags=["adaptations"])
 app.include_router(pattern.router, prefix="/api/pattern", tags=["pattern"])
 app.include_router(models.router, prefix="/api/models", tags=["models"])
 app.include_router(similar_group.router, prefix="/api/pattern", tags=["pattern"])
