@@ -8,7 +8,7 @@ the previous item's branch:
 | 0 | `report/tool-rec-0-pool` |
 | 1 | `report/tool-rec-1-baseline` |
 | 2 | `report/tool-rec-2-ratings` |
-| 3 | `feat/tool-rec-3-useful` |
+| 3 | `report/tool-rec-3-feedback` (no feature built: one already exists) |
 | 4 | `feat/tool-rec-4-run-log` |
 
 Nothing is pushed, deployed or applied.
