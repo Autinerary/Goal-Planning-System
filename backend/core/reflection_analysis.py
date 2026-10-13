@@ -38,11 +38,14 @@ status is "ok"):
   outcomes     {reflections: {helped, no_change, made_worse, not_sure, unrecorded},
                 adaptations: {recorded}}
   concerns     [{type, severity, at, context_type, context_id}]           newest first
-  themes       None (filled only by the optional theme step, behind a flag)
+  themes       None, or, with REFLECTION_THEMES_ENABLED=true, {themes, from_entries, model}:
+               up to 5 themes in the person's own journal entries, from the model
+               (see themes() below; off by default)
 """
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
@@ -302,3 +305,65 @@ def analyze_person(sb, user_id: str, path_id: Optional[str] = None,
     rows = load(sb, str(user_id)) if readable else {
         "reflections": [], "ratings": [], "completions": [], "paths": [], "adaptation_outcomes": 0}
     return analyze(**rows, path_id=path_id, current_entry=current_entry, now=now)
+
+
+# ---- optional: themes in the person's own words (behind a flag) ---------------
+
+THEME_ENTRIES = 10      # the newest journal entries read
+THEME_CHARS = 1500      # each entry capped, then fenced (llm.user_text)
+MAX_THEMES = 5
+THEME_LENGTH = 60
+
+
+def themes_enabled() -> bool:
+    """The feature flag, read at call time. Off unless set to 'true'."""
+    return os.getenv("REFLECTION_THEMES_ENABLED", "").strip().lower() == "true"
+
+
+def recent_entries(sb, user_id: str, current_entry: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """The person's newest journal entries' words, with the one being written first."""
+    rows: List[Dict[str, Any]] = []
+    if sb is not None and UUID.match(str(user_id or "")):
+        try:
+            rows = (sb.table("reflections").select("free_form_text, questions, created_at").eq("user_id", str(user_id))
+                    .order("created_at", desc=True).limit(THEME_ENTRIES).execute().data or [])
+        except Exception as e:
+            print(f"[reflection_analysis] reflections unavailable for themes: {str(e)[:120]}")
+    return ([current_entry] if current_entry else []) + rows
+
+
+async def themes(entries: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Up to MAX_THEMES themes in a person's own journal entries, from the model.
+
+    Every entry is capped and fenced as fix/llm-user-text does
+    (llm.user_text, with USER_TEXT_RULE in the system prompt), so what they
+    wrote is read as information, never as instructions. The model is the
+    one the harness resolves for this agent (core/llm.py): in production,
+    gpt-4o-mini. None when there is nothing to read, no model, or no usable
+    answer: no theme is ever made up to fill the field.
+    """
+    from core import llm   # only when the step runs
+    texts = [t for t in (entry_text(e) for e in entries[:THEME_ENTRIES]) if t.strip()]
+    if not texts or not llm.is_enabled():
+        return None
+    listing = "\n".join(f"{i + 1}. {llm.user_text(t, THEME_CHARS)}" for i, t in enumerate(texts))
+    data = await llm.complete_json(
+        system=(
+            "You read a person's own journal entries for a planning app and name the themes in them. "
+            f"Give at most {MAX_THEMES} themes, each 2 to 6 plain words, only from what they wrote. "
+            "No advice, no diagnoses, no quotations, nothing about other people by name. "
+            "An empty list is fine when nothing recurs. "
+            + llm.USER_TEXT_RULE
+        ),
+        user=f"Journal entries, newest first:\n{listing}\n" + 'Return JSON: {"themes": ["..."]}',
+        temperature=0.2,
+        max_tokens=200,
+        agent="reflection_analysis",
+    )
+    raw = data.get("themes") if isinstance(data, dict) else None
+    if not isinstance(raw, list):
+        return None
+    found = [t.strip()[:THEME_LENGTH] for t in raw if isinstance(t, str) and t.strip()][:MAX_THEMES]
+    if not found:
+        return None
+    return {"themes": found, "from_entries": len(texts), "model": llm.active_model_id("reflection_analysis")}
