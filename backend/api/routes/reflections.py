@@ -307,7 +307,7 @@ async def create_reflection(
         "contextType": request.contextType,
         "contextId": request.contextId,
         "contextName": f"{request.contextType.capitalize()} Reflection",
-        "sentiment": (reflection_response.get("sentiment") or {}).get("label", "neutral"),
+        "sentiment": (reflection_response.get("sentiment") or {}).get("label"),
         "summary": summary or "Reflection recorded",
         "questions": [
             {"q": q.get("question", ""), "a": q.get("answer", "")}
@@ -325,7 +325,8 @@ async def create_reflection(
     return ReflectionResponse(
         reflectionId=reflection_id or "in-memory",
         insights=reflection_response.get("insights", {}) or {
-            "sentiment": (reflection_response.get("sentiment") or {}).get("label", "neutral"),
+            "sentiment": (reflection_response.get("sentiment") or {}).get("label"),
+            "analysis": reflection_response.get("status"),
         },
         adaptations=adaptation_response or None,
         reward=reward,

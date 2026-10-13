@@ -372,7 +372,8 @@ class Orchestrator:
                     'agentId': 'reflection_analysis',
                     'agentName': 'Reflection Analysis Agent',
                     'result': reflection,
-                    'confidence': reflection.get('confidence', 0.0),
+                    # The analysis has no confidence; none is made up for it.
+                    'confidence': reflection.get('confidence'),
                 },
                 {
                     'agentId': 'adaptation',

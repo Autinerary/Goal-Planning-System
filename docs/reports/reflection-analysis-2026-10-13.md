@@ -233,3 +233,41 @@ another. The model's id is stored in the result.
   nothing to read;
 - at most five themes, from the ten newest entries;
 - the agent calls the step only with the flag on and data to read.
+
+## Item 3. Don't invent
+
+**No data is explicit.** Someone with no journal entries and no ratings gets:
+
+```json
+{"version": "reflection-analysis/1", "status": "no_data", "computed_at": "...",
+ "counts": {"reflections": 0, "ratings": 0, "completions": 3},
+ "explanation": "No journal entries or milestone ratings yet, so there is nothing to analyse."}
+```
+
+There are no ratings, completion, outcomes, concerns or themes, and no
+number but the counts. A test walks the whole structure to prove it.
+
+**Completions alone don't make data.** Someone with completed milestones but
+no entries or ratings gets "no data", as defined. They show in `counts`. How
+many such people there are is in item 4.
+
+**Unknowns stay unknown:**
+- the completion rate is null with `rate_status: "unknown"` until 2
+  milestones are due;
+- the trend is "unknown" with no completions;
+- a path with no ratings has no score.
+
+**Defaults removed elsewhere on the way:**
+
+| Where | Before | Now |
+| --- | --- | --- |
+| A stored journal entry (`learning.persist_reflection`) | `sentiment_score` 0.5 and `completion_rate` 0.5 whenever missing; otherwise `completion_rate` was the agent's constant 0.65 | Only what was computed: no sentiment (the analysis has none), and the analysis's completion rate, null while unknown |
+| The reflection step's confidence, in the adaptation result (`core/orchestrator.py`) | 0.0 when absent | null: the analysis has no confidence |
+| The journal response and its in-memory copy (`api/routes/reflections.py`) | Sentiment "neutral" when none was found | None, and the analysis's status alongside |
+
+**Tests** (`tests/test_reflection_no_data.py`, 5):
+- "no data" has counts and nothing else numeric;
+- unknowns stay unknown;
+- nothing computed is stored as nothing;
+- a known rate is stored as it is;
+- the reflection step reports no confidence.
