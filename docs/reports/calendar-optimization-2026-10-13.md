@@ -277,3 +277,54 @@ shows nothing, even with both flags on.
 **Not done, as with milestone ratings:** the app's "download my data" route
 (`frontend/app/api/me/data`) doesn't list this table. It doesn't list
 `milestone_ratings` either.
+
+## Item 4. Run log
+
+`scripts/calendar_audit.py` calls `core/evaluation_runs.py` at the start of
+a run (`start`, once its inputs are read) and at the end (`finish`).
+- **Never through the Supabase client.** The row goes only to the Postgres
+  named by `EVALUATION_RUNS_DSN`, so production's `evaluation_runs` stays
+  empty.
+- **Without that variable,** the run says it wasn't logged.
+- **What it records:** counts and hashes only. No user ids, emails or free
+  text.
+
+**One row**, from the run on 13 October against production, logged in a
+local Postgres that has STEP 61's table:
+
+```json
+{
+  "run_id": "39380604-8388-491a-bd4e-fb5863b5e6ee",
+  "script": "scripts.calendar_audit",
+  "git_commit": "2d6fa1e",
+  "started_at": "2026-10-13T03:34:18.815464-04:00",
+  "ended_at": "2026-10-13T03:34:20.727591-04:00",
+  "inputs": {
+    "paths": 96,
+    "is_legacy_excluded": 16,
+    "tasks": {"scheduled_current_paths": 2457, "per_path_max": 33,
+              "calendar_tasks": 26, "calendar_tasks_real_accounts": 2},
+    "rules_applied_current_paths": {"adhd": 18},
+    "rules_real_accounts": {"people": 61,
+                            "before": {"autism": 3, "adhd": 15, "ocd": 1},
+                            "after": {"autism": 13, "adhd": 17, "ocd": 7}},
+    "condition_map_hash": "841a277543",
+    "real_feedback_answers": "table not present (STEP 72 not applied)"
+  }
+}
+```
+
+**Reading the row:**
+- **`rules_applied_current_paths`** is what ran when each current path was
+  made: in all 80, only the ADHD rules ever ran. The autism and OCD rules
+  that real users' latest paths show (3 and 1) are in legacy paths.
+- **`real_feedback_answers`** will count yes and no once STEP 72 is applied
+  and the flags are on.
+- **`condition_map_hash`** is `TAXONOMY_VERSION` from
+  `core/condition_taxonomy.py`.
+
+**To run it,** from backend/:
+
+```
+EVALUATION_RUNS_DSN=postgresql://... python -m scripts.calendar_audit
+```
