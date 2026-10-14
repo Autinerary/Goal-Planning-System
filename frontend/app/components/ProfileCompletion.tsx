@@ -13,6 +13,7 @@ import LocationField from './LocationField'
 import MotivationField from './MotivationField'
 import DisplaySettings from './DisplaySettings'
 import FirstWeeksReminder from './FirstWeeksReminder'
+import Define from './Define'
 import { MOTIVATION_OPTIONS, LIFE_STAGES } from '@/lib/motivationChoices'
 
 /**
@@ -95,6 +96,7 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
     viewPreference: prefs.viewPreference,
     accessibility: prefs.accessibility,
     reminders: prefs.reminders,
+    firstWeeks: prefs.firstWeeks,
   }
   const { done, todo } = profileProgress(state)
 
@@ -149,6 +151,7 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
       ].filter(Boolean)
       return names.join('; ')
     }
+    if (id === 'reminders' && prefs.firstWeeks?.enabled) return 'On: three emails about your first two weeks'
     if (id === 'reminders' && prefs.reminders?.enabled) {
       const until = prefs.reminders.until
       return until ? `On, until ${new Date(`${until}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}` : 'On'
@@ -237,7 +240,11 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
                     {!all && earlyUnlock && item.id === next && (
                       <p className="ml-6 text-sm font-medium text-emerald-800">Unlocked: you finished your first step.</p>
                     )}
-                    <p className="ml-6 text-sm text-slate-700">{unlocksOf(item)}</p>
+                    <p className="ml-6 text-sm text-slate-700">
+                      {unlocksOf(item)}
+                      {/* Riipen Labs, Group 17: setup used "undefined terms like 'norms'". */}
+                      {item.id === 'norms' && <>{' '}<Define term="norms" ask /></>}
+                    </p>
                     {!isOpen && answerOf(item.id) && (
                       <p className="ml-6 mt-0.5 text-sm text-slate-900"><span className="font-medium">Picked:</span> {answerOf(item.id)}</p>
                     )}

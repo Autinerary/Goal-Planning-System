@@ -89,6 +89,14 @@ html[data-dark-mode="on"] .keep-colors .keep-colors {
    on indigo, like the plan tabs, into dark blue on indigo (Riipen Labs,
    Group 32). Grey text and pale borders get darker instead. */
 html[data-high-contrast="on"] body { filter: contrast(1.15); }
+/* Soft colours (Riipen Labs, Group 16: "bright, vibrant icons which may not
+   be friendly for certain individuals"; "neurodivergent friendly colour
+   schemes"): every colour on the page, emoji and pictures included, made
+   less bright. Text stays as dark as it was. On <html>, like dark mode, so
+   fixed parts (the tour's card, dialogs) stay where they are; with dark
+   mode, both filters in one. */
+html[data-soft-colors="on"] { filter: saturate(0.5); }
+html[data-dark-mode="on"][data-soft-colors="on"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
 html[data-high-contrast="on"] a:not([class*="bg-"]):not([class*="text-white"]) { color: #0b3d91; }
 html[data-high-contrast="on"] :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600) { color: #1e293b; }
 html[data-high-contrast="on"] :is(.border-slate-100, .border-slate-200, .border-gray-100, .border-gray-200, .border-white\/40, .border-white\/50) { border-color: #64748b; }

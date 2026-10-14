@@ -176,6 +176,7 @@ export default function DiagnosticProfilePage() {
                             >
                               {selected && <Check className="mr-1 inline h-4 w-4" />}
                               {condition.label}
+                              {condition.hint && <span className="mt-0.5 block text-xs font-normal text-slate-700">{condition.hint}</span>}
                             </button>
                           )
                         })}

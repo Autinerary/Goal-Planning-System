@@ -19,6 +19,9 @@ export const dynamic = 'force-dynamic'
  *   kind 'feedback'        the glossary's "Tell us how it's going", at any
  *                          time: the usefulness question plus a comment
  *                          (STEP 69; before it, kept as 'usefulness')
+ *   kind 'usefulness' with a token
+ *                          answered from the day-14 email of the first two
+ *                          weeks (lib/firstWeeks.ts), without signing in
  *
  * Every field is validated against the lists in lib/checkin.ts.
  *
@@ -52,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   const row = { kind, reason, usefulness, comment, onboarding_version: version }
 
-  if (kind === 'inactive_email') {
+  if (kind === 'inactive_email' || (kind === 'usefulness' && body?.token)) {
     const userId = verifyCheckinToken(String(body?.token || ''))
     if (!userId) return NextResponse.json({ error: 'This link has expired or is not valid.' }, { status: 401 })
     const { error } = await createAdminClient().from('checkin_responses').insert({ ...row, user_id: userId })

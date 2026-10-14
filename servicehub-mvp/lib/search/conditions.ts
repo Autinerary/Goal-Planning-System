@@ -28,6 +28,13 @@ export interface ConditionLeaf {
 export interface ConditionGroup {
   id: string
   label: string
+  /**
+   * Plain words under a clinical name (Riipen Labs, Group 17: "Cluster A,
+   * Cluster B, and Cluster C ... clinical shorthand most users will not
+   * recognize"; "keep the clinical terms visible but pair them with plain
+   * language"). The same words as the app's (frontend/lib/diagnostic-profile.ts).
+   */
+  hint?: string
   // either a flat list of leaves, or nested groups (used for personality clusters)
   conditions?: ConditionLeaf[]
   groups?: ConditionGroup[]
@@ -91,6 +98,7 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
       {
         id: 'cluster_a',
         label: 'Cluster A',
+        hint: 'Unusual or withdrawn patterns: distrust of others, keeping to yourself, unusual beliefs',
         conditions: [
           { id: 'paranoid_pd', label: 'Paranoid' },
           { id: 'schizoid_pd', label: 'Schizoid' },
@@ -100,6 +108,7 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
       {
         id: 'cluster_b',
         label: 'Cluster B',
+        hint: 'Intense or changeable patterns: strong emotions, up-and-down relationships, acting quickly',
         conditions: [
           { id: 'antisocial_pd', label: 'Antisocial' },
           { id: 'borderline_pd', label: 'Borderline' },
@@ -110,6 +119,7 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
       {
         id: 'cluster_c',
         label: 'Cluster C',
+        hint: 'Anxious or fearful patterns: avoiding things, relying on others, perfectionism',
         conditions: [
           { id: 'avoidant_pd', label: 'Avoidant' },
           { id: 'dependent_pd', label: 'Dependent' },

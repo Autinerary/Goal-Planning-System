@@ -167,6 +167,17 @@ export default function IdealSelfPage() {
             </details>}
           </section>
 
+          {/* Your biggest dream, beyond any one goal. It was the last
+              question of setup's goal step until Riipen Labs, Group 17 found
+              it asked "before trust is established"; here it sits with the
+              Dream Self, for whenever someone wants it, and the next plan
+              they make still uses it. Saved as it is typed. */}
+          <section aria-labelledby="biggest-dream-heading" className="lg:col-span-2 rounded-2xl border border-slate-200 p-6 surface">
+            <h3 id="biggest-dream-heading" className="font-bold text-slate-800">Your biggest dream <span className="font-normal text-slate-600">(optional)</span></h3>
+            <p className="mt-1 text-sm text-slate-700">Beyond any one goal, what would you most love your life to hold? Only you see this. Your next plan uses it, if you make one.</p>
+            <BiggestDream saved={prefs.biggestDream || ''} onSave={(biggestDream) => update({ biggestDream })} />
+          </section>
+
           {/* Your Dream Self's goals, by area (Riipen Labs, Group 34, slide 26) */}
           <DreamGoals saved={prefs.dreamGoals} setupGoals={payload?.userProfile?.goalsByCategory} onSave={(dreamGoals) => update({ dreamGoals })} />
 
@@ -291,5 +302,32 @@ export default function IdealSelfPage() {
         )}
       </div>
     </div>
+  )
+}
+
+/** The biggest dream's field: saved when it is left, not on every key. */
+function BiggestDream({ saved, onSave }: { saved: string; onSave: (value: string) => Promise<boolean> }) {
+  const [value, setValue] = useState(saved)
+  const [touched, setTouched] = useState(false)
+  const [note, setNote] = useState('')
+  // The account's copy arrives after the first render.
+  useEffect(() => { if (!touched) setValue(saved) }, [saved, touched])
+  return (
+    <>
+      <label htmlFor="biggest-dream" className="sr-only">Your biggest dream</label>
+      <input
+        id="biggest-dream"
+        value={value}
+        maxLength={300}
+        onChange={(event) => { setTouched(true); setValue(event.target.value); setNote('') }}
+        onBlur={async () => {
+          if (!touched || value.trim() === saved.trim()) return
+          setNote((await onSave(value.trim())) ? 'Saved.' : 'Saved on this device only. Try again when connected.')
+        }}
+        placeholder="For example: a home of my own, with a job I enjoy"
+        className="mt-3 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800"
+      />
+      {note && <p role="status" className="mt-1 text-sm text-slate-700">{note}</p>}
+    </>
   )
 }

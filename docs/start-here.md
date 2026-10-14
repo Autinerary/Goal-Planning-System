@@ -104,15 +104,23 @@ Still true:
 ## Campaign links
 
 Campaign links open Start here with their tracking (`utm_source`,
-`utm_campaign`), and everyone answers the same two questions. Only a welcome
-line above the first question changes with where they came from
-(`ENTRY_LINES` in `frontend/lib/campaign.ts`). Until 10 October some links
+`utm_campaign`), and everyone answers the same two questions. A welcome
+above the first question changes with where they came from, and since
+Groups 15 to 19 one thing beside it does what that channel's visitors look
+for (Riipen Labs, Group 15, "Five doors in"; `ENTRY_LINES` in
+`frontend/lib/campaign.ts`): from a Facebook or parent group, "Share this
+list with your group" at the top of the list; from Reddit, why we ask and
+where the lists come from, before the first question; from X, a look at the
+app with a sample plan; from TikTok and Instagram, "No forms, and no
+account"; from someone met in person, a welcome that says so. Until 10 October some links
 answered the questions for the people a channel mostly reaches; Riipen Labs'
 cohort report asked for one path for everyone, since "channel should not be
 used as a proxy for identity or need". A link with `utm_source` never answers
 for anyone, so older links still work.
 
-`/start?for=<who>&need=<need>`, with no `utm_source`, opens on that pathway.
+`/start?for=<who>&need=<need>`, with no `utm_source`, opens on that pathway,
+and so does the same link with `utm_source=share`: "Share this list" makes
+it, so the funnel report can count people who arrive from a shared list.
 It is the link to someone's own list: "Send this list to yourself", the
 emailed list, and the page after setup make it. The links for this October's
 beta are in [beta/outreach.md](beta/outreach.md); short links and QR codes

@@ -26,9 +26,14 @@ import { gaEvent } from '@/lib/analytics'
 // those being on the Path's "Complete your profile" card, and the tour's tasks
 // (Groups 25 to 30). paced-2026-10 added an optional energy check-in that sets
 // how much setup asks, one life area first, "Skip to resources" and the
-// starter kits (Groups 20 to 24). The funnel report compares them by this
-// (before and after, which Groups 26, 28 and 29 asked for).
-export const ONBOARDING_VERSION = 'paced-2026-10'
+// starter kits (Groups 20 to 24). clear-2026-10: plain words for path,
+// milestone and norms where they first appear, AI named where it works and
+// not on every label, a calmer page after setup with the reminder and
+// notification questions after a first step, and a greeting that does what
+// each channel's visitors look for (Groups 15 to 19). The funnel report
+// compares them by this (before and after, which Groups 26, 28 and 29 asked
+// for).
+export const ONBOARDING_VERSION = 'clear-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'
@@ -102,7 +107,19 @@ const AREAS: [RegExp, string][] = [
 // answered as a chat (components/ChatSetup).
 // Since Groups 20 to 24: "Show all areas now" on a plan (lib/lifeAreas.ts), and
 // the page guide opened from the top bar (components/PageGuide.tsx).
-export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat', 'life_areas', 'page_guide']
+// Since Groups 15 to 19: a display choice turned on (lib/displayChoices.ts;
+// Group 16: "see which colour options are most popularly being chosen"), and
+// a page that was not there (app/not-found.tsx; Group 19: "fewer navigation
+// errors").
+export const DISPLAY_CHOICE_IDS = [
+  'display_dark', 'display_contrast', 'display_soft', 'display_calm', 'display_text_larger', 'display_text_largest',
+  'display_look_plain', 'display_look_pretty', 'display_look_exciting', 'display_look_fun',
+  'display_view_simple', 'display_view_full',
+  'display_accent_cyan', 'display_accent_purple', 'display_accent_emerald', 'display_accent_amber', 'display_accent_rose',
+] as const
+// And "Share this list" in Start here (Group 15: someone who "recommends or
+// shares Autinerary" by day 14).
+export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat', 'life_areas', 'page_guide', 'not_found', 'share_list', ...DISPLAY_CHOICE_IDS]
 
 // The tour's tasks (app/components/InteractiveDemo.tsx), and what its events'
 // steps may be. Listed in backend/scripts/onboarding_funnel.py (TOUR_TASKS).

@@ -41,7 +41,12 @@ export interface ProfileItem {
 // In the order they are suggested: what helps in the first days first.
 export const PROFILE_ITEMS: ProfileItem[] = [
   { id: 'location', title: 'Your city', unlocks: 'Unlocks services near you in ResourceHub, nearest first.', inline: true, fromDay: 0 },
-  { id: 'reminders', title: 'Reminders for your first two weeks', unlocks: 'One short email a day about your next step. It stops by itself after two weeks.', inline: true, fromDay: 0 },
+  // From the day after joining, once there has been a first visit with
+  // something useful in it (Riipen Labs, Group 15: "Guarantee one concrete,
+  // useful action before any friction (forms, upgrade prompts, notifications
+  // asks)"). Three emails about what they did (Group 15's days 1, 7 and 14),
+  // or one a day about the next step (Group 29); both stop by themselves.
+  { id: 'reminders', title: 'Reminders for your first two weeks', unlocks: 'Three emails about what you did, or one short email a day about your next step. Both stop by themselves after two weeks.', inline: true, fromDay: 1 },
   { id: 'look', title: 'How the app looks', unlocks: 'Light or dark, larger text, higher contrast, and how lively it looks.', inline: true, fromDay: 0 },
   { id: 'motivation', title: 'What motivates you', unlocks: 'Helps match you with people motivated in similar ways when your plans are made.', inline: true, fromDay: 0 },
   { id: 'norms', title: 'Your norms and support needs', unlocks: 'Tools and services that fit how you work, and ratings from people with similar norms. Private.', href: '/profile/diagnostic', fromDay: 7 },
@@ -65,6 +70,8 @@ export interface ProfileState {
   viewPreference?: string | null
   accessibility?: { darkMode?: boolean; highContrast?: boolean; fontScale?: string } | null
   reminders?: { enabled?: boolean } | null
+  /** The first two weeks' emails (lib/firstWeeks.ts). */
+  firstWeeks?: { enabled?: boolean } | null
 }
 
 export function itemDone(id: ProfileItemId, state: ProfileState): boolean {
@@ -78,7 +85,7 @@ export function itemDone(id: ProfileItemId, state: ProfileState): boolean {
       const a = state.accessibility || {}
       return Boolean(state.viewPreference) || Boolean(a.darkMode) || Boolean(a.highContrast) || (Boolean(a.fontScale) && a.fontScale !== 'default')
     }
-    case 'reminders': return Boolean(state.reminders?.enabled)
+    case 'reminders': return Boolean(state.reminders?.enabled) || Boolean(state.firstWeeks?.enabled)
   }
 }
 

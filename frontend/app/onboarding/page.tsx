@@ -6,9 +6,10 @@ import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 import {
   User, Check, ChevronRight, ChevronLeft, Loader2,
-  Target, Sparkles, Rocket
+  Target, Rocket, Lightbulb, Map as MapIcon
 } from 'lucide-react'
 import { DEFAULT_REMINDERS, loadPreferences, type ReminderPreferences } from '@/lib/preferences'
+import Define from '../components/Define'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE, DEFAULT_CLOTHING } from '@/lib/avatar'
 import { type Appearance } from '@/app/components/AvatarEditor'
 import { ageBandFromDob, isAdult } from '@/lib/age'
@@ -179,7 +180,7 @@ const WHY_WE_ASK = {
   energy: 'So setup asks only what you have energy for today. You can change it at any point.',
   // Who you're here for says why in AUDIENCE_EFFECT (lib/audiences.ts), shared with Settings.
   lookingFor: 'We show you that first once your plan is ready.',
-  goal: 'Your plan is built from it: the goal becomes a race of small steps, each with tools that can help.',
+  goal: 'Your path is built from it: the goal broken into small steps, called milestones, each with tools that can help.',
 }
 
 // What the next step involves, beside the button that leads to it (Riipen
@@ -319,26 +320,6 @@ function getGoalSuggestions(categoryId: string, barrierTypes: string[]): string[
 
   return Array.from(out)
 }
-
-const connectionTypes = [
-  { id: 'self', label: 'Self (Lived Experience)', icon: '👤' },
-  { id: 'parent', label: 'Parent', icon: '👨‍👩‍👧‍👦' },
-  { id: 'sibling', label: 'Sibling', icon: '👫' },
-  // 'partner' and 'coworker' already mapped to a trust tier in
-  // relationship.ts (direct_support / indirect_support respectively) but
-  // were never offered as options here, so no one could actually select
-  // them. 'friend' had no tier at all — added as indirect_support, the same
-  // proximity as a coworker: closer than an ally, not daily-life-sharing.
-  { id: 'partner', label: 'Partner', icon: '💞' },
-  { id: 'coworker', label: 'Coworker', icon: '🧑‍🤝‍🧑' },
-  { id: 'friend', label: 'Friend', icon: '🙋' },
-  { id: 'educator', label: 'Educator', icon: '📚' },
-  { id: 'employer', label: 'Employer', icon: '💼' },
-  { id: 'therapist', label: 'Therapist', icon: '🧠' },
-  { id: 'researcher', label: 'Researcher', icon: '🔬' },
-  { id: 'ally', label: 'Ally', icon: '🤝' },
-  { id: 'medical', label: 'Medical Professional (coming soon)', icon: '🏥', disabled: true },
-]
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -491,7 +472,6 @@ export default function OnboardingPage() {
   // Every area's button, or only the one setup starts with (Group 20).
   const [showAllAreas, setShowAllAreas] = useState(false)
   const [startNeed, setStartNeed] = useState<string | null>(null)
-  const [showUltimateDream, setShowUltimateDream] = useState(false)
   // A goal's dream, relationship and obstacle are folded away until asked for
   // (Riipen Labs, Groups 27 and 30: open-ended questions "may be difficult to
   // answer immediately"). Keyed "<category>:<index>".
@@ -1006,7 +986,10 @@ export default function OnboardingPage() {
           if (entry.obstacles.trim()) allObstacles.push(entry.obstacles.trim())
         })
       })
-      if (formData.ultimateDream.trim()) allDreams.push(formData.ultimateDream.trim())
+      // Their biggest dream: asked on the Ideal Self page since Riipen Labs,
+      // Group 17 (an older draft of setup may still hold one).
+      const biggestDream = (formData.ultimateDream.trim() || (saved.biggestDream || '').trim()).slice(0, 300)
+      if (biggestDream) allDreams.push(biggestDream)
       if (formData.dreamSelf.trim()) allDreams.push(`Dream for self: ${formData.dreamSelf.trim()}`)
       if (formData.dreamForOther.trim()) allDreams.push(`Dream for another person: ${formData.dreamForOther.trim()}`)
       if (formData.dreamRelationship.trim()) allDreams.push(`Dream for the relationship: ${formData.dreamRelationship.trim()}`)
@@ -1037,6 +1020,9 @@ export default function OnboardingPage() {
         // never the parent's own career (Riipen Labs, Group 24;
         // backend/core/agents/path_planning_agent.py).
         audience: formData.audience || null,
+        // "Words we use" (Settings; Riipen Labs, Group 15): how the plan's
+        // text talks about autism and ADHD.
+        languageStyle: loadPreferences().languageStyle || null,
         // Only setup's own answers: the backend merges these into the saved
         // preferences (it used to replace them all).
         preferences: {
@@ -1263,7 +1249,7 @@ export default function OnboardingPage() {
               Path Market template, not the generic "start your own path" flow. */}
           {pathSeed && (
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-medium">
-              <Sparkles className="w-4 h-4" />
+              <MapIcon className="w-4 h-4" aria-hidden="true" />
               Tailored for your <span className="font-semibold">{pathSeed.title}</span> path
             </div>
           )}
@@ -1293,9 +1279,12 @@ export default function OnboardingPage() {
               className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-emerald-500 transition-all duration-500 ease-out"
               style={{ width: `${progressPercentage}%` }}
             />
+            {/* Kept inside the rail at both ends (Riipen Labs, Group 17:
+                "errors in the icon (rabbit being cut off)"): centred on the
+                point, but never closer than half its width to an edge. */}
             <span
               className="absolute top-1/2 text-2xl leading-none transition-all duration-500 ease-out"
-              style={{ left: `${progressPercentage}%`, transform: 'translate(-50%, -70%)' }}
+              style={{ left: `clamp(0.875rem, ${progressPercentage}%, calc(100% - 0.875rem))`, transform: 'translate(-50%, -70%)' }}
             >
               🐰
             </span>
@@ -1541,6 +1530,13 @@ export default function OnboardingPage() {
                     </div>
                   )
                 })()}
+                {/* Riipen Labs, Group 15: role choices can feel "binary, or ...
+                    exclusionary"; many people are both neurodivergent and
+                    supporting someone. A plan has one goal, so one answer for
+                    it, and another plan can be for the other. */}
+                <p className="mt-2 text-sm text-slate-700">
+                  More than one fits? Pick who this first plan is for. You can make another plan for the other later, and change this in Settings.
+                </p>
                 {AUDIENCE_VALUE[formData.audience] && (
                   <p role="status" className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
                     <Check className="mr-1 inline h-4 w-4 text-emerald-700" aria-hidden="true" />
@@ -1616,7 +1612,13 @@ export default function OnboardingPage() {
               )}
               <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal <RequiredMark /></h2>
               <p className="text-slate-700 mb-2">{goalIntro}</p>
-              <p className="mb-6 text-sm text-slate-700">Why we ask: {WHY_WE_ASK.goal}</p>
+              <p className="mb-6 text-sm text-slate-700">
+                Why we ask: {WHY_WE_ASK.goal}{' '}
+                {/* Riipen Labs, Group 19: "terms like 'milestone' and 'path'
+                    are not clearly defined"; Group 16: the screen before the
+                    plan "does not explain what a path even does". */}
+                <Define term="path" ask />
+              </p>
 
               {/* One life area first (Riipen Labs, Group 20: "Start with one,
                   and reveal the others after a first step"): the area that
@@ -1624,7 +1626,6 @@ export default function OnboardingPage() {
               {!allAreasShown && (
                 <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <p className="text-sm text-slate-800">
-                    <span aria-hidden="true">{startArea.emoji} </span>
                     Starting with <strong>{startArea.label}</strong>
                     {firstArea.fromAnswers ? ', from your answers.' : ', the area people pick most often.'} Other areas can come later.
                   </p>
@@ -1715,7 +1716,7 @@ export default function OnboardingPage() {
                         return (
                           <div className="mb-3">
                             <p className="text-xs text-cyan-800 mb-2 flex items-center gap-1">
-                              <Sparkles className="w-3.5 h-3.5 text-cyan-700" />
+                              <Lightbulb className="w-3.5 h-3.5 text-cyan-700" aria-hidden="true" />
                               Ideas for your {pathSeed.title} path
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -1757,7 +1758,7 @@ export default function OnboardingPage() {
                             {/* Pick instead of typing (Riipen Labs, Groups 27 and
                                 30: fewer open-ended questions). */}
                             <p className="text-xs text-slate-700 mb-2 flex items-center gap-1">
-                              <Sparkles className="w-3.5 h-3.5 text-amber-500" aria-hidden="true" />
+                              <Lightbulb className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
                               Goal ideas: pick one, or type your own below
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -1848,22 +1849,27 @@ export default function OnboardingPage() {
                               onClick={() => setOpenGoalDetails(prev => ({ ...prev, [detailsKey]: true }))}
                               className="ml-4 rounded-lg border-2 border-dashed border-slate-400 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40"
                             >
-                              + Add a dream or an obstacle (optional)
+                              + Add more about this goal (optional)
                             </button>
                           )}
                           {detailsOpen && (<>
                           {/* Per-goal dream */}
                           {(() => {
-                            const fields: Array<{ key: 'dreams' | 'selfDream'; label: string }> = [{ key: 'dreams', label: hasOtherPerson ? 'Dream for the other person' : 'Dream for Self' }]
+                            // Plain questions (Riipen Labs, Group 17 found "dream
+                            // for the other person" unclear). The answers are
+                            // stored as before.
+                            const forThem = `What do you hope this leads to for ${otherPersonLabel}?`
+                            const forYou = 'What do you hope this leads to for you?'
+                            const fields: Array<{ key: 'dreams' | 'selfDream'; label: string }> = [{ key: 'dreams', label: hasOtherPerson ? forThem : forYou }]
                             if (hasOtherPerson && formData.barrierConnections.self?.length) {
-                              const selfField = { key: 'selfDream' as const, label: 'Dream for Self' }
+                              const selfField = { key: 'selfDream' as const, label: forYou }
                               if (formData.barrierConnections.parent !== undefined) fields.push(selfField)
                               else fields.unshift(selfField)
                             }
                             return fields.map(field => (
                               <label key={field.key} className="ml-4 mb-2 block text-xs font-medium text-purple-600">
                                 {field.label} (optional)
-                                <input value={entry[field.key] || ''} onChange={event => setFormData(previous => ({ ...previous, goalsByCategory: { ...previous.goalsByCategory, [cat.id]: previous.goalsByCategory[cat.id].map((goal, index) => index === idx ? { ...goal, [field.key]: event.target.value } : goal) } }))} placeholder="Where does this goal lead in 5-10 years?" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" />
+                                <input value={entry[field.key] || ''} onChange={event => setFormData(previous => ({ ...previous, goalsByCategory: { ...previous.goalsByCategory, [cat.id]: previous.goalsByCategory[cat.id].map((goal, index) => index === idx ? { ...goal, [field.key]: event.target.value } : goal) } }))} placeholder="For example: more confidence, or a job they enjoy" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" />
                               </label>
                             ))
                           })()}
@@ -1873,8 +1879,9 @@ export default function OnboardingPage() {
                               and the dream are optional; answer whichever fits. */}
                           {hasOtherPerson && (
                             <div className="ml-4 mb-1">
-                              <label className="text-xs text-indigo-500 font-medium">
-                                Ideal relationship with {otherPersonLabel} <span className="text-slate-600">(optional: instead of, or as well as, the dream)</span>
+                              {/* Group 17 found "ideal relationship with ally" unclear. */}
+                              <label className="text-xs text-indigo-800 font-medium">
+                                How would you like things to be between you and {otherPersonLabel}? <span className="text-slate-600">(optional)</span>
                               </label>
                               <input
                                 type="text"
@@ -1888,7 +1895,7 @@ export default function OnboardingPage() {
                                     return { ...prev, goalsByCategory: updated }
                                   })
                                 }}
-                                placeholder={`What does a good relationship with ${otherPersonLabel} look like?`}
+                                placeholder="For example: calmer mornings together"
                                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 mt-1"
                               />
                             </div>
@@ -1896,7 +1903,7 @@ export default function OnboardingPage() {
 
                           {/* Per-goal obstacle */}
                           <div className="ml-4">
-                            <label className="text-xs text-pink-700 font-medium">Obstacle <span className="text-slate-600">(optional)</span></label>
+                            <label className="text-xs text-pink-700 font-medium">What might get in the way? <span className="text-slate-600">(optional)</span></label>
                             <input
                               type="text"
                               value={entry.obstacles}
@@ -1909,7 +1916,7 @@ export default function OnboardingPage() {
                                   return { ...prev, goalsByCategory: updated }
                                 })
                               }}
-                              placeholder="What's stopping you from achieving this?"
+                              placeholder="For example: mornings are rushed"
                               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 mt-1"
                             />
                           </div>
@@ -1936,30 +1943,11 @@ export default function OnboardingPage() {
                 })}
               </div>
 
-              {/* Ultimate Dream: optional, so one line until someone wants it. */}
-              {!showUltimateDream && !formData.ultimateDream.trim() ? (
-                <button
-                  type="button"
-                  onClick={() => setShowUltimateDream(true)}
-                  className="mt-6 rounded-xl border-2 border-dashed border-purple-400 bg-white px-4 py-2.5 text-sm font-semibold text-purple-800 hover:bg-purple-50"
-                >
-                  + Add your biggest dream (optional)
-                </button>
-              ) : (
-              <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
-                <h3 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
-                  Ultimate Dream
-                </h3>
-                <p className="text-xs text-purple-600 mb-3">Beyond all your goals, what&apos;s your biggest dream?</p>
-                <input
-                  type="text"
-                  value={formData.ultimateDream}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ultimateDream: e.target.value }))}
-                  placeholder='e.g., "Create a world where neurodivergent people thrive"'
-                  className="w-full bg-white border border-purple-200 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
-                />
-              </div>
-              )}
+              {/* "Beyond all your goals, what's your biggest dream?" was here.
+                  Riipen Labs, Group 17: it "front loads personal questions ...
+                  before trust is established". It is on the Ideal Self page
+                  now (preferences.biggestDream), and a new plan still uses
+                  it. */}
             </div>
             )
           })()}

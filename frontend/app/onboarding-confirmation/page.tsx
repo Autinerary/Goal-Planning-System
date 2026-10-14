@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Rocket, PlayCircle, ArrowRight } from 'lucide-react'
+import { Rocket, PlayCircle, ArrowRight, CheckCircle2, Map as MapIcon } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import OnboardingFeedback from '../components/OnboardingFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
-import PushOptIn from '../components/PushOptIn'
+import Define from '../components/Define'
 import { START_GOALS, isStartGoal, isStartRole, pathwayTitle } from '@/lib/startHere'
 import MediaPlayer from '../components/MediaPlayer'
 import { HOW_TO, lengthLabel } from '@/lib/media'
@@ -61,7 +61,7 @@ export default function OnboardingConfirmationPage() {
   const router = useRouter()
   const { payload, pathPlanning } = useAgentPath()
   const [launching, setLaunching] = useState(false)
-  const { prefs, update } = usePreferences()
+  const { prefs } = usePreferences()
   type Start = { for: string; need: string }
   const [choices, setChoices] = useState<{ lookingFor?: string[]; audience?: string | null; startPath?: Start | null; suggestedStart?: Start | null; setupEnergy?: string | null }>({})
   useEffect(() => {
@@ -153,18 +153,22 @@ export default function OnboardingConfirmationPage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
 
         {/* Header */}
+        {/* No confetti emoji (Riipen Labs, Group 18: emoji-heavy screens read
+            as generic and untrustworthy); and what a path is, said where the
+            word is first used (Groups 16 and 19). */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3" aria-hidden="true">🎉</div>
+          <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-emerald-700" aria-hidden="true" />
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Your path is ready</h1>
           <p className="text-slate-700">Here&apos;s what was built from your answers, and where to start.</p>
+          <p className="mt-1 text-sm"><Define term="path" ask /></p>
         </div>
 
         {/* Personalised plan summary, straight from the agents */}
         {(goals.length > 0 || firstMilestone) && (
           <div className="border border-slate-300 rounded-2xl p-6 mb-6 surface">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-purple-700" aria-hidden="true" />
-              <h2 className="font-bold text-slate-900">Your personalised plan</h2>
+              <MapIcon className="w-5 h-5 text-indigo-700" aria-hidden="true" />
+              <h2 className="font-bold text-slate-900">Your plan</h2>
             </div>
             {goals.length > 0 && (
               <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Goals: </span>{goals.join(' · ')}</div>
@@ -173,7 +177,7 @@ export default function OnboardingConfirmationPage() {
               <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">Norms considered: </span>{norms.join(' · ')}</div>
             )}
             {firstMilestone && (
-              <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">First milestone: </span>{firstMilestone}</div>
+              <div className="text-sm text-slate-700 mb-1"><span className="font-semibold">First <Define term="milestone" />: </span>{firstMilestone}</div>
             )}
             {milestoneCount > 0 && (
               <div className="text-sm text-slate-700"><span className="font-semibold">Milestones planned: </span>{milestoneCount}</div>
@@ -299,38 +303,35 @@ export default function OnboardingConfirmationPage() {
           </p>
         </div>
 
-        {/* What the AI did, after the essentials instead of above them
-            (Riipen Labs, Group 5: keep AI personalization "running behind the
-            scenes until basic onboarding is fully completed"). Each renders
-            nothing when it has nothing to say. */}
-        <div className="space-y-3 mb-6">
-          <AgentInsightsBanner agent="path_planning" />
-          <AgentInsightsBanner agent="pattern_recognition" />
-        </div>
+        {/* How the plan was made, folded away: AI named where it worked,
+            not as the page's first word (Riipen Labs, Group 18: introduce AI
+            "transparently only at the specific step where it functions";
+            Group 16: the AI notes after setup were "overwhelming", "a note
+            and some information, then a box of options, followed by more
+            text"). Group 5: keep AI personalization "running behind the
+            scenes until basic onboarding is fully completed". */}
+        <details className="border border-slate-200 rounded-2xl p-6 mb-6 surface">
+          <summary className="cursor-pointer font-bold text-slate-900">How your plan was made</summary>
+          <p className="mt-3 text-sm text-slate-700">
+            AI wrote your plan&apos;s steps, and the tools suggested for them, from your answers. The low, balanced and high-energy
+            days are worked out by fixed rules. Nothing here is medical or clinical advice.{' '}
+            <Link href="/help#ai" className="font-medium text-indigo-800 underline underline-offset-2">How Autinerary uses AI</Link>
+          </p>
+          <div className="mt-3 space-y-3">
+            <AgentInsightsBanner agent="path_planning" />
+            <AgentInsightsBanner agent="pattern_recognition" />
+          </div>
+        </details>
 
         <OnboardingFeedback />
 
-        {/* Riipen Labs, Group 2: "add email and notification opt-in so a
-            check-in can reach users who stop opening the app". Off unless
-            chosen; the same switch is in Settings. */}
-        <div className="border border-slate-200 rounded-2xl p-6 mb-6 surface">
-          <h2 className="font-bold text-slate-900 mb-2">If you stop using Autinerary</h2>
-          <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={Boolean(prefs.checkin?.optIn)}
-              onChange={(e) => update({ checkin: { optIn: e.target.checked, updatedAt: new Date().toISOString() } })}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
-            />
-            <span>
-              Email me one short question if I haven&apos;t opened Autinerary for two weeks, so the team can fix
-              what got in the way. You can turn this off anytime in Settings.
-            </span>
-          </label>
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <PushOptIn />
-          </div>
-        </div>
+        {/* Email and notification choices are not asked here any more: they
+            come after a first step, on the Path's "Complete your profile"
+            card from the next day, and are always in Settings, under Emails
+            (Riipen Labs, Group 15: "Guarantee one concrete, useful action
+            before any friction (forms, upgrade prompts, notifications
+            asks)"; Group 18: questions "presented immediately ... with no
+            actual use of the product"). */}
 
         {/* Later: people. Secondary, so it sits last. */}
         <p className="text-sm text-slate-700 text-center">

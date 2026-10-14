@@ -93,7 +93,9 @@ export interface Pathway {
 // The id stays 'autism' so the funnel's counts carry on (start_open).
 const AUTISM: PathwayItem = {
   id: 'autism', kind: 'search', label: 'Autism, ADHD and support organisations',
-  detail: 'Organisations for autistic people, people with ADHD and their families, and other support groups.',
+  // "Neurodivergent", which neither identity-first nor person-first readers
+  // mind (Riipen Labs, Group 15; lib/languageStyle.ts).
+  detail: 'Organisations for neurodivergent people and their families, and other support groups.',
   params: { categories: 'Support Group' },
 }
 const THERAPISTS: PathwayItem = {

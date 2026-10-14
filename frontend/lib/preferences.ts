@@ -108,6 +108,28 @@ export interface UserPreferences {
   weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
   /** What motivates them and their life stage, from the "Complete your profile" card (lib/motivationChoices.ts). */
   motivation?: import('./motivationChoices').MotivationAnswer
+  /**
+   * How the app and its AI write about autism and other differences:
+   * identity-first ("autistic person") or person-first ("person with
+   * autism"); '' is no preference (lib/languageStyle.ts; Riipen Labs, Group
+   * 15: "offer the choice rather than picking one house style").
+   */
+  languageStyle?: 'identity' | 'person' | ''
+  /**
+   * Their biggest dream, beyond any one goal, on the Ideal Self page. Setup
+   * asked it on its goal step until Riipen Labs, Group 17 found it "front
+   * loads personal questions ... before trust is established"; a new plan
+   * still uses it.
+   */
+  biggestDream?: string
+  /**
+   * Who invited them, in their own words, from the questions after setup
+   * (Riipen Labs, Group 15: "Let them name who invited them"). Only theirs to
+   * see; never counted or sent anywhere.
+   */
+  invitedBy?: string
+  /** The emails for their first two weeks, on days 1, 7 and 14 (lib/firstWeeks.ts; Group 15). */
+  firstWeeks?: import('./firstWeeks').FirstWeeksChoice
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }
@@ -132,6 +154,12 @@ export interface AccessibilitySettings {
   speechVolume: number
   /** Dark mode, experimental (Riipen Labs, Group 34, slide 25). On this device only, like the rest. */
   darkMode?: boolean
+  /**
+   * Soft colours: every colour on the page made less bright (Riipen Labs,
+   * Group 16: "bright, vibrant icons which may not be friendly for certain
+   * individuals", "neurodivergent friendly colour schemes"). On this device.
+   */
+  softColors?: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -321,6 +349,7 @@ export function applyAccessibility(a11y: AccessibilitySettings): void {
   root.dataset.dyslexiaFont = a11y.dyslexiaFont ? 'on' : 'off'
   root.dataset.underlineLinks = a11y.underlineLinks ? 'on' : 'off'
   root.dataset.darkMode = a11y.darkMode ? 'on' : 'off'
+  root.dataset.softColors = a11y.softColors ? 'on' : 'off'
 }
 
 /**

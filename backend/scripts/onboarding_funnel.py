@@ -83,6 +83,14 @@ spent in setup and completion by energy (Group 23), a first resource "under
 in-app journaling (Group 20), and long-term feature adoption and ages in the
 waitlist form's bands (Group 22). Each has a section below.
 
+Groups 15 to 19 (September 2026) shaped clear-2026-10: plain words, a calmer
+look and AI labels that say what people get. Group 15 proposed success
+markers for each kind of person over the first 7 to 14 days ("to validate
+through the funnel review") and milestone-based emails on days 1, 7 and 14;
+Group 16 asked which colour options people choose; Group 18 to monitor
+bounce rates; Group 19 to compare people with ADHD and autistic people, and
+to count navigation errors. Each has a section below.
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
 public.checkin_responses (STEP 46), profiles.preferences, the journal's dates
 (public.reflections) and the accounts' metadata (dates of birth are only
@@ -105,9 +113,10 @@ from datetime import date, datetime, timedelta
 from statistics import median
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-# Must match ONBOARDING_VERSION in frontend/lib/funnel.ts. The one before it
-# was express-2026-10; every version stays in the comparisons by version.
-CURRENT_VERSION = "paced-2026-10"
+# Must match ONBOARDING_VERSION in frontend/lib/funnel.ts. The ones before it
+# were paced-2026-10 and express-2026-10; every version stays in the
+# comparisons by version.
+CURRENT_VERSION = "clear-2026-10"
 
 # Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
 # first two are setup. The optional extras were offered after them until
@@ -289,6 +298,44 @@ AREAS = [
 ]
 AREA_IDS = {area for area, _ in AREAS}
 
+# Display choices people turn on (Riipen Labs, Group 16: "see which colour
+# options are most popularly being chosen by users"), sent as feature_use
+# "display_<choice>" by frontend/lib/displayChoices.ts, once a day each.
+DISPLAY_CHOICES = [
+    ("display_dark", "Dark"),
+    ("display_contrast", "Higher contrast"),
+    ("display_soft", "Soft colours"),
+    ("display_calm", "Calm motion"),
+    ("display_text_larger", "Larger text"),
+    ("display_text_largest", "Largest text"),
+    ("display_look_plain", "Look: Plain"),
+    ("display_look_pretty", "Look: Pretty"),
+    ("display_look_exciting", "Look: Exciting"),
+    ("display_look_fun", "Look: Fun"),
+    ("display_view_simple", "Simplified View"),
+    ("display_view_full", "Full View"),
+    ("display_accent_cyan", "Colour: cyan"),
+    ("display_accent_purple", "Colour: purple"),
+    ("display_accent_emerald", "Colour: emerald"),
+    ("display_accent_amber", "Colour: amber"),
+    ("display_accent_rose", "Colour: rose"),
+]
+# Norms, grouped to compare people with ADHD and autistic people (Riipen Labs,
+# Group 19: "conduct targeted focus group testing across different
+# neurodivergent subgroups (those with ADHD vs autism) to see if the pattern
+# matches or varies by group"), from user_barriers through
+# core/condition_taxonomy.py. Nothing about a person's norms is printed, only
+# counts, and groups under MIN_CELL are hidden.
+NORM_GROUPS = [
+    ("autism", "autism"),
+    ("adhd", "ADHD"),
+    ("both", "autism and ADHD"),
+    ("other", "other norms only"),
+    ("none", "no norms shared"),
+]
+# The first two weeks' emails (Group 15: "Day 1, Day 7, and Day 14 emails
+# tied to what the user actually did"; frontend/lib/firstWeeks.ts).
+FIRST_WEEKS_DAYS = (1, 7, 14)
 # Rows for groups smaller than this show "<5" instead of counts and rates, so
 # a shared copy of the report cannot single anyone out. Totals are unaffected.
 MIN_CELL = 5
@@ -1807,6 +1854,221 @@ def render_checkins(c: Dict, show_comments: bool) -> str:
     return "\n".join(out)
 
 
+def summarize_success_markers(people: List[dict], events: Iterable[dict],
+                              first_save_by_user: Optional[Dict[str, str]] = None,
+                              now: Optional[datetime] = None) -> Dict[str, Dict[str, int]]:
+    """Group 15's success markers for the first 7 to 14 days, by who people
+    are here for: on day 1, something useful (a step, a resource, ResourceHub
+    or Tools opened, or a resource saved, within a day of signing up); in the
+    first week, the app opened on two or more later days; in the second
+    week, the app opened again (days 8 to 14). A week counts only for
+    accounts old enough to have had it. Pure."""
+    first_save_by_user = first_save_by_user or {}
+    today = (now or datetime.now().astimezone()).date()
+    index = _events_by_person(events, lambda e: e["event"] == "app_open")
+    groups: Dict[str, Dict[str, int]] = {}
+    for p in people:
+        if not p["account"] or p["signup_at"] is None:
+            continue
+        g = groups.setdefault(p["audience"], {"people": 0, "day1": 0, "week1_people": 0, "week1": 0,
+                                              "week2_people": 0, "week2": 0})
+        g["people"] += 1
+        start = p["signup_at"]
+        saved = first_save_by_user.get(p["user_id"]) if p.get("user_id") else None
+        saved_day1 = bool(saved) and timedelta(0) <= _ts(saved) - start <= FIRST_DAY
+        if p.get("first_value_same_day") or saved_day1:
+            g["day1"] += 1
+        days = {(_ts(e["created_at"]).date() - start.date()).days for e in _person_events(p, index)}
+        age = (today - start.date()).days
+        if age >= 7:
+            g["week1_people"] += 1
+            if len([d for d in days if 1 <= d <= 7]) >= 2:
+                g["week1"] += 1
+        if age >= 14:
+            g["week2_people"] += 1
+            if any(8 <= d <= 14 for d in days):
+                g["week2"] += 1
+    return dict(sorted(groups.items(), key=lambda kv: -kv[1]["people"]))
+
+
+def render_success_markers(s: Dict[str, Dict[str, int]], shared_links: int = 0, share_presses: int = 0) -> str:
+    out = ["== Success markers for the first two weeks, by who people are here for (Group 15)",
+           "   day 1: a step, resource, ResourceHub or Tools opened, or a resource saved, within a day",
+           "   week 1: the app opened on 2+ later days; week 2: opened again on days 8 to 14",
+           f"  {'who for':<20} {'people':>7} {'day 1':>12} {'week 1':>14} {'week 2':>14}"]
+    if not s:
+        out.append("  no accounts yet")
+    for label, g in s.items():
+        if g["people"] < MIN_CELL:
+            out.append(f"  {label[:20]:<20} {SMALL:>7} {'-':>12} {'-':>14} {'-':>14}")
+            continue
+
+        def cell(n: int, d: int) -> str:
+            if d < MIN_CELL:
+                return f"{SMALL} old"
+            return f"{n} ({pct(n, d)})"
+        out.append(f"  {label[:20]:<20} {g['people']:>7} {cell(g['day1'], g['people']):>12} "
+                   f"{cell(g['week1'], g['week1_people']):>14} {cell(g['week2'], g['week2_people']):>14}")
+    out.append(f"  browsers that pressed Share this list in Start here: "
+               f"{SMALL if 0 < share_presses < MIN_CELL else share_presses}")
+    out.append(f"  visitors who arrived from a link someone shared (utm_source=share): "
+               f"{SMALL if 0 < shared_links < MIN_CELL else shared_links}")
+    return "\n".join(out)
+
+
+def summarize_display_choices(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """Which display choices people turn on, as distinct browsers (Group 16). Pure."""
+    who: Dict[str, set] = defaultdict(set)
+    for e in events:
+        if e["event"] == "feature_use" and str(e.get("step") or "").startswith("display_") \
+                and keep_version(e.get("onboarding_version", ""), wanted_version):
+            who[e["step"]].add(e["visitor_id"])
+    anyone = set().union(*who.values()) if who else set()
+    return {"people": len(anyone), "by_choice": {k: len(v) for k, v in who.items()}}
+
+
+def render_display_choices(d: Dict) -> str:
+    out = ["== Display choices turned on (Group 16: which colour options people choose)"]
+    if d["people"] < MIN_CELL:
+        out.append(f"  browsers that changed a display setting   {SMALL if d['people'] else 0}")
+        return "\n".join(out)
+    out.append(f"  browsers that changed a display setting   {d['people']}")
+    for key, label in DISPLAY_CHOICES:
+        n = d["by_choice"].get(key, 0)
+        if n:
+            out.append(f"  {label:<26} {SMALL if n < MIN_CELL else n:>6}" + ("" if n < MIN_CELL else f"   ({pct(n, d['people'])})"))
+    return "\n".join(out)
+
+
+def norm_group(norms: Iterable[str]) -> str:
+    """'autism', 'adhd', 'both', 'other' or 'none', for one person's norms."""
+    from core.condition_taxonomy import match_keys
+    keys = match_keys([n for n in norms if n])
+    autism = "autism" in keys or "audhd" in keys
+    adhd = "adhd" in keys or "audhd" in keys
+    if autism and adhd:
+        return "both"
+    if autism:
+        return "autism"
+    if adhd:
+        return "adhd"
+    return "other" if keys else "none"
+
+
+def summarize_by_norms(people: List[dict], norms_by_user: Dict[str, List[str]]) -> Dict[str, Dict[str, int]]:
+    """Setup and returns by norm group (Group 19: ADHD against autism). Only
+    accounts; norms from user_barriers. Pure."""
+    groups: Dict[str, Dict[str, int]] = {key: {"accounts": 0, "finished": 0, "first_value": 0,
+                                                "returned": 0, "returned_14": 0} for key, _ in NORM_GROUPS}
+    for p in people:
+        if not p["account"]:
+            continue
+        g = groups[norm_group(norms_by_user.get(p.get("user_id") or "", []))]
+        g["accounts"] += 1
+        g["finished"] += bool(p["finished"])
+        g["first_value"] += p["first_value_hours"] is not None
+        g["returned"] += bool(p["returned"])
+        g["returned_14"] += bool(p["returned_14"])
+    return groups
+
+
+def render_by_norms(groups: Dict[str, Dict[str, int]]) -> str:
+    out = ["== By norms: ADHD and autism compared (Group 19; norms from ResourceHub and setup)",
+           f"  {'norms':<20} {'accounts':>8} {'set up':>9} {'used':>9} {'back in 7d':>11} {'back in 14d':>12}"]
+    for key, label in NORM_GROUPS:
+        g = groups.get(key) or {}
+        n = g.get("accounts", 0)
+        if n < MIN_CELL:
+            out.append(f"  {label:<20} {(SMALL if n else 0):>8} {'-':>9} {'-':>9} {'-':>11} {'-':>12}")
+            continue
+        out.append(f"  {label:<20} {n:>8} {pct(g['finished'], n):>9} {pct(g['first_value'], n):>9} "
+                   f"{pct(g['returned'], n):>11} {pct(g['returned_14'], n):>12}")
+    out.append("  (used: opened a step, a resource, ResourceHub or Tools after signing up)")
+    return "\n".join(out)
+
+
+def summarize_first_page_leavers(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict[str, Dict[str, int]]:
+    """Visitors who saw a first page (the home page or Start here) and did
+    nothing else: no answer, no sign-up, no other page counted (Group 18:
+    "monitor bounce rates"), by the channel they arrived from. Pure."""
+    by_visitor: Dict[str, List[dict]] = defaultdict(list)
+    for e in events:
+        if keep_version(e.get("onboarding_version", ""), wanted_version):
+            by_visitor[e["visitor_id"]].append(e)
+    out: Dict[str, Dict[str, int]] = {}
+    for evs in by_visitor.values():
+        if not any(e["event"] == "landing_view" for e in evs):
+            continue
+        channel = next((e.get("channel") for e in evs if e.get("channel")), None) or "(none)"
+        g = out.setdefault(channel, {"visitors": 0, "left": 0})
+        g["visitors"] += 1
+        if all(e["event"] == "landing_view" for e in evs):
+            g["left"] += 1
+    return dict(sorted(out.items(), key=lambda kv: -kv[1]["visitors"]))
+
+
+def render_first_page_leavers(s: Dict[str, Dict[str, int]]) -> str:
+    out = ["== Left after the first page (Group 18: bounce rate), by channel",
+           "   a first page (home or Start here) and nothing else: no answer, no sign-up",
+           f"  {'channel':<20} {'visitors':>9} {'left':>14}"]
+    if not s:
+        out.append("  no visitors yet")
+    for channel, g in s.items():
+        if g["visitors"] < MIN_CELL:
+            out.append(f"  {channel[:20]:<20} {SMALL:>9} {'-':>14}")
+            continue
+        out.append(f"  {channel[:20]:<20} {g['visitors']:>9} {g['left']:>6} ({pct(g['left'], g['visitors'])})")
+    return "\n".join(out)
+
+
+def summarize_not_found(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict[str, int]:
+    """Pages that were not there (Group 19: "fewer navigation errors"), from
+    the app's not-found page (feature_use "not_found"). Pure."""
+    hits = [e for e in events if e["event"] == "feature_use" and e.get("step") == "not_found"
+            and keep_version(e.get("onboarding_version", ""), wanted_version)]
+    return {"times": len(hits), "browsers": len({e["visitor_id"] for e in hits})}
+
+
+def render_not_found(s: Dict[str, int]) -> str:
+    out = ["== Pages not found (Group 19: navigation errors; once a day per browser)"]
+    out.append(f"  times                {SMALL if 0 < s['times'] < MIN_CELL else s['times']}")
+    out.append(f"  browsers             {SMALL if 0 < s['browsers'] < MIN_CELL else s['browsers']}")
+    return "\n".join(out)
+
+
+def summarize_first_weeks(people: List[dict], prefs_by_user: Dict[str, dict]) -> Dict[str, int]:
+    """The first two weeks' emails (Group 15), from profiles.preferences.firstWeeks:
+    turned on, each day's email sent, a link in one opened, and stopped. Pure."""
+    out = {"accounts": 0, "on": 0, "clicked": 0, "stopped": 0, **{f"sent_{d}": 0 for d in FIRST_WEEKS_DAYS}}
+    for p in people:
+        if not p["account"] or not p.get("user_id"):
+            continue
+        out["accounts"] += 1
+        fw = (prefs_by_user.get(p["user_id"]) or {}).get("firstWeeks") or {}
+        if not isinstance(fw, dict) or not fw.get("consent"):
+            continue
+        out["on"] += 1
+        sent = fw.get("sent") or {}
+        for d in FIRST_WEEKS_DAYS:
+            out[f"sent_{d}"] += bool(isinstance(sent, dict) and sent.get(f"day{d}"))
+        out["clicked"] += bool(fw.get("clicked"))
+        out["stopped"] += bool(fw.get("stoppedAt"))
+    return out
+
+
+def render_first_weeks(s: Dict[str, int]) -> str:
+    def n(v: int) -> str:
+        return SMALL if 0 < v < MIN_CELL else str(v)
+    out = ["== Emails for the first two weeks, on days 1, 7 and 14 (Group 15)",
+           f"  accounts                         {s['accounts']}",
+           f"  asked for them                   {n(s['on'])}"]
+    for d in FIRST_WEEKS_DAYS:
+        out.append(f"  day {d:<2} email sent                {n(s[f'sent_{d}'])}")
+    out.append(f"  opened a link in one             {n(s['clicked'])}")
+    out.append(f"  stopped them                     {n(s['stopped'])}")
+    return "\n".join(out)
+
+
 def fetch_all(sb, table: str, cols: str) -> List[dict]:
     rows, start = [], 0
     while True:
@@ -1933,6 +2195,27 @@ def main() -> int:
     print(render_setup_reminders(summarize_setup_reminders(funnel["people"], prefs_by_user, events)))
     print()
     print(render_still_using(summarize_still_using(funnel["people"], events)))
+    print()
+    shared = sum(1 for p in funnel["people"] if p["channel"] == "share" and p["landing"])
+    presses = len({e["visitor_id"] for e in events if e["event"] == "feature_use" and e.get("step") == "share_list"})
+    print(render_success_markers(summarize_success_markers(funnel["people"], events, first_save_by_user), shared, presses))
+    print()
+    print(render_first_weeks(summarize_first_weeks(funnel["people"], prefs_by_user)))
+    print()
+    norms_by_user: Dict[str, List[str]] = defaultdict(list)
+    try:
+        for r in fetch_all(sb, "user_barriers", "user_id, barrier_type"):
+            if r.get("user_id") and r.get("barrier_type"):
+                norms_by_user[r["user_id"]].append(r["barrier_type"])
+        print(render_by_norms(summarize_by_norms(funnel["people"], norms_by_user)))
+    except Exception:
+        print("== By norms: not available (user_barriers could not be read).")
+    print()
+    print(render_display_choices(summarize_display_choices(events, args.version)))
+    print()
+    print(render_first_page_leavers(summarize_first_page_leavers(events, args.version)))
+    print()
+    print(render_not_found(summarize_not_found(events, args.version)))
     print()
     print(render_goal_helper(summarize_goal_helper(funnel["people"])))
     print()

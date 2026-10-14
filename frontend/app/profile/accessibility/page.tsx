@@ -40,6 +40,8 @@ export default function AccessibilitySettingsPage() {
   }[] = [
     { key: 'darkMode', label: 'Dark mode (experimental)', desc: 'Light text on a dark background. Photos and characters keep their colours; some emoji and colours may look different.', icon: Moon },
     { key: 'highContrast', label: 'High contrast', desc: 'Boost contrast for easier reading.', icon: Contrast },
+    // Riipen Labs, Group 16: "neurodivergent friendly colour schemes".
+    { key: 'softColors', label: 'Soft colours', desc: 'Make every colour on the page less bright, including icons, emoji and pictures.', icon: Palette },
     { key: 'reduceMotion', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
     { key: 'dyslexiaFont', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
     { key: 'underlineLinks', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },

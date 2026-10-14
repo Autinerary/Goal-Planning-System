@@ -40,10 +40,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // '/start' is the guided "Start here", open to everyone (campaign links land there).
 // The newsletter links, the weekly email's stop link and the choices in a
 // reminder to finish setup work from an email, signed in or not (app/newsletter,
-// app/emails). The starter kits for parents (app/kits) need no account.
-// /go/servicehub only passes people on to ResourceHub, signed in or not, so
-// setup never interrupts it.
-const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/go/servicehub']
+// app/emails), and so does stopping the first two weeks' emails. The starter
+// kits for parents (app/kits) need no account. /go/servicehub only passes
+// people on to ResourceHub, signed in or not, so setup never interrupts it.
+const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/go/servicehub']
 const isPublicRoute = (pathname: string) => publicRoutes.includes(pathname) || pathname === '/kits' || pathname.startsWith('/kits/')
 const AGE_ROUTE = '/auth/age'
 
@@ -206,6 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Redirect logic
   useEffect(() => {
     if (isLoading) return
+    // A page that is not there (app/not-found.tsx) is shown to everyone as it
+    // is: a mistyped link must not turn into a sign-in or setup page.
+    if (document.documentElement.dataset.notFound === 'true') return
     const isPublic = isPublicRoute(pathname)
     const isOnboarding = pathname === '/onboarding'
 

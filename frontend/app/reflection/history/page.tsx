@@ -495,17 +495,18 @@ export default function JournalHistory() {
                       </div>
                     )}
 
-                    {/* AI Insights */}
+                    {/* Notes on the entry, written by AI: named for what they
+                        are, with the AI said plainly (Riipen Labs, Group 18). */}
                     {journal.insights && journal.insights.length > 0 && (
                       <div>
-                        <h4 className="font-bold mb-3 text-slate-800">AI Insights:</h4>
+                        <h4 className="font-bold mb-3 text-slate-800">What stood out <span className="text-sm font-normal text-slate-600">(written by AI)</span></h4>
                         <div className="flex flex-wrap gap-2">
                           {journal.insights.map((insight, idx) => (
                             <span 
                               key={idx}
                               className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-400/30 text-blue-700 rounded-full text-sm font-medium"
                             >
-                              💡 {insight}
+                              {insight}
                             </span>
                           ))}
                         </div>

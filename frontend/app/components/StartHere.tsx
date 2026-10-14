@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { track } from '@/lib/funnel'
 import { goHubHref } from '@/lib/serviceHub'
 import { savePreferences } from '@/lib/preferences'
-import { entryLine } from '@/lib/campaign'
+import { entryLine, sharedListUrl } from '@/lib/campaign'
 import {
   START_ROLES, START_GOALS, START_FOR_KEY, START_NEED_KEY,
   isStartRole, isStartGoal, pathwayFor, pathwayTitle, searchPath,
@@ -77,7 +77,11 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   const [savedAs, setSavedAs] = useState('')
   const [saveNote, setSaveNote] = useState('')
   const [shareNote, setShareNote] = useState('')
-  const [entry, setEntry] = useState<{ welcome: string; line: string } | null>(null)
+  // "Share this list" (Riipen Labs, Group 15: "Lead with a concrete,
+  // shareable first win" for people from Facebook groups; a parent who
+  // "trusts the source enough to share it in their own group" by day 14).
+  const [groupShareNote, setGroupShareNote] = useState('')
+  const [entry, setEntry] = useState<ReturnType<typeof entryLine>>(null)
   // The three optional questions after the resources (lib/startHere.ts,
   // REFINE_QUESTIONS), kept in this browser.
   const [refine, setRefine] = useState<RefineAnswers>({})
@@ -119,8 +123,11 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
     const params = new URLSearchParams(window.location.search)
     const source = params.get('utm_source')
     setEntry(entryLine(source))
-    const linkRole = source ? null : params.get('for')
-    const linkGoal = source ? null : params.get('need')
+    // A campaign link asks everyone the questions; a list someone shared
+    // (utm_source=share) opens on that list.
+    const shared = source === 'share'
+    const linkRole = source && !shared ? null : params.get('for')
+    const linkGoal = source && !shared ? null : params.get('need')
     let r = isStartRole(linkRole) ? linkRole : null
     let g = isStartGoal(linkGoal) ? linkGoal : null
     if (r || g) {
@@ -263,6 +270,24 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
     }
   }
 
+  // For someone else: the same list, marked as shared so the funnel report
+  // can count who arrives from one (lib/campaign.ts, sharedListUrl).
+  const shareList = async () => {
+    const url = sharedListUrl(window.location.origin, role, goal)
+    track('feature_use', 'share_list')
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: `Autinerary: ${pathwayTitle(role, goal)}`, text: 'Places to start, from Autinerary. Free, and no account needed.', url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setGroupShareNote('Link copied. Paste it into your group, a message or an email.')
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return
+      setGroupShareNote(`Copy this link to share the list: ${url}`)
+    }
+  }
+
   const emailList = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailing(true)
@@ -306,9 +331,32 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
         </H>
         <p className="mt-2 text-slate-700">Two quick questions, no account needed. You can change your answers any time.</p>
         {entry && step === 'role' && (
-          <p className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-slate-800">
-            <span className="font-semibold text-slate-900">{entry.welcome}</span> {entry.line}
-          </p>
+          <div className="mt-3 rounded-lg bg-indigo-50 px-4 py-3 text-slate-800">
+            <p>
+              <span className="font-semibold text-slate-900">{entry.welcome}</span> {entry.line}
+            </p>
+            {/* Reddit: "Show the 'why' and sourcing before asking for data"
+                (Riipen Labs, Group 15). Each line is what the page does. */}
+            {entry.lead === 'sources' && (
+              <div className="mt-3">
+                <p className="font-semibold text-slate-900">Why we ask, and where the lists come from</p>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                  <li>Your two answers only choose which list you see. They stay in this browser, and are counted without your name, as which answers were picked.</li>
+                  <li>The lists are real listings from ResourceHub, chosen by fixed rules from your answers, not by AI. Ratings on them come from people who used them.</li>
+                  <li>The starter kits for parents are written from the Government of Ontario&apos;s own pages, linked in each kit, with the date they were checked.</li>
+                  <li>Nothing here is medical or clinical advice. <Link href="/privacy" className={TEXT_BUTTON}>What we collect</Link></li>
+                </ul>
+              </div>
+            )}
+            {/* X: "One-tap preview before any sign-up commitment" (Group 15). */}
+            {entry.lead === 'preview' && (
+              <p className="mt-2 text-sm">
+                <Link href="/#inside" className={TEXT_BUTTON}>See the app with a sample plan</Link>
+                <span aria-hidden="true"> · </span>
+                no account, no email
+              </p>
+            )}
+          </div>
         )}
 
         {/* Where you are: what is done, what is next (W3C's clear steps). */}
@@ -361,6 +409,12 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                 </button>
               ))}
             </div>
+            {/* Riipen Labs, Group 15: role choices can feel "binary, or ...
+                exclusionary"; many people are both neurodivergent and
+                supporting someone. */}
+            <p className="mt-3 text-sm text-slate-700">
+              More than one fits? Pick who this list is for first. You can change it any time, and see the other list after.
+            </p>
             {goal && (
               <button type="button" onClick={() => go('pathway')} className={`mt-4 inline-flex items-center gap-1 ${TEXT_BUTTON}`}>
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to your starter resources
@@ -411,6 +465,31 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
               <CrisisLines className="mt-3" headingLevel={3} ontario={['child', 'family', 'work'].includes(role) && refine.where !== 'outside' && refine.where !== 'canada'} />
             )}
             <p className="mt-2 text-slate-800">{pathway.explanation}</p>
+            {/* For people supporting someone: a short language guide (Riipen
+                Labs, Group 15's ally: "I want to get this right, but I'm
+                worried about saying the wrong thing"; success by day 7 is
+                "one short, practical action (a language guide ...)"). */}
+            {['ally', 'work', 'family'].includes(role) && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800">
+                <p className="font-semibold text-slate-900">Worried about saying the wrong thing?</p>
+                <p className="mt-1">
+                  Both &ldquo;autistic person&rdquo; and &ldquo;person with autism&rdquo; are used. Ask which the person
+                  prefers, and use the words they use for themselves. Say plainly what they find hard or easy, rather than
+                  what is &ldquo;wrong&rdquo;.{' '}
+                  <Link href="/help#words" className={TEXT_BUTTON}>More in What things are called</Link>
+                </p>
+              </div>
+            )}
+            {/* From a Facebook or parent group: the list is the first win, and
+                sharing it back is one tap (Riipen Labs, Group 15). */}
+            {entry?.lead === 'share' && (
+              <p className="mt-3 text-sm text-slate-800">
+                <button type="button" onClick={shareList} className="rounded-lg border-2 border-indigo-700 bg-white px-4 py-2 font-semibold text-indigo-800 hover:bg-indigo-50">
+                  Share this list with your group
+                </button>
+                {groupShareNote && <span role="status" className="mt-1 block break-all">{groupShareNote}</span>}
+              </p>
+            )}
 
             {/* The starter kits for parents (Riipen Labs, Group 24: "Caregiver
                 Starter Kits"), step by step, from the Government of Ontario's
@@ -584,6 +663,15 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                   )}
                   {emailNote && <p role="status" className="mt-2">{emailNote}</p>}
                 </div>
+              )}
+              {entry?.lead !== 'share' && (
+                <p className="mt-2 text-sm text-slate-800">
+                  Know someone it could help?{' '}
+                  <button type="button" onClick={shareList} className={TEXT_BUTTON}>
+                    Share this list
+                  </button>
+                  {groupShareNote && <span role="status" className="mt-1 block break-all">{groupShareNote}</span>}
+                </p>
               )}
               <p className="mt-3 text-sm">
                 <a href={hubHref(searchPath(pathway.more.params))} target="_blank" rel="noopener noreferrer" className={TEXT_BUTTON}>

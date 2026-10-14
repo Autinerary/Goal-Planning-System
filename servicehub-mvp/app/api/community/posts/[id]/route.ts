@@ -12,6 +12,7 @@
 
 import { primaryRelationship } from '@/lib/trust/authorRelationship'
 import { NextRequest, NextResponse } from 'next/server';
+import { isContentNote, missingContentNote } from '@/lib/community/contentNotes';
 import { createClient } from '@/lib/supabase/server';
 import {
   getCommunityServiceClient,
@@ -36,13 +37,12 @@ export async function GET(
   const viewer = await getCommunityViewer();
   const postId = params.id;
 
-  const { data: post, error } = await client
-    .from('community_posts')
-    .select(
-      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
-    )
-    .eq('id', postId)
-    .maybeSingle();
+  const COLUMNS =
+    'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, locked_reason, locked_by, locked_at, is_deleted, last_activity_at, created_at, updated_at'
+  // With the content note (STEP 75) when it is there; without it before.
+  const load = (columns: string) => client.from('community_posts').select(columns).eq('id', postId).maybeSingle();
+  let { data: post, error } = (await load(`${COLUMNS}, content_note`)) as { data: any; error: any };
+  if (missingContentNote(error)) ({ data: post, error } = (await load(COLUMNS)) as { data: any; error: any });
   if (error) {
     console.error('[community] GET /posts/[id] failed:', error.message);
     return NextResponse.json({ error: 'Failed to load post' }, { status: 500 });
@@ -96,6 +96,7 @@ export async function GET(
     title: post.title,
     excerpt: markdownExcerpt(post.body_markdown, 220),
     body_markdown: post.body_markdown,
+    content_note: isContentNote(post.content_note) ? post.content_note : null,
     unlocking_moment: post.unlocking_moment ?? null,
     what_didnt_work: post.what_didnt_work ?? null,
     author_relationship: primaryRelationship(post.author_relationships),

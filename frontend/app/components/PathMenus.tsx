@@ -21,14 +21,18 @@ export interface PathMenuItem {
   hub?: boolean
 }
 
+// What AI makes has its own group, apart from people and places (Riipen Labs,
+// Group 16: "separate the AI agent and resource hub into different sections";
+// Group 18: say AI plainly where it works, not on every label). Setup's "AI
+// Recommendations" step became "Suggestions for each step" here (Groups 26
+// and 18).
 export const PATH_MENUS: { id: string; label: string; info: string; items: PathMenuItem[] }[] = [
   {
     id: 'stuck',
     label: 'Stuck?',
-    info: 'Ways to get help: ask people, ask the assistant, or talk to someone now',
+    info: 'Ways to get help: ask people, or talk to someone now',
     items: [
       { label: 'Ask a question in Tidbits', href: '/community/new?from=path', hub: true },
-      { label: 'Ask the assistant', href: '/assistant' },
       { label: 'What things are called', href: '/help' },
       { label: 'Talk to someone now', href: '/help#talk-now' },
       // Riipen Labs, Group 31: let people "continuously send feedback about
@@ -93,13 +97,21 @@ export const PATH_MENUS: { id: string; label: string; info: string; items: PathM
     items: [
       { label: 'Pit Stop', href: '/pit-stop' },
       { label: 'Tools for your steps', href: '/tools' },
-      // Setup's "AI Recommendations" step, in the app (Riipen Labs, Group 26).
-      { label: 'AI suggestions for your steps', href: '/recommend-choices' },
       { label: 'ResourceHub', href: '/', hub: true },
       // Riipen Labs, Group 24 (lib/starterKits.ts).
       { label: 'Starter kits for parents', href: '/kits' },
       { label: 'Starter resources', href: '/start' },
       { label: 'Path Market', href: '/path-market' },
+    ],
+  },
+  {
+    id: 'ai',
+    label: 'Help from AI',
+    info: 'Answers and ideas written by AI from your plan. Not medical or clinical advice.',
+    items: [
+      { label: 'Ask the assistant', href: '/assistant' },
+      { label: 'Suggestions for each step', href: '/recommend-choices' },
+      { label: 'How Autinerary uses AI', href: '/help#ai' },
     ],
   },
 ]

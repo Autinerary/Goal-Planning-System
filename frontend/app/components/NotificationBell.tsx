@@ -40,9 +40,11 @@ export default function NotificationBell() {
       if (prefs.reminders?.enabled) {
         notify(
           {
-            title: 'Your goals for today 🎯',
-            body: 'Open your Path to see today’s tasks and keep your streak going.',
-            icon: '🎯',
+            // Calm, with no streak to keep (Riipen Labs, Group 15: no
+            // "guilt-based prompts, or artificial urgency").
+            title: 'Your next step for today',
+            body: 'Your next step is on your Path. Do as much or as little as fits today.',
+            icon: '🧭',
             href: '/path',
           },
           { dedupeKey: `daily-${new Date().toDateString()}`, browser: true }
@@ -74,10 +76,10 @@ export default function NotificationBell() {
           setOpen((o) => !o)
           if (!open && unread > 0) markAllRead()
         }}
-        className="relative flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-lg px-1.5 sm:px-3 py-1 sm:py-2 text-[0.6875rem] sm:text-sm leading-tight text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
+        className="relative flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-lg px-1.5 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm leading-tight text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all"
         title="Notifications"
       >
-        <Bell className={`w-4 h-4 anim-bell${unread > 0 ? ' anim-bell--alert' : ''}`} aria-hidden="true" />
+        <Bell className={`w-5 h-5 sm:w-4 sm:h-4 anim-bell${unread > 0 ? ' anim-bell--alert' : ''}`} aria-hidden="true" />
         <span>Alerts</span>
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-700 text-white text-[0.625rem] font-bold flex items-center justify-center">

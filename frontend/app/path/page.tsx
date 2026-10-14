@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { backendAuthHeaders } from '@/lib/backendAuth'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Lock, Loader2, ChevronRight, Settings, Map, RotateCcw, Quote, GitCompare, Save, Compass } from 'lucide-react'
+import { TrendingUp, Target, Zap, Heart, Brain, Users, UserCheck, UserPlus, Lock, Loader2, ChevronRight, Settings, Map, RotateCcw, Quote, GitCompare, Save, Compass, Lightbulb, MapPin, Store } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LifeStatsCard from '../components/LifeStatsCard'
 import StreakBadge from '../components/StreakBadge'
@@ -29,6 +29,8 @@ import QuickLinks from '../components/QuickLinks'
 import NoPlanYet from '../components/NoPlanYet'
 import PausedBanner from '../components/PausedBanner'
 import SupportNotesCard from '../components/SupportNotesCard'
+import Define from '../components/Define'
+import PickUpWhereYouLeftOff from '../components/PickUpWhereYouLeftOff'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -371,11 +373,10 @@ useEffect(() => {
               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                 <p className="text-sm text-slate-600">Your journey snapshot</p>
                 <StreakBadge />
-                {pathData && (
-                  <span className="inline-flex items-center gap-1 text-[0.625rem] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
-                    <Sparkles className="w-3 h-3" /> AI-Generated
-                  </span>
-                )}
+                {/* The "AI-Generated" badge that sat here went (Riipen Labs,
+                    Group 18: front-facing AI labels read as impersonal);
+                    the plan says once, under your next step, that AI wrote
+                    it and how. */}
               </div>
             </div>
           </div>
@@ -507,7 +508,9 @@ useEffect(() => {
                 <p className="mt-1 text-sm text-slate-700">
                   {doneSteps === 0
                     ? `${pathMilestones.length} small steps in your plan. This is the first.`
-                    : `${doneSteps} of ${pathMilestones.length} steps done.`}
+                    : `${doneSteps} of ${pathMilestones.length} steps done.`}{' '}
+                  {/* Riipen Labs, Group 19: "milestone" was never explained where it appears. */}
+                  <Define term="milestone" ask />
                 </p>
                 {/* What the one button leads to (Riipen Labs, Group 7: "one clear
                     first action" on the dashboard). */}
@@ -524,14 +527,25 @@ useEffect(() => {
                       26: "AI Recommendations should also be accessible within
                       the app, whether through a button or a specific
                       location"). */}
+                  {/* Named for what people get (Riipen Labs, Group 18: "AI
+                      recommendations" to "personalized guidance"); the
+                      page itself says AI made them. */}
                   <Link
                     href="/recommend-choices"
                     data-tour="ai-suggestions"
                     className="inline-flex items-center gap-1 text-sm font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950"
                   >
-                    <Sparkles className="h-4 w-4" aria-hidden="true" /> AI suggestions for your steps
+                    <Lightbulb className="h-4 w-4" aria-hidden="true" /> Suggestions for each step
                   </Link>
                 </div>
+                <PickUpWhereYouLeftOff milestones={pathMilestones} skipId={nextMilestone.id} />
+                {/* AI named once, where it worked (Group 18: "introducing AI
+                    transparently only at the specific step where it
+                    functions"). */}
+                <p className="mt-3 border-t border-slate-100 pt-2 text-xs text-slate-600">
+                  Your plan&apos;s steps were written with AI from your answers.{' '}
+                  <Link href="/help#ai" className="font-medium text-indigo-800 underline underline-offset-2">How Autinerary uses AI</Link>
+                </p>
               </>
             ) : (
               <p className="mt-1 text-sm text-slate-700">You have done every step in this plan. Well done.</p>
@@ -726,13 +740,13 @@ useEffect(() => {
           {/* ── Card 4: Your Resources ── */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h2 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-500" />
+              <MapPin className="w-5 h-5 text-cyan-700" aria-hidden="true" />
               Your Resources
             </h2>
 
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100 to-purple-100 flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-cyan-500" />
+                <MapPin className="w-8 h-8 text-cyan-700" aria-hidden="true" />
               </div>
               <p className="text-sm text-slate-700 mb-1 font-medium">Services and places for your goals</p>
               <p className="text-xs text-slate-600 mb-4 max-w-[250px]">
@@ -812,7 +826,7 @@ useEffect(() => {
             href="/path-market"
             className="mt-4 flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
           >
-            <Sparkles className="w-4 h-4 text-purple-500" />
+            <Store className="w-4 h-4 text-purple-700" aria-hidden="true" />
             Path Market
           </Link>
         </div>

@@ -21,13 +21,13 @@ export default function InfoModeButton() {
       aria-pressed={isOn}
       title={`Help: ${INFO_MODE_META[mode].label}. ${INFO_MODE_META[mode].description}`}
       // The top bar's look: the name under the icon on a phone (Navigation.tsx).
-      className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 rounded-lg border-2 px-2 sm:px-2.5 py-0.5 sm:py-1.5 text-[0.6875rem] sm:text-sm leading-tight font-medium transition-all ${
+      className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 rounded-lg border-2 px-2 sm:px-2.5 py-0.5 sm:py-1.5 text-xs sm:text-sm leading-tight font-medium transition-all ${
         isOn
           ? 'border-cyan-400 bg-cyan-50 text-cyan-800'
           : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900'
       }`}
     >
-      <HelpCircle className="h-4 w-4" aria-hidden="true" />
+      <HelpCircle className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
       <span>
         {isOn ? INFO_MODE_META[mode].label : 'Help'}
       </span>

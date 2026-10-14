@@ -14,10 +14,14 @@ import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
 import { VIEW_PREFERENCES, WIDGET_SIZES, ACCENTS, WEEKLY_PICKS_CONSENT, loadPreferences, type ViewPreference } from '@/lib/preferences'
+import { trackDisplayChoice } from '@/lib/displayChoices'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import PushOptIn from './PushOptIn'
 import ReminderFields from './ReminderFields'
 import { useAuth } from '../context/AuthContext'
+import { FIRST_WEEKS_CONSENT, firstWeeksStillAhead } from '@/lib/firstWeeks'
+import { LANGUAGE_STYLES } from '@/lib/languageStyle'
+import { browserTimeZone } from '@/lib/reminderSchedule'
 import { gaConsent, gaEnabled, setGaConsent } from '@/lib/analytics'
 
 /** Odosa's wording for the four artistic levels, in her order. */
@@ -30,7 +34,7 @@ const VIEW_LEVEL_COPY: Record<ViewPreference, string> = {
 
 export default function SettingsPreferences() {
   const { prefs, update } = usePreferences()
-  const { user } = useAuth()
+  const { user, supabaseUser } = useAuth()
   // The whole reminder, fresh from this device: the server replaces it, not
   // merges, and several fields can change in one go.
   const loadReminders = () => loadPreferences().reminders
@@ -102,6 +106,36 @@ export default function SettingsPreferences() {
           Core navigation is available in {translated.length} languages. Some pages still use English.
           Languages marked "not translated yet" are not available to select.
         </p>
+      </section>
+
+      {/* ── Words we use (Riipen Labs, Group 15: "offer the choice rather
+           than picking one house style"; lib/languageStyle.ts) ── */}
+      <section id="words" aria-labelledby="words-heading" className="mb-8 scroll-mt-24">
+        <h3 id="words-heading" className="flex items-center gap-2 font-semibold text-slate-800 mb-1">
+          <Languages className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Words we use
+        </h3>
+        <p className="text-xs text-slate-600 mb-2">
+          How should Autinerary write about autism, ADHD and other differences? Used when your plan and the
+          assistant&apos;s answers are written. The app&apos;s own pages say &ldquo;neurodivergent&rdquo; where they can.
+        </p>
+        <div role="radiogroup" aria-labelledby="words-heading" className="grid gap-2 sm:grid-cols-3">
+          {LANGUAGE_STYLES.map((style) => {
+            const on = (prefs.languageStyle || '') === style.id
+            return (
+              <button
+                key={style.id || 'none'}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => update({ languageStyle: style.id })}
+                className={`rounded-xl border-2 px-3 py-2 text-left text-sm transition-colors ${on ? 'border-cyan-600 bg-cyan-50 text-cyan-900' : 'border-slate-200 text-slate-800 hover:border-slate-300'}`}
+              >
+                <span className="flex items-center gap-1 font-semibold">{on && <Check className="h-4 w-4" aria-hidden="true" />}{style.label}</span>
+                <span className="block text-xs text-slate-700">{style.example}</span>
+              </button>
+            )
+          })}
+        </div>
       </section>
 
       {/* ── Views ──────────────────────────────────────────────── */}
@@ -234,7 +268,7 @@ export default function SettingsPreferences() {
           {ACCENTS.map((a) => (
             <button
               key={a.id}
-              onClick={() => update({ layout: { ...prefs.layout, accent: a.id } })}
+              onClick={() => { update({ layout: { ...prefs.layout, accent: a.id } }); trackDisplayChoice(`display_accent_${a.id}`) }}
               aria-label={a.label}
               aria-pressed={prefs.layout.accent === a.id}
               data-info={`Uses ${a.label.toLowerCase()} for checkboxes, sliders, progress bars and selected text.`}
@@ -298,6 +332,25 @@ export default function SettingsPreferences() {
               </p>
             )}
           </div>
+        )}
+        {/* The first two weeks' emails (lib/firstWeeks.ts; Riipen Labs, Group
+            15: "Day 1, Day 7, and Day 14 emails tied to what the user
+            actually did"). Offered while one is still to come; shown while
+            on, so they can be stopped. */}
+        {(prefs.firstWeeks?.enabled || firstWeeksStillAhead(supabaseUser?.created_at || null, prefs.firstWeeks?.timeZone, new Date())) && (
+          <label className="mb-3 flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={Boolean(prefs.firstWeeks?.enabled)}
+              onChange={(e) => update({
+                firstWeeks: e.target.checked
+                  ? { ...(prefs.firstWeeks || {}), enabled: true, consent: FIRST_WEEKS_CONSENT, startedAt: prefs.firstWeeks?.startedAt || new Date().toISOString(), timeZone: prefs.firstWeeks?.timeZone || browserTimeZone(), stoppedAt: null }
+                  : { ...(prefs.firstWeeks || { enabled: false }), enabled: false, stoppedAt: new Date().toISOString() },
+              })}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-cyan-700 focus:ring-cyan-500"
+            />
+            <span>Three emails about my first two weeks: the day after I joined, after a week and after two weeks, each about what I have done and one next thing.</span>
+          </label>
         )}
         <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
           <input

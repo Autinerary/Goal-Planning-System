@@ -1048,7 +1048,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     </div>
                     <h3 className="text-lg font-bold text-slate-900">Get insights from people who&apos;ve been there</h3>
                     <p className="text-sm text-slate-600 mt-1">
-                      Read tagged barriers, ask for help, and learn what worked in our autistic community Q&amp;A.
+                      Ask for help, and learn what worked for people with similar experiences, in Tidbits&apos; questions and answers.
                     </p>
                     {/* On a phone the action beside the card is hidden, so it is
                         said here (Riipen Labs, Group 33). */}

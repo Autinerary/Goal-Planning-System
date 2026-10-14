@@ -7,6 +7,7 @@ import { ArrowLeft, Flag, Send } from 'lucide-react'
 import BackButton from '../../components/BackButton'
 import { PersonAvatar } from '../PeopleBoard'
 import type { Person } from '@/lib/social'
+import { goHubHref } from '@/lib/serviceHub'
 
 /**
  * Messages with your people (Riipen Labs, Group 34: messages went to the
@@ -115,7 +116,10 @@ export default function Messages() {
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-4">Messages</h1>
         <p className="mt-1 text-sm text-slate-700">
           Only people you’re connected to can message you. Report a message from the message itself, or block someone from their card in{' '}
-          <Link href="/hare-world" className="font-medium text-purple-800 underline underline-offset-2">Hare World</Link>.
+          <Link href="/hare-world" className="font-medium text-purple-800 underline underline-offset-2">Hare World</Link>.{' '}
+          {/* Riipen Labs, Group 15: "Visible safety signals in community spaces". */}
+          Reports go to people on the Autinerary team.{' '}
+          <a href={goHubHref('/community/guidelines')} className="font-medium text-purple-800 underline underline-offset-2">Community guidelines</a>
         </p>
 
         {list && !list.available && (

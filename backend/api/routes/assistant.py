@@ -44,6 +44,9 @@ class ChatRequest(BaseModel):
     context: Optional[str] = None
     # Not named model_config: that attribute is reserved by pydantic v2.
     llm_config: Optional[Dict[str, Any]] = None
+    # "identity" or "person": how the person asked to be written about
+    # (Settings, "Words we use"; Riipen Labs, Group 15). Anything else is ignored.
+    language_style: Optional[str] = None
 
 
 @router.post("/chat")
@@ -81,7 +84,8 @@ async def chat(req: ChatRequest, actor: Optional[str] = Depends(optional_user_id
 
     selection = llm.parse_selection(req.llm_config)
     try:
-        with llm.use_selection(selection, actor=actor, verified=actor is not None):
+        with llm.use_selection(selection, actor=actor, verified=actor is not None,
+                               language_style=req.language_style):
             reply = await llm.complete_chat(
                 [{"role": "system", "content": system}] + history,
                 max_tokens=700,

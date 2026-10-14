@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles } from 'lucide-react'
@@ -9,6 +9,12 @@ import ImageUploader from '@/components/community/ImageUploader'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
+import { CONTENT_NOTES } from '@/lib/community/contentNotes'
+
+// Set once this browser has posted, so the "Before you post" notes start
+// folded for people who have done it before.
+const POSTED_KEY = 'tidbits_posted_before'
+const APP = (process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000').replace(/\/$/, '')
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -34,6 +40,14 @@ export default function NewPostPage() {
   const [preview, setPreview] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // A content note (Riipen Labs, Group 15: "content warnings"), from a fixed list.
+  const [contentNote, setContentNote] = useState('')
+  // First-time posters see the notes on how it works, open (Group 15: "Visible
+  // safety signals ... especially for first-time posters").
+  const [postedBefore, setPostedBefore] = useState(false)
+  useEffect(() => {
+    try { setPostedBefore(localStorage.getItem(POSTED_KEY) === '1') } catch {}
+  }, [])
 
   const addTag = (raw: string, list: string[], setList: (l: string[]) => void) => {
     const tag = raw.trim().toLowerCase()
@@ -59,6 +73,7 @@ export default function NewPostPage() {
           barrier_tags: barriers,
           category_tags: categories,
           image_urls: imageUrls,
+          content_note: contentNote || undefined,
         }),
       })
       if (!res.ok) {
@@ -66,6 +81,7 @@ export default function NewPostPage() {
         throw new Error(j?.error || `Create failed (${res.status})`)
       }
       const j = await res.json()
+      try { localStorage.setItem(POSTED_KEY, '1') } catch {}
       router.push(`/community/post/${j.id}${contextQuery}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create')
@@ -133,6 +149,21 @@ export default function NewPostPage() {
           You'll post under your pseudonym. The community sees only that — never your real name.
         </p>
       </div>
+
+      {/* Before a first post: who sees it, what is removed, how to report,
+          and content notes (Riipen Labs, Group 15: "Community space feels
+          unmoderated or unsafe for a first post"). Folded once this browser
+          has posted. */}
+      <details open={!postedBefore} className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-gray-800">
+        <summary className="cursor-pointer font-semibold text-gray-900">{postedBefore ? 'How posting works' : 'Before your first post'}</summary>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>Tidbits is read by people signed in to Autinerary. You appear only as your pseudonym, and you can delete your post at any time.</li>
+          <li>Leave out personal details, yours or anyone else&apos;s. Moderators, who are people on the Autinerary team, remove those, and anything unkind or selling.</li>
+          <li>Writing about something hard? Add a content note below, and readers choose whether to open it.</li>
+          <li>Every post and answer has a Report button. <Link href="/community/guidelines" className="font-medium text-blue-800 underline underline-offset-2">Community guidelines</Link></li>
+          <li>Need help right now? Tidbits is not watched around the clock: call 911, or call or text 9-8-8. <a href={`${APP}/help#talk-now`} className="font-medium text-blue-800 underline underline-offset-2">Who to call</a></li>
+        </ul>
+      </details>
 
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-900">
@@ -313,6 +344,20 @@ export default function NewPostPage() {
             disabled={categories.length >= 5}
           />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <label htmlFor="content-note" className="block text-sm font-medium text-gray-900">Content note (optional)</label>
+        <p className="text-xs text-gray-600">If your post is about something hard, readers see this first and choose whether to open it.</p>
+        <select
+          id="content-note"
+          value={contentNote}
+          onChange={(e) => setContentNote(e.target.value)}
+          className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm"
+        >
+          <option value="">No content note</option>
+          {CONTENT_NOTES.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
+        </select>
       </div>
 
       <div className="space-y-1">

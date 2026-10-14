@@ -28,17 +28,26 @@ from `backend/`, "By channel").
 | The comic | /c/comic | Start here | [comic.svg](qr/comic.svg) |
 | Research posts and papers | /c/research | Start here | [research.svg](qr/research.svg) |
 | Community partners and role models | /c/partners | Start here | [partners.svg](qr/partners.svg) |
-| Facebook | /c/facebook | Start here, welcomed with "no account needed, no ads, never sold" | [facebook.svg](qr/facebook.svg) |
-| TikTok | /c/tiktok | Start here, welcomed with where to find people with similar experiences | [tiktok.svg](qr/tiktok.svg) |
-| Reddit | /c/reddit | Start here, welcomed with where to find people with similar experiences | [reddit.svg](qr/reddit.svg) |
+| Facebook | /c/facebook | Start here, with "Share this list with your group" at the top of the list | [facebook.svg](qr/facebook.svg) |
+| TikTok | /c/tiktok | Start here, welcomed with "No forms, and no account" | [tiktok.svg](qr/tiktok.svg) |
+| Reddit | /c/reddit | Start here, with why we ask and where the lists come from, before the first question | [reddit.svg](qr/reddit.svg) |
+| X (Twitter) | /c/x | Start here, with a look at the app and a sample plan, no account | [x.svg](qr/x.svg) |
+| In person: a group, meetup or event | /c/in-person | Start here, welcomed as someone met in person | [in-person.svg](qr/in-person.svg) |
 
 All are `https://app.autinerary.ca/c/...`. Every link asks Start here's two
 questions. Group 5 suggested "trust/safety for Facebook parents vs. peer
 tools for TikTok/Reddit adults", so the Facebook, TikTok and Reddit links
 used to answer them in advance. Riipen Labs' cohort report asked for one path
 for everyone ("channel should not be used as a proxy for identity or need"),
-so since 10 October they only change the welcome line. The printed codes
-did not change.
+so since 10 October they only change the welcome line. Since 14 October
+(Riipen Labs, Group 15: "Five doors in, five different expectations"), each
+welcome also does what that channel's visitors look for, and the questions
+stay the same for everyone. The printed codes did not change.
+
+For a partner group's own QR code, add a line for it to `ENTRY_LINES` in
+`frontend/lib/campaign.ts` (for example `'peel-parents': { from: 'the Peel
+parents group', line: ... }`) and a link in `CAMPAIGN_LINKS`, then make the
+codes again.
 
 An unknown code still opens Start here, so a typo is never a dead end. To
 add a link, add a line to `frontend/lib/campaign.ts`.

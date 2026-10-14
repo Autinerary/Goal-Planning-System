@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Sparkles, Target, Wrench, Users, BookOpen, Map, Compass, Store, Home, HelpCircle, ChevronDown, ExternalLink, ListChecks, type LucideIcon } from 'lucide-react'
+import { Target, Wrench, Users, BookOpen, Map, Compass, Store, Home, HelpCircle, ChevronDown, ExternalLink, ListChecks, MessagesSquare, LayoutGrid, type LucideIcon } from 'lucide-react'
 import { goHubHref } from '@/lib/serviceHub'
 import { placesFor, type PlaceKey } from '@/lib/places'
 import { audienceById } from '@/lib/audiences'
@@ -16,7 +16,8 @@ const ICONS: Record<PlaceKey, { Icon: LucideIcon; color: string; tint: string }>
   pitstop: { Icon: Wrench, color: 'text-purple-700', tint: 'bg-purple-50' },
   hareworld: { Icon: Users, color: 'text-pink-700', tint: 'bg-pink-50' },
   journal: { Icon: BookOpen, color: 'text-amber-700', tint: 'bg-amber-50' },
-  tidbits: { Icon: Sparkles, color: 'text-emerald-700', tint: 'bg-emerald-50' },
+  // Questions and answers, drawn as such (Riipen Labs, Group 18: sparkles read as generic AI decoration).
+  tidbits: { Icon: MessagesSquare, color: 'text-emerald-700', tint: 'bg-emerald-50' },
   resourcehub: { Icon: Map, color: 'text-cyan-700', tint: 'bg-cyan-50' },
   pathmarket: { Icon: Store, color: 'text-rose-700', tint: 'bg-rose-50' },
   starter: { Icon: Compass, color: 'text-indigo-700', tint: 'bg-indigo-50' },
@@ -48,7 +49,7 @@ export default function QuickLinks({ audience, startPath, simple }: { audience?:
   return (
     <section aria-labelledby="quick-links-heading" className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6">
       <h2 id="quick-links-heading" className="font-bold text-lg text-slate-800 mb-3 flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-purple-500" aria-hidden="true" /> Quick Links
+        <LayoutGrid className="w-5 h-5 text-purple-700" aria-hidden="true" /> Quick Links
       </h2>
       {who && (
         <p className="-mt-1 mb-3 text-sm text-slate-700">

@@ -310,6 +310,21 @@ def check(actor: Optional[str], model_id: str, planned_tokens: int, verified: bo
         usage.requests.append(now)
 
 
+def seconds_until_slot(actor: Optional[str]) -> float:
+    """Seconds until this caller can start another call within the per-minute
+    limit: 0 when a slot is free now. The daily limits are not counted here."""
+    key = actor or ANONYMOUS
+    now = time.time()
+    with _lock:
+        usage = _usage.setdefault(key, _Usage())
+        usage.prune(now)
+        over = len(usage.requests) - REQUESTS_PER_MINUTE
+        if over < 0:
+            return 0.0
+        # The call that has to leave the window before one more fits.
+        return max(0.0, usage.requests[over] + MINUTE_SECONDS - now)
+
+
 def record(
     actor: Optional[str],
     model_id: str,

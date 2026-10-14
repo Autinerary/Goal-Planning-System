@@ -279,6 +279,10 @@ class OnboardingRequest(BaseModel):
     # parent's plan about supporting their child, not about the parent's own
     # career (Riipen Labs, Group 24). Optional, so older clients keep working.
     audience: Optional[str] = Field(default=None, max_length=20)
+    # "Words we use" in Settings (frontend/lib/languageStyle.ts): "identity" or
+    # "person", how the agents write about autism and ADHD (Riipen Labs,
+    # Group 15). Optional; anything else is ignored.
+    languageStyle: Optional[str] = Field(default=None, max_length=10)
 
 
 NO_ANSWER = "prefer not to share"
@@ -471,6 +475,9 @@ async def _generate_path_for(
         llm.parse_selection(request.llmConfig),
         actor=actor or user_id,
         verified=actor is not None,
+        # "Words we use" in Settings (Riipen Labs, Group 15): identity-first
+        # or person-first, for every text the agents write about this person.
+        language_style=request.languageStyle,
     ):
         # Run the 6-agent pipeline: Pattern → Path → Tools → Calendar → Synthesis
         _stage("Mapping out your milestones")

@@ -76,7 +76,10 @@ export default function DiagnosticProfileSection({
             return (
               <details key={condition.id} className="group rounded-lg border border-slate-200 bg-white">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium text-slate-800">
-                  <span>{condition.label}</span>
+                  <span>
+                    {condition.label}
+                    {condition.hint && <span className="block text-xs font-normal text-slate-700">{condition.hint}</span>}
+                  </span>
                   <ChevronDown className="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="space-y-4 border-t border-slate-100 px-4 py-4">

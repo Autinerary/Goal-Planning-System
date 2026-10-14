@@ -46,10 +46,17 @@ cd ../backend && ./venv/bin/python -m unittest discover -s tests
    leave it usable), then **take the tour** from it, trying each task once.
 5. **Open ResourceHub from the app** and save a resource: no second sign-in,
    and no token in the address bar.
-6. **Run the accessibility checker** against the build:
+6. **Turn on Soft colours and Words we use** (Display, then Settings), make
+   a plan, and read it: the colours should be calmer at once, and the plan
+   should use the words chosen. On a 375-pixel phone the top bar should be
+   one row. (Groups 15, 16 and 19.)
+7. **Ask for the first two weeks' emails** on a new account, then open a
+   Tidbits post with a content note: the note should show first, and the
+   post only when chosen. (Group 15.)
+8. **Run the accessibility checker** against the build:
    `node scripts/qa/check-accessibility.mjs` (see its header for the
    signed-in pages). It exits 1 on a serious or critical problem.
-7. **Look at the funnel report** after the first testers
+9. **Look at the funnel report** after the first testers
    (`python -m scripts.onboarding_funnel` in `backend/`), comparing the new
    onboarding version with the one before.
 

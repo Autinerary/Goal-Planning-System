@@ -86,7 +86,9 @@ const PLACES = [
 ]
 
 const PLAN_TERMS: Term[] = [
-  { term: 'Path', body: 'Your home page in the app. It shows your next step, a check-in when one is due, and Quick Links to everything else.', href: '/path', linkText: 'Open your Path' },
+  // What a path is, before where it is (Riipen Labs, Groups 16 and 19:
+  // "path" and "milestone" were never defined; lib/terms.ts says the same).
+  { id: 'path', term: 'Path', body: 'Your plan for a goal: the goal broken into small steps called milestones, each with a few tasks and tools that can help. The Path is also your home page in the app: it shows your next step, a check-in when one is due, and Quick Links to everything else.', href: '/path', linkText: 'Open your Path' },
   { id: 'races', term: 'Races', body: 'Your goals, each set out as a race made of milestones, so a big goal becomes small steps. It is your own race, at your own pace: not a contest with anyone.', href: '/races', linkText: 'Open Races' },
   { id: 'dream-land', term: 'Dream Land', body: 'The look of the Races page: a world with a race track and your Dream Self in a car. It is the same page as Races, not a separate place.' },
   { id: 'milestones', term: 'Milestones', body: 'The steps of a race. Each one comes with tools and resources suggested for it. Tick it off when it is done. Steps in the next area unlock when you finish the area you are in.', href: '/milestones', linkText: 'Open your milestone' },
@@ -120,6 +122,8 @@ const PROGRESS_TERMS: Term[] = [
 ]
 
 const YOU_TERMS: Term[] = [
+  // Riipen Labs, Group 15: "Let users choose identity- vs. person-first language".
+  { id: 'words', term: 'Words we use', body: 'In Settings, under Words we use: identity-first (“autistic person”), person-first (“person with autism”), or no preference. Your plan and the assistant write about autism and ADHD the way you choose. The app’s own pages say “neurodivergent” where they can. Talking with someone? Both are used in the community: ask which they prefer, and use the words they use for themselves.', href: '/profile/settings#words', linkText: 'Open Settings' },
   { id: 'norms', term: 'Norms', body: 'The systemic realities you navigate: for example a condition or difference such as autism or ADHD, your identity or circumstances, such as being an immigrant or English being an additional language, or money and access, such as limited transport. Autinerary talks about norms, not deficits. Sharing them is optional. They shape the tools and services suggested to you.' },
   { id: 'simple-view', term: 'Simple view and Show more', body: 'The Path starts in Simple view, with one thing at a time. “Show more” adds the rest, such as Life Stats and your people; “Simplify” goes back. It never changes by itself.' },
   { id: 'character', term: 'Your character', body: 'A cartoon of you, made on the Ideal Self page. It stands on your race track at the step you are on. Until you make one, a plain placeholder stands there.', href: '/ideal-self', linkText: 'Change your character' },
@@ -149,6 +153,9 @@ const TOOLS_TERMS: Term[] = [
   { term: 'Pit Stop', body: 'Your tools: the apps, products and supports your plan suggested for your milestones, on shelves you can search. Your people are in Hare World.', href: '/pit-stop', linkText: 'Open Pit Stop' },
   { term: 'ResourceHub', body: 'Services, places, products and books, rated by people with similar norms. It is a separate site with the same account; links from the app keep you signed in. Ratings and written reviews are public on each listing.', href: goHubHref('/'), linkText: 'Open ResourceHub' },
   { id: 'tidbits', term: 'Tidbits', body: 'Questions and answers from people with similar experiences, in ResourceHub. You post under a pseudonym, not your real name. People vote answers up or down, the person who asked can accept one, and helpful points add up the votes, plus 15 for each accepted answer. It is a place to learn from each other, not a contest. You can delete your own posts and answers, and report anything that breaks the rules.', href: goHubHref('/community'), linkText: 'Open Tidbits' },
+  // Riipen Labs, Group 15: "Visible safety signals in community spaces: clear
+  // moderation policy, content warnings, and an easy report path".
+  { id: 'community-guidelines', term: 'Community guidelines', body: 'How people treat each other in Tidbits and Hare World, what moderators remove, how to report something, and how to put a content note on a post about something hard. Moderators are people on the Autinerary team.', href: goHubHref('/community/guidelines'), linkText: 'Read the guidelines' },
   { id: 'starter-resources', term: 'Starter resources', body: 'A few real listings from ResourceHub, picked from your answers without AI, so there is something useful from the start.', href: '/start', linkText: 'Open Start here' },
 ]
 
@@ -189,7 +196,7 @@ const SEARCH_ENTRIES: HelpEntry[] = [
     section: sec.label,
     text: typeof t.body === 'string' ? t.body : t.plain || '',
   }))),
-  { id: 'ai', term: 'AI', section: 'Where AI is used', text: 'AI writes your plan from your goal, the goal helper, Dream Self pictures and journal notes. Starter resources, energy levels and crisis lines are not AI. AI suggestions for your steps are linked from your next step on the Path.' },
+  { id: 'ai', term: 'AI', section: 'Where AI is used', text: 'AI writes your plan from your goal, the goal helper, Dream Self pictures and journal notes. Starter resources, energy levels and crisis lines are not AI. Suggestions for each step are linked from your next step on the Path.' },
   { id: 'tell-us', term: 'Feedback', section: 'It’s in beta', text: 'Tell us what is hard, missing or too much, at any time.' },
   { id: 'talk-now', term: 'Crisis lines', section: 'Talk to someone now', text: '9-8-8 Suicide Crisis Helpline, Kids Help Phone, 988 Lifeline, emergency 911.' },
 ]
@@ -292,8 +299,8 @@ export default function HelpPage() {
               AI writes your plan from your goal: the steps, the tools suggested for each one, and short notes on why. If you
               ask for it, the goal helper in setup, labelled “AI helper”, turns your own words into goal ideas. AI also makes
               Dream Self pictures, if you make one, and the short note you may see after a journal entry. What it suggests for
-              each step is on one page, <Link href="/recommend-choices" className={linkClass}>AI suggestions for your steps</Link>,
-              linked from your next step on the Path.
+              each step is on one page, <Link href="/recommend-choices" className={linkClass}>Suggestions for each step</Link>,
+              linked from your next step on the Path. Where AI wrote something, the page says so.
             </p>
             <p>
               Some things are not AI. Starter resources are real ResourceHub listings, chosen without AI. Your low, balanced

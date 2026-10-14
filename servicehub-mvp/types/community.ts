@@ -98,6 +98,8 @@ export interface CommunityPostSummary {
   what_didnt_work?: string | null;
   /** The author's closest relationship to their norms (Odosa). */
   author_relationship?: string | null;
+  /** A content note the author put on it (lib/community/contentNotes.ts; STEP 75). */
+  content_note?: string | null;
   author: CommunityAuthorBadge;
   barrier_tags: string[];
   category_tags: string[];

@@ -108,8 +108,8 @@ const GUIDES: [RegExp, PageGuide][] = [
     connects: 'What you write can help the app adjust your plan.',
   }],
   [/^\/recommend-choices\/?$/, {
-    name: 'AI suggestions for your steps',
-    purpose: 'What the AI suggests for each step of your plan, with real ratings from people who used them.',
+    name: 'Suggestions for each step',
+    purpose: 'Ideas for each step of your plan, written with AI from your goal, with real ratings from people who used them.',
     steps: ['Sort by highest rated or most reviewed.', 'Open a suggestion to see more. “Not yet rated” means nobody has rated it yet.'],
   }],
   [/^\/tools\/?$/, {

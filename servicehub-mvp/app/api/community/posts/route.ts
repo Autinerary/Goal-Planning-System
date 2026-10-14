@@ -11,6 +11,7 @@ import {
   getCommunityViewer,
 } from '@/lib/community/client';
 import { markdownExcerpt } from '@/lib/community/markdown';
+import { isContentNote, missingContentNote } from '@/lib/community/contentNotes';
 import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
 import { generatePseudonym } from '@/lib/community/pseudonym';
 import type {
@@ -53,11 +54,13 @@ export async function GET(request: NextRequest) {
   const pageSize = Math.min(50, Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : 20);
   const offset = (page - 1) * pageSize;
 
+  const COLUMNS =
+    'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
+  // With the content note (STEP 75) when it is there; without it before.
+  const build = (columns: string) => {
   let query = client
     .from('community_posts')
-    .select(
-      'id, author_id, title, body_markdown, unlocking_moment, what_didnt_work, author_relationships, barrier_tags, category_tags, image_urls, upvotes, downvotes, score, answer_count, view_count, accepted_answer_id, solved_tldr, solved_key_insight, is_locked, last_activity_at, created_at'
-    )
+    .select(columns)
     .eq('is_deleted', false);
 
   // overlaps, not contains: selecting three norms should widen the results
@@ -78,8 +81,11 @@ export async function GET(request: NextRequest) {
     query = query.order('last_activity_at', { ascending: false });
   }
   query = query.range(offset, offset + pageSize - 1);
+  return query;
+  };
 
-  const { data: rows, error } = await query;
+  let { data: rows, error } = (await build(`${COLUMNS}, content_note`)) as { data: any[] | null; error: any };
+  if (missingContentNote(error)) ({ data: rows, error } = (await build(COLUMNS)) as { data: any[] | null; error: any });
   if (error) {
     console.error('[community] GET /posts failed:', error.message);
     return NextResponse.json({ error: 'Failed to load posts' }, { status: 500 });
@@ -96,7 +102,9 @@ export async function GET(request: NextRequest) {
   const posts: CommunityPostSummary[] = (rows ?? []).map((r) => ({
     id: r.id,
     title: r.title,
-    excerpt: markdownExcerpt(r.body_markdown, 220),
+    // A post with a content note shows the note, not its first lines.
+    excerpt: isContentNote(r.content_note) ? '' : markdownExcerpt(r.body_markdown, 220),
+    content_note: isContentNote(r.content_note) ? r.content_note : null,
     unlocking_moment: r.unlocking_moment ?? null,
     what_didnt_work: r.what_didnt_work ?? null,
     author_relationship: primaryRelationship(r.author_relationships),
@@ -129,6 +137,7 @@ export async function GET(request: NextRequest) {
 }
 
 interface CreatePostBody {
+  content_note?: string;
   title?: string;
   body_markdown?: string;
   barrier_tags?: string[];
@@ -172,6 +181,8 @@ export async function POST(request: NextRequest) {
   const unlocking_moment = (body.unlocking_moment ?? '').trim().slice(0, 280) || null;
   // Author-highlighted things that did NOT work (optional).
   const what_didnt_work = (body.what_didnt_work ?? '').trim().slice(0, 280) || null;
+  // A content note, from the fixed list (lib/community/contentNotes.ts).
+  const content_note = isContentNote(body.content_note) ? body.content_note : null;
 
   if (title.length < 8 || title.length > 250) {
     return NextResponse.json({ error: 'Title must be 8-250 characters' }, { status: 400 });
@@ -205,22 +216,27 @@ export async function POST(request: NextRequest) {
   // Whose experience is this? (Odosa) Snapshotted at write time, like ratings.
   const authorRel = await authorRelationshipSnapshot(viewer.user_id)
 
-  const { data: post, error } = await client
+  const row = {
+    author_id: viewer.user_id,
+    title,
+    body_markdown: markdown,
+    barrier_tags,
+    category_tags,
+    image_urls,
+    unlocking_moment,
+    what_didnt_work,
+    author_relationships: authorRel.relationships,
+    author_weight: authorRel.weight,
+  };
+  let { data: post, error } = await client
     .from('community_posts')
-    .insert({
-      author_id: viewer.user_id,
-      title,
-      body_markdown: markdown,
-      barrier_tags,
-      category_tags,
-      image_urls,
-      unlocking_moment,
-      what_didnt_work,
-      author_relationships: authorRel.relationships,
-      author_weight: authorRel.weight,
-    })
+    .insert(content_note ? { ...row, content_note } : row)
     .select('id')
     .single();
+  // Before STEP 75 there is no content_note column: keep the post.
+  if (content_note && missingContentNote(error)) {
+    ({ data: post, error } = await client.from('community_posts').insert(row).select('id').single());
+  }
   if (error || !post) {
     console.error('[community] POST /posts failed:', error?.message);
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });

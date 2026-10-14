@@ -121,6 +121,7 @@ export default function ConditionsFilter({ selected, onChange, embedded = false 
             }`}
           >
             {group.label}
+            {group.hint && <span className="mt-0.5 block text-xs font-normal text-gray-700">{group.hint}</span>}
           </span>
           {expanded ? (
             <ChevronUp className="w-4 h-4 text-gray-500" aria-hidden="true" />

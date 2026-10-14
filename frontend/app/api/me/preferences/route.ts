@@ -77,6 +77,17 @@ export async function POST(req: NextRequest) {
   if (patch.accessibility || current.accessibility) {
     merged.accessibility = { ...(current.accessibility || {}), ...(patch.accessibility || {}) }
   }
+  // The first two weeks' emails (lib/firstWeeks.ts): the hourly run stamps
+  // which were sent and the first link opened. A page's older copy must never
+  // undo those, or an email could go twice.
+  if (patch.firstWeeks && current.firstWeeks && typeof patch.firstWeeks === 'object') {
+    merged.firstWeeks = {
+      ...current.firstWeeks,
+      ...patch.firstWeeks,
+      sent: { ...(current.firstWeeks.sent || {}), ...(patch.firstWeeks.sent || {}) },
+      clicked: current.firstWeeks.clicked || patch.firstWeeks.clicked,
+    }
+  }
 
   const { error } = await supabase
     .from('profiles')

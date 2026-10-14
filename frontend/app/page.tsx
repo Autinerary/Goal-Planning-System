@@ -11,7 +11,8 @@ import {
   Rocket,
   ChevronDown,
   HeartHandshake,
-  Sparkles,
+  Gift,
+  User,
   MessagesSquare,
   Layers,
   ShieldCheck,
@@ -139,7 +140,7 @@ const EXCHANGE = [
     body: 'Required: that you are 18 or older, who you are here for, and one goal. Everything else is optional and asked later, in the app, when you choose, and \u201cPrefer not to share\u201d is always an answer.',
   },
   {
-    icon: Sparkles,
+    icon: Gift,
     title: 'What you get for it',
     body: 'A plan and starter resources built from your answers. Honest answers give better matches, like services rated by people with similar norms.',
   },
@@ -286,6 +287,7 @@ export default function HomePage() {
             ['#inside', 'A look inside'],
             ['#how', 'How it works'],
             ['#who', 'Who it’s for'],
+            ['#who-makes', 'Who makes it'],
             ['#before-you-sign-up', 'Cost, privacy and what setup asks'],
           ].map(([href, label]) => (
             <li key={href}>
@@ -418,7 +420,7 @@ export default function HomePage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-indigo-700" aria-hidden="true" />
+                <User className="h-5 w-5 text-indigo-700" aria-hidden="true" />
                 <h3 className="font-semibold">If you&apos;re planning for yourself</h3>
               </div>
               <p className="mt-2 text-slate-700">
@@ -440,7 +442,17 @@ export default function HomePage() {
             </div>
           </div>
 
-          <p className="mt-6 text-slate-700">Some of the norms people plan around:</p>
+          {/* Riipen Labs, Group 18: "a more explicit representation of
+              intersecting identities"; Group 15: neurodivergent people who are
+              also "visible minorities, women, or LGBTQ+" each carry "a
+              different relationship to disclosure, trust, and community
+              safety"; Group 19: "visible minorities, women, LGBTQ+,
+              newcomers, and economically vulnerable groups". */}
+          <p className="mt-6 max-w-3xl text-slate-700">
+            Neurodivergence is one part of who someone is. Autinerary is for people of every background, including
+            people of colour, women, LGBTQ+ people, newcomers and people on a tight budget, and you choose what you share.
+          </p>
+          <p className="mt-4 text-slate-700">Some of the norms people plan around:</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {NORM_EXAMPLES.map((n) => (
               <li key={n} className="rounded-full border border-slate-300 bg-white px-3 py-1 text-sm text-slate-800">
@@ -476,6 +488,29 @@ export default function HomePage() {
             </a>
             ).
           </p>
+        </div>
+      </section>
+
+      {/* Who makes Autinerary (Riipen Labs, Group 15's risk map: "No visible
+          signal of who built this and with what lived-experience input";
+          Group 18: trust comes before sharing anything sensitive). Only what
+          the team says on autinerary.ca, checked 14 October 2026, and what
+          the app does with feedback. */}
+      <section id="who-makes" className="scroll-mt-4 border-t border-slate-200 bg-slate-50 px-4 py-12 md:py-16" aria-labelledby="who-makes-heading">
+        <div className="mx-auto max-w-5xl">
+          <h2 id="who-makes-heading" className="text-2xl font-bold md:text-3xl">Who makes Autinerary</h2>
+          <p className="mt-3 max-w-3xl text-lg text-slate-700">
+            Autinerary started with a family who navigated autism with almost no help. In the team&apos;s words on{' '}
+            <a href="https://www.autinerary.ca/about" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">autinerary.ca</a>,
+            it is made by &ldquo;families far along their autism journeys, for anyone who is just starting their own.&rdquo;
+          </p>
+          <ul className="mt-4 max-w-3xl list-disc space-y-1.5 pl-5 text-slate-700">
+            <li>People who use it shape it: answers to &ldquo;Tell us what&apos;s hard&rdquo; and to the questions after setup go to the team, and decide what we fix next.</li>
+            <li>Starter kits say who wrote them, from which sources, and when they were checked.</li>
+            <li>
+              A person answers email: <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">{CONTACT_EMAIL}</a>.
+            </li>
+          </ul>
         </div>
       </section>
 

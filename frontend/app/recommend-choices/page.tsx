@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, CheckCircle, Clock, TrendingUp, Star, ExternalLink, Filter } from 'lucide-react'
+import { ArrowLeft, Sparkles, CheckCircle, Clock, TrendingUp, Star, ExternalLink, Filter, Lightbulb } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
 
@@ -117,12 +117,18 @@ export default function RecommendChoicesPage() {
               Back
             </button>
             <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-purple-600" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Recommended Choices</h1>
+              <Lightbulb className="w-8 h-8 text-purple-700" aria-hidden="true" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Suggestions for each step</h1>
             </div>
           </div>
           <p className="text-slate-600 text-lg">
-            Explore personalized choices for each service based on what worked for people like you
+            Ideas for each step of your plan, with what worked for people like you.
+          </p>
+          {/* AI named where it works (Riipen Labs, Group 18: introduce AI
+              "transparently only at the specific step where it functions"). */}
+          <p className="mt-1 text-sm text-slate-700">
+            Written with AI from your goal. The ratings come from people who used them.{' '}
+            <Link href="/help#ai" className="font-medium text-indigo-800 underline underline-offset-2">How Autinerary uses AI</Link>
           </p>
         </div>
 

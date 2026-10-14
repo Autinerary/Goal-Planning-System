@@ -22,7 +22,13 @@ function goToServiceHub() {
 // beside it on a wider screen. On a phone the bar was icons only (Riipen Labs,
 // Groups 31 and 32: "dual-labeling text", and a clear difference between the
 // app's menu and your plan's pages, which have their own bar).
-const ITEM = 'flex min-w-[2.75rem] flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-lg px-1.5 sm:px-3 py-1 sm:py-2 text-[0.6875rem] sm:text-sm leading-tight transition-all'
+// Riipen Labs, Group 19: "the interface also uses small icons and navigation
+// tools"; on a phone the icons are 20 pixels and the names 12 (they were 16
+// and 11). The room comes from the space around them, so the controls fit
+// on one row on phones 375 pixels wide and wider, each still at least 44
+// pixels; narrower phones take two rows.
+const ITEM = 'flex min-w-[2.75rem] flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 rounded-lg px-1 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm leading-tight transition-all'
+const ICON = 'w-5 h-5 sm:w-4 sm:h-4'
 
 const hideNavRoutes = ['/', '/login', '/signup', '/forgot-password', '/reset-password', '/auth/age', '/onboarding', '/checkin']
 
@@ -48,7 +54,7 @@ export default function Navigation() {
 
   return (
     <nav ref={navRef} className="text-slate-800 sticky top-0 z-50 shadow-sm border-b border-white/40 surface-chrome">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
         <div className="flex flex-wrap justify-between items-center min-h-16 py-2 gap-2">
           <Link href="/path" className="flex min-h-[2.75rem] min-w-[2.75rem] items-center gap-2">
             <div aria-hidden="true" className="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-lg flex items-center justify-center">
@@ -58,7 +64,7 @@ export default function Navigation() {
             <span className="sr-only sm:hidden">Autinerary</span>
           </Link>
 
-          <div className="flex flex-wrap items-center gap-0.5 sm:gap-3">
+          <div className="flex flex-wrap items-center sm:gap-3">
             {/* The name opens Your profile (Riipen Labs, Group 34); it was plain text. */}
             <Link
               href="/profile"
@@ -66,7 +72,7 @@ export default function Navigation() {
               data-info="Opens your profile: your name, what friends see, and your password."
               className={`${ITEM} text-slate-700 hover:bg-slate-100 hover:text-slate-900`}
             >
-              <User className="w-4 h-4" aria-hidden="true" />
+              <User className={ICON} aria-hidden="true" />
               <span className="sm:hidden">Profile</span>
               <span className="hidden sm:inline">{user.name || user.email.split('@')[0]}</span>
             </Link>
@@ -77,7 +83,7 @@ export default function Navigation() {
               data-info="Opens ResourceHub to find services and tools for your goals."
               className={`${ITEM} font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800`}
             >
-              <ExternalLink className="w-4 h-4" aria-hidden="true" />
+              <ExternalLink className={ICON} aria-hidden="true" />
               <span className="sm:hidden">Resources</span>
               <span className="hidden sm:inline">{t('nav.findResources')}</span>
             </button>
@@ -90,7 +96,7 @@ export default function Navigation() {
               className={`${ITEM} text-slate-600 hover:text-slate-900 hover:bg-white/40`}
               title="How this page works"
             >
-              <PlayCircle className="w-4 h-4" aria-hidden="true" />
+              <PlayCircle className={ICON} aria-hidden="true" />
               <span className="sm:hidden">Guide</span>
               <span className="hidden sm:inline">{t('nav.howItWorks')}</span>
             </button>
@@ -112,7 +118,7 @@ export default function Navigation() {
               title="Settings"
               data-info="Opens Settings, where you can change the language, how much of the app you see, colours, and where things sit on the screen."
             >
-              <Settings className="w-4 h-4" aria-hidden="true" />
+              <Settings className={ICON} aria-hidden="true" />
               <span>{t('nav.settings')}</span>
             </Link>
 
@@ -122,7 +128,7 @@ export default function Navigation() {
               data-info="Signs you out of this account without deleting your saved progress."
               className={`${ITEM} text-slate-600 hover:text-slate-900 hover:bg-white/40`}
             >
-              <LogOut className="w-4 h-4" aria-hidden="true" />
+              <LogOut className={ICON} aria-hidden="true" />
               <span>{t('nav.logout')}</span>
             </button>
           </div>

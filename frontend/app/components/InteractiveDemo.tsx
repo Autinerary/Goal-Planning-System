@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { X, ArrowRight, ArrowLeft, Sparkles, PlayCircle, Check, MousePointerClick } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, PlayCircle, Check, MousePointerClick, Hand, Compass, Signpost, CalendarDays, Palette, Rocket, type LucideIcon, Map as MapIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { track, TOUR_TASK_IDS } from '@/lib/funnel'
 import { goHubHref } from '@/lib/serviceHub'
@@ -65,7 +65,8 @@ interface DemoStep {
   connects?: string
   features?: DemoFeature[]
   task?: DemoTask
-  emoji: string
+  /** A plain icon for the part (Riipen Labs, Group 18: the emoji read as generic). */
+  icon: LucideIcon
   /** The page it is about; "Go to" leads there unless already on `stayOn`. */
   route?: string
   /** That page's name, for "Go to …". */
@@ -75,7 +76,7 @@ interface DemoStep {
 
 const STEPS: DemoStep[] = [
   {
-    emoji: '👋',
+    icon: Hand,
     title: 'Welcome to Autinerary',
     overview:
       'Four parts, about two minutes. Each one asks you to try one small thing, so you know where it is next time. You can skip any of them, or the whole tour.',
@@ -83,7 +84,7 @@ const STEPS: DemoStep[] = [
       'How it fits together: your goal is broken into small steps on your Path. Each step suggests tools that can help. The Calendar spreads the steps over your week, at the energy you have. And you can change how the app looks, and add more about you, whenever you like.',
   },
   {
-    emoji: '🧭',
+    icon: Compass,
     title: '1. Your next step',
     overview: 'This is the Path, your home base. It shows the one thing to do next: the first small step of your goal.',
     connects: 'Each step you finish brings up the next one, and moves your goal along in Races.',
@@ -102,7 +103,7 @@ const STEPS: DemoStep[] = [
     routeName: 'your Path',
   },
   {
-    emoji: '🪧',
+    icon: Signpost,
     title: '2. Tools for each step',
     overview: 'A step says what to do, in small parts, and suggests tools and services that can help. Tick it off when it is done, and the next one opens.',
     connects: 'Tools you save go to Pit Stop. When this step is planned is on the Calendar.',
@@ -122,7 +123,7 @@ const STEPS: DemoStep[] = [
     stayOn: /^\/milestones(\/|$)/,
   },
   {
-    emoji: '📅',
+    icon: CalendarDays,
     title: '3. Your week, at your energy',
     overview: 'The Calendar spreads your plan’s tasks across the week. Tell it how much energy you have today and the day fits it: low, balanced or high.',
     connects: 'Ticks here count on your Path and in Life Stats too.',
@@ -139,14 +140,14 @@ const STEPS: DemoStep[] = [
     routeName: 'the Calendar',
   },
   {
-    emoji: '🎨',
+    icon: Palette,
     title: '4. Make it yours',
     overview: 'Change how the app looks at any time: light or dark, larger text, higher contrast. Setup asked only what your plan needed; the rest is on the Path, for whenever you like.',
     connects: 'Each answer changes what you see: your city finds services near you, your character stands on your race track.',
     features: [
       { name: 'Display', desc: 'Light or dark, text size, contrast, and how lively it looks.', target: '[data-tour="display"]' },
       { name: 'Complete your profile', desc: 'Your city, what motivates you, your norms, your character and more. All optional.', target: 'section[aria-labelledby="profile-card-heading-path"]' },
-      { name: 'AI suggestions', desc: 'What the AI suggests for each step of your plan.', target: '[data-tour="ai-suggestions"]' },
+      { name: 'Suggestions for each step', desc: 'Ideas for each step of your plan, written with AI, with ratings from people who used them.', target: '[data-tour="ai-suggestions"]' },
     ],
     task: {
       id: 'display',
@@ -158,7 +159,7 @@ const STEPS: DemoStep[] = [
     routeName: 'your Path',
   },
   {
-    emoji: '🗺️',
+    icon: MapIcon,
     title: 'More, when you are ready',
     overview: 'There is more, for later: Races shows your goals as a race, Pit Stop keeps your tools, the Journal is for looking back, and Hare World is for your people.',
     connects: 'Find them under Quick Links, then “All places”, when you want them.',
@@ -169,7 +170,7 @@ const STEPS: DemoStep[] = [
     routeName: 'your Path',
   },
   {
-    emoji: '🚀',
+    icon: Rocket,
     title: 'Last one, if you like: ResourceHub',
     overview: 'ResourceHub has services and places rated by people with similar norms, and Tidbits, where people ask and answer questions. It opens in this window; come back with your browser’s Back button.',
     connects: '“How it works” in the top bar (“Guide” on a phone) explains the page you are on, and starts this tour again.',
@@ -491,13 +492,13 @@ export default function InteractiveDemo() {
         </button>
 
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-cyan-700" aria-hidden="true" />
+          <Compass className="w-4 h-4 text-cyan-700" aria-hidden="true" />
           <span className="text-xs font-semibold uppercase tracking-wide text-cyan-800">
             Interactive tour
           </span>
         </div>
 
-        <div className="text-4xl mb-2" aria-hidden="true">{s.emoji}</div>
+        <s.icon className="mb-2 h-9 w-9 text-indigo-700" aria-hidden="true" />
         <h2 id="tour-title" className="text-xl font-bold text-slate-900 mb-2">{s.title}</h2>
         {/* The page this part is about, when it is not this one: going there
             is the person's choice (Group 23: the tour "automatically changes

@@ -28,6 +28,9 @@ export const CAMPAIGN_LINKS: Record<string, { label: string }> = {
   facebook: { label: 'Facebook' },
   tiktok: { label: 'TikTok' },
   reddit: { label: 'Reddit' },
+  // Riipen Labs, Group 15's channel profiles: X (Twitter) and in-person groups.
+  x: { label: 'X (Twitter)' },
+  'in-person': { label: 'In person: a group, meetup or event' },
 }
 
 /** Where a short link goes: /start with its tracking. */
@@ -37,26 +40,58 @@ export function campaignTarget(code: string): string {
   return `/start?${params}`
 }
 
-// One welcome line for where someone came from, above Start here's first
-// question (the cohort report: "vary the entry framing, social proof and
-// follow-up"). Only what every visitor would also be told: no invented
-// numbers or testimonials. Sources without a line get none.
-const TRUST = 'You can look around without an account. No ads, and we never sell your information.'
-const PEERS = 'Two quick questions, then places to start, and where to find advice from people with similar experiences.'
-const WORK = 'Teachers, employers and support workers use Autinerary too, as well as people planning for themselves.'
+/**
+ * What Start here does for a visitor from each channel (Riipen Labs, Group
+ * 15, "Five doors in, five different expectations"):
+ *   Facebook groups: "Lead with a concrete, shareable first win"
+ *   TikTok: "Match the video's energy in-app; no dry forms first"
+ *   Reddit: "Show the 'why' and sourcing before asking for data"
+ *   Twitter/X: "One-tap preview before any sign-up commitment"
+ *   In-person groups: "Let them name who invited them; personalize opening
+ *   screen"
+ * The questions stay the same for everyone (the cohort report: "same
+ * onboarding spine across channels ... channel should not be used as a proxy
+ * for identity or need"); what changes is the welcome and one thing beside
+ * it: a share button first (share), why we ask and where the lists come from
+ * before the first question (sources), or a look at the app with a sample
+ * plan (preview). In-person visitors can say who told them about Autinerary
+ * in the questions after setup (components/OnboardingFeedback.tsx).
+ */
+export type EntryLead = 'share' | 'sources' | 'preview'
 
-const ENTRY_LINES: Record<string, { from: string; line: string }> = {
-  facebook: { from: 'Facebook', line: TRUST },
-  'parent-group': { from: 'your parent group', line: TRUST },
-  tiktok: { from: 'TikTok', line: PEERS },
-  reddit: { from: 'Reddit', line: PEERS },
-  instagram: { from: 'Instagram', line: PEERS },
+// Only what every visitor would also be told: no invented numbers or
+// testimonials. Sources without a line get none.
+const SHARE = 'Two quick questions, then a short list of places to start that you can open now, and share with your group in one tap. No account needed. No ads, and we never sell your information.'
+const QUICK = 'Two taps, then real places to start. No forms, and no account.'
+const SOURCED = 'Before you answer anything: why we ask, and where the lists come from, are just below.'
+const PREVIEW = 'Look around first: no account and no email. Two taps to places to start, or see the app with a sample plan.'
+const WORK = 'Teachers, employers and support workers use Autinerary too, as well as people planning for themselves.'
+const IN_PERSON = 'Two quick questions, then places to start. If you make an account, you can tell us who pointed you here, so we can thank them.'
+
+const ENTRY_LINES: Record<string, { from?: string; welcome?: string; line: string; lead?: EntryLead }> = {
+  facebook: { from: 'Facebook', line: SHARE, lead: 'share' },
+  'parent-group': { from: 'your parent group', line: SHARE, lead: 'share' },
+  tiktok: { from: 'TikTok', line: QUICK },
+  instagram: { from: 'Instagram', line: QUICK },
+  reddit: { from: 'Reddit', line: SOURCED, lead: 'sources' },
+  x: { from: 'X', line: PREVIEW, lead: 'preview' },
+  twitter: { from: 'X', line: PREVIEW, lead: 'preview' },
   linkedin: { from: 'LinkedIn', line: WORK },
   school: { from: 'your school', line: WORK },
+  'in-person': { welcome: 'Welcome. Someone you met in person shared this.', line: IN_PERSON },
+  // A list someone shared from Start here (components/StartHere.tsx).
+  share: { welcome: 'Someone shared this list with you.', line: 'It is free, and you don’t need an account to use it.' },
 }
 
-/** "Welcome from TikTok." and its line, for a visit that arrived with that utm_source. */
-export function entryLine(source: string | null): { welcome: string; line: string } | null {
+/** The welcome for a visit that arrived with that utm_source, and what to show beside it. */
+export function entryLine(source: string | null): { welcome: string; line: string; lead?: EntryLead } | null {
   const entry = source ? ENTRY_LINES[source.trim().toLowerCase()] : undefined
-  return entry ? { welcome: `Welcome from ${entry.from}.`, line: entry.line } : null
+  if (!entry) return null
+  return { welcome: entry.welcome || `Welcome from ${entry.from}.`, line: entry.line, lead: entry.lead }
+}
+
+/** A link to a Start here list, to share with someone else (utm_source=share opens the list itself). */
+export function sharedListUrl(origin: string, role: string, need: string): string {
+  const params = new URLSearchParams({ for: role, need, utm_source: 'share' })
+  return `${origin.replace(/\/$/, '')}/start?${params}`
 }

@@ -216,7 +216,7 @@ export default function ProfileSettingsPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="font-semibold text-slate-900 text-sm">Reset progress</div>
-                  <p className="text-xs text-slate-600">Clears completed steps, hearts, calendar tasks, stats and your AI portrait. Keeps your account and your generated plan.</p>
+                  <p className="text-xs text-slate-600">Clears completed steps, hearts, calendar tasks, stats and your Dream Self picture. Keeps your account and your generated plan.</p>
                 </div>
                 <button
                   onClick={() => setConfirm('progress')}

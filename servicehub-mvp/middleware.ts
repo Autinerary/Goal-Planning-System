@@ -55,8 +55,11 @@ export async function middleware(request: NextRequest) {
   const isHomePage = pathname === '/'
   const isSearchPage = pathname.startsWith('/search')
   const isResourcePage = pathname.startsWith('/resources')
+  // Tidbits' community guidelines are readable before anyone signs in
+  // (Riipen Labs, Group 15: "clear moderation policy").
+  const isGuidelines = pathname === '/community/guidelines'
 
-  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage) {
+  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines) {
     // Nothing here depends on who the user is, so don't ask.
     return response
   }

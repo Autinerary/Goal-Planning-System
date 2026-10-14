@@ -23,6 +23,7 @@ import ThreadedAnswer from '@/components/community/ThreadedAnswer'
 import AnswerComposer from '@/components/community/AnswerComposer'
 import AcceptSolutionModal from '@/components/community/AcceptSolutionModal'
 import ReportButton from '@/components/community/ReportButton'
+import { contentNoteLabel } from '@/lib/community/contentNotes'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
@@ -43,6 +44,9 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   // body, carried into the composer below.
   const [quotedText, setQuotedText] = useState<string | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  // A post with a content note opens only when the reader chooses (Riipen
+  // Labs, Group 15: "content warnings"; lib/community/contentNotes.ts).
+  const [revealed, setRevealed] = useState(false)
 
   /** Pull the reader's current selection, but only if it actually lies inside
    *  the post body — otherwise selecting text in a reply, or in the nav,
@@ -226,6 +230,24 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             isOwn={post.viewer_can_edit}
           />
           <div className="flex-1 min-w-0">
+            {post.content_note && !revealed ? (
+              <div className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-4 mb-4">
+                <p className="text-sm text-gray-900">
+                  <span className="font-semibold">Content note:</span> {contentNoteLabel(post.content_note)}.
+                </p>
+                <p className="mt-1 text-sm text-gray-700">The person who asked added this note. The post and its answers stay hidden until you choose.</p>
+                <button
+                  type="button"
+                  onClick={() => setRevealed(true)}
+                  className="mt-3 rounded-lg border border-gray-400 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100"
+                >
+                  Show the post
+                </button>
+              </div>
+            ) : (<>
+            {post.content_note && (
+              <p className="mb-3 text-sm text-gray-700"><span className="font-semibold">Content note:</span> {contentNoteLabel(post.content_note)}.</p>
+            )}
             {/* Unlocking moment — the author's highlighted key sentence (Odosa) */}
             {post.unlocking_moment && (
               <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 mb-4">
@@ -255,6 +277,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <div ref={bodyRef}>
               <Markdown source={post.body_markdown} />
             </div>
+            </>)}
 
             {/* Odosa: a "Comment on" button beside the normal Comment action,
                 so a reader can reply to one specific passage rather than the
@@ -326,7 +349,9 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
           {post.answer_count} {post.answer_count === 1 ? 'answer' : 'answers'}
         </h2>
-        {post.answers.length === 0 ? (
+        {post.content_note && !revealed ? (
+          <p className="text-sm text-gray-600 mb-3">Hidden with the post, until you choose to show it.</p>
+        ) : post.answers.length === 0 ? (
           <p className="text-sm text-gray-500 mb-3">
             Be the first to share what worked for you.
           </p>

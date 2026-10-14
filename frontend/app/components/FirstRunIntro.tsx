@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Volume2, VolumeX, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Mic, MicOff, Volume2, VolumeX, X, ChevronLeft, ChevronRight, Hand, Signpost, ShoppingCart, Flame, type LucideIcon, Map as MapIcon } from 'lucide-react'
 import { speak } from '@/lib/speech'
 
 /**
@@ -23,34 +23,35 @@ import { speak } from '@/lib/speech'
 const SEEN_KEY = 'autinerary_intro_seen'
 
 interface Step {
-  emoji: string
+  /** A plain icon (Riipen Labs, Group 18: the emoji read as generic). */
+  icon: LucideIcon
   title: string
   body: string
 }
 
 const STEPS: Step[] = [
   {
-    emoji: '👋',
+    icon: Hand,
     title: 'Welcome to your journey',
     body: "Here's a quick tour. You can tap Next, or press the microphone and say 'next' to go hands-free.",
   },
   {
-    emoji: '🗺️',
+    icon: MapIcon,
     title: 'Your Path',
     body: 'All your goals live on one map as races. This is your home base. Start simple, and more appears as you go.',
   },
   {
-    emoji: '🪧',
+    icon: Signpost,
     title: 'Milestones',
     body: 'Each milestone pairs the tools you use with the norms they help with. Rate what helps as you go.',
   },
   {
-    emoji: '🛒',
+    icon: ShoppingCart,
     title: 'The Pit Stop',
     body: 'Your cart of tools and supports. Add what helps, skip the rest.',
   },
   {
-    emoji: '🔥',
+    icon: Flame,
     title: 'Streaks',
     body: 'Finish a task each day to build a streak. Earn freezes that protect you if you miss a day.',
   },
@@ -205,7 +206,7 @@ export default function FirstRunIntro() {
         </button>
 
         <div className="text-center">
-          <div className="text-6xl mb-3">{current.emoji}</div>
+          <current.icon className="mx-auto mb-3 h-12 w-12 text-indigo-700" aria-hidden="true" />
           <h2 className="text-2xl font-bold text-slate-800 mb-2">{current.title}</h2>
           <p className="text-slate-600">{current.body}</p>
         </div>

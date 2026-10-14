@@ -31,6 +31,7 @@ Then:
 import os
 import re
 import json
+import time
 import asyncio
 import contextlib
 from contextvars import ContextVar
@@ -97,6 +98,39 @@ _actor: ContextVar[Optional[str]] = ContextVar("llm_actor", default=None)
 # True only when the actor came from a verified session, which is what the
 # usage ledger's foreign key requires.
 _actor_verified: ContextVar[bool] = ContextVar("llm_actor_verified", default=False)
+# How the person asked to be written about (Settings, "Words we use";
+# frontend/lib/languageStyle.ts). Riipen Labs, Group 15: "'Autistic person'
+# and 'person with autism' are both used within the community: offer the
+# choice rather than picking one house style." None is no preference.
+_language_style: ContextVar[Optional[str]] = ContextVar("llm_language_style", default=None)
+
+LANGUAGE_RULES = {
+    "identity": (
+        "This person prefers identity-first language. When you write about autism, ADHD or "
+        "other neurodivergence, say for example 'autistic person', 'autistic adults' or "
+        "'ADHDer', never 'person with autism' or 'has autism'."
+    ),
+    "person": (
+        "This person prefers person-first language. When you write about autism, ADHD or "
+        "other conditions, say for example 'person with autism' or 'person with ADHD', "
+        "never 'autistic person' or 'ADHDer'."
+    ),
+}
+
+
+def clean_language_style(value: Any) -> Optional[str]:
+    """'identity' or 'person', or None for anything else."""
+    return value if isinstance(value, str) and value in LANGUAGE_RULES else None
+
+
+def language_rule() -> str:
+    """The sentence to add to a prompt for the person in scope, or ''."""
+    return LANGUAGE_RULES.get(_language_style.get() or "", "")
+
+
+def _styled(system: str) -> str:
+    rule = language_rule()
+    return f"{system}\n\n{rule}" if rule else system
 
 
 def parse_selection(raw: Optional[Dict[str, Any]]) -> Optional[Selection]:
@@ -148,14 +182,19 @@ def use_selection(
     selection: Optional[Selection],
     actor: Optional[str] = None,
     verified: bool = False,
+    language_style: Optional[str] = None,
 ):
-    """Scope a model selection, and whose budget it spends, to this block."""
+    """Scope a model selection, whose budget it spends, and how the person
+    asked to be written about, to this block."""
     tokens = []
     if selection is not None:
         tokens.append((_selection, _selection.set(selection)))
     if actor is not None:
         tokens.append((_actor, _actor.set(actor)))
         tokens.append((_actor_verified, _actor_verified.set(verified)))
+    style = clean_language_style(language_style)
+    if style is not None:
+        tokens.append((_language_style, _language_style.set(style)))
     try:
         yield
     finally:
@@ -269,9 +308,51 @@ def _tuned(
     return kwargs, token_budget
 
 
-def _guard(model: registry.Model, planned_tokens: int) -> None:
-    """Refuse the call if it would push this account past a configured limit."""
-    budget.check(_actor.get(), model.id, planned_tokens, verified=_actor_verified.get())
+# A plan is many calls in a row, and some agents run side by side. Riipen
+# Labs, Group 18 met "Too many requests" at the last step of setup: the
+# per-minute limit refused a call part way through, and the whole plan
+# failed. 223 of the 296 plans asked for from 31 August to 9 October failed
+# this way, all before 26 September and almost all with three or more goals
+# (the Path Planning audit, 13 October). For a
+# signed-in person a call over the per-minute limit now waits for the next
+# free slot, up to this many seconds, instead. The limit is unchanged: no
+# more calls start in any minute than LLM_REQUESTS_PER_MINUTE. The daily
+# limits still refuse at once, and so does the shared bucket for people who
+# are not signed in.
+def _rate_wait_seconds() -> float:
+    try:
+        value = float(os.getenv("LLM_RATE_WAIT_SECONDS", "") or 75)
+    except ValueError:
+        return 75.0
+    return max(0.0, value)
+
+
+async def _guard(model: registry.Model, planned_tokens: int) -> None:
+    """Refuse the call if it would push this account past a configured limit,
+    or wait for the per-minute limit to free a slot (above)."""
+    actor, verified = _actor.get(), _actor_verified.get()
+    deadline = time.monotonic() + _rate_wait_seconds()
+    while True:
+        try:
+            budget.check(actor, model.id, planned_tokens, verified=verified)
+            return
+        except budget.LimitExceeded as e:
+            if e.limit != "requests_per_minute" or not (actor and verified):
+                raise
+            wait = budget.seconds_until_slot(actor)
+            if time.monotonic() + wait > deadline:
+                raise
+            await asyncio.sleep(max(wait, 0.0) + 0.05)
+
+
+def _styled_messages(messages: list) -> list:
+    """A chat's messages with the language rule added to its system message."""
+    rule = language_rule()
+    if not rule:
+        return messages
+    if messages and isinstance(messages[0], dict) and messages[0].get("role") == "system":
+        return [{**messages[0], "content": _styled(str(messages[0].get("content") or ""))}] + list(messages[1:])
+    return [{"role": "system", "content": rule}] + list(messages)
 
 
 def _record(model: registry.Model, resp, agent: Optional[str] = None) -> None:
@@ -304,11 +385,11 @@ async def complete_text(
     if client is None:
         return None
     tuned, planned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, planned)
+    await _guard(model, planned)
     try:
         resp = await client.chat.completions.create(
             messages=[
-                {"role": "system", "content": system},
+                {"role": "system", "content": _styled(system)},
                 {"role": "user", "content": user},
             ],
             **tuned,
@@ -336,10 +417,10 @@ async def complete_chat(
     if client is None:
         return None
     tuned, planned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, planned)
+    await _guard(model, planned)
     try:
         resp = await client.chat.completions.create(
-            messages=messages,
+            messages=_styled_messages(messages),
             **tuned,
         )
         _record(model, resp, agent)
@@ -370,11 +451,11 @@ async def complete_json(
     if client is None:
         return None
     tuned, planned = _tuned(model, effort, temperature, max_tokens)
-    _guard(model, planned)
+    await _guard(model, planned)
     try:
         kwargs: Dict[str, Any] = {
             "messages": [
-                {"role": "system", "content": system + " Respond ONLY with valid JSON."},
+                {"role": "system", "content": _styled(system) + " Respond ONLY with valid JSON."},
                 {"role": "user", "content": user},
             ],
             **tuned,

@@ -32,7 +32,7 @@ nobody is asked twice.
 | How much energy do you have for this today? | Setup, first step, optional | How much setup asks today: "Not much" stops at the plan; "Plenty" offers the questions below straight away |
 | What are you looking for today? (parents also: an assessment, support at school; everyone: help right now) | Setup, first step, optional | What the page after setup shows first; who to call at once for "Help right now" |
 | Your city | "Complete your profile", from the first day; ResourceHub | Services near you, nearest first |
-| Reminders for your first two weeks | The card, from the first day | One email a day about the next step, stopping by itself |
+| Reminders for your first two weeks | The card, from the day after joining (Group 15: no notification asks before a first useful action); Settings, under Emails | Three emails about what you did, on days 1, 7 and 14 (Group 15), or one email a day about the next step; both stop by themselves |
 | What motivates you | The card, from the first day | Matching with people motivated in similar ways |
 | Your norms and support needs | The card from day 7; `/profile/diagnostic`; ResourceHub | Tools and services that fit, and ratings from people with similar norms. Private |
 | Where are you? How soon? How do you like to start? | Start here, after the starter resources, optional | The order of the resources, the kits, who to call |
@@ -44,7 +44,9 @@ nobody is asked twice.
 | How the app looks (light or dark, contrast, calm motion, text size, liveliness, Simplified or Full View) | Display, on every page before an account, in setup and on the Path; the card | The app's look, at once |
 | Your character and Dream Self | The card, from day 10 or as soon as the first step is done (Group 23's rewards); not suggested to parents | Puts you on your race track |
 | Your spirit animals | The same | A guide for the day on your Path |
-| A goal's dream and obstacle | Setup's goal, folded until asked for | Sent with the goal when the plan is made |
+| What you hope a goal leads to, and what might get in the way | Setup's goal, folded under "+ Add more about this goal" (plain questions since Group 17 found "dream for the other person" and "ideal relationship with ally" unclear) | Sent with the goal when the plan is made |
+| Your biggest dream, beyond any one goal | The Ideal Self page (it left setup: Group 17, "front loads personal questions ... before trust is established") | Sent with the next plan you make |
+| Words we use: identity-first or person-first | Settings (Group 15) | How your plan and the assistant write about autism and ADHD |
 
 The Path shows one of these at a time, and only when no check-in is due.
 "See all" and Your profile list every one. Nothing changes by itself.
@@ -52,9 +54,13 @@ The Path shows one of these at a time, and only when no check-in is due.
 ## Feedback, after people have used it
 
 - Optional questions on the page after setup (not shown after "Not much"
-  energy): whether making the account was clear and quick, whether they know
-  what to do next, how much they knew before signing up, how easy setup was,
-  and where they heard about Autinerary.
+  energy): whether they know what to do next shows; four more are folded
+  under it (Group 18: a long survey before any use of the app): whether
+  making the account was clear and quick, how much they knew before signing
+  up, how easy setup was, and where they heard about Autinerary, with the
+  group, school or event's name when one pointed them here (Group 15).
+- "Two weeks in: is Autinerary useful so far?": in the day-14 email, for
+  people who asked for the first two weeks' emails.
 - The team's feedback form: only for people who finished setup and came
   back on a later day.
 - "Is Autinerary useful so far?": after five days of use, or on a return

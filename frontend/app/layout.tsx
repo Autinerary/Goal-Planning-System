@@ -106,7 +106,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale;if(a.reduceMotion)r.dataset.reduceMotion='on'}catch(e){}`,
+            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale;if(a.reduceMotion)r.dataset.reduceMotion='on';if(a.softColors)r.dataset.softColors='on'}catch(e){}`,
           }}
         />
       </head>

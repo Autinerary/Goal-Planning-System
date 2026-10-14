@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { verifyCheckinToken } from '@/lib/checkinToken'
-import { STOP_REASONS } from '@/lib/checkin'
+import { STOP_REASONS, USEFULNESS } from '@/lib/checkin'
 import CheckinQuestion from '../components/CheckinQuestion'
 import StopCheckinEmails from './StopCheckinEmails'
 
@@ -16,11 +16,14 @@ export const metadata: Metadata = {
  * Where the check-in email links to (app/api/cron/inactive-checkin). Works
  * without signing in: the link's signed token says whose answer it is.
  * ?stop=1 (the email's "Stop these emails" link) leads with turning them off.
+ * ?q=useful is the day-14 email of the first two weeks (lib/firstWeeks.ts):
+ * "Is Autinerary useful so far?", for someone still using it.
  */
-export default function CheckinPage({ searchParams }: { searchParams: { t?: string; stop?: string } }) {
+export default function CheckinPage({ searchParams }: { searchParams: { t?: string; stop?: string; q?: string } }) {
   const token = typeof searchParams.t === 'string' ? searchParams.t : ''
   const valid = Boolean(token && verifyCheckinToken(token))
   const stopFirst = searchParams.stop === '1'
+  const useful = searchParams.q === 'useful'
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10">
@@ -37,6 +40,18 @@ export default function CheckinPage({ searchParams }: { searchParams: { t?: stri
               Sign in
             </Link>
           </div>
+        ) : useful ? (
+          <CheckinQuestion
+            headingLevel="h1"
+            kind="usefulness"
+            heading="Two weeks in"
+            intro="Is Autinerary useful so far? One question, and you don't need to sign in. Your answer decides what we fix next."
+            legend="Is it useful so far?"
+            options={USEFULNESS}
+            commentLabel="Anything that would make it more useful?"
+            thanks="Thank you. Your answer goes straight into what we fix next."
+            token={token}
+          />
         ) : stopFirst ? (
           <StopCheckinEmails token={token} prominent />
         ) : (

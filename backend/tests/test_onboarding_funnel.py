@@ -78,6 +78,20 @@ from scripts.onboarding_funnel import (  # noqa: E402
     summarize_start_refine,
     render_still_using,
     summarize_still_using,
+    DISPLAY_CHOICES,
+    norm_group,
+    render_by_norms,
+    render_display_choices,
+    render_first_page_leavers,
+    render_first_weeks,
+    render_not_found,
+    render_success_markers,
+    summarize_by_norms,
+    summarize_display_choices,
+    summarize_first_page_leavers,
+    summarize_first_weeks,
+    summarize_not_found,
+    summarize_success_markers,
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -990,7 +1004,7 @@ class ExpressSetupTests(unittest.TestCase):
     def test_the_version_matches_the_app(self):
         ts = (REPO / "frontend/lib/funnel.ts").read_text()
         self.assertIn(f"export const ONBOARDING_VERSION = '{CURRENT_VERSION}'", ts)
-        self.assertEqual(CURRENT_VERSION, "paced-2026-10")
+        self.assertEqual(CURRENT_VERSION, "clear-2026-10")
 
     def test_return_within_thirty_days(self):
         signup = "2026-10-01T09:00:00+00:00"
@@ -1336,3 +1350,124 @@ class PacedSetupTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClearVersionTests(unittest.TestCase):
+    """Riipen Labs, Groups 15 to 19 (clear-2026-10): success markers for the
+    first two weeks by who people are here for and the day 1, 7 and 14
+    emails (Group 15), display choices (Group 16), leaving after the first
+    page (Group 18), ADHD against autism and pages not found (Group 19)."""
+
+    def _ev(self, visitor, event, at, step=None, user=None, channel=None, version=V):
+        return {**ev(visitor, event, at, step=step, channel=channel, version=version), "user_id": user}
+
+    def test_success_markers_by_who_people_are_here_for(self):
+        events = []
+        signup = "2026-10-01T10:00:00+00:00"
+        for i in range(6):
+            v, u = f"s{i}", f"us{i}"
+            events.append(self._ev(v, "signup_complete", signup, user=u))
+            if i < 3:   # something useful on day 1
+                events.append(self._ev(v, "feature_use", "2026-10-01T10:05:00+00:00", "milestones", user=u))
+            if i < 4:   # back on two later days in week 1
+                events += [self._ev(v, "app_open", "2026-10-02T09:00:00+00:00", user=u),
+                           self._ev(v, "app_open", "2026-10-05T09:00:00+00:00", user=u)]
+            if i == 4:  # back on one later day only
+                events.append(self._ev(v, "app_open", "2026-10-03T09:00:00+00:00", user=u))
+            if i < 2:   # and again in week 2
+                events.append(self._ev(v, "app_open", "2026-10-12T09:00:00+00:00", user=u))
+        funnel = compute_funnel(events, audience_by_user={f"us{i}": "self" for i in range(6)})
+        saves = {"us5": "2026-10-01T20:00:00+00:00"}   # a save within a day counts for day 1
+        now = _ts("2026-10-20T10:00:00+00:00")
+        s = summarize_success_markers(funnel["people"], events, saves, now=now)
+        g = s[AUDIENCE_LABELS["self"]]
+        self.assertEqual((g["people"], g["day1"], g["week1_people"], g["week1"], g["week2_people"], g["week2"]),
+                         (6, 4, 6, 4, 6, 2))
+        text = render_success_markers(s, shared_links=7, share_presses=3)
+        self.assertRegex(text, r"myself +6 +4 \(67%\) +4 \(67%\) +2 \(33%\)")
+        self.assertIn("utm_source=share): 7", text)
+        self.assertIn("Share this list in Start here: <5", text)
+
+    def test_weeks_count_only_for_accounts_old_enough(self):
+        events = [self._ev(f"n{i}", "signup_complete", "2026-10-15T10:00:00+00:00", user=f"un{i}") for i in range(5)]
+        funnel = compute_funnel(events, audience_by_user={f"un{i}": "child" for i in range(5)})
+        s = summarize_success_markers(funnel["people"], events, now=_ts("2026-10-20T10:00:00+00:00"))
+        g = s[AUDIENCE_LABELS["child"]]
+        self.assertEqual((g["week1_people"], g["week2_people"]), (0, 0))
+        self.assertIn("<5 old", render_success_markers(s))
+
+    def test_small_groups_are_hidden(self):
+        events = [self._ev("a", "signup_complete", "2026-10-01T10:00:00+00:00", user="ua")]
+        funnel = compute_funnel(events, audience_by_user={"ua": "ally"})
+        text = render_success_markers(summarize_success_markers(funnel["people"], events))
+        row = next(l for l in text.splitlines() if l.strip().startswith(AUDIENCE_LABELS["ally"]))
+        self.assertIn("<5", row)
+        self.assertNotIn("%", row)
+
+    def test_display_choices_count_browsers(self):
+        events = [self._ev(f"d{i}", "feature_use", "2026-10-12T10:00:00+00:00", "display_soft") for i in range(6)]
+        events += [self._ev("d0", "feature_use", "2026-10-13T10:00:00+00:00", "display_soft"),   # same browser
+                   self._ev("d1", "feature_use", "2026-10-12T10:00:00+00:00", "display_dark"),
+                   self._ev("x", "feature_use", "2026-10-12T10:00:00+00:00", "milestones")]
+        d = summarize_display_choices(events)
+        self.assertEqual(d["people"], 6)
+        self.assertEqual(d["by_choice"], {"display_soft": 6, "display_dark": 1})
+        text = render_display_choices(d)
+        self.assertRegex(text, r"Soft colours +6 +\(100%\)")
+        self.assertRegex(text, r"Dark +<5")
+        self.assertIn("display_view_full", {k for k, _ in DISPLAY_CHOICES})
+
+    def test_norm_groups(self):
+        self.assertEqual(norm_group(["Autism"]), "autism")
+        self.assertEqual(norm_group(["ADHD", "Anxiety"]), "adhd")
+        self.assertEqual(norm_group(["AuDHD"]), "both")
+        self.assertEqual(norm_group(["Autism Spectrum Disorder", "ADHD"]), "both")
+        self.assertEqual(norm_group(["Anxiety", "Newcomer"]), "other")
+        self.assertEqual(norm_group(["Prefer not to share"]), "none")
+        self.assertEqual(norm_group([]), "none")
+
+    def test_by_norms_compares_adhd_and_autism(self):
+        events, norms = [], {}
+        for i in range(5):
+            events += [self._ev(f"a{i}", "signup_complete", "2026-10-01T10:00:00+00:00", user=f"ua{i}"),
+                       self._ev(f"a{i}", "onboarding_complete", "2026-10-01T10:03:00+00:00", user=f"ua{i}")]
+            norms[f"ua{i}"] = ["Autism"]
+        events.append(self._ev("h", "signup_complete", "2026-10-01T10:00:00+00:00", user="uh"))
+        norms["uh"] = ["ADHD"]
+        funnel = compute_funnel(events)
+        groups = summarize_by_norms(funnel["people"], norms)
+        self.assertEqual((groups["autism"]["accounts"], groups["autism"]["finished"]), (5, 5))
+        self.assertEqual(groups["adhd"]["accounts"], 1)
+        text = render_by_norms(groups)
+        self.assertRegex(text, r"autism +5 +100%")
+        adhd = next(l for l in text.splitlines() if l.strip().startswith("ADHD"))
+        self.assertIn("<5", adhd)
+
+    def test_left_after_the_first_page(self):
+        events = [self._ev(f"t{i}", "landing_view", "2026-10-12T10:00:00+00:00", channel="tiktok") for i in range(6)]
+        events += [self._ev("t0", "start_role", "2026-10-12T10:01:00+00:00", "self", channel="tiktok"),
+                   self._ev("t1", "landing_view", "2026-10-12T10:02:00+00:00", channel="tiktok"),   # a reload
+                   self._ev("z", "signup_view", "2026-10-12T10:00:00+00:00")]                      # no first page
+        s = summarize_first_page_leavers(events)
+        self.assertEqual(s, {"tiktok": {"visitors": 6, "left": 5}})
+        self.assertRegex(render_first_page_leavers(s), r"tiktok +6 +5 \(83%\)")
+
+    def test_pages_not_found(self):
+        events = [self._ev("n", "feature_use", "2026-10-12T10:00:00+00:00", "not_found"),
+                  self._ev("n", "feature_use", "2026-10-13T10:00:00+00:00", "not_found"),
+                  self._ev("m", "feature_use", "2026-10-13T10:00:00+00:00", "not_found")]
+        s = summarize_not_found(events)
+        self.assertEqual(s, {"times": 3, "browsers": 2})
+        self.assertIn("<5", render_not_found(s))
+
+    def test_first_weeks_emails(self):
+        events = [self._ev(f"f{i}", "signup_complete", "2026-10-01T10:00:00+00:00", user=f"uf{i}") for i in range(7)]
+        funnel = compute_funnel(events)
+        prefs = {f"uf{i}": {"firstWeeks": {"consent": "yes", "sent": {"day1": "x", **({"day7": "y"} if i < 5 else {})},
+                                           **({"clicked": "z"} if i < 2 else {})}} for i in range(6)}
+        prefs["uf6"] = {"firstWeeks": {"enabled": True}}   # no consent recorded: not counted
+        s = summarize_first_weeks(funnel["people"], prefs)
+        self.assertEqual((s["accounts"], s["on"], s["sent_1"], s["sent_7"], s["sent_14"], s["clicked"]), (7, 6, 6, 5, 0, 2))
+        text = render_first_weeks(s)
+        self.assertRegex(text, r"asked for them +6")
+        self.assertRegex(text, r"opened a link in one +<5")

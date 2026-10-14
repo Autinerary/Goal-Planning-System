@@ -3,6 +3,7 @@
 import RelationshipBadge from '@/components/community/RelationshipBadge'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { contentNoteLabel } from '@/lib/community/contentNotes'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Search,
@@ -159,6 +160,13 @@ function FeedInner() {
           </div>
           <p className="text-sm text-gray-600 mt-1">
             Ask, share, and learn from people who share your norms. Always pseudonymous.
+          </p>
+          {/* Visible safety signals (Riipen Labs, Group 15: "clear moderation
+              policy, content warnings, and an easy report path, especially
+              for first-time posters"). */}
+          <p className="text-sm text-gray-700 mt-1">
+            Moderated by people on the Autinerary team. Report anything from the post itself.{' '}
+            <Link href="/community/guidelines" className="font-medium text-blue-800 underline underline-offset-2">Community guidelines</Link>
           </p>
           {/* Riipen Labs, Group 34: the community features "lack transparency";
               explain how each one works and why it is there. Each line is what
@@ -335,25 +343,32 @@ function FeedInner() {
                     )}
                     <h2 className="text-lg font-semibold text-gray-900 truncate">{p.title}</h2>
                   </div>
-                  {p.is_solved && p.solved_key_insight && (
+                  {/* A content note (lib/community/contentNotes.ts): the note,
+                      not the post's words, until someone opens it. */}
+                  {p.content_note && (
+                    <p className="text-sm text-gray-800 mb-1">
+                      <span className="font-semibold">Content note:</span> {contentNoteLabel(p.content_note)}. Open the post to read it.
+                    </p>
+                  )}
+                  {!p.content_note && p.is_solved && p.solved_key_insight && (
                     <p className="text-sm text-emerald-700 mb-1 line-clamp-2">
                       <Sparkles className="inline w-3.5 h-3.5 mr-1" />
                       <span className="font-medium">Solved insight:</span> {p.solved_key_insight}
                     </p>
                   )}
-                  {p.unlocking_moment && (
+                  {!p.content_note && p.unlocking_moment && (
                     <p className="text-sm text-amber-800 mb-1 line-clamp-2 italic">
                       <Sparkles className="inline w-3.5 h-3.5 mr-1 text-amber-500" />
                       “{p.unlocking_moment}”
                     </p>
                   )}
-                  {p.what_didnt_work && (
+                  {!p.content_note && p.what_didnt_work && (
                     <p className="text-sm text-rose-800 mb-1 line-clamp-2 italic">
                       <Sparkles className="inline w-3.5 h-3.5 mr-1 text-rose-500" />
                       Didn&apos;t work: “{p.what_didnt_work}”
                     </p>
                   )}
-                  <p className="text-sm text-gray-600 line-clamp-2">{p.excerpt}</p>
+                  {p.excerpt && <p className="text-sm text-gray-600 line-clamp-2">{p.excerpt}</p>}
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     {p.barrier_tags.slice(0, 4).map((t) => (
                       <span

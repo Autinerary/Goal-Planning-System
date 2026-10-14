@@ -58,10 +58,15 @@ export async function POST(request: NextRequest) {
     // (app/about-me). Read here from their own row, never from the browser.
     // It goes first: the backend keeps the first 2,000 characters of context.
     let aboutMe = ''
+    // "Words we use" (Settings; Riipen Labs, Group 15): identity-first or
+    // person-first, read from their own row like About me.
+    let languageStyle: string | null = null
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: row } = await supabase.from('profiles').select('aboutMe:preferences->aboutMe').eq('id', user.id).maybeSingle()
+      const { data: row } = await supabase.from('profiles').select('aboutMe:preferences->aboutMe, languageStyle:preferences->>languageStyle').eq('id', user.id).maybeSingle()
       aboutMe = aboutMeForAssistant((row as { aboutMe?: any } | null)?.aboutMe)
+      const style = (row as { languageStyle?: string | null } | null)?.languageStyle
+      languageStyle = style === 'identity' || style === 'person' ? style : null
     }
     const pathContext = typeof body.context === 'string' ? body.context : ''
 
@@ -77,6 +82,7 @@ export async function POST(request: NextRequest) {
         messages,
         context: [aboutMe, pathContext].filter(Boolean).join('\n\n'),
         llm_config: body.llm_config ?? null,
+        language_style: languageStyle,
       }),
       // Render free tier sleeps when idle; the first request can take ~40s+ to
       // wake the service, so allow generous headroom before giving up.

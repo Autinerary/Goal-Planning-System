@@ -10,8 +10,8 @@ Groups 1 to 11 were built one report at a time; their write-ups are in
 [start-here.md](start-here.md) (Group 4), [onboarding-questions.md](onboarding-questions.md)
 and [beta-test-plan-2026-10.md](beta-test-plan-2026-10.md). Of the five reports
 the cohort report highlights, Teams 4 and 10 were built as Groups 4 and 10.
-Teams 15 and 18 have not been shared with us, so their parts below come from
-the cohort report's summary of them. Team 35's report was shared on 10
+Teams 15 and 18 were shared on 14 October with Groups 16, 17 and 19, and are
+gone through line by line in [groups-15-19.md](groups-15-19.md). Team 35's report was shared on 10
 October, with Groups 34 and 36: see [groups-34-36.md](groups-34-36.md).
 
 ## The main recommendation
@@ -116,5 +116,5 @@ already ([beta/README.md](beta/README.md)).
 
 1. ~~Apply STEP 62~~: done 10 October, checked live.
 2. Agree the review date and **who makes the call** (the beta plan's `[[TEAM: name]]`), and fill the beta kit's other `[[TEAM: ...]]` blanks.
-3. Share Teams 15 and 18's full reports if you want them gone through line by line (Team 35's is done).
+3. ~~Share Teams 15 and 18's full reports~~: done 14 October, [groups-15-19.md](groups-15-19.md).
 4. Decide whether to post a Level UP or FuturePath project.

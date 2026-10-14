@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react'
 import { goHubHref } from '@/lib/serviceHub'
 import { browserTimeZone } from '@/lib/reminderSchedule'
 import { dayKey } from '@/lib/disclosure'
+import Define from './Define'
 
 type Nudge = { snoozeUntil?: string | null; stoppedAt?: string | null }
 type Reminder = { requestedAt?: string; plan?: string; stoppedAt?: string; sends?: string[] } | null
@@ -55,9 +56,14 @@ function useSetupNudge() {
 export default function NoPlanYet({ what, variant = 'page' }: { what?: string; variant?: 'page' | 'card' }) {
   const body = (
     <>
+      {/* What a plan, or path, is (Riipen Labs, Group 16: the screen before
+          the plan "does not explain what a path even does, and just has a
+          button to create the path"; skipping "seems [to affect] the future
+          path creation"; Group 19: "path" was never defined). */}
       <p className="mt-1 text-sm text-slate-700">
         {what ? `${what} once you make your plan. ` : ''}Making it takes two questions, about two minutes: who it is for, and one
-        goal. Then your goal becomes small, clear steps.
+        goal. Then your goal becomes small, clear steps. Skipping setup lost nothing: answers you gave are kept on the device you used.{' '}
+        <Define term="path" ask />
       </p>
       <Link
         href="/onboarding"

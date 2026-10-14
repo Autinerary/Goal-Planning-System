@@ -6,6 +6,7 @@ import { usePreferences } from '../context/usePreferences'
 import { VIEW_PREFERENCES } from '@/lib/preferences'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import QuickSettings from './QuickSettings'
+import { trackDisplayChoice } from '@/lib/displayChoices'
 
 // How much each page shows (lib/disclosure.ts). Riipen Labs, Group 22:
 // "Respect the 'complexity of screen' options" and "hiding extra features
@@ -42,7 +43,7 @@ export default function DisplaySettings({ onChange, visitor = false }: { onChang
                   key={v.id}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => { setOverride(v.id); onChange?.() }}
+                  onClick={() => { setOverride(v.id); trackDisplayChoice(v.id === 'simple' ? 'display_view_simple' : 'display_view_full'); onChange?.() }}
                   className={`rounded-xl border-2 px-3 py-2 text-left text-sm transition-colors ${on ? 'border-cyan-600 bg-cyan-50 text-cyan-900' : 'border-slate-200 text-slate-800 hover:border-slate-300'}`}
                 >
                   <span className="flex items-center gap-1 font-semibold">{on && <Check className="h-4 w-4" aria-hidden="true" />}{v.label}</span>
@@ -63,7 +64,7 @@ export default function DisplaySettings({ onChange, visitor = false }: { onChang
                 key={v.id}
                 type="button"
                 aria-pressed={on}
-                onClick={() => { update({ viewPreference: v.id }); onChange?.() }}
+                onClick={() => { update({ viewPreference: v.id }); trackDisplayChoice(`display_look_${v.id}`); onChange?.() }}
                 className={`rounded-xl border-2 px-3 py-2 text-left text-sm transition-colors ${on ? 'border-cyan-600 bg-cyan-50 text-cyan-900' : 'border-slate-200 text-slate-800 hover:border-slate-300'}`}
               >
                 <span className="flex items-center gap-1 font-semibold">{on && <Check className="h-4 w-4" aria-hidden="true" />}{v.label}</span>

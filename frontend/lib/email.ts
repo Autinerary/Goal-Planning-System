@@ -4,6 +4,8 @@
 // NO-OPS cleanly when RESEND_API_KEY is unset — so nothing breaks until you add
 // the key. Server-only (never import from client components).
 
+import { recapLines, communityAction, type FirstWeeksFacts } from '@/lib/firstWeeks'
+
 export interface SendEmailInput {
   to: string
   subject: string
@@ -48,19 +50,23 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 }
 
-/** Simple branded HTML for the daily goals reminder. */
+/**
+ * The daily reminder. Calm, with no streak to keep and no emoji (Riipen
+ * Labs, Group 15: "No countdown timers, guilt-based prompts, or artificial
+ * urgency"; Group 18: emoji-heavy screens read as generic).
+ */
 export function dailyReminderEmail(name: string | null, appUrl: string): { subject: string; html: string; text: string } {
   const who = name ? `Hi ${name},` : 'Hi,'
   const link = `${appUrl.replace(/\/$/, '')}/path`
   return {
-    subject: 'Your goals for today 🎯',
-    text: `${who}\n\nOpen your Path to see today's tasks and keep your streak going:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.\n\n— Autinerary`,
+    subject: 'Your next step for today',
+    text: `${who}\n\nYour next step is on your Path, with today's tasks. Do as much or as little as fits today:\n${link}\n\nYou're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.\n\n— Autinerary`,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
         <p style="font-size:16px">${esc(who)}</p>
-        <p style="font-size:16px;line-height:1.5">Here's your nudge for today — open your Path to see your tasks and keep your streak going. 🔥</p>
+        <p style="font-size:16px;line-height:1.5">Your next step is on your Path, with today's tasks. Do as much or as little as fits today.</p>
         <p style="margin:24px 0">
-          <a href="${link}" style="background:linear-gradient(90deg,#06b6d4,#3b82f6);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path →</a>
+          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
         </p>
         <p style="font-size:12px;color:#64748b">You're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.</p>
       </div>`,
@@ -169,6 +175,86 @@ const BOX = 'font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-
 const BUTTON = 'background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block'
 const SMALL = 'font-size:13px;color:#475569;line-height:1.5'
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/**
+ * The emails for someone's first two weeks, on day 1, 7 and 14, each from
+ * what they did (lib/firstWeeks.ts; Riipen Labs, Group 15: "Day 1, Day 7,
+ * and Day 14 emails tied to what the user actually did, not a generic
+ * digest"). Day 1 confirms the plan and links to the step where they left
+ * off; day 7 is a recap and one thing to try with other people; day 14 asks
+ * whether it is useful, and, for people who teach or work with
+ * neurodivergent people, about paid extras for organisations ("introduces the
+ * paid/expanded tier where relevant", said as the home page says it: they may
+ * come later, and everything is free during the beta; docs/free-and-paid.md).
+ * Every link goes through `links.open`, which notes the
+ * first one opened.
+ */
+export function firstWeeksEmail(
+  day: 1 | 7 | 14,
+  facts: FirstWeeksFacts,
+  links: { open: (to: string) => string; stop: string; checkin?: string },
+  postal: string | null,
+): { subject: string; html: string; text: string } {
+  const goal = facts.goal ? `\u201c${facts.goal}\u201d` : null
+  const step = facts.nextStep
+  const stepLink = links.open(step ? `/milestones/${encodeURIComponent(step.id)}` : facts.goal ? '/path' : '/onboarding')
+  const stepButton = step ? 'Open this step' : facts.goal ? 'Open my Path' : 'Make my plan'
+  const why = 'You get these three emails because you asked for them for your first two weeks with Autinerary.'
+  const foot = footer(links.stop, postal, why)
+  const para = (t: string) => `<p style="font-size:16px;line-height:1.5">${esc(t)}</p>`
+  let subject = ''
+  let lines: string[] = []
+  let button = { label: stepButton, href: stepLink }
+  let extra: { text: string; html: string } = { text: '', html: '' }
+  if (day === 1) {
+    subject = step ? 'Pick up where you left off' : 'Your next step with Autinerary'
+    lines = [
+      ...(goal ? [`You made a plan for ${goal}.`] : []),
+      step
+        ? `Your next step is \u201c${step.name}\u201d. Open it to see a few small tasks, and the tools that can help.`
+        : facts.goal
+          ? 'Your Path shows what comes next.'
+          : 'Your next step is to make your plan: who you\u2019re here for, and one goal. It takes about two minutes.',
+      'No rush: it will be there whenever you are ready.',
+    ]
+  } else if (day === 7) {
+    subject = 'Your first week with Autinerary'
+    const recap = recapLines(facts)
+    lines = [
+      ...(recap.length ? ['In your first week:', ...recap.map((r) => `\u2022 ${r}`)] : ['Your plan is still here, and so is your first step. Nothing is lost by waiting.']),
+      ...(step ? [`Next up: \u201c${step.name}\u201d.`] : []),
+    ]
+    const action = communityAction(facts.audience)
+    const href = links.open(action.href)
+    extra = {
+      text: `\nOne thing to try this week: ${action.text}\n${action.label}: ${href}\n`,
+      html: `<p style="font-size:16px;line-height:1.5;background:#eef2ff;border-radius:12px;padding:14px"><strong>One thing to try this week:</strong> ${esc(action.text)} <a href="${href}" style="color:#3730a3;font-weight:600">${esc(action.label)}</a></p>`,
+    }
+  } else {
+    subject = 'Two weeks in: is Autinerary useful so far?'
+    const recap = recapLines(facts)
+    lines = [
+      'You have had Autinerary for two weeks.',
+      ...recap.map((r) => `\u2022 ${r}`),
+      'Is it useful so far? It is one question, and you don\u2019t need to sign in. Your answer decides what we fix next.',
+    ]
+    if (links.checkin) button = { label: 'Answer one question', href: links.checkin }
+    const forWork = facts.audience === 'work'
+    const tier = forWork
+      ? 'Using Autinerary at a school or workplace? Paid extras for organisations such as schools and employers may come later: reply to this email and tell us what yours would need. Everything you use now stays free during the beta.'
+      : 'Everything in Autinerary stays free during the beta, and we will tell you before anything you use changes.'
+    extra = {
+      text: `\n${tier}\n\nYour Path: ${links.open('/path')}\n\nThis is the last of the three emails.\n`,
+      html: `${para(tier)}<p style="font-size:15px"><a href="${links.open('/path')}" style="color:#3730a3">Open my Path</a></p><p style="${SMALL}">This is the last of the three emails.</p>`,
+    }
+  }
+  return {
+    subject,
+    text: `Hi,\n\n${lines.join('\n')}\n\n${button.label}: ${button.href}\n${extra.text}${foot.text}\n\n- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>${lines.map(para).join('')}
+      <p style="margin:24px 0"><a href="${button.href}" style="${BUTTON}">${esc(button.label)}</a></p>${extra.html}${foot.html}</div>`,
+  }
+}
 
 /** A shared story's final version is ready for its teller to approve (app/api/stories). */
 export function storyReadyEmail(appUrl: string): { subject: string; html: string; text: string } {

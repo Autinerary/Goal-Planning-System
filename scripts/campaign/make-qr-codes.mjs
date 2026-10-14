@@ -14,7 +14,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 const base = (process.argv[2] || 'https://app.autinerary.ca').replace(/\/$/, '')
 const source = readFileSync('frontend/lib/campaign.ts', 'utf8')
 const block = source.slice(source.indexOf('CAMPAIGN_LINKS'), source.indexOf('\n}\n', source.indexOf('CAMPAIGN_LINKS')))
-const codes = [...block.matchAll(/^ {2}([a-z0-9-]+): \{/gm)].map((m) => m[1])
+// Keys may be quoted ('in-person').
+const codes = [...block.matchAll(/^ {2}'?([a-z0-9-]+)'?: \{/gm)].map((m) => m[1])
 if (codes.length === 0) throw new Error('No links found in frontend/lib/campaign.ts')
 
 mkdirSync('docs/campaign/qr', { recursive: true })

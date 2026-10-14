@@ -28,10 +28,18 @@ assert.ok(!itemDone('look', { ...empty, accessibility: { fontScale: 'default', d
 assert.ok(itemDone('look', { ...empty, accessibility: { fontScale: 'large' } }))
 assert.ok(itemDone('look', { ...empty, viewPreference: 'plain' }))
 assert.ok(itemDone('reminders', { ...empty, reminders: { enabled: true } }))
+// Or the three emails for the first two weeks (Group 15).
+assert.ok(itemDone('reminders', { ...empty, firstWeeks: { enabled: true } }))
+assert.ok(!itemDone('reminders', { ...empty, firstWeeks: { enabled: false } }))
 
 // The next one follows the days since sign-up (Group 5's timing).
 const all = profileProgress(empty).todo
 assert.equal(nextProfileItem(all, 0), 'location')
+// Reminders are not asked for on the first day, before anything useful has
+// happened (Group 15: no "notifications asks" before a first win).
+assert.equal(profileItem('reminders').fromDay, 1)
+assert.equal(nextProfileItem(['reminders', 'look'], 0), 'look')
+assert.equal(nextProfileItem(['reminders', 'look'], 1), 'reminders')
 assert.equal(nextProfileItem(['norms', 'character'], 3), 'norms') // none due yet: the first left
 assert.equal(nextProfileItem(['motivation', 'norms'], 8), 'motivation')
 assert.equal(nextProfileItem(['norms', 'character', 'spiritAnimal'], 7), 'norms')

@@ -57,6 +57,13 @@ export interface RecommendationSupportContext {
 export interface ConditionOption {
   id: string
   label: string
+  /**
+   * Plain words beside a clinical label (Riipen Labs, Group 17: "Cluster A,
+   * Cluster B, and Cluster C ... are clinical shorthand most users will not
+   * recognize"; "keep the clinical terms visible but pair them with plain
+   * language"). The label stays as it is: saved answers are matched by it.
+   */
+  hint?: string
   subtypes?: Array<{ id: string; label: string; description?: string }>
   notesPrompt?: string
 }
@@ -222,20 +229,20 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
     id: 'personality_disorders',
     label: 'Personality disorders',
     conditions: [
-      { id: 'cluster_a', label: 'Cluster A', subtypes: [
+      { id: 'cluster_a', label: 'Cluster A', hint: 'Unusual or withdrawn patterns: distrust of others, keeping to yourself, unusual beliefs', subtypes: [
         { id: 'paranoid', label: 'Paranoid personality disorder' },
         { id: 'schizoid', label: 'Schizoid personality disorder' },
         { id: 'schizotypal', label: 'Schizotypal personality disorder' },
         preferNotToSpecify,
       ] },
-      { id: 'cluster_b', label: 'Cluster B', subtypes: [
+      { id: 'cluster_b', label: 'Cluster B', hint: 'Intense or changeable patterns: strong emotions, up-and-down relationships, acting quickly', subtypes: [
         { id: 'borderline', label: 'Borderline personality disorder' },
         { id: 'narcissistic', label: 'Narcissistic personality disorder' },
         { id: 'histrionic', label: 'Histrionic personality disorder' },
         { id: 'antisocial', label: 'Antisocial personality disorder' },
         preferNotToSpecify,
       ] },
-      { id: 'cluster_c', label: 'Cluster C', subtypes: [
+      { id: 'cluster_c', label: 'Cluster C', hint: 'Anxious or fearful patterns: avoiding things, relying on others, perfectionism', subtypes: [
         { id: 'avoidant', label: 'Avoidant personality disorder' },
         { id: 'dependent', label: 'Dependent personality disorder' },
         { id: 'obsessive_compulsive_personality', label: 'Obsessive-compulsive personality disorder' },

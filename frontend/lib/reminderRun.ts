@@ -9,8 +9,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail, dailyReminderEmail, finishSetupEmail, setupReminderEmail, storyReadyEmail, emailEnabled } from '@/lib/email'
+import { sendEmail, dailyReminderEmail, finishSetupEmail, setupReminderEmail, storyReadyEmail, emailEnabled, firstWeeksEmail } from '@/lib/email'
 import { setupReminderLinks } from '@/lib/setupReminders'
+import { firstWeeksDue, type FirstWeeksFacts } from '@/lib/firstWeeks'
+import { firstWeeksLinks } from '@/lib/firstWeeksLinks'
+import { createCheckinToken } from '@/lib/checkinToken'
+import { milestoneNames } from '@/lib/pathMilestones'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { postalAddress } from '@/lib/newsletter'
 import { sendSms, smsEnabled, reminderText } from '@/lib/sms'
 import { reminderDue, setupReminderDue, localParts, validTimeZone } from '@/lib/reminderSchedule'
@@ -23,16 +28,18 @@ export interface ReminderRunResult {
   sent: number
   texted: number
   setupSent: number
+  /** The first two weeks' emails sent this run (lib/firstWeeks.ts). */
+  firstWeeksSent: number
   failures: string[]
   note?: string
 }
 
 export async function runReminders(now: Date, appUrl: string): Promise<ReminderRunResult> {
-  const result: ReminderRunResult = { ok: true, considered: 0, sent: 0, texted: 0, setupSent: 0, failures: [] }
+  const result: ReminderRunResult = { ok: true, considered: 0, sent: 0, texted: 0, setupSent: 0, firstWeeksSent: 0, failures: [] }
   if (!emailEnabled() && !smsEnabled()) return { ...result, note: 'Neither email (RESEND_API_KEY) nor texts (TWILIO_*) are set up.' }
 
   const admin = createAdminClient()
-  const { data: rows, error } = await admin.from('profiles').select('id, email, preferences').not('preferences', 'is', null)
+  const { data: rows, error } = await admin.from('profiles').select('id, email, created_at, preferences').not('preferences', 'is', null)
   if (error) throw new Error(error.message)
 
   // Write to one key of preferences, reading it again first so a change made
@@ -104,9 +111,63 @@ export async function runReminders(now: Date, appUrl: string): Promise<ReminderR
         ? { closedAt: stamp }
         : sequence ? { sends: [...(ask.sends || []), stamp], snoozeUntil: null } : { sentAt: stamp })
     }
+    // The emails for their first two weeks, on day 1, 7 and 14, only if asked
+    // for (lib/firstWeeks.ts; Riipen Labs, Group 15: "tied to what the user
+    // actually did").
+    const fw = prefs.firstWeeks
+    const fwDay = emailEnabled() ? firstWeeksDue(fw, (row.created_at as string) || null, now) : null
+    if (fwDay && row.email) {
+      const facts = await firstWeeksFacts(admin, row.id, row.created_at as string, prefs)
+      const links = firstWeeksLinks(appUrl, row.id, fwDay)
+      const checkin = fwDay === 14 ? `${appUrl.replace(/\/$/, '')}/checkin?t=${encodeURIComponent(createCheckinToken(row.id, now))}&q=useful` : undefined
+      const { subject, html, text } = firstWeeksEmail(fwDay, facts, { ...links, checkin }, postalAddress())
+      const headers = { 'List-Unsubscribe': `<${links.oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+      const res = await sendEmail({ to: row.email as string, subject, html, text, headers, idempotencyKey: `first-weeks-${row.id}-${fwDay}` })
+      if (res.ok) {
+        result.firstWeeksSent++
+        await patchPreferences(row.id, 'firstWeeks', { sent: { ...(fw.sent || {}), [`day${fwDay}`]: now.toISOString() } })
+      } else if (!res.skipped) result.failures.push(`${row.id}: ${res.error}`)
+    }
   }
   result.failures = result.failures.slice(0, 10)
   return result
+}
+
+/**
+ * What someone did since they joined, for the first two weeks' emails. Each
+ * part is read on its own; one that cannot be read is left out of the email
+ * rather than said as 0.
+ */
+export async function firstWeeksFacts(admin: SupabaseClient, userId: string, joined: string, prefs: Record<string, any>): Promise<FirstWeeksFacts> {
+  const facts: FirstWeeksFacts = { goal: null, nextStep: null, stepsDone: 0, stepsTotal: 0, savedPlaces: 0, daysOpened: 0, journalEntries: 0, audience: typeof prefs.audience === 'string' ? prefs.audience : null }
+  const since = joined || new Date(0).toISOString()
+  try {
+    const { data: paths } = await admin.from('user_paths').select('payload, is_active, updated_at').eq('user_id', userId)
+      .order('is_active', { ascending: false }).order('updated_at', { ascending: false }).limit(1)
+    const payload = paths?.[0]?.payload as any
+    const goals = payload?.userProfile?.goals || payload?.goals
+    if (Array.isArray(goals) && typeof goals[0] === 'string' && goals[0].trim()) facts.goal = goals[0].trim().slice(0, 120)
+    const steps = Array.from(milestoneNames(payload).entries())
+    const { data: progress } = await admin.from('race_progress').select('milestone_id, kind').eq('user_id', userId)
+    const done = new Set((progress || []).filter((r: any) => (r.kind || 'completed') === 'completed').map((r: any) => String(r.milestone_id)))
+    facts.stepsTotal = steps.length
+    facts.stepsDone = steps.filter(([id]) => done.has(id)).length
+    const next = steps.find(([id]) => !done.has(id))
+    facts.nextStep = next ? { id: next[0], name: next[1].slice(0, 120) } : null
+  } catch {}
+  try {
+    const { count } = await admin.from('saved_resources').select('user_id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', since)
+    facts.savedPlaces = count || 0
+  } catch {}
+  try {
+    const { data: opens } = await admin.from('onboarding_events').select('created_at').eq('user_id', userId).eq('event', 'app_open').gte('created_at', since).limit(200)
+    facts.daysOpened = new Set((opens || []).map((e: any) => String(e.created_at).slice(0, 10))).size
+  } catch {}
+  try {
+    const { count } = await admin.from('reflections').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', since)
+    facts.journalEntries = count || 0
+  } catch {}
+  return facts
 }
 
 /**

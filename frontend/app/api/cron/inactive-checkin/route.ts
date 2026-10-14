@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
     if (p.pushSince && canPush) {
       const sent = await pushToUser(admin, p.id, {
         title: 'One quick question',
-        body: "You haven't opened Autinerary for a couple of weeks. Tap to tell us why, it's one question.",
+        body: "You haven't opened Autinerary for a couple of weeks, and that's okay. Tap to tell us why: it's one question.",
         url: `/checkin?t=${encodeURIComponent(token)}`,
         tag: 'checkin',
       })

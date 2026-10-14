@@ -17,6 +17,13 @@ import { usePreferences } from '../context/usePreferences'
  * Optional and dismissible, shown once per browser per onboarding version,
  * and placed below the "Start here" steps so it never competes with the
  * primary action on that page.
+ *
+ * One question shows; the other four are folded under it (Riipen Labs,
+ * Group 18: a "quite lengthy" survey "presented immediately after signing
+ * in with no actual use of the product"; Group 15: no friction before a
+ * first useful action). "Where did you hear about Autinerary?" can say who
+ * pointed them here, for in-person groups (Group 15: "Let them name who
+ * invited them").
  */
 
 const DONE_KEY = `autinerary_onboarding_feedback_${ONBOARDING_VERSION}`
@@ -50,6 +57,9 @@ export const HEARD_FROM = [
   { id: 'friend', label: 'A friend or family member' },
   { id: 'community-org', label: 'A community organization' },
   { id: 'parent-group', label: 'A parent group' },
+  { id: 'support-group', label: 'A support group or meetup' },
+  { id: 'event', label: 'An event or talk' },
+  { id: 'clinician', label: 'A doctor, therapist or clinician' },
   { id: 'school', label: 'A school or teacher' },
   { id: 'riipen', label: 'Riipen' },
   { id: 'reddit', label: 'Reddit' },
@@ -61,6 +71,10 @@ export const HEARD_FROM = [
   { id: 'other', label: 'Somewhere else' },
 ]
 
+// Answers where a group, school or event can be named (so the team can thank
+// them). People are never asked for a private person's name.
+const NAMEABLE = new Set(['community-org', 'parent-group', 'support-group', 'event', 'school'])
+
 export default function OnboardingFeedback() {
   const [hidden, setHidden] = useState(true)
   const [nextStep, setNextStep] = useState('')
@@ -68,6 +82,7 @@ export default function OnboardingFeedback() {
   const [info, setInfo] = useState('')
   const [ease, setEase] = useState(0)
   const [heardFrom, setHeardFrom] = useState('')
+  const [invitedBy, setInvitedBy] = useState('')
   const { update } = usePreferences()
   const [comment, setComment] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -106,7 +121,8 @@ export default function OnboardingFeedback() {
         if (!res.ok) throw new Error(String(res.status))
       }
       // Saved with the person's preferences rather than the survey.
-      if (heardFrom && !(await update({ heardFrom }))) throw new Error('preferences')
+      const named = NAMEABLE.has(heardFrom) ? invitedBy.trim().slice(0, 80) : ''
+      if (heardFrom && !(await update({ heardFrom, ...(named ? { invitedBy: named } : {}) }))) throw new Error('preferences')
       try { localStorage.setItem(DONE_KEY, '1') } catch {}
       setStatus('saved')
     } catch {
@@ -130,9 +146,9 @@ export default function OnboardingFeedback() {
     <form onSubmit={onSubmit} className="mb-6 rounded-2xl border border-slate-200 p-6 surface" aria-labelledby="feedback-heading">
       <div className="mb-1 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-indigo-700" aria-hidden="true" />
-        <h2 id="feedback-heading" className="font-bold text-slate-900">Five quick questions (optional)</h2>
+        <h2 id="feedback-heading" className="font-bold text-slate-900">A quick question (optional)</h2>
       </div>
-      <p className="mb-5 text-sm text-slate-700">Autinerary is in beta. This tells us what to fix in setup.</p>
+      <p className="mb-5 text-sm text-slate-700">Autinerary is in beta. Your answers tell us what to fix in setup.</p>
 
       <fieldset className="mb-5">
         <legend className="mb-2 text-sm font-semibold text-slate-900">Do you know what to do next?</legend>
@@ -171,6 +187,9 @@ export default function OnboardingFeedback() {
         )}
       </fieldset>
 
+      <details className="mb-5 rounded-lg border border-slate-200 bg-white/60 px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold text-indigo-800">Four more about setup (optional)</summary>
+        <div className="mt-4">
       <fieldset className="mb-5">
         <legend className="mb-2 text-sm font-semibold text-slate-900">Was making your account clear and quick?</legend>
         <div className="flex flex-wrap gap-2">
@@ -267,6 +286,19 @@ export default function OnboardingFeedback() {
             </label>
           ))}
         </div>
+        {NAMEABLE.has(heardFrom) && (
+          <label className="mt-3 block text-sm text-slate-800">
+            <span className="font-medium">Which one?</span> <span className="text-slate-700">(optional, so we can thank them)</span>
+            <input
+              type="text"
+              value={invitedBy}
+              maxLength={80}
+              onChange={(e) => setInvitedBy(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+              placeholder="For example: the name of the group or school"
+            />
+          </label>
+        )}
       </fieldset>
 
       <label htmlFor="feedback-comment" className="mb-2 block text-sm font-semibold text-slate-900">
@@ -281,6 +313,8 @@ export default function OnboardingFeedback() {
         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-500"
         placeholder="e.g. I wasn't sure what a norm was"
       />
+        </div>
+      </details>
 
       {status === 'error' && (
         <p className="mt-2 text-sm text-red-700" role="alert">Could not send your answers. Please try again.</p>

@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import type { AccessibilitySettings, FontScale } from '@/lib/preferences'
+import { trackDisplayChoice, type DisplayChoice } from '@/lib/displayChoices'
 
 /**
  * "Pick your settings" (Riipen Labs, Group 34, slide 25): light or dark,
@@ -19,10 +20,26 @@ const SIZES: { id: FontScale; label: string; sample: string }[] = [
   { id: 'xlarge', label: 'Largest', sample: 'text-xl' },
 ]
 
+// What each choice is counted as when it is turned on (lib/displayChoices.ts;
+// Riipen Labs, Group 16: which colour options people choose most).
+function choicesTurnedOn(patch: Partial<AccessibilitySettings>): DisplayChoice[] {
+  const out: DisplayChoice[] = []
+  if (patch.darkMode) out.push('display_dark')
+  if (patch.highContrast) out.push('display_contrast')
+  if (patch.softColors) out.push('display_soft')
+  if (patch.reduceMotion) out.push('display_calm')
+  if (patch.fontScale === 'large') out.push('display_text_larger')
+  if (patch.fontScale === 'xlarge') out.push('display_text_largest')
+  return out
+}
+
 export default function QuickSettings({ embedded = false }: { embedded?: boolean }) {
   const { prefs, update } = usePreferences()
   const a11y = prefs.accessibility
-  const set = (patch: Partial<AccessibilitySettings>) => update({ accessibility: { ...a11y, ...patch } })
+  const set = (patch: Partial<AccessibilitySettings>) => {
+    choicesTurnedOn(patch).forEach(trackDisplayChoice)
+    return update({ accessibility: { ...a11y, ...patch } })
+  }
 
   const choice = (on: boolean) =>
     `flex items-center justify-center gap-1.5 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors ${
@@ -32,7 +49,7 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
   return (
     <section aria-labelledby="quick-settings-heading" className={embedded ? '' : 'mt-6 border-t border-slate-200 pt-6'}>
       <h3 id="quick-settings-heading" className={embedded ? 'text-sm font-semibold text-slate-800' : 'font-semibold text-slate-800'}>
-        {embedded ? 'Light or dark, contrast, motion and text size' : 'Pick your settings'}
+        {embedded ? 'Light or dark, contrast, colours, motion and text size' : 'Pick your settings'}
       </h3>
       <p className="mb-4 mt-0.5 text-xs text-slate-600">For this device. Change them any time in Settings, then Accessibility.</p>
 
@@ -63,6 +80,27 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
           className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${a11y.highContrast ? 'bg-cyan-700' : 'bg-slate-400'}`}
         >
           <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${a11y.highContrast ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
+      </div>
+
+      {/* Soft colours (Riipen Labs, Group 16: "reduce colors", and
+          "neurodivergent friendly colour schemes"): the whole page less
+          bright, emoji and pictures included. */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p id="qs-soft-label" className="text-sm font-medium text-slate-800">Soft colours</p>
+          <p id="qs-soft-help" className="text-xs text-slate-600">Less bright colours, icons and pictures.</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={Boolean(a11y.softColors)}
+          aria-labelledby="qs-soft-label"
+          aria-describedby="qs-soft-help"
+          onClick={() => set({ softColors: !a11y.softColors })}
+          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${a11y.softColors ? 'bg-cyan-700' : 'bg-slate-400'}`}
+        >
+          <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${a11y.softColors ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
       </div>
 
