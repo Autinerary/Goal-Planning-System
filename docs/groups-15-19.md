@@ -370,6 +370,14 @@ visits from them.
   above.
 - The top bar on a phone, measured at 360, 375, 390 (at 1× and 2×) and 414
   pixels: one row from 375 up, every control at least 44 pixels.
+- On production, 14 October (20a391d): `g15.mjs` 70/70 (production leaves
+  out the six checks that sign email links, since the test can read the
+  signing secret only from a local build). A real plan made by the
+  production backend with Words we use sent and no "Too many requests". The
+  Groups 31 to 33 suites 43/43 and 34/34, Groups 25 to 30 72/72, Groups 20
+  to 24 77/77, `races_default.mjs` 2/2, and the accessibility checker on 76
+  page views: nothing serious. Every throwaway account was deleted, and the
+  QA accounts were put back as they were.
 - Backend: 346 tests, including `tests/test_llm_pacing_and_style.py` (the
   wait for a free slot, the daily limits and anonymous callers still
   refused, and both language rules) and the report's new sections
