@@ -56,7 +56,7 @@ with `paced-2026-10`.
 | The top bar on a phone | 16-pixel icons with 11-pixel names | 20-pixel icons with 12-pixel names, each control at least 44 pixels, on one row on phones 375 pixels wide and wider |
 | Coming back | The Path always opened at the next step | "Pick up where you left off", to the page from the last visit (a step, the Calendar, a kit), kept only in that browser |
 | A missing page | Signed out, it sent people to sign in | "This page isn't here", nothing saved is lost, and links to the Path, Start here and the glossary; counted as a navigation error |
-| Tidbits | A Report button and pseudonyms | **Community guidelines**, readable before signing in: who sees a post, what moderators remove, how to report, content notes, who to call now. "Moderated by people on the Autinerary team" above the feed; "Before your first post" when asking; **content notes**: readers see the note and choose whether to open the post (after STEP 75) |
+| Tidbits | A Report button and pseudonyms | **Community guidelines**, readable before signing in: who sees a post, what moderators remove, how to report, content notes, who to call now. "Moderated by people on the Autinerary team" above the feed; "Before your first post" when asking; **content notes**: readers see the note and choose whether to open the post (STEP 75) |
 | "Cluster A, B and C" | The clinical names alone | Plain words under each, in the app and ResourceHub: "Unusual or withdrawn patterns", "Intense or changeable patterns", "Anxious or fearful patterns" |
 | Making a plan | A call over the AI's per-minute limit failed the whole plan | It waits for a free slot, up to 75 seconds (`LLM_RATE_WAIT_SECONDS`), for a signed-in person. The limit is unchanged |
 | The funnel report | | Group 15's success markers by who people are here for; display choices; setup and returns by norms (autism, ADHD, both); visitors who left from the first page; pages not found; the first two weeks' emails; lists shared and visits from them |
@@ -300,10 +300,10 @@ visits from them.
 
 ## For the team
 
-- **STEP 75** (`backend/database/migrations/2026_tidbits_content_notes.sql`):
-  the content note on Tidbits posts. Until it is applied, posts are saved
-  without a note and nothing else changes. STEPs 72 to 74 are on the agent
-  branches, not yet merged, so this one comes next on main.
+- **STEP 75** (`backend/database/migrations/2026_tidbits_content_notes.sql`),
+  the content note on Tidbits posts, was applied and checked live on 15
+  October (`scratchpad/browser/step75_live.mjs`, 14 checks). STEPs 72 to 74
+  are on the agent branches, not yet merged.
 - **A designer (Groups 16 and 18).** Group 18: "a UI/UX designer ... to lead
   the redesign and visual audit"; Group 16: "design experts with experience
   in designing for neurodivergent users". The next pass is Races, Pit Stop
@@ -386,4 +386,8 @@ visits from them.
   `lib/firstWeeks.test.mjs` and `lib/lastPlace.test.mjs`, and new cases in
   `lib/profileItems.test.mjs`.
 - STEP 75 on a local Postgres: applied twice, and the check refuses a note
-  outside the list.
+  outside the list. Live, 15 October (`step75_live.mjs`, 14/14): the column
+  is there, a note not on the list (or in a different case) is refused, and
+  each of the seven on the list is accepted. No post was created: every test
+  insert named an author that does not exist, so even an accepted note
+  failed on the author.
