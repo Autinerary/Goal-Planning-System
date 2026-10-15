@@ -48,7 +48,7 @@ with `clear-2026-10`.
 | A look inside (home page) | Four screenshots at once, taken on 6 October: they still showed the "AI-Generated" badge, an icon-only top bar and a card the Path no longer has | **One screen at a time, chosen by the visitor**: the Path, a step, the Calendar or ResourceHub, each with what you do there, "Next: …", and at the end "That is all four" with Start here and sign-up. Tabs work with arrow keys, Home and End. Retaken on 15 October with a sample plan ("Learn a new language"), and `scripts/qa/preview-shots.mjs` retakes them next time. Each screen opened is counted, so the report shows how many went through it and where they stopped |
 | How Autinerary differs | Nothing on organisations like the Geneva Centre for Autism or Autism Ontario | A question in "Why Autinerary": "How is this different from Autism Ontario or the Geneva Centre for Autism?" They run programs and services, and Autinerary does not replace them; Autinerary is where you plan, around your energy, with the services that can help, theirs among them, in ResourceHub. Both are in ResourceHub (checked) |
 | Start here, supporting someone | Three optional questions after the list | Four: **"How old are they?"** first (Under 6, 6 to 12, 13 to 17, 18 or older), asked only of parents, family and people who teach or work with someone. It puts the list in order (schools and therapists first for the youngest, after-school activities for school ages, work for adults) and the starter kits: school support first for 6 to 17, the assessment first under 6, and neither for 18 or older, since both are about children. Counted like the others |
-| Check-ins | "Is it useful so far?" after five days of use, or in the second week | **Day 3 to 6**: "How is it going so far? (optional)": it's going well; there is too much to take in; I'm not sure what to do next; I can't find what I'm looking for; it isn't what I need; something else. Each answer that is a problem offers a change, as Group 10 asked ("not sure what to do next" offers just the next step, and what things are called). **From day 7**: "Is it useful so far?", never on the same day. Group 12's day 3 and day 7. The answers need STEP 76; until then they are kept as text, marked as day 3, and the report counts them either way |
+| Check-ins | "Is it useful so far?" after five days of use, or in the second week | **Day 3 to 6**: "How is it going so far? (optional)": it's going well; there is too much to take in; I'm not sure what to do next; I can't find what I'm looking for; it isn't what I need; something else. Each answer that is a problem offers a change, as Group 10 asked ("not sure what to do next" offers just the next step, and what things are called). **From day 7**: "Is it useful so far?", never on the same day. Group 12's day 3 and day 7. Kept as their own kind since STEP 76 (applied 15 October); any given before it were kept as text, marked as day 3, and the report counts both |
 | First action after setup, for yourself | The Path | **"Read or ask a question in Tidbits"** (Group 14: "Neurodivergent Adult: Explore or join a community thread"). Parents get the starter kits, people who teach or work with someone ResourceHub's search |
 | Setup on a phone | The welcome, the progress rail and a three-line box of skip buttons came before the first question on each step; the AI helper came before the goal ideas; "Continue" left the page where it was, and focus was lost | The skip line is one line with its two buttons side by side; the rail is shorter; the AI helper comes after the goal ideas; "Continue" opens the next step at its card with focus on its heading. On a 390 by 844 phone the first question moved from 735 to 605 pixels down, "Who are you here for?" from 955 to 825, and after "Continue" the goal ideas start 574 pixels down instead of more than a screen below |
 | Words | The home page's longest paragraphs were 48 and 55 words; the goal step said "can come later" twice | 35 and 45 words; the goal step's opening is 12 words |
@@ -268,10 +268,13 @@ Every one of their proposals 1.1 to 3.4 is in the app
 
 ## For the team
 
-- **STEP 76** (`backend/database/migrations/2026_early_checkin.sql`) lets
-  check-in answers be the day-3 kind, with "It's going well" and "I'm not sure
-  what to do next". Apply it after STEPs 72 to 74. Until then the day-3
-  answers are kept as text and counted.
+- **STEP 76** (`backend/database/migrations/2026_early_checkin.sql`), which
+  lets check-in answers be the day-3 kind with "It's going well" and "I'm not
+  sure what to do next", was applied on 15 October and checked live: 14
+  checks on the database with nothing stored (`scratchpad/browser/step76_live.mjs`),
+  and two answers through the live app kept as day-3 answers
+  (`step76_app.mjs`, a throwaway account, deleted). Answers given before it,
+  kept as text, still count as day 3 in the report.
 - **Outside links.** Revera Grand Wood Park's website (`reveraliving.com/en`)
   is gone; check the residence and update or clear the website in
   ResourceHub's admin. A plan made before 5 October can list Sir Isaac Brock
