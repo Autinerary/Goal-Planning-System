@@ -323,3 +323,9 @@ Every one of their proposals 1.1 to 3.4 is in the app
 - The backend's tests (435, in a copy without keys) and the app's library
   tests, with `lib/checkinDue.test.mjs` (when each check-in is due) and
   `lib/startHere.test.mjs` (the age question) new.
+- **On production** (02594b1, 15 October 2026), after Render and both Vercel
+  projects deployed and CI passed on both repositories: g8 57/57, g15 70/70,
+  g31 43/43, g31b 34/34, g25 72/72, g20 77/77, Races 2/2, and the
+  accessibility checker with every page of both apps, ResourceHub signed in
+  included: 86 page views, nothing serious. Each throwaway account was
+  deleted, with its check-in answers.
