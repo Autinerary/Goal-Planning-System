@@ -10,14 +10,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import SimilarGroupFeedback, { SIMILAR_GROUP_FEEDBACK_ENABLED } from './SimilarGroupFeedback'
-
-type AgentKey =
-  | 'pattern_recognition'
-  | 'path_planning'
-  | 'tool_recommendation'
-  | 'calendar_optimization'
-  | 'reflection_analysis'
-  | 'adaptation'
+import { insightMessage, type AgentKey } from '@/lib/agentInsights'
 
 /**
  * What the reader is being told, in their words rather than ours.
@@ -36,24 +29,6 @@ const LABELS: Record<AgentKey, string> = {
   calendar_optimization: 'Why your week looks like this',
   reflection_analysis: 'What we noticed',
   adaptation: 'What changed and why',
-}
-
-function extractMessage(slice: any): string | null {
-  if (!slice) return null
-  if (typeof slice.explanation === 'string' && slice.explanation.trim()) return slice.explanation
-  if (typeof slice.summary === 'string' && slice.summary.trim()) return slice.summary
-  if (typeof slice.insight === 'string' && slice.insight.trim()) return slice.insight
-  if (Array.isArray(slice.patterns) && slice.patterns.length) {
-    const p = slice.patterns[0]
-    return p?.insight || p?.description || `${slice.patterns.length} similar patterns found`
-  }
-  if (Array.isArray(slice.recommendations) && slice.recommendations.length) {
-    return `${slice.recommendations.length} tools recommended for the norms you navigate.`
-  }
-  if (typeof slice.confidence === 'number') {
-    return `Confidence: ${Math.round(slice.confidence * 100)}%`
-  }
-  return null
 }
 
 export default function AgentInsightsBanner({
@@ -78,7 +53,7 @@ export default function AgentInsightsBanner({
     adaptation: ctx.adaptation,
   }
   const slice = sliceMap[agent]
-  const message = extractMessage(slice) || fallback
+  const message = insightMessage(agent, slice) || fallback
   if (!message) return null
 
   // Collapsed by default. The explanation stays reachable, because an app

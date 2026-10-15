@@ -3,6 +3,15 @@ Agent 6: Calendar Optimization Agent
 Schedules tasks realistically based on energy and patterns
 SIMULATION MODE: Uses rule-based scheduling with barrier-aware heuristics
 
+Energy is a default, not the person's. Each day's energy level comes from the
+day of the week (day_themes below: Tuesday high, Friday and Sunday low, ...),
+or is 'flexible' for everyone the bipolar rules apply to. Nothing stored says
+anything about a person's own energy by day or time (13 October 2026: no
+setup energy answers, no energy chosen in the Calendar, no calendar outcomes,
+reflections or milestone ratings). So every day says where its energy came
+from (energySource), the result says it isn't personal (energyPersonal), and
+the explanation is told not to claim otherwise.
+
 Learning: every reflection feeds a reward into `calendar_outcomes` keyed by
 (user_id, time_bucket) where time_bucket is a coarse string like
 "high_energy_high" or "recovery_low". On the next optimization we pull the
@@ -12,12 +21,42 @@ enough data. See backend/core/learning.py and
 2026_universal_agent_learning.sql.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Iterable, List, Optional
 from datetime import datetime, timedelta
 from core.agents.base_agent import BaseAgent
+from core.condition_taxonomy import match_keys
 from core.config import Config
 from core import llm, learning
 import random
+import uuid
+
+# Which rule sets each canonical condition gets. Conditions are compared with
+# condition_taxonomy.match_keys, the same canonicalisation Pattern
+# Recognition's live filter uses, so "Autism spectrum disorder", "ASD" and
+# "autistic" all get the autism rules. Until now the agent lowercased the
+# raw label and looked it up as a key, so only the exact labels "autism",
+# "ADHD", "OCD" and "bipolar" ever matched: the autism rules reached 6 of 20
+# autistic people's paths and the OCD rules 2 of 10 (8 October 2026 audit).
+# AuDHD gets both the autism and the ADHD rules. Free text gets none, even
+# when it mentions a condition, as in the live filter.
+RULES_FOR_CONDITION: Dict[str, tuple] = {
+    'autism': ('autism',),
+    'adhd': ('adhd',),
+    'audhd': ('autism', 'adhd'),
+    'ocd': ('ocd',),
+    'bipolar': ('bipolar',),
+}
+
+
+def rule_keys(barriers: Optional[Iterable[Any]]) -> List[str]:
+    """The condition rule sets that apply to someone, from their labels as recorded."""
+    out: List[str] = []
+    for key in sorted(match_keys(list(barriers or []))):
+        for rule in RULES_FOR_CONDITION.get(key, ()):
+            if rule not in out:
+                out.append(rule)
+    return out
+
 
 class CalendarOptimizationAgent(BaseAgent):
     """Optimizes calendar scheduling based on user patterns"""
@@ -110,7 +149,7 @@ class CalendarOptimizationAgent(BaseAgent):
         """Optimize calendar schedule"""
         
         barriers = user_profile.get('barrierTypes', [])
-        barrier_keys = [b.lower().replace(' ', '_') for b in barriers]
+        barrier_keys = rule_keys(barriers)
         
         # Get combined scheduling rules
         rules = await self._get_combined_rules(barrier_keys)
@@ -176,6 +215,9 @@ class CalendarOptimizationAgent(BaseAgent):
                 system=(
                     "You are a productivity coach for neurodivergent users. "
                     "In one warm sentence (max 40 words), summarize how you scheduled their week. "
+                    "Each day's energy level is a default set by the day of the week, the same "
+                    "for everyone: never say the schedule follows the user's own energy, rhythm "
+                    "or best times. "
                     + llm.USER_TEXT_RULE
                 ),
                 user=(
@@ -192,30 +234,30 @@ class CalendarOptimizationAgent(BaseAgent):
             if text:
                 explanation = text
 
-        # Derived from whether the schedule came out WELL-FORMED, not from how
-        # much of the backlog it consumed.
-        #
-        # The previous version divided placed tasks by every task the path
-        # planner produced. Measured on a real run that read 30/80 = 0.28,
-        # which looked like failure but was the agent behaving correctly: it
-        # plans one week, and 80 tasks across 16 milestones is several weeks of
-        # work. Rewarding backlog exhaustion would push it to cram everything
-        # in — the opposite of what this product is for.
+        # No confidence. It used to be (days with work / days scheduled) x
+        # (1.0 with learned time-of-day preferences, else 0.75). Every schedule
+        # fills all 7 days and no learned preferences exist (calendar_outcomes
+        # has 0 rows), so it came out 0.75 for everyone: a constant, saying
+        # nothing about this schedule (item 2, docs/reports/
+        # calendar-optimization-2026-10-13.md). It is stored as null, and the
+        # two facts it was made of are reported as what they are.
         days = scheduled_days or []
-        if days:
-            days_with_work = sum(1 for d in days if (d.get('tasks') or []))
-            fill = days_with_work / len(days)
-            personalised = 1.0 if preferred_buckets else 0.75
-            confidence = round(min(fill * personalised, 1.0), 2)
-        else:
-            confidence = 0.0
+        days_with_work = sum(1 for d in days if (d.get('tasks') or []))
 
         return {
+            # One id per generated schedule, so "Did this schedule work for
+            # you?" is asked once for each (api/routes/schedule_feedback.py).
+            'scheduleId': uuid.uuid4().hex,
             'schedule': scheduled_days,
+            # Not this person's energy (see the module docstring).
+            'energySource': 'condition' if rules.get('flexible_scheduling') else 'weekday',
+            'energyPersonal': False,
             'scenarios': scenarios,
             'rules_applied': rules,
             'unscheduled_tasks': remaining_tasks,
-            'confidence': confidence,
+            'confidence': None,
+            'daysWithWork': days_with_work,
+            'learnedPreferences': bool(preferred_buckets),
             'explanation': explanation
         }
     
@@ -246,6 +288,16 @@ class CalendarOptimizationAgent(BaseAgent):
                         barrier_rules['buffer_between_tasks'],
                         combined.get('buffer_between_tasks', 5)
                     )
+
+                # OCD's extra time. It is a number, so the boolean pass below
+                # never carried it, and _schedule_day never saw it: until now
+                # the 1.5x was written and applied to nobody (none of the 96
+                # stored paths has it, 13 October 2026).
+                if 'time_for_completion' in barrier_rules:
+                    combined['time_for_completion'] = max(
+                        barrier_rules['time_for_completion'],
+                        combined.get('time_for_completion', 1.0)
+                    )
                 
                 # Add all boolean flags
                 for key, value in barrier_rules.items():
@@ -271,8 +323,10 @@ class CalendarOptimizationAgent(BaseAgent):
             
             # Adjust energy based on rules
             energy = theme_data['energy']
+            source = 'weekday'
             if rules.get('flexible_scheduling'):
                 energy = 'flexible'
+                source = 'condition'
             
             # Determine day type
             if i == 0:
@@ -292,6 +346,7 @@ class CalendarOptimizationAgent(BaseAgent):
                 'theme': theme_data['theme'],
                 'focus': theme_data['focus'],
                 'energy_level': energy,
+                'energy_source': source,
                 'motivation': f"Today's focus: {theme_data['focus'].replace('_', ' ').title()}"
             })
         
@@ -357,6 +412,10 @@ class CalendarOptimizationAgent(BaseAgent):
             'theme': day_type['theme'],
             'type': day_type['type'],
             'energyLevel': energy,
+            # Where this day's energy level came from: 'weekday' (the same
+            # for everyone on that day of the week) or 'condition' (the
+            # bipolar rules). Never the person's own energy: nothing records it.
+            'energySource': day_type.get('energy_source', 'weekday'),
             # Stable bucket key the learning loop aggregates against.
             'time_bucket': f"{day_type['type']}_{energy}",
             'motivation': day_type['motivation'],

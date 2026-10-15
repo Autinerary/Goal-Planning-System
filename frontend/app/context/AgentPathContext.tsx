@@ -22,7 +22,8 @@ export interface AgentResponse {
   agentId: string
   agentName: string
   result: any
-  confidence?: number
+  // null for Calendar Optimization since 13 October 2026: its 0.75 measured nothing.
+  confidence?: number | null
 }
 
 export interface AgentPathPayload {
