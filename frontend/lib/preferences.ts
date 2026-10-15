@@ -238,16 +238,18 @@ export const TECH_SAVVY: { id: TechSavvy; label: string; hint: string }[] = [
   { id: 'always', label: 'Always', hint: 'I use apps all the time' },
 ]
 
+// No emoji (Riipen Labs, Group 9: "the frequent use of emojis, bright
+// colours, and game-like visual elements"; docs/design-guide.md). Settings
+// draws a plain icon for each (components/SettingsPreferences.tsx).
 export const VIEW_PREFERENCES: {
   id: ViewPreference
   label: string
   hint: string
-  emoji: string
 }[] = [
-  { id: 'plain', label: 'Plain', hint: 'Clean and simple', emoji: '⬜' },
-  { id: 'pretty', label: 'Pretty', hint: 'Nice, but not distracting', emoji: '🌸' },
-  { id: 'exciting', label: 'Exciting', hint: 'Lively, but not too much', emoji: '✨' },
-  { id: 'fun', label: 'Fun', hint: 'Full of energy and play', emoji: '🎉' },
+  { id: 'plain', label: 'Plain', hint: 'Clean and simple' },
+  { id: 'pretty', label: 'Pretty', hint: 'Nice, but not distracting' },
+  { id: 'exciting', label: 'Exciting', hint: 'Lively, but not too much' },
+  { id: 'fun', label: 'Fun', hint: 'Full of energy and play' },
 ]
 
 /**

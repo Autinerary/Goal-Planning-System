@@ -128,7 +128,8 @@ Canada's guidance.
 **Group 32** (15 slides). 1, 4 and 9 are title and section pages. 2, 3 and
 8: hidden pages, contrast, clutter, Back, the two menus, accessibility
 settings everywhere. 5: feedback and effort, dual labels; multimedia
-(the explainer video and Listen) and progress were there. 6, 10 and 11:
+(the explainer video; Listen is built and stays hidden until there is an
+episode) and progress were there. 6, 10 and 11:
 the role, named and changeable. 7: Night colours, Large text, ResourceHub
 named. 12 and 13: a co-design panel and recruiting are for the team; the
 beta sessions are the start; completion, engagement and 14-day return are

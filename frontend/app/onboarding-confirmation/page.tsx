@@ -49,8 +49,11 @@ const INTERESTS: Record<string, StartItem> = {
 }
 
 // A first step that fits who someone is here for (Riipen Labs, Group 3: "a
-// short personalized starter pathway for each user").
+// short personalized starter pathway for each user"; Group 14: "Here's your
+// first action": a parent saves a useful resource, a neurodivergent adult
+// explores or joins a community thread, an educator previews a toolkit).
 const FOR_ROLE: Record<string, StartItem> = {
+  self: { title: 'Read or ask a question in Tidbits.', body: 'People with similar experiences share what worked for them. You post under a made-up name.', href: '/go/servicehub?next=/community', cta: 'Open Tidbits' },
   child: { title: 'Open the starter kits for parents.', body: 'Getting an autism assessment, and support at school, step by step (Ontario).', href: '/kits', cta: 'Open the starter kits' },
   family: { title: 'Planning with a family member under 18?', body: 'On the Family page you can add them and manage their path.', href: '/family', cta: 'Open Family' },
   work: { title: 'Find tools and services to recommend.', body: 'Search ResourceHub for what has helped others, with ratings from people with similar norms.', href: '/go/servicehub?next=/search', cta: 'Find tools and services' },
@@ -186,7 +189,7 @@ export default function OnboardingConfirmationPage() {
                 plainly, as the glossary's "Your plan" says it. */}
             <p className="mt-3 text-sm text-slate-800">
               It grows with what you put in: each step you tick off brings up the next one, and each optional answer
-              you add later, on your Path under &ldquo;Complete your profile&rdquo;, makes the suggestions fit you better.
+              you add later, under &ldquo;Complete your profile&rdquo; in Profile, makes the suggestions fit you better.
             </p>
           </div>
         )}

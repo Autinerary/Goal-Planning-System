@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyCheckinToken } from '@/lib/checkinToken'
-import { STOP_REASONS, USEFULNESS, type CheckinKind } from '@/lib/checkin'
+import { STOP_REASONS, USEFULNESS, EARLY_REASONS, type CheckinKind } from '@/lib/checkin'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +22,9 @@ export const dynamic = 'force-dynamic'
  *   kind 'usefulness' with a token
  *                          answered from the day-14 email of the first two
  *                          weeks (lib/firstWeeks.ts), without signing in
+ *   kind 'early'           the day-3 question in the app, what is in the way
+ *                          (EARLY_REASONS; STEP 76; before it, kept as text
+ *                          on a usefulness check-in)
  *
  * Every field is validated against the lists in lib/checkin.ts.
  *
@@ -30,8 +33,9 @@ export const dynamic = 'force-dynamic'
  */
 
 const REASONS = new Set<string>(STOP_REASONS.map((r) => r.id))
+const EARLY = new Set<string>(EARLY_REASONS.map((r) => r.id))
 const USEFUL = new Set<string>(USEFULNESS.map((u) => u.id))
-const KINDS = new Set<CheckinKind>(['inactive_email', 'welcome_back', 'usefulness', 'feedback'])
+const KINDS = new Set<CheckinKind>(['inactive_email', 'welcome_back', 'usefulness', 'feedback', 'early'])
 const ASKS_USEFULNESS = new Set<CheckinKind>(['usefulness', 'feedback'])
 
 export async function POST(req: NextRequest) {
@@ -47,7 +51,8 @@ export async function POST(req: NextRequest) {
   const kind = KINDS.has(body?.kind) ? (body.kind as CheckinKind) : null
   if (!kind) return NextResponse.json({ error: 'Unknown check-in' }, { status: 400 })
 
-  const reason = !ASKS_USEFULNESS.has(kind) && REASONS.has(body?.reason) ? body.reason : null
+  const reasons = kind === 'early' ? EARLY : REASONS
+  const reason = !ASKS_USEFULNESS.has(kind) && reasons.has(body?.reason) ? body.reason : null
   const usefulness = ASKS_USEFULNESS.has(kind) && USEFUL.has(body?.usefulness) ? body.usefulness : null
   const comment = typeof body?.comment === 'string' ? body.comment.trim().slice(0, 1000) || null : null
   const version = typeof body?.version === 'string' && /^[a-z0-9._-]{1,40}$/i.test(body.version) ? body.version : null
@@ -71,6 +76,13 @@ export async function POST(req: NextRequest) {
   // as a usefulness check-in rather than lose it.
   if (error && error.code === '23514' && kind === 'feedback') {
     ;({ error } = await supabase.from('checkin_responses').insert({ ...row, kind: 'usefulness', user_id: user.id }))
+  }
+  // And refuses 'early' and its two new answers until STEP 76: keep the answer
+  // as text, marked so the funnel report can still count it as day 3.
+  if (error && error.code === '23514' && kind === 'early') {
+    const label = EARLY_REASONS.find((r) => r.id === reason)?.label
+    const text = [`Day 3 check-in: ${label || 'no answer chosen'}.`, comment].filter(Boolean).join(' ').slice(0, 1000)
+    ;({ error } = await supabase.from('checkin_responses').insert({ kind: 'usefulness', reason: null, usefulness: null, comment: text, onboarding_version: version, user_id: user.id }))
   }
   if (error) return NextResponse.json({ error: 'Could not save your answer' }, { status: 500 })
   return NextResponse.json({ saved: true })

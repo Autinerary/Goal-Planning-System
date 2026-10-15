@@ -48,7 +48,9 @@ nobody is asked twice.
 | Your biggest dream, beyond any one goal | The Ideal Self page (it left setup: Group 17, "front loads personal questions ... before trust is established") | Sent with the next plan you make |
 | Words we use: identity-first or person-first | Settings (Group 15) | How your plan and the assistant write about autism and ADHD |
 
-The Path shows one of these at a time, and only when no check-in is due.
+The Path shows one of these at a time, and only when no check-in, offer to
+show more or "Getting started" item is waiting: things to do come before
+things to fill in (since 15 October; [groups-8-14.md](groups-8-14.md)).
 "See all" and Your profile list every one. Nothing changes by itself.
 
 ## Feedback, after people have used it
@@ -63,9 +65,13 @@ The Path shows one of these at a time, and only when no check-in is due.
   people who asked for the first two weeks' emails.
 - The team's feedback form: only for people who finished setup and came
   back on a later day.
-- "Is Autinerary useful so far?": after five days of use, or on a return
-  visit in the second week. An answer of "Not yet" is met with something that
-  can change now (`ADJUSTMENTS` in `frontend/lib/checkin.ts`).
+- "How is it going so far?": on the Path on days 3 to 6 after signing up
+  (Riipen Labs, Group 12: "Day 3 and Day 7"), once someone has come back on a
+  second day. An answer that is a problem is met with something that can
+  change now (`ADJUSTMENTS` in `frontend/lib/checkin.ts`). STEP 76.
+- "Is Autinerary useful so far?": on the Path from day 7, never on the day of
+  the day-3 question. An answer of "Not yet" is met the same way. When each is
+  due: `frontend/lib/checkinDue.ts`.
 
 ## ResourceHub
 

@@ -245,22 +245,36 @@ export const PATHWAY_ITEM_IDS = Array.from(new Set([
   'kit_assessment', 'kit_school',
 ]))
 
-// ── Start here's three optional questions (Riipen Labs, Group 21) ──
+// ── Start here's optional questions (Riipen Labs, Groups 21 and 12) ──
 // Group 21 asked for "a short survey guide ... that asks users 5 targeted
 // simple multiple choice questions and directs them to the most relevant
 // section", and warned that "too many questions could create additional
 // friction". The cohort report asks for "only enough to route by role and
 // immediate goal" before something useful. So two come first, and three more
 // are offered after the starter resources, optional, each changing what is
-// shown at once. Sent as start_refine events ("where.ontario"; STEP 71).
+// shown at once; four for someone supporting another person, whose age comes
+// first (Group 12). Sent as start_refine events ("where.ontario"; STEP 71).
 
 export interface RefineQuestion {
-  id: 'where' | 'soon' | 'how'
+  id: 'age' | 'where' | 'soon' | 'how'
   label: string
   options: { id: string; label: string }[]
+  /** Asked only for these roles (all roles when absent). */
+  forRoles?: string[]
 }
 
+// Who someone is supporting: their age changes what comes first (Riipen Labs,
+// Group 12: organisations like the Geneva Centre for Autism and Autism Ontario
+// "present clearly structured programs by age group and need right away").
+const SUPPORTING = ['child', 'family', 'work']
+
 export const REFINE_QUESTIONS: RefineQuestion[] = [
+  { id: 'age', label: 'How old are they?', forRoles: SUPPORTING, options: [
+    { id: 'under6', label: 'Under 6' },
+    { id: '6to12', label: '6 to 12' },
+    { id: '13to17', label: '13 to 17' },
+    { id: 'adult', label: '18 or older' },
+  ] },
   { id: 'where', label: 'Where are you?', options: [
     { id: 'ontario', label: 'Ontario' },
     { id: 'canada', label: 'Elsewhere in Canada' },
@@ -282,6 +296,30 @@ export const REFINE_QUESTIONS: RefineQuestion[] = [
 export type RefineAnswers = Partial<Record<RefineQuestion['id'], string>>
 export const START_REFINE_KEY = 'autinerary_start_refine'
 
+/** The optional questions asked for this role. */
+export function refineQuestionsFor(role: string): RefineQuestion[] {
+  return REFINE_QUESTIONS.filter((q) => !q.forRoles || q.forRoles.includes(role))
+}
+
+/** The answers that apply to this role (an age kept from another role does not). */
+export function answersFor(role: string, answers: RefineAnswers): RefineAnswers {
+  const asked = new Set(refineQuestionsFor(role).map((q) => q.id))
+  return Object.fromEntries(Object.entries(answers).filter(([q, a]) => a && asked.has(q as RefineQuestion['id']))) as RefineAnswers
+}
+
+/**
+ * The starter kits in the order that suits the answers: support at school
+ * first for school ages or a school goal, the assessment kit first for the
+ * youngest. Both kits are about children, so for someone 18 or older none are
+ * offered.
+ */
+export function kitOrder(kitIds: string[], goal: string, answers: RefineAnswers): string[] {
+  if (answers.age === 'adult') return []
+  const schoolFirst = goal === 'school_work' || answers.age === '6to12' || answers.age === '13to17'
+  const first = schoolFirst ? 'school' : answers.age === 'under6' ? 'assessment' : null
+  return first && kitIds.includes(first) ? [first, ...kitIds.filter((id) => id !== first)] : kitIds
+}
+
 // Which items come first for each way of starting.
 const FIRST_FOR_HOW: Record<string, string[]> = {
   read: ['autism', 'book', 'tidbits'],
@@ -292,10 +330,20 @@ const FIRST_FOR_SOON: Record<string, string[]> = {
   today: ['therapists', 'doctors', 'autism'],
   exploring: ['book', 'tidbits', 'autism'],
 }
+const FIRST_FOR_AGE: Record<string, string[]> = {
+  under6: ['schools', 'therapists', 'doctors', 'autism'],
+  '6to12': ['afterschool', 'schools', 'autism'],
+  '13to17': ['afterschool', 'work', 'autism'],
+  adult: ['work', 'centres', 'activities', 'autism'],
+}
 
 /** The pathway's items in the order the answers ask for; nothing is dropped. */
 export function orderForAnswers<T extends { id: string }>(items: T[], answers: RefineAnswers): T[] {
-  const first = [...(FIRST_FOR_SOON[answers.soon || ''] || []), ...(FIRST_FOR_HOW[answers.how || ''] || [])]
+  const first = [
+    ...(FIRST_FOR_SOON[answers.soon || ''] || []),
+    ...(FIRST_FOR_HOW[answers.how || ''] || []),
+    ...(FIRST_FOR_AGE[answers.age || ''] || []),
+  ]
   if (!first.length) return items
   const rank = (id: string) => { const i = first.indexOf(id); return i === -1 ? first.length : i }
   return items.map((it, i) => ({ it, i })).sort((a, b) => rank(a.it.id) - rank(b.it.id) || a.i - b.i).map(({ it }) => it)

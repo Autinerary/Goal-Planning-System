@@ -263,6 +263,12 @@ html[data-dark-mode="on"] .keep-colors .keep-colors {
   filter: none;
 }
 
+/* Soft colours: every colour on the page less bright, pictures included, as in
+   the app (Riipen Labs, Groups 8 and 16). On <html>, so fixed parts stay where
+   they are; with dark mode, both filters in one. */
+html[data-soft-colors="on"] { filter: saturate(0.5); }
+html[data-dark-mode="on"][data-soft-colors="on"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
+
 /* High contrast: darker grey text and borders, plain links dark blue; a link
    drawn as a button keeps its own colours. */
 html[data-high-contrast="on"] body { filter: contrast(1.15); }

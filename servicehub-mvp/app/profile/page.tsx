@@ -80,7 +80,8 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!loading && !user) router.push('/login?redirect=/profile')
+    // The sign-in page reads ?next= (it read ?redirect= here, so it came back to the home page).
+    if (!loading && !user) router.push('/login?next=/profile')
   }, [user, loading, router])
 
   // Links to #location and #more land on that part, once it has loaded.
@@ -162,12 +163,19 @@ export default function ProfilePage() {
           </h2>
           <p className="mt-1 text-sm text-gray-600">Set during setup, and used to match places to you.</p>
 
-          <dl className="mt-5 divide-y divide-gray-100">
+          {/* Rows with a small heading each: they hold Edit buttons and editors, which
+              a definition list cannot (axe, definition-list and dlitem). */}
+          <div className="mt-5 divide-y divide-gray-100">
             {/* Role */}
             <div className="py-4">
               <div className="flex items-start justify-between gap-4">
-                <dt className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Role</dt>
-                <dd className="flex-1 text-sm text-gray-800">{role ? role.label : 'Not chosen yet'}</dd>
+                <h3 className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Role</h3>
+                <div className="flex-1 text-sm text-gray-800">
+                  {role ? role.label : 'Not chosen yet'}
+                  {role && profile.roleFromApp && (
+                    <span className="mt-1 block text-gray-600">From who you&apos;re here for in Autinerary. Edit to choose here instead.</span>
+                  )}
+                </div>
                 <button type="button" className={linkButton} onClick={() => setEditing(editing === 'role' ? null : 'role')}>
                   {editing === 'role' ? 'Done' : 'Edit'}
                 </button>
@@ -190,8 +198,8 @@ export default function ProfilePage() {
             {/* Topics */}
             <div className="py-4">
               <div className="flex items-start justify-between gap-4">
-                <dt className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Topics</dt>
-                <dd className="flex flex-1 flex-wrap gap-2">
+                <h3 className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Topics</h3>
+                <div className="flex flex-1 flex-wrap gap-2">
                   {topics.length === 0 && <span className="text-sm text-gray-600">None yet</span>}
                   {topics.map((n) => (
                     <span key={n.type} className="inline-flex items-center gap-1 rounded-full bg-blue-50 py-1 pl-3 pr-1 text-sm font-medium text-blue-800">
@@ -209,7 +217,7 @@ export default function ProfilePage() {
                       )}
                     </span>
                   ))}
-                </dd>
+                </div>
                 <button type="button" className={linkButton} onClick={() => setEditing(editing === 'topic' ? null : 'topic')}>
                   {editing === 'topic' ? 'Done' : 'Edit'}
                 </button>
@@ -272,8 +280,8 @@ export default function ProfilePage() {
 
             {/* What they hope to find */}
             <div className="py-4">
-              <dt className="text-sm font-semibold text-gray-900">Looking for</dt>
-              <dd className="mt-2 flex flex-wrap gap-2">
+              <h3 className="text-sm font-semibold text-gray-900">Looking for</h3>
+              <div className="mt-2 flex flex-wrap gap-2">
                 {SETUP_NEEDS.map((n) => {
                   const on = needs.includes(n.id)
                   return (
@@ -291,14 +299,14 @@ export default function ProfilePage() {
                     </button>
                   )
                 })}
-              </dd>
+              </div>
             </div>
 
             {/* Location */}
             <div id="location" className="py-4 scroll-mt-20">
               <div className="flex items-start justify-between gap-4">
-                <dt className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Location</dt>
-                <dd className="flex-1 text-sm text-gray-800">
+                <h3 className="w-28 flex-shrink-0 text-sm font-semibold text-gray-900">Location</h3>
+                <div className="flex-1 text-sm text-gray-800">
                   {profile.location ? (
                     <span className="inline-flex items-center gap-1.5">
                       <MapPin className="h-4 w-4 text-gray-500" aria-hidden="true" />
@@ -310,10 +318,25 @@ export default function ProfilePage() {
                   <span className="mt-1 block text-gray-600">
                     Used to show places near you first. Private, and optional.
                   </span>
-                </dd>
-                <button type="button" className={linkButton} onClick={() => setEditing(editing === 'location' ? null : 'location')}>
-                  {editing === 'location' ? 'Cancel' : profile.location ? 'Change' : 'Set'}
-                </button>
+                </div>
+                <div className="flex flex-shrink-0 flex-col items-end gap-1">
+                  <button type="button" className={linkButton} onClick={() => setEditing(editing === 'location' ? null : 'location')}>
+                    {editing === 'location' ? 'Cancel' : profile.location ? 'Change' : 'Set'}
+                  </button>
+                  {/* Removable, as the privacy page says (Riipen Labs, Group 8). */}
+                  {profile.location && editing !== 'location' && (
+                    <button
+                      type="button"
+                      className={linkButton}
+                      onClick={async () => {
+                        const res = await fetch('/api/me/location', { method: 'DELETE', credentials: 'include' })
+                        if (res.ok) setProfile({ ...profile, location: null })
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
               {editing === 'location' && (
                 <div className="mt-3">
@@ -328,7 +351,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          </dl>
+          </div>
         </section>
 
         <section id="more" className={`${card} scroll-mt-20`} aria-labelledby="more-heading">

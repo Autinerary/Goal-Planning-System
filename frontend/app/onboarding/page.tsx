@@ -465,7 +465,9 @@ export default function OnboardingPage() {
   >(null)
   // True when we prefilled stable answers (barriers/location/etc.) from a prior
   // completed onboarding so a returning user doesn't re-enter everything.
-  const [carriedOver, setCarriedOver] = useState(false)
+  // What was kept from an earlier plan, to say exactly that (it said "your
+  // norms and location" when only one was kept).
+  const [carriedOver, setCarriedOver] = useState<{ norms: boolean; location: boolean } | null>(null)
   // The goal step shows the category picked (and any that already hold a
   // goal), not all six at once; the dream box opens on request.
   const [openGoalCategory, setOpenGoalCategory] = useState<string | null>(null)
@@ -631,9 +633,9 @@ export default function OnboardingPage() {
               facialHair: c.facialHair || prev.facialHair,
               clothing: c.clothing || prev.clothing,
             }))
-            if ((Array.isArray(c.barrierTypes) && c.barrierTypes.length > 0) || c.location?.city) {
-              setCarriedOver(true)
-            }
+            const keptNorms = Array.isArray(c.barrierTypes) && c.barrierTypes.length > 0
+            const keptLocation = Boolean(c.location?.city)
+            if (keptNorms || keptLocation) setCarriedOver({ norms: keptNorms, location: keptLocation })
           }
         }
       }
@@ -829,8 +831,9 @@ export default function OnboardingPage() {
     })
   }, [])
 
-  // Picking who this is for pre-selects the matching connection on the
-  // Norms step, only while no norms are chosen, so it never wipes answers.
+  // Picking who this is for pre-selects the matching connection for the
+  // norms (now asked on the profile card, not in setup), only while no norms
+  // are chosen, so it never wipes answers.
   const chooseAudience = (id: string) => {
     const conn = AUDIENCES.find((a) => a.id === id)?.connection ?? null
     setFormData((prev) => {
@@ -894,7 +897,7 @@ export default function OnboardingPage() {
   }
   const goalIntro = supporting
     ? 'Start with one goal. It can be yours, or something you are working on for the person you support (for example, \u201cFind an occupational therapist for my child\u201d). More goals, dreams and obstacles are optional.'
-    : 'Start with one goal. Pick a category and add it. More goals, dreams and obstacles are optional and can come later.'
+    : 'Start with one goal. More goals, dreams and obstacles can come later.'
 
   // Map Goal Planning barriers to ServiceHub format
   const mapBarriersToServiceHub = (barriers: string[]) => {
@@ -939,6 +942,19 @@ export default function OnboardingPage() {
       }
     })
   }
+
+  // A new step starts at the top of its card, with focus on its heading: the
+  // page stayed where the last step was left, and focus went with the button
+  // that was pressed (Riipen Labs, Group 13: "the user has to scroll past
+  // these elements each time they submit a section").
+  const stepCardRef = useRef<HTMLDivElement>(null)
+  const shownStep = useRef(currentStep)
+  useEffect(() => {
+    if (shownStep.current === currentStep) return
+    shownStep.current = currentStep
+    stepCardRef.current?.scrollIntoView({ block: 'start' })
+    document.getElementById(`step-heading-${currentId}`)?.focus({ preventScroll: true })
+  }, [currentStep, currentId])
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -1258,7 +1274,7 @@ export default function OnboardingPage() {
           {carriedOver && (
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
               <Check className="w-4 h-4" />
-              Welcome back. We kept your norms and location. Just set goals for this path.
+              Welcome back. We kept your {carriedOver.norms && carriedOver.location ? 'norms and location' : carriedOver.norms ? 'norms' : 'location'}. Just set goals for this path.
             </div>
           )}
         </div>
@@ -1291,7 +1307,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Step Labels Below Path */}
-          <div className="grid grid-cols-2 gap-4 mt-4 px-2">
+          <div className="grid grid-cols-2 gap-4 mt-2 px-2">
             {steps.map((step, idx) => {
               const Icon = step.icon
               const isActive = idx === currentStep
@@ -1304,7 +1320,7 @@ export default function OnboardingPage() {
                   disabled={isSubmitting || (idx !== 0 && !canAccessOnboarding)}
                   aria-current={isActive ? 'step' : undefined}
                   aria-label={`${step.title}${isCompleted ? ', complete' : ''}`}
-                  className="flex min-h-[72px] flex-col items-center flex-1"
+                  className="flex min-h-[60px] flex-col items-center flex-1"
                 >
                   <div
                     className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full flex items-center justify-center transition-all z-10 shadow-lg ${
@@ -1333,7 +1349,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Content Card */}
-        <div className="rounded-2xl p-5 md:p-8 surface">
+        <div ref={stepCardRef} className="scroll-mt-4 rounded-2xl p-5 md:p-8 surface">
           {resumedStep === currentStep && (
             <p role="status" className="mb-5 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-slate-800">
               Welcome back. Your answers were saved, so you are where you left off.
@@ -1358,16 +1374,18 @@ export default function OnboardingPage() {
               everyone else), or into the app; the Path offers to make a plan
               later. Pronouns and a username were offered here once; they are
               on the "Complete your profile" card (Groups 25 to 30). */}
+          {/* One line and two buttons side by side: it was a box of three
+              lines and two stacked buttons, a fifth of a phone screen above
+              the first question on every step (Riipen Labs, Group 13: "the
+              user has to scroll past these elements each time"). */}
           {!user?.hasCompletedOnboarding && (
-            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-300 bg-white p-3">
-              <p className="w-full text-sm text-slate-800 sm:w-auto sm:flex-1">
-                Not ready for questions? Go straight to resources, or look around and make your plan later.
-              </p>
+            <div className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-2">
+              <p className="w-full text-sm text-slate-800 sm:w-auto sm:mr-1">Not ready for questions?</p>
               <button
                 type="button"
                 onClick={() => skipForNow('resources', resourcesHref())}
                 disabled={!canAccessOnboarding || skipping}
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-indigo-700 bg-white px-4 py-2 text-sm font-semibold text-indigo-900 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-[2.75rem] items-center rounded-lg border-2 border-indigo-700 bg-white px-3 text-sm font-semibold text-indigo-900 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Skip to resources
               </button>
@@ -1375,7 +1393,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => skipForNow('path', '/path')}
                 disabled={!canAccessOnboarding || skipping}
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-700 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-[2.75rem] items-center rounded-lg border-2 border-slate-700 bg-white px-3 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {skipping ? 'Opening…' : 'Skip setup for now'}
               </button>
@@ -1423,7 +1441,7 @@ export default function OnboardingPage() {
                   redundant setup text"). The warm voice (Group 6;
                   docs/voice.md) is in the welcome above and in "There are no
                   wrong answers". */}
-              <h2 className="text-2xl font-bold mb-3 text-slate-800">About you</h2>
+              <h2 id="step-heading-about" tabIndex={-1} className="text-2xl font-bold mb-3 text-slate-800 focus:outline-none">About you</h2>
 
               {/* A note, not a box: tinted and bordered it looked like the chosen
                   answers below (Group 33: "clickable options blending into
@@ -1610,7 +1628,7 @@ export default function OnboardingPage() {
                   <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> About you is done. This is the last question.
                 </p>
               )}
-              <h2 className="text-2xl font-bold mb-2 text-slate-800">Your goal <RequiredMark /></h2>
+              <h2 id="step-heading-goalsAndDreams" tabIndex={-1} className="text-2xl font-bold mb-2 text-slate-800 focus:outline-none">Your goal <RequiredMark /></h2>
               <p className="text-slate-700 mb-2">{goalIntro}</p>
               <p className="mb-6 text-sm text-slate-700">
                 Why we ask: {WHY_WE_ASK.goal}{' '}
@@ -1627,7 +1645,7 @@ export default function OnboardingPage() {
                 <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <p className="text-sm text-slate-800">
                     Starting with <strong>{startArea.label}</strong>
-                    {firstArea.fromAnswers ? ', from your answers.' : ', the area people pick most often.'} Other areas can come later.
+                    {firstArea.fromAnswers ? ', from your answers.' : ', the area people pick most often.'}
                   </p>
                   <button
                     type="button"
@@ -1678,15 +1696,6 @@ export default function OnboardingPage() {
                   )
                 })}
               </div>}
-
-              {/* Optional AI help for the hardest question in setup (Riipen
-                  Labs, Group 11): one line until asked for. */}
-              <GoalHelper
-                ideas={helperIdeas}
-                categoryLabel={(id) => goalCategories.find(c => c.id === id)?.label || 'Other'}
-                audience={formData.audience}
-                onAdd={addGoal}
-              />
 
               {/* Category sections: the one picked, the chosen path's focus, and
                   any that already hold a goal. */}
@@ -1941,6 +1950,19 @@ export default function OnboardingPage() {
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Optional AI help for the hardest question in setup (Riipen
+                  Labs, Group 11): one line until asked for. After the ideas
+                  and the goal field, not before them, so they are higher on a
+                  phone (Group 13); step 1 ends with its chat version the same way. */}
+              <div className="mt-6">
+                <GoalHelper
+                  ideas={helperIdeas}
+                  categoryLabel={(id) => goalCategories.find(c => c.id === id)?.label || 'Other'}
+                  audience={formData.audience}
+                  onAdd={addGoal}
+                />
               </div>
 
               {/* "Beyond all your goals, what's your biggest dream?" was here.

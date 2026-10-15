@@ -60,7 +60,9 @@ function NavbarInner() {
             >
               <span className="sr-only">ResourceHub</span>
               <Home className="w-6 h-6" aria-hidden="true" />
-              <span>ResourceHub</span>
+              {/* The house alone on the narrowest phones, so the header fits a
+                  320 px screen without sideways scrolling (WCAG 1.4.10). */}
+              <span className="hidden min-[360px]:inline">ResourceHub</span>
             </Link>
           </div>
 

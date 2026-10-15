@@ -11,7 +11,7 @@ import { entryLine, sharedListUrl } from '@/lib/campaign'
 import {
   START_ROLES, START_GOALS, START_FOR_KEY, START_NEED_KEY,
   isStartRole, isStartGoal, pathwayFor, pathwayTitle, searchPath,
-  REFINE_QUESTIONS, START_REFINE_KEY, orderForAnswers, type RefineAnswers,
+  START_REFINE_KEY, orderForAnswers, refineQuestionsFor, answersFor, kitOrder, type RefineAnswers,
 } from '@/lib/startHere'
 import type { StarterItem } from '@/lib/starterItems'
 import { STARTER_KITS } from '@/lib/starterKits'
@@ -82,8 +82,9 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
   // "trusts the source enough to share it in their own group" by day 14).
   const [groupShareNote, setGroupShareNote] = useState('')
   const [entry, setEntry] = useState<ReturnType<typeof entryLine>>(null)
-  // The three optional questions after the resources (lib/startHere.ts,
-  // REFINE_QUESTIONS), kept in this browser.
+  // The optional questions after the resources (lib/startHere.ts,
+  // REFINE_QUESTIONS), kept in this browser. Only the ones asked for this
+  // role count (answersFor): an age kept from another role does not.
   const [refine, setRefine] = useState<RefineAnswers>({})
   const [refineOpen, setRefineOpen] = useState(false)
   useEffect(() => {
@@ -494,11 +495,12 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
             {/* The starter kits for parents (Riipen Labs, Group 24: "Caregiver
                 Starter Kits"), step by step, from the Government of Ontario's
                 own pages (lib/starterKits.ts). */}
-            {['child', 'family', 'work'].includes(role) && refine.where !== 'outside' && (
+            {['child', 'family', 'work'].includes(role) && refine.where !== 'outside' && kitOrder(STARTER_KITS.map((k) => k.id), goal, answersFor(role, refine)).length > 0 && (
               <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
                 <p className="font-semibold text-slate-900">Starter kits for parents in Ontario</p>
                 <ul className="mt-2 space-y-1">
-                  {[...STARTER_KITS].sort((a, b) => Number(goal === 'school_work' && b.id === 'school') - Number(goal === 'school_work' && a.id === 'school')).map((kit) => (
+                  {/* Their order follows the goal and the age (lib/startHere.ts, kitOrder). */}
+                  {kitOrder(STARTER_KITS.map((k) => k.id), goal, answersFor(role, refine)).map((id) => STARTER_KITS.find((k) => k.id === id)!).map((kit) => (
                     <li key={kit.id}>
                       <Link href={`/kits/${kit.id}`} onClick={() => track('start_open', `${answer}.kit_${kit.id}`)} className={TEXT_BUTTON}>
                         {kit.title}
@@ -534,7 +536,7 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
                 </p>
               ) : (
                 <ol className="mt-4 space-y-3">
-                  {orderForAnswers(items, refine).map((it) => (
+                  {orderForAnswers(items, answersFor(role, refine)).map((it) => (
                     <li key={it.path} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                         <a
@@ -718,16 +720,17 @@ export default function StartHere({ standalone = false }: { standalone?: boolean
               )}
             </div>
 
-            {/* Three more, optional (lib/startHere.ts, REFINE_QUESTIONS). */}
+            {/* A few more, optional (lib/startHere.ts, REFINE_QUESTIONS): three,
+                or four with the age of someone you support (Group 12). */}
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
-              {!refineOpen && !Object.values(refine).some(Boolean) ? (
+              {!refineOpen && !Object.values(answersFor(role, refine)).some(Boolean) ? (
                 <button type="button" onClick={() => setRefineOpen(true)} aria-expanded={false} className={TEXT_BUTTON}>
-                  Make this list fit you better: 3 quick questions, optional
+                  Make this list fit you better: {refineQuestionsFor(role).length} quick questions, optional
                 </button>
               ) : (
                 <div>
                   <p className="font-medium text-slate-900">Make this list fit you better <span className="font-normal text-slate-700">(optional; the list changes as you answer)</span></p>
-                  {REFINE_QUESTIONS.map((q) => (
+                  {refineQuestionsFor(role).map((q) => (
                     <div key={q.id} role="group" aria-labelledby={`refine-${q.id}`} className="mt-3">
                       <p id={`refine-${q.id}`} className="text-sm font-medium text-slate-800">{q.label}</p>
                       <div className="mt-1 flex flex-wrap gap-2">

@@ -583,14 +583,12 @@ useEffect(() => {
 
         {/* ── A check-in question when one is due; otherwise, from the second
              day, an offer to show the rest of the Path; otherwise the
-             getting-started checklist (Riipen Labs, Group 11). One card at a
-             time. ── */}
-        <CheckinPrompt fallback={<MoreFeaturesOffer fallback={<StarterChecklist stepsDone={doneSteps} />} />} />
-
-        {/* ── The optional questions setup no longer asks (Riipen Labs, Groups
-             25 to 30), one at a time, whenever the person likes. It replaced
-             the "ask later" card in the slot above. ── */}
-        <ProfileCompletion />
+             getting-started checklist (Riipen Labs, Group 11); otherwise the
+             optional questions setup no longer asks (Groups 25 to 30), one at
+             a time. One card at a time: the profile card was drawn beside the
+             slot, so a new person saw two (found going back over Groups 8 to
+             11). ── */}
+        <CheckinPrompt fallback={<MoreFeaturesOffer fallback={<StarterChecklist stepsDone={doneSteps} fallback={<ProfileCompletion />} />} />} />
 
         {/* ── 2x2 Dashboard Grid (full view; Races and ResourceHub are Quick Links) ── */}
         {!isSimple && (

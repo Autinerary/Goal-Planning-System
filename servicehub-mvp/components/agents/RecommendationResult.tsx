@@ -1,6 +1,7 @@
 'use client'
 
-import { Sparkles, Brain } from 'lucide-react'
+import Link from 'next/link'
+import { Compass, Brain, Users } from 'lucide-react'
 import ResourceCard from '@/components/resources/ResourceCard'
 import AgentExplanation from './AgentExplanation'
 import ConfidenceIndicator from './ConfidenceIndicator'
@@ -64,8 +65,8 @@ export default function RecommendationResult({
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-gray-900">{title || 'AI Agent Recommendations'}</h2>
+          <Compass className="w-6 h-6 text-blue-600" aria-hidden="true" />
+          <h2 className="text-2xl font-bold text-gray-900">{title || 'Places for you'}</h2>
         </div>
         <div className="text-sm text-gray-600">Loading recommendations...</div>
       </div>
@@ -76,14 +77,17 @@ export default function RecommendationResult({
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-gray-900">{title || 'AI Agent Recommendations'}</h2>
+          <Compass className="w-6 h-6 text-blue-600" aria-hidden="true" />
+          <h2 className="text-2xl font-bold text-gray-900">{title || 'Places for you'}</h2>
         </div>
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-          <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No recommendations yet</h3>
-          <p className="text-sm text-gray-600">
-            Complete your profile to get personalized recommendations from our AI agent.
+          <Compass className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Nothing matched yet</h3>
+          {/* Somewhere to go, not a dead end. */}
+          <p className="text-sm text-gray-700">
+            <Link href="/profile" className="font-medium text-blue-800 underline underline-offset-2">Add a topic or your location</Link>
+            {' '}to see places for you, or{' '}
+            <Link href="/search" className="font-medium text-blue-800 underline underline-offset-2">search all of ResourceHub</Link>.
           </p>
         </div>
       </div>
@@ -95,9 +99,9 @@ export default function RecommendationResult({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Sparkles className="w-6 h-6 text-blue-600" aria-hidden="true" />
+          <Compass className="w-6 h-6 text-blue-600" aria-hidden="true" />
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{title || 'Recommended by AI Agent'}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{title || 'Places for you'}</h2>
             <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
           </div>
         </div>
@@ -174,7 +178,7 @@ export default function RecommendationResult({
                 return (
                   <div className="flex items-center justify-between">
                     <div className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      <Sparkles className="w-3 h-3" aria-hidden="true" />
+                      <Users className="w-3 h-3" aria-hidden="true" />
                       {resource.score}% match
                     </div>
                   </div>

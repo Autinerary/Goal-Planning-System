@@ -25,6 +25,11 @@ export default function DiagnosticProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  // One group open at a time, with what is picked shown above them (Riipen
+  // Labs, Group 9: "too much information at once", about this list of about
+  // 80 choices in nine groups; setup did this, and when the list moved here
+  // every group could be open at once).
+  const [openGroup, setOpenGroup] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -156,10 +161,22 @@ export default function DiagnosticProfilePage() {
               <div className="mt-6">
                 <h2 className="font-semibold text-slate-900">Conditions or differences to include</h2>
                 <p className="mt-1 text-sm text-slate-600">Choose only what is useful. Diagnosis status and all follow-up details are optional.</p>
+                <p className="mt-3 text-sm text-slate-800">
+                  <span className="font-semibold">Picked so far:</span>{' '}
+                  {selectedLabels.length ? selectedLabels.join(', ') : 'nothing yet'}
+                </p>
                 <div className="mt-4 space-y-2">
-                  {CONDITION_GROUPS.map((group) => (
-                    <details key={group.id} className="rounded-lg border border-slate-200">
-                      <summary className="cursor-pointer px-4 py-3 font-medium text-slate-800">{group.label}</summary>
+                  {CONDITION_GROUPS.map((group) => {
+                    const picked = group.conditions.filter((c) => profile.conditions.some((item) => item.conditionId === c.id)).length
+                    return (
+                    <details key={group.id} open={openGroup === group.id} className="rounded-lg border border-slate-200">
+                      <summary
+                        className="cursor-pointer px-4 py-3 font-medium text-slate-800"
+                        onClick={(e) => { e.preventDefault(); setOpenGroup(openGroup === group.id ? null : group.id) }}
+                      >
+                        {group.label}
+                        {picked > 0 && <span className="ml-2 text-sm font-normal text-slate-700">({picked} picked)</span>}
+                      </summary>
                       <div className="flex flex-wrap gap-2 border-t border-slate-100 p-4">
                         {group.conditions.map((condition) => {
                           const selected = profile.conditions.some((item) => item.conditionId === condition.id)
@@ -182,7 +199,8 @@ export default function DiagnosticProfilePage() {
                         })}
                       </div>
                     </details>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 

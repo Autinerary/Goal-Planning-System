@@ -42,6 +42,23 @@ export const SETUP_ROLES: SetupRole[] = [
 
 export const findRole = (id: string | null | undefined) => SETUP_ROLES.find((r) => r.id === id)
 
+/**
+ * The role for an account made in the app, from its "Who are you here for?"
+ * answer (profiles.preferences.audience). Those accounts skip this setup, so
+ * the profile said "Role: Not chosen yet" (found going back over Riipen Labs,
+ * Group 8). Read only, never written: profiles.role also holds the roles the
+ * team gives (STEP 68). Allies and "not sure yet" have no role here.
+ */
+const ROLE_FROM_AUDIENCE: Record<string, string> = {
+  self: 'self_advocate',
+  child: 'parent',
+  family: 'parent',
+  friend: 'caregiver',
+  work: 'professional',
+}
+export const roleFromAudience = (audience: unknown): string | null =>
+  typeof audience === 'string' ? ROLE_FROM_AUDIENCE[audience] ?? null : null
+
 export interface NormChoice {
   id: string
   label: string

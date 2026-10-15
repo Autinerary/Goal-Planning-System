@@ -131,8 +131,10 @@ that serve everyone. Before, only names that sorted into the first 500 of the
 Each item ticks itself off, and the list can be hidden. Group 11 had "Add a
 milestone" as the second item, but milestones come with the plan, so it is
 finishing one. The list waits its turn in the Path's one-card slot. It shows
-only when no check-in, skipped setup question or offer to show more is
-waiting, so the Path still shows one card at a time. The "how to use the app"
+only when no check-in or offer to show more is waiting, and "Complete your
+profile" takes the slot once the list is done or hidden, so the Path still
+shows one card at a time (restored 15 October: for a few days the profile
+card showed beside it). The "how to use the app"
 video is "How to use your Path" (63 seconds, below), on the page after setup
 and in "Getting started".
 
@@ -187,7 +189,7 @@ person can replace either at any time: same file names in
 
 1. **Stories and podcast episodes** from real people, with consent ([beta/testimonials.md](beta/testimonials.md)), and recordings of stories whose tellers chose audio or video. The places for them are built and stay hidden until there is one.
 2. **Beta results** for "So far in the beta", once the trial has measured them (1.6 above).
-3. **The screenshots**, retaken whenever those screens change. Use a test account with a sample plan, a phone-sized window (390 by 650, at 2x), and the Path, the first step, the calendar on Low Energy, and ResourceHub's home page. Hide cards that are not part of the screen (the install banner, check-ins). Save each as a 600 by 1000 JPEG in `frontend/public/preview/` under the same names, and update its description in `PREVIEW` (`frontend/app/page.tsx`).
+3. **The screenshots**, retaken whenever those screens change (last on 15 October 2026). Sign up a test account named Sam, choose "Myself" and the goal "Learn a new language" in setup, then run `scripts/qa/preview-shots.mjs` with that account (how is at the top of the file). It saves the Path, the first step, the calendar on Low Energy and ResourceHub's home page as 600 by 1000 JPEGs in `frontend/public/preview/`, phone-sized, with the cards that are not part of the screen put away. Then update each description in `PREVIEW` (`frontend/app/page.tsx`).
 4. **A narrated-by-a-person version of the videos**, if the team prefers a human voice.
 
 ## Built after first being decided against

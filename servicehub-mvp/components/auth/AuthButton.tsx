@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { APP_SIGNUP } from '@/lib/appSignIn'
 
 interface AuthButtonProps {
   className?: string
@@ -29,15 +30,18 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
   }
 
   if (!user) {
-    // Stay on ServiceHub: link to ServiceHub's own login/signup so session persists here.
+    // Sign up the way the sign-in page does, with one Autinerary account
+    // (Riipen Labs, Groups 22 and 24: no second sign-up or sign-in wall). The
+    // two disagreed: this went to ResourceHub's own form (found going back
+    // over Group 8). ResourceHub's own sign-up and setup stay at /signup.
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <Link
-          href="/signup"
+        <a
+          href={APP_SIGNUP}
           className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
         >
           Sign up
-        </Link>
+        </a>
         <Link
           href="/login"
           className="px-3 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
@@ -71,12 +75,15 @@ export default function AuthButton({ className = '', showUserMenu = true }: Auth
         className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         aria-expanded={isMenuOpen}
         aria-haspopup="true"
-        aria-label="User menu"
       >
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold">
+        {/* Named by what it shows, the person's name, then what it opens: it
+            was "User menu", a name with none of the words on it (WCAG 2.5.3,
+            label in name; axe on the signed-in pages, 15 October 2026). */}
+        <div aria-hidden="true" className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold">
           {displayName.charAt(0).toUpperCase()}
         </div>
         <span className="hidden sm:block">{displayName}</span>
+        <span className="sr-only">Account menu</span>
         <svg
           className={`w-4 h-4 transition-transform ${isMenuOpen ? 'transform rotate-180' : ''}`}
           fill="none"

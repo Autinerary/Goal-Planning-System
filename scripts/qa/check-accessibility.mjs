@@ -11,7 +11,7 @@
 //   node scripts/qa/check-accessibility.mjs
 // Optional: APP, HUB (base URLs, default production), CHROME_PATH, and
 // QA_EMAIL with QA_PASSWORD (a QA account, test.account+...@test.com) to add
-// the signed-in pages, and ALL=1 for every page of the app rather than the
+// the signed-in pages (ResourceHub's too, through the app's link), and ALL=1 for every page of the app rather than the
 // first session (Group 34: "text too light"). Nothing is submitted, and funnel
 // events are not sent
 // (Global Privacy Control is on). Exits 1 when a serious or critical problem
@@ -44,6 +44,12 @@ const SIGNED_IN = (ALL
   ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
      '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
   : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).map((p) => APP + p)
+// ResourceHub signed in, through the app's hand-off: its account menu and its
+// profile had problems only a signed-in check could see (found 15 October
+// 2026, Riipen Labs Groups 8 to 14).
+const HUB_SIGNED_IN = (ALL
+  ? ['/', '/profile', '/settings/accessibility', '/my-resources', '/notifications']
+  : ['/profile', '/settings/accessibility']).map((p) => HUB + p)
 const SERIOUS = new Set(['serious', 'critical'])
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -65,6 +71,10 @@ async function signIn(context) {
   await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}), page.click('button[type="submit"]')])
   await wait(2000)
   const at = new URL(page.url()).pathname
+  // And ResourceHub, the way people get there: the app's link signs them in.
+  await page.goto(APP + '/go/servicehub?next=/', { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {})
+  await page.waitForFunction((hub) => location.href.startsWith(hub), { timeout: 30000 }, HUB).catch(() => {})
+  await wait(2000)
   await page.close()
   return at
 }
@@ -96,7 +106,7 @@ const runs = [{ context: await browser.createBrowserContext(), pages: SIGNED_OUT
 if (EMAIL && PASSWORD) {
   const context = await browser.createBrowserContext()
   console.log('signed in, landed on', await signIn(context))
-  runs.push({ context, pages: SIGNED_IN })
+  runs.push({ context, pages: [...SIGNED_IN, ...HUB_SIGNED_IN] })
 } else console.log('QA_EMAIL and QA_PASSWORD not set: signed-out pages only.')
 
 let serious = 0

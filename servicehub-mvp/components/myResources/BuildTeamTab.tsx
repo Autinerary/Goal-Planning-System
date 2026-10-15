@@ -250,9 +250,11 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
               your autism community. Track outreach, contracts, and your active
               service team — all in one place.
             </p>
+            {/* Emerald 700 under white text, here and below: 600 was 3.8 to 1,
+                under WCAG AA's 4.5 (the accessibility checker, signed in). */}
             <Link
               href="/search"
-              className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               Find Services
             </Link>
@@ -470,7 +472,7 @@ function WishlistCard({
           }
           className={`absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
             canPromote
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
               : 'bg-white/80 text-gray-400 cursor-not-allowed'
           }`}
           aria-label="Add to Team"
@@ -653,7 +655,7 @@ function AddToTeamModal({
             type="button"
             onClick={onConfirm}
             disabled={!acknowledged || submitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Adding…' : 'Add to Team'}
           </button>

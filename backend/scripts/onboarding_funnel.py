@@ -91,6 +91,12 @@ Group 16 asked which colour options people choose; Group 18 to monitor
 bounce rates; Group 19 to compare people with ADHD and autistic people, and
 to count navigation errors. Each has a section below.
 
+Groups 8 to 14 (September 2026) shaped guided-2026-10. Group 12 asked for a
+guided demo and "how many users went through the demo, where it drops off",
+programs "by age group and need", and micro-surveys "on Day 3 and Day 7".
+"A look inside" and the age answers have sections below; the day-3 answers
+are with the check-ins.
+
 Reads public.onboarding_events and public.onboarding_feedback (STEP 45),
 public.checkin_responses (STEP 46), profiles.preferences, the journal's dates
 (public.reflections) and the accounts' metadata (dates of birth are only
@@ -114,9 +120,9 @@ from statistics import median
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 # Must match ONBOARDING_VERSION in frontend/lib/funnel.ts. The ones before it
-# were paced-2026-10 and express-2026-10; every version stays in the
-# comparisons by version.
-CURRENT_VERSION = "clear-2026-10"
+# were clear-2026-10, paced-2026-10 and express-2026-10; every version stays
+# in the comparisons by version.
+CURRENT_VERSION = "guided-2026-10"
 
 # Onboarding step ids in order, as in frontend/app/onboarding/page.tsx. The
 # first two are setup. The optional extras were offered after them until
@@ -184,6 +190,18 @@ STOP_REASONS = [
     ("other", "something else"),
 ]
 USEFULNESS = [("very", "very useful"), ("somewhat", "somewhat"), ("not_yet", "not yet")]
+# The day-3 question (Group 12; STEP 76), as EARLY_REASONS in
+# frontend/lib/checkin.ts. Before STEP 76 an answer is kept as text on a
+# usefulness check-in, its comment starting with EARLY_PREFIX and the label.
+EARLY_REASONS = [
+    ("going_fine", "It’s going well"),
+    ("too_much", "There is too much to take in"),
+    ("unclear_next", "I’m not sure what to do next"),
+    ("hard_to_find", "I can’t find what I’m looking for"),
+    ("not_what_i_needed", "It isn’t what I need"),
+    ("other", "Something else"),
+]
+EARLY_PREFIX = "Day 3 check-in: "
 
 # Optional setup questions asked later on the Path, as in frontend/lib/askLater.ts.
 ASK_LATER = [
@@ -231,6 +249,8 @@ NO_ENERGY = "unanswered"
 # targeted simple multiple choice questions"), sent as start_refine
 # "<question>.<answer>" (STEP 71; frontend/lib/funnel.ts START_REFINE_STEP).
 START_REFINE = [
+    # Asked only of people supporting someone (Group 12: "by age group and need").
+    ("age", "Age of who they support", [("under6", "under 6"), ("6to12", "6 to 12"), ("13to17", "13 to 17"), ("adult", "18 or older")]),
     ("where", "Where they are", [("ontario", "Ontario"), ("canada", "elsewhere in Canada"), ("outside", "outside Canada")]),
     ("soon", "How soon", [("today", "today"), ("week", "this week"), ("exploring", "just exploring")]),
     ("how", "How they like to start", [("read", "read"), ("talk", "talk"), ("place", "a place"), ("plan", "a plan")]),
@@ -319,6 +339,16 @@ DISPLAY_CHOICES = [
     ("display_accent_emerald", "Colour: emerald"),
     ("display_accent_amber", "Colour: amber"),
     ("display_accent_rose", "Colour: rose"),
+]
+
+# A look inside on the home page, one screen at a time (frontend/app/components/
+# LookInside.tsx), sent as feature_use "inside_<screen>" (Riipen Labs, Group 12:
+# "how many users went through the demo, where it drops off").
+INSIDE_SCREENS = [
+    ("inside_path", "Your Path"),
+    ("inside_step", "A step"),
+    ("inside_calendar", "Calendar"),
+    ("inside_resourcehub", "ResourceHub"),
 ]
 # Norms, grouped to compare people with ADHD and autistic people (Riipen Labs,
 # Group 19: "conduct targeted focus group testing across different
@@ -1780,7 +1810,18 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
         return AUDIENCE_LABELS.get(audience_by_user.get(r.get("user_id")), NOT_ANSWERED)
 
     stopped = [r for r in rows if r.get("kind") in ("inactive_email", "welcome_back")]
-    useful = [r for r in rows if r.get("kind") == "usefulness"]
+
+    def kept_as_text(r: dict) -> bool:
+        # A day-3 answer from before STEP 76 (see EARLY_PREFIX).
+        return r.get("kind") == "usefulness" and str(r.get("comment") or "").startswith(EARLY_PREFIX)
+
+    def early_reason(r: dict) -> Optional[str]:
+        if r.get("kind") == "early":
+            return r.get("reason")
+        label = str(r["comment"])[len(EARLY_PREFIX):].split(".", 1)[0]
+        return next((key for key, text in EARLY_REASONS if text == label), None)
+    day3 = [r for r in rows if r.get("kind") == "early" or kept_as_text(r)]
+    useful = [r for r in rows if r.get("kind") == "usefulness" and not kept_as_text(r)]
     # "Tell us how it's going" in the glossary (STEP 69): people who came to
     # say something, so not mixed into the share who find it useful.
     sent = [r for r in rows if r.get("kind") == "feedback"]
@@ -1807,6 +1848,8 @@ def summarize_checkins(rows: Iterable[dict], audience_by_user: Optional[Dict[str
         "by_audience": dict(by_audience),
         "sent": len(sent),
         "sent_usefulness": Counter(r["usefulness"] for r in sent if r.get("usefulness")),
+        "day3": len(day3),
+        "day3_reasons": Counter(reason for reason in (early_reason(r) for r in day3) if reason),
         "comments": [(r["kind"], r["comment"]) for r in rows if r.get("comment")],
     }
 
@@ -1820,7 +1863,13 @@ def render_checkins(c: Dict, show_comments: bool) -> str:
         out.append(f"  {label:<30} {c['reasons'].get(key, 0):>4}  ({pct(c['reasons'].get(key, 0), total)})")
     out.append("")
     useful_total = sum(c["usefulness"].values())
-    out.append(f"== Useful so far? (after 5 days of use, or from the second week): {c['useful']} answers")
+    day3_total = sum(c.get("day3_reasons", Counter()).values())
+    out.append(f"== Day 3: how is it going? (asked in the app on days 3 to 6; Group 12): {c.get('day3', 0)} answers")
+    for key, label in EARLY_REASONS:
+        n = c.get("day3_reasons", Counter()).get(key, 0)
+        out.append(f"  {label:<36} {n:>4}  ({pct(n, day3_total)})")
+    out.append("")
+    out.append(f"== Useful so far? (asked in the app from day 7, or by the day-14 email): {c['useful']} answers")
     out.append("  " + "   ".join(f"{label}: {c['usefulness'].get(key, 0)} ({pct(c['usefulness'].get(key, 0), useful_total)})"
                                 for key, label in USEFULNESS))
     early_total = sum(c["usefulness_early"].values())
@@ -1937,6 +1986,40 @@ def render_display_choices(d: Dict) -> str:
         n = d["by_choice"].get(key, 0)
         if n:
             out.append(f"  {label:<26} {SMALL if n < MIN_CELL else n:>6}" + ("" if n < MIN_CELL else f"   ({pct(n, d['people'])})"))
+    return "\n".join(out)
+
+
+def summarize_look_inside(events: Iterable[dict], wanted_version: str = CURRENT_VERSION) -> Dict:
+    """Which screens of "A look inside" people opened, as distinct browsers, and
+    how many of the four each browser saw (Group 12). The first screen shows
+    without a tap: it is counted as opened only when someone came back to it,
+    and as seen by everyone who opened another. Pure."""
+    wanted = {key for key, _ in INSIDE_SCREENS}
+    opened: Dict[str, set] = defaultdict(set)
+    for e in events:
+        if e["event"] == "feature_use" and e.get("step") in wanted \
+                and keep_version(e.get("onboarding_version", ""), wanted_version):
+            opened[e["visitor_id"]].add(e["step"])
+    return {
+        "browsers": len(opened),
+        "by_screen": {key: sum(key in s for s in opened.values()) for key, _ in INSIDE_SCREENS},
+        # Screens seen: the first, and every other one opened.
+        "how_many": {n: sum(len(s - {INSIDE_SCREENS[0][0]}) + 1 == n for s in opened.values())
+                     for n in range(1, len(INSIDE_SCREENS) + 1)},
+    }
+
+
+def render_look_inside(d: Dict) -> str:
+    out = ["== A look inside on the home page (Group 12: who went through it, and where it stops)"]
+    if d["browsers"] < MIN_CELL:
+        out.append(f"  browsers that opened a screen   {SMALL if d['browsers'] else 0}")
+        return "\n".join(out)
+    out.append(f"  browsers that opened a screen   {d['browsers']}")
+    for key, label in INSIDE_SCREENS:
+        n = d["by_screen"].get(key, 0)
+        out.append(f"  {label:<14} {SMALL if 0 < n < MIN_CELL else n:>6}")
+    out.append("  screens seen per browser (the first shows on its own): " + "   ".join(
+        f"{'all ' if n == len(INSIDE_SCREENS) else ''}{n}: {SMALL if 0 < c < MIN_CELL else c}" for n, c in d["how_many"].items()))
     return "\n".join(out)
 
 
@@ -2212,6 +2295,8 @@ def main() -> int:
         print("== By norms: not available (user_barriers could not be read).")
     print()
     print(render_display_choices(summarize_display_choices(events, args.version)))
+    print()
+    print(render_look_inside(summarize_look_inside(events, args.version)))
     print()
     print(render_first_page_leavers(summarize_first_page_leavers(events, args.version)))
     print()

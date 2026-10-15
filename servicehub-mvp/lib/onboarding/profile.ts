@@ -1,5 +1,5 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
-import { cleanNeeds, findNorm, NOT_A_NORM } from './setup'
+import { cleanNeeds, findNorm, findRole, roleFromAudience, NOT_A_NORM } from './setup'
 
 /**
  * What ResourceHub knows about the signed-in person, for setup, the profile
@@ -25,6 +25,8 @@ export interface MyNorm {
 
 export interface MyProfile {
   role: string | null
+  /** The role comes from the app's "Who are you here for?" (roleFromAudience). */
+  roleFromApp: boolean
   needs: string[]
   location: { city: string; province: string; country: string } | null
   /** Coordinates, needed for "near you". 0,0 counts as none. */
@@ -42,7 +44,7 @@ export const prettyNorm = (type: string) =>
 
 export async function readMyProfile(supabase: SupabaseClient, user: User): Promise<MyProfile> {
   const [{ data: profile }, { data: rows }] = await Promise.all([
-    supabase.from('profiles').select('role, location').eq('id', user.id).maybeSingle(),
+    supabase.from('profiles').select('role, location, preferences').eq('id', user.id).maybeSingle(),
     supabase
       .from('user_barriers')
       .select('barrier_type, barrier_category, verification_method, verified_at, severity')
@@ -67,8 +69,11 @@ export async function readMyProfile(supabase: SupabaseClient, user: User): Promi
     })
   }
 
+  const own = findRole(profile?.role) ? (profile!.role as string) : null
+  const fromApp = own ? null : roleFromAudience((profile?.preferences as Record<string, unknown> | null)?.audience)
   return {
-    role: profile?.role && profile.role !== 'user' ? profile.role : null,
+    role: own || fromApp,
+    roleFromApp: Boolean(fromApp),
     needs: cleanNeeds(meta.resourcehub_needs),
     location: city ? { city, province: text(loc?.province), country: text(loc?.country) } : null,
     hasCoords: Boolean(loc && Number(loc.lat) && Number(loc.lng)),

@@ -189,6 +189,11 @@ async function RecommendedSection() {
     // shows its city (Riipen Labs, Groups 22 and 24: "three matches at 40%,
     // in the wrong cities"). Each kind of list below sets its own words.
     let subtitle: string | undefined
+    // With a location, the heading says what the list is too: it fell back to
+    // "Recommended by AI Agent" (Riipen Labs, Group 18: name things for what
+    // people get, and say AI once where it works; found going back over
+    // Groups 8 to 11).
+    let coordsTitle = 'Places near you'
     let plainTitle = 'Highly rated places'
     let plainSubtitle = 'Rated highly by people with similar norms. They can be in any city.'
     if (recommendationOutput?.resources && recommendationOutput.resources.length > 0) {
@@ -211,7 +216,8 @@ async function RecommendedSection() {
         subtitle = 'Chosen by distance and community rating. None are matched to your norms yet.'
         plainSubtitle = 'Rated highly by people on ResourceHub. They can be in any city.'
       } else {
-        subtitle = 'Matched to your norms, and to people who share them. Places near you come first.'
+        coordsTitle = 'Places matched to you'
+        subtitle = 'Chosen with AI from your norms, and from people who share them. Places near you come first.'
       }
     } else {
       // Fallback: places rated by people who share these norms, then what is
@@ -274,7 +280,7 @@ async function RecommendedSection() {
             the line under it say what the places are. */}
         <RecommendationResult
           resources={finalResources}
-          title={hasCoords ? undefined : plainTitle}
+          title={hasCoords ? coordsTitle : plainTitle}
           subtitle={hasCoords ? subtitle : plainSubtitle}
           explanations={finalExplanations}
           confidence={finalConfidence}

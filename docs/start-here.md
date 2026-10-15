@@ -29,6 +29,18 @@ and one clear next action" before they see the whole app.
    a note at once, and none hides anything (Group 21 asked for five
    questions; two come before anything is shown). See
    [groups-20-24.md](groups-20-24.md).
+6. **Since Groups 8 to 14 (15 October 2026):** for parents, family and
+   people who teach or work with someone, **"How old are they?"** comes
+   first (Under 6, 6 to 12, 13 to 17, 18 or older), so there are four. It
+   orders the list (schools and therapists first for the youngest,
+   after-school activities for school ages, work for adults) and the kits:
+   support at school first for 6 to 17, the assessment first under 6, and
+   neither for 18 or older, since both are about children. An age answered
+   for one role is not used for another (`refineQuestionsFor`, `answersFor`
+   and `kitOrder` in `frontend/lib/startHere.ts`). Riipen Labs, Group 12:
+   organisations like the Geneva Centre for Autism "present clearly
+   structured programs by age group and need right away". See
+   [groups-8-14.md](groups-8-14.md).
 
 One question at a time, with the steps done and still to come shown above
 it, and "Change" next to each answer. The home page's main button, "Find

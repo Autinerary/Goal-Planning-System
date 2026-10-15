@@ -17,6 +17,10 @@ export const dynamic = 'force-dynamic'
  *   { lat, lng }                    from the browser, rounded to ~1 km first
  *
  * Writable only by the user themselves (profiles RLS: auth.uid() = id).
+ *
+ * DELETE /api/me/location removes it: the profile says location is
+ * "optional and removable", as the privacy page promises (Riipen Labs, Group
+ * 8), and there was no way to remove it. The app and ResourceHub share it.
  */
 
 function text(v: unknown, max = 100): string {
@@ -84,4 +88,18 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     location: { city: location.city, province: location.province, country: location.country },
   })
+}
+
+export async function DELETE() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 })
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ location: null })
+    .eq('id', user.id)
+    .select('id')
+  if (error) return NextResponse.json({ error: 'Could not remove your location' }, { status: 500 })
+  if (!data || data.length === 0) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+  return NextResponse.json({ location: null })
 }

@@ -20,10 +20,26 @@ export const USEFULNESS = [
   { id: 'somewhat', label: 'Somewhat' },
   { id: 'not_yet', label: 'Not yet' },
 ] as const
+/**
+ * Three days in (Riipen Labs, Group 12: "Trigger quick micro-surveys on Day 3
+ * and Day 7 to gather actionable product feedback"). Day 7 is the usefulness
+ * question; day 3 asks what, if anything, is in the way, while it can still
+ * be fixed. Two answers are new (STEP 76); the rest are the stop reasons'.
+ */
+export const EARLY_REASONS = [
+  { id: 'going_fine', label: 'It’s going well' },
+  { id: 'too_much', label: 'There is too much to take in' },
+  { id: 'unclear_next', label: 'I’m not sure what to do next' },
+  { id: 'hard_to_find', label: 'I can’t find what I’m looking for' },
+  { id: 'not_what_i_needed', label: 'It isn’t what I need' },
+  { id: 'other', label: 'Something else' },
+] as const
 
 // 'feedback': the glossary's "Tell us how it's going", at any time (STEP 69),
 // asked as the usefulness question plus a comment.
-export type CheckinKind = 'inactive_email' | 'welcome_back' | 'usefulness' | 'feedback'
+// 'early': the day-3 question (STEP 76; before it, kept as text on a
+// usefulness check-in).
+export type CheckinKind = 'inactive_email' | 'welcome_back' | 'usefulness' | 'feedback' | 'early'
 
 /**
  * What the app can change, offered once someone answers. Riipen Labs Group
@@ -55,6 +71,7 @@ export const ADJUSTMENTS: Record<string, Adjustment[]> = {
     { id: 'start', label: 'Find it with Start here', href: '/start' },
     { id: 'search', label: 'Search ResourceHub', href: '/search', hub: true },
   ],
+  unclear_next: [NEXT_STEP, { id: 'glossary', label: 'What things are called', href: '/help' }],
   just_exploring: [{ id: 'explore', label: 'See what Autinerary has', href: '/start' }],
 }
 

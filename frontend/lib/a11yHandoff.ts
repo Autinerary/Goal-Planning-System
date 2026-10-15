@@ -18,5 +18,9 @@ export function a11yParam(a: Partial<AccessibilitySettings> | undefined): string
   if (a?.dyslexiaFont) t.push('dyslexia')
   if (a?.underlineLinks) t.push('underline')
   if (a?.reduceMotion) t.push('calm')
+  // Soft colours reach ResourceHub too (Riipen Labs, Group 8, who reviewed
+  // ResourceHub: "softer to account for people who may experience increased
+  // sensibility to screens"; Group 16's option).
+  if (a?.softColors) t.push('soft')
   return t.length ? t.join('.') : 'none'
 }

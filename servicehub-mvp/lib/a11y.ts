@@ -17,6 +17,8 @@ const ATTRS: [string, string, string][] = [
   ['dyslexia', 'dyslexiaFont', 'on'],
   ['underline', 'underlineLinks', 'on'],
   ['calm', 'reduceMotion', 'on'],
+  // Soft colours (Riipen Labs, Groups 8 and 16): every colour less bright.
+  ['soft', 'softColors', 'on'],
 ]
 
 /** The cookie value for an ?a11y= value: known tokens only, 'none' if none. */

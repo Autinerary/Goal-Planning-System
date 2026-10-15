@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Languages, Layers, Palette, Maximize, Sparkles, MoveHorizontal, Check, Mail } from 'lucide-react'
+import { Languages, Layers, Palette, Maximize, MoveHorizontal, Check, Mail, Square, Flower2, Zap, PartyPopper, type LucideIcon } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import { useTranslation } from '../context/LanguageContext'
 import { LANGUAGES, type LanguageCode } from '@/lib/i18n'
@@ -25,6 +25,9 @@ import { browserTimeZone } from '@/lib/reminderSchedule'
 import { gaConsent, gaEnabled, setGaConsent } from '@/lib/analytics'
 
 /** Odosa's wording for the four artistic levels, in her order. */
+// A plain icon for each look, in place of emoji (Riipen Labs, Group 9).
+const LOOK_ICONS: Record<ViewPreference, LucideIcon> = { plain: Square, pretty: Flower2, exciting: Zap, fun: PartyPopper }
+
 const VIEW_LEVEL_COPY: Record<ViewPreference, string> = {
   plain: 'Plain',
   pretty: 'Pretty, but not distracting',
@@ -177,11 +180,13 @@ export default function SettingsPreferences() {
       {/* ── Colours / artistic design ──────────────────────────── */}
       <section className="mb-8">
         <label className="flex items-center gap-2 font-semibold text-slate-800 mb-1">
-          <Sparkles className="w-4 h-4 text-cyan-600" /> Colours &amp; artistic design
+          <Palette className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Colours &amp; artistic design
         </label>
         <p className="text-xs text-slate-500 mb-2">How lively the app looks and moves.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {VIEW_PREFERENCES.map((v, i) => (
+          {VIEW_PREFERENCES.map((v, i) => {
+            const LookIcon = LOOK_ICONS[v.id]
+            return (
             <button
               key={v.id}
               onClick={() => update({ viewPreference: v.id })}
@@ -192,7 +197,7 @@ export default function SettingsPreferences() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-lg">{v.emoji}</span>
+                <LookIcon className="h-5 w-5 text-slate-700" aria-hidden="true" />
                 <span
                   className={`text-sm font-semibold ${
                     prefs.viewPreference === v.id ? 'text-cyan-700' : 'text-slate-700'
@@ -202,7 +207,8 @@ export default function SettingsPreferences() {
                 </span>
               </div>
             </button>
-          ))}
+            )
+          })}
         </div>
       </section>
 

@@ -25,12 +25,16 @@ if (!EMAIL || !PASSWORD) {
 const VIEWPORTS = [{ name: 'desktop', width: 1280, height: 900 }, { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true }]
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
-const APP_SIGNED_OUT = ['/', '/signup', '/login', '/privacy', '/checkin']
+// Pages added since the first run (Riipen Labs, Group 12: "Crawl the site
+// for broken links or 404 errors"): Start here, the starter kits, help, the
+// profile pages, Hare World and ResourceHub's community.
+const APP_SIGNED_OUT = ['/', '/signup', '/login', '/privacy', '/checkin', '/start', '/kits', '/kits/assessment', '/kits/school', '/help', '/forgot-password']
 const APP_SIGNED_IN = ['/path', '/calendar', '/tasks', '/races', '/pit-stop', '/reflection', '/profile/settings', '/family', '/path-market',
-  '/ideal-self', '/paths/compare', '/stats', '/tools', '/milestones', '/gamification', '/assistant', '/reels', '/recommend-choices', '/onboarding-confirmation']
-const HUB_SIGNED_OUT = ['/', '/search', '/shop', '/login', '/signup']
+  '/ideal-self', '/paths/compare', '/stats', '/tools', '/milestones', '/gamification', '/assistant', '/reels', '/recommend-choices', '/onboarding-confirmation',
+  '/profile', '/profile/diagnostic', '/profile/accessibility', '/about-me', '/hare-world', '/hare-world/role-models', '/reflection/history', '/help', '/share-your-story']
+const HUB_SIGNED_OUT = ['/', '/search', '/shop', '/login', '/signup', '/community', '/community/guidelines', '/organizations']
 const HUB_SIGNED_IN = ['/', '/search', '/community', '/community/new', '/my-resources', '/notifications', '/profile', '/settings/accessibility',
-  '/settings/sensory', '/shop', '/organizations', '/vouch', '/resources/new', '/onboarding']
+  '/settings/sensory', '/shop', '/organizations', '/vouch', '/resources/new', '/onboarding', '/community/settings']
 
 const links = new Map()      // absolute url -> { texts:Set, pages:Set }
 const deadButtons = new Map() // "page | text" -> viewports

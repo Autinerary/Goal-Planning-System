@@ -17,7 +17,7 @@ import {
   Layers,
   ShieldCheck,
 } from 'lucide-react'
-import Image from 'next/image'
+import LookInside, { type InsideShot } from './components/LookInside'
 import FunnelPing from './components/FunnelPing'
 import MediaPlayer from './components/MediaPlayer'
 import ListenSection from './components/ListenSection'
@@ -108,26 +108,36 @@ const WHAT_YOU_GET = [
 
 // Real screens with a sample plan (Riipen Labs, Group 11: "a short visual
 // tour on the homepage ... so visitors see the result before they start").
-const PREVIEW = [
+// A look inside: one screen at a time, chosen by the visitor (components/
+// LookInside.tsx; Riipen Labs, Group 12's guided demo).
+const PREVIEW: InsideShot[] = [
   {
+    id: 'path',
+    title: 'Your Path',
     src: '/preview/path.jpg',
-    alt: 'The Path on a phone. "Your next step" is "Choose a language to learn", the first of 16 small steps, with an "Open this step" button.',
-    caption: 'Your Path: the next step, one at a time.',
+    alt: 'The Path on a phone, under a top bar with named buttons. "Your next step" is "Choose a language to focus on", the first of 16 small steps, with an "Open this step" button and a note that the steps were written with AI.',
+    detail: 'Your Path shows your next step, one at a time, out of the small steps your goal was broken into. Open it when you are ready.',
   },
   {
+    id: 'step',
+    title: 'A step',
     src: '/preview/step.jpg',
-    alt: 'A step on a phone: "Choose a language to learn", with a short explanation, its progress, and the next steps to take.',
-    caption: 'A step: what to do, in small parts.',
+    alt: 'A step on a phone: "Choose a language to focus on", with a short explanation, its progress, and the next steps to take, starting with "List languages of interest".',
+    detail: 'Each step says what to do in small parts, how far along you are, and what comes next.',
   },
   {
+    id: 'calendar',
+    title: 'Calendar',
     src: '/preview/calendar.jpg',
     alt: 'The calendar on a phone with Low Energy chosen: a schedule for hard days with only critical tasks. Balanced and High Energy are the other choices.',
-    caption: 'The calendar: a lighter plan for low-energy days.',
+    detail: 'Pick how much energy you have: low, balanced or high. On a low-energy day, only what matters most is planned.',
   },
   {
+    id: 'resourcehub',
+    title: 'ResourceHub',
     src: '/preview/resourcehub.jpg',
     alt: 'ResourceHub on a phone: "Find resources rated by people like you, for people like you", a search box, and categories such as Therapists, Schools and Doctors.',
-    caption: 'ResourceHub: services rated by people like you.',
+    detail: 'Search services, places and organisations, rated by people with similar experiences. You can search without an account.',
   },
 ]
 
@@ -160,7 +170,7 @@ const STEPS = [
   {
     icon: ListChecks,
     title: 'Answer a short setup',
-    body: 'Two short questions: who you are here for, and one goal. Then your path is ready, with starter resources for what you need. Low on energy today? Say so, and it stops there. Everything else is optional, and you can add it in the app whenever you like.',
+    body: 'Two short questions: who you are here for, and one goal. Then your path and starter resources are ready. Low on energy today? Say so, and it stops there. The rest is optional, for later.',
   },
   {
     icon: Rocket,
@@ -319,6 +329,21 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          {/* Riipen Labs, Group 12: "It isn't immediately clear how Autinerary
+              differs from established providers like Geneva Centre for Autism
+              or Autism Ontario". Both are in ResourceHub
+              (backend/scripts/add_support_organisations.py). */}
+          <details className="group mt-6 max-w-3xl rounded-xl border border-slate-200 bg-white p-5">
+            <summary className="flex cursor-pointer list-none items-center justify-between font-semibold">
+              How is this different from Autism Ontario or the Geneva Centre for Autism?
+              <ChevronDown className="h-5 w-5 shrink-0 text-slate-600 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </summary>
+            <p className="mt-3 text-slate-700">
+              Organisations like these run programs and services, and Autinerary does not replace them. Autinerary is
+              where you plan: your own goals in small steps, around your energy, and the services that can help, theirs
+              among them, found in ResourceHub and rated by people with similar experiences. It is free during the beta.
+            </p>
+          </details>
         </div>
       </section>
 
@@ -327,29 +352,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl">
           <h2 id="inside-heading" className="text-2xl font-bold md:text-3xl">A look inside</h2>
           <p className="mt-2 text-slate-700">
-            A short tour, then four screens from the app, with a sample plan for the goal &ldquo;Learn a new language&rdquo;.
+            A short video, then four screens from the app to look at one at a time, with a sample plan for the goal &ldquo;Learn a new language&rdquo;.
           </p>
           {/* The explainer video (Group 11: "a 60-90 second captioned video"). */}
           <div className="mt-6 max-w-3xl">
             <MediaPlayer item={EXPLAINER} />
           </div>
-          <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {PREVIEW.map((shot) => (
-              <li key={shot.src}>
-                <figure>
-                  <Image
-                    src={shot.src}
-                    alt={shot.alt}
-                    width={600}
-                    height={1000}
-                    sizes="(min-width: 768px) 240px, 45vw"
-                    className="h-auto w-full rounded-xl border border-slate-300 bg-white shadow-sm"
-                  />
-                  <figcaption className="mt-2 text-sm text-slate-700">{shot.caption}</figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
+          <LookInside shots={PREVIEW} />
         </div>
       </section>
 
@@ -434,9 +443,8 @@ export default function HomePage() {
                 <h3 className="font-semibold">If you support someone</h3>
               </div>
               <p className="mt-2 text-slate-700">
-                Parents, caregivers, siblings, partners, educators, employers and allies can sign up too.
-                Setup starts by asking who you are here for, so your plan is about the person you support. Parents in
-                Ontario get two step-by-step <Link href="/kits" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">starter kits</Link>:
+                Parents, caregivers, family, educators, employers and allies can sign up too, and make a plan about
+                the person they support. Parents in Ontario get two step-by-step <Link href="/kits" className="font-medium text-indigo-800 underline underline-offset-2 hover:text-indigo-950">starter kits</Link>:
                 getting an autism assessment, and support at school. Accounts for people under 18 are not available yet.
               </p>
             </div>
@@ -586,8 +594,8 @@ export default function HomePage() {
                 you were looking for (a plan, services, or advice from others), with starter resources picked from
                 your answers, and shows your first milestone, with an optional short tour that has you try the main
                 parts. You can replay the tour anytime from “How it works” in the top bar (“Guide” on a phone). The
-                optional questions, like your city or sensory needs, are on your Path under “Complete your profile”,
-                one at a time, for whenever you like.
+                optional questions, like your city or sensory needs, are under “Complete your profile” in Profile,
+                for whenever you like, and your Path suggests them one at a time.
               </p>
             </details>
             {/* Riipen Labs' cohort report: "explain where AI is used, what user

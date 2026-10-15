@@ -10,6 +10,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.onboarding_funnel import (  # noqa: E402
+    INSIDE_SCREENS,
+    summarize_look_inside,
+    render_look_inside,
+    EARLY_PREFIX,
+    EARLY_REASONS,
     AUDIENCE_LABELS,
     CURRENT_VERSION,
     START_EVENTS,
@@ -1004,7 +1009,7 @@ class ExpressSetupTests(unittest.TestCase):
     def test_the_version_matches_the_app(self):
         ts = (REPO / "frontend/lib/funnel.ts").read_text()
         self.assertIn(f"export const ONBOARDING_VERSION = '{CURRENT_VERSION}'", ts)
-        self.assertEqual(CURRENT_VERSION, "clear-2026-10")
+        self.assertEqual(CURRENT_VERSION, "guided-2026-10")
 
     def test_return_within_thirty_days(self):
         signup = "2026-10-01T09:00:00+00:00"
@@ -1471,3 +1476,79 @@ class ClearVersionTests(unittest.TestCase):
         text = render_first_weeks(s)
         self.assertRegex(text, r"asked for them +6")
         self.assertRegex(text, r"opened a link in one +<5")
+
+
+class DayThreeCheckinTests(unittest.TestCase):
+    """Group 12's day-3 question (STEP 76), and day 7's usefulness kept apart."""
+
+    ROWS = [
+        {"user_id": "a", "kind": "early", "reason": "going_fine", "usefulness": None, "comment": None},
+        {"user_id": "b", "kind": "early", "reason": "too_much", "usefulness": None, "comment": "a lot at once"},
+        # Before STEP 76: kept as text on a usefulness check-in.
+        {"user_id": "c", "kind": "usefulness", "reason": None, "usefulness": None,
+         "comment": EARLY_PREFIX + "I’m not sure what to do next. Where do I start?"},
+        {"user_id": "d", "kind": "usefulness", "reason": None, "usefulness": "very", "comment": None},
+    ]
+
+    def test_counts_day_three_and_keeps_it_out_of_usefulness(self):
+        c = summarize_checkins(self.ROWS)
+        self.assertEqual(c["day3"], 3)
+        self.assertEqual(dict(c["day3_reasons"]), {"going_fine": 1, "too_much": 1, "unclear_next": 1})
+        self.assertEqual(c["useful"], 1)
+        self.assertEqual(dict(c["usefulness"]), {"very": 1})
+        text = render_checkins(c, show_comments=False)
+        self.assertIn("Day 3: how is it going?", text)
+        self.assertRegex(text, r"I’m not sure what to do next +1")
+        self.assertIn("from day 7", text)
+
+    def test_day_three_answers_match_the_app_and_the_migration(self):
+        ts = (REPO / "frontend/lib/checkin.ts").read_text()
+        sql = (REPO / "backend/database/migrations/2026_early_checkin.sql").read_text()
+        route = (REPO / "frontend/app/api/checkin/route.ts").read_text()
+        for key, label in EARLY_REASONS:
+            # Same id and the same words, since an answer kept as text is read back by its label.
+            self.assertIn(f"{{ id: '{key}', label: '{label}' }}", ts)
+            self.assertIn(f"'{key}'", sql)
+        self.assertIn("'early'", sql)
+        self.assertIn(f"`{EARLY_PREFIX}", route)
+
+
+class GuidedVersionTests(unittest.TestCase):
+    """Riipen Labs, Groups 8 to 14 (guided-2026-10): the look inside and the
+    age of the person someone supports in Start here (Group 12)."""
+
+    def _ev(self, visitor, event, at, step=None):
+        return {"visitor_id": visitor, "user_id": None, "event": event, "step": step, "created_at": at,
+                "onboarding_version": CURRENT_VERSION}
+
+    def test_look_inside_counts_browsers_and_how_far_they_went(self):
+        events = [self._ev(f"v{i}", "feature_use", "2026-10-15T10:00:00+00:00", "inside_step") for i in range(6)]
+        events += [self._ev(f"v{i}", "feature_use", "2026-10-15T10:01:00+00:00", "inside_calendar") for i in range(5)]
+        events += [self._ev(f"v{i}", "feature_use", "2026-10-15T10:02:00+00:00", "inside_resourcehub") for i in range(5)]
+        events += [self._ev("v0", "feature_use", "2026-10-15T10:03:00+00:00", "inside_path"),
+                   self._ev("x", "feature_use", "2026-10-15T10:03:00+00:00", "display_dark")]   # not the look inside
+        d = summarize_look_inside(events)
+        self.assertEqual(d["browsers"], 6)
+        self.assertEqual(d["by_screen"], {"inside_path": 1, "inside_step": 6, "inside_calendar": 5, "inside_resourcehub": 5})
+        # The first screen shows on its own, so five saw all four and one saw two.
+        self.assertEqual(d["how_many"], {1: 0, 2: 1, 3: 0, 4: 5})
+        text = render_look_inside(d)
+        self.assertRegex(text, r"A step +6")
+        self.assertIn("all 4: 5", text)
+
+    def test_look_inside_screens_match_the_app(self):
+        funnel = (REPO / "frontend/lib/funnel.ts").read_text()
+        page = (REPO / "frontend/app/page.tsx").read_text()
+        for key, _ in INSIDE_SCREENS:
+            self.assertIn(f"'{key}'", funnel)
+            self.assertIn(f"id: '{key.removeprefix('inside_')}'", page)
+
+    def test_age_answers_are_counted(self):
+        events = [self._ev(f"a{i}", "start_pathway", "2026-10-15T10:00:00+00:00", "child.services") for i in range(6)]
+        events += [self._ev(f"a{i}", "start_refine", "2026-10-15T10:01:00+00:00", "age.6to12") for i in range(5)]
+        events += [self._ev("a5", "start_refine", "2026-10-15T10:01:00+00:00", "age.adult")]
+        s = summarize_start_refine(events)
+        self.assertEqual(s["answered"], 6)
+        self.assertEqual(s["answers"]["age.6to12"], 5)
+        self.assertRegex(render_start_refine(s), r"Age of who they support: +under 6 0, 6 to 12 5 \(83%\), 13 to 17 0, 18 or older <5")
+

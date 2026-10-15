@@ -2,7 +2,7 @@
 //   node --experimental-strip-types lib/starterKits.test.mjs
 import assert from 'node:assert/strict'
 import { STARTER_KITS, starterKit, kitDate, KIT_AUDIENCES } from './starterKits.ts'
-import { orderForAnswers, REFINE_QUESTIONS, PATHWAY_ITEM_IDS, suggestedStart, START_GOALS } from './startHere.ts'
+import { orderForAnswers, REFINE_QUESTIONS, refineQuestionsFor, PATHWAY_ITEM_IDS, suggestedStart, START_GOALS } from './startHere.ts'
 
 assert.deepEqual(STARTER_KITS.map((k) => k.id), ['assessment', 'school'])
 for (const kit of STARTER_KITS) {
@@ -30,7 +30,11 @@ assert.deepEqual(orderForAnswers(items, {}).map((i) => i.id), ['autism', 'therap
 assert.deepEqual(orderForAnswers(items, { how: 'talk' }).map((i) => i.id), ['tidbits', 'autism', 'therapists', 'book'])
 assert.deepEqual(orderForAnswers(items, { soon: 'today' }).map((i) => i.id), ['therapists', 'autism', 'tidbits', 'book'])
 assert.equal(orderForAnswers(items, { how: 'read', soon: 'exploring' }).length, 4)
-assert.equal(REFINE_QUESTIONS.length, 3) // with the two first questions, Group 21's five
+assert.equal(REFINE_QUESTIONS.length, 4)
+// For yourself three, with the two first questions Group 21's five; for someone
+// supporting another person, their age first (Group 12).
+assert.deepEqual(refineQuestionsFor('self').map((q) => q.id), ['where', 'soon', 'how'])
+assert.deepEqual(refineQuestionsFor('child').map((q) => q.id), ['age', 'where', 'soon', 'how'])
 assert.ok(PATHWAY_ITEM_IDS.includes('kit_assessment') && PATHWAY_ITEM_IDS.includes('kit_school'))
 // A parent's needs from setup lead to the right starter resources.
 assert.equal(suggestedStart('child', ['school']).need, 'school_work')

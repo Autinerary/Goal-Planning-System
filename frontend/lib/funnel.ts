@@ -30,10 +30,13 @@ import { gaEvent } from '@/lib/analytics'
 // milestone and norms where they first appear, AI named where it works and
 // not on every label, a calmer page after setup with the reminder and
 // notification questions after a first step, and a greeting that does what
-// each channel's visitors look for (Groups 15 to 19). The funnel report
+// each channel's visitors look for (Groups 15 to 19). guided-2026-10: a look
+// inside the app chosen one screen at a time, the age of the person someone
+// supports in Start here, a first action for neurodivergent adults after
+// setup, and a day-3 question in the app (Groups 8 to 14). The funnel report
 // compares them by this (before and after, which Groups 26, 28 and 29 asked
 // for).
-export const ONBOARDING_VERSION = 'clear-2026-10'
+export const ONBOARDING_VERSION = 'guided-2026-10'
 
 export type FunnelEvent =
   | 'landing_view'
@@ -119,7 +122,10 @@ export const DISPLAY_CHOICE_IDS = [
 ] as const
 // And "Share this list" in Start here (Group 15: someone who "recommends or
 // shares Autinerary" by day 14).
-export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat', 'life_areas', 'page_guide', 'not_found', 'share_list', ...DISPLAY_CHOICE_IDS]
+// A look inside on the home page, each screen opened (components/LookInside.tsx;
+// Riipen Labs, Group 12: "how many users went through the demo, where it drops off").
+export const INSIDE_IDS = ['inside_path', 'inside_step', 'inside_calendar', 'inside_resourcehub']
+export const ACTION_IDS = ['goal_helper', 'goal_helper_pick', 'setup_chat', 'life_areas', 'page_guide', 'not_found', 'share_list', ...DISPLAY_CHOICE_IDS, ...INSIDE_IDS]
 
 // The tour's tasks (app/components/InteractiveDemo.tsx), and what its events'
 // steps may be. Listed in backend/scripts/onboarding_funnel.py (TOUR_TASKS).
@@ -130,7 +136,7 @@ export const AREA_IDS = [...AREAS.map(([, id]) => id), 'tidbits', 'resourcehub',
 // Setup's energy check-in, and Start here's optional questions (STEP 71).
 export const SETUP_ENERGY_IDS = ['low', 'some', 'plenty'] as const
 export const SETUP_ENERGY_STEP = new RegExp(`^(${SETUP_ENERGY_IDS.join('|')})$`)
-export const START_REFINE_STEP = /^(where\.(ontario|canada|outside)|soon\.(today|week|exploring)|how\.(read|talk|place|plan))$/
+export const START_REFINE_STEP = /^(age\.(under6|6to12|13to17|adult)|where\.(ontario|canada|outside)|soon\.(today|week|exploring)|how\.(read|talk|place|plan))$/
 
 export function areaFor(pathname: string, search = ''): string | null {
   if (pathname === '/go/servicehub') {

@@ -12,7 +12,7 @@ how it is measured.
 | Group 8 found | Now |
 | --- | --- |
 | Five steps (Welcome, Location, Norms, Impact, Context) before any resource | Three steps: who you are, one topic and what you hope to find, then "Here's a place to start" with real places |
-| Location said "private and optional", but all three fields were required | Not asked in setup. It is asked where it is used: the home page, search ("Set your location to see places near you first") and the profile. It is optional everywhere |
+| Location said "private and optional", but all three fields were required | Not asked in setup. It is asked where it is used: the home page, search ("Set your location to see places near you first") and the profile. It is optional everywhere, and since 15 October **Remove** on the profile takes it off |
 | Impact repeated the severity slider from Norms | Gone from setup. It weighs recommendations and groups ratings by level, so it moved rather than vanished, as Group 8 advised: the profile asks "how much does it affect daily life?" for each topic, optionally and in words ("A little", "A lot"). An answer not given counts as the middle, as it always did for ratings. The Context step's life stage, goals and notes were never saved, so they are gone |
 | Identity, health and disability asked up front | On the profile, under "More about you (optional)", where any answer can be changed or removed |
 | Surrey, BC got Montreal results (3,675 km away) with no distance shown | With a location and no sort chosen, search shows places within 50 km first, nearest first, under "Near Surrey, BC", with each distance. Then "Broader options": organisations for your province or all of Canada (they have no map point, so AutismBC comes before Autism Ontario for someone in Surrey), then farther places, nearest first. When nothing is within 50 km, it says so and offers "Change location"; when only one or two are, it says how few. The distance filter says where distances are measured from ("From Surrey, BC · Change"). "Near <city>" on the home page uses coordinates too; it used to look at an arbitrary 200 of 9,561 places by city name |
@@ -67,7 +67,11 @@ show as "<5".
   testers to rate places they know is what fills this in.
 - **Goal Planning accounts.** People who sign up in Goal Planning and then
   open ResourceHub do not see ResourceHub's setup, since they have already
-  answered Goal Planning's. "For you" asks them for a topic instead.
+  answered Goal Planning's. "For you" asks them for a topic instead. Since 15
+  October their profile shows a role from the app's "Who are you here for?"
+  (read only: the database's role also holds the team's roles, STEP 68), and
+  ResourceHub's menu "Sign up" makes the same Autinerary account as its
+  sign-in page, so there is one way in ([groups-8-14.md](groups-8-14.md)).
 - **Testing.** Group 8 said its findings are "directional", from walkthroughs
   and research. The beta plan includes a session task for ResourceHub's setup.
 

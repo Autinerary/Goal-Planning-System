@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { Check, ListChecks } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -18,16 +18,19 @@ import { HOW_TO, lengthLabel } from '@/lib/media'
  * Path already points to.
  *
  * It waits its turn in the Path's one-card slot (app/path/page.tsx): shown
- * only when no check-in, skipped setup question or offer to show more is
- * waiting, and gone once all three are done or it is hidden.
+ * only when no check-in or offer to show more is waiting, and gone once all
+ * three are done or it is hidden, when `fallback` (the "Complete your
+ * profile" card) takes the slot. Things to do come before things to fill in
+ * (Riipen Labs, Group 15: "one concrete, useful action before any friction").
  */
 
 const HIDE_KEY = 'autinerary_starter_checklist_hidden'
 // Set by the calendar when someone chooses its Low Energy day.
 export const LOW_ENERGY_TRIED_KEY = 'autinerary_tried_low_energy'
 
-export default function StarterChecklist({ stepsDone }: { stepsDone: number }) {
+export default function StarterChecklist({ stepsDone, fallback }: { stepsDone: number; fallback?: ReactNode }) {
   const { supabaseUser } = useAuth()
+  const [ready, setReady] = useState(false)
   const [hidden, setHidden] = useState(true)
   const [lowEnergy, setLowEnergy] = useState(false)
   const [saved, setSaved] = useState<boolean | null>(null)
@@ -39,6 +42,7 @@ export default function StarterChecklist({ stepsDone }: { stepsDone: number }) {
     } catch {
       setHidden(false)
     }
+    setReady(true)
   }, [])
 
   // Saved in ResourceHub, which shares the account and the database.
@@ -79,7 +83,12 @@ export default function StarterChecklist({ stepsDone }: { stepsDone: number }) {
     },
   ]
 
-  if (hidden || saved === null || items.every((i) => i.done)) return null
+  // Nothing until this browser's choices are read, so the next card never
+  // flashes up first; then the checklist, or the next card when it is done.
+  if (!ready) return null
+  if (hidden) return <>{fallback}</>
+  if (saved === null) return null
+  if (items.every((i) => i.done)) return <>{fallback}</>
   const doneCount = items.filter((i) => i.done).length
 
   const hide = () => {

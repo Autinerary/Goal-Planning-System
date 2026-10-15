@@ -53,10 +53,15 @@ cd ../backend && ./venv/bin/python -m unittest discover -s tests
 7. **Ask for the first two weeks' emails** on a new account, then open a
    Tidbits post with a content note: the note should show first, and the
    post only when chosen. (Group 15.)
-8. **Run the accessibility checker** against the build:
+8. **On a phone, go through setup**: the first question shows without
+   scrolling, and "Continue" opens the goal step at its card with the goal
+   ideas on screen. On the home page, go through "A look inside" with the
+   keyboard (arrow keys move between the screens). (Groups 12 to 14.)
+9. **Run the accessibility checker** against the build:
    `node scripts/qa/check-accessibility.mjs` (see its header for the
-   signed-in pages). It exits 1 on a serious or critical problem.
-9. **Look at the funnel report** after the first testers
+   signed-in pages, ResourceHub's included). It exits 1 on a serious or
+   critical problem.
+10. **Look at the funnel report** after the first testers
    (`python -m scripts.onboarding_funnel` in `backend/`), comparing the new
    onboarding version with the one before.
 

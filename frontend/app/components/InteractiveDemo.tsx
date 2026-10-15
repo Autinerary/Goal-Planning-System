@@ -45,6 +45,8 @@ interface DemoFeature {
   desc: string
   /** Where it is on the page (a CSS selector): "Show me" points at it. */
   target?: string
+  /** What "Show me" says when it is not on the page just now. */
+  missing?: string
 }
 
 interface DemoTask {
@@ -146,7 +148,8 @@ const STEPS: DemoStep[] = [
     connects: 'Each answer changes what you see: your city finds services near you, your character stands on your race track.',
     features: [
       { name: 'Display', desc: 'Light or dark, text size, contrast, and how lively it looks.', target: '[data-tour="display"]' },
-      { name: 'Complete your profile', desc: 'Your city, what motivates you, your norms, your character and more. All optional.', target: 'section[aria-labelledby="profile-card-heading-path"]' },
+      // The Path shows one card at a time: this one after "Getting started".
+      { name: 'Complete your profile', desc: 'Your city, what motivates you, your norms, your character and more. All optional.', target: 'section[aria-labelledby="profile-card-heading-path"]', missing: 'Complete your profile shows here once “Getting started” is done or hidden. All its questions are in Profile, in the top bar, any time.' },
       { name: 'Suggestions for each step', desc: 'Ideas for each step of your plan, written with AI, with ratings from people who used them.', target: '[data-tour="ai-suggestions"]' },
     ],
     task: {
@@ -222,7 +225,7 @@ export default function InteractiveDemo() {
   const showMe = (f: DemoFeature) => {
     const el = f.target ? document.querySelector(f.target) : null
     if (!el) {
-      setNote(`${f.name} isn’t on this screen right now.`)
+      setNote(f.missing || `${f.name} isn’t on this screen right now.`)
       return
     }
     setNote('')

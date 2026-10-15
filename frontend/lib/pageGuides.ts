@@ -36,7 +36,7 @@ const GUIDES: [RegExp, PageGuide][] = [
       'Open your next step to see what to do, and the tools that can help.',
       'Use Quick Links for the places you use most; “All places” lists everything.',
       'Display changes how the app looks. “Show more” adds more to this page, and “Simplify” takes it away again.',
-      '“Complete your profile” has optional questions that make suggestions fit you. Answer them whenever you like.',
+      '“Getting started” has a few things to try first. After it, “Complete your profile” has optional questions that make suggestions fit you; they are in Your profile too.',
     ],
     connects: 'Each step you tick off in Races brings up the next one here.',
     tourPart: 1,

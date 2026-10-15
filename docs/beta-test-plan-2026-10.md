@@ -299,8 +299,10 @@ What participants will see, in order:
 4. Optional questions they skipped come back on the Path, one group at a
    time: location first, sensory needs and conditions from day 7, the
    personal touches from day 10.
-5. After five days of use, or on a return visit in the second week (and
-   after the existing feedback form): "Is Autinerary useful to you so far?"
+5. On days 3 to 6 after signing up, on a return visit (and after the
+   existing feedback form): "How is it going so far?"; from day 7: "Is
+   Autinerary useful to you so far?" (since 15 October; Group 12's day 3
+   and day 7).
 6. Anyone who comes back after two weeks away: "Welcome back, what got in the
    way?" Anyone who opted in and stays away two weeks gets the same question
    once, by email and/or notification, answerable without signing in.
