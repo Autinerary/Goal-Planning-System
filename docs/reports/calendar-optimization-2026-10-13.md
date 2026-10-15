@@ -11,7 +11,7 @@ order from `main`:
 | 3 | `feat/calendar-3-feedback` |
 | 4 | `feat/calendar-4-run-log` |
 
-Nothing is pushed, deployed or applied.
+Merged into main and deployed on 15 October 2026, with every flag off.
 
 Numbers come from `python -m scripts.calendar_audit` (from backend/), run on
 13 October against the production database.

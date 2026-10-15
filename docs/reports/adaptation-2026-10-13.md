@@ -12,7 +12,7 @@ Analysis's output:
 | 4 | `feat/adaptation-4-helped` |
 | 5 | `feat/adaptation-5-run-log` |
 
-Nothing is pushed, deployed or applied.
+Merged into main and deployed on 15 October 2026, with every flag off.
 - **No adaptation was applied to anyone's stored path while testing:** fixtures
   and local databases only.
 - **No bandit or learning policy.**

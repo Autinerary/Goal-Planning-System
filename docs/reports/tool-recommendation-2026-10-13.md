@@ -11,7 +11,7 @@ the previous item's branch:
 | 3 | `report/tool-rec-3-feedback` (no feature built: one already exists) |
 | 4 | `feat/tool-rec-4-run-log` |
 
-Nothing is pushed, deployed or applied.
+Merged into main and deployed on 15 October 2026, with every flag off.
 
 Every number comes from `python -m scripts.tool_rec_audit` (from backend/),
 run on 13 October against the production database, unless it says otherwise.

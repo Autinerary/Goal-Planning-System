@@ -7803,8 +7803,8 @@ COMMENT ON COLUMN public.adaptation_outcomes.helped_second IS
 -- is unchanged. Until this is applied, a post asked with a note is saved
 -- without it, and nothing else changes.
 --
--- STEPs 72 to 74 are written on the agent branches (schedule feedback,
--- adaptation offers), not yet merged; this one does not depend on them.
+-- STEPs 72 to 74 (schedule feedback, adaptation offers) came with the
+-- agent work, merged on 15 October; this one does not depend on them.
 -- Run after STEP 71. Idempotent. Safe to re-run.
 -- =====================================================================
 

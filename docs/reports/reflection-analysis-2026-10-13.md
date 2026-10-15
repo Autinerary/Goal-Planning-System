@@ -11,7 +11,7 @@ from `main`:
 | 3 | `feat/reflection-3-no-data` |
 | 4 | `feat/reflection-4-evaluation` |
 
-Nothing is pushed, deployed or applied.
+Merged into main and deployed on 15 October 2026, with every flag off.
 - **Tested** with fixtures and local databases only. No real person's data
   was written or changed.
 - **Production was only read,** for counts.

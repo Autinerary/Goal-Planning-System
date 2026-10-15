@@ -303,7 +303,7 @@ visits from them.
 - **STEP 75** (`backend/database/migrations/2026_tidbits_content_notes.sql`),
   the content note on Tidbits posts, was applied and checked live on 15
   October (`scratchpad/browser/step75_live.mjs`, 14 checks). STEPs 72 to 74
-  are on the agent branches, not yet merged.
+  came with the agent work, merged on 15 October.
 - **A designer (Groups 16 and 18).** Group 18: "a UI/UX designer ... to lead
   the redesign and visual audit"; Group 16: "design experts with experience
   in designing for neurodivergent users". The next pass is Races, Pit Stop
