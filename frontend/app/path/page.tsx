@@ -31,6 +31,7 @@ import PausedBanner from '../components/PausedBanner'
 import SupportNotesCard from '../components/SupportNotesCard'
 import Define from '../components/Define'
 import PickUpWhereYouLeftOff from '../components/PickUpWhereYouLeftOff'
+import SuggestedChanges from '../components/SuggestedChanges'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
@@ -179,6 +180,13 @@ try {
     })
     return () => { cancelled = true }
   }, [supabaseUser?.id, pathData?.id])
+
+  // After an accepted suggested change (Adaptation, STEP 73), show the plan as it is now.
+  const reloadPath = async () => {
+    if (!pathData?.id) return
+    const res = await fetch(`${API_URL}/api/onboarding/path/${pathData.id}`, { cache: 'no-store', headers: await backendAuthHeaders() })
+    if (res.ok) setPathData(await res.json())
+  }
 
   // Switch the active path and reload it into the view.
   const handleSwitchPath = async (newPathId: string) => {
@@ -552,6 +560,10 @@ useEffect(() => {
             )}
           </section>
         )}
+
+        {/* Suggested changes, each naming one step (Adaptation, STEP 73): off
+            unless NEXT_PUBLIC_ADAPTATION_OFFERS_ENABLED. Only Accept changes the plan. */}
+        {pathData?.id && <SuggestedChanges pathId={pathData.id} onChanged={reloadPath} />}
 
         {/* ── Quick Links, with All places under them (components/QuickLinks.tsx) ── */}
         <QuickLinks audience={prefs.audience} startPath={Boolean(prefs.startPath)} simple={isSimple} />

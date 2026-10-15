@@ -1,6 +1,13 @@
 """
 Agent 4: Reflection Analysis Agent
 Analyzes journals and reflections to learn from user experience
+
+Since 13 October 2026 what Adaptation reads is analyze_person: a
+deterministic analysis of a person's journal entries, milestone ratings and
+completions (core/reflection_analysis.py). analyze_reflection below, the
+per-entry text analysis (with the model when one is configured, and constant
+progress figures), is no longer called by the adaptation graph.
+
 SIMULATION MODE: Uses keyword-based sentiment and pattern detection
 
 Learning: the `coupled_events` dict below is the agent's starting belief about
@@ -11,10 +18,12 @@ fine-tuning cost. See backend/core/learning.py and the
 2026_reflection_learning.sql migration.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
 from core import llm, learning
+from core import reflection_analysis
+from database.supabase_client import get_supabase
 import re
 
 class ReflectionAnalysisAgent(BaseAgent):
@@ -106,7 +115,33 @@ class ReflectionAnalysisAgent(BaseAgent):
     async def cleanup(self):
         """Cleanup resources"""
         self.initialized = False
-    
+
+    async def analyze_person(
+        self,
+        user_id: str,
+        path_id: Optional[str] = None,
+        current_entry: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """What this person's own records say: the analysis Adaptation reads.
+
+        Deterministic, no model (core/reflection_analysis.py). Computed from
+        their journal entries, milestone ratings and completions each time
+        it is asked for; current_entry is a journal entry being written now.
+        Someone with no entries and no ratings gets status "no_data".
+        """
+        sb = get_supabase()
+        result = reflection_analysis.analyze_person(
+            sb, user_id, path_id=path_id, current_entry=current_entry,
+        )
+        # Optional, off by default: themes from their own words, by the model.
+        if reflection_analysis.themes_enabled() and result.get('status') == 'ok':
+            try:
+                result['themes'] = await reflection_analysis.themes(
+                    reflection_analysis.recent_entries(sb, user_id, current_entry))
+            except Exception as e:
+                print(f"[reflection_analysis] themes skipped: {e}")
+        return result
+
     async def analyze_reflection(
         self,
         reflection_data: Dict[str, Any],

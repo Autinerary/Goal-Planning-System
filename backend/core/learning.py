@@ -164,8 +164,18 @@ def persist_reflection(
     if supa is None or uid is None:
         return None
 
+    # Only what was computed, never a stand-in: the analysis
+    # (core/reflection_analysis.py) has no sentiment, and its completion rate
+    # is None while it is unknown. These columns used to get 0.5 whenever a
+    # value was missing, and the agent's constant 0.65 otherwise.
     sentiment = (reflection_response or {}).get("sentiment", {}) or {}
-    progress = (reflection_response or {}).get("progress", {}) or {}
+    completion = (reflection_response or {}).get("completion", {}) or {}
+
+    def number(value: Any) -> Optional[float]:
+        try:
+            return float(value) if value is not None else None
+        except (TypeError, ValueError):
+            return None
 
     row = {
         "user_id": uid,
@@ -174,8 +184,8 @@ def persist_reflection(
         "questions": questions or [],
         "free_form_text": free_form_text,
         "sentiment_label": sentiment.get("label"),
-        "sentiment_score": float(sentiment.get("score", 0.5) or 0.5),
-        "completion_rate": float(progress.get("completion_rate", 0.5) or 0.5),
+        "sentiment_score": number(sentiment.get("score")),
+        "completion_rate": number(completion.get("rate")),
         "reward_signal": float(reward_signal),
         "reflection_response": reflection_response or {},
         "adaptation_response": adaptation_response or {},

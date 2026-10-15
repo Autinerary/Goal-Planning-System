@@ -12,10 +12,11 @@ Both pieces fall back to the original hardcoded behavior when Supabase isn't
 configured.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from core.agents.base_agent import BaseAgent
 from core.config import Config
 from core import llm, learning
+from core import adaptation_rules
 
 class AdaptationAgent(BaseAgent):
     """Adapts paths based on user progress and feedback"""
@@ -101,11 +102,27 @@ class AdaptationAgent(BaseAgent):
         self,
         user_id: str,
         path_id: str,
-        reflection_insights: Dict[str, Any],
-        current_progress: Dict[str, Any]
+        reflection_insights: Optional[Dict[str, Any]] = None,
+        current_progress: Optional[Dict[str, Any]] = None,
+        analysis: Optional[Dict[str, Any]] = None,
+        path: Optional[Dict[str, Any]] = None,
+        done_ids: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Adapt the path based on insights and progress"""
-        
+
+        # The rules read Reflection Analysis's whole analysis
+        # (core/reflection_analysis.py, core/adaptation_rules.py): a completion
+        # rate computed from stored milestone completions, unknown until two
+        # are due, and nothing at all when there is no data. Each suggestion
+        # names one milestone of the person's active path; nothing is applied.
+        if analysis is not None:
+            path_id = (analysis.get('completion') or {}).get('path_id')
+            if path_id and (path is None or done_ids is None):
+                path, done_ids = self._load(user_id, path_id)
+            return self._from_analysis(analysis, path_id, path, done_ids or [])
+
+        reflection_insights = reflection_insights or {}
+        current_progress = current_progress or {}
         adaptations = []
 
         # Keep thresholds on curated defaults until feedback identifies the
@@ -205,6 +222,57 @@ class AdaptationAgent(BaseAgent):
             'explanation': explanation
         }
     
+    @staticmethod
+    def _load(user_id: str, path_id: str):
+        """The person's stored path and completed milestone ids. Read only."""
+        from database.supabase_client import get_supabase
+        from core.reflection_analysis import UUID
+        sb = get_supabase()
+        if sb is None or not UUID.match(str(user_id or '')):
+            return None, []
+        try:
+            rows = (sb.table('user_paths').select('payload').eq('user_id', user_id).eq('path_id', path_id)
+                    .limit(1).execute().data or [])
+            payload = rows[0].get('payload') if rows else None
+            if isinstance(payload, str):
+                import json
+                payload = json.loads(payload)
+            done = (sb.table('race_progress').select('milestone_id').eq('user_id', user_id)
+                    .eq('kind', 'completed').execute().data or [])
+            return payload, [str(d['milestone_id']) for d in done if d.get('milestone_id')]
+        except Exception as e:
+            print(f"[adaptation] path unavailable: {e}")
+            return None, []
+
+    @staticmethod
+    def _from_analysis(analysis: Dict[str, Any], path_id: Optional[str] = None,
+                       path: Optional[Dict[str, Any]] = None, done_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Suggestions, each naming one milestone; a rule that can't name one produces nothing."""
+        fired = adaptation_rules.decide(analysis)
+        named = adaptation_rules.suggestions(analysis, path, path_id, done_ids or [])
+        unnamed = [f['rule'] for f in fired if f['rule'] not in {s['rule'] for s in named}]
+        if analysis.get('status') != 'ok':
+            explanation = 'No change: there is no journal entry or rating to go on yet.'
+        elif not named:
+            explanation = 'No change: nothing in the analysis names a step to change.'
+        else:
+            explanation = f"{len(named)} suggested change{'' if len(named) == 1 else 's'}, to offer, not to apply."
+        return {
+            'adaptations': named,
+            'unnamed_rules': unnamed,
+            'barrier_adjustments': [],
+            'updated_milestones': [],
+            'updated_tasks': [],
+            'updated_path': None,
+            'updated_races': [],
+            'needs_calendar_update': False,
+            # Nothing is measured about these, so no confidence is given.
+            'confidence': None,
+            'analysis_version': analysis.get('version'),
+            'analysis_status': analysis.get('status'),
+            'explanation': explanation,
+        }
+
     async def _adapt_for_low_completion(
         self,
         path_id: str,

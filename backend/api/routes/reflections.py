@@ -138,6 +138,9 @@ async def create_reflection(
         "contextType": request.contextType,
         "contextId": request.contextId,
         "user_profile": {},  # filled when we have a real user lookup
+        # The answer to "Did this suggestion help you?", so the analysis
+        # counts this entry's outcome (core/reflection_analysis.py).
+        "learningFeedback": request.learningFeedback.model_dump() if request.learningFeedback else None,
     }
 
     # 1. Run reflection_analysis + adaptation (+ optional calendar) via
@@ -173,35 +176,31 @@ async def create_reflection(
         await learning.close_previous_adaptation_loops(user_id, reward)
         if learning_enabled else 0
     )
+    # Keep the entry's own answer with it. Only its reward was stored, and
+    # "no change", "not sure" and no answer all store 0, so the outcomes
+    # recorded couldn't be counted.
+    stored_response = {
+        **reflection_response,
+        "explicitFeedback": feedback.model_dump() if feedback else None,
+    }
     reflection_id = learning.persist_reflection(
         user_id=user_id,
         context_type=request.contextType,
         context_id=request.contextId,
         questions=request.questions,
         free_form_text=request.freeFormText,
-        reflection_response=reflection_response,
+        reflection_response=stored_response,
         adaptation_response=adaptation_response,
         reward_signal=reward,
         indicators=indicators,
     )
     # Deliberately do not update learned_patterns from reflection-agent output.
 
-    # 5. Record each adaptation rule that fired so it can be rewarded by the
-    #    NEXT reflection.
+    # 5. A rule that fires is not an adaptation: nothing is changed unless
+    #    the person accepts it when it is offered, and offers are recorded
+    #    where they are made (api/routes/adaptations.py). Logging fired rules
+    #    here fed a threshold policy, and there is none this round.
     rules_logged = 0
-    for adapt in (adaptation_response.get("adaptations", []) or []):
-        if not learning_enabled:
-            break
-        rule = adapt.get("type") or adapt.get("rule") or "unknown"
-        threshold = adapt.get("threshold_used")
-        ok = await learning.record_adaptation_outcome(
-            user_id=user_id,
-            reflection_id=reflection_id,
-            rule_fired=str(rule),
-            threshold_used=threshold,
-        )
-        if ok:
-            rules_logged += 1
 
     # 5b. Close the universal-agent feedback loops.
     #     The orchestrator snapshotted (profile_signature, milestone_count,
@@ -297,7 +296,7 @@ async def create_reflection(
         "contextType": request.contextType,
         "contextId": request.contextId,
         "contextName": f"{request.contextType.capitalize()} Reflection",
-        "sentiment": (reflection_response.get("sentiment") or {}).get("label", "neutral"),
+        "sentiment": (reflection_response.get("sentiment") or {}).get("label"),
         "summary": summary or "Reflection recorded",
         "questions": [
             {"q": q.get("question", ""), "a": q.get("answer", "")}
@@ -315,7 +314,8 @@ async def create_reflection(
     return ReflectionResponse(
         reflectionId=reflection_id or "in-memory",
         insights=reflection_response.get("insights", {}) or {
-            "sentiment": (reflection_response.get("sentiment") or {}).get("label", "neutral"),
+            "sentiment": (reflection_response.get("sentiment") or {}).get("label"),
+            "analysis": reflection_response.get("status"),
         },
         adaptations=adaptation_response or None,
         reward=reward,
