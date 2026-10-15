@@ -316,7 +316,8 @@ or a rating, so these 61 get nothing.
   is turned on.
 
 **Offers recorded:** none. STEP 73 and STEP 74 are not applied, and the flags
-are off.
+are off. (Update, 15 October 2026: both were applied and checked live, 13
+checks with STEP 72, nothing stored; the flags are still off.)
 
 **One row**, logged in a local Postgres:
 

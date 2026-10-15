@@ -319,7 +319,8 @@ local Postgres that has STEP 61's table:
   made: in all 80, only the ADHD rules ever ran. The autism and OCD rules
   that real users' latest paths show (3 and 1) are in legacy paths.
 - **`real_feedback_answers`** will count yes and no once STEP 72 is applied
-  and the flags are on.
+  and the flags are on. (Update, 15 October 2026: STEP 72 was applied and
+  checked live; the flags are still off.)
 - **`condition_map_hash`** is `TAXONOMY_VERSION` from
   `core/condition_taxonomy.py`.
 
