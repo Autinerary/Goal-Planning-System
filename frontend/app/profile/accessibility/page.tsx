@@ -6,6 +6,7 @@ import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palet
 import { usePreferences } from '../../context/usePreferences'
 import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
 import { SPEECH_RATES, SPEECH_VOLUMES, loadVoices, speak, speechSupported, voicesFor } from '@/lib/speech'
+import ColourSettings from '../../components/ColourSettings'
 
 const FONT_SCALES: { id: FontScale; label: string; sample: string }[] = [
   { id: 'default', label: 'Default', sample: 'Aa' },
@@ -40,8 +41,6 @@ export default function AccessibilitySettingsPage() {
   }[] = [
     { key: 'darkMode', label: 'Dark mode (experimental)', desc: 'Light text on a dark background. Photos and characters keep their colours; some emoji and colours may look different.', icon: Moon },
     { key: 'highContrast', label: 'High contrast', desc: 'Boost contrast for easier reading.', icon: Contrast },
-    // Riipen Labs, Group 16: "neurodivergent friendly colour schemes".
-    { key: 'softColors', label: 'Soft colours', desc: 'Make every colour on the page less bright, including icons, emoji and pictures.', icon: Palette },
     { key: 'reduceMotion', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
     { key: 'dyslexiaFont', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
     { key: 'underlineLinks', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
@@ -93,6 +92,16 @@ export default function AccessibilitySettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* The colour theme and colour strength (the team's planning note,
+              October 2026); the softer end is what the Soft colours switch was
+              (Riipen Labs, Group 16: "neurodivergent friendly colour schemes"). */}
+          <div className="mb-6">
+            <p className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+              <Palette className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Colours and colour strength
+            </p>
+            <ColourSettings idPrefix="a11y-colours" />
           </div>
 
           <div className="mb-6">
@@ -239,9 +248,10 @@ export default function AccessibilitySettingsPage() {
             </section>
           )}
 
-          {/* Reset */}
+          {/* Reset. Saving merges, so the settings the defaults leave out
+              (dark mode, colour strength) are named, or they would stay on. */}
           <button
-            onClick={() => update({ accessibility: { ...DEFAULT_ACCESSIBILITY } })}
+            onClick={() => update({ accessibility: { ...DEFAULT_ACCESSIBILITY, darkMode: false, softColors: false, colorStrength: 'usual' } })}
             className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold"
           >
             <RotateCcw className="w-4 h-4" /> Reset to defaults

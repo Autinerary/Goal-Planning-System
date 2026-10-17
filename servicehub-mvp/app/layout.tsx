@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./themes.css";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { Toaster } from 'react-hot-toast'
 import { Suspense } from 'react'

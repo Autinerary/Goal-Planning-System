@@ -243,7 +243,7 @@ export default function HomePage() {
         className="relative px-4 py-10 md:py-16"
         style={{
           backgroundImage:
-            "url('/cloud-bg.png'), linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%)",
+            "var(--page-clouds), var(--page-wash)",
           backgroundSize: 'cover, cover',
           backgroundPosition: 'center, center',
         }}

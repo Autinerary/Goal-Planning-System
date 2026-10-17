@@ -298,7 +298,9 @@ export default function HelpPage() {
             <p>
               AI writes your plan from your goal: the steps, the tools suggested for each one, and short notes on why. If you
               ask for it, the goal helper in setup, labelled “AI helper”, turns your own words into goal ideas. AI also makes
-              Dream Self pictures, if you make one, and the short note you may see after a journal entry. What it suggests for
+              Dream Self pictures, if you make one, and the short note you may see after a journal entry. In ResourceHub, a
+              search typed as a sentence and sent with Enter is read with AI, to pick the kind of place, the town and who it
+              is for; the results say what it understood, and you can take any part away or search the exact words. What it suggests for
               each step is on one page, <Link href="/recommend-choices" className={linkClass}>Suggestions for each step</Link>,
               linked from your next step on the Path. Where AI wrote something, the page says so.
             </p>
@@ -319,6 +321,8 @@ export default function HelpPage() {
             changing with what people tell us. */}
         <Section id="beta" title="It’s in beta: what you tell us changes it" intro="Autinerary is new, and parts of it change as people tell us what works. Some recent changes, from what people told us:">
           <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">
+            <li>The colours are earthier: green and watery blue. You can choose others, and make every colour softer or brighter, in Settings or Display.</li>
+            <li>In ResourceHub you can search the way you would say it, add a service to your team in one click, and sign them on in one more.</li>
             <li>Setup is two questions, and you can skip it and look around first. The optional questions are on your Path, under “Complete your profile”, for whenever you like.</li>
             <li>The tour asks you to try one small thing on each part, and this page has a search.</li>
             <li>The Path has one set of links, Quick Links, instead of two ways to the same places.</li>

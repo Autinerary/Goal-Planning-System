@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import type { Resource } from '@/types/database'
 import BarrierBadge from './BarrierBadge'
 import { MapPin, Star, Users } from 'lucide-react'
@@ -21,6 +22,11 @@ interface ResourceCardProps {
   barriers?: string[]
   showBadges?: boolean
   variant?: 'grid' | 'list'
+  /**
+   * Actions under the card, outside its link ("Add to my team"; a button
+   * cannot sit inside a link). The card and its actions share one frame.
+   */
+  footer?: ReactNode
 }
 
 export default function ResourceCard({
@@ -31,7 +37,19 @@ export default function ResourceCard({
   barriers = [],
   showBadges = false,
   variant = 'grid',
+  footer,
 }: ResourceCardProps) {
+  // With actions, the frame moves from the link to a box around both.
+  const FRAME = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow'
+  const framed = (link: ReactNode) =>
+    footer ? (
+      <div className={`${FRAME} overflow-hidden flex flex-col`}>
+        {link}
+        {footer}
+      </div>
+    ) : (
+      link
+    )
   const location = resource.location as any
   // With a distance, a missing city needs no apology.
   const city = location?.city || (distance === undefined ? 'Location not specified' : '')
@@ -49,10 +67,10 @@ export default function ResourceCard({
   // 2.5.3, label in name (scripts/qa/check-accessibility.mjs). The photo's
   // alt is empty because the name is written right beside it.
   if (variant === 'list') {
-    return (
+    return framed(
       <Link
         href={href}
-        className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        className={`block ${footer ? '' : FRAME} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
       >
         <div className="p-6 flex flex-col sm:flex-row gap-6">
           {/* Thumbnail */}
@@ -132,10 +150,10 @@ export default function ResourceCard({
     )
   }
 
-  return (
+  return framed(
     <Link
       href={href}
-      className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden group"
+      className={`block ${footer ? 'flex-1' : FRAME} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 overflow-hidden group`}
     >
       {/* Image banner */}
       <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100">

@@ -95,6 +95,7 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
     gamification: prefs.gamification,
     viewPreference: prefs.viewPreference,
     accessibility: prefs.accessibility,
+    theme: prefs.layout?.theme,
     reminders: prefs.reminders,
     firstWeeks: prefs.firstWeeks,
   }

@@ -41,6 +41,14 @@ export default function Footer() {
                   Recommend Resource
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/campus"
+                  className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
+                >
+                  Near a college or university
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -27,6 +27,13 @@ assert.ok(itemDone('spiritAnimal', { ...empty, gamification: { animals: [{ type:
 assert.ok(!itemDone('look', { ...empty, accessibility: { fontScale: 'default', darkMode: false } }))
 assert.ok(itemDone('look', { ...empty, accessibility: { fontScale: 'large' } }))
 assert.ok(itemDone('look', { ...empty, viewPreference: 'plain' }))
+// The colours count too (the planning note, October 2026): a theme other than
+// Earthy, a colour strength other than usual, or Soft colours from before.
+assert.ok(itemDone('look', { ...empty, theme: 'ocean' }))
+assert.ok(!itemDone('look', { ...empty, theme: 'earthy' }))
+assert.ok(itemDone('look', { ...empty, accessibility: { colorStrength: 'bright' } }))
+assert.ok(!itemDone('look', { ...empty, accessibility: { colorStrength: 'usual' } }))
+assert.ok(itemDone('look', { ...empty, accessibility: { softColors: true } }))
 assert.ok(itemDone('reminders', { ...empty, reminders: { enabled: true } }))
 // Or the three emails for the first two weeks (Group 15).
 assert.ok(itemDone('reminders', { ...empty, firstWeeks: { enabled: true } }))

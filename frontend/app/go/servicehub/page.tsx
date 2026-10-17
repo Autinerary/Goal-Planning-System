@@ -27,8 +27,10 @@ function Redirector() {
   useEffect(() => {
     const raw = params.get('next') || '/'
     const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : `/${raw.replace(/^\/+/, '')}`
-    const a11y = a11yParam(loadPreferences().accessibility)
-    // Text size, contrast, dark mode and the rest go along, signed in or not.
+    const prefs = loadPreferences()
+    const a11y = a11yParam(prefs.accessibility, prefs.layout)
+    // Text size, contrast, dark mode, the colours and the rest go along,
+    // signed in or not.
     const withSettings = new URL(`${SH}${next}`)
     withSettings.searchParams.set('a11y', a11y)
     const plain = withSettings.toString()

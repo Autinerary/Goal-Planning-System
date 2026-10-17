@@ -6,15 +6,21 @@ import { Search, X } from 'lucide-react'
 interface SearchBarProps {
   query: string
   onQueryChange: (query: string) => void
+  /** Enter: a search someone means to run (read with AI on /search). Else onQueryChange. */
+  onSubmit?: (query: string) => void
   placeholder?: string
   showSuggestions?: boolean
+  /** The box's name for screen readers. */
+  label?: string
 }
 
 export default function SearchBar({
   query,
   onQueryChange,
+  onSubmit,
   placeholder = 'Search...',
   showSuggestions = true,
+  label = 'Search resources',
 }: SearchBarProps) {
   const [localQuery, setLocalQuery] = useState(query)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -116,7 +122,8 @@ export default function SearchBar({
   const handleSubmit = (e: React.FormEvent) => {
     typed.current = false
     e.preventDefault()
-    onQueryChange(localQuery)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    ;(onSubmit || onQueryChange)(localQuery)
     setShowSuggestionsList(false)
   }
 
@@ -133,7 +140,7 @@ export default function SearchBar({
             onChange={handleChange}
             placeholder={placeholder}
             className="block w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            aria-label="Search resources"
+            aria-label={label}
           />
           {localQuery && (
             <button

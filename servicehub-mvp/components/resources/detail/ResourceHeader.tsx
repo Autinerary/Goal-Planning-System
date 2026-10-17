@@ -6,6 +6,9 @@ import type { ResourceDetail } from '@/lib/supabase/queries'
 import { showToast } from '@/lib/toast'
 import AddRatingModal from './AddRatingModal'
 import { appSignInHref } from '@/lib/appSignIn'
+import Link from 'next/link'
+import TeamAction from '@/components/team/TeamAction'
+import type { TeamState } from '@/lib/team'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -17,6 +20,14 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   const [isSaving, setIsSaving] = useState(false)
   const [showShareTooltip, setShowShareTooltip] = useState(false)
   const [showRatingModal, setShowRatingModal] = useState(false)
+  // Where it is on the person's team (lib/team.ts). On the team, "Saved"
+  // stops being a switch: pressing it used to delete the row, team and all.
+  const [teamState, setTeamState] = useState<TeamState>(resource.teamState || 'none')
+  const onTeam = teamState === 'meeting' || teamState === 'signed'
+  // Back from signing in to add it to the team.
+  const [addAfterSignIn] = useState(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('then') === `team:${resource.id}`
+  )
 
   const location = resource.location as any
   const city = location?.city || 'Location not specified'
@@ -161,20 +172,45 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
             )}
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isSaved
-                ? 'text-white bg-blue-600 hover:bg-blue-700'
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-            } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label={isSaved ? 'Remove from saved' : 'Save resource'}
-          >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-            {isSaving ? 'Saving…' : isSaved ? 'Saved' : 'Save'}
-          </button>
+          {onTeam ? (
+            <Link
+              href="/my-resources"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Bookmark className="w-4 h-4 fill-current" aria-hidden="true" />
+              On your team
+            </Link>
+          ) : (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isSaved
+                  ? 'text-white bg-blue-600 hover:bg-blue-700'
+                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+              } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={isSaved ? 'Remove from saved' : 'Save resource'}
+            >
+              <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+              {isSaving ? 'Saving…' : isSaved ? 'Saved' : 'Save'}
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Add to the team from here too, in one click (lib/team.ts). */}
+      <div className="-mx-6 mb-4 max-w-xl">
+        <TeamAction
+          resource={resource}
+          initial={teamState}
+          signedIn={Boolean(userId)}
+          autoAdd={addAfterSignIn}
+          onChange={(state) => {
+            setTeamState(state)
+            if (state !== 'none') setIsSaved(true)
+            else setIsSaved(false)
+          }}
+        />
       </div>
 
       {/* Rating and Badges */}

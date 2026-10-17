@@ -3,20 +3,17 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
-  Phone,
   CheckCircle2,
-  Circle,
-  Plus,
   Search,
   CalendarCheck,
-  ScrollText,
   Users,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 import type { Resource, SavedResource } from '@/types/database'
-import type { ContactInfo } from '@/types/database'
+import TeamAction from '@/components/team/TeamAction'
+import type { TeamState } from '@/lib/team'
 
 interface BuildTeamRow extends SavedResource {
   resource: Resource | null
@@ -28,31 +25,25 @@ interface BuildTeamTabProps {
 
 const WISHLIST_PAGE_SIZE = 6
 
+// Three clicks (the team's planning note, October 2026, "Ex. Preferred
+// Service"; lib/team.ts). There were four steps and nine clicks: save, open
+// this page, "Schedule Call", "Request Contact", "+", a checkbox, "Add to Team".
 const STEPS: Array<{ title: string; description: string; color: string; Icon: React.ComponentType<{ className?: string }> }> = [
   {
     title: 'Step 1',
-    description: 'Find Highly-Rated Autism Services',
+    description: 'Search in your own words, such as “a speech therapist for my son near Ottawa”.',
     color: 'bg-emerald-100 text-emerald-700',
     Icon: Search,
   },
   {
     title: 'Step 2',
-    description:
-      "Add Autism Services to Wishlist — click '+' once you've assessed a need and add them to your Wishlist.",
-    color: 'bg-orange-100 text-orange-700',
-    Icon: Plus,
-  },
-  {
-    title: 'Step 3',
-    description:
-      'Contacting your Services — view your Wishlist to schedule calls and request contact for the services you are interested in.',
+    description: '“Add to my team” on the one you like. It is added here, and “book a first meeting” goes in your calendar.',
     color: 'bg-sky-100 text-sky-700',
     Icon: CalendarCheck,
   },
   {
-    title: 'Step 4',
-    description:
-      'Form your Autism Support Team — once both parties have agreed on a contract, promote the service into your Team.',
+    title: 'Step 3',
+    description: '“Sign them on” once you have met and agreed to work together. You can undo it.',
     color: 'bg-violet-100 text-violet-700',
     Icon: Users,
   },
@@ -62,9 +53,6 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
   const [rows, setRows] = useState<BuildTeamRow[]>([])
   const [loading, setLoading] = useState(true)
   const [wishlistPage, setWishlistPage] = useState(1)
-  const [pendingAdd, setPendingAdd] = useState<BuildTeamRow | null>(null)
-  const [confirmAcknowledged, setConfirmAcknowledged] = useState(false)
-  const [submittingAdd, setSubmittingAdd] = useState(false)
 
   useEffect(() => {
     fetchAll()
@@ -104,128 +92,23 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
     [wishlist, wishlistPage]
   )
 
-  // Optimistic flag update + outbound contact action.
-  const setFlag = async (
-    row: BuildTeamRow,
-    field: 'calls_scheduled' | 'contract_sent',
-    nextValue: boolean,
-    contactAction?: () => void
-  ) => {
+  // A change made on a card (lib/team.ts): signed on moves it to the team,
+  // undone it leaves, a meeting to book or saved stays here.
+  const onTeamChange = (row: BuildTeamRow, state: TeamState) => {
     setRows((prev) =>
-      prev.map((r) =>
-        r.resource_id === row.resource_id ? { ...r, [field]: nextValue } : r
-      )
+      state === 'none'
+        ? prev.filter((r) => r.resource_id !== row.resource_id)
+        : prev.map((r) =>
+            r.resource_id === row.resource_id
+              ? {
+                  ...r,
+                  status: state === 'signed' ? 'current' : 'wishlist',
+                  calls_scheduled: state === 'meeting' || (state === 'signed' && r.calls_scheduled),
+                  added_to_team_at: state === 'signed' ? new Date().toISOString() : null,
+                }
+              : r
+          )
     )
-    try {
-      const response = await fetch(
-        `/api/my-resources/saved/${row.resource_id}/build-team`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ [field]: nextValue }),
-        }
-      )
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        throw new Error(err?.error || 'Update failed')
-      }
-      contactAction?.()
-    } catch (error) {
-      console.error('setFlag failed:', error)
-      showToast.error('Could not save that. Please try again.')
-      // Roll back the optimistic update.
-      setRows((prev) =>
-        prev.map((r) =>
-          r.resource_id === row.resource_id ? { ...r, [field]: !nextValue } : r
-        )
-      )
-    }
-  }
-
-  const handleScheduleCall = (row: BuildTeamRow) => {
-    const contact = row.resource?.contact_info as ContactInfo | null
-    let action: (() => void) | undefined
-    if (contact?.phone) {
-      const phone = contact.phone
-      action = () => {
-        window.location.href = `tel:${phone}`
-      }
-    } else if (contact?.email) {
-      const email = contact.email
-      const subject = encodeURIComponent(`Scheduling a call about ${row.resource?.name ?? 'your service'}`)
-      action = () => {
-        window.location.href = `mailto:${email}?subject=${subject}`
-      }
-    } else {
-      action = () => showToast.success('Marked as scheduled — no contact info on file.')
-    }
-    setFlag(row, 'calls_scheduled', !row.calls_scheduled, !row.calls_scheduled ? action : undefined)
-  }
-
-  const handleRequestContact = (row: BuildTeamRow) => {
-    const contact = row.resource?.contact_info as ContactInfo | null
-    let action: (() => void) | undefined
-    if (contact?.email) {
-      const email = contact.email
-      const subject = encodeURIComponent(`Requesting a contract — ${row.resource?.name ?? ''}`)
-      const body = encodeURIComponent(
-        `Hi,\n\nI'm interested in moving forward with your service and would like to discuss next steps / a contract.\n\nThank you,`
-      )
-      action = () => {
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
-      }
-    } else if (contact?.website) {
-      const website = contact.website
-      action = () => {
-        window.open(website, '_blank', 'noopener,noreferrer')
-      }
-    } else if (contact?.phone) {
-      const phone = contact.phone
-      action = () => {
-        window.location.href = `tel:${phone}`
-      }
-    } else {
-      action = () => showToast.success('Marked as requested — no contact info on file.')
-    }
-    setFlag(row, 'contract_sent', !row.contract_sent, !row.contract_sent ? action : undefined)
-  }
-
-  const openAddToTeam = (row: BuildTeamRow) => {
-    setPendingAdd(row)
-    setConfirmAcknowledged(false)
-  }
-
-  const confirmAddToTeam = async () => {
-    if (!pendingAdd || !confirmAcknowledged) return
-    setSubmittingAdd(true)
-    try {
-      const response = await fetch(
-        `/api/my-resources/saved/${pendingAdd.resource_id}/build-team`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ promote: true }),
-        }
-      )
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        throw new Error(err?.error || 'Failed to add to team')
-      }
-      showToast.success(`Added ${pendingAdd.resource?.name ?? 'service'} to your Team`)
-      setRows((prev) =>
-        prev.map((r) =>
-          r.resource_id === pendingAdd.resource_id
-            ? { ...r, status: 'current', added_to_team_at: new Date().toISOString() }
-            : r
-        )
-      )
-      setPendingAdd(null)
-    } catch (error) {
-      console.error('confirmAddToTeam failed:', error)
-      showToast.error('Could not add to team. Please try again.')
-    } finally {
-      setSubmittingAdd(false)
-    }
   }
 
   return (
@@ -246,9 +129,9 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
               in 1 place.
             </h2>
             <p className="mt-4 text-gray-600 max-w-xl">
-              The Build-A-Team system provides a centralized hub for assembling
-              your autism community. Track outreach, contracts, and your active
-              service team — all in one place.
+              The services you are arranging and the ones on your team, in one
+              place. Adding one puts a first meeting to book in your calendar;
+              signing them on is one click.
             </p>
             {/* Emerald 700 under white text, here and below: 600 was 3.8 to 1,
                 under WCAG AA's 4.5 (the accessibility checker, signed in). */}
@@ -275,7 +158,7 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
             How to Use Build-A-Team System
           </h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {STEPS.map(({ title, description, color, Icon }) => (
             <div
               key={title}
@@ -302,9 +185,9 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
             Our Contact Hub
           </p>
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">My Wishlist</h3>
-          <p className="mt-2 text-sm text-gray-500">
-            Schedule intro calls and request contracts. Once both parties agree,
-            promote the service to your Team.
+          <p className="mt-2 text-sm text-gray-600">
+            Saved services and the ones you are arranging. Book a first meeting,
+            then sign them on.
           </p>
         </div>
 
@@ -320,8 +203,7 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
         ) : wishlist.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
             <p className="text-gray-600">
-              Your wishlist is empty. Browse the directory and tap{' '}
-              <Plus className="inline w-4 h-4" /> on a service to add it.
+              Nothing here yet. Search for a service and choose “Add to my team”.
             </p>
             <Link
               href="/search"
@@ -335,13 +217,7 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {wishlistVisible.map((row) => (
-                <WishlistCard
-                  key={row.id}
-                  row={row}
-                  onScheduleCall={() => handleScheduleCall(row)}
-                  onRequestContact={() => handleRequestContact(row)}
-                  onAddToTeam={() => openAddToTeam(row)}
-                />
+                <WishlistCard key={row.id} row={row} onChange={(state) => onTeamChange(row, state)} />
               ))}
             </div>
 
@@ -392,8 +268,8 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
             Our Community
           </p>
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">My Team</h3>
-          <p className="mt-2 text-sm text-gray-500">
-            Services you're actively working with.
+          <p className="mt-2 text-sm text-gray-600">
+            The services you have signed on.
           </p>
         </div>
 
@@ -402,83 +278,39 @@ export default function BuildTeamTab({ userId }: BuildTeamTabProps) {
         ) : team.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
             <p className="text-gray-600">
-              No team members yet. Move services from your Wishlist once you've
-              signed a contract.
+              No one signed on yet. Choose “Sign them on” once you have met and
+              agreed to work together.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {team.map((row) => (
-              <TeamCard key={row.id} row={row} />
+              <TeamCard key={row.id} row={row} onChange={(state) => onTeamChange(row, state)} />
             ))}
           </div>
         )}
       </section>
 
-      {/* Add to Team modal */}
-      {pendingAdd && (
-        <AddToTeamModal
-          row={pendingAdd}
-          submitting={submittingAdd}
-          acknowledged={confirmAcknowledged}
-          onAcknowledgeChange={setConfirmAcknowledged}
-          onCancel={() => setPendingAdd(null)}
-          onConfirm={confirmAddToTeam}
-        />
-      )}
     </div>
   )
 }
 
 // ---------- Sub-components ----------
 
-function WishlistCard({
-  row,
-  onScheduleCall,
-  onRequestContact,
-  onAddToTeam,
-}: {
-  row: BuildTeamRow
-  onScheduleCall: () => void
-  onRequestContact: () => void
-  onAddToTeam: () => void
-}) {
+function WishlistCard({ row, onChange }: { row: BuildTeamRow; onChange: (state: TeamState) => void }) {
   const resource = row.resource
-  const canPromote = row.calls_scheduled && row.contract_sent
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden flex flex-col">
       <div className="relative aspect-[16/10] bg-gray-900 text-white">
         {resource?.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={resource.image_url}
-            alt={resource.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={resource.image_url} alt="" className="w-full h-full object-cover" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-white/60 text-2xl font-semibold tracking-wide">
+          <div className="absolute inset-0 flex items-center justify-center text-white/60 text-2xl font-semibold tracking-wide" aria-hidden="true">
             Image
           </div>
         )}
-        <button
-          type="button"
-          onClick={onAddToTeam}
-          disabled={!canPromote}
-          title={
-            canPromote
-              ? 'Add to my Team'
-              : 'Schedule a call AND request a contract before adding to your team.'
-          }
-          className={`absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-            canPromote
-              ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
-              : 'bg-white/80 text-gray-400 cursor-not-allowed'
-          }`}
-          aria-label="Add to Team"
-        >
-          <Plus className="w-4 h-4" aria-hidden="true" />
-        </button>
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
@@ -489,63 +321,24 @@ function WishlistCard({
           {resource?.name ?? 'Unknown service'}
         </Link>
         {resource?.category && (
-          <p className="mt-1 text-xs text-gray-500 capitalize">{resource.category}</p>
+          <p className="mt-1 text-xs text-gray-600 capitalize">{resource.category}</p>
         )}
-
-        <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={onScheduleCall}
-            className={`inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-              row.calls_scheduled
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-            aria-pressed={row.calls_scheduled}
-          >
-            {row.calls_scheduled ? (
-              <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            ) : (
-              <Phone className="w-3.5 h-3.5" aria-hidden="true" />
-            )}
-            <span>{row.calls_scheduled ? 'Call scheduled' : 'Schedule Call'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onRequestContact}
-            className={`inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-              row.contract_sent
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-            aria-pressed={row.contract_sent}
-          >
-            {row.contract_sent ? (
-              <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            ) : (
-              <ScrollText className="w-3.5 h-3.5" aria-hidden="true" />
-            )}
-            <span>{row.contract_sent ? 'Contract sent' : 'Request Contact'}</span>
-          </button>
-        </div>
       </div>
+      {resource && (
+        <TeamAction
+          resource={resource}
+          initial={row.calls_scheduled ? 'meeting' : 'saved'}
+          signedIn
+          onTeamPage
+          onChange={onChange}
+        />
+      )}
     </div>
   )
 }
 
-function TeamCard({ row }: { row: BuildTeamRow }) {
+function TeamCard({ row, onChange }: { row: BuildTeamRow; onChange: (state: TeamState) => void }) {
   const resource = row.resource
-
-  const Status = ({ done, label }: { done: boolean; label: string }) => (
-    <div className="flex items-center gap-2 text-sm">
-      {done ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-      ) : (
-        <Circle className="w-4 h-4 text-gray-300" aria-hidden="true" />
-      )}
-      <span className={done ? 'text-gray-800' : 'text-gray-500'}>{label}</span>
-    </div>
-  )
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden grid grid-cols-1 md:grid-cols-5">
@@ -561,15 +354,12 @@ function TeamCard({ row }: { row: BuildTeamRow }) {
             <p className="text-xs text-gray-500 capitalize mt-0.5">{resource.category}</p>
           )}
         </div>
-        <div className="space-y-1.5">
-          <Status done={row.calls_scheduled} label="Calls were scheduled" />
-          <Status done={row.contract_sent} label="Contract request was sent" />
-        </div>
-        {row.added_to_team_at && (
-          <p className="text-xs text-gray-500">
-            Added to team {new Date(row.added_to_team_at).toLocaleDateString()}
-          </p>
-        )}
+        <p className="flex items-center gap-2 text-sm text-gray-800">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+          {row.added_to_team_at
+            ? `Signed on ${new Date(row.added_to_team_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'short', year: 'numeric' })}`
+            : 'Signed on'}
+        </p>
         <div className="mt-auto pt-2">
           <Link
             href={resource ? `/resources/${resource.id}` : '#'}
@@ -578,6 +368,11 @@ function TeamCard({ row }: { row: BuildTeamRow }) {
             See details<span className="sr-only"> about {resource?.name ?? 'this service'}</span>
           </Link>
         </div>
+        {resource && (
+          <div className="-mx-5 -mb-5">
+            <TeamAction resource={resource} initial="signed" signedIn onTeamPage onChange={onChange} />
+          </div>
+        )}
       </div>
       <div className="md:col-span-2 relative aspect-video md:aspect-auto md:min-h-full bg-gray-900 text-white">
         {resource?.image_url ? (
@@ -592,74 +387,6 @@ function TeamCard({ row }: { row: BuildTeamRow }) {
             Image
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-function AddToTeamModal({
-  row,
-  submitting,
-  acknowledged,
-  onAcknowledgeChange,
-  onCancel,
-  onConfirm,
-}: {
-  row: BuildTeamRow
-  submitting: boolean
-  acknowledged: boolean
-  onAcknowledgeChange: (v: boolean) => void
-  onCancel: () => void
-  onConfirm: () => void
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div
-        className="fixed inset-0 bg-black/40"
-        aria-hidden="true"
-        onClick={submitting ? undefined : onCancel}
-      />
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-        <h4 className="text-lg font-semibold text-gray-900">
-          Add {row.resource?.name ?? 'this service'} to your Team
-        </h4>
-        <p className="mt-2 text-sm text-gray-600">
-          Are you sure you want to add this service to your active Team? It will
-          move out of your Wishlist into the Community section above.
-        </p>
-
-        <label className="mt-4 flex items-start gap-3 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            checked={acknowledged}
-            onChange={(e) => onAcknowledgeChange(e.target.checked)}
-            disabled={submitting}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-          />
-          <span>
-            I confirm that I've had calls with this service and we've mutually
-            agreed on the contract. The service is now part of my team.
-          </span>
-        </label>
-
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={submitting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={!acknowledged || submitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Adding…' : 'Add to Team'}
-          </button>
-        </div>
       </div>
     </div>
   )

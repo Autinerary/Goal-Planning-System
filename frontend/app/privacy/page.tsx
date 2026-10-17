@@ -20,7 +20,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, if you join one the app made', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
@@ -145,6 +145,14 @@ export default function PrivacyPage() {
             <List>
               <li>Ratings and reviews, questions and answers in Tidbits, resources you save or suggest, photos you upload, and your community profile.</li>
               <li>Ratings, reviews, Tidbits posts and your community profile can be seen by other people using Autinerary.</li>
+              <li>
+                Services you add to your team and sign on. Adding one puts “book a first meeting” in your Autinerary calendar;
+                nothing is sent to the service.
+              </li>
+              <li>
+                If you search in a sentence and press Enter, the sentence is sent to OpenAI to pick the kind of place, the town
+                and who it is for. It is not saved, and nothing else about you is sent with it.
+              </li>
             </List>
           </Sub>
           <Sub title="If you share your story">

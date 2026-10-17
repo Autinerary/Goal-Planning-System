@@ -17,15 +17,33 @@ const ATTRS: [string, string, string][] = [
   ['dyslexia', 'dyslexiaFont', 'on'],
   ['underline', 'underlineLinks', 'on'],
   ['calm', 'reduceMotion', 'on'],
-  // Soft colours (Riipen Labs, Groups 8 and 16): every colour less bright.
-  ['soft', 'softColors', 'on'],
+  // Colour strength, softest to brightest (the team's planning note, October
+  // 2026: "dull or brighten the colors"); 'soft' was Soft colours (Riipen
+  // Labs, Groups 8 and 16).
+  ['softest', 'colorStrength', 'softest'],
+  ['soft', 'colorStrength', 'soft'],
+  ['bright', 'colorStrength', 'bright'],
+  ['brightest', 'colorStrength', 'brightest'],
+  // The colour theme (app/themes.css); Earthy, the default, has no token.
+  ['theme-ocean', 'theme', 'ocean'],
+  ['theme-sand', 'theme', 'sand'],
+  ['theme-classic', 'theme', 'classic'],
 ]
 
-/** The cookie value for an ?a11y= value: known tokens only, 'none' if none. */
+/** The cookie value for an ?a11y= value: known tokens only, one per setting, 'none' if none. */
 export function cleanA11y(raw: string): string {
-  const known = ATTRS.map(([token]) => token)
-  const parts = raw.split('.').filter((p) => known.includes(p))
-  return parts.length ? Array.from(new Set(parts)).join('.') : 'none'
+  const keyOf = new Map(ATTRS.map(([token, key]) => [token, key]))
+  const byKey = new Map<string, string>()
+  // The last token for a setting wins (two text sizes, two themes).
+  for (const p of raw.split('.')) if (keyOf.has(p)) byKey.set(keyOf.get(p)!, p)
+  const parts = Array.from(byKey.values())
+  return parts.length ? parts.join('.') : 'none'
+}
+
+/** The token set for one setting (its data-attribute), from a cookie value. */
+export function tokenFor(value: string, key: string): string {
+  const tokens = value.split('.')
+  return ATTRS.find(([token, k]) => k === key && tokens.includes(token))?.[0] || ''
 }
 
 /** Sets <html>'s data-attributes for a cookie value, clearing the others. */

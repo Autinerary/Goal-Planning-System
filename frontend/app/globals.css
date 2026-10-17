@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The page's text, colour and sky come from the colour theme (themes.css):
+   --page-fg, --page-bg, --page-wash and --page-clouds. */
 :root {
-  --foreground: #2d1b4e;
-  --background: #e8dff5;
+  --foreground: var(--page-fg);
+  --background: var(--page-bg);
 }
 
 /*
@@ -28,8 +30,8 @@ body {
   background-color: var(--background);
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.72)),
-    url('/cloud-bg.png'),
-    linear-gradient(135deg, #b8d4f0 0%, #c9b8e8 30%, #e8c4d8 55%, #f0c8d0 75%, #d0d8f0 100%);
+    var(--page-clouds),
+    var(--page-wash);
   background-size: cover, cover, cover;
   background-attachment: fixed, fixed, fixed;
   background-position: center, center, center;
@@ -89,14 +91,21 @@ html[data-dark-mode="on"] .keep-colors .keep-colors {
    on indigo, like the plan tabs, into dark blue on indigo (Riipen Labs,
    Group 32). Grey text and pale borders get darker instead. */
 html[data-high-contrast="on"] body { filter: contrast(1.15); }
-/* Soft colours (Riipen Labs, Group 16: "bright, vibrant icons which may not
-   be friendly for certain individuals"; "neurodivergent friendly colour
-   schemes"): every colour on the page, emoji and pictures included, made
-   less bright. Text stays as dark as it was. On <html>, like dark mode, so
-   fixed parts (the tour's card, dialogs) stay where they are; with dark
-   mode, both filters in one. */
-html[data-soft-colors="on"] { filter: saturate(0.5); }
-html[data-dark-mode="on"][data-soft-colors="on"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
+/* Colour strength, from softest to brightest (the team's planning note,
+   October 2026: "dull or brighten the colors"). Softer was Soft colours
+   (Riipen Labs, Group 16: "bright, vibrant icons which may not be friendly
+   for certain individuals"). Every colour on the page, emoji and pictures
+   included; text stays as dark as it was, because saturate() keeps each
+   colour's lightness. On <html>, like dark mode, so fixed parts (the tour's
+   card, dialogs) stay where they are; with dark mode, both filters in one. */
+html[data-color-strength="softest"] { filter: saturate(0.25); }
+html[data-color-strength="soft"] { filter: saturate(0.5); }
+html[data-color-strength="bright"] { filter: saturate(1.3); }
+html[data-color-strength="brightest"] { filter: saturate(1.6); }
+html[data-dark-mode="on"][data-color-strength="softest"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.25); }
+html[data-dark-mode="on"][data-color-strength="soft"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
+html[data-dark-mode="on"][data-color-strength="bright"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(1.3); }
+html[data-dark-mode="on"][data-color-strength="brightest"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(1.6); }
 html[data-high-contrast="on"] a:not([class*="bg-"]):not([class*="text-white"]) { color: #0b3d91; }
 html[data-high-contrast="on"] :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600) { color: #1e293b; }
 html[data-high-contrast="on"] :is(.border-slate-100, .border-slate-200, .border-gray-100, .border-gray-200, .border-white\/40, .border-white\/50) { border-color: #64748b; }
@@ -311,11 +320,9 @@ table {
   border-spacing: 0;
 }
 
-/* Selection highlight */
-::selection {
-  background-color: #c4b5fd;
-  color: #1e1b4b;
-}
+/* The selection highlight is the accent colour's (above). A second rule
+   here, violet, came later in the file and always won, so the accent never
+   reached selected text although Settings said it did. */
 
 /* Scrollbar styling.
    The thumb used to be white at 40% opacity on a transparent track. Almost

@@ -1,4 +1,5 @@
 import './globals.css'
+import './themes.css'
 import type { Metadata, Viewport } from 'next'
 import { Atkinson_Hyperlegible } from 'next/font/google'
 import { AuthProvider } from './context/AuthContext'
@@ -83,7 +84,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#7c3aed',
+  // Earthy's green (app/themes.css, indigo-700), the default theme's.
+  themeColor: '#1b5d30',
   width: 'device-width',
   initialScale: 1,
   // Zoom is left ENABLED on purpose. Locking it is a common PWA default and
@@ -100,13 +102,14 @@ export default function RootLayout({
     // Settings saved on this device (Settings → Accessibility) are applied
     // before the first paint, so dark mode doesn't flash white, text doesn't
     // jump size, and calm motion is calm from the first frame (Riipen Labs,
-    // Group 22: "sensory control before the animations load").
+    // Group 22: "sensory control before the animations load"). The colour
+    // theme and colour strength too, so the colours don't change on load.
     // AccessibilityProvider keeps them up to date after.
     <html lang="en" className={bodyFont.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var a=(JSON.parse(localStorage.getItem('autinerary_preferences')||'{}').accessibility)||{},r=document.documentElement;if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale;if(a.reduceMotion)r.dataset.reduceMotion='on';if(a.softColors)r.dataset.softColors='on'}catch(e){}`,
+            __html: `try{var p=JSON.parse(localStorage.getItem('autinerary_preferences')||'{}'),a=p.accessibility||{},l=p.layout||{},r=document.documentElement,c=a.colorStrength||(a.softColors?'soft':'');if(a.darkMode)r.dataset.darkMode='on';if(a.highContrast)r.dataset.highContrast='on';if(a.fontScale)r.dataset.fontScale=a.fontScale;if(a.reduceMotion)r.dataset.reduceMotion='on';if(c)r.dataset.colorStrength=c;if(l.theme)r.dataset.theme=l.theme}catch(e){}`,
           }}
         />
       </head>

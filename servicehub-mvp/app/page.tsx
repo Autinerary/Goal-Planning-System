@@ -734,15 +734,22 @@ export default async function Home() {
               </p>
             </div>
 
-            {/* Search Bar */}
+            {/* Search Bar: say it the way you would (the team's planning
+                note, October 2026: "Everything in 3 clicks MAXIMUM -
+                especially with AI searchbar"). Enter reads it (ai=1, lib/
+                search/understand.ts); the results say what was understood. */}
             <div className="max-w-2xl mx-auto mb-8">
               <form action="/search" method="get" className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+                <label htmlFor="hero-search" className="sr-only">
+                  Search: say what you need
+                </label>
+                <input type="hidden" name="ai" value="1" />
                 <input
+                  id="hero-search"
                   type="search"
                   name="q"
-                  placeholder="Search for resources..."
+                  placeholder="Say what you need, e.g. a quiet pool for my son near Kitchener"
                   className="flex-1 px-4 py-3 rounded-lg sm:rounded-r-none text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  aria-label="Search resources"
                 />
                 <button
                   type="submit"
@@ -753,6 +760,12 @@ export default async function Home() {
                   <span>Search</span>
                 </button>
               </form>
+              <p className="mt-2 text-center text-sm text-white/90">
+                Type it the way you would say it. You will see what we understood, and can change it.{' '}
+                <Link href="/campus" className="font-medium text-white underline">
+                  Students: places near your campus
+                </Link>
+              </p>
             </div>
 
             {/* Quick Category Filters */}

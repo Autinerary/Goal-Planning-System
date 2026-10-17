@@ -4,11 +4,12 @@ import { Check } from 'lucide-react'
 import { usePreferences } from '../context/usePreferences'
 import type { AccessibilitySettings, FontScale } from '@/lib/preferences'
 import { trackDisplayChoice, type DisplayChoice } from '@/lib/displayChoices'
+import ColourSettings from './ColourSettings'
 
 /**
  * "Pick your settings" (Riipen Labs, Group 34, slide 25): light or dark,
- * higher contrast, and text size, the three that change how every page
- * reads. They are the Settings → Accessibility switches, kept on this
+ * higher contrast, colours, calm motion and text size, the ones that change
+ * how every page reads and feels. They are the Settings → Accessibility switches, kept on this
  * device, and take effect at once. They were in setup; since Groups 25 to 30
  * they are behind the Path's Display button and on the "Complete your
  * profile" card (components/DisplaySettings.tsx), so setup is two questions.
@@ -26,7 +27,6 @@ function choicesTurnedOn(patch: Partial<AccessibilitySettings>): DisplayChoice[]
   const out: DisplayChoice[] = []
   if (patch.darkMode) out.push('display_dark')
   if (patch.highContrast) out.push('display_contrast')
-  if (patch.softColors) out.push('display_soft')
   if (patch.reduceMotion) out.push('display_calm')
   if (patch.fontScale === 'large') out.push('display_text_larger')
   if (patch.fontScale === 'xlarge') out.push('display_text_largest')
@@ -83,25 +83,12 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
         </button>
       </div>
 
-      {/* Soft colours (Riipen Labs, Group 16: "reduce colors", and
-          "neurodivergent friendly colour schemes"): the whole page less
-          bright, emoji and pictures included. */}
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <p id="qs-soft-label" className="text-sm font-medium text-slate-800">Soft colours</p>
-          <p id="qs-soft-help" className="text-xs text-slate-600">Less bright colours, icons and pictures.</p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={Boolean(a11y.softColors)}
-          aria-labelledby="qs-soft-label"
-          aria-describedby="qs-soft-help"
-          onClick={() => set({ softColors: !a11y.softColors })}
-          className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${a11y.softColors ? 'bg-cyan-700' : 'bg-slate-400'}`}
-        >
-          <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${a11y.softColors ? 'translate-x-6' : 'translate-x-1'}`} />
-        </button>
+      {/* The colour theme and colour strength (the team's planning note,
+          October 2026); the strength's softer end is what Soft colours was
+          (Riipen Labs, Group 16: "reduce colors", "neurodivergent friendly
+          colour schemes"). */}
+      <div className="mb-4">
+        <ColourSettings compact idPrefix="qs-colours" />
       </div>
 
       {/* Calm motion (Riipen Labs, Group 22: "sensory control before the

@@ -6,6 +6,7 @@ import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
 import { searchWords, cleanTerm, inNameDescriptionOrCategory } from '@/lib/search/words'
 import { weightFor, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
+import { teamStates, type TeamState } from '@/lib/team'
 
 type SupabaseLike = SupabaseClient<any, any, any>
 
@@ -327,6 +328,7 @@ export interface ResourceDetail extends Resource {
   weightedRating?: number
   userRating?: Rating | null // Current user's rating if logged in
   isSaved?: boolean // Whether current user has saved this resource
+  teamState?: TeamState // Where it is on their team (lib/team.ts)
   recommendedByAutismCommunity?: boolean // If highly rated by users with autism barriers
 }
 
@@ -529,8 +531,10 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     userRating = await getRatingByUserAndResource(resourceId, userId)
   }
 
-  // Check if resource is saved
+  // Check if resource is saved, and where it is on the person's team
+  // (lib/team.ts): unsaving a team member would take them off the team.
   let isSaved = false
+  let teamState: TeamState = 'none'
   if (userId) {
     const { data: saved, error } = await supabase
       .from('saved_resources')
@@ -539,6 +543,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
       .eq('resource_id', resourceId)
       .maybeSingle()
     isSaved = !error && !!saved
+    if (isSaved) teamState = (await teamStates(supabase, userId, [resourceId]))[resourceId] || 'saved'
   }
 
   // Check if recommended by autism community (high ratings from users with autism barriers)
@@ -581,6 +586,7 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     weightedRating,
     userRating: userRating || undefined,
     isSaved,
+    teamState,
     recommendedByAutismCommunity,
   }
 }
@@ -781,20 +787,27 @@ export async function saveResource(
   status: 'wishlist' | 'current' | 'past' = 'wishlist'
 ): Promise<SavedResource | null> {
   const supabase = createClient()
+  // Saving something already saved keeps it as it is. It used to be written
+  // again as 'wishlist', so saving a team member from "For you" took them off
+  // the team (found building the three-click team, October 2026).
   const { data, error } = await supabase
     .from('saved_resources')
-    .upsert(
-      {
-        user_id: userId,
-        resource_id: resourceId,
-        notes,
-        status,
-      },
-      { onConflict: 'user_id,resource_id' }
-    )
+    .insert({ user_id: userId, resource_id: resourceId, notes, status })
     .select()
     .single()
 
+  if (error?.code === '23505') {
+    const { data: existing } = await supabase
+      .from('saved_resources')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('resource_id', resourceId)
+      .maybeSingle()
+    if (existing && notes !== undefined) {
+      await supabase.from('saved_resources').update({ notes }).eq('id', existing.id)
+    }
+    return existing
+  }
   if (error) {
     console.error('Error saving resource:', error)
     return null
@@ -911,6 +924,14 @@ export async function updateModerationStatus(
 
 export interface SearchFilters {
   query?: string // Text search
+  /**
+   * Text as groups of words, each group required, any word in a group enough
+   * (lib/search/understand.ts: "swimming" is swim, pool or aquatic). Used
+   * instead of the query's words when set.
+   */
+  groups?: string[][]
+  /** Words that only count towards relevance (understood searches). */
+  softWords?: string[]
   categories?: string[] // Category multi-select
   barriers?: string[] // Barrier types (e.g., 'autism', 'adhd')
   /**
@@ -1173,6 +1194,150 @@ function conditionKeys(tokens: string[]): Set<string> {
   return keys
 }
 
+/** The text a search must match: its groups when set (understood searches), else each word. */
+function textGroups(filters: Pick<SearchFilters, 'groups'>, words: string[]): string[][] {
+  if (filters.groups && filters.groups.length > 0) {
+    return filters.groups.map((g) => g.map(cleanTerm).filter(Boolean)).filter((g) => g.length > 0)
+  }
+  return words.map((w) => [w])
+}
+
+function softWords(filters: Pick<SearchFilters, 'softWords'>): string[] {
+  return (filters.softWords || []).map(cleanTerm).filter(Boolean)
+}
+
+type SearchOutcome = Awaited<ReturnType<typeof searchResources>>
+
+// ── In the database (STEP 77, search_resource_page) ──
+// The filters, the near-first order and the counts run in Postgres, one page
+// at a time, so search works the same with tens of thousands of places
+// (the team's planning note, October 2026: up to 50,000 more in Ontario).
+// Until STEP 77 is applied the function is missing: search works as before,
+// and asks again after a few minutes. Badge filters ("Rare", "Highly
+// requested") still use the path below.
+let pageFunctionMissingUntil = 0
+const pageCache = sharedCache<SearchOutcome>({ ttlMs: 60_000, maxEntries: 200 })
+
+async function searchPage(
+  filters: SearchFilters,
+  sort: SortOption | SortRule[],
+  page: number,
+  pageSize: number
+): Promise<SearchOutcome | null> {
+  if (Date.now() < pageFunctionMissingUntil) return null
+  if ((filters.specialTags || []).some((t) => t === 'rare' || t === 'highly_requested')) return null
+
+  const { userLocation, maxDistance } = filters
+  const words = searchWords(filters.query)
+  const sortRules: SortRule[] = Array.isArray(sort) ? sort : [{ key: sort, direction: sort === 'cost' ? 'asc' : 'desc' }]
+  const nearFirst = Boolean(userLocation) && !Array.isArray(sort) && sort === 'relevance'
+  const radiusKm = maxDistance || NEAR_KM
+
+  try {
+    const index = await ratingIndex()
+    // The filters that come from ratings, as in matchResources.
+    let allowed: Set<string> | null = null
+    const narrow = (ids: string[]) => {
+      const next = new Set(ids)
+      allowed = allowed ? new Set(Array.from(allowed).filter((id) => next.has(id))) : next
+    }
+    const effectiveMinRating =
+      filters.minRating ?? (filters.ratingStars && filters.ratingStars.length > 0 ? Math.min(...filters.ratingStars) : undefined)
+    if (effectiveMinRating && effectiveMinRating > 1) {
+      narrow(Array.from(index.stats).filter(([, st]) => st.averageRating >= effectiveMinRating).map(([id]) => id))
+    }
+    if (filters.barriers && filters.barriers.length > 0) {
+      narrow(Array.from(index.normKeys).filter(([, keys]) => filters.barriers!.some((b) => keys.has(b))).map(([id]) => id))
+    }
+    if (filters.connectionTypes && filters.connectionTypes.length > 0) {
+      narrow(Array.from(index.raterTypes).filter(([, types]) => filters.connectionTypes!.some((t) => types.has(t))).map(([id]) => id))
+    }
+    const condKeys = filters.conditions && filters.conditions.length > 0 ? conditionKeys(filters.conditions) : null
+    const condIds = condKeys
+      ? Array.from(index.normKeys).filter(([, keys]) => Array.from(keys).some((k) => condKeys.has(k.toLowerCase()))).map(([id]) => id)
+      : []
+    const allowedIds: string[] | null = allowed ? Array.from(allowed as Set<string>) : null
+
+    const params = (groups: string[][]) => ({
+      groups,
+      soft: softWords(filters),
+      categories: filters.categories?.length ? filters.categories : undefined,
+      age_ranges: filters.ageRanges?.length ? filters.ageRanges : undefined,
+      first_party: Boolean(filters.specialTags?.includes('first_party')),
+      source_types: filters.sourceTypes?.length ? filters.sourceTypes : undefined,
+      min_price: Number.isFinite(filters.minPrice) ? filters.minPrice : undefined,
+      max_price: Number.isFinite(filters.maxPrice) ? filters.maxPrice : undefined,
+      life: filters.lifeAreas?.length ? lifeAreaKeywords(filters.lifeAreas).map(cleanTerm).filter(Boolean) : undefined,
+      cond_keys: condKeys ? Array.from(condKeys).map(cleanTerm).filter(Boolean) : undefined,
+      cond_ids: condKeys ? condIds : undefined,
+      allowed: allowedIds ?? undefined,
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      province: userLocation?.province,
+      radius_km: radiusKm,
+      max_km: userLocation && maxDistance ? maxDistance : undefined,
+      near_first: nearFirst,
+      sort: sortRules,
+      offset: (page - 1) * pageSize,
+      limit: pageSize,
+      status: filters.status || 'approved',
+    })
+
+    const run = async (groups: string[][]): Promise<SearchOutcome | 'missing' | null> => {
+      const p = params(groups)
+      // Places a few hundred metres apart share a cached page.
+      const key = cacheKey({ ...p, lat: p.lat?.toFixed(3), lng: p.lng?.toFixed(3) })
+      let missing = false
+      const outcome = await pageCache(key, async () => {
+        const supabase = createClient()
+        const { data, error } = await supabase.rpc('search_resource_page', { p })
+        if (error) {
+          if (error.code === 'PGRST202' || /search_resource_page/.test(error.message || '')) missing = true
+          throw error
+        }
+        const result = data as { total: number; near_count: number; rows: { id: string; distance: number | null; avg: number; n: number }[] }
+        const full = await fullRows(result.rows.map((r) => r.id))
+        const results = result.rows
+          .filter((r) => full[r.id])
+          .map((r) => ({
+            ...full[r.id],
+            averageRating: r.avg || 0,
+            ratingCount: r.n || 0,
+            distance: r.distance ?? undefined,
+          }) as SearchResult)
+        return {
+          results,
+          total: result.total,
+          page,
+          pageSize,
+          ...(nearFirst ? { nearFirst, radiusKm, nearCount: result.near_count } : {}),
+        }
+      }).catch((error) => {
+        if (missing) return 'missing' as const
+        console.error('search_resource_page failed; searching the old way:', error?.message || error)
+        return null
+      })
+      return outcome
+    }
+
+    if (allowedIds && allowedIds.length === 0) return { results: [], total: 0, page, pageSize }
+    let outcome = await run(textGroups(filters, words))
+    // Nothing has every word: places with any of them, as below.
+    if (outcome && outcome !== 'missing' && outcome.total === 0 && !filters.groups?.length && words.length > 1) {
+      outcome = await run([words])
+    }
+    if (outcome === 'missing') {
+      pageFunctionMissingUntil = Date.now() + 5 * 60_000
+      return null
+    }
+    // New objects: the cached ones are shared between requests.
+    return outcome ? { ...outcome, results: outcome.results.map((r) => ({ ...r })) } : null
+  } catch (error) {
+    console.error('Database search failed; searching the old way:', error)
+    return null
+  }
+}
+
 /**
  * Comprehensive search function with filters, sorting, and pagination.
  *
@@ -1200,6 +1365,10 @@ export async function searchResources(
   const offset = (page - 1) * pageSize
   const { userLocation, maxDistance, ...shared } = filters
   const words = searchWords(filters.query)
+
+  // In the database, a page at a time, once STEP 77 is applied.
+  const fromDatabase = await searchPage(filters, sort, page, pageSize)
+  if (fromDatabase) return fromDatabase
 
   // Which venues match, with their ratings, is the same for everyone with the
   // same filters and is the slow part, so it is shared (lib/cache/shared.ts).
@@ -1247,6 +1416,7 @@ export async function searchResources(
   // still removes everything beyond it; without one, farther places follow.
   const nearFirst = Boolean(userLocation) && !Array.isArray(sort) && sort === 'relevance'
   const radiusKm = maxDistance || NEAR_KM
+  const scoringWords = Array.from(new Set([...textGroups(filters, words).flat(), ...softWords(filters)]))
 
   const compareByRule = (a: SearchResult, b: SearchResult, rule: SortRule): number => {
     const factor = rule.direction === 'asc' ? 1 : -1
@@ -1287,7 +1457,7 @@ export async function searchResources(
         let aScore = 0
         let bScore = 0
         // Each search word in the name counts more than in the description.
-        for (const w of words) {
+        for (const w of scoringWords) {
           aScore += a.name.toLowerCase().includes(w) ? 10 : 0
           bScore += b.name.toLowerCase().includes(w) ? 10 : 0
           aScore += a.description?.toLowerCase().includes(w) ? 5 : 0
@@ -1369,6 +1539,7 @@ function fullRows(ids: string[]): Promise<Record<string, Resource>> {
 async function matchResources(filters: SharedSearchFilters): Promise<SearchResult[]> {
   const index = await ratingIndex()
   const words = searchWords(filters.query)
+  const groups = textGroups(filters, words)
 
   // Filters that come from ratings narrow the venues to a list of ids.
   let allowed: Set<string> | null = null
@@ -1417,10 +1588,10 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
         .map(([id]) => id)
     : []
 
-  let rows = await queryMatches(filters, words, 'all', allowed, condKeys, condIds)
+  let rows = await queryMatches(filters, groups, allowed, condKeys, condIds)
   // Nothing has every word: show venues with any of them, most words first.
-  if (rows.length === 0 && words.length > 1) {
-    rows = await queryMatches(filters, words, 'any', allowed, condKeys, condIds)
+  if (rows.length === 0 && !filters.groups?.length && words.length > 1) {
+    rows = await queryMatches(filters, [words], allowed, condKeys, condIds)
   }
 
   // "Rare" and "Highly requested" come from real save counts
@@ -1452,11 +1623,10 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
   })
 }
 
-/** All venues matching the filters, as light rows. */
+/** All venues matching the filters, as light rows. Every text group must match, any word in it. */
 async function queryMatches(
   filters: SharedSearchFilters,
-  words: string[],
-  mode: 'all' | 'any',
+  groups: string[][],
   allowed: Set<string> | null,
   condKeys: Set<string> | null,
   condIds: string[]
@@ -1469,15 +1639,9 @@ async function queryMatches(
       .select(MATCH_COLUMNS, withCount ? { count: 'exact' } : undefined)
       .eq('status', filters.status || 'approved')
 
-    // Text: every word somewhere in the name, description or category (or,
-    // as the fallback, any of them).
-    if (words.length > 0) {
-      if (mode === 'all') {
-        for (const word of words) query = query.or(inNameDescriptionOrCategory([word]))
-      } else {
-        query = query.or(inNameDescriptionOrCategory(words))
-      }
-    }
+    // Text: every group somewhere in the name, description or category; a
+    // group is one search word, or the words that mean the same kind of place.
+    for (const group of groups) query = query.or(inNameDescriptionOrCategory(group))
 
     // Category filter.
     //
@@ -1576,6 +1740,12 @@ export async function getResourceCategories(): Promise<string[]> {
   try {
     return await categoriesCache('all', async () => {
       const supabase = createClient()
+      // Every category, however many places (STEP 77); the old way below
+      // until it is applied.
+      const listed = await supabase.rpc('resource_categories')
+      if (!listed.error && Array.isArray(listed.data)) {
+        return (listed.data as unknown[]).map((c) => (typeof c === 'string' ? c : (c as any)?.resource_categories)).filter(Boolean)
+      }
       const rows = await readAll((from, to, withCount) =>
         supabase
           .from('resources')

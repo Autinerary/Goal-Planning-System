@@ -119,6 +119,10 @@ export const DISPLAY_CHOICE_IDS = [
   'display_look_plain', 'display_look_pretty', 'display_look_exciting', 'display_look_fun',
   'display_view_simple', 'display_view_full',
   'display_accent_cyan', 'display_accent_purple', 'display_accent_emerald', 'display_accent_amber', 'display_accent_rose',
+  // The colour theme and colour strength (components/ColourSettings.tsx; the
+  // team's planning note, October 2026). Softer keeps display_soft.
+  'display_theme_earthy', 'display_theme_ocean', 'display_theme_sand', 'display_theme_classic',
+  'display_softest', 'display_bright', 'display_brightest',
 ] as const
 // And "Share this list" in Start here (Group 15: someone who "recommends or
 // shares Autinerary" by day 14).

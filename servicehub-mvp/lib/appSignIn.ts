@@ -18,3 +18,9 @@ export function appSignInHref(back: string): string {
 
 /** The app's sign-up, for a new account (setup there, then back here from its menu). */
 export const APP_SIGNUP = `${APP}/signup`
+
+/** The app's calendar, where "Add to my team" puts the first meeting (lib/team.ts). */
+export const APP_CALENDAR = `${APP}/calendar`
+
+/** "How Autinerary uses AI", in the app's glossary. */
+export const APP_AI_HELP = `${APP}/help#ai`

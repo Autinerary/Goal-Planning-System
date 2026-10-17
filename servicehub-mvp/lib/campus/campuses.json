@@ -1,0 +1,1244 @@
+{
+ "attribution": "© OpenStreetMap contributors (ODbL), built by scripts/places/build-campuses.mjs",
+ "built": "2026-10-17",
+ "institutions": [
+  {
+   "slug": "algoma-university",
+   "name": "Algoma University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Algoma University",
+     "city": null,
+     "near": "Sault Ste. Marie",
+     "lat": 46.50231,
+     "lng": -84.28747
+    },
+    {
+     "name": "Algoma University",
+     "city": null,
+     "near": "Brampton",
+     "lat": 43.68644,
+     "lng": -79.76037
+    }
+   ]
+  },
+  {
+   "slug": "brock-university",
+   "name": "Brock University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Brock University",
+     "city": null,
+     "near": "Thorold",
+     "lat": 43.1174,
+     "lng": -79.24805
+    },
+    {
+     "name": "Brock University",
+     "city": null,
+     "near": "St. Catharines",
+     "lat": 43.15759,
+     "lng": -79.24293
+    },
+    {
+     "name": "Brock University - Hamilton Campus",
+     "city": null,
+     "near": "Hamilton",
+     "lat": 43.23118,
+     "lng": -79.80954
+    },
+    {
+     "name": "Brock University Burlington Campus",
+     "city": null,
+     "near": "Burlington",
+     "lat": 43.3719,
+     "lng": -79.75016
+    }
+   ]
+  },
+  {
+   "slug": "carleton-university",
+   "name": "Carleton University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Carleton University",
+     "city": null,
+     "near": "Ottawa",
+     "lat": 45.38578,
+     "lng": -75.69529
+    }
+   ]
+  },
+  {
+   "slug": "lakehead-university",
+   "name": "Lakehead University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Lakehead University",
+     "city": null,
+     "near": "Thunder Bay",
+     "lat": 48.41829,
+     "lng": -89.26172
+    },
+    {
+     "name": "Lakehead University - Orillia Campus",
+     "city": null,
+     "near": "Orillia",
+     "lat": 44.59232,
+     "lng": -79.45835
+    }
+   ]
+  },
+  {
+   "slug": "laurentian-university",
+   "name": "Laurentian University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Laurentian University",
+     "city": "Sudbury",
+     "near": null,
+     "lat": 46.45807,
+     "lng": -80.97089
+    },
+    {
+     "name": "Laurentian University School of Architecture",
+     "city": null,
+     "near": "Sudbury",
+     "lat": 46.49225,
+     "lng": -80.99746
+    }
+   ]
+  },
+  {
+   "slug": "mcmaster-university",
+   "name": "McMaster University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "McMaster University",
+     "city": "Hamilton",
+     "near": null,
+     "lat": 43.26395,
+     "lng": -79.91736
+    },
+    {
+     "name": "McMaster University Toronto Campus",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.6687,
+     "lng": -79.39502
+    },
+    {
+     "name": "McMaster University - DeGroote School of Business",
+     "city": null,
+     "near": "Burlington",
+     "lat": 43.37326,
+     "lng": -79.77818
+    }
+   ]
+  },
+  {
+   "slug": "nipissing-university",
+   "name": "Nipissing University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Nipissing University",
+     "city": null,
+     "near": "North Bay",
+     "lat": 46.33508,
+     "lng": -79.4893
+    }
+   ]
+  },
+  {
+   "slug": "nosm-university",
+   "name": "NOSM University",
+   "kind": "university",
+   "campuses": []
+  },
+  {
+   "slug": "ocad-university",
+   "name": "OCAD University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "OCAD University",
+     "city": null,
+     "near": "Toronto",
+     "lat": 43.65296,
+     "lng": -79.39118
+    }
+   ]
+  },
+  {
+   "slug": "ontario-tech-university",
+   "name": "Ontario Tech University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Ontario Tech University",
+     "city": null,
+     "near": "Oshawa",
+     "lat": 43.89845,
+     "lng": -78.86201
+    },
+    {
+     "name": "Ontario Tech University",
+     "city": "Oshawa",
+     "near": null,
+     "lat": 43.94836,
+     "lng": -78.89613
+    }
+   ]
+  },
+  {
+   "slug": "queens-university",
+   "name": "Queen's University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Queen's University",
+     "city": "Kingston",
+     "near": null,
+     "lat": 44.2237,
+     "lng": -76.506
+    }
+   ]
+  },
+  {
+   "slug": "toronto-metropolitan-university",
+   "name": "Toronto Metropolitan University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Toronto Metropolitan University",
+     "city": null,
+     "near": "Toronto",
+     "lat": 43.65541,
+     "lng": -79.38273
+    }
+   ]
+  },
+  {
+   "slug": "trent-university",
+   "name": "Trent University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Trent University",
+     "city": null,
+     "near": "Peterborough",
+     "lat": 44.3573,
+     "lng": -78.29104
+    },
+    {
+     "name": "Trent University - Durham GTA Campus",
+     "city": "Oshawa",
+     "near": null,
+     "lat": 43.88977,
+     "lng": -78.89116
+    },
+    {
+     "name": "Trent University - Catharine Parr Traill College",
+     "city": null,
+     "near": "Peterborough",
+     "lat": 44.31127,
+     "lng": -78.3269
+    }
+   ]
+  },
+  {
+   "slug": "universite-de-hearst",
+   "name": "Université de Hearst",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Université de Hearst",
+     "city": "Hearst",
+     "near": null,
+     "lat": 49.68447,
+     "lng": -83.6668
+    }
+   ]
+  },
+  {
+   "slug": "universite-de-lontario-francais",
+   "name": "Université de l'Ontario français",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Université de l'Ontario français",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.64508,
+     "lng": -79.36897
+    }
+   ]
+  },
+  {
+   "slug": "university-of-guelph",
+   "name": "University of Guelph",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "University of Guelph",
+     "city": "Guelph",
+     "near": null,
+     "lat": 43.53321,
+     "lng": -80.22236
+    },
+    {
+     "name": "University of Guelph - Ridgetown Campus",
+     "city": null,
+     "near": "Ridgetown",
+     "lat": 42.44664,
+     "lng": -81.8801
+    }
+   ]
+  },
+  {
+   "slug": "university-of-ottawa",
+   "name": "University of Ottawa",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "University of Ottawa",
+     "city": null,
+     "near": "Ottawa",
+     "lat": 45.42248,
+     "lng": -75.68165
+    },
+    {
+     "name": "University of Ottawa - Alta Vista Campus",
+     "city": null,
+     "near": "Ottawa",
+     "lat": 45.40293,
+     "lng": -75.64214
+    }
+   ]
+  },
+  {
+   "slug": "university-of-toronto",
+   "name": "University of Toronto",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "University of Toronto Mississauga",
+     "city": "Mississauga",
+     "near": null,
+     "lat": 43.55021,
+     "lng": -79.66523
+    },
+    {
+     "name": "University of Toronto St. George",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.66352,
+     "lng": -79.39576
+    },
+    {
+     "name": "University of Toronto Scarborough",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.7852,
+     "lng": -79.18654
+    }
+   ]
+  },
+  {
+   "slug": "university-of-waterloo",
+   "name": "University of Waterloo",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "University of Waterloo",
+     "city": null,
+     "near": "Waterloo",
+     "lat": 43.47812,
+     "lng": -80.55407
+    },
+    {
+     "name": "University of Waterloo Health Sciences Campus",
+     "city": null,
+     "near": "Kitchener",
+     "lat": 43.45259,
+     "lng": -80.49961
+    },
+    {
+     "name": "University of Waterloo School of Architecture",
+     "city": null,
+     "near": "Cambridge",
+     "lat": 43.35812,
+     "lng": -80.31663
+    },
+    {
+     "name": "University of Waterloo Stratford School of Interaction Design and Business",
+     "city": null,
+     "near": "Stratford",
+     "lat": 43.36785,
+     "lng": -80.98216
+    }
+   ]
+  },
+  {
+   "slug": "university-of-windsor",
+   "name": "University of Windsor",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "University of Windsor",
+     "city": null,
+     "near": "Windsor",
+     "lat": 42.30515,
+     "lng": -83.06548
+    },
+    {
+     "name": "University of Windsor",
+     "city": null,
+     "near": "Windsor",
+     "lat": 42.31749,
+     "lng": -83.0388
+    }
+   ]
+  },
+  {
+   "slug": "western-university",
+   "name": "Western University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Western University",
+     "city": "London",
+     "near": null,
+     "lat": 43.00527,
+     "lng": -81.2762
+    }
+   ]
+  },
+  {
+   "slug": "wilfrid-laurier-university",
+   "name": "Wilfrid Laurier University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "Wilfrid Laurier University",
+     "city": null,
+     "near": "Waterloo",
+     "lat": 43.47277,
+     "lng": -80.52616
+    },
+    {
+     "name": "Wilfrid Laurier University Milton Campus (Temporary)",
+     "city": null,
+     "near": "Milton",
+     "lat": 43.51722,
+     "lng": -79.90613
+    },
+    {
+     "name": "Wilfrid Laurier University - Lyle S. Hallman Faculty of Social Work",
+     "city": "Kitchener",
+     "near": null,
+     "lat": 43.45255,
+     "lng": -80.49219
+    }
+   ]
+  },
+  {
+   "slug": "york-university",
+   "name": "York University",
+   "kind": "university",
+   "campuses": [
+    {
+     "name": "York University, Keele Campus",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.77423,
+     "lng": -79.50489
+    },
+    {
+     "name": "York University Glendon Campus",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.72835,
+     "lng": -79.37765
+    },
+    {
+     "name": "York University Markham Campus",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.85454,
+     "lng": -79.31091
+    }
+   ]
+  },
+  {
+   "slug": "algonquin-college",
+   "name": "Algonquin College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Algonquin College",
+     "city": null,
+     "near": "Ottawa",
+     "lat": 45.34965,
+     "lng": -75.75505
+    },
+    {
+     "name": "Algonquin College - Perth Campus",
+     "city": "Perth",
+     "near": null,
+     "lat": 44.9023,
+     "lng": -76.23843
+    },
+    {
+     "name": "Algonquin College - Pembroke Campus",
+     "city": "Pembroke",
+     "near": null,
+     "lat": 45.82607,
+     "lng": -77.12201
+    }
+   ]
+  },
+  {
+   "slug": "cambrian-college",
+   "name": "Cambrian College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Cambrian College",
+     "city": "Sudbury",
+     "near": null,
+     "lat": 46.52903,
+     "lng": -80.9407
+    }
+   ]
+  },
+  {
+   "slug": "canadore-college",
+   "name": "Canadore College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Canadore College",
+     "city": "North Bay",
+     "near": null,
+     "lat": 46.34375,
+     "lng": -79.49281
+    },
+    {
+     "name": "Canadore College - Stanford Mississauga Campus",
+     "city": null,
+     "near": "Mississauga",
+     "lat": 43.62791,
+     "lng": -79.63108
+    },
+    {
+     "name": "Canadore College - West Parry Sound Campus",
+     "city": null,
+     "near": "Parry Sound",
+     "lat": 45.36163,
+     "lng": -80.03874
+    },
+    {
+     "name": "Canadore College Aviation Campus",
+     "city": null,
+     "near": "North Bay",
+     "lat": 46.3574,
+     "lng": -79.43349
+    },
+    {
+     "name": "Canadore College - Stanford Scarborough Campus",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.78302,
+     "lng": -79.2333
+    }
+   ]
+  },
+  {
+   "slug": "centennial-college",
+   "name": "Centennial College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Centennial College",
+     "city": "Scarborough",
+     "near": null,
+     "lat": 43.78572,
+     "lng": -79.22783
+    },
+    {
+     "name": "Centennial College",
+     "city": "East York",
+     "near": null,
+     "lat": 43.68474,
+     "lng": -79.34893
+    },
+    {
+     "name": "Centennial College - Ashtonbee Campus",
+     "city": null,
+     "near": "Toronto",
+     "lat": 43.73152,
+     "lng": -79.29134
+    },
+    {
+     "name": "Centennial College Downsview Campus",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.74746,
+     "lng": -79.47532
+    },
+    {
+     "name": "Centennial College - Pickering Learning Site",
+     "city": null,
+     "near": "Pickering",
+     "lat": 43.83289,
+     "lng": -79.08604
+    }
+   ]
+  },
+  {
+   "slug": "college-boreal",
+   "name": "Collège Boréal",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Collège Boréal",
+     "city": "Sudbury",
+     "near": null,
+     "lat": 46.51535,
+     "lng": -80.99296
+    },
+    {
+     "name": "Collège Boréal",
+     "city": "New Liskeard",
+     "near": null,
+     "lat": 47.51654,
+     "lng": -79.67563
+    },
+    {
+     "name": "Collège Boréal",
+     "city": null,
+     "near": "Tecumseh",
+     "lat": 42.29678,
+     "lng": -82.9262
+    },
+    {
+     "name": "Collège Boréal - Kapuskasing Campus",
+     "city": null,
+     "near": "Kapuskasing",
+     "lat": 49.41928,
+     "lng": -82.42942
+    },
+    {
+     "name": "Collège Boréal - Timmins Campus",
+     "city": null,
+     "near": "Timmins",
+     "lat": 48.48347,
+     "lng": -81.3475
+    },
+    {
+     "name": "Collège Boréal - Barrie Campus",
+     "city": null,
+     "near": "Barrie",
+     "lat": 44.3923,
+     "lng": -79.69352
+    }
+   ]
+  },
+  {
+   "slug": "conestoga-college",
+   "name": "Conestoga College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Conestoga College",
+     "city": null,
+     "near": "Stratford",
+     "lat": 43.36783,
+     "lng": -80.99449
+    },
+    {
+     "name": "Conestoga College",
+     "city": null,
+     "near": "Milton",
+     "lat": 43.52486,
+     "lng": -79.87093
+    },
+    {
+     "name": "Conestoga College - Doon Campus",
+     "city": "Kitchener",
+     "near": null,
+     "lat": 43.3896,
+     "lng": -80.40613
+    },
+    {
+     "name": "Conestoga College - John W. Tibbits Campus",
+     "city": null,
+     "near": "Waterloo",
+     "lat": 43.47978,
+     "lng": -80.51837
+    },
+    {
+     "name": "Conestoga College - Guelph Campus",
+     "city": null,
+     "near": "Guelph",
+     "lat": 43.53829,
+     "lng": -80.29408
+    },
+    {
+     "name": "Conestoga College - Downtown Campus",
+     "city": null,
+     "near": "Cambridge",
+     "lat": 43.35979,
+     "lng": -80.30963
+    }
+   ]
+  },
+  {
+   "slug": "confederation-college",
+   "name": "Confederation College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Confederation College",
+     "city": null,
+     "near": "Thunder Bay",
+     "lat": 48.40233,
+     "lng": -89.26889
+    },
+    {
+     "name": "Confederation College",
+     "city": null,
+     "near": null,
+     "lat": 48.71853,
+     "lng": -86.37937
+    },
+    {
+     "name": "Confederation College Lake of the Woods Campus",
+     "city": null,
+     "near": "Kenora",
+     "lat": 49.75477,
+     "lng": -94.48084
+    }
+   ]
+  },
+  {
+   "slug": "durham-college",
+   "name": "Durham College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Durham College",
+     "city": "Oshawa",
+     "near": null,
+     "lat": 43.94304,
+     "lng": -78.89515
+    },
+    {
+     "name": "Durham College - Whitby Campus",
+     "city": "Whitby",
+     "near": null,
+     "lat": 43.87189,
+     "lng": -78.9011
+    },
+    {
+     "name": "Durham College - Pickering Learning Site",
+     "city": null,
+     "near": "Pickering",
+     "lat": 43.83281,
+     "lng": -79.0862
+    }
+   ]
+  },
+  {
+   "slug": "fanshawe-college",
+   "name": "Fanshawe College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Fanshawe College",
+     "city": null,
+     "near": "London",
+     "lat": 43.01372,
+     "lng": -81.20154
+    },
+    {
+     "name": "Fanshawe College - Woodstock Campus",
+     "city": null,
+     "near": "Woodstock",
+     "lat": 43.11485,
+     "lng": -80.75162
+    },
+    {
+     "name": "Fanshawe College - Simcoe/Norfolk Regional Campus",
+     "city": null,
+     "near": "Simcoe",
+     "lat": 42.83386,
+     "lng": -80.28092
+    },
+    {
+     "name": "Fanshawe College - St. Thomas/Elgin Campus",
+     "city": null,
+     "near": "St. Thomas",
+     "lat": 42.75343,
+     "lng": -81.17164
+    },
+    {
+     "name": "Fanshawe Downtown Campus",
+     "city": "London",
+     "near": null,
+     "lat": 42.98325,
+     "lng": -81.25071
+    },
+    {
+     "name": "Fanshawe College - Clinton Centre",
+     "city": "Clinton",
+     "near": null,
+     "lat": 43.62354,
+     "lng": -81.53552
+    }
+   ]
+  },
+  {
+   "slug": "fleming-college",
+   "name": "Fleming College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Fleming College",
+     "city": null,
+     "near": "Peterborough",
+     "lat": 44.26814,
+     "lng": -78.37443
+    },
+    {
+     "name": "Fleming College - Frost Campus",
+     "city": null,
+     "near": "Lindsay",
+     "lat": 44.33996,
+     "lng": -78.73786
+    },
+    {
+     "name": "Fleming College - Haliburton Campus",
+     "city": "Haliburton",
+     "near": null,
+     "lat": 45.05228,
+     "lng": -78.52275
+    }
+   ]
+  },
+  {
+   "slug": "george-brown-college",
+   "name": "George Brown College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "George Brown College - Casa Loma Campus",
+     "city": null,
+     "near": "Toronto",
+     "lat": 43.6759,
+     "lng": -79.41097
+    },
+    {
+     "name": "George Brown College - Waterfront Campus",
+     "city": "Toronto",
+     "near": null,
+     "lat": 43.64415,
+     "lng": -79.36579
+    }
+   ]
+  },
+  {
+   "slug": "georgian-college",
+   "name": "Georgian College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Georgian College",
+     "city": "Barrie",
+     "near": null,
+     "lat": 44.4122,
+     "lng": -79.66827
+    },
+    {
+     "name": "Georgian College - South Georgian Bay Campus",
+     "city": null,
+     "near": "Collingwood",
+     "lat": 44.48461,
+     "lng": -80.19187
+    },
+    {
+     "name": "Georgian College - Orillia Campus",
+     "city": null,
+     "near": "Orillia",
+     "lat": 44.58158,
+     "lng": -79.43353
+    },
+    {
+     "name": "Georgian College - Orangeville Campus",
+     "city": null,
+     "near": "Orangeville",
+     "lat": 43.91244,
+     "lng": -80.10725
+    },
+    {
+     "name": "Georgian College - Muskoka Campus",
+     "city": null,
+     "near": "Bracebridge",
+     "lat": 45.03627,
+     "lng": -79.31736
+    },
+    {
+     "name": "Georgian College - Midland Campus",
+     "city": null,
+     "near": "Midland",
+     "lat": 44.72633,
+     "lng": -79.87218
+    }
+   ]
+  },
+  {
+   "slug": "humber-college",
+   "name": "Humber College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Humber Polytechnic - Lakeshore Campus",
+     "city": null,
+     "near": "Mississauga",
+     "lat": 43.59598,
+     "lng": -79.51453
+    },
+    {
+     "name": "Humber Polytechnic",
+     "city": null,
+     "near": "Vaughan",
+     "lat": 43.72862,
+     "lng": -79.6061
+    }
+   ]
+  },
+  {
+   "slug": "la-cite",
+   "name": "La Cité",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "La Cité - Campus Alphonse-Desjardins",
+     "city": null,
+     "near": "Rockland",
+     "lat": 45.49486,
+     "lng": -75.48622
+    },
+    {
+     "name": "La Cité Collégiale - Alfred Campus",
+     "city": null,
+     "near": "Hawkesbury",
+     "lat": 45.55792,
+     "lng": -74.87995
+    },
+    {
+     "name": "La Cité Collégiale - Hawkesbury Campus",
+     "city": null,
+     "near": "Hawkesbury",
+     "lat": 45.60638,
+     "lng": -74.62448
+    },
+    {
+     "name": "Collège La Cité",
+     "city": null,
+     "near": "Ottawa",
+     "lat": 45.4394,
+     "lng": -75.62683
+    }
+   ]
+  },
+  {
+   "slug": "lambton-college",
+   "name": "Lambton College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Lambton College",
+     "city": null,
+     "near": "Sarnia",
+     "lat": 42.97697,
+     "lng": -82.34763
+    },
+    {
+     "name": "Lambton College - Toronto Campus",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.77337,
+     "lng": -79.33597
+    },
+    {
+     "name": "Lambton College - Mississauga Campus",
+     "city": null,
+     "near": "Mississauga",
+     "lat": 43.62749,
+     "lng": -79.67471
+    }
+   ]
+  },
+  {
+   "slug": "loyalist-college",
+   "name": "Loyalist College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Loyalist College",
+     "city": "Belleville",
+     "near": null,
+     "lat": 44.15718,
+     "lng": -77.43064
+    },
+    {
+     "name": "Loyalist College - Bancroft Campus",
+     "city": null,
+     "near": "Bancroft",
+     "lat": 45.0665,
+     "lng": -77.85984
+    },
+    {
+     "name": "Loyalist College in Toronto",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.81167,
+     "lng": -79.34584
+    },
+    {
+     "name": "Loyalist College - Port Hope",
+     "city": "Port Hope",
+     "near": null,
+     "lat": 43.95143,
+     "lng": -78.2931
+    }
+   ]
+  },
+  {
+   "slug": "mohawk-college",
+   "name": "Mohawk College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Mohawk College",
+     "city": null,
+     "near": "Hamilton",
+     "lat": 43.23856,
+     "lng": -79.88813
+    },
+    {
+     "name": "Mohawk College - Stoney Creek Campus",
+     "city": null,
+     "near": "Burlington",
+     "lat": 43.22694,
+     "lng": -79.71315
+    }
+   ]
+  },
+  {
+   "slug": "niagara-college",
+   "name": "Niagara College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Niagara College",
+     "city": "Welland",
+     "near": null,
+     "lat": 43.01538,
+     "lng": -79.26507
+    },
+    {
+     "name": "Niagara College - Niagara-on-the-Lake Campus",
+     "city": null,
+     "near": "Thorold",
+     "lat": 43.15245,
+     "lng": -79.16486
+    }
+   ]
+  },
+  {
+   "slug": "northern-college",
+   "name": "Northern College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Northern College",
+     "city": "Timmins",
+     "near": null,
+     "lat": 48.48741,
+     "lng": -81.19946
+    },
+    {
+     "name": "Northern College",
+     "city": null,
+     "near": "Moosonee",
+     "lat": 51.27394,
+     "lng": -80.64432
+    },
+    {
+     "name": "Northern College - Haileybury Campus",
+     "city": null,
+     "near": "Haileybury",
+     "lat": 47.45339,
+     "lng": -79.64006
+    },
+    {
+     "name": "Northern College - Kirkland Lake Campus",
+     "city": null,
+     "near": "Kirkland Lake",
+     "lat": 48.15808,
+     "lng": -80.0196
+    }
+   ]
+  },
+  {
+   "slug": "sault-college",
+   "name": "Sault College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Sault College",
+     "city": null,
+     "near": "Sault Ste. Marie",
+     "lat": 46.53255,
+     "lng": -84.31149
+    },
+    {
+     "name": "Sault College",
+     "city": null,
+     "near": "Toronto",
+     "lat": 43.65661,
+     "lng": -79.45212
+    },
+    {
+     "name": "Sault College Brampton Campus",
+     "city": null,
+     "near": "Brampton",
+     "lat": 43.69718,
+     "lng": -79.74858
+    }
+   ]
+  },
+  {
+   "slug": "seneca-polytechnic",
+   "name": "Seneca Polytechnic",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Seneca Polytechnic",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.79669,
+     "lng": -79.34984
+    },
+    {
+     "name": "Seneca College - King Campus",
+     "city": null,
+     "near": "King City",
+     "lat": 43.95376,
+     "lng": -79.51709
+    },
+    {
+     "name": "Seneca College - Markham Campus",
+     "city": null,
+     "near": "Markham",
+     "lat": 43.84968,
+     "lng": -79.36763
+    },
+    {
+     "name": "Seneca @ York Campus",
+     "city": null,
+     "near": "Vaughan",
+     "lat": 43.77152,
+     "lng": -79.49949
+    }
+   ]
+  },
+  {
+   "slug": "sheridan-college",
+   "name": "Sheridan College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "Sheridan College - Hazel McCallion Campus",
+     "city": "Mississauga",
+     "near": null,
+     "lat": 43.5912,
+     "lng": -79.64807
+    },
+    {
+     "name": "Sheridan College - Trafalgar Campus",
+     "city": "Oakville",
+     "near": null,
+     "lat": 43.46958,
+     "lng": -79.70017
+    },
+    {
+     "name": "Sheridan College - Davis Campus",
+     "city": "Brampton",
+     "near": null,
+     "lat": 43.65539,
+     "lng": -79.73846
+    }
+   ]
+  },
+  {
+   "slug": "st-clair-college",
+   "name": "St. Clair College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "St. Clair College",
+     "city": "Windsor",
+     "near": null,
+     "lat": 42.24883,
+     "lng": -83.01968
+    },
+    {
+     "name": "St. Clair College - Chatham Campus",
+     "city": null,
+     "near": "Chatham",
+     "lat": 42.39605,
+     "lng": -82.22318
+    }
+   ]
+  },
+  {
+   "slug": "st-lawrence-college",
+   "name": "St. Lawrence College",
+   "kind": "college",
+   "campuses": [
+    {
+     "name": "St. Lawrence College",
+     "city": "Kingston",
+     "near": null,
+     "lat": 44.22346,
+     "lng": -76.52798
+    },
+    {
+     "name": "St. Lawrence College - Cornwall Campus",
+     "city": null,
+     "near": "Cornwall",
+     "lat": 45.01729,
+     "lng": -74.70247
+    },
+    {
+     "name": "St. Lawrence College - Brockville Campus",
+     "city": null,
+     "near": "Brockville",
+     "lat": 44.60784,
+     "lng": -75.69706
+    }
+   ]
+  }
+ ]
+}

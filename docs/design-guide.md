@@ -31,12 +31,17 @@ and run `scripts/qa/check-accessibility.mjs` before a release.
    to "How Autinerary uses AI" (`/help#ai`). No "AI-Generated" badges. The
    goal helper keeps its "AI helper" label, because that is the step where AI
    works.
-4. **One accent colour, and choices.** Indigo for actions, and one accent the
-   person can change in Settings. Display offers light or dark, higher
-   contrast, **Soft colours** (every colour, emoji and pictures included, made
-   less bright) and calm motion, on every page before an account and inside
-   the app. Colour never carries meaning on its own: a tick or a word goes
-   with it.
+4. **One action colour, and choices.** Actions use the indigo classes, which
+   the colour theme turns into the theme's main colour: **Earthy** (forest
+   green and watery blue) by default since October 2026, or Ocean, Sand or
+   Classic (the original indigo), in Settings and Display, in both apps
+   (`app/themes.css`, built by `scripts/themes/build-themes.mjs`; every theme
+   keeps each pairing's contrast). Greens, ambers and reds are not themed:
+   they mean done, careful and wrong. Display also offers light or dark,
+   higher contrast, **colour strength** from softest to brightest (softer is
+   what Soft colours was: every colour, emoji and pictures included) and calm
+   motion, on every page before an account and inside the app. Colour never
+   carries meaning on its own: a tick or a word goes with it.
 5. **One thing to do first.** One filled button per screen, named for where
    it goes; everything else is an outlined button or a link (Groups 31 and
    33). Long parts are folded, with a plain summary ("How your plan was

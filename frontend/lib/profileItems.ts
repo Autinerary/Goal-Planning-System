@@ -47,7 +47,7 @@ export const PROFILE_ITEMS: ProfileItem[] = [
   // asks)"). Three emails about what they did (Group 15's days 1, 7 and 14),
   // or one a day about the next step (Group 29); both stop by themselves.
   { id: 'reminders', title: 'Reminders for your first two weeks', unlocks: 'Three emails about what you did, or one short email a day about your next step. Both stop by themselves after two weeks.', inline: true, fromDay: 1 },
-  { id: 'look', title: 'How the app looks', unlocks: 'Light or dark, larger text, higher contrast, and how lively it looks.', inline: true, fromDay: 0 },
+  { id: 'look', title: 'How the app looks', unlocks: 'Light or dark, colours, larger text, higher contrast, and how lively it looks.', inline: true, fromDay: 0 },
   { id: 'motivation', title: 'What motivates you', unlocks: 'Helps match you with people motivated in similar ways when your plans are made.', inline: true, fromDay: 0 },
   { id: 'norms', title: 'Your norms and support needs', unlocks: 'Tools and services that fit how you work, and ratings from people with similar norms. Private.', href: '/profile/diagnostic', fromDay: 7 },
   { id: 'character', title: 'Your character and Dream Self', unlocks: 'Puts you on your race track, and a picture of who you are working toward on the Ideal Self page.', href: '/ideal-self', fromDay: 10 },
@@ -68,7 +68,9 @@ export interface ProfileState {
   character?: unknown
   gamification?: { animals?: { type?: string }[] } | null
   viewPreference?: string | null
-  accessibility?: { darkMode?: boolean; highContrast?: boolean; fontScale?: string } | null
+  accessibility?: { darkMode?: boolean; highContrast?: boolean; fontScale?: string; softColors?: boolean; colorStrength?: string } | null
+  /** The colour theme (lib/preferences.ts); Earthy is the default. */
+  theme?: string | null
   reminders?: { enabled?: boolean } | null
   /** The first two weeks' emails (lib/firstWeeks.ts). */
   firstWeeks?: { enabled?: boolean } | null
@@ -84,6 +86,7 @@ export function itemDone(id: ProfileItemId, state: ProfileState): boolean {
     case 'look': {
       const a = state.accessibility || {}
       return Boolean(state.viewPreference) || Boolean(a.darkMode) || Boolean(a.highContrast) || (Boolean(a.fontScale) && a.fontScale !== 'default')
+        || Boolean(a.softColors) || (Boolean(a.colorStrength) && a.colorStrength !== 'usual') || (Boolean(state.theme) && state.theme !== 'earthy')
     }
     case 'reminders': return Boolean(state.reminders?.enabled) || Boolean(state.firstWeeks?.enabled)
   }

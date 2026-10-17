@@ -66,7 +66,17 @@ export interface LayoutPositions {
   widgetSize: 'small' | 'medium' | 'large'
   /** Accent color theme key. */
   accent: 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose'
+  /**
+   * The colour theme (app/themes.css; the team's planning note, October 2026:
+   * "Earthy Green & Watery Blue", and an option in Settings to change the
+   * colours). Saved to the account, like the accent; sent to ResourceHub.
+   */
+  theme?: ColourTheme
 }
+
+export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'classic'
+/** How strong the colours are; 'soft' is what Soft colours was. */
+export type ColourStrength = 'softest' | 'soft' | 'usual' | 'bright' | 'brightest'
 
 export interface UserPreferences {
   gamification?: import('./gamification').GamificationPreferences
@@ -158,8 +168,15 @@ export interface AccessibilitySettings {
    * Soft colours: every colour on the page made less bright (Riipen Labs,
    * Group 16: "bright, vibrant icons which may not be friendly for certain
    * individuals", "neurodivergent friendly colour schemes"). On this device.
+   * Kept for settings saved before colorStrength, which replaced it.
    */
   softColors?: boolean
+  /**
+   * Colour strength, from softest to brightest (the team's planning note,
+   * October 2026: "dull or brighten the colors"). On this device. Read it
+   * with colourStrengthOf, which also understands softColors.
+   */
+  colorStrength?: ColourStrength
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -180,6 +197,7 @@ export const DEFAULT_LAYOUT: LayoutPositions = {
   pinwheelSide: 'left',
   widgetSize: 'medium',
   accent: 'cyan',
+  theme: 'earthy',
 }
 
 /** The weekly email's switch in Settings, kept with the choice as its consent record (lib/weeklyPicks.ts sends it). */
@@ -210,6 +228,34 @@ export const ACCENTS: { id: LayoutPositions['accent']; label: string; swatch: st
   { id: 'amber', label: 'Amber', swatch: '#f59e0b' },
   { id: 'rose', label: 'Rose', swatch: '#f43f5e' },
 ]
+
+/** The colour themes, Earthy first (the default); Classic is the original colours. */
+export const COLOUR_THEMES: { id: ColourTheme; label: string; hint: string }[] = [
+  { id: 'earthy', label: 'Earthy', hint: 'Green and watery blue' },
+  { id: 'ocean', label: 'Ocean', hint: 'Sea blues and aqua' },
+  { id: 'sand', label: 'Sand', hint: 'Warm browns and dusty blue' },
+  { id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
+]
+
+export const COLOUR_STRENGTHS: { id: ColourStrength; label: string }[] = [
+  { id: 'softest', label: 'Softest' },
+  { id: 'soft', label: 'Softer' },
+  { id: 'usual', label: 'Usual' },
+  { id: 'bright', label: 'Brighter' },
+  { id: 'brightest', label: 'Brightest' },
+]
+
+export function themeOf(layout?: Partial<LayoutPositions>): ColourTheme {
+  const t = layout?.theme
+  return COLOUR_THEMES.some((x) => x.id === t) ? (t as ColourTheme) : 'earthy'
+}
+
+/** The colour strength, Soft colours included (saved before colorStrength). */
+export function colourStrengthOf(a?: Partial<AccessibilitySettings>): ColourStrength {
+  const c = a?.colorStrength
+  if (c && COLOUR_STRENGTHS.some((x) => x.id === c)) return c
+  return a?.softColors ? 'soft' : 'usual'
+}
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   ageRange: '',
@@ -351,7 +397,7 @@ export function applyAccessibility(a11y: AccessibilitySettings): void {
   root.dataset.dyslexiaFont = a11y.dyslexiaFont ? 'on' : 'off'
   root.dataset.underlineLinks = a11y.underlineLinks ? 'on' : 'off'
   root.dataset.darkMode = a11y.darkMode ? 'on' : 'off'
-  root.dataset.softColors = a11y.softColors ? 'on' : 'off'
+  root.dataset.colorStrength = colourStrengthOf(a11y)
 }
 
 /**
@@ -366,6 +412,7 @@ export function applyLayout(prefs: UserPreferences): void {
   root.dataset.widgetSize = prefs.layout.widgetSize
   root.dataset.accent = prefs.layout.accent
   root.dataset.pinwheelSide = prefs.layout.pinwheelSide
+  root.dataset.theme = themeOf(prefs.layout)
   // Visual energy 0–3, adapted to the audience (age + tech comfort).
   root.dataset.viewEnergy = String(computeEnergy(prefs))
 }

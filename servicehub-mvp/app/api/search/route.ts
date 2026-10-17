@@ -15,6 +15,8 @@ import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { searchProducts } from '@/lib/search/products'
 import { SHOP_CATEGORIES } from '@/lib/shop/categories'
+import { understandByWords, understandWithAI, withoutParts, searchFor, type Understood } from '@/lib/search/understand'
+import { teamStates } from '@/lib/team'
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -60,7 +62,21 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
 
     // Extract query parameters
-    const query = searchParams.get('q') || undefined
+    const typed = searchParams.get('q') || undefined
+    // Read the way it was said (lib/search/understand.ts): always from the
+    // words; with AI too when someone pressed Enter on a sentence (ai=1).
+    // "Search the exact words instead" is exact=1; a part taken away is drop=.
+    const exact = searchParams.get('exact') === '1'
+    const drop = (searchParams.get('drop') || '').split(',').filter(Boolean)
+    let understood: Understood | null = null
+    if (typed && !exact) {
+      const read = searchParams.get('ai') === '1' ? await understandWithAI(typed) : understandByWords(typed)
+      const kept = withoutParts(read, drop)
+      // Worth using only when it found something more than words.
+      if (read.intents.length || read.place || read.norms.length || read.ages.length) understood = kept
+    }
+    const asked = understood ? searchFor(understood) : null
+    const query = asked ? asked.query || undefined : typed
     const categories = searchParams.get('categories')
       ? searchParams.get('categories')!.split(',').filter(Boolean)
       : undefined
@@ -112,6 +128,7 @@ export async function GET(request: NextRequest) {
     // set a location (Riipen Labs, Group 8).
     let signedIn = false
     let place: string | null = null
+    let userId: string | null = null
 
     try {
       const supabase = createClient()
@@ -121,6 +138,7 @@ export async function GET(request: NextRequest) {
 
       if (user) {
         signedIn = true
+        userId = user.id
         const profile = await supabase
           .from('profiles')
           .select('location')
@@ -144,9 +162,23 @@ export async function GET(request: NextRequest) {
       console.warn('Could not get user location:', error)
     }
 
+    // A place named in the search is where "near" is measured from, for
+    // this search ("a pool near Kitchener"), over the profile's. So is a
+    // point a link gives (near=lat,lng&nearName=, the campus pages).
+    const near = (searchParams.get('near') || '').split(',').map(Number)
+    if (near.length === 2 && near.every(Number.isFinite) && Math.abs(near[0]) <= 90 && Math.abs(near[1]) <= 180) {
+      userLocation = { lat: near[0], lng: near[1], province: 'ON' }
+      place = (searchParams.get('nearName') || '').slice(0, 80) || 'that point'
+    } else if (understood?.place) {
+      userLocation = { lat: understood.place.lat, lng: understood.place.lng, province: understood.place.province }
+      place = `${understood.place.name}, ${understood.place.province}`
+    }
+
     // Build filters
     const filters: SearchFilters = {
       query,
+      groups: asked?.groups.length ? asked.groups : undefined,
+      softWords: asked?.softWords.length ? asked.softWords : undefined,
       categories,
       barriers,
       conditions,
@@ -164,9 +196,10 @@ export async function GET(request: NextRequest) {
       status: 'approved',
     }
 
-    // Option 1: Semantic search using vector DB (if query provided)
+    // Option 1: Semantic search using vector DB (if query provided). Not for
+    // an understood search, which already says what kind of place it wants.
     let semanticResults: any[] = []
-    if (query && query.trim().length > 0) {
+    if (query && query.trim().length > 0 && !understood) {
       try {
         semanticResults = await semanticResourceSearch(query, pageSize * 2, 0.7, categories?.[0])
 
@@ -232,7 +265,18 @@ export async function GET(request: NextRequest) {
 
     let products: any[] = []
     if (!normFilterActive || shopCategorySelected) {
-      products = await searchProducts({ query, categories, minPrice, maxPrice })
+      products = await searchProducts({ query: typed, categories, minPrice, maxPrice })
+    }
+
+    // Where each place on the page is on the person's team, for "Add to my
+    // team" and "Sign them on" on the cards (lib/team.ts).
+    const teamFor = async (rows: any[]) => {
+      if (!userId) return {}
+      try {
+        return await teamStates(createClient(), userId, rows.filter((r) => r.kind !== 'product').map((r) => r.id))
+      } catch {
+        return {}
+      }
     }
 
     // Combine results: semantic results first (higher relevance), then keyword
@@ -309,6 +353,8 @@ export async function GET(request: NextRequest) {
           ? Math.max(keywordResult.nearCount || 0, merged.filter((r) => nearGroup(r, radiusKm, userLocation?.province) === 0).length)
           : undefined,
         you: { signedIn, place },
+        understood,
+        team: await teamFor(combinedResults),
       })
     }
 
@@ -319,6 +365,8 @@ export async function GET(request: NextRequest) {
       total: (keywordResult.total || 0) + products.length,
       productCount: products.length,
       you: { signedIn, place },
+      understood,
+      team: await teamFor(keywordResult.results),
     })
   } catch (error) {
     console.error('Error in search API:', error)

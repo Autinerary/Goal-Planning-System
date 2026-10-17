@@ -58,8 +58,11 @@ export async function middleware(request: NextRequest) {
   // Tidbits' community guidelines are readable before anyone signs in
   // (Riipen Labs, Group 15: "clear moderation policy").
   const isGuidelines = pathname === '/community/guidelines'
+  // What is near each college and university, for anyone (the planning
+  // note, October 2026: the campus package).
+  const isCampus = pathname === '/campus' || pathname.startsWith('/campus/')
 
-  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines) {
+  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines || isCampus) {
     // Nothing here depends on who the user is, so don't ask.
     return response
   }

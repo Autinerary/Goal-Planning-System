@@ -324,7 +324,10 @@ AREA_IDS = {area for area, _ in AREAS}
 DISPLAY_CHOICES = [
     ("display_dark", "Dark"),
     ("display_contrast", "Higher contrast"),
-    ("display_soft", "Soft colours"),
+    ("display_softest", "Colour strength: softest"),
+    ("display_soft", "Colour strength: softer (was Soft colours)"),
+    ("display_bright", "Colour strength: brighter"),
+    ("display_brightest", "Colour strength: brightest"),
     ("display_calm", "Calm motion"),
     ("display_text_larger", "Larger text"),
     ("display_text_largest", "Largest text"),
@@ -339,6 +342,12 @@ DISPLAY_CHOICES = [
     ("display_accent_emerald", "Colour: emerald"),
     ("display_accent_amber", "Colour: amber"),
     ("display_accent_rose", "Colour: rose"),
+    # The colour theme (frontend/app/components/ColourSettings.tsx; the team's
+    # planning note, October 2026). Earthy is the default; picking it counts.
+    ("display_theme_earthy", "Theme: Earthy"),
+    ("display_theme_ocean", "Theme: Ocean"),
+    ("display_theme_sand", "Theme: Sand"),
+    ("display_theme_classic", "Theme: Classic"),
 ]
 
 # A look inside on the home page, one screen at a time (frontend/app/components/

@@ -37,6 +37,9 @@ const SIGNED_OUT = [
   APP + '/privacy', APP + '/help', APP + '/forgot-password', APP + '/emails/weekly-stop', HUB + '/', HUB + '/search?q=autism',
   // Riipen Labs, Groups 20 to 24: the starter kits, a reminder's choices, ResourceHub's sign-in.
   APP + '/kits', APP + '/kits/assessment', APP + '/kits/school', APP + '/emails/setup-reminder?a=snooze3', HUB + '/login',
+  // The planning note, October 2026: a search read the way it was said, with
+  // "Add to my team" on each result, and the campus pages.
+  HUB + '/search?ai=1&q=' + encodeURIComponent('a quiet pool for my son near Kitchener'), HUB + '/campus',
 ]
 const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
@@ -48,7 +51,7 @@ const SIGNED_IN = (ALL
 // profile had problems only a signed-in check could see (found 15 October
 // 2026, Riipen Labs Groups 8 to 14).
 const HUB_SIGNED_IN = (ALL
-  ? ['/', '/profile', '/settings/accessibility', '/my-resources', '/notifications']
+  ? ['/', '/profile', '/settings/accessibility', '/my-resources', '/notifications', '/search?ai=1&q=' + encodeURIComponent('swimming near Toronto')]
   : ['/profile', '/settings/accessibility']).map((p) => HUB + p)
 const SERIOUS = new Set(['serious', 'critical'])
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))

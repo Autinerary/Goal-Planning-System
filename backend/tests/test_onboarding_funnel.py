@@ -4,6 +4,7 @@ Run from backend/:  python -m unittest tests.test_onboarding_funnel -v
 """
 
 import sys
+import re
 import unittest
 from pathlib import Path
 
@@ -1418,9 +1419,18 @@ class ClearVersionTests(unittest.TestCase):
         self.assertEqual(d["people"], 6)
         self.assertEqual(d["by_choice"], {"display_soft": 6, "display_dark": 1})
         text = render_display_choices(d)
-        self.assertRegex(text, r"Soft colours +6 +\(100%\)")
+        self.assertRegex(text, r"softer \(was Soft colours\) +6 +\(100%\)")
         self.assertRegex(text, r"Dark +<5")
         self.assertIn("display_view_full", {k for k, _ in DISPLAY_CHOICES})
+
+    def test_display_choices_match_the_app(self):
+        # Every choice the app can send (lib/funnel.ts) has a line here, and
+        # nothing here is a choice the app no longer sends.
+        ts = (REPO / "frontend/lib/funnel.ts").read_text()
+        block = ts.split("export const DISPLAY_CHOICE_IDS = [", 1)[1].split("] as const", 1)[0]
+        sent = set(re.findall(r"'(display_[a-z_]+)'", block))
+        self.assertEqual(sent, {k for k, _ in DISPLAY_CHOICES})
+        self.assertIn("display_theme_earthy", sent)
 
     def test_norm_groups(self):
         self.assertEqual(norm_group(["Autism"]), "autism")

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Type, Eye, Moon, Palette, Zap, BookOpen, Underline, Maximize2 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { A11Y_COOKIE, applyA11y, cleanA11y } from '@/lib/a11y'
+import { A11Y_COOKIE, applyA11y, cleanA11y, tokenFor } from '@/lib/a11y'
 
 interface AccessibilitySettingsClientProps {
   userId: string
@@ -26,10 +26,26 @@ const TEXT_SIZES = [
   { token: 'text-large', label: 'Larger' },
   { token: 'text-xlarge', label: 'Largest' },
 ]
+// The colour theme and colour strength, the app's (the team's planning note,
+// October 2026: "Earthy Green & Watery Blue", and "dull or brighten the
+// colors"); Softer is what Soft colours was. Each sample is drawn in its own
+// theme (data-theme, app/themes.css).
+const THEMES = [
+  { token: '', id: 'earthy', label: 'Earthy', hint: 'Green and watery blue' },
+  { token: 'theme-ocean', id: 'ocean', label: 'Ocean', hint: 'Sea blues and aqua' },
+  { token: 'theme-sand', id: 'sand', label: 'Sand', hint: 'Warm browns and dusty blue' },
+  { token: 'theme-classic', id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
+]
+const STRENGTHS = [
+  { token: 'softest', label: 'Softest' },
+  { token: 'soft', label: 'Softer' },
+  { token: '', label: 'Usual' },
+  { token: 'bright', label: 'Brighter' },
+  { token: 'brightest', label: 'Brightest' },
+]
 const SWITCHES = [
   { token: 'contrast', label: 'High contrast', desc: 'Boost contrast for easier reading.', icon: Eye },
   { token: 'dark', label: 'Dark mode (experimental)', desc: 'Light text on a dark background. Photos keep their colours.', icon: Moon },
-  { token: 'soft', label: 'Soft colours', desc: 'Make every colour on the page less bright, including icons and pictures.', icon: Palette },
   { token: 'calm', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
   { token: 'dyslexia', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
   { token: 'underline', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
@@ -56,6 +72,12 @@ export default function AccessibilitySettingsClient({ userId }: AccessibilitySet
   const size = on.find((t) => t.startsWith('text-')) || ''
   const setSize = (token: string) => save([...on.filter((t) => !t.startsWith('text-')), ...(token ? [token] : [])])
   const toggle = (token: string) => save(on.includes(token) ? on.filter((t) => t !== token) : [...on, token])
+  // One token per setting: picking a theme or strength replaces the last.
+  const theme = tokenFor(on.join('.'), 'theme')
+  const strength = tokenFor(on.join('.'), 'colorStrength')
+  const setTheme = (token: string) => save([...on.filter((t) => !t.startsWith('theme-')), ...(token ? [token] : [])])
+  const setStrength = (token: string) =>
+    save([...on.filter((t) => !STRENGTHS.some((s) => s.token && s.token === t)), ...(token ? [token] : [])])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -107,6 +129,70 @@ export default function AccessibilitySettingsClient({ userId }: AccessibilitySet
                       className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     />
                     <span className="text-base text-gray-900">{s.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="bg-white p-6 rounded-lg border border-gray-200" disabled={tokens === null}>
+              <legend className="sr-only">Colours</legend>
+              <div className="flex items-center gap-3 mb-4" aria-hidden="true">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Palette className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">Colours</p>
+                  <p className="text-sm text-gray-700">The colours of buttons, links and tints, here and in Autinerary.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {THEMES.map((t) => (
+                  <label key={t.id} className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-gray-300 px-4 py-2">
+                    <input
+                      type="radio"
+                      name="colourTheme"
+                      value={t.id}
+                      checked={theme === t.token}
+                      onChange={() => setTheme(t.token)}
+                      className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    />
+                    <span data-theme={t.id} aria-hidden="true" className="flex gap-1">
+                      <span className="h-5 w-5 rounded-full bg-indigo-700" />
+                      <span className="h-5 w-5 rounded-full bg-blue-500" />
+                      <span className="h-5 w-5 rounded-full bg-pink-300" />
+                    </span>
+                    <span>
+                      <span className="block text-base text-gray-900">{t.label}</span>
+                      <span className="block text-sm text-gray-700">{t.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="bg-white p-6 rounded-lg border border-gray-200" disabled={tokens === null}>
+              <legend className="sr-only">Colour strength</legend>
+              <div className="flex items-center gap-3 mb-4" aria-hidden="true">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Palette className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">Colour strength</p>
+                  <p className="text-sm text-gray-700">Softer makes every colour duller, pictures included; brighter makes them more vivid. Text stays as easy to read.</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {STRENGTHS.map((c) => (
+                  <label key={c.label} className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-gray-300 px-4">
+                    <input
+                      type="radio"
+                      name="colourStrength"
+                      value={c.token || 'usual'}
+                      checked={strength === c.token}
+                      onChange={() => setStrength(c.token)}
+                      className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    />
+                    <span className="text-base text-gray-900">{c.label}</span>
                   </label>
                 ))}
               </div>

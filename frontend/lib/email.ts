@@ -66,7 +66,7 @@ export function dailyReminderEmail(name: string | null, appUrl: string): { subje
         <p style="font-size:16px">${esc(who)}</p>
         <p style="font-size:16px;line-height:1.5">Your next step is on your Path, with today's tasks. Do as much or as little as fits today.</p>
         <p style="margin:24px 0">
-          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
+          <a href="${link}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
         </p>
         <p style="font-size:12px;color:#64748b">You're getting this because you turned on daily reminders. You can turn them off in Settings, under Emails.</p>
       </div>`,
@@ -85,7 +85,7 @@ export function welcomeEmail(appUrl: string): { subject: string; html: string; t
         <h1 style="font-size:24px;margin:0 0 16px">Welcome to Autinerary</h1>
         <p style="font-size:16px;line-height:1.5">Your account and first Path are ready. Open it to see your first milestone.</p>
         <p style="margin:24px 0">
-          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
+          <a href="${link}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Open my Path</a>
         </p>
         <p style="font-size:16px;line-height:1.5">You can explore resources and people whenever you are ready.</p>
       </div>`,
@@ -107,7 +107,7 @@ export function finishSetupEmail(appUrl: string): { subject: string; html: strin
         <p style="font-size:16px">Hi,</p>
         <p style="font-size:16px;line-height:1.5">You asked us to remind you to finish setting up Autinerary. Your answers are saved on the device you used, so you can pick up where you left off.</p>
         <p style="margin:24px 0">
-          <a href="${link}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Finish setup</a>
+          <a href="${link}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Finish setup</a>
         </p>
         <p style="font-size:16px;line-height:1.5">One goal is all it takes to get your path.</p>
         <p style="font-size:13px;color:#475569;line-height:1.5">This is the only reminder we will send.</p>
@@ -164,7 +164,7 @@ export function checkinEmail(appUrl: string, token: string): { subject: string; 
         <p style="font-size:16px">Hi,</p>
         <p style="font-size:16px;line-height:1.5">You haven't opened Autinerary for a couple of weeks, and that's okay. Could you tell us why? It's one question, you don't need to sign in, and it helps us fix whatever got in the way.</p>
         <p style="margin:24px 0">
-          <a href="${base}" style="background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Answer one question</a>
+          <a href="${base}" style="background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block">Answer one question</a>
         </p>
         <p style="font-size:13px;color:#475569;line-height:1.5">You're getting this because you asked us to check in if you stopped using Autinerary. <a href="${stop}" style="color:#334155">Stop these emails</a>.</p>
       </div>`,
@@ -172,7 +172,7 @@ export function checkinEmail(appUrl: string, token: string): { subject: string; 
 }
 
 const BOX = 'font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a'
-const BUTTON = 'background:#4338ca;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block'
+const BUTTON = 'background:#1b5d30;color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:600;display:inline-block'
 const SMALL = 'font-size:13px;color:#475569;line-height:1.5'
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 

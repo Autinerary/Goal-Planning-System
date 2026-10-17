@@ -18,6 +18,10 @@ import { findCondition, decodeCondition } from '@/lib/search/conditions'
 import { Search, Filter, X, MapPin } from 'lucide-react'
 import type { SearchResult } from '@/lib/supabase/queries'
 import AddTopicPrompt from '@/components/prompts/AddTopicPrompt'
+import UnderstoodBanner from '@/components/search/UnderstoodBanner'
+import TeamAction from '@/components/team/TeamAction'
+import type { Understood } from '@/lib/search/understand'
+import type { TeamState } from '@/lib/team'
 import { useMyProfile } from '@/lib/useMyProfile'
 import { findNorm, normForSearch } from '@/lib/onboarding/setup'
 import { track } from '@/lib/track'
@@ -90,6 +94,10 @@ function SearchResults() {
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [nearInfo, setNearInfo] = useState<NearInfo | null>(null)
+  // How the search was read (lib/search/understand.ts), and where each place
+  // on the page is on the person's team (lib/team.ts).
+  const [understood, setUnderstood] = useState<Understood | null>(null)
+  const [team, setTeam] = useState<Record<string, TeamState>>({})
   const { profile, setProfile } = useMyProfile()
   // One rh_search event per search, not per render.
   const trackedSearch = useRef<string>('')
@@ -120,6 +128,17 @@ function SearchResults() {
       ? `${sortRules[0].key}:${sortRules[0].direction}`
       : encodeSortRules(sortRules)
   const page = Number(searchParams.get('page') || '1')
+  // Enter on a sentence asks AI to read it (ai=1); exact=1 is "Search the
+  // exact words instead"; drop= the parts taken away from what was understood.
+  const ai = searchParams.get('ai') === '1'
+  const exact = searchParams.get('exact') === '1'
+  const drop = searchParams.get('drop')?.split(',').filter(Boolean) || []
+  // Near a given point instead of the profile's place (the campus pages).
+  const near = searchParams.get('near') || ''
+  const nearName = searchParams.get('nearName') || ''
+  // Back from signing in to add a service to the team.
+  const then = searchParams.get('then') || ''
+  const addAfterSignIn = then.startsWith('team:') ? then.slice(5) : ''
 
   // Update URL params
   const updateSearchParams = useCallback(
@@ -170,6 +189,11 @@ function SearchResults() {
           sort: sortParam,
           page: page.toString(),
           pageSize: RESULT_COUNT_PER_PAGE.toString(),
+          ai: ai ? '1' : '',
+          exact: exact ? '1' : '',
+          drop: drop.join(','),
+          near,
+          nearName,
         })
         const response = await fetch(`/api/search?${apiParams.toString()}`)
 
@@ -179,6 +203,8 @@ function SearchResults() {
         }
 
         const data = await response.json()
+        setUnderstood(data.understood || null)
+        setTeam(data.team || {})
         setResults(data.results || [])
         setTotal(data.total || 0)
         setProductCount(data.productCount || 0)
@@ -237,14 +263,28 @@ function SearchResults() {
     maxDistance,
     sortParam,
     page,
+    ai,
+    exact,
+    drop.join(','),
+    near,
+    nearName,
   ])
 
+  // A new search starts a new reading: AI only on Enter.
   const handleQueryChange = useCallback(
     (newQuery: string) => {
-      updateSearchParams({ q: newQuery })
+      updateSearchParams({ q: newQuery, ai: undefined, exact: undefined, drop: undefined })
     },
     [updateSearchParams]
   )
+  const handleQuerySubmit = useCallback(
+    (newQuery: string) => {
+      updateSearchParams({ q: newQuery, ai: '1', exact: undefined, drop: undefined })
+    },
+    [updateSearchParams]
+  )
+
+
 
   // Odosa's three new filter groups. One shared shape — toggle membership in
   // the list and push it to the URL — so they behave exactly like the
@@ -443,7 +483,9 @@ function SearchResults() {
             <SearchBar
               query={query}
               onQueryChange={handleQueryChange}
-              placeholder="Search for resources..."
+              onSubmit={handleQuerySubmit}
+              placeholder="Say what you need, e.g. a quiet pool for my son near Kitchener"
+              label="Search: say what you need"
             />
           </div>
 
@@ -494,6 +536,17 @@ function SearchResults() {
 
             {/* Main Content */}
             <div className="flex-1">
+              {!error && !loading && understood && (
+                <UnderstoodBanner
+                  understood={understood}
+                  onDrop={(part) => updateSearchParams({ drop: Array.from(new Set([...drop, part])) })}
+                  onExact={() => updateSearchParams({ exact: '1', ai: undefined, drop: undefined })}
+                  onFilterNorms={(ids) => updateSearchParams({ barriers: Array.from(new Set([...barriers, ...ids])) })}
+                  onFilterAges={(ranges) => updateSearchParams({ ageRanges: Array.from(new Set([...ageRanges, ...ranges])) })}
+                  normsApplied={understood.norms.some((n) => barriers.includes(n.id))}
+                  agesApplied={understood.ages.some((a) => a.ranges.some((r) => ageRanges.includes(r)))}
+                />
+              )}
               {/* Toolbar */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -735,6 +788,17 @@ function SearchResults() {
                               distance={resource.distance}
                               showBadges={true}
                               variant={viewMode}
+                              footer={
+                                (resource as any).kind === 'product' ? undefined : (
+                                  <TeamAction
+                                    resource={resource}
+                                    initial={team[resource.id] || 'none'}
+                                    signedIn={Boolean(nearInfo?.signedIn)}
+                                    autoAdd={addAfterSignIn === resource.id}
+                                    onChange={(state) => setTeam((t) => ({ ...t, [resource.id]: state }))}
+                                  />
+                                )
+                              }
                             />
                           ))}
                         </div>

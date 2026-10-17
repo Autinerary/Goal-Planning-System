@@ -54,7 +54,7 @@ body {
 
 /* Accessibility: Focus indicators */
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid rgb(var(--c-blue-600));
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -263,11 +263,19 @@ html[data-dark-mode="on"] .keep-colors .keep-colors {
   filter: none;
 }
 
-/* Soft colours: every colour on the page less bright, pictures included, as in
-   the app (Riipen Labs, Groups 8 and 16). On <html>, so fixed parts stay where
-   they are; with dark mode, both filters in one. */
-html[data-soft-colors="on"] { filter: saturate(0.5); }
-html[data-dark-mode="on"][data-soft-colors="on"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
+/* Colour strength, softest to brightest, as in the app (the team's planning
+   note, October 2026: "dull or brighten the colors"; softer was Soft colours,
+   Riipen Labs, Groups 8 and 16). Pictures included; saturate() keeps each
+   colour's lightness, so text stays as dark. On <html>, so fixed parts stay
+   where they are; with dark mode, both filters in one. */
+html[data-color-strength="softest"] { filter: saturate(0.25); }
+html[data-color-strength="soft"] { filter: saturate(0.5); }
+html[data-color-strength="bright"] { filter: saturate(1.3); }
+html[data-color-strength="brightest"] { filter: saturate(1.6); }
+html[data-dark-mode="on"][data-color-strength="softest"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.25); }
+html[data-dark-mode="on"][data-color-strength="soft"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(0.5); }
+html[data-dark-mode="on"][data-color-strength="bright"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(1.3); }
+html[data-dark-mode="on"][data-color-strength="brightest"] { filter: invert(1) hue-rotate(180deg) contrast(0.92) saturate(1.6); }
 
 /* High contrast: darker grey text and borders, plain links dark blue; a link
    drawn as a button keeps its own colours. */

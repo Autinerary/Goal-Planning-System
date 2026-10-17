@@ -18,6 +18,7 @@ import { trackDisplayChoice } from '@/lib/displayChoices'
 import { useDisclosure, type DisclosureLevel } from '@/lib/disclosure'
 import PushOptIn from './PushOptIn'
 import ReminderFields from './ReminderFields'
+import ColourSettings from './ColourSettings'
 import { useAuth } from '../context/AuthContext'
 import { FIRST_WEEKS_CONSENT, firstWeeksStillAhead } from '@/lib/firstWeeks'
 import { LANGUAGE_STYLES } from '@/lib/languageStyle'
@@ -177,12 +178,25 @@ export default function SettingsPreferences() {
         <p className="text-xs text-slate-600 mt-2">New accounts start in Simplified View.</p>
       </section>
 
-      {/* ── Colours / artistic design ──────────────────────────── */}
+      {/* ── Colours: the theme and how strong ─────────────────────
+          The team's planning note, October 2026: "add a general option in
+          Settings to customize the colors, and dull or brighten the colors". */}
+      <section className="mb-8" aria-labelledby="settings-colours-heading">
+        <h3 id="settings-colours-heading" className="flex items-center gap-2 font-semibold text-slate-800 mb-1">
+          <Palette className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Colours
+        </h3>
+        <p className="text-xs text-slate-500 mb-3">The app&apos;s colours, here and on ResourceHub. The theme follows your account; the strength stays on this device.</p>
+        <ColourSettings idPrefix="settings-colours" />
+      </section>
+
+      {/* ── How lively it looks ────────────────────────────────────
+          It was "Colours & artistic design", but it changes motion and
+          decoration, not colours; the colours are above. */}
       <section className="mb-8">
         <label className="flex items-center gap-2 font-semibold text-slate-800 mb-1">
-          <Palette className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Colours &amp; artistic design
+          <Flower2 className="w-4 h-4 text-cyan-600" aria-hidden="true" /> How lively it looks
         </label>
-        <p className="text-xs text-slate-500 mb-2">How lively the app looks and moves.</p>
+        <p className="text-xs text-slate-500 mb-2">How much the app moves and decorates itself.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {VIEW_PREFERENCES.map((v, i) => {
             const LookIcon = LOOK_ICONS[v.id]
