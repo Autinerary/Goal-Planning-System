@@ -1,0 +1,180 @@
+{
+  "topic": "named",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "learn-smart-academy-montego-bay",
+      "name": "Learn Smart Academy",
+      "website": "https://www.facebook.com/LearnSmartAcademyJA/",
+      "description": "A school for children aged 2 to 6 in Coral Gardens, Montego Bay. A 2018 Gleaner report says teacher and communication therapist Winsome Stewart started it, and that it keeps special-needs classes to six children per teacher.",
+      "category": "School",
+      "tags": [
+        "edu_daycare",
+        "edu_kindergarten",
+        "prog_special_education",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "Fees are not published on the page.",
+      "delivery": "in_person",
+      "country": "Jamaica",
+      "province": "St. James",
+      "city": "Montego Bay",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "currency": "JMD",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "Safe, comfortable school for children 2-6 years old in Coral Gardens, Montego Bay.",
+      "notes": "The academy's own Facebook page (257 followers) confirms the name, the place and the ages. Without logging in, no phone, email, street address or post dates show, so it is not confirmed that the school is open now. The Gleaner (21 Dec 2018, https://past.jamaica-gleaner.com/article/lead-stories/20181222/special-needs-children-benefit-learn-smart-academy) spells the founder's name Winsome Stewart, not Stuart. It said she opened the school in Coral Gardens, Rose Hall, on the grounds of St Augustine Anglican Church, Montego Bay, with room for 30 students. The article describes her as a New York-licensed teacher, communication therapist and registered nurse. It also says she follows the Jamaican curriculum and teaches young children through play, with six students per teacher for special needs and 8 to 10 for regular classes. The special-needs details date from 2018. A search result showed a Dun & Bradstreet listing for 'Learn Smart Academy Limited' in Coral Gardens, but that page blocked access, so it is not used here. Fairly sure this is the academy in the note; the team can supply current contact details.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "yes-i-can-nursery-school-toronto",
+      "name": "Yes I Can! Nursery School",
+      "website": "https://yesicannurseryschool.com/",
+      "description": "A non-profit nursery school in Toronto where children of differing abilities learn side by side. It runs a preschool, a kindergarten class, a social-skills group and specialized communication classes for children with ASD or social communication delays.",
+      "category": "Child Care",
+      "tags": [
+        "edu_daycare",
+        "edu_kindergarten",
+        "prog_special_education",
+        "parent_babies",
+        "parent_children",
+        "charity"
+      ],
+      "cost": "paid",
+      "cost_note": "Fees are not listed. The About page says the City of Toronto helps some families pay the fees and that subsidy is available.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "25 Old York Mills Rd., Toronto, ON",
+      "phone": "416-486-4911",
+      "email": null,
+      "currency": "CAD",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "Specialized communication classes for children 2.6 months to 6 years with ASD and/or social communication delays.",
+      "notes": "Not found in Jamaica: no 'Yes I Can' nursery turned up there. This Toronto school is the only match, so the team should confirm it is the one the note meant. Its About page says it is a registered charity, 33 years old, and licensed and inspected every year. Classes listed: Preschool (ages 2.3 to 6), Kindergarten / Senior Communication, Junior Communicate (a language and communication program), Build My Social Skills, and a summer camp for ages 2 to 6. The site has a contact form but no email. The City of Toronto child care listing (https://www.toronto.ca/data/children/dmc/webreg/gcreg6809.html) gives the same address and phone, 24 licensed preschool spaces for ages 2 years 6 months to 4 years, and Every Child Belongs resource consultants for children with extra support needs. An older Streets of Toronto listing gives 100 Ranleigh Ave, which is out of date. Sure the school exists and fits the directory; less sure it is the one in the note."
+    },
+    {
+      "slug": "inglewood-heights-junior-ps",
+      "name": "Inglewood Heights Junior Public School",
+      "website": "https://www.tdsb.on.ca/Find-your/Schools/schno/4588",
+      "description": "A Toronto District School Board public school in Scarborough for Kindergarten to Grade 6, with about 250 students. On the TDSB's 2026-27 maps of Intensive Support Programs, it is a site for Developmental Disability (DD) classes but is not on the autism (ASD) map.",
+      "category": "School",
+      "tags": [
+        "edu_kindergarten",
+        "edu_elementary",
+        "prog_special_education"
+      ],
+      "cost": "free",
+      "cost_note": "Publicly funded TDSB school.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "45 Dempster St, Scarborough, ON, M1T 2T6",
+      "phone": "(416) 396-6345",
+      "email": "Inglewood@tdsb.on.ca",
+      "currency": "CAD",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "Today, we are a Kindergarten to Grade 6 school and we serve approximately 250 students.",
+      "notes": "TDSB school no. 4588. The note says it 'had' an autism program, which may be true of earlier years. For 2026-27, the TDSB's Autism Spectrum Disorder ISP map (112 sites) does not include it. The Developmental Disability ISP map for 2026-27 does include it (45 Dempster Street, JK-6, DD 2.0). Earlier years were not checked. The maps are linked from https://www.tdsb.on.ca/Learning-Equity-and-Well-Being/Special-Education-and-Inclusion/Intensive-Support-Programs-ISP-and-Program-Maps. The school's own page does not mention any special education program. The email is the school's address published on the TDSB page. Sure about the school. The kind of ISP class can change from year to year, so families should confirm with the school or TDSB Special Education."
+    },
+    {
+      "slug": "steps-to-justice-inheritances-over-100000",
+      "name": "Steps to Justice (CLEO): Learn about inheritances over $100,000",
+      "website": "https://stepstojustice.ca/steps/income-assistance/learn-about-inheritances-over-100000/",
+      "description": "Plain-language legal information from Community Legal Education Ontario (CLEO). It explains that a person on ODSP who inherits more than $100,000 can keep getting income support if the money goes into a discretionary (Henson) trust set up in the will.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "adult_finances"
+      ],
+      "cost": "free",
+      "cost_note": "Free to read.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "currency": "CAD",
+      "age_ranges": [],
+      "evidence": "A discretionary trust is sometimes called an “absolute discretionary trust” or a “Henson trust”.",
+      "notes": "Steps to Justice is CLEO's Ontario legal information site. This step is part of the question 'Can I get ODSP if I get an inheritance?' and was last reviewed on 1 September 2017. The next step (https://stepstojustice.ca/steps/income-assistance/learn-rules-about-income-trust/) covers payments from a trust and the yearly report to ODSP. The page says the trustee can be a person or an institution, such as a community organization or a bank. It also says it is important to get legal help setting up the trust. General information, not legal advice. Sure."
+    },
+    {
+      "slug": "odsp-directive-4-7-funds-held-in-trust",
+      "name": "ODSP Income Support Directive 4.7: Funds held in trust",
+      "website": "https://www.ontario.ca/document/ontario-disability-support-program-policy-directives-income-support/47-funds-held-trust",
+      "description": "The Ontario government's rule on how ODSP treats money held in trust. It says a true absolute discretionary (Henson) trust is not counted as an asset, and lists when payments from it are not counted as income, such as approved disability-related costs or up to $10,000 in 12 months.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "adult_finances"
+      ],
+      "cost": "free",
+      "cost_note": "Free to read.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "currency": "CAD",
+      "age_ranges": [],
+      "evidence": "A true absolute discretionary trust is not considered an asset for ODSP purposes",
+      "notes": "Published by the Ministry of Children, Community and Social Services; the page shows Updated: March 10, 2026. This is the policy ODSP staff follow, written for staff, so it is dense. It also says that people on ODSP cannot put an inheritance they have received, or are entitled to, into such a trust to keep it from counting as an asset. It also says payments into and out of the trust must be reported every year. Sure."
+    },
+    {
+      "slug": "p4p-planning-network-henson-trust",
+      "name": "Partners for Planning (P4P) Planning Network: Henson Trust",
+      "website": "https://www.planningnetwork.ca/resources/henson-trust",
+      "description": "A free explainer from Partners for Planning, a Toronto charity, on how a Henson (discretionary) trust can protect the assets and ODSP benefits of a person with a disability. P4P also runs free online webcasts, including one on the Henson trust and choosing trustees on 10 November 2026.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "adult_finances"
+      ],
+      "cost": "free",
+      "cost_note": "P4P says its resources are free; the webcasts are listed as free.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "290 Carlaw Ave, Suite 207, Toronto, ON M4M 3L1",
+      "phone": "416-232-9444",
+      "email": "info@p4p.ca",
+      "currency": "CAD",
+      "age_ranges": [],
+      "evidence": "A Henson Trust, also known as a discretionary trust, is structured to protect the assets of a person living with a disability",
+      "notes": "Partners for Planning is a registered charity (charitable registration number 80096 0221 RR0001) that helps people with disabilities and their families plan for the future. The contact details come from its own site's footer. The Henson Trust page has no date. The webcast 'The Henson Trust & Trustee Considerations' is on 10 November 2026 at 7:00 pm EST (https://www.planningnetwork.ca/events/the-henson-trust). The site also lists a Professionals Directory and a free wills and estate planning webcast on 28 October. Sure."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Rachael Macdonald (Jamaica)",
+      "reason": "Searched 'Rachael Macdonald Jamaica autism services' and found nothing under that name. The closest match was Rachael Cann, an autism specialist and special educator profiled in the Jamaica Observer in 2018 (https://www.jamaicaobserver.com/allwoman/2018/09/02/rachael-cann-helping-children-with-exceptional-abilities/). She has an MSc in Autism and Assessment from Missouri State University and runs the iCann HELP Learning Centre. She runs a centre, which does not fit 'instead of building a place', and nothing links her to a psychologist in the US, so she is probably a different person. The web search limit for this session ran out before other spellings (Rachel, McDonald, MacDonald) could be searched. The team can supply her practice name or page."
+    },
+    {
+      "name": "Georgia Rose (Jamaica)",
+      "reason": "Searched 'Georgia Rose psychologist Jamaica preschool'. I found institutional bios, but no page for a private practice or a preschool. A Northwestern University event page (talk on 6 Jan 2026, https://planitpurple.northwestern.edu/event/637340) describes Georgia Rose as a lecturer in Sociology, Psychology and Social Work at UWI's Western Jamaica campus and coordinator of its undergraduate psychology programme. It says she is a Senior Clinical Psychologist with the Western Regional Health Authority who has provided mental health services in the Western Region for over 19 years. A 2019 Jamaica Observer profile (https://jamaicaobserver.com/2019/03/09/cocktails-with-georgia-rose) says she holds a master's in clinical psychology and works through the Peace Management Initiative Western and the Jamaica Red Cross St James Branch. Neither page names a preschool. This is probably the person in the note, but her preschool and any practice were not found. The search limit ran out before the preschool could be searched by other terms. The team can supply the preschool's name."
+    },
+    {
+      "name": "Yes I Can Nursery (if the note meant one in Jamaica)",
+      "reason": "Searched for a 'Yes I Can' nursery, preschool or learning centre in Jamaica (Kingston, St. Andrew, Montego Bay and island-wide) and found none. The only match is Yes I Can! Nursery School in Toronto, listed under entries. If the team meant a Jamaican nursery, they can supply its parish or a link."
+    }
+  ]
+}

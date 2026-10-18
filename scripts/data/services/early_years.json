@@ -1,0 +1,1296 @@
+{
+  "topic": "early_years",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "ontario-preschool-speech-language-program",
+      "name": "Preschool Speech and Language Program (Ontario)",
+      "website": "https://www.ontario.ca/page/preschool-speech-and-language-program",
+      "description": "Ontario's Preschool Speech and Language Program helps families of children with speech or language concerns: a speech-language pathologist assesses the child, then supports the family through workshops, small groups, consultation or a home program. Families register directly with their local program; no doctor's referral is needed.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The provincial page does not say whether there is a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Your child is eligible for this program from birth until they start school.",
+      "notes": "The page lists 30 regional programs with their phone numbers and websites. It also says: 'You do not need a referral from your doctor.'"
+    },
+    {
+      "slug": "ontario-infant-child-development-program",
+      "name": "Infant and Child Development Program (Ontario)",
+      "website": "https://www.ontario.ca/page/infant-child-development-program",
+      "description": "A free, mainly home-based early intervention program for children with a developmental disability or risk of developmental delay, or whose families have concerns about their development, from birth until they start school. Parents, physicians and community agencies can refer.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page calls it 'a free early child development program' funded by the Government of Ontario and delivered by community agencies.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "No medical diagnosis is required.",
+      "notes": "The page does not list local providers; it links to OAICD directories (2017, 2022) and suggests contacting a local program or SmartStart Hub."
+    },
+    {
+      "slug": "ontario-childrens-rehabilitation-smartstart",
+      "name": "Children's Rehabilitation Services and SmartStart Hubs (Ontario)",
+      "website": "https://www.ontario.ca/page/childrens-rehabilitation-services",
+      "description": "Ontario's children's treatment centres, and Surrey Place in Toronto, offer physiotherapy, occupational therapy and speech and language therapy for children and youth with physical or developmental disabilities or communication difficulties, including in publicly funded schools. Their SmartStart Hubs are one entry point for families worried about a child's development, with links to assessment and supports such as respite and parent coaching.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "You do not need a formal referral to access services.",
+      "notes": "Eligible up to age 19, or 21 if still in school. The page lists each centre by region with its website (ErinoakKids, KidsAbility, CTN, Five Counties, Grandview Kids, Quinte, KidsInclusive, CHEO, THRIVE, George Jeffrey, FIREFLY, NEO Kids, Cochrane/Temiskaming, One Kids Place, John McGivney, Pathways, CTC Chatham-Kent, TVCC, Ron Joyce, Lansdowne, Niagara, Holland Bloorview, Surrey Place)."
+    },
+    {
+      "slug": "ontario-school-based-rehabilitation-services",
+      "name": "School-Based Rehabilitation Services (Ontario)",
+      "website": "https://www.ontario.ca/document/2026-2027-mccss-service-objectives-children-community-supports/76",
+      "description": "School-Based Rehabilitation Services (SBRS) provide speech-language pathology, occupational therapy and physiotherapy to children and youth in Ontario's publicly funded elementary and secondary schools, from school entry until they leave secondary school. Local agencies deliver the service.",
+      "category": "Social Services",
+      "tags": [
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "prog_special_education",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "The ministry's service description covers SBRS as a ministry-funded service in publicly funded schools; no fees are mentioned.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Children and youth attending publicly funded elementary or secondary school in Ontario may access SBRS",
+      "notes": "This is the ministry's service-objectives page (written for agencies). Local providers' pages (CHEO, CTN, Grandview Kids, ErinoakKids) say referrals come from the child's school, with parent or guardian consent."
+    },
+    {
+      "slug": "oap-entry-to-school-program",
+      "name": "Ontario Autism Program: Entry to School Program",
+      "website": "https://www.ontario.ca/page/ontario-autism-program-entry-school-program",
+      "description": "A six-month, half-day group program that builds school-readiness skills (communication, play, social interaction, routines) for autistic children starting kindergarten or Grade 1 for the first time, followed by individual transition support as they enter school. Children registered in the Ontario Autism Program are invited, then register with the provider named in the invitation.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "requires_diagnosis",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "The page says the program is offered free of charge.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "The program is offered free of charge and is available in English and French.",
+      "notes": "Ages 3 to 6 as of December 31 of the year the child starts school. Children in OAP core clinical services or already in school are not eligible. OAP registration needs a written autism diagnosis (ontario.ca/page/ontario-autism-program), hence requires_diagnosis."
+    },
+    {
+      "slug": "oap-caregiver-mediated-early-years",
+      "name": "Ontario Autism Program: Caregiver-Mediated Early Years Programs",
+      "website": "https://www.ontario.ca/page/ontario-autism-program-caregiver-mediated-early-years-programs",
+      "description": "Play-based, child-led programs (ESI/SCERTS, JASPER, Pivotal Response Treatment, PLAY Project, Project ImPACT, Social ABCs) that teach parents and caregivers ways to build a young child's social interaction, play and communication skills. For children aged 12 to 48 months registered in the Ontario Autism Program, who are invited and then choose a provider.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "The page says programs are free of charge for up to six months per child.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Programs are free of charge and available for up to six months per child.",
+      "notes": "Programs may be one-on-one or group, in person or virtual. Not for children in core clinical services or with an active behaviour plan. OAP registration needs a written autism diagnosis (ontario.ca/page/ontario-autism-program)."
+    },
+    {
+      "slug": "erinoakkids",
+      "name": "ErinoakKids Centre for Treatment and Development",
+      "website": "https://www.erinoakkids.ca/all-services/accessing-services/referrals",
+      "description": "ErinoakKids provides therapy, medical services and support for children and youth with physical and/or developmental disabilities, autism, communication disorders and vision or hearing loss in Peel and Halton Region and Dufferin County. Services include occupational therapy, physiotherapy, preschool speech and language and school-based rehabilitation; families can call intake, and referral rules vary by service.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "large_resource_centre"
+      ],
+      "cost": "unknown",
+      "cost_note": "The pages fetched do not state a cost for therapy (only that the Infant Hearing Program is MCCSS-funded).",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Mississauga",
+      "address": null,
+      "phone": "905-855-2690",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "The referral process and eligibility criteria will vary from service to service.",
+      "notes": "Toll free 1-877-374-6625, Monday to Friday 8 a.m. to 5 p.m. Sites in Brampton, Mississauga, Oakville and Orangeville. Medical clinics serve birth to 18. Children's Treatment Network's Central Region hub page names ErinoakKids as the autism diagnostic provider for Dufferin, Halton and Peel (physician referral).",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "grandview-kids",
+      "name": "Grandview Kids",
+      "website": "https://grandviewkids.ca/refer/",
+      "description": "Grandview Kids provides paediatric rehabilitation for children and youth with physical, communication and developmental needs in Durham Region, including occupational therapy, physiotherapy, preschool speech-language pathology and an autism diagnostic hub. Parents, youth, physicians and school staff can submit referrals online.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "provides_diagnosis",
+        "large_resource_centre",
+        "recreation"
+      ],
+      "cost": "unknown",
+      "cost_note": "The referral and SmartStart Hub pages do not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ajax",
+      "address": "1461 Harwood Avenue North, Ajax, ON L1T 0R3",
+      "phone": "905-728-1673",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Preschool Speech and Language Program (Early Years Speech-Language Pathology) for children born in 2023 or later.",
+      "notes": "OT and physiotherapy referrals are for children born in 2022 or later; deadline March 1, 2027 for children born in 2022 or 2023. SmartStart Hub (ages 0-19, or 21 in school): 'No diagnosis or referral is required.' ASD Diagnostic Hub completes autism assessments for ages 0 to 18 and needs a physician referral. School-based rehabilitation is referred by school staff. Toll free 1-800-304-6180.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "kidsability",
+      "name": "KidsAbility Centre for Child Development",
+      "website": "https://www.kidsability.ca/programs-services/intake-referrals/",
+      "description": "KidsAbility supports children and youth with disabilities and developmental delays through speech-language pathology, occupational therapy, physiotherapy, social work and therapeutic recreation, with preschool services from birth to school entry and school-age services after that. Families can make their own referral online; autism assessment referrals must come from a physician.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "provides_diagnosis",
+        "large_resource_centre",
+        "recreation"
+      ],
+      "cost": "free",
+      "cost_note": "Its FAQ says the majority of services are publicly funded by MCCSS; some Behaviour Support Services have fees.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "address": null,
+      "phone": "519-886-8886 ext. 1214",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "As a family member and caregiver, you can make your own referral for services.",
+      "notes": "Serves Waterloo Region and Guelph-Wellington. In Guelph and Wellington, Here4Kids (1-844-454-3711) is the entry point for children's developmental services from birth to six. The page lists an ASD Diagnostic Hub; ASD Assessment Team referrals must be made by a physician. Phone and cost from the FAQ page (kidsability.ca/frequently-asked-questions/)."
+    },
+    {
+      "slug": "tvcc-smartstart-hub",
+      "name": "Thames Valley Children's Centre (TVCC) SmartStart Hub",
+      "website": "https://www.tvcc.on.ca/smartstart-hub-tvcc",
+      "description": "TVCC's SmartStart Hub is the entry point for families with concerns about a child's development; it helps identify the child's strengths and needs and links families to assessments and services at TVCC and in the community. Families can call an intake coordinator or use the online referral form.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "large_resource_centre"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether there is a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "address": "779 Base Line Road East, London, Ontario, Canada N6C 5Y6",
+      "phone": "519-685-8716",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Children aged 0 – 19, (or up to age 21 if they are in school)",
+      "notes": "Serves London/Middlesex, Elgin, Oxford, Huron, Perth, Grey and Bruce counties. Intake toll free 1-866-590-8822 ext 58716. TVCC's homepage says anyone can make a referral, though some services have specific criteria; its intake page directs infants under 2 with developmental concerns to Developmental Resources For Infants (DRI).",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "cheo-childrens-treatment-centre",
+      "name": "CHEO Children's Treatment Centre (Ottawa)",
+      "website": "https://www.cheo.on.ca/en/clinics-programs/a-z-directory/childrens-treatment-centre/",
+      "description": "CHEO's Children's Treatment Centre serves children with developmental or physical disabilities, severe hearing and speaking difficulties or complex needs, with therapy for children under four in the community, a preschool for ages 2 to 5, an Infant and Child Development Program (birth to 6) and an autism diagnostic hub for children 5 and under. Referrals go through the CHEO Access Team, which families can call directly.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "provides_diagnosis",
+        "respite_care",
+        "large_resource_centre"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether CTC services are free.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": "395 Smyth Road, Ottawa, ON K1H 8L2",
+      "phone": "613-737-2757",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "To make a referral for CTC services, please contact the CHEO Access Team.",
+      "notes": "Access Team toll free 1-800-565-4839; its page says families can call directly and physicians and school boards can refer with family consent. Sites in Ottawa, Kanata, East Ottawa, Renfrew and Cornwall. Social work and seating services run to age 18; respite services for Ottawa families.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "john-mcgivney-childrens-centre",
+      "name": "John McGivney Children's Centre SmartStart Hub",
+      "website": "https://jmccentre.ca/get-help/smartstart-hub/",
+      "description": "The John McGivney Children's Centre (JMCC) offers speech and language therapy, occupational therapy, physiotherapy and autism services for infants, children and youth with disabilities in Windsor-Essex. Its SmartStart Hub is the starting point for families with developmental concerns; parents, caregivers or health professionals can refer.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "FAQ: 'Most of JMCC Services are funded through the Ministry of Children, Community and Social Services.' 'There are no costs to families to receive those services.'",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "address": null,
+      "phone": "519-252-7281",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "You do not need a diagnosis or referral to contact the SmartStart Hub.",
+      "notes": "Hub serves children and youth from birth to 19 who live in Windsor-Essex County; JMCC services run to 19, or 21 if still in high school (FAQ). The homepage describes a JMCC Family Support Fund that can help JMCC families with the cost of specialized equipment or recreation programs."
+    },
+    {
+      "slug": "ctn-early-intervention-ot-pt-simcoe",
+      "name": "Children's Treatment Network Early Intervention Services: OT and PT (Simcoe County)",
+      "website": "https://www.ctnsy.ca/Program-Services/EIS-OT-PT-Simcoe_County.aspx",
+      "description": "Short, focused occupational therapy and physiotherapy for young children in Simcoe County, using caregiver coaching through resources, clinics or workshops, and group or individual sessions. It covers fine and gross motor delays, daily living and sensory or regulation concerns, school readiness, toe walking and torticollis.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "address": null,
+      "phone": "1-866-377-0286",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "Birth until school entry (up to age six if school entry is delayed)",
+      "notes": "Eligibility: lives in Simcoe County, the concerns are at home (not in child care), and the child is not getting other publicly funded OT/PT. Ways in: the child's early intervention team, a CTN Service Navigator (number above), or the online referral form. In York Region, CTN-funded OT/PT is reached through York Region Early Intervention Services.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "five-counties-childrens-centre",
+      "name": "Five Counties Children's Centre",
+      "website": "https://www.fivecounties.on.ca/how-to-make-a-referral/",
+      "description": "Five Counties Children's Centre helps children with physical, communication and developmental needs through occupational therapy, physiotherapy, speech-language therapy and an autism diagnostic clinic, with sites in Peterborough, Lindsay, Cobourg, Campbellford and Minden. Families can self-refer through an online service request form; physicians, hospitals and agencies can also refer.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "provides_diagnosis",
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "Its speech-language therapy and ASD clinic pages list these under 'Provincially Funded Services'.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Peterborough",
+      "address": "872 Dutton Road, Peterborough, ON K9H 7G1",
+      "phone": "705-748-2337",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Individuals, Parents, Caregivers and Families can make self-referrals",
+      "notes": "Speech-language therapy works with children from birth to 19 (21 if still in school); Central Intake ext. 100; toll free 1-888-779-9916. Ontario.ca lists it as the Preschool Speech and Language provider for Haliburton, Kawartha Lakes, Northumberland and Peterborough. It is the local ASD Diagnostic Hub for Peterborough and Kawartha Lakes; referrals to its specialized clinics must be in writing from a physician or nurse practitioner. Charitable registration number shown on the homepage."
+    },
+    {
+      "slug": "quinte-childrens-treatment-centre",
+      "name": "Quinte Children's Treatment Centre (Quinte Health)",
+      "website": "https://quintehealth.ca/care-service/quinte-childrens-treatment-centre/",
+      "description": "Quinte Children's Treatment Centre, part of Quinte Health, offers rehabilitation services and programs for children and youth with developmental health needs and their families, including a SmartStart Hub and coordinated service planning.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "The page says services are funded by MCCSS and are free for families.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Belleville",
+      "address": null,
+      "phone": "613-969-7400 ext. 2247",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Our services are funded by the Ministry of Children, Community, and Social Services (MCCSS) and are free for families.",
+      "notes": "quintectc.com redirects to this page. It does not describe ages or the referral process (it links to a referrals directory). Ontario.ca lists QCTC as the Hastings and Prince Edward Preschool Speech and Language provider."
+    },
+    {
+      "slug": "thrive-child-development-centre",
+      "name": "THRIVE Child Development Centre",
+      "website": "https://kidsthrive.ca/services/referrals/",
+      "description": "THRIVE Child Development Centre offers occupational therapy, physiotherapy, speech-language pathology, social work, ABA and family support including respite for children and youth from 0 to 18, with offices in Sault Ste. Marie, Blind River, Elliot Lake and Wawa. Parents can refer by calling the referral line; physicians and community partners can fax a referral form.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care"
+      ],
+      "cost": "unknown",
+      "cost_note": "The pages fetched do not say whether services are free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sault Ste. Marie",
+      "address": "74 Johnson Avenue, Sault Ste. Marie, ON P6C 2V5",
+      "phone": "705-759-1131 ext. 2",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Parents/legal guardians can make a referral by calling the referral line",
+      "notes": "Toll free 1-855-759-1131. Ages and services from the homepage (kidsthrive.ca). Ontario.ca lists THRIVE as the Algoma Preschool Speech and Language provider.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "george-jeffrey-infant-preschool",
+      "name": "George Jeffrey Children's Centre: Infant & Preschool Program",
+      "website": "https://georgejeffrey.com/programs-services/programs/infant-preschool/",
+      "description": "The Infant & Preschool program offers occupational therapy, physiotherapy and speech and language therapy, with social work, for children from birth to 5 with physical or developmental concerns, plus clinics for infant growth and development, feeding and swallowing, and seating. The Centre accepts referrals from parents and legal guardians and from medical, social and educational professionals.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The Centre's funding page says MCCSS is its main funding source but does not state fees.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Thunder Bay",
+      "address": "200 Brock Street East, Thunder Bay, ON, P7E 0A2",
+      "phone": "(807) 623-4381",
+      "email": "info@georgejeffrey.com",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "children aged birth to 5 years who have physical or developmental concerns.",
+      "notes": "Toll free 1-888-818-7330. Serves Northwestern Ontario. Infant Growth and Development Clinic is for birth to 3 at risk of delay due to prenatal or birth history. Referral sources from georgejeffrey.com/referrals/.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "firefly-centralized-intake",
+      "name": "FIREFLY Centralized Intake",
+      "website": "https://fireflynw.ca/intake/",
+      "description": "FIREFLY's Centralized Intake handles referrals for its developmental services (occupational therapy, physiotherapy, speech-language pathology), mental health services and specialized clinics across the Districts of Kiiwetinoong, Kenora and Rainy River. Parents and caregivers can refer online or by phone, primary care providers use OCEAN, and families who are unsure can use the SmartStart Hub.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether services are free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kenora",
+      "address": "820A Lakeview Drive, Kenora, Ontario, P9N 3P7",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Services can be accessed for children and youth from birth until the age of 18",
+      "notes": "Up to 21 if in school and living in Ontario. The page body shows 1-833-696-5437 but the footer shows 1-833-686-5437; confirm before publishing. General inquiries 1-800-465-7203 (homepage). Intake email is obfuscated on the page. Phone left out: the page shows two intake numbers that differ by one digit.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "neo-kids-childrens-treatment-centre",
+      "name": "Children's Treatment Centre, NEO Kids and Family Program (Health Sciences North)",
+      "website": "https://hsnsudbury.ca/en/Services-and-Specialties/NEO-Kids-and-Family-Program/Childrens-Treatment-Centre",
+      "description": "The Children's Treatment Centre at Health Sciences North in Sudbury provides assessment, consultation and treatment for children and youth with motor, developmental and communication challenges, from birth until they are no longer in school. Families contact NEO Navigation central intake.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "Publicly funded through MCCSS; the page says there is 'no cost for therapy sessions'.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "address": "Unit 46F, Southridge Mall, 1933 Regent Street, Sudbury, Ontario, P3E 5R2",
+      "phone": "705-523-7120, option 1",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "a family centered rehabilitation facility providing assessment, consultation and treatment services to children and youth with motor, developmental and communication challenges",
+      "notes": "Toll free 1-800-377-2128. Its SmartStart Hub page (birth to 19, or 21 in school; Sudbury and Manitoulin districts) says: 'You do not need a referral or diagnosis to access services.' It offers an online self-referral through oceanhealthmap.ca."
+    },
+    {
+      "slug": "one-kids-place-smartstart-hub",
+      "name": "One Kids Place SmartStart Hub",
+      "website": "https://www.onekidsplace.ca/smartstart-hub/",
+      "description": "One Kids Place's SmartStart Hub is a single entry point to child development services such as speech-language pathology, occupational therapy and physiotherapy, along with family supports like respite and parent coaching, in the Districts of Nipissing, Muskoka and Parry Sound. Families can register directly, and doctors, child care providers and schools can also connect families.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care",
+        "recreation"
+      ],
+      "cost": "free",
+      "cost_note": "The page says 'There is no cost.'",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "North Bay",
+      "address": "400 McKeown Ave, North Bay",
+      "phone": "1-866-626-9100",
+      "email": "services@onekidsplace.ca",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "No formal diagnosis is required to access the SmartStart Hub.",
+      "notes": "Also 1-705-474-KIDS (5437). Ages up to 19, or 21 in secondary school. Address and therapeutic recreation from the homepage; second site at 37 Campus Trail, Huntsville. Ontario.ca lists One Kids Place as the Preschool Speech and Language provider for Muskoka Parry Sound and Nipissing Timiskaming."
+    },
+    {
+      "slug": "pathways-preschool-services",
+      "name": "Pathways Health Centre for Children: Preschool Services",
+      "website": "https://www.pathwayscentre.org/preschool-aged-services/",
+      "description": "Pathways Health Centre for Children in Sarnia-Lambton offers preschool services including occupational therapy, physiotherapy and Preschool Speech and Language (SoundStart), using home programming, parent training, consultation and individual or group therapy. Families can phone intake or use the referral form, or ask their primary care provider to refer.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "provides_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "The pages fetched do not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sarnia",
+      "address": "1240 Murphy Road, Sarnia, Ontario N7S 2Y6",
+      "phone": "519-542-3471",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "During your time with Pathways, you and your child may participate in home programming, parent training, consultation with other providers, and individual or group therapy.",
+      "notes": "Intake ext. 1295 (make-a-referral page); toll free 1-855-542-3471. Its ASD Diagnostic Hub page says it offers diagnostic assessments for children in Lambton County; a pediatrician or primary care practitioner refers with a form. School-based rehabilitation referrals must come from the school.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "ctc-chatham-kent",
+      "name": "Children's Treatment Centre of Chatham-Kent",
+      "website": "https://ctc-ck.com/",
+      "description": "The Children's Treatment Centre of Chatham-Kent supports children and youth facing physical, developmental and communication challenges, with pre-school and school-age occupational therapy, physiotherapy, speech therapy, audiology, autism programs and a SmartStart Hub. Families can use its referral forms or contact the SmartStart Hub's service navigators.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care",
+        "recreation",
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "Its Client Funded Services page says families can access services they are eligible for at no cost; OT, speech-language and behaviour services can also be purchased.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Chatham",
+      "address": "355 Lark Street, Chatham, ON N7L 5B2",
+      "phone": "(519) 354-0520",
+      "email": "info@ctc-ck.com",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "supporting children and youth facing physical, developmental, and communication challenges.",
+      "notes": "childrenstreatment-ck.com redirects here. Client Funded Services page: 'access services they are eligible for at no cost and regardless of diagnosis'; government-funded services are limited and some have waiting lists; purchase option for all children and youth up to high school graduation. Toll free printed as 1-877-352-0089 (its link points to a different number). Email from the SmartStart Hub page. Registered charity number in the site footer."
+    },
+    {
+      "slug": "lansdowne-smartstart-hub",
+      "name": "Lansdowne Children's Centre SmartStart Hub",
+      "website": "https://www.lansdownecentre.ca/smartstarthub",
+      "description": "Lansdowne Children's Centre's SmartStart Hub is the single point of access for communication, developmental and physical concerns for families in Brantford, Brant, Haldimand and Norfolk counties, Six Nations of the Grand River and Mississaugas of the Credit First Nation. Anyone with a concern can start a referral; next steps may include assessment, support and therapy.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care",
+        "recreation"
+      ],
+      "cost": "free",
+      "cost_note": "The page says there is no cost to the family for SmartStart Hub services, supports and resources.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Brantford",
+      "address": "39 Mount Pleasant St., Brantford, ON N3T 1S7",
+      "phone": "519-753-3153 ext. 507",
+      "email": "info@lansdownecc.com",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "No diagnosis or doctor referral is required.",
+      "notes": "Toll free 1-800-454-7186 ext. 507. Referrals are reviewed by priority need; the primary contact (a legal guardian) should get a call within about 90 days. Self-screening checklists cover 0-48 months, 36-72 months (kindergarten readiness) and 0-36 months (speech and language). Homepage mentions community settings and virtual delivery. Ontario.ca lists Lansdowne as the Brant Haldimand Norfolk Preschool Speech and Language provider."
+    },
+    {
+      "slug": "niagara-childrens-centre-early-years",
+      "name": "Niagara Children's Centre: Early Years (0-4)",
+      "website": "https://www.niagarachildrenscentre.com/early-years",
+      "description": "Niagara Children's Centre offers physiotherapy, occupational therapy and speech and language therapy for young children in Niagara, plus an Infant & Child Development Program for children with a developmental disability or at risk of delay. Parents and legal guardians can request services directly, and physicians, community providers and school boards can refer.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page says its Infant & Child Development Program is a voluntary, free, provincially funded program; it does not state a cost for core therapy.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "St. Catharines",
+      "address": "567 Glenridge Avenue, St. Catharines, ON L2T 4C2",
+      "phone": "905-688-3550",
+      "email": "info@niagarachildrenscentre.com",
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "available from a child's birth until they start or are eligible for the first year of kindergarten.",
+      "notes": "Toll free 1-800-896-5496. Child must live in the Regional Municipality of Niagara; parent requests for core therapy are for children up to August 31 of the year they turn 4 (referrals page). Services for ages 4-21 are on its school-aged page. Ontario.ca lists it as the Niagara Preschool Speech and Language provider.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "ron-joyce-developmental-pediatrics-rehabilitation",
+      "name": "Developmental Pediatrics and Rehabilitation, Ron Joyce Children's Health Centre (McMaster Children's Hospital)",
+      "website": "https://www.hamiltonhealthsciences.ca/mcmaster-childrens-hospital/areas-of-care/developmental-pediatrics-and-rehabilitation",
+      "description": "Developmental Pediatrics and Rehabilitation provides outpatient services for children with developmental, behavioural, physical or communication needs, including an autism program, preschool communication services, an infant parent program, school-based rehabilitation and a SmartStart Hub. Families can send a family referral form to intake; referrals to a developmental pediatrician must come from a physician.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "provides_diagnosis",
+        "large_resource_centre"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "address": "325 Wellington Street North, Hamilton, Ontario",
+      "phone": "905-521-2100 ext 77950",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "outpatient services to children with developmental, behavioural, physical, or communication needs",
+      "notes": "Preschool Communication Services referrals go through Early Words (905-381-2828). Its autism program page says McMaster Children's Hospital is the ASD Diagnostic Hub lead for the West Region (905-521-2100 ext. 78972). SmartStart Hub: birth to 19, or 21 if in school.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "inspire-centre-speech-language-therapy",
+      "name": "Inspire Centre: Speech-Language Therapy",
+      "website": "https://inspirecentre.ca/services/speech-language-therapy/",
+      "description": "Inspire Centre provides speech-language therapy, in person or virtually, for children and youth with a physical, developmental or communication disability in the districts of Cochrane and Temiskaming and James Bay communities; the centre also offers occupational therapy, physiotherapy and recreation therapy. Caregivers can refer directly through the website or by contacting the centre, without a doctor's referral.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "recreation"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page says the centre is funded by MCCSS but does not state whether services are free.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Timmins",
+      "address": "733 Ross Avenue East, Suite 1, Timmins, ON P4N 8S8",
+      "phone": "(705) 264-4700",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Referrals can be made by caregivers directly through our website or by contacting Inspire Centre directly.",
+      "notes": "Toll free 1-800-575-3210. Ages up to 19, or 21 in secondary school; the page says many children benefit from support as early as 18 months to 2 years old. Inspire Centre is the Cochrane Temiskaming Children's Treatment Centre (EKO directory); the ctctc.org address on ontario.ca returned a certificate error, so inspirecentre.ca was used.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "surrey-place-smartstart-hub",
+      "name": "Surrey Place SmartStart Hub (Toronto)",
+      "website": "https://www.surreyplace.ca/programs/inquire/95ff0d55-5446-f111-bec7-7ced8da64bef/smartstart-hub",
+      "description": "Surrey Place's SmartStart Hub is the main intake point for children's developmental services in Toronto, connecting families to speech-language pathology, occupational therapy, physical therapy, respite and parent coaching, or to partner agencies. Families can contact the Hub directly whether or not their child has a diagnosis.",
+      "category": "Social Services",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "parent_children",
+        "respite_care",
+        "large_resource_centre"
+      ],
+      "cost": "free",
+      "cost_note": "The page says 'There is no cost.'",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "1-833-575-5437",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "No referral or diagnosis is necessary.",
+      "notes": "Ages 0-19, or up to 21 if still in school. A doctor, child care provider, school or other provider can also connect a family. Online inquiry form linked on the page."
+    },
+    {
+      "slug": "toronto-preschool-speech-language-surrey-place",
+      "name": "Toronto Preschool Speech and Language Program (Surrey Place)",
+      "website": "https://www.surreyplace.ca/services/preschool-speech-and-language-program/",
+      "description": "The Toronto Preschool Speech and Language Program, led by Surrey Place with partner agencies, starts with an assessment by a speech-language pathologist, followed by parent and caregiver training, intervention, consultation and home programming for children with speech, language or communication difficulties. A final assessment is done before junior kindergarten.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether the program is free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "1-833-575-5437",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "You or a professional involved in your child's care can register.",
+      "notes": "Ages: birth until May 31 of the year the child is eligible to start full-day kindergarten; child must live in Toronto. With consent, the final report goes to the school board. Confidential registration fax 416-925-3402.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "surrey-place-infant-child-development",
+      "name": "Surrey Place Infant and Child Development Program (ICDP)",
+      "website": "https://www.surreyplace.ca/programs/inquire/6d469523-1c1e-f111-8342-70a8a50d251d/infant-and-child-development-program-icdp",
+      "description": "Surrey Place's Infant and Child Development Program offers home-based programming, one-to-one caregiver coaching, parent-child groups, caregiver workshops and support with transitions to child care or school, for Toronto children aged 0 to 6. Families register through an online inquiry form.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost (it links to a general Fees and Payments page).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "1-833-575-5437",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "home-based programming during your child's critical early years.",
+      "notes": "Eligibility: a suspected or confirmed developmental disability or risk of delay (for example prematurity, seizures, genetic or chromosomal syndromes) and challenges in two or more areas of development. Ontario.ca describes the provincial ICDP as free.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "holland-bloorview-autism-diagnostic-services",
+      "name": "Holland Bloorview Kids Rehabilitation Hospital: Autism Diagnostic Services",
+      "website": "https://hollandbloorview.ca/services/programs-services/diagnostic-services",
+      "description": "Holland Bloorview is the Toronto region ASD Diagnostic Hub, where a team including developmental paediatricians, psychologists and speech-language pathologists does autism diagnostic assessments, usually over 2-3 visits. A physician or nurse practitioner referral is needed, and the child must live in Toronto or an area without a local treatment centre.",
+      "category": "Doctor",
+      "tags": [
+        "provides_diagnosis",
+        "large_resource_centre",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "The page says initial assessments are 'covered by OHIP, which means that families are not charged for this service.'",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "150 Kilgour Road, Toronto Ontario Canada M4G 1R8",
+      "phone": "416 425 6220",
+      "email": "cdpintake@hollandbloorview.ca",
+      "age_ranges": [],
+      "evidence": "the Toronto region ASD Diagnostic Hub",
+      "notes": "Email is printed on Holland Bloorview's referrals page (Ocean eReferral help); ontario.ca's autism diagnosis page lists Child Development Intake at 416-425-6220 ext. 3334 and the same email. Holland Bloorview's other outpatient services also need a physician, nurse practitioner or dentist referral (referrals page). Toll free 800 363 2440. No age range is given on the page."
+    },
+    {
+      "slug": "ctn-central-region-autism-diagnostic-hub",
+      "name": "Central Region Autism Diagnostic Hub (Children's Treatment Network)",
+      "website": "https://www.ctnsy.ca/Program-Services/Autism-Services.aspx",
+      "description": "Children's Treatment Network leads the Ontario Autism Diagnostic Hub for the Central Region, where CTN, ErinoakKids and KidsAbility provide autism diagnostic services for children and youth up to their 18th birthday in Simcoe, York, Dufferin, Halton, Peel, Waterloo Region and Wellington County. A physician referral is required.",
+      "category": "Doctor",
+      "tags": [
+        "provides_diagnosis",
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page mentions added MCCSS funding for assessments but does not state fees.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "address": null,
+      "phone": "1-866-377-0286",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "These services require a physician referral.",
+      "notes": "Intake: CTN (Simcoe, York) 1-866-377-0286; ErinoakKids (Dufferin, Halton, Peel) 905-855-2690 then press 1; KidsAbility (Kitchener, Waterloo Region, Cambridge, Guelph, Wellington) 519-886-8886 ext. 1214. Families already on a waitlist need do nothing further.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "kidsinclusive-early-expressions",
+      "name": "Early Expressions Preschool Speech and Language Program (KidsInclusive)",
+      "website": "https://kidsinclusive.ca/services-and-programs/early-expressions-preschool-speech-and-language/",
+      "description": "Early Expressions, KidsInclusive's Preschool Speech and Language Program, provides speech and language services for children in Kingston, Frontenac and Lennox & Addington with concerns about their speech or language development. Parents, family doctors or child care providers with concerns can refer through an online form.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether the program is free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "address": "166 Brock Street, Kingston, ON K7L 5G2",
+      "phone": "613-544-3400 ext. 23175",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Early Expressions provides speech and language services to children from birth until they start school.",
+      "notes": "Address is the KHSC Hotel Dieu Site; other sites in Brockville and Portsmouth (Kingston). Press 4 at the number above for help deciding whether to refer. The program page gives April 1 of the school-start year as the cutoff; KidsInclusive's How to Refer page gives June 30 of the year the child turns 4. KidsInclusive is the children's treatment centre for Kingston; it also runs an Infant and Child Development Program (birth to school entry, parents can refer).",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "erinoakkids-preschool-speech-language",
+      "name": "ErinoakKids Preschool Speech and Language",
+      "website": "https://www.erinoakkids.ca/all-services/services/preschool-speech-and-language",
+      "description": "ErinoakKids' Preschool Speech and Language service covers prevention, identification, assessment and treatment of speech, language and swallowing/feeding disorders, through home programming, caregiver consultation and group or individual therapy with parent coaching. For children aged six months until June 30 of the year they can start junior kindergarten who live in Peel, Halton or Dufferin.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether the service is free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Mississauga",
+      "address": null,
+      "phone": "905-855-2690, then press 1",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Health professionals, families and clients can complete our online referral form.",
+      "notes": "Phone is from ontario.ca's program list (toll free 1-877-374-6625, then press 1) and matches ErinoakKids' referrals page.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "tyketalk-thames-valley",
+      "name": "tykeTALK (Thames Valley Children's Centre)",
+      "website": "https://www.tvcc.on.ca/tyketalk/",
+      "description": "tykeTALK, run by Thames Valley Children's Centre, offers programs for children with speech and/or language difficulties in the Thames Valley region from birth to school age. Families start with a tykeTALK referral inquiry or TVCC intake.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether the program is free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "address": "779 Base Line Road East, London, Ontario, Canada N6C 5Y6",
+      "phone": "519-663-0273",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "offers programs for children in the Thames Valley region from birth to school-age.",
+      "notes": "Toll free 1-877-818-TALK (8255). tyketalk.com redirects here. Ontario.ca lists tykeTALK for Middlesex-London, Strathroy, St. Thomas, Woodstock and surrounding areas; TVCC also runs the Grey Bruce program (1-866-590-8822).",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "first-words-ottawa",
+      "name": "First Words Preschool Speech and Language Program",
+      "website": "https://www.firstwords.ca/",
+      "description": "First Words, led by Pinecrest-Queensway Community Health Centre, offers free preschool speech and language screening, consultation and intervention for children from birth to school eligibility who live in Ottawa and Renfrew County. Parents start with the online First Words Communication Checkup and can refer online when a referral is recommended.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page describes 'free preschool speech and language services'.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": "1365 Richmond Road, 2nd Floor, Ottawa, ON. K2B 6R7",
+      "phone": "613-688-3979",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "free preschool speech and language services",
+      "notes": "The page links an email (first.words@pqchc.com) behind an icon rather than printing it. CHEO's development and rehabilitation page says its speech-language pathologists work out of six First Words sites across Ottawa."
+    },
+    {
+      "slug": "early-words-hamilton",
+      "name": "Early Words Preschool Speech and Language Program",
+      "website": "https://ascy.ca/families/preschool-speech-language/",
+      "description": "Early Words, run by Affiliated Services for Children and Youth (ASCY) with Ron Joyce Children's Health Centre, offers speech and language support and services to Hamilton families with children from birth until they are eligible for school entry. Families use the program's referral form; referrals must be made by June 15th of the year of school entry.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page says the program is funded by MCCSS and 'there is no cost to families'.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "address": null,
+      "phone": "905-381-2828 ext. 224",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Early Words (EW) offers speech and language support and services to Hamilton families.",
+      "notes": "earlywords.ca did not load (connection reset); the ASCY page was used. Phone is from ontario.ca's program list; Hamilton Health Sciences also gives 905-381-2828 for Early Words."
+    },
+    {
+      "slug": "york-region-preschool-speech-language",
+      "name": "York Region Preschool Speech and Language Program",
+      "website": "https://www.childdevelopmentprograms.ca/speech-and-language/eligibility-criteria-referrals/",
+      "description": "The York Region Preschool Speech and Language Program works to prevent, identify early and treat speech and language problems in York Region children before they start school. Families with concerns call the York Region Kids Line; professionals can use the program's referral forms.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page says services are free and a doctor's referral is not required.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-888-703-5437",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Services are free and a doctor's referral is not required.",
+      "notes": "Children may be referred until May 31 before school entry (based on earliest enrolment in JK, SK or Grade 1). The program does not serve children attending publicly funded school. Ontario.ca names Oak Valley Health as the provider."
+    },
+    {
+      "slug": "simcoe-county-preschool-speech-language",
+      "name": "Simcoe County Preschool Speech and Language (Royal Victoria Regional Health Centre)",
+      "website": "https://www.rvh.on.ca/areas-of-care/paediatrics/children-development-services/",
+      "description": "RVH Children's Development Services runs the Simcoe County Preschool Speech and Language program for concerns about play, understanding and using language, social skills, speech sounds and feeding. Parents call intake, and physicians or child care providers can fax a referral.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page says services are free and funded through the County of Simcoe.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "address": "201 Georgian Drive, Barrie, ON, L4M 6M2",
+      "phone": "705-739-5696",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "Our services are free and funded through the County of Simcoe",
+      "notes": "Ages: from birth until May 31 of the year the child is eligible for Year 1 kindergarten; must live in Simcoe County. Toll free 1-800-675-1979. Satellite offices in Alliston, Barrie, Collingwood, Bradford, Innisfil, Orillia and Midland. The same service also offers occupational therapy, infant hearing, blind/low vision and a feeding clinic (physician referral)."
+    },
+    {
+      "slug": "talk-2-me-windsor-essex",
+      "name": "Talk 2 Me Preschool Speech & Language (Connections Early Years Family Centre)",
+      "website": "https://www.connectwithus.ca/talk-2-me-2/",
+      "description": "Talk 2 Me offers speech, language and emergent literacy information, local assessment clinics with a speech-language pathologist, parent education, group therapy and individual speech therapy for children in Windsor/Essex County from birth until school entry. Parents and caregivers can refer by phone or online, without a doctor's referral.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page says all services are offered at no charge to families.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "address": "795 Giles Blvd. E., Windsor, Ontario N9A 4E5",
+      "phone": "519-252-0636",
+      "email": "info@connectwithus.ca",
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "all services are offered at no charge to families.",
+      "notes": "Main line 519-252-9696. The page also says: 'You do not need a referral from your doctor.'"
+    },
+    {
+      "slug": "thunder-bay-preschool-speech-language",
+      "name": "Thunder Bay Preschool Speech & Language Program (Children's Centre Thunder Bay)",
+      "website": "https://www.childrenscentre.ca/preschool-speech-language-program",
+      "description": "Children's Centre Thunder Bay leads the Preschool Speech and Language Program in the District of Thunder Bay, where speech-language pathologists and communicative disorders assistants assess and provide therapy in community settings for children from birth to school start. Parents, guardians, teachers, child care providers or doctors can refer, with no screening needed first.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The page says the program is funded by MCCSS and provided at no additional cost to families.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Thunder Bay",
+      "address": "283 Lisgar St, Thunder Bay, ON P7B 6G6",
+      "phone": "807-346-6272",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "at no additional cost to families.",
+      "notes": "General lines (807) 343-5000 and 1-866-343-5020. Children's Centre Thunder Bay also runs an Infant & Child Development Program (screening from birth to 6) through The Access Network, 1-855-486-5037."
+    },
+    {
+      "slug": "york-region-early-intervention-services",
+      "name": "York Region Early Intervention Services",
+      "website": "https://www.york.ca/support/childrens-services/children-special-needs",
+      "description": "York Region's Early Intervention Services support families of children with special needs from birth to school entry, at home or in licensed child care, through in-home Infant and Child Development Services, Inclusion Support Services in child care, and occupational therapy and physiotherapy consultation. Parents call the KIDS Line for intake; physicians and other professionals can refer by fax with parental consent.",
+      "category": "Therapist",
+      "tags": [
+        "edu_daycare",
+        "parent_babies",
+        "parent_children",
+        "siblings"
+      ],
+      "cost": "free",
+      "cost_note": "The page says all early intervention services are provided at no cost (minimal cost for materials may apply).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-888-703-5437",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "All early intervention services are provided at no cost.",
+      "notes": "Infant and Child Development Services need an established or biological risk or a developmental delay (no diagnosis needed for delay). Includes neonatal follow-up and autism sibling monitoring (birth to 36 months, for a child whose sibling has suspected or diagnosed autism). Inclusion Support Services cover birth to 13 in licensed child care and after-school programs. Offices in Georgina, Markham, Newmarket, Richmond Hill and Vaughan."
+    },
+    {
+      "slug": "cheo-school-based-rehabilitation",
+      "name": "CHEO School-Based Rehabilitation Services",
+      "website": "https://www.cheo.on.ca/en/clinics-services-programs/school-based-rehabilitation-services.aspx",
+      "description": "CHEO's School-Based Rehabilitation Services provide occupational therapy, physiotherapy and speech-language pathology for students with rehabilitation needs at school, across the 8 publicly funded school boards in the Champlain region. Schools are the preferred referral source (principals, teachers and other school team members).",
+      "category": "Therapist",
+      "tags": [
+        "edu_kindergarten",
+        "edu_kindergarten_junior",
+        "edu_kindergarten_senior",
+        "edu_elementary",
+        "prog_special_education",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not say whether services are free.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": null,
+      "phone": "613-737-7600 ext. 6256",
+      "email": "SchoolBasedRehab@cheo.on.ca",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Students are eligible for the SBRS throughout their entire school career.",
+      "notes": "Students in private schools and home-schooled students can also receive services; for home-schooled children, parents call a Care Coordinator for help with a referral.",
+      "usual_cost": "free"
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Language Express (Leeds, Grenville and Lanark Preschool Speech and Language)",
+      "reason": "language-express.ca refused the connection on two tries, so the program could not be checked on its own site."
+    },
+    {
+      "name": "Child & Community Resources: Northern Region Autism Diagnostic Hub (Sudbury)",
+      "reason": "ccrconnect.ca/diagnostic-hub loaded but gave no ages, referral rules or cost, so it was left out rather than guessed."
+    }
+  ]
+}

@@ -1,0 +1,2480 @@
+{
+  "topic": "universities",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "uoft-accessibility",
+      "name": "University of Toronto — Accessibility Services",
+      "website": "https://www.studentlife.utoronto.ca/department/accessibility-services/",
+      "description": "Accessibility Services helps students navigate disability-related barriers to their academic success at U of T and provides services and supports for learning, problem solving and inclusion. Students register with the office to access academic, practicum or residence accommodations.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page; registration with the office is required for accommodations.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": "455 Spadina Avenue, 4th floor, Suite 400, Toronto, ON M5S 2G8",
+      "phone": "416-978-8060",
+      "email": "accommodations.admin@utoronto.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our team assists in navigating disability-related barriers to your academic success at U of T",
+      "notes": "Intake section names autism and attentional concerns among the areas supported. In-person visits and virtual appointments (phone or Microsoft Teams) are both offered."
+    },
+    {
+      "slug": "uoft-access-us-peer-mentorship",
+      "name": "University of Toronto — Access Us Peer Mentorship Program",
+      "website": "https://www.studentlife.utoronto.ca/program/access-us-peer-mentorship-program/",
+      "description": "Students are paired with an Access Us peer mentor, an upper-year student who is also registered with Accessibility Services, and join a community with social events and leadership, professional and career development. Open to undergraduate and graduate students who are new to Accessibility Services or new to U of T.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": null,
+      "phone": null,
+      "email": "as.learning@utoronto.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "You will connect with an upper-year student who is also registered with Accessibility Services",
+      "notes": "Disability-focused peer mentoring run by Accessibility Services; not specific to neurodivergent students."
+    },
+    {
+      "slug": "uoft-learning-strategy-support",
+      "name": "University of Toronto — Centre for Learning Strategy Support",
+      "website": "https://www.studentlife.utoronto.ca/department/centre-for-learning-strategy-support/",
+      "description": "The Centre for Learning Strategy Support guides U of T students in developing effective learning and study strategies, skills and competencies. Its programs include online and in-person offerings.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": "800 Bay Street, 5th floor, Toronto, ON M5S 3A9",
+      "phone": "416-978-7970",
+      "email": "clss@utoronto.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We help you identify and achieve your learning goals.",
+      "notes": ""
+    },
+    {
+      "slug": "uoft-student-life-events",
+      "name": "University of Toronto — Student Life Events",
+      "website": "https://www.studentlife.utoronto.ca/events/",
+      "description": "Student Life's events page points U of T students to ways of keeping up with Student Life events, activities and programs, including listings on Folio and Facebook.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "There are SO many cool things going on in Student Life.",
+      "notes": "The page itself does not list events; it links out to the listings."
+    },
+    {
+      "slug": "uoft-autism-social-groups",
+      "name": "University of Toronto — Social Association for Students with ASD (SASA)",
+      "website": "https://www.studentlife.utoronto.ca/program/social-groups/",
+      "description": "An Accessibility Services social group described as a dedicated space exclusively for students diagnosed with or who self-identify as having Autism Spectrum Disorder (ASD); one event is held in person and the other online. The same Social Groups page lists ASD Peer Connections for Women & Trans Students, where no formal diagnosis is required.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_social_clubs",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": null,
+      "phone": null,
+      "email": "as.learning@utoronto.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "a dedicated space exclusively for students diagnosed with or who self-identify as having Autism Spectrum Disorder (ASD)",
+      "notes": "Autism-specific. Open to undergraduate and graduate students registered with Accessibility Services or who identify as living with ASD."
+    },
+    {
+      "slug": "uoft-adhd-skills-group",
+      "name": "University of Toronto — ADHD Skills Group",
+      "website": "https://www.studentlife.utoronto.ca/program/adhd-group/",
+      "description": "A facilitated learning community for students with ADHD who are registered with Accessibility Services, where students develop strategies to manage challenges and harness their strengths. Participants commit to all sessions and to developing an action plan.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_accessibility",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "University of Toronto",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The ADHD Skills Group is a facilitated learning community for students with Attention Deficit Hyperactivity Disorder (ADHD)",
+      "notes": "ADHD-specific. The page lists a named staff facilitator as the contact; students are referred by their accessibility advisor."
+    },
+    {
+      "slug": "mcgill-accessibility",
+      "name": "McGill University — Student Accessibility & Achievement",
+      "website": "https://www.mcgill.ca/access-achieve/",
+      "description": "Student Accessibility & Achievement serves students experiencing academic or physical barriers who have a documented disability, mental health condition, chronic health condition or other impairment. Appointments, exam scheduling and forms are handled through its online portal, ClockWork.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": "1010 Sherbrooke Street West, Suite 410, Montreal, Quebec H3A 2R7",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Empowering students to reach their academic potential by widening access to learning.",
+      "notes": "The office also runs McGill's Tutor Matching Program and a Peer Mentor Program for registered students (separate entries)."
+    },
+    {
+      "slug": "mcgill-new-student-buddy",
+      "name": "McGill University — New Student Buddy Program",
+      "website": "https://www.mcgill.ca/cle/mentorship/programs",
+      "description": "Campus Life & Engagement's New Student Buddy Program matches new students with a trained, upper-year mentor for advice on navigating university life and accessing campus resources. The same page lists faculty, department and group mentorship programs.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": null,
+      "phone": "514-398-8238",
+      "email": "cle@mcgill.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Get matched with a trained, upper-year mentor.",
+      "notes": "Listed on the page as open to all students."
+    },
+    {
+      "slug": "mcgill-saa-peer-mentoring",
+      "name": "McGill University — Peer Mentor Program (Student Accessibility & Achievement)",
+      "website": "https://www.mcgill.ca/access-achieve/learning/peer-support-initiatives/mentoring",
+      "description": "A peer mentoring program for students registered with Student Accessibility & Achievement, in which both mentor and mentee have active academic accommodation plans. Pairs are matched on academic background, extracurricular interests and individual preferences, and often meet weekly.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "In this Peer Mentor Program, both mentor and mentee are students who have active academic accommodations plans",
+      "notes": "Disability-focused; not specific to neurodivergent students."
+    },
+    {
+      "slug": "mcgill-tutor-matching",
+      "name": "McGill University — Tutor Matching Program",
+      "website": "https://www.mcgill.ca/access-achieve/learning/tutoring",
+      "description": "Run by Student Accessibility & Achievement, the program matches requests for tutoring in any McGill course with qualified peer tutors. Some groups, such as newly admitted first-year undergraduates, can receive subsidized sessions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "paid",
+      "cost_note": "$18.00 per hour for undergraduate tutors and $22.00 per hour for graduate tutors; subsidies for some groups.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Tutor Matching Program matches requests for tutoring (for any McGill courses) with qualified peer tutors.",
+      "notes": "",
+      "price": 18
+    },
+    {
+      "slug": "mcgill-campus-life-events",
+      "name": "McGill University — Campus Life & Engagement Events",
+      "website": "https://www.mcgill.ca/cle/events",
+      "description": "Campus Life & Engagement events for McGill students are listed in myFuture (login required) while the office's website calendar is being rebuilt.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Campus Life & Engagement events are now hosted in myFuture.",
+      "notes": "The page says the full events calendar will return to the website in the Fall 2026 semester."
+    },
+    {
+      "slug": "mcgill-neurodivergent-support-group",
+      "name": "McGill University — Neurodivergent and Chronic Conditions Student Support Group",
+      "website": "https://www.mcgill.ca/channels/node/211083",
+      "description": "A Student Wellness Hub support group for neurodivergent students and students living with chronic conditions, focused on alternative learning methods and building confidence and communication skills, including with professors and teaching aides. Groups meet weekly for 10 weeks, are limited to 8 participants, and require a referral from a Hub professional.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "community_group"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "McGill University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This is a support group for neurodivergent students and students living with chronic conditions",
+      "notes": "Neurodivergent-specific. The newest listing found is a session dated 5 November 2025; earlier terms ran as the Neurodivergent Students Support Group. Current-term dates were not confirmed (Hub events now sit in myFuture). The page says it does not offer ADHD/ASD assessments or diagnoses."
+    },
+    {
+      "slug": "ubc-accessibility",
+      "name": "University of British Columbia — Centre for Accessibility",
+      "website": "https://students.ubc.ca/about-student-services/centre-for-accessibility/",
+      "description": "The Centre for Accessibility works with students to identify their needs and arranges disability-related accommodations designed to remove barriers for students with disabilities and ongoing medical conditions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "University of British Columbia",
+      "address": "Room 3110, Brock Commons South, 6180 Walter Gage Road, Vancouver, BC",
+      "phone": "604 822 5844",
+      "email": "info.accessibility@ubc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "designed to remove barriers for students with disabilities and ongoing medical conditions",
+      "notes": "UBC Vancouver. Online services through Clockwork for Vancouver students."
+    },
+    {
+      "slug": "ubc-find-a-mentor",
+      "name": "University of British Columbia — Find a Mentor (Career Centre)",
+      "website": "https://students.ubc.ca/career/career-resources/find-mentor/",
+      "description": "The UBC Career Centre lists mentoring options for students, including the UBC Hub of Ten Thousand Coffees, which is available to all students and matches them with recent grads, alumni and industry professionals, plus faculty programs such as Science peer mentoring and tri-mentoring.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "University of British Columbia",
+      "address": null,
+      "phone": "604 822 4011",
+      "email": "career.centre@ubc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "UBC Hub of Ten Thousand Coffees is a platform available to all students.",
+      "notes": "Mostly alumni and professional mentoring; peer mentoring is listed for Computer Science and Integrated Sciences undergraduates."
+    },
+    {
+      "slug": "ubc-learning-commons-tutoring",
+      "name": "University of British Columbia — Chapman Learning Commons Tutoring & Advice",
+      "website": "https://learningcommons.ubc.ca/tutoring-advice/",
+      "description": "The Chapman Learning Commons points students to tutoring offered in a variety of subjects through its campus partners, along with study advice.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "University of British Columbia",
+      "address": "Room 300, Irving K. Barber Learning Centre, 1961 East Mall, Vancouver, BC V6T 1Z1",
+      "phone": "604 827 3909",
+      "email": "clc.assistants@ubc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Tutoring is offered in a variety of subjects through our campus partners.",
+      "notes": ""
+    },
+    {
+      "slug": "ubc-events",
+      "name": "University of British Columbia — UBC Events",
+      "website": "https://events.ubc.ca/",
+      "description": "UBC's campus-wide events calendar lists events happening at UBC for students, faculty, staff and alumni.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "University of British Columbia",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Your source for events happening at UBC.",
+      "notes": ""
+    },
+    {
+      "slug": "ubc-adhd-skills-support-group",
+      "name": "University of British Columbia — ADHD Skills Support Group",
+      "website": "https://students.ubc.ca/health/mental-health-care-ubc/group-counselling-programs/adhd-skills-support-group/",
+      "description": "An in-person, non-clinical, non-diagnostic skills-based support group run through UBC Counselling Services for students who have ADHD or think they might have it. An ADHD diagnosis is not required; students register online through the booking portal.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "community_group"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "University of British Columbia",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "If you have ADHD or think you might have ADHD, this in-person skills-based support group may be what you are looking for.",
+      "notes": "ADHD-specific. The page lists Wednesdays from Sep 9 to Oct 21, 2026, 3:00 to 4:30 pm, UBC Vancouver campus."
+    },
+    {
+      "slug": "ualberta-accessibility",
+      "name": "University of Alberta — Accessibility + Accommodations",
+      "website": "https://www.ualberta.ca/en/current-students/accessibility-resources/index.html",
+      "description": "Accessibility + Accommodations provides accommodation support to remove barriers for eligible students, with offices on North Campus, Augustana Campus and Campus Saint-Jean. Students manage academic accommodations through the online Accommodate application.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "University of Alberta",
+      "address": "1-80 Students' Union Building, North Campus",
+      "phone": "780-492-3381",
+      "email": "arrec@ualberta.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "accommodation support is available to remove barriers for eligible students",
+      "notes": "Augustana Campus (780-679-1132, augpass@ualberta.ca) and Campus Saint-Jean (admiacad@ualberta.ca) contacts are also on the page."
+    },
+    {
+      "slug": "ualberta-career-mentoring",
+      "name": "University of Alberta — Career Mentoring Program",
+      "website": "https://www.ualberta.ca/en/services/student-services-directory/career-mentoring-program.html",
+      "description": "Career Education matches U of A students and graduates with mentors who act as informal coaches, role models and advisors to help them explore career options. The program runs once per academic year over four to six months, virtually or in person.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship"
+      ],
+      "cost": "paid",
+      "cost_note": "$75 program fee for mentees, payable after mentor matching.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "University of Alberta",
+      "address": null,
+      "phone": null,
+      "email": "careereducation@ualberta.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Mentors act as informal coaches, role models, and advisors, helping mentees explore career options",
+      "notes": "Mentors are not necessarily students. For peer connection, U of A's Unitea program (Student Success & Experience) offers free one-to-one and group tea times with trained Peer Hosts and Alumni Hosts.",
+      "price": 75
+    },
+    {
+      "slug": "ualberta-writing-learning-centre",
+      "name": "University of Alberta — Writing and Learning Centre",
+      "website": "https://www.ualberta.ca/en/current-students/writing-learning/index.html",
+      "description": "Professional specialists and peer tutors offer workshops and personalized support with academic writing, study skills and time management for undergraduate and graduate students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Appointments and workshops are free for current U of A students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "University of Alberta",
+      "address": "2-10 Cameron Library, Edmonton, Alberta T6G 2J8",
+      "phone": "780-492-1494",
+      "email": "wlcentre@ualberta.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our appointments and workshops are free for current U of A students.",
+      "notes": ""
+    },
+    {
+      "slug": "ualberta-events",
+      "name": "University of Alberta — Events",
+      "website": "https://www.ualberta.ca/en/events/index.html",
+      "description": "The U of A events page lists events and important dates; the university hosts lectures, workshops, conferences and concerts throughout the year.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event; the page says students attend Golden Bears and Pandas games for free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "University of Alberta",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Check here often for events and important dates!",
+      "notes": ""
+    },
+    {
+      "slug": "mcmaster-accessibility",
+      "name": "McMaster University — Student Accessibility Services (SAS)",
+      "website": "https://sas.mcmaster.ca/",
+      "description": "Student Accessibility Services supports students with disabilities through academic accommodations and related support. Accommodations are managed through the online MySAS Portal.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "McMaster University",
+      "address": "Student Centre (MUSC) Basement, Room B101, 1280 Main Street West, Hamilton, Ontario L8S 4L8",
+      "phone": "905-525-9140 Ext. 28652",
+      "email": "sas@mcmaster.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Dedicated to supporting students with disabilities through academic accommodations and related support.",
+      "notes": ""
+    },
+    {
+      "slug": "mcmaster-writing-academic-skills",
+      "name": "McMaster University — Writing and Academic Skills (Student Success Centre)",
+      "website": "https://studentsuccess.mcmaster.ca/writing-and-academic-skills/",
+      "description": "The Student Success Centre offers writing and academic skills appointments, graduate writing and communication support, and workshops on studying, time management and exam preparation. Its Writing and Academic Skills Hub is in Mills Library L215.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "McMaster University",
+      "address": "1280 Main Street West, Hamilton, Ontario L8S 4L8",
+      "phone": "905-525-9140 Ext. 20960",
+      "email": "studentsuccess@mcmaster.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Anyone can improve their writing and academic skills.",
+      "notes": "Online videos and a Pressbook on academic skills are also linked."
+    },
+    {
+      "slug": "mcmaster-student-success-events",
+      "name": "McMaster University — Student Success Centre Events",
+      "website": "https://studentsuccess.mcmaster.ca/events/",
+      "description": "The Student Success Centre's events listing covers first-year and transition programs, career fairs, international student events and workshops, filterable by category.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event; not stated for most listings.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "McMaster University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Get your first year started with our annual Ignite Program",
+      "notes": "Listings include MacStart, a summer transition program for incoming students with disabilities run with Student Accessibility Services."
+    },
+    {
+      "slug": "mcmaster-neurodivergent-minds-group",
+      "name": "McMaster University — Neurodivergent Minds Group (Student Wellness Centre)",
+      "website": "https://wellness.mcmaster.ca/program/neurodivergent-minds/",
+      "description": "A Student Wellness Centre group described as a welcoming, judgement-free space for neurodivergent individuals to connect, share experiences, access peer support and develop new skills, while celebrating diverse ways of thinking.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "community_group",
+        "prog_social_clubs"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "McMaster University",
+      "address": "PGCLL 210/201, 1280 Main Street West, Hamilton, ON L8S 4K1",
+      "phone": "905-525-9140 ext. 27700",
+      "email": "counsswc@mcmaster.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "A welcoming, judgement-free space designed for neurodivergent individuals to connect, share experiences, access peer support, and develop new skills.",
+      "notes": "Neurodivergent-specific. Listed as Coming Soon (no start date) on 17 Oct 2026. The Wellness Centre's programs page also lists an ADHD Skills Group and an Overcoming OCD Group, both marked Closed."
+    },
+    {
+      "slug": "waterloo-accessibility",
+      "name": "University of Waterloo — AccessAbility Services",
+      "website": "https://uwaterloo.ca/accessability-services/",
+      "description": "AccessAbility Services helps students with a known or unknown disability, condition or illness, or impacts from trauma, develop an individualized academic accommodation plan. Services are in person during business hours, and learning strategy and assistive technology services are available online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "institution": "University of Waterloo",
+      "address": "Needles Hall North, 1st Floor, Room 1401, 200 University Avenue West, Waterloo, ON N2L 3G1",
+      "phone": "519-888-4567 ext. 35082",
+      "email": "access@uwaterloo.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "we can help you develop your individualized academic accommodation plan for all components of your academic career",
+      "notes": ""
+    },
+    {
+      "slug": "waterloo-mentorship-programs",
+      "name": "University of Waterloo — Mentorship programs at Waterloo",
+      "website": "https://uwaterloo.ca/students/opportunities-0/mentorship-programs",
+      "description": "A directory of mentorship programs run by departments across the university, including Peer Leaders in Living Learning Communities for first-year students, Peer Success Coaching for all students, and the AccessAbility Peer Mentorship Transition Program for students registered with AccessAbility Services.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "institution": "University of Waterloo",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Departments across the university provide a number of programs that support Waterloo students",
+      "notes": "Connection Collective, a group mentorship program facilitated by the Student Success Office, names disabled students and neurodivergent students among the equity-deserving students it serves."
+    },
+    {
+      "slug": "waterloo-tutoring",
+      "name": "University of Waterloo — Tutoring",
+      "website": "https://uwaterloo.ca/students/academic-success/learning-support/tutoring",
+      "description": "Lists tutoring options for Waterloo students: Tutor Connect for finding a Waterloo student tutor, and drop-in help from the Mathematics Tutoring Centre, Computer Science Consulting Centre, First-Year Engineering tutors and the Physics Tutorial Centre.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free drop-in tutoring each term on the main campus; Tutor Connect rates are not stated.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "institution": "University of Waterloo",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Free drop-in tutoring is available each term on the main University of Waterloo campus",
+      "notes": "First-year engineering tutors are available in person (E2 1786) or on Microsoft Teams."
+    },
+    {
+      "slug": "waterloo-events",
+      "name": "University of Waterloo — Waterloo Events",
+      "website": "https://uwaterloo.ca/events/",
+      "description": "Waterloo's events calendar for the campus community and the wider community, from free public lectures to workshops and information sessions. Many listings are tagged for current undergraduate and graduate students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "institution": "University of Waterloo",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "At Waterloo, we're proud to host a wide variety of events for the campus community and our larger community.",
+      "notes": "Student-specific listings are also at uwaterloo.ca/students/events."
+    },
+    {
+      "slug": "waterloo-neurominds",
+      "name": "University of Waterloo — NeuroMinds",
+      "website": "https://uwaterloo.ca/students/events/neurominds",
+      "description": "A weekly community for undergraduate students who self-identify as neurodivergent or are exploring whether they might be, with activities, meeting like-minded students and compassionate peer support. Runs Tuesdays 5:30 to 7:00 pm, September 22 to December 1, 2026.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_social_clubs",
+        "community_group"
+      ],
+      "cost": "free",
+      "cost_note": "Cost: Free (stated on the page).",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Waterloo",
+      "institution": "University of Waterloo",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Whether you self-identify as neurodivergent or are exploring whether you might be, you are welcome here!",
+      "notes": "Neurodivergent-specific. Registration is through the Waterloo event portal linked on the page."
+    },
+    {
+      "slug": "western-accessible-education",
+      "name": "Western University — Accessible Education",
+      "website": "https://academicsupport.uwo.ca/accessible_education/index.html",
+      "description": "Accessible Education provides supports and services to students with disabilities in all programs and faculties at Western. Appointments are offered by phone, email or virtually, and the office is in the Western Student Services Building.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Western University",
+      "address": "4th floor, Western Student Services Building (WSSB), 1151 Richmond Street, London, Ontario N6A 3K7",
+      "phone": "(519) 661-2147",
+      "email": "aew@uwo.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Accessible Education provides supports and services to students with disabilities at Western, in all programs and faculties.",
+      "notes": ""
+    },
+    {
+      "slug": "western-launch-peer-mentorship",
+      "name": "Western University — Launch Peer Mentorship Program",
+      "website": "https://launch.uwo.ca/mentorship/index.html",
+      "description": "Western Launch's peer mentorship program supports students' transition to university by connecting them with upper-year student mentors from their faculty, with faculty-specific events and workshops and a drop-in Launch Lounge (UCC 270).",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Western University",
+      "address": "Launch Lounge, UCC 270",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Launch Peer Mentorship Program is here to support your transition to university",
+      "notes": "Students opt in through a form on the page; each faculty group has its own mentor email."
+    },
+    {
+      "slug": "western-access-ed-peer-mentorship",
+      "name": "Western University — Access Ed Peer Mentorship Program",
+      "website": "https://academicsupport.uwo.ca/accessible_education/mentorship.html",
+      "description": "Matches students registered with Accessible Education, on request, with a registered upper-year mentor who offers academic and social support. Mentees build transition skills, learn about campus resources and meet one-on-one or in group activities, in person or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Western University",
+      "address": null,
+      "phone": null,
+      "email": "aelearninglab@uwo.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Mentors offer academic and social support to help make aspects of university more approachable and manageable for students with disabilities.",
+      "notes": "Disability-focused peer mentoring; not specific to neurodivergent students."
+    },
+    {
+      "slug": "western-peer-assisted-learning",
+      "name": "Western University — Peer Assisted Learning (PAL) Centre",
+      "website": "https://learning.uwo.ca/peer_assisted_learning/",
+      "description": "The PAL Centre offers free, one-to-one, course-specific help from Learning Peers and support with learning strategies, in person in the Western Student Services Building and the Weldon Library Community Room. Western and Affiliate University College students are welcome.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "This service is free (stated on the page).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Western University",
+      "address": "Room 4139, Western Student Services Building (WSSB)",
+      "phone": "519-661-2183",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Peer Assisted Learning (PAL) Centre is the place to develop effective learning strategies and get free, one-to-one, course-specific help.",
+      "notes": "Run by Learning Development & Success."
+    },
+    {
+      "slug": "western-trainings-events",
+      "name": "Western University — Trainings & Events (Leadership & Connection)",
+      "website": "https://leadership.uwo.ca/training-events/",
+      "description": "Western's Leadership & Connection team lists trainings and events for students, such as the Leadership Fair, safeTALK and ASIST training, and St. John Ambulance therapy dog visits.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Western University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Get connected and start developing transferable skills through these trainings and events.",
+      "notes": "Western's university-wide calendar is at uwo.ca/events."
+    },
+    {
+      "slug": "queens-accessibility",
+      "name": "Queen's University — Queen's Student Accessibility Services (QSAS)",
+      "website": "https://www.queensu.ca/accessibility-services/",
+      "description": "Queen's Student Accessibility Services provides academic accommodations to students when functional impacts from a disability create a barrier in the academic environment.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": "Mitchell Hall room 120, 69 Union St., Kingston, ON K7L 2N9",
+      "phone": "613-533-6467",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We support inclusive and accessible educational experiences that foster independence and autonomy for all students with disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "queens-mentor-hub",
+      "name": "Queen's University — Mentor Hub (Student Experience Office)",
+      "website": "https://www.queensu.ca/studentexperience/mentor-hub",
+      "description": "The Student Experience Office's Mentor Hub lists mentorship programs at Queen's, including QSuccess First-Year Mentorship, the Upper-Year Peer Mentor Program and the Indigenous Peer Mentor Program, with a contact for each.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": null,
+      "phone": "(613) 533-6882",
+      "email": "student.experience@queensu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Drawing on research and best practices in the field of Mentorship, this page is meant to serve as a resource",
+      "notes": "QSuccess first-year mentorship contact on the page: qsuccess@queensu.ca."
+    },
+    {
+      "slug": "queens-student-academic-success-services",
+      "name": "Queen's University — Student Academic Success Services (SASS)",
+      "website": "https://sass.queensu.ca/",
+      "description": "SASS offers appointments, workshops, drop-ins, study and writing groups and self-paced guides for writing, academic skills and academic English, for undergraduate and graduate students. Upper-year peers also offer support with the basics of university academics.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": "Joseph S. Stauffer Library, 101 Union Street, Kingston, ON K7L 5C4",
+      "phone": "613-533-6315",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our friendly and welcoming team are experts in the science of learning and the art of writing.",
+      "notes": ""
+    },
+    {
+      "slug": "queens-student-experience-events",
+      "name": "Queen's University — Student Experience Office Upcoming Events",
+      "website": "https://www.queensu.ca/studentexperience/upcoming-events",
+      "description": "The Student Experience Office's events page for Queen's students, which also points to the Allyship & Belonging Student Calendar for equity-deserving students and students wanting to become better allies.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": null,
+      "phone": "(613) 533-6882",
+      "email": "student.experience@queensu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "For more events, visit the Allyship & Belonging Student Calendar",
+      "notes": "No events were listed on the page when checked; the main Queen's events calendar loads by script and could not be read."
+    },
+    {
+      "slug": "queens-autism-group",
+      "name": "Queen's University — Autism Group (Student Academic Success Services)",
+      "website": "https://sass.queensu.ca/autism-group-0",
+      "description": "A 5-week SASS program where autistic students develop academic skills for their unique minds with like-minded peers. No documentation, diagnosis or referral is needed, and drop-ins are welcome.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_tutoring",
+        "prog_social_clubs"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": "Room 143, Stauffer Library",
+      "phone": "613-533-6315",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The group is for Autistic students, but we do not require any documentation, diagnosis, or referral for you to join.",
+      "notes": "Autism-specific. Fall 2026 sessions listed on Wednesdays, 2:30 to 4:00 pm (October 7 to November 11). Sign-up form linked on the page."
+    },
+    {
+      "slug": "queens-adhd-group-skill-share",
+      "name": "Queen's University — ADHD Group Skill Share (Student Academic Success Services)",
+      "website": "https://sass.queensu.ca/adhd-group-skill-share-21",
+      "description": "A 5-week SASS group for self-identified ADHD students to connect with neurodivergent peers, share experiences and explore practical strategies for academic success. No documentation, diagnosis or referral is needed, and drop-ins are welcome.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_tutoring",
+        "prog_social_clubs"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "Queen's University",
+      "address": "Room 143, Stauffer Library",
+      "phone": "613-533-6315",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "A supportive group for self-identified ADHD students to connect with neurodivergent peers, share experiences, and explore practical strategies for academic success",
+      "notes": "ADHD-specific. Fall 2026 sessions on Tuesdays, 10:30 am to 12:00 pm."
+    },
+    {
+      "slug": "uottawa-academic-accommodations",
+      "name": "University of Ottawa — Academic Accommodations Service",
+      "website": "https://www.uottawa.ca/study/academic-support-mentoring/accommodation-services-available",
+      "description": "The Academic Accommodations Service supports students with a temporary or permanent disability by assessing, establishing and implementing academic accommodations. Its services include the Assistive Technology Mentoring Centre, adapted exams, transcription and interpretation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "University of Ottawa",
+      "address": "100 Marie-Curie, 4th Floor, Room 408, Ottawa ON K1N 6N5",
+      "phone": "613-562-5777",
+      "email": "adapt@uOttawa.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Academic Accommodations Service works with the University of Ottawa community to support students with temporary or permanent disability.",
+      "notes": "The Assistive Technology Mentoring Centre has student mentors who teach assistive technologies and learning strategies. Checked by direct page download because the automated reader was blocked."
+    },
+    {
+      "slug": "uottawa-faculty-mentoring-centres",
+      "name": "University of Ottawa — Faculty Mentoring Centres",
+      "website": "https://www.uottawa.ca/study/academic-support-mentoring/faculty-mentoring-centres",
+      "description": "Each faculty's mentoring centre has trained upper-year students who have taken the same courses and offer personalized advice, study tips and strategies tailored to the student's faculty and program.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "University of Ottawa",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "These trained mentors offer personalized advice, study tips, and proven strategies to help you succeed",
+      "notes": "uOttawa also lists a Regional Mentoring Centre and an Immersion Mentoring Centre. Checked by direct page download because the automated reader was blocked."
+    },
+    {
+      "slug": "uottawa-academic-writing-help-centre",
+      "name": "University of Ottawa — Academic Writing Help Centre",
+      "website": "https://www.uottawa.ca/study/academic-support-mentoring/academic-writing-help",
+      "description": "Writing mentors help undergraduate and graduate students at every step of the writing process, from understanding assignment instructions and outlining to getting feedback and citing sources, by appointment.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "University of Ottawa",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Learn how to become a more effective, autonomous writer with the help of our writing mentors.",
+      "notes": "Checked by direct page download because the automated reader was blocked."
+    },
+    {
+      "slug": "uottawa-campus-life-events",
+      "name": "University of Ottawa — Campus Life Events and Activities",
+      "website": "https://www.uottawa.ca/campus-life/",
+      "description": "uOttawa's Campus life page features virtual and in-person events and activities for students, with a full events listing (campus-life/events-all) that can be filtered by audience and format.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "University of Ottawa",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Take part in all our action-packed virtual and in-person events to make you feel at home",
+      "notes": "Checked by direct page download because the automated reader was blocked."
+    },
+    {
+      "slug": "ucalgary-accessibility",
+      "name": "University of Calgary — Student Accessibility Services",
+      "website": "https://www.ucalgary.ca/student-services/access/access",
+      "description": "Student Accessibility Services works with the campus community to create an accessible, equitable and supportive learning environment. It serves current undergraduate and graduate students registered with the service, prospective students and Continuing Education students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "edu_continuing",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "University of Calgary",
+      "address": "2500 University Drive NW, Calgary Alberta T2N 1N4",
+      "phone": "(403) 210-6019",
+      "email": "access@ucalgary.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "to work collaboratively and innovatively with the campus community",
+      "notes": "Accommodation letters and exam bookings go through the ClockWork Student Services portal."
+    },
+    {
+      "slug": "ucalgary-neurodiversity-support-office",
+      "name": "University of Calgary — Neurodiversity Support Office",
+      "website": "https://www.ucalgary.ca/student-services/access/current-students/neurodiversity-support",
+      "description": "Neurodiversity Support Advisors offer neuro-affirming educational supports to any self-identifying or questioning neurodivergent student, covering understanding neurodivergence, self-awareness, wellbeing and skills building, plus neuro-affirming peer support programming. No diagnosis is needed.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_accessibility",
+        "community_group"
+      ],
+      "cost": "free",
+      "cost_note": "No cost for UCalgary students (stated on the page).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "University of Calgary",
+      "address": null,
+      "phone": "(403) 210-6019",
+      "email": "NSOinfo@ucalgary.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Neurodiversity Support Advisors (NSA) offer neuro-affirming educational supports to students",
+      "notes": "Neurodivergent-specific. Appointments by MS Teams or in person; book online with MyUCalgary credentials or by phone."
+    },
+    {
+      "slug": "ucalgary-neurodivergent-students",
+      "name": "University of Calgary — Neurodivergent Students (Student Success Centre)",
+      "website": "https://www.ucalgary.ca/student-services/student-success/learning/neurodivergent",
+      "description": "Student Success Centre supports for neurodivergent students: meetings with an academic development specialist, peer communities and meetups, and NICE Days, a free two-day program for incoming first-year neurodivergent students linked to NICE (Neurodiversity Immersive Campus Experience).",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_tutoring",
+        "prog_social_clubs",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "NICE Days is free; other costs not stated.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "University of Calgary",
+      "address": null,
+      "phone": "403-220-5881",
+      "email": "success@ucalgary.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Providing neurodivergent students with the tools to succeed academically and build community as their whole selves.",
+      "notes": "Neurodivergent-specific."
+    },
+    {
+      "slug": "ucalgary-writing-support",
+      "name": "University of Calgary — Writing Support (Student Success Centre)",
+      "website": "https://www.ucalgary.ca/student-services/student-success/writing-support",
+      "description": "Writing tutors offer one-on-one writing consultations, Gen AI consultations, facilitated Writers' Space sessions, workshops and drop-in support at Writing Symbols Lodge, online and in person, seven days a week in Fall and Winter.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "One-on-one writing consultations and Gen AI consultations are free; workshop costs not stated.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "University of Calgary",
+      "address": "Taylor Family Digital Library, third floor, 2500 University Drive NW, Calgary, Alberta T2N 1N4",
+      "phone": "403-220-5881",
+      "email": "success@ucalgary.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Writing Support offers creative coaching to help you become a more effective communicator.",
+      "notes": "Sensory-friendly appointments are offered in person."
+    },
+    {
+      "slug": "ucalgary-student-success-events",
+      "name": "University of Calgary — Student Success Centre News and Events",
+      "website": "https://www.ucalgary.ca/student-services/student-success/news-events",
+      "description": "The Chancellor Cuthbertson Student Success Centre's News and Events page links to its events calendar and to blog posts with tips for the semester.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "University of Calgary",
+      "address": null,
+      "phone": "403-220-5881",
+      "email": "success@ucalgary.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Check out our events calendar below to see what we have on offer this month",
+      "notes": ""
+    },
+    {
+      "slug": "udem-mesures-accommodement",
+      "name": "Université de Montréal — Mesures d'accommodement (Services à la vie étudiante)",
+      "website": "https://vieetudiante.umontreal.ca/soutien-etudes/mesures-accommodement",
+      "description": "The Services à la vie étudiante accommodation service evaluates, establishes and coordinates accommodation measures for students in a situation of disability (personnes en situation de handicap) who are registered at UdeM.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Université de Montréal",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Pour toute personne en situation de handicap et dûment inscrite à l’Université de Montréal",
+      "notes": "Page in French."
+    },
+    {
+      "slug": "udem-parrainage-etudiant",
+      "name": "Université de Montréal — Parrainage étudiant",
+      "website": "https://vieetudiante.umontreal.ca/experience-etudiante/experience-premiere-annee/parrainage-etudiant",
+      "description": "A simple, flexible student sponsorship (peer mentoring) program that connects people new to UdeM with students who already have some experience at the university and want to share it.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Université de Montréal",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Conçu pour être simple et flexible, il favorise la création de liens entre les personnes nouvellement arrivées à l’UdeM",
+      "notes": "Page in French; part of the first-year experience pages of Services à la vie étudiante."
+    },
+    {
+      "slug": "udem-aide-apprentissage",
+      "name": "Université de Montréal — Aide à l'apprentissage",
+      "website": "https://vieetudiante.umontreal.ca/soutien-etudes/aide-apprentissage",
+      "description": "Free workshops on motivation, procrastination, performance anxiety and time management, plus consultations in learning support, orthopedagogy and neuropsychological evaluation (consultation en aide à l'apprentissage, en orthopédagogie et évaluation neuropsychologique).",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Workshops are free; cost of consultations not stated.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Université de Montréal",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Des ateliers gratuits vous aident à garder la motivation, à éloigner la procrastination",
+      "notes": "Page in French. Students with a learning disorder (trouble de l'apprentissage) are pointed to disability support for accommodations."
+    },
+    {
+      "slug": "udem-calendrier-vie-etudiante",
+      "name": "Université de Montréal — Calendrier de la vie étudiante",
+      "website": "https://vieetudiante.umontreal.ca/calendrier-vie-etudiante",
+      "description": "The Services à la vie étudiante calendar of student life activities at UdeM, such as welcome days and student cafés.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Université de Montréal",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Calendrier de la vie étudiante",
+      "notes": "Page in French. Listings load by script; the university-wide calendar is at calendrier.umontreal.ca."
+    },
+    {
+      "slug": "york-accessibility",
+      "name": "York University — Student Accessibility Services (SAS)",
+      "website": "https://students.yorku.ca/accessibility",
+      "description": "Student Accessibility Services facilitates access to learning and campus participation for students with disabilities, partnering with students to identify accommodations and supports. Support may include academic accommodation recommendations, support planning and resource navigation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "York University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Student Accessibility Services (SAS) facilitates access to learning and campus participation for students with disabilities",
+      "notes": "Checked by direct page download because the automated reader could not verify the site's certificate."
+    },
+    {
+      "slug": "york-sas-academic-peer-mentors",
+      "name": "York University — Academic Peer Mentors (Student Accessibility Services)",
+      "website": "https://students.yorku.ca/accessibility/services-supports",
+      "description": "Academic Peer Mentors support students registered with Student Accessibility Services with processes such as accessing a Letter of Accommodation and signing up for tests and exams, and with skills like time management, study strategies and note-taking. Students are referred by their Accessibility Counsellor or attend drop-in sessions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "York University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Academic Peer Mentors are available to support students registered with Student Accessibility Services.",
+      "notes": "Disability-focused peer mentoring. Checked by direct page download because the automated reader could not verify the site's certificate."
+    },
+    {
+      "slug": "york-autism-mentorship-program",
+      "name": "York University — Autism Mentorship Program (AMP)",
+      "website": "https://www.yorku.ca/health/autism-mentorship-program/",
+      "description": "AMP aims to provide a supportive environment for York University autistic students, with one-to-one mentorship from graduate-level student mentors (most with a psychology background) based on student goals, plus group social events and workshops based on student interest.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship",
+        "prog_social_clubs",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "York University",
+      "address": null,
+      "phone": null,
+      "email": "asmentor@yorku.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Autistic Students are paired with a mentor who is there to provide support based on student goals.",
+      "notes": "Autism-specific. Meetings and group events take place on campus or over Zoom."
+    },
+    {
+      "slug": "york-pass",
+      "name": "York University — Peer Assisted Study Sessions (PASS)",
+      "website": "https://students.yorku.ca/pass",
+      "description": "Free weekly study sessions led by trained undergraduate PASS Leaders who have taken the course, for reviewing material, practising problems and learning study strategies in small groups.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free (stated on the page).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "York University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer Assisted Study Sessions (PASS) offers free weekly student leader-facilitated collaborative study sessions that help you keep up with a course",
+      "notes": "Sessions are in person and/or online depending on campus and Faculty. Checked by direct page download because the automated reader could not verify the site's certificate."
+    },
+    {
+      "slug": "york-events",
+      "name": "York University — Upcoming Events at York University",
+      "website": "https://events.yorku.ca/",
+      "description": "York's university-wide events calendar; for student and club events it points students to the YU Connect Calendar.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "York University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Looking for student and club events? Visit the YU Connect Calendar",
+      "notes": ""
+    },
+    {
+      "slug": "tmu-academic-accommodation-support",
+      "name": "Toronto Metropolitan University — Academic Accommodation Support (AAS)",
+      "website": "https://www.torontomu.ca/accommodations/",
+      "description": "TMU's accessibility services office supports students with disabilities and works with the university community to create inclusive learning environments.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Toronto Metropolitan University",
+      "address": null,
+      "phone": null,
+      "email": "aasadmin@torontomu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Your accessibility services office, supporting students with disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "tmu-tri-mentoring-peer",
+      "name": "Toronto Metropolitan University — Tri-Mentoring Program: Peer Mentoring",
+      "website": "https://www.torontomu.ca/student-life-and-learning/trimentoring/peer/",
+      "description": "First-year students are matched with upper-year student mentors who provide guidance through their first year and the transition to university. All TMU full-time first-year students are eligible mentees, and pairs connect online or in person.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Toronto Metropolitan University",
+      "address": "POD-54, Lower level, Podium Building, 350 Victoria Street, Toronto, Ontario M5B 2K3",
+      "phone": null,
+      "email": "tri_mentoring@torontomu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "First year students are matched with upper year student mentors who will provide guidance throughout your first year",
+      "notes": "The Tri-Mentoring Program also runs monthly group mentoring for equity-seeking groups, including students who identify with a disability."
+    },
+    {
+      "slug": "tmu-learning-support",
+      "name": "Toronto Metropolitan University — Student Learning Support",
+      "website": "https://www.torontomu.ca/student-life-and-learning/learning-support/",
+      "description": "Learning Support offers in-person and online appointments, tutoring and programs, including writing and English language support and workshops.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Toronto Metropolitan University",
+      "address": "Student Learning Centre (SLC), 4th Floor, 350 Victoria Street, Toronto, Ontario M5B 2K3",
+      "phone": "416-598-5978",
+      "email": "slls@torontomu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "At Student Life and Learning Support, we build diverse communities and support you as a learner.",
+      "notes": "TMU Tutor Match is linked from the same section."
+    },
+    {
+      "slug": "tmu-student-life-events",
+      "name": "Toronto Metropolitan University — Student Life & Campus Engagement Events",
+      "website": "https://www.torontomu.ca/student-life-and-learning/programs/",
+      "description": "Student Life and Campus Engagement helps foster community on campus and lists events happening at TMU through ExploreTMU.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Toronto Metropolitan University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Check out all the events happening at TMU below!",
+      "notes": ""
+    },
+    {
+      "slug": "sfu-accessible-learning",
+      "name": "Simon Fraser University — Centre for Accessible Learning (CAL)",
+      "website": "https://www.sfu.ca/students/accessible-learning.html",
+      "description": "CAL facilitates disability-related accommodations and supports for students with disabilities at SFU, and works with students, instructors and other campus units to remove disability-related barriers.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "Simon Fraser University",
+      "address": "1250 Maggie Benston Centre, Burnaby BC V5A 1S6",
+      "phone": "778 782 3112",
+      "email": "caladmin@sfu.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "disability-related accommodations and supports that create a fair and equitable academic experience",
+      "notes": ""
+    },
+    {
+      "slug": "sfu-peer-mentorship",
+      "name": "Simon Fraser University — Peer Mentorship Programs",
+      "website": "https://www.sfu.ca/students/get-involved/groups/peer-mentorship.html",
+      "description": "Faculty and department peer mentorship programs match third- and fourth-year student mentors with first-year mentees in the same faculty or department, offering one-on-one support and social events during the first year.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "Simon Fraser University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer Mentorship programs provide incoming students with peer-to-peer support and guidance during their first year at SFU.",
+      "notes": "Programs are listed by faculty (for example FASS, FHS, Science, Education), mostly at Burnaby or Surrey."
+    },
+    {
+      "slug": "sfu-learning-support",
+      "name": "Simon Fraser University — Learning Support",
+      "website": "https://www.sfu.ca/main/programs/student-resources/learning-support.html",
+      "description": "SFU's learning support directory, including the Student Learning Commons for academic writing, learning and study skills and EAL support, plus Beedie Writing Mentors, the Back on Track Program and the Centre for Accessible Learning.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "Simon Fraser University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Sometimes you need a little help along the way. SFU has a range of services and programs to support your success.",
+      "notes": "The Student Learning Commons' own site could not be loaded (bot check), so this directory page is listed instead."
+    },
+    {
+      "slug": "sfu-events",
+      "name": "Simon Fraser University — Event Calendar",
+      "website": "https://events.sfu.ca/",
+      "description": "SFU's university-wide event calendar.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "Simon Fraser University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Event Calendar",
+      "notes": "Listings load by script, so individual events could not be read when checked."
+    },
+    {
+      "slug": "dal-accessibility",
+      "name": "Dalhousie University — Student Accessibility Centre",
+      "website": "https://www.dal.ca/life-at-dal/student-support/accessibility-accommodations.html",
+      "description": "Dalhousie's accessibility advisors work with Dalhousie and King's students to ensure access, inclusion and accommodation support when required. Virtual and in-person appointments are available.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "institution": "Dalhousie University",
+      "address": "Killam Library Atrium, Rm. G28, 6225 University Ave., Halifax",
+      "phone": "902-494-2836",
+      "email": "access@dal.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our accessibility advisors work with you to ensure access, inclusion, and accommodation support when required.",
+      "notes": "Truro campus: Student Success Centre, 902-893-6672, accessac@dal.ca."
+    },
+    {
+      "slug": "dal-study-skills-tutoring",
+      "name": "Dalhousie University — Studying for Success (Study skills and tutoring)",
+      "website": "https://www.dal.ca/life-at-dal/student-support/study-skills-tutoring.html",
+      "description": "The Studying for Success team offers personal study coaching with graduate and PhD students and a tutor-matching database for course content, for all Dalhousie and King's students. In Truro, the Help Centre offers free drop-in tutoring for science, math and statistics courses.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Truro Help Centre is free; cost of Halifax tutoring and coaching not stated.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "institution": "Dalhousie University",
+      "address": "Bissett Student Success Centre, Student Union Building, Room 426, 6136 University Ave., Halifax",
+      "phone": "902-494-3077",
+      "email": "sfs@dal.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our services and resources are for all students at Dalhousie and King's.",
+      "notes": "Virtual appointments can be requested by email."
+    },
+    {
+      "slug": "dal-events",
+      "name": "Dalhousie University — Event Calendar",
+      "website": "https://events.dal.ca/",
+      "description": "Dalhousie's event calendar for its Halifax and Truro campuses, listing events such as career fairs and study abroad fairs.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "institution": "Dalhousie University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Event Calendar: Dalhousie University",
+      "notes": ""
+    },
+    {
+      "slug": "umanitoba-accessibility",
+      "name": "University of Manitoba — Student Accessibility Services (SAS)",
+      "website": "https://umanitoba.ca/student-supports/accessibility",
+      "description": "Student Accessibility Services facilitates academic accommodations for students with documented disabilities, with offices on the Fort Garry and Bannatyne campuses and an Exam Centre. An online intake form is available, including for students still waiting on documentation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "University of Manitoba",
+      "address": "520 UMSU University Centre, 66 Chancellors Circle, Winnipeg, MB R3T 5V6",
+      "phone": "204-474-7423",
+      "email": "student_accessibility@umanitoba.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Student Accessibility Services (SAS) facilitates academic accommodations for students with documented disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "umanitoba-charge-ahead",
+      "name": "University of Manitoba — Charge Ahead Peer Mentoring",
+      "website": "https://umanitoba.ca/student-supports/academic-supports/charge-ahead",
+      "description": "Charge Ahead's peer mentors, upper-year undergraduate and graduate students, listen, guide and connect students with resources through one-to-one meetings and free interactive workshops. All students at UM, ICM and ELC are welcome.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Workshops are free; cost of one-to-one meetings not stated.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "University of Manitoba",
+      "address": "107 Tier Building",
+      "phone": "204-474-6209",
+      "email": "Charge.Ahead@umanitoba.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our peer mentors are ready to listen, guide, and connect you with resources to help you thrive.",
+      "notes": "UM's student peer mentoring programs page also lists International Centre Welcome Mentors and the Neechiwaken Indigenous Peer Mentor Program."
+    },
+    {
+      "slug": "umanitoba-academic-learning-centre",
+      "name": "University of Manitoba — Academic Learning Centre",
+      "website": "https://umanitoba.ca/student-supports/academic-supports/academic-learning",
+      "description": "The Academic Learning Centre helps graduate and undergraduate, full- and part-time students strengthen writing, studying and research skills through tutoring, workshops and group study sessions for select courses, in person or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "All at no charge (stated on the page).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "University of Manitoba",
+      "address": "Room 201 Tier Building, 173 Dafoe Rd W, University of Manitoba, Winnipeg, MB R3T 2M9",
+      "phone": "204-480-1481",
+      "email": "academic_learning@umanitoba.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Make an appointment with a writing or study-skills tutor or sign up for one of our many workshops, all at no charge.",
+      "notes": ""
+    },
+    {
+      "slug": "umanitoba-student-experience-events",
+      "name": "University of Manitoba — Student Experience and Development (events and workshops)",
+      "website": "https://umanitoba.ca/current-students/SEAD",
+      "description": "Student Experience and Development connects students to experiences and programming focused on building experience, developing skills and connecting on campus, and lists upcoming events and workshops.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "University of Manitoba",
+      "address": "225 UMSU University Centre, 65 Chancellor's Circle, University of Manitoba, Winnipeg, MB R3T 2N2",
+      "phone": "204-474-9093",
+      "email": "SEAD@umanitoba.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our programs and services are centered on building experience, developing skills/competencies, and connecting on campus.",
+      "notes": "The university events calendar (eventscalendar.umanitoba.ca) has Students and Student Groups categories."
+    },
+    {
+      "slug": "usask-access-equity-services",
+      "name": "University of Saskatchewan — Access and Equity Services (AES)",
+      "website": "https://students.usask.ca/health/centres/access-equity-services.php",
+      "description": "AES is responsible, along with faculty, for providing reasonable accommodations for students. The page states this applies to physical disabilities, neurological impairments (including ADHD), mental health disorders and chronic illness, among other grounds.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Saskatoon",
+      "institution": "University of Saskatchewan",
+      "address": "E1, Administration Building, University of Saskatchewan",
+      "phone": "1-306-966-7273",
+      "email": "aes@usask.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Access and Equity Services (AES) is responsible for providing, along with faculty, reasonable accommodations for students",
+      "notes": "New students start with an online Pre-Intake Form."
+    },
+    {
+      "slug": "usask-learning-hub",
+      "name": "University of Saskatchewan — Learning Hub (University Library)",
+      "website": "https://library.usask.ca/studentlearning/",
+      "description": "The Learning Hub offers writing, math and stats, and study skills appointments, group study sessions, workshops and online resources, and links to a service for hiring a subject tutor.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Saskatoon",
+      "institution": "University of Saskatchewan",
+      "address": "Room 106 Murray Library, 3 Campus Dr., Saskatoon SK S7N 5A4",
+      "phone": null,
+      "email": "studentlearning@usask.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Find the help you need to build your academic skills.",
+      "notes": ""
+    },
+    {
+      "slug": "usask-student-events",
+      "name": "University of Saskatchewan — Student events, dates, and deadlines",
+      "website": "https://students.usask.ca/events-calendar/index.php",
+      "description": "USask's student calendar of events, dates and deadlines, with calendars that can be toggled by category.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Saskatoon",
+      "institution": "University of Saskatchewan",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Student events, dates, and deadlines",
+      "notes": "Listings load by script, so individual events could not be read when checked."
+    },
+    {
+      "slug": "uvic-accessible-learning",
+      "name": "University of Victoria — Centre for Accessible Learning (CAL)",
+      "website": "https://www.uvic.ca/accessible-learning/",
+      "description": "CAL works with faculty and students to promote educational accessibility for students with disabilities and chronic health conditions. ADHD and ASD are among the conditions listed for registering with CAL.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "University of Victoria",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "works with faculty and students to promote educational accessibility for students with disabilities",
+      "notes": "CAL also runs a Learning Assistance Program."
+    },
+    {
+      "slug": "uvic-first-year-interconnect",
+      "name": "University of Victoria — First Year Interconnect (FYI) Mentorship",
+      "website": "https://www.uvic.ca/services/studentlife/get-involved/new-students/first-year-interconnect/index.php",
+      "description": "The Office of Student Life's FYI program matches new undergraduate and exchange students with an upper-year student mentor through a matching survey, to build community, ask questions and learn about campus resources. Pairs connect in person, online or by phone.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "University of Victoria",
+      "address": null,
+      "phone": null,
+      "email": "firstyear@uvic.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Fill out your matching survey and get connected with an upper-year student.",
+      "notes": "On 17 Oct 2026 the page said first-term registration was closed and second-term registration was coming."
+    },
+    {
+      "slug": "uvic-academic-skills-centre",
+      "name": "University of Victoria — Academic Skills Centre",
+      "website": "https://www.uvic.ca/learningandteaching/cac/",
+      "description": "The Academic Skills Centre offers online and in-person one-on-one tutorials, workshops and drop-in appointments, including support with brainstorming, drafting and revising writing projects and presentations, for all UVic students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Fully funded and available to all UVic students at no cost (stated on the page).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "University of Victoria",
+      "address": null,
+      "phone": null,
+      "email": "academicskills@uvic.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "At the Academic Skills Centre (ASC), we offer online and in-person one-on-one tutorials, workshops, and more.",
+      "notes": "Located in the Mearns Centre for Learning – McPherson Library."
+    },
+    {
+      "slug": "uvic-first-year-fridays",
+      "name": "University of Victoria — First Year Fridays",
+      "website": "https://www.uvic.ca/services/studentlife/get-involved/new-students/first-year-fridays/index.php",
+      "description": "A weekly drop-in series for first-year students run by the Office of Student Life, with a different activity each Friday and flexible participation. No registration is required.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_events",
+        "prog_social_clubs"
+      ],
+      "cost": "free",
+      "cost_note": "All First Year Friday activities are free for first-year students (stated on the page).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "University of Victoria",
+      "address": "Student Life Hub, Jamie Cassels Centre, University of Victoria",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "First Year Fridays is a weekly drop-in series created just for first-year students.",
+      "notes": "Every Friday from 12 to 3 p.m. The page says participation is flexible: drop in for a few minutes or stay for the afternoon."
+    },
+    {
+      "slug": "carleton-paul-menton-centre",
+      "name": "Carleton University — Paul Menton Centre for Students with Disabilities (PMC)",
+      "website": "https://carleton.ca/pmc/",
+      "description": "The Paul Menton Centre coordinates disability services at Carleton, supporting students with disabilities through academic accommodations and support services. In-person and virtual appointments are available.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Carleton University",
+      "address": "501 Nideyinàn, Carleton University, 1125 Colonel By Drive, Ottawa, ON K1S 5B6",
+      "phone": "613-520-6608",
+      "email": "pmc@carleton.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Paul Menton Centre (PMC) is the designated department at Carleton University coordinating disability services on campus.",
+      "notes": ""
+    },
+    {
+      "slug": "carleton-pmc-neurodiversity-adhd-groups",
+      "name": "Carleton University — PMC Neurodiversity Support Group and ADHD Coaching Group",
+      "website": "https://carleton.ca/pmc/current-students/support-social-and-study-groups/",
+      "description": "PMC groups open to all PMC-registered students, including Unmasking Connections: Neurodiversity Support Group, which uses discussion and activities to foster connection, social communication skills and wellness, and an in-person ADHD Coaching Group.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "community_group",
+        "prog_social_clubs",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Carleton University",
+      "address": "501 Nideyinàn",
+      "phone": "613-520-6608",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Through discussion and activities, this group fosters connection, social communication skills, and wellness.",
+      "notes": "Neurodivergent- and ADHD-specific. The ADHD Coaching Group runs Tuesdays 1:30 to 2:30 pm, September 29 to December 1, 2026; students are asked to review meeting guidelines first."
+    },
+    {
+      "slug": "carleton-pmc-mentor-volunteer-program",
+      "name": "Carleton University — PMC Mentor Volunteer Program (MVP)",
+      "website": "https://carleton.ca/pmc/pmc-mentor-volunteer-program-mvp/",
+      "description": "Connects experienced PMC-registered students with students new to the PMC, pairing mentors and mentees who share similar disabilities and/or areas of study. Pairs meet between once a week and once a month.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_mentorship",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Carleton University",
+      "address": null,
+      "phone": "613-520-6608",
+      "email": "PMC_LS@cunet.carleton.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "connects PMC veterans with PMC newbies to help make many aspects of university more approachable",
+      "notes": "Disability-focused peer mentoring; mentees must be registered with the PMC."
+    },
+    {
+      "slug": "carleton-csas",
+      "name": "Carleton University — Centre for Student Academic Support (CSAS)",
+      "website": "https://carleton.ca/csas/",
+      "description": "CSAS offers learning and writing support for all Carleton students through one-on-one learning and writing sessions, workshops and online resources, in person or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Carleton University",
+      "address": "4th floor, MacOdrum Library, 1125 Colonel By Drive, Ottawa, ON K1S 5B6",
+      "phone": "613-520-3822",
+      "email": "csas@carleton.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "designs, develops, and implements evidence-informed",
+      "notes": ""
+    },
+    {
+      "slug": "carleton-events",
+      "name": "Carleton University — Carleton University Events",
+      "website": "https://events.carleton.ca/",
+      "description": "Carleton's events calendar for students, alumni, faculty, staff and the broader community, with audience filters for current students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Carleton University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Discover what's happening at Carleton University.",
+      "notes": ""
+    },
+    {
+      "slug": "guelph-accessibility",
+      "name": "University of Guelph — Student Accessibility Services (SAS)",
+      "website": "https://wellness.uoguelph.ca/accessibility",
+      "description": "SAS works to ensure students with disabilities have full and equitable access to academic life, offering one-on-one coaching, peer-based support, orientation programs and a daily drop-in for same-day help.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Cost not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Guelph",
+      "institution": "University of Guelph",
+      "address": "Vaccarino Centre for Student Wellness",
+      "phone": "+1-519-824-4120 Ext. 56208",
+      "email": "sas@uoguelph.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "ensure all students with disabilities have full and equitable access to academic life",
+      "notes": ""
+    },
+    {
+      "slug": "guelph-supported-learning-groups",
+      "name": "University of Guelph — Supported Learning Groups (Library)",
+      "website": "https://www.lib.uoguelph.ca/writing-studying/studying-resources-workshops/slgs/",
+      "description": "Free group study sessions led by upper-year undergraduate students on course material for historically difficult courses, usually held in person in the library and sometimes virtually.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free (stated on the page).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Guelph",
+      "institution": "University of Guelph",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "SLGs are free group study sessions led by upper-year undergraduate students.",
+      "notes": "The Library also offers writing and studying appointments and workshops."
+    },
+    {
+      "slug": "guelph-get-involved",
+      "name": "University of Guelph — Get Involved (Student Experience)",
+      "website": "https://www.uoguelph.ca/studentexperience/get-involved",
+      "description": "Student Experience's events, workshops, volunteer experiences and community-engaged programs for undergraduate and graduate students. Events are listed on GryphLife, the online portal and app for clubs, events and co-curricular experiences.",
+      "category": "Education Support",
+      "tags": [
+        "edu_university",
+        "edu_undergraduate",
+        "edu_graduate",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Varies by event.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Guelph",
+      "institution": "University of Guelph",
+      "address": null,
+      "phone": "519-824-4120 Ext. 52214",
+      "email": "student@uoguelph.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "GryphLife is your online portal to student clubs and organizations, events, workshops, communities and co-curricular experiences.",
+      "notes": ""
+    }
+  ],
+  "unverified": [
+    {
+      "name": "McMaster University — Archway (first-year mentorship), archway.mcmaster.ca",
+      "reason": "Site did not load (connection refused / timed out) on 17 Oct 2026; no other McMaster page describing it was found."
+    },
+    {
+      "name": "Simon Fraser University — Student Learning Commons, learningcommons.sfu.ca",
+      "reason": "Site returned a bot-protection 'Access Denied' page; SFU's Learning Support directory page is listed instead."
+    },
+    {
+      "name": "Simon Fraser University — Autism Mentorship Initiative (Centre for Accessible Learning)",
+      "reason": "Autism-specific program. Page loads but says 'AMI is currently not taking place. Please check back on this page for updates.' Left out until it resumes."
+    },
+    {
+      "name": "McMaster University — ADHD Skills Group and Overcoming OCD Group (Student Wellness Centre)",
+      "reason": "Both are listed as 'Closed' on wellness.mcmaster.ca/programs on 17 Oct 2026; left out while closed."
+    },
+    {
+      "name": "UBC — Living Your Best Life with ADHD (drop-in group for students in residence)",
+      "reason": "Only seen in search snippets; the UBC URL found returned 404."
+    },
+    {
+      "name": "UBC — Mentor Program for Students with ASD",
+      "reason": "Only mentioned in a 2017 third-party article (University Affairs); no current UBC page found."
+    },
+    {
+      "name": "Western University — 'Mentorship Programs' page linked from Orientation & Transition",
+      "reason": "Link (academicsupport.uwo.ca/transition_leadership__enrichment/new_students/index.html) returns 404; Launch Peer Mentorship is listed instead."
+    },
+    {
+      "name": "Western University — events calendar at events.westernu.ca",
+      "reason": "Site did not load; Leadership & Connection Trainings & Events is listed instead (uwo.ca/events has no readable listings)."
+    },
+    {
+      "name": "Queen's University — Events Calendar, queensu.ca/eventscalendar",
+      "reason": "Listings load by script and could not be read; the Student Experience Office events page is listed instead."
+    },
+    {
+      "name": "Université de Montréal — CESAR (cesar.umontreal.ca) and Centre de communication écrite (cce.umontreal.ca)",
+      "reason": "Neither site loaded (connection failed); Aide à l'apprentissage on vieetudiante.umontreal.ca is listed instead."
+    },
+    {
+      "name": "General peer mentoring — University of Calgary, Dalhousie, University of Saskatchewan, University of Guelph, Carleton, York",
+      "reason": "No university-wide peer mentoring page found by browsing each site (web search limit reached). Found instead: Calgary First-Generation Mentorship (first-gen students only), Guelph Peer Helper Program (a student job), York Work/Study Kickstart Peer Mentorship (career-focused); Carleton and York disability-focused mentoring is listed."
+    }
+  ]
+}

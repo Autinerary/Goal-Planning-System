@@ -1,0 +1,1691 @@
+{
+  "topic": "colleges_on",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "algonquin-accessible-learning",
+      "name": "Algonquin College — Centre for Accessible Learning (CAL)",
+      "website": "https://www.algonquincollege.com/cal/accessible-learning-services/",
+      "description": "The Centre for Accessible Learning provides academic accommodations and educational support services for students with permanent or temporary disabilities. Interim accommodations may be provided while a student is being assessed for a disability.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Services are confidential, free and voluntary; students must self-identify to access them.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Algonquin College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The CAL provides academic accommodations and educational support services for students who have permanent and/or temporary disabilities.",
+      "notes": "Appointments are booked through the page's 'Book an Appointment' link."
+    },
+    {
+      "slug": "algonquin-peer-tutoring",
+      "name": "Algonquin College — Peer Tutoring Centre",
+      "website": "https://www.algonquincollege.com/peer-tutoring/",
+      "description": "The Peer Tutoring Centre matches current students who are having academic difficulties with trained students for one-to-one tutoring in specific courses. Tutors must have finished the course with at least a B+ and have a professor's recommendation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "paid",
+      "cost_note": "The tutoring fee is $8.00 per hour (effective May 8, 2018); students with severe financial hardship can apply for financial support.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Algonquin College",
+      "address": "Room C259 (DARE District)",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Algonquin Peer Tutoring Centre matches current students who are having academic difficulties with trained students for one-to-one tutoring.",
+      "notes": "Offered to all Algonquin College students.",
+      "price": 8
+    },
+    {
+      "slug": "algonquin-student-support-events",
+      "name": "Algonquin College — Student Support Services Events Calendar",
+      "website": "https://www.algonquincollege.com/studentsupportservices/events/",
+      "description": "A calendar of the weekly events run by Student Support Services, such as Snack Chats, Connect & Create and workshops.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Algonquin College",
+      "address": null,
+      "phone": null,
+      "email": "hubmail@algonquincollege.com",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Events are a great way to meet people and try new things. A variety of events from Student Support Services take place every week.",
+      "notes": "On 17 Oct 2026 the calendar listed Snack Chats (Oct 13–Dec 8) and Connect & Create (Oct 15–Dec 3), among others."
+    },
+    {
+      "slug": "cambrian-accessibility-services",
+      "name": "Cambrian College — Accessibility Services (Glenn Crombie Centre)",
+      "website": "https://cambriancollege.ca/supports-services/accessibility-services",
+      "description": "The Glenn Crombie Centre for Accessibility, Counselling and Wellness provides reasonable academic accommodations for students who are disabled or have learning challenges. Students without a documented disability may still qualify for its services.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Cost: Free (as listed on the page).",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Cambrian College",
+      "address": "Floor 2, room 2504 (reception)",
+      "phone": "705-524-7311",
+      "email": "gcc@cambriancollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "If you’re disabled or have learning challenges, we provide reasonable academic accommodations based on your needs",
+      "notes": "Appointments are recommended once you have decided to apply to Cambrian."
+    },
+    {
+      "slug": "cambrian-learning-centre",
+      "name": "Cambrian College — Learning Centre",
+      "website": "https://cambriancollege.ca/supports-services/learning-centre",
+      "description": "The Learning Centre offers tutoring across a broad range of subjects, peer-to-peer tutoring for specific classes, and workshops on topics such as research, time management and study skills. Students can visit on campus or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page lists cost as 'Varies by service'.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Cambrian College",
+      "address": "Floor 3, room 3021Z",
+      "phone": "705-566-8101 ext.7262",
+      "email": "learning.centre@cambriancollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "the Learning Centre offers tutoring across a broad range of subjects and gives you access to innovative English tutoring resources anytime.",
+      "notes": ""
+    },
+    {
+      "slug": "cambrian-ready-get-set-college",
+      "name": "Cambrian College — Ready, Get SET, College!",
+      "website": "https://cambriancollege.ca/events/ready-get-set-college",
+      "description": "A free on-campus program before the fall term that introduces incoming students to Cambrian's services and systems, practises success skills such as time management and test preparation, and offers English, math or health sciences preparation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "free",
+      "cost_note": "All sessions are FREE and are open to anyone attending Cambrian College in September.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Cambrian College",
+      "address": null,
+      "phone": "705-566-8101 ext.7712",
+      "email": "upgrading@cambriancollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Ready, Get SET, College! will introduce you to services and systems at Cambrian College, and provide tips and tricks for college success",
+      "notes": "Listed for August 23 to September 3, 2027, for Canadian students entering a Cambrian program in September 2027; attendance must be in person. Contact is Academic Upgrading."
+    },
+    {
+      "slug": "canadore-accessible-learning",
+      "name": "Canadore College — Accessible Learning Services",
+      "website": "https://www.canadorecollege.ca/support/student-success-services/accessible-learning-services",
+      "description": "Accessible Learning Services works with students who have permanent, temporary, episodic or suspected disabilities to identify barriers, develop accommodation plans and connect with supports.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Registration and accommodation services are provided at no additional cost to students.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "North Bay",
+      "institution": "Canadore College",
+      "address": null,
+      "phone": "(705) 474.7600 ext. 5205",
+      "email": "studentsuccessnow@canadorecollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Accessible Learning Services (ALS) works with students who have permanent, temporary, episodic, or suspected disabilities to identify barriers, develop accommodation plans",
+      "notes": "The eligibility list on the page names Learning Disabilities, ADHD and Autism Spectrum Disorder. Students can contact a virtual front desk, call, email or drop by Student Success Services."
+    },
+    {
+      "slug": "canadore-peer-tutoring",
+      "name": "Canadore College — Peer Tutoring",
+      "website": "https://www.canadorecollege.ca/support/student-success-services/peer-tutoring",
+      "description": "Peer Tutoring pairs students who are facing challenges in a specific course with peers who have already mastered the material, to clarify concepts, review course material and build problem-solving strategies.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "paid",
+      "cost_note": "The cost of tutoring is just $20 for every 10 hours of services, paid online once matched with a tutor.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "North Bay",
+      "institution": "Canadore College",
+      "address": null,
+      "phone": "(705) 474.7600 ext. 5205",
+      "email": "studentsuccessnow@canadorecollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer Tutoring pairs students who are facing challenges in a specific course with peers who have already successfully mastered the material.",
+      "notes": "Face-to-face sessions are held in designated areas on campus; online sessions use institutional MS Teams links.",
+      "price": 20
+    },
+    {
+      "slug": "canadore-start-strong-transition",
+      "name": "Canadore College — Start Strong: Accessible Learning Summer Transition Program",
+      "website": "https://www.canadorecollege.ca/support/student-success-services/summer-transition",
+      "description": "A transition program from Accessible Learning Services and Student Success Services that helps new students build confidence, connect with support services and learn what to expect before classes start. It includes a self-paced D2L course, a parent and supporter session and a Student Success Open House in the first week of classes.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "North Bay",
+      "institution": "Canadore College",
+      "address": null,
+      "phone": "(705) 474.7600 ext. 5205",
+      "email": "studentsuccessnow@canadorecollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Start Strong helps you build confidence, connect with support services, and learn what to expect before your first day of classes.",
+      "notes": "Registration is open to all newly registered Canadore students."
+    },
+    {
+      "slug": "centennial-accessible-learning-counselling",
+      "name": "Centennial College — Centre for Accessible Learning and Counselling Services (CALCS)",
+      "website": "https://www.centennialcollege.ca/student-life/student-services/centre-for-accessible-learning-and-counselling-services",
+      "description": "CALCS provides programs and services for students' wellness goals and their accommodation and disability-related needs, and works toward a more accessible campus community.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Centennial College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "provides a range of programs and services aimed to empower students in meeting their wellness goals, accommodation and disability-related needs",
+      "notes": "Appointments are booked through the page's 'Book an Appointment' link."
+    },
+    {
+      "slug": "centennial-peer-tutoring",
+      "name": "Centennial College — Peer Tutoring (Learning Centre)",
+      "website": "https://www.centennialcollege.ca/student-life/student-services/peer-tutoring/",
+      "description": "Students having trouble with a specific course can get help, one-on-one or in small groups, from senior students recommended by their department. Booking is through the Learning Centre.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Anyone that’s enrolled in the College can use this service for free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Centennial College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Anyone that’s enrolled in the College can use this service for free. There’s also extra support for students with learning disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "centennial-peer-mentorship",
+      "name": "Centennial College — Peer Mentorship Program",
+      "website": "https://www.centennialcollege.ca/student-life/get-involved/peer-mentorship/",
+      "description": "Experienced peers guide students as they transition into college and through their studies, sharing information about campus resources and running social events.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Centennial College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Peer Mentorship program supports students as they transition in and throughout their college journey.",
+      "notes": "The page says the program is open to all semester students; registration is by an online form."
+    },
+    {
+      "slug": "boreal-service-accessibilite",
+      "name": "Collège Boréal — Service d'accessibilité",
+      "website": "https://collegeboreal.ca/service/service-daccessibilite/",
+      "description": "The Service d'accessibilité helps students with a documented particular need (permanent, temporary or being confirmed) develop and put in place an accommodation plan. It also runs a one-week transition program for students with a learning disorder or attention deficit disorder.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The transition program is offered free ('offert gratuitement'); the page gives no cost for other services.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Collège Boréal",
+      "address": null,
+      "phone": "705-560-6673, poste 2020",
+      "email": "servicedaccessibilite@collegeboreal.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "les intervenantes et intervenants au Service d’accessibilité peuvent vous appuyer à développer et mettre en place un plan d’accommodements qui répondra à vos besoins",
+      "notes": "Services in French. The list of needs covered includes 'Trouble du spectre de l’autisme' and 'Trouble déficitaire de l’attention'. Transition program: 'Ce programme d’une semaine est offert gratuitement* aux étudiantes et aux étudiants ayant un trouble d’apprentissage ou un trouble déficitaire de l’attention.'"
+    },
+    {
+      "slug": "boreal-reussite-scolaire",
+      "name": "Collège Boréal — Réussite scolaire (tutorat et appui à la réussite)",
+      "website": "https://collegeboreal.ca/service/reussite-scolaire/",
+      "description": "Students can ask for free help from a peer tutor in any subject, individually or in a group on a virtual platform. The page also lists the Appui à la réussite team (time management, study methods, writing) and a technology support coach.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Tutoring: 'le soutien gratuit d’une tutrice ou d’un tuteur'.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Collège Boréal",
+      "address": null,
+      "phone": "1-800-361-6673, poste 2012",
+      "email": "tutorat@collegeboreal.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "peut demander le soutien gratuit d’une tutrice ou d’un tuteur, de façon individuelle ou en groupe (plateforme virtuelle).",
+      "notes": "Services in French. Tutors are students recommended by program staff. The same page lists CFÉRO, which offers assessments for francophone students to identify learning disabilities."
+    },
+    {
+      "slug": "boreal-evenements",
+      "name": "Collège Boréal — Événements",
+      "website": "https://collegeboreal.ca/evenements/",
+      "description": "Collège Boréal's events calendar lists upcoming events by category and campus, such as open houses, college information programs and volleyball games.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sudbury",
+      "institution": "Collège Boréal",
+      "address": null,
+      "phone": "1-800-361-6673",
+      "email": "liaison@collegeboreal.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Restez informé sur ce qui ce passe à Boréal.",
+      "notes": "Page in French."
+    },
+    {
+      "slug": "conestoga-accessible-learning",
+      "name": "Conestoga College — Accessible Learning",
+      "website": "https://studentsuccess.conestogac.on.ca/accessible-learning",
+      "description": "Accessible Learning provides support and academic accommodation for students with all types of disabilities, working with each student on a plan that considers their goals. Accepted students registered with Accessible Learning can join the C Success summer transition program.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Programs are funded by an Ontario Government grant; no student cost is stated.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kitchener",
+      "institution": "Conestoga College",
+      "address": null,
+      "phone": "519-748-5220, ext. 3232",
+      "email": "accessibility@conestogac.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Conestoga provides support and academic accommodation for students with all types of disabilities in keeping with the Ontario Human Rights Code.",
+      "notes": "The documentation section names ASD and ADHD among the disability types covered. C Success is 'an orientation program designed specifically for students who experience barriers to college participation and who are registered with Accessible Learning.'"
+    },
+    {
+      "slug": "conestoga-library-learning-services",
+      "name": "Conestoga College — Library & Learning Services",
+      "website": "https://library.conestogac.on.ca/",
+      "description": "The Library of Conestoga College lists peer tutoring, math, writing, and learning and study skills among its services, along with assistive technology and alternate formats.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kitchener",
+      "institution": "Conestoga College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Learning & Study Skills Math Peer Tutoring Research Teach Me Tech Writing",
+      "notes": "Evidence is the 'Services' list on the page. Peer tutoring details and booking are on the Conestoga Success Portal, which needs a college sign-in."
+    },
+    {
+      "slug": "confederation-student-accessibility-services",
+      "name": "Confederation College — Student Accessibility Services",
+      "website": "https://orientation.confederationcollege.ca/student-accessibility-services-contact/",
+      "description": "Students with a permanent or temporary disability, or who had an Individual Education Plan (IEP) in high school, are encouraged to contact Student Accessibility Services about available supports and accommodations. Intake appointments can be booked online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Thunder Bay",
+      "institution": "Confederation College",
+      "address": null,
+      "phone": "(807) 475-6618",
+      "email": "sas@confederationcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "you are encouraged to contact Student Accessibility Services to learn more about the supports and accommodations that are available at Confederation College",
+      "notes": "Toll free (807) 330-1550; TTY (807) 475-6666. This page is on Confederation's orientation site; the main confederationcollege.ca pages returned a security check and could not be loaded."
+    },
+    {
+      "slug": "confederation-tutoring-office",
+      "name": "Confederation College — Tutoring Office (Academic Supports)",
+      "website": "https://orientation.confederationcollege.ca/academic-supports/",
+      "description": "The Tutoring Office offers one-to-one tutors, group tutoring and online support through Tutor.com, along with a Writing Centre and learning and study skills support.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Thunder Bay",
+      "institution": "Confederation College",
+      "address": null,
+      "phone": "(807) 473-3894",
+      "email": "tutoring@confederationcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "One-to-one tutors, group tutoring, and online support through Tutor.com",
+      "notes": "Page is on Confederation's orientation site."
+    },
+    {
+      "slug": "durham-access-and-support-centre",
+      "name": "Durham College — Access and Support Centre (ASC)",
+      "website": "https://durhamcollege.ca/asc/",
+      "description": "The ASC supports students who require academic accommodations, including students with learning disabilities or ADHD, mental health, physical or sensory disabilities, and helps them build an Access Plan.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Oshawa",
+      "institution": "Durham College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This can include learning disabilities or ADHD, mental health, physical disabilities, injuries or illnesses, and sensory disabilities such as deafness or low vision.",
+      "notes": "Autism-specific: the ASC events calendar has an 'ASD Social Connection' page: 'This is a once-a-week social group for students who identify as having an Autism Spectrum Disorder (ASD).' The latest session listed is 6 Feb 2024, so it may not be running now."
+    },
+    {
+      "slug": "durham-peer-tutoring",
+      "name": "Durham College — Peer Tutoring (Student Academic Learning Services)",
+      "website": "https://durhamcollege.ca/mydc/learning-resources/student-academic-learning-services-sals/peer-tutoring",
+      "description": "Peer tutors hired and trained by Student Academic Learning Services help students review and practise course content and offer study tips. Students can book up to 2 hours a week through WC Online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "There is no cost to access peer tutoring or any of SALS academic support.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Oshawa",
+      "institution": "Durham College",
+      "address": null,
+      "phone": "905.721.2000 ext.2568",
+      "email": "peertutoring@durhamcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutors help students review and practice previously taught course content and offer study tips to promote ongoing learning.",
+      "notes": "Available to all current Durham College students, subject to tutor availability; appointments begin in Week 3."
+    },
+    {
+      "slug": "durham-start-strong-transition-events",
+      "name": "Durham College — Start Strong at DC: ASC Transition Events",
+      "website": "https://durhamcollege.ca/asc/summer-transition/",
+      "description": "The Access and Support Centre hosts two transition events for incoming students who identify as having an exceptionality, including recent graduates and mature students. Students can attend in person or through a live virtual option on MS Teams.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events",
+        "prog_accessibility",
+        "edu_mature"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Oshawa",
+      "institution": "Durham College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "These events are for students who identify as having an exceptionality and are planning on attending Durham College this fall.",
+      "notes": "Students with physical, mental health or learning challenges that have not been formally identified are also welcome. The page says registration is done for this year and to check back next spring/summer."
+    },
+    {
+      "slug": "fanshawe-accessibility-services",
+      "name": "Fanshawe College — Accessibility Services",
+      "website": "https://www.fanshawec.ca/students/support/accessibility",
+      "description": "Accessibility Services helps students with disabilities register, get guidance on documentation and funding, and arrange academic accommodations. Students unsure whether they qualify, or without documentation yet, can still get help.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "The page describes its services as free and confidential.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Fanshawe College",
+      "address": "F2010, London Campus",
+      "phone": "519-452-4282",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our free and confidential services provide personalized guidance to help you navigate the process",
+      "notes": "A separate Transitions Programs page lists Fanshawe Here We Come (a one-day, in-person late-summer event for new students registered with Accessibility Services) and the virtual Here For You pre-orientation series."
+    },
+    {
+      "slug": "fanshawe-academic-support",
+      "name": "Fanshawe College — Academic Support and Resources (Peer Tutoring, Library Learning Commons)",
+      "website": "https://www.fanshawec.ca/students/support/academic-support",
+      "description": "Fanshawe's academic supports include peer tutoring, which offers one-on-one help for students having difficulty in a specific course, and the Library Learning Commons, whose services are available to students at any campus.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Fanshawe College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutoring offers one-on-one assistance for students having difficulties in a specific course.",
+      "notes": "The page also lists academic advisors, apprenticeship learning supports and the Test Centre."
+    },
+    {
+      "slug": "fanshawe-inspire-mentoring",
+      "name": "Fanshawe College — InSPIRE Mentoring",
+      "website": "https://www.fanshawec.ca/students/support/employment/career-services/inspire",
+      "description": "Career Services runs mentoring programs that match students with peer mentors or industry professionals: Peer Mentorship, Larry Myny Industry Mentorship and Network + Connect Mentorship.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "institution": "Fanshawe College",
+      "address": null,
+      "phone": null,
+      "email": "inspirementoring@fanshawec.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Unlock your potential with Fanshawe’s mentoring programs designed to support your academic, personal, and career growth.",
+      "notes": "Network + Connect Mentorship is open to all Fanshawe students; industry mentorship gives priority to final-year students."
+    },
+    {
+      "slug": "fleming-accessible-education-services",
+      "name": "Fleming College — Accessible Education Services",
+      "website": "https://flemingcollege.ca/student-experience/accessible-education-services",
+      "description": "Accessible Education Services works to provide students with disabilities the academic accommodations they need, along with skill-building, strategies and resources.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Our services are free, confidential, and voluntary.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Peterborough",
+      "institution": "Fleming College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our services are free, confidential, and voluntary.",
+      "notes": "A student testimonial on the page says: 'One thing in common with all of us on the spectrum is that we want to meet new people and make friends.'"
+    },
+    {
+      "slug": "fleming-tutoring-learning-skills",
+      "name": "Fleming College — Tutoring and Learning Skills",
+      "website": "https://flemingcollege.ca/student-experience/tutoring-and-learning-skills",
+      "description": "Fleming offers free course-specific tutoring in hundreds of courses, with up to 2 hours a week of tutoring and unlimited drop-in sessions. Learning Skills helps students build skills in the areas they find most challenging.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "We offer FREE tutoring in hundreds of courses.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Peterborough",
+      "institution": "Fleming College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Students can access up to 2 hours per week of course specific tutoring and attend unlimited drop-in sessions.",
+      "notes": ""
+    },
+    {
+      "slug": "fleming-first-at-fleming",
+      "name": "Fleming College — First at Fleming (transition program)",
+      "website": "https://department.flemingcollege.ca/aes/transition-planning/first-at-fleming/",
+      "description": "A transition program from Accessible Education Services for incoming students with disabilities, covering the move from high school to college, support services, academic success tips and chances to meet other students. It is hosted at the Sutherland (Peterborough) Campus for students of any Fleming campus.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Peterborough",
+      "institution": "Fleming College",
+      "address": null,
+      "phone": null,
+      "email": "firstatfleming@flemingcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "First at Fleming is a comprehensive transition program offered by Accessible Education Services for incoming students with disabilities.",
+      "notes": "The page lists the 2026 session (Wednesday, September 2nd, 2026; registrants attend both days) and an expression-of-interest form."
+    },
+    {
+      "slug": "georgian-accessibility-advising",
+      "name": "Georgian College — Accessibility Advising",
+      "website": "https://www.georgiancollege.ca/student-life/student-services/accessibility-advising/",
+      "description": "Accessibility advisors help students work out appropriate accommodations and connect them with other supports such as adaptive technology and tutoring. Appointments are offered in person, by phone or by video.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "institution": "Georgian College",
+      "address": null,
+      "phone": "1.877.722.1523",
+      "email": "studentsuccess@georgiancollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The primary role of the accessibility advisor is to assist students in determining appropriate accommodations for the post-secondary learning environment",
+      "notes": "Prospective, full- and part-time students can meet with an accessibility advisor."
+    },
+    {
+      "slug": "georgian-tutoring",
+      "name": "Georgian College — Tutoring (Library and Learning Services)",
+      "website": "https://library.georgiancollege.ca/tutoring",
+      "description": "Tutoring is a free service in which current, trained Georgian students who earned at least 80% in a course coach others through course concepts and study skills. Students can book up to 120 minutes a week.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Tutoring is a free service that helps students flourish academically.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "institution": "Georgian College",
+      "address": null,
+      "phone": null,
+      "email": "LearningServices@GeorgianCollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Tutoring is a free service that helps students flourish academically.",
+      "notes": "Booking is through Navigate 360."
+    },
+    {
+      "slug": "georgian-peer-mentors",
+      "name": "Georgian College — Peer Mentors (Orientation)",
+      "website": "https://www.georgiancollege.ca/student-life/orientation/",
+      "description": "Upper-year Peer Mentors are matched with first-year and new students to build community, belonging and connection, and to provide referrals and resources.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "institution": "Georgian College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "As a mentee (first-year or new student), you’ll be matched with one of our awesome mentors who will support you through your transition to college",
+      "notes": "The peer mentor section is on the Orientation page; mentees apply through a form."
+    },
+    {
+      "slug": "humber-accessible-learning",
+      "name": "Humber Polytechnic — Accessible Learning Services",
+      "website": "https://humber.ca/student-life/swac/accessible-learning",
+      "description": "Accessible Learning Services promotes equal access for students with disabilities by coordinating academic accommodations and services, including assistive technology training and referral to on-campus and community services. It serves students of Humber and the University of Guelph-Humber, whether studying in person or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Humber Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We promote equal access for students with disabilities by coordinating academic accommodations and services.",
+      "notes": "Part of the Student Wellness & Accessibility Centre. Checked by direct page download on 17 Oct 2026; humber.ca refused the summary fetcher."
+    },
+    {
+      "slug": "humber-student-learning-services",
+      "name": "Humber Polytechnic — Student Learning Services (tutoring, Math & Writing Centre, PASS)",
+      "website": "https://humber.ca/learningresources/",
+      "description": "Student Learning Services offers tutoring for course support, writing help and learning strategies, weekly peer-led study sessions (PASS), math, science and engineering support, and writing and language support.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Humber Polytechnic",
+      "address": "North Campus, Math and Writing Centre (MWC) & Peer-Assisted Learning Support (PALS) Office - 3rd Floor, Learning Resource Commons",
+      "phone": null,
+      "email": "LearningServices@humber.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Meet with a tutor for course support, writing help, and learning strategies.",
+      "notes": "The linked tutoring page lists North, Lakeshore, Carrier and Virtual as locations. Checked by direct page download on 17 Oct 2026."
+    },
+    {
+      "slug": "humber-peer-wellness",
+      "name": "Humber Polytechnic — Peer Wellness Services",
+      "website": "https://humber.ca/student-life/swac/peer-wellness-services",
+      "description": "Peer Wellness Education and Programs supports learners at Humber and the University of Guelph-Humber with mental, physical, social and financial well-being through peer-led support, educational resources and health-focused initiatives.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Humber Polytechnic",
+      "address": "North Campus: LRC Building, 2nd Floor, Student Wellness and Accessibility Centre",
+      "phone": null,
+      "email": "wellness@humber.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We provide support in the areas of Mental, Physical, Social, and Financial health and well-being, through peer-led support, educational resources, and health-focused initiatives.",
+      "notes": "In-person and virtual programming Monday to Friday, 8:30am to 6:30pm; also at Lakeshore Campus (Welcome Centre, 2nd Floor). Checked by direct page download on 17 Oct 2026."
+    },
+    {
+      "slug": "lacite-la-boussole",
+      "name": "Collège La Cité — La Boussole (appui, accompagnement et accommodement)",
+      "website": "https://www.collegelacite.ca/laboussole",
+      "description": "La Boussole, run by the Centre d'appui et de prévention (CAP), offers consultation and support for academic success, psychological well-being and support for students with disabilities, including academic accommodation. Its team includes occupational therapists, psychologists, psychotherapists and social workers.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Nos services sont offerts gratuitement à l’ensemble de la communauté collégiale.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Collège La Cité",
+      "address": "C1030 (pavillon C, 1er étage)",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "en matière de réussite académique, de bien-être psychologique et d’appui pour les étudiants en situation de handicap.",
+      "notes": "Services in French. Office hours 8 h to 18 h, Monday to Friday. Checked by direct page download on 17 Oct 2026; collegelacite.ca refused the summary fetcher."
+    },
+    {
+      "slug": "lacite-zone-reussite",
+      "name": "Collège La Cité — La Zone réussite (appui académique)",
+      "website": "https://www.collegelacite.ca/zone-reussite",
+      "description": "La Zone réussite, on the 2nd floor of Pavillon A, brings together services that support studying outside the classroom. Its academic support service offers workshops, group sessions and academic planning advice, including help with writing and time management.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "institution": "Collège La Cité",
+      "address": "2e étage du pavillon A",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "la Zone réussite vise à apporter une aide aux études à l'extérieur d'un contexte de salle de classe.",
+      "notes": "Services in French. Hours listed: Monday–Thursday 9 h–18 h, Friday 9 h–16 h. Checked by direct page download on 17 Oct 2026."
+    },
+    {
+      "slug": "lambton-accessibility-centre",
+      "name": "Lambton College — Accessibility Centre",
+      "website": "https://www.lambtoncollege.ca/student-supports/accessibility-centre",
+      "description": "The Accessibility Centre provides academic accommodation and supports to students with permanent or temporary disabilities, and interim accommodations may be available during assessment. Appointments can be held by confidential email, phone, video conferencing or in person.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sarnia",
+      "institution": "Lambton College",
+      "address": "Room B1-130",
+      "phone": "519-479-2333",
+      "email": "ac@lambtoncollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Accessibility Centre provides academic accommodation and supports to students with permanent or temporary disabilities.",
+      "notes": "Disabilities listed on the page include Attention Deficit (Hyperactivity) Disorder (ADD/ADHD) and Learning Disabilities."
+    },
+    {
+      "slug": "lambton-lions-mind",
+      "name": "Lambton College — Lion's Mind (peer mental wellness support)",
+      "website": "https://www.lambtoncollege.ca/student-supports/lions-mind",
+      "description": "The Lion's Mind provides peer-to-peer mental wellness support to Lambton students from the first day through graduation, in a space of belonging for all students, with referral to clinicians when needed.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sarnia",
+      "institution": "Lambton College",
+      "address": "Room B1-230",
+      "phone": null,
+      "email": "lionsmind@lambtoncollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Lion’s Mind provides peer-to-peer mental wellness support to students at Lambton College from the first day through graduation.",
+      "notes": "Peer support space rather than a formal mentorship program."
+    },
+    {
+      "slug": "loyalist-accessability-services",
+      "name": "Loyalist College — AccessAbility Services",
+      "website": "https://loyalistcollege.com/life-at-loyalist/student-support-services/accessability-services/",
+      "description": "AccessAbility Services provides academic supports to students with documented disabilities, building Individualized Service Plans and arranging accommodations such as assistive technology and exam arrangements.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Services are free, voluntary and confidential.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Belleville",
+      "institution": "Loyalist College",
+      "address": null,
+      "phone": "613-969-1913, ext. 2519",
+      "email": "advising@loyalistcollege.com",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The AccessAbility Services team is committed to providing academic supports to students with documented disabilities.",
+      "notes": "Conditions listed include Autism Spectrum Disorder (ASD), Attention Deficit Disorder and Learning Disability. The team also works with students who had an IEP in secondary school."
+    },
+    {
+      "slug": "loyalist-student-events",
+      "name": "Loyalist College — Student Events Calendar",
+      "website": "https://loyalistcollege.com/events/category/student-events/month/",
+      "description": "Loyalist's monthly calendar of student events, such as open mic and karaoke nights, workshops, tournaments and varsity games.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Belleville",
+      "institution": "Loyalist College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Open Mic Night/Karaoke",
+      "notes": "Evidence is an event title from the October 2026 calendar."
+    },
+    {
+      "slug": "mohawk-accessible-learning",
+      "name": "Mohawk College — Accessible Learning Services",
+      "website": "https://www.mohawkcollege.ca/accessible-learning-services",
+      "description": "Accessible Learning Services provides equal opportunity, individualized accommodations and supports to students with disabilities, including students with mental health challenges or medical diagnoses. Accommodation planning support is free.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "The page offers 'free accommodation planning support'.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "Mohawk College",
+      "address": null,
+      "phone": "905-575-2122",
+      "email": "als@mohawkcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "providing equal opportunity, individualized accommodations and supports to students with disabilities",
+      "notes": "Email is shown on the page as 'als [at] mohawkcollege.ca'. A separate Accessibility Transition Support page describes a Student Transition Coordinator and Transition to Employment appointments."
+    },
+    {
+      "slug": "mohawk-learning-support-centre",
+      "name": "Mohawk College — Learning Support Centre",
+      "website": "https://www.mohawkcollege.ca/learning-support-centre",
+      "description": "The Learning Support Centre offers free tutoring, including course peer tutoring for most first-year program-specific courses, drop-in and appointment-based math support and PASS sessions, and tutoring for Writing & Communication courses.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "The Learning Support Centre offers FREE tutoring.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "Mohawk College",
+      "address": "Room C122 (Fennell)",
+      "phone": "1-365-226-0700",
+      "email": "lsc@mohawkcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Learning Support Centre offers FREE tutoring.",
+      "notes": "Email is shown on the page as 'lsc [at] mohawkcollege.ca'. Tutors are upper-year student leaders."
+    },
+    {
+      "slug": "mohawk-events-calendar",
+      "name": "Mohawk College — Events Calendar",
+      "website": "https://www.mohawkcollege.ca/events/calendar",
+      "description": "Mohawk's events calendar lists student socials, workshops, information sessions and drop-ins, and can be filtered by event type (including Accessibility) and department (including Accessible Learning Services).",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "institution": "Mohawk College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Fall Semester Student Social: Karaoke",
+      "notes": "Evidence is an event title from the October 2026 calendar."
+    },
+    {
+      "slug": "niagara-accessibility-services",
+      "name": "Niagara College — Accessibility Services",
+      "website": "https://www.niagaracollege.ca/hwas/services/accessibility/",
+      "description": "The Accessibility Services team provides support and accommodations for students with permanent or temporary disabilities at the Welland and Niagara-on-the-Lake campuses.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Our services are free and confidential.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Welland",
+      "institution": "Niagara College",
+      "address": "Welland Campus location: Room AH125; Daniel J. Patterson Campus location: Room W102",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Accessibility Services team provides support and accommodations for students with permanent or temporary disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "niagara-learning-centre",
+      "name": "Niagara College — Learning Centre",
+      "website": "https://nclibraries.niagaracollege.ca/learningcentre",
+      "description": "The Learning Centre offers free academic support, including Academic Drop-In support, workshops and study skills sessions, writing and communication support, and online resources.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "We offer a variety of free academic support services.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Welland",
+      "institution": "Niagara College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Whether you need help improving your study strategies, strengthening your writing skills, preparing for exams, or developing academic skills, our team is here to help.",
+      "notes": "The page says Academic Drop-In services are available during the Spring 2026 term at both campuses."
+    },
+    {
+      "slug": "niagara-student-events",
+      "name": "Niagara College — Student Events",
+      "website": "https://www.niagaracollege.ca/events/category/student-events/",
+      "description": "Niagara College's student events calendar lists socials, screenings and awareness events at the Welland and Daniel J. Patterson campuses, including Disability Awareness Week sessions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Some events are listed as free; others charge a fee (for example $10–$15).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Welland",
+      "institution": "Niagara College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This virtual session is open to Niagara College Students and Employees.",
+      "notes": "October 2026 listings included 'Disability Awareness Week: Disabilities – Language and Understanding' (virtual) and 'Disability Awareness Week: Community Connections'."
+    },
+    {
+      "slug": "northern-accessibility-services",
+      "name": "Northern College — Accessibility Services",
+      "website": "https://www.northerncollege.ca/students/advising/accessibility/",
+      "description": "Accessibility Services works to make the academic environment accessible to all students, offering accommodation plans, learning strategists, assistive technologists and test centre accommodations for students with restrictions from a physical, sensory or mental health disability.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Timmins",
+      "institution": "Northern College",
+      "address": null,
+      "phone": "705-235-3211 ext. 2237",
+      "email": "TimminsAccessibility@northern.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Accessibility Services ensures that the academic environment is accessible to all students.",
+      "notes": "Contact shown is for the Timmins Campus. Haileybury: AccessibilityHL@northern.on.ca; Kirkland Lake: AccessibilityKL@northern.on.ca; Moosonee: smallw@northern.on.ca. Students register or re-register each semester."
+    },
+    {
+      "slug": "northern-academic-success-services",
+      "name": "Northern College — Academic Success Services",
+      "website": "https://www.northerncollege.ca/students/advising/academic-success/",
+      "description": "Academic Success Services promotes early intervention strategies for on-campus students and distance learners, including peer tutors who re-explain material and give additional instruction.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Timmins",
+      "institution": "Northern College",
+      "address": null,
+      "phone": null,
+      "email": "advisingtc@northern.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "A Tutor is a peer who can assist and guide you by re-explaining and providing additional instructions on the topic to become an independent learner.",
+      "notes": "Email shown is for the Timmins Campus (Advising Services); other campuses have their own contacts on the page."
+    },
+    {
+      "slug": "northern-student-life",
+      "name": "Northern College — Student Life & Northern Experience",
+      "website": "https://www.northerncollege.ca/students/life/",
+      "description": "Students can connect with the Northern College Student Association, plan or attend events, and get involved on their campus.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events",
+        "prog_social_clubs"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Timmins",
+      "institution": "Northern College",
+      "address": null,
+      "phone": null,
+      "email": "studenteventstc@northern.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Connect and get involved with your Northern College Student Association, plan or attend fun events",
+      "notes": "Email shown is for Timmins student events; Haileybury, Kirkland Lake and Moosonee have their own addresses on the page."
+    },
+    {
+      "slug": "stclair-accessibility-services",
+      "name": "St. Clair College — Accessibility Services",
+      "website": "https://www.stclaircollege.ca/student-services/accessibility-services",
+      "description": "Accessibility Services provides support and services to students with temporary or permanent disabilities, including an Academic Accommodation Plan with reasonable and appropriate learning accommodations and supports.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "Accessibility funding may be available through scholarships, bursaries and OSAP.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "institution": "St. Clair College",
+      "address": "Room A2110",
+      "phone": "(519) 972-2727 ext. 4226",
+      "email": "studentservices@stclaircollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The College will provide support and services to all students with disabilities",
+      "notes": "Students are not required to disclose a diagnosis, except for learning disabilities. Chatham Campus: Room W1023, (519) 354-9100 ext. 3306."
+    },
+    {
+      "slug": "stclair-tutoring-services",
+      "name": "St. Clair College — Tutoring Services",
+      "website": "https://www.stclaircollege.ca/academic-support/tutoring-services",
+      "description": "Qualified tutors help students review and clarify course materials, in person on campus or virtually through MS Teams or Zoom. Students can book up to 3 hours of course-specific tutoring a week.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Peer tutoring is a free service offered to full-time enrolled St. Clair College students.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "institution": "St. Clair College",
+      "address": null,
+      "phone": "519-972-2727, Ext. 4406",
+      "email": "tutoringservices@stclaircollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Tutoring can be accessed in person on campus or virtually through MS Teams or Zoom.",
+      "notes": "Booking uses a Nimbus Learning account with a St. Clair email. Chatham Campus contact: 519-354-9100, Ext. 3215."
+    },
+    {
+      "slug": "stclair-student-life",
+      "name": "St. Clair College — Student Life (athletics, recreation and SRC)",
+      "website": "https://www.stclaircollege.ca/student-life",
+      "description": "Student Life covers intramural and recreational sports, day trips and special events from the Saints Student Athletic Association, and the Student Representative Council, which stages entertainment and awareness events and funds student clubs.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_events",
+        "prog_social_clubs"
+      ],
+      "cost": "unknown",
+      "cost_note": "Listed sports are free for full-time students, courtesy of the SSAA; part-time students must pay the Student Service Fee before participating.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "institution": "St. Clair College",
+      "address": null,
+      "phone": "(519) 972-2716",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Stages entertainment and awareness events on an almost weekly basis",
+      "notes": "Phone is the SRC office."
+    },
+    {
+      "slug": "stlawrence-accessibility-services",
+      "name": "St. Lawrence College — Accessibility Services (Student Wellness & Accessibility)",
+      "website": "https://www.stlawrencecollege.ca/services/student-wellness-and-accessibility/accessibility-services",
+      "description": "Student Wellness & Accessibility provides services and supports to students with a temporary or permanent disability and works with students and faculty so the academic environment is accessible. Interim accommodations may be provided while students are assessed or waiting on documentation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "St. Lawrence College",
+      "address": "Room 01230, 100 Portsmouth Avenue, Kingston, Ontario K7L 5A6",
+      "phone": "613.544.5400, extension 5504",
+      "email": "swa@sl.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We work collaboratively with students and faculty to ensure that the academic environment is accessible to all.",
+      "notes": "Documentation examples include 'mental health diagnosis (e.g. depression, anxiety, ADHD, ASD)'; resource links include Autism Ontario and Autism Canada. Brockville and Cornwall offices are also listed."
+    },
+    {
+      "slug": "stlawrence-academic-support-centre",
+      "name": "St. Lawrence College — Academic Support Centre",
+      "website": "https://www.stlawrencecollege.ca/services/academic/academic-support-centre",
+      "description": "The Academic Support Centre Tutoring Service gives students in all programs free resources and tutoring in English writing, math and other core subjects, one-on-one or in groups. It is located in the Campus Library, with online appointments on Microsoft Teams.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Academic Support Centre services are available to St. Lawrence College students at no additional cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "institution": "St. Lawrence College",
+      "address": null,
+      "phone": null,
+      "email": "ASC@sl.on.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "offering students in all St Lawrence College programs access to free resources and tutoring services in English writing, math, and other core subject areas.",
+      "notes": "Peer Tutoring (separate page) is also offered for most courses, subject to peer tutor availability."
+    },
+    {
+      "slug": "sault-student-accessibility-services",
+      "name": "Sault College — Student Accessibility Services",
+      "website": "https://www.saultcollege.ca/student-information/student-services/student-accessibility-services",
+      "description": "Student Accessibility Services is the central point for activities related to students with disabilities at Sault College, with learning strategists, testing accommodations and a College Transition program for incoming students with an identified learning disability.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "College Transition is described as a free transitional program; no cost is stated for other services.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sault Ste. Marie",
+      "institution": "Sault College",
+      "address": "Student Support Centre (E1101), 443 Northern Ave, Sault Ste. Marie, ON Canada, P6B 4J3",
+      "phone": "705-759-2554 ext. 2703",
+      "email": "studentsupport@saultcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "the centralized point of activities related to students with disabilities",
+      "notes": ""
+    },
+    {
+      "slug": "sault-peer-tutoring",
+      "name": "Sault College — Peer Tutoring",
+      "website": "https://www.saultcollege.ca/student-information/current/library-peer-tutoring",
+      "description": "Students who are excelling academically lead drop-in group tutorial sessions for specific programs. One-on-one or small-group tutoring is available to students with documented disabilities or a demonstrated need, through a referral from an Academic Counsellor.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sault Ste. Marie",
+      "institution": "Sault College",
+      "address": null,
+      "phone": null,
+      "email": "peer.tutoring@saultcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutoring allows students who are excelling academically to help other students in their program",
+      "notes": ""
+    },
+    {
+      "slug": "sault-peer-mentoring",
+      "name": "Sault College — Peer Mentoring",
+      "website": "https://www.saultcollege.ca/student-information/student-services/student-success/peer-mentoring",
+      "description": "Peer mentors help new students adjust to and navigate college life, meeting one-to-one or in a group setting.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Sault Ste. Marie",
+      "institution": "Sault College",
+      "address": null,
+      "phone": null,
+      "email": "peer.tutoring@saultcollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "helping new students adjust to and navigate college life",
+      "notes": ""
+    },
+    {
+      "slug": "seneca-accessible-learning",
+      "name": "Seneca Polytechnic — Accessible Learning Services",
+      "website": "https://students.senecapolytechnic.ca/spaces/122/accessible-learning-services/home",
+      "description": "Accessible Learning Services supports students with disabilities with academic accommodations, assistive technology and other supports to ensure equal access to academic opportunities. Office hours are offered in person and virtually.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Seneca Polytechnic",
+      "address": null,
+      "phone": "647.475.1465",
+      "email": "senecacnas@senecapolytechnic.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "ALS is dedicated to supporting students with disabilities and ensuring equal access to academic opportunities.",
+      "notes": "Office hours Monday–Friday: in person 9:30 a.m.–4:00 p.m., virtual 8:30 a.m.–5:00 p.m."
+    },
+    {
+      "slug": "seneca-learning-centres",
+      "name": "Seneca Polytechnic — Learning Centres",
+      "website": "https://students.senecapolytechnic.ca/spaces/118/learning-centres/home",
+      "description": "The Learning Centres offer foundational skills and foundational course support, including group study sessions, workshops and peer tutoring, plus online resources.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Group study sessions, workshops and peer tutoring are available at no extra cost to Seneca students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Seneca Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "As a Seneca student, you can access our group study session, workshops, and peer tutoring at no extra cost to you.",
+      "notes": "Upcoming workshops listed on 17 Oct 2026 were online."
+    },
+    {
+      "slug": "seneca-student-support-groups",
+      "name": "Seneca Polytechnic — Student Support Groups (including Accessibility & Disability)",
+      "website": "https://students.senecapolytechnic.ca/spaces/219/get-involved-with-student-life/student-support-groups",
+      "description": "Identity-based Student Support Groups, led by Student Ambassadors, give students who share similar identities and experiences a low-pressure space to connect. The groups include an Accessibility & Disability Student Support Group.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_social_clubs",
+        "prog_events",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "institution": "Seneca Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "These identity-based Student Support Groups are facilitated and led by Student Ambassadors.",
+      "notes": "Seneca's Student Life page listed an Accessibility & Disability Student Support Group session on Oct 22 in room D2014. Seneca also runs a free Peer Mentoring program for new students (mentoring.senecapolytechnic.ca)."
+    },
+    {
+      "slug": "sheridan-accessible-learning",
+      "name": "Sheridan College — Accessible Learning",
+      "website": "https://www.sheridancollege.ca/student-life/student-services/accessible-learning-services",
+      "description": "Accessible Learning provides academic accommodation planning for students with disabilities at the Trafalgar, Davis and Hazel McCallion campuses. Students with a confirmed or suspected disability are encouraged to contact the office soon after accepting admission.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Oakville",
+      "institution": "Sheridan College",
+      "address": "Trafalgar Campus, Room B104",
+      "phone": "905-845-9430, x5400",
+      "email": "trafalgar.als@sheridancollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "providing academic accommodation planning for students with disabilities",
+      "notes": "Autism-specific: 'Join us for Through Your Lens, a FREE 2-day summer transition program for Grade 11 and 12 students with Autism Spectrum Disorder.' Davis Campus: Room B230, 905-459-7533, x5400, davis.als@sheridancollege.ca. Hazel McCallion Campus: Room A247, hmc.als@sheridancollege.ca."
+    },
+    {
+      "slug": "sheridan-tutoring-centre",
+      "name": "Sheridan College — Tutoring Centre",
+      "website": "https://www.sheridancollege.ca/student-life/student-services/tutoring",
+      "description": "The Tutoring Centre offers learning support in math, writing, English conversation skills, study skills and program-level support. Current students find booking and drop-in details through Sheridan Central.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Tutors offer program support at no additional cost to you as a Sheridan student.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Oakville",
+      "institution": "Sheridan College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We offer tons of learning support: math, writing, English conversation skills, study skills and program-level support.",
+      "notes": ""
+    }
+  ],
+  "unverified": [
+    {
+      "name": "George Brown College — Accessible Learning Services (https://www.georgebrown.ca/current-students/services/accessible-learning-services)",
+      "reason": "The site returned 'Access Denied' (HTTP 403) on 17 Oct 2026 to both the page fetcher and a direct download; the Continuing Education copy on coned.georgebrown.ca was also denied."
+    },
+    {
+      "name": "George Brown College — Tutoring and Learning Centre (https://www.georgebrown.ca/tlc/)",
+      "reason": "Same 'Access Denied' (HTTP 403) response on 17 Oct 2026, so no George Brown entry could be checked."
+    },
+    {
+      "name": "Confederation College — main-site pages (https://www.confederationcollege.ca/accessibility-services, /tutoring-services)",
+      "reason": "confederationcollege.ca returned a security check (HTTP 403) on 17 Oct 2026. The two Confederation entries use the college's orientation site (orientation.confederationcollege.ca) instead."
+    },
+    {
+      "name": "Conestoga College — Peer Tutoring (https://successportal.conestogac.on.ca/s/tutoring)",
+      "reason": "Redirects to a college sign-in page; tutoring details are not public. The Library & Learning Services entry covers it at a high level."
+    },
+    {
+      "name": "Loyalist College — Tutoring Services (myLoyalist SharePoint page)",
+      "reason": "The only tutoring link on loyalistcollege.com goes to a student portal that needs a sign-in."
+    },
+    {
+      "name": "Lambton College — tutoring or learning centre",
+      "reason": "No public tutoring page was found on lambtoncollege.ca; the Student Success Navigator page only lists tutoring among its referrals."
+    },
+    {
+      "name": "Lambton College — Events Calendar (https://www.lambtoncollege.ca/event-calendar)",
+      "reason": "Page loaded but showed '0 Results'; events appear to load by script, so no content could be checked."
+    },
+    {
+      "name": "Durham College — ASD Social Connection, Access and Support Centre (https://durhamcollege.ca/asc/event/asd-social-connection-2/2024-02-06/)",
+      "reason": "Autism-specific weekly social group. The page is live, but the latest session listed is 6 Feb 2024, so it could not be confirmed as current. It is noted in the Durham ASC entry."
+    },
+    {
+      "name": "Collège La Cité — Événements (https://www.collegelacite.ca/evenements)",
+      "reason": "Page loaded but listed no events in its content."
+    },
+    {
+      "name": "Sheridan College — Events (https://www.sheridancollege.ca/events)",
+      "reason": "Page loaded but showed no results."
+    },
+    {
+      "name": "Fleming College — Orientation events (https://flemingcollege.ca/orientation-events)",
+      "reason": "Page says 'There are no scheduled events.' First at Fleming was used as Fleming's events entry instead."
+    },
+    {
+      "name": "Canadore College — Events (https://www.canadorecollege.ca/experience/events)",
+      "reason": "Page loaded but listed no event titles or dates."
+    },
+    {
+      "name": "Humber Polytechnic — Math & Writing Centre (https://humber.ca/learningresources/math-and-writing-centre)",
+      "reason": "Returned an empty response (HTTP 202) on 17 Oct 2026; the Student Learning Services home page was used instead."
+    },
+    {
+      "name": "St. Lawrence College — Smart Start transition program for students with disabilities",
+      "reason": "Mentioned in a search summary, but not found on the college's current Accessibility Services page."
+    },
+    {
+      "name": "Mohawk College — Accessibility coach mentor program",
+      "reason": "Mentioned in a search summary of a Mohawk student-news article; no current program page was found or checked."
+    }
+  ]
+}

@@ -1,0 +1,627 @@
+{
+  "topic": "siblings",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "holland-bloorview-sibling-support-program",
+      "name": "Sibling Support Program (Holland Bloorview Kids Rehabilitation Hospital)",
+      "website": "https://hollandbloorview.ca/services/programs-services/sibling-support-program",
+      "description": "A program where siblings aged 7 to 18 who have a brother or sister with a disability, diagnosis or medical complexity can relax, unwind and meet peers with similar lived experiences. It is open to Holland Bloorview client families and to community families not connected to the hospital.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "unknown",
+      "cost_note": "The program page does not mention a fee.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416-425-6220 ext. 6082",
+      "email": "siblingsupport@hollandbloorview.ca",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "For anyone aged 7-18, who has a sibling with a disability, diagnosis or medical complexity.",
+      "notes": "A parent, guardian, care-team member or clinician submits a REDCap referral form; the coordinator then calls to do a one-time intake and adds the family to an email list for session dates. For now the program is for children who do not need personal support, communication or equipment supports. The page does not say whether sessions are in person or online; the hospital is at 150 Kilgour Road, Toronto."
+    },
+    {
+      "slug": "erinoakkids-sibshops",
+      "name": "Sibshops (ErinoakKids)",
+      "website": "https://www.erinoakkids.ca/all-services/family-supports/social-work-services/sibshops",
+      "description": "Free monthly workshops during the school year for siblings, ages 4 to 18, of active ErinoakKids clients, in three groups: Little Sibs (4-7), SibKids (8-12) and SibTeens (13-18). Siblings meet in a relaxed, recreational setting to share experiences and talk about the joys and concerns of having a sibling with a disability.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online",
+        "recreation"
+      ],
+      "cost": "free",
+      "cost_note": "The page says ErinoakKids offers free monthly workshops.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "905-855-2690 ext. 2346",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "ErinoakKids offers free monthly workshops throughout the school year for siblings of active ErinoakKids clients ranging in age from 4 - 18 years old.",
+      "notes": "Only for siblings of active ErinoakKids clients; register through the online form linked on the page. The 2026-2027 calendar lists Little Sibs (ages 4-7) as virtual, Thursdays 4:30-5:30 p.m. (Sept 24, Oct 22, Nov 26, Dec 17, Jan 28, Feb 25, Mar 25, Apr 22, May 27, Jun 24). The page gives no format or dates for SibKids or SibTeens, so delivery reflects Little Sibs only. ErinoakKids has sites in Brampton, Mississauga and Oakville."
+    },
+    {
+      "slug": "community-living-toronto-sibshops",
+      "name": "Sibshops (Community Living Toronto)",
+      "website": "https://cltoronto.ca/get-involved/community-engagement/",
+      "description": "Sibshops give brothers and sisters of children with intellectual disabilities peer-to-peer support and education in an informal, fun setting. Workshops are for children ages 8 to 13, with mentoring opportunities for older siblings ages 14 to 16.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention a fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "437-231-3503",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Sibshops provide opportunities for brothers and sisters of children with intellectual disabilities to obtain peer-to-peer support and education in an informal, fun setting.",
+      "notes": "Contact Hannah Ertl for dates and location; the page lists no schedule or venue. It describes theme-based workshops (past themes: Pirates, Safari, Tropical Vacation, Celebrity Day) with scavenger hunts, crafts and shared meals, which is why delivery is marked in person."
+    },
+    {
+      "slug": "grandview-kids-siblings-by-siblings",
+      "name": "Siblings by Siblings (Grandview Kids)",
+      "website": "https://grandviewkids.ca/siblings-by-siblings-program/",
+      "description": "A peer-led support program for siblings ages 10 to 18 of children with disabilities or medical complexities, developed for siblings of Grandview Kids clients. The Siblings by Siblings Team of Peer Navigators hosts evening events through the year with discussions, games and creative activities.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention a fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ajax",
+      "address": "The Jerry Coughlan Building, 1461 Harwood Avenue North, Ajax, ON L1T 0R3",
+      "phone": "905-728-1673",
+      "email": "familyengagement@grandviewkids.ca",
+      "age_ranges": [
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Siblings by Siblings is a peer-led support program created specifically for siblings of children with disabilities or medical complexities.",
+      "notes": "Events are held at Grandview Kids' Ajax headquarters; the address and phone come from Grandview's Ajax location page and the email from its Family Engagement page. To register, the page says to follow Grandview Kids on Instagram and Facebook or speak to the Family Engagement Team. Page posted March 27, 2026; no upcoming dates listed.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "young-carers-program-sibs",
+      "name": "S.I.B.S. (Spectacular, Incredible, Brave Siblings), Young Carers Program, Hospice Toronto",
+      "website": "https://www.ycptoronto.com/what-we-do/",
+      "description": "The Young Carers Program's sibling support workshops, for children who help care for a sibling with an illness, disability or special need. Through self-expression and activities, children learn about their sibling's condition and build coping skills; the program serves young carers aged 5 to 18 in Toronto.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation",
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "The page says all services and programs are provided at no cost to members.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416-771-4145",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "S.I.B.S (Spectacular, Incredible, Brave Siblings) is our YCP sibling support program.",
+      "notes": "Access is through free YCP membership (youth 16 and older can join on their own). Programs run in different parts of Toronto, often hosted by partner agencies; the mailing address is Hospice Toronto, 120 Eglinton Ave E, Suite 500, Toronto, ON M4P 1E2. The phone is the Program Coordinator's line from the Contact page. YCP also runs social nights, camps and advocacy for young carers."
+    },
+    {
+      "slug": "autism-ontario-sib-squad-london",
+      "name": "Sib Squad (Ages 7-12), London (Autism Ontario and TVCC)",
+      "website": "https://www.autismontario.com/civicrm/event/info?id=13066",
+      "description": "A multi-week group for siblings of autistic individuals ages 7 to 12 to meet other kids who understand what it is like to have an autistic sibling, with icebreaker games, activities, conversations and a snack at each session. Run by Autism Ontario with TVCC.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "paid",
+      "cost_note": "The page lists the cost as $10 per child.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "address": "Autism Ontario London Regional Office, 797 York Street, Unit #3, London, ON N5W 3A8",
+      "phone": "416-246-9592 ext. 396",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "Sib Squad is a fun and welcoming multi-week group created just for siblings of autistic individuals ages 7–12!",
+      "notes": "Fall 2026 session: Thursdays November 5, 12, 19 and 26, 2026, 6:00-7:15 p.m.; registration opened October 1 at 9 a.m. Caregivers must stay on the property; Autism Ontario runs a drop-in for caregivers and autistic family members at the same time.",
+      "price": 10
+    },
+    {
+      "slug": "autism-ontario-sib-squad-windsor",
+      "name": "Sib Squad (Ages 7-12), Windsor (Autism Ontario and TVCC)",
+      "website": "https://www.autismontario.com/civicrm/event/info?id=13090",
+      "description": "A multi-week group for siblings of autistic individuals ages 7 to 12 to meet other kids who understand what it is like to have an autistic sibling, with icebreaker games, activities, conversations and a snack at each session. Run by Autism Ontario with TVCC.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "paid",
+      "cost_note": "The page lists the cost as $10 per child, no refunds.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "address": "Autism Ontario Windsor Office, 1168 Drouillard Rd, Windsor, ON N8Y 2R1",
+      "phone": "416-246-9592 ext. 474",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "Sib Squad is a fun and welcoming multi-week group created just for siblings of autistic individuals ages 7–12!",
+      "notes": "Fall 2026 session: Thursdays November 5, 12, 19 and 26, 2026, 6:00-7:15 p.m.; registration opened October 1 at 9 a.m. Caregivers must stay on the property; a drop-in for caregivers and autistic family members runs at the same time.",
+      "price": 10
+    },
+    {
+      "slug": "autism-ontario-sib-squad-niagara-falls",
+      "name": "Sib Squad (Ages 7-12), Niagara Falls (Autism Ontario)",
+      "website": "https://www.autismontario.com/civicrm/event/info?id=13102",
+      "description": "A multi-week group for siblings of autistic individuals ages 7 to 12 to meet other kids who understand what it is like to have an autistic sibling, with icebreaker games, activities, conversations and a snack at each session. Run by Autism Ontario.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "paid",
+      "cost_note": "The page lists the cost as $10 per child.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Niagara Falls",
+      "address": "Autism Ontario South Program Space, 7150 Montrose Rd, Niagara Falls, ON L2E 3H3",
+      "phone": "416-246-9592 ext. 246",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "Sib Squad is a fun and welcoming multi-week group created just for siblings of autistic individuals ages 7–12!",
+      "notes": "Fall 2026 session: Saturdays November 7, 14, 21 and 28, 2026, 1:00-2:30 p.m.; registration opened October 15, 2026 at 10 a.m. Free parking on site at the MacBain Community Centre. Caregivers must stay on the property; a drop-in for caregivers and autistic family members runs at the same time.",
+      "price": 10
+    },
+    {
+      "slug": "kerrys-place-all-about-you",
+      "name": "All About You: A Support Group for Children Who Have Autistic Siblings (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/all-about-you-a-support-group-for-children-who-have-autistic-siblings/",
+      "description": "A free virtual support group (1 hour a week for 3 weeks) where children with autistic siblings meet others in the same situation, share their feelings, ask questions and learn more about autism. Offered across Ontario as a Foundational Family Service.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page lists the cost as FREE.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "This 3-session support group gives children with Autistic siblings a chance to meet and connect with others in the same situation.",
+      "notes": "Listed as an OAP-eligible Foundational Family Service ('Children under 18', 'Children with siblings who have ASD'). Register with the Kerry's Place intake team first, then find active sessions on My Community Hub. Age ranges: the Children's Treatment Network events calendar (a partner site) lists the current online session (November 4, 11 and 18, 2026, 4:30-5:30 p.m.) for ages 8-12; teens have Sibling Hang."
+    },
+    {
+      "slug": "kerrys-place-sibling-hang",
+      "name": "Sibling Hang: A Support Group For Youth Who Have Autistic Siblings (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/sibling-hang-a-support-group-for-youth-who-have-autistic-siblings/",
+      "description": "A free virtual group for teens ages 13 to 17 with autistic siblings to connect over similar experiences while bonding through shared hobbies and interests. Participants also learn more about autism and ways they can support their siblings.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online",
+        "prog_social_clubs"
+      ],
+      "cost": "free",
+      "cost_note": "The page lists the cost as FREE.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "teens_13_17"
+      ],
+      "evidence": "This Foundational Family Services group gives teens ages 13-17 with Autistic siblings a chance to connect over similar experiences",
+      "notes": "One-hour sessions, province-wide in Ontario; listed as an OAP-eligible Foundational Family Service. Register with the Kerry's Place intake team first, then find active sessions on My Community Hub. The Children's Treatment Network events calendar (a partner site) lists an online session on October 7, 2026, 4:30-5:30 p.m."
+    },
+    {
+      "slug": "kerrys-place-sibling-story-time",
+      "name": "Sibling Story Time: A group for children who have autistic siblings (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/sibling-story-time-a-group-for-children/",
+      "description": "A free virtual group that teaches children with autistic siblings about autism through children's storybooks, with a reading and a related activity in each session. Parents or family members get a follow-up debrief on the story, its themes and how to answer questions that come up.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online",
+        "parent_children"
+      ],
+      "cost": "free",
+      "cost_note": "The page lists the cost as FREE.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "children_5_8"
+      ],
+      "evidence": "This Foundational Family Service teaches children with Autistic siblings about Autism through children’s storybooks.",
+      "notes": "One-hour sessions, province-wide in Ontario; register with the Kerry's Place intake team first, then find sessions on My Community Hub. The program page gives no ages; the Children's Treatment Network events calendar (a partner site) lists an online session on October 5, 2026 for ages 5-7 and an in-person special edition at Innisfil Public Library, Lakeshore Branch, on October 27, 2026."
+    },
+    {
+      "slug": "holland-bloorview-sibkits",
+      "name": "SibKits (Holland Bloorview Kids Rehabilitation Hospital)",
+      "website": "https://hollandbloorview.ca/services/family-workshops-resources/family-resource-centre/online-family-resources-centre/sibkits",
+      "description": "Child-friendly booklets with interactive tools and tips for brothers and sisters of kids with disabilities, medical complexities or diagnoses (SibKit 2.0), plus a version for siblings of children with acquired brain injury (SibKit 1.0). They help siblings understand the diagnosis, feel included and work through their feelings.",
+      "category": "Support Group",
+      "tags": [
+        "siblings"
+      ],
+      "cost": "free",
+      "cost_note": "Both booklets are offered as downloads on the page; no fee is mentioned.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The SibKit is a booklet filled with interactive tools and tips for brothers and sisters of kids with disabilities, medical complexities or diagnoses.",
+      "notes": "Made with siblings, parents, clients and Holland Bloorview health professionals; written for siblings of Holland Bloorview clients but downloadable from the public page. Holland Bloorview's inpatient-sibling tip sheet says physical copies are available in its Resource Centre. No ages stated."
+    },
+    {
+      "slug": "siblings-canada",
+      "name": "Siblings Canada (Canadian Centre for Caregiving Excellence)",
+      "website": "https://canadiancaregiving.org/siblingscanada/",
+      "description": "A national initiative for adult siblings of people with disabilities (the page names intellectual, developmental, physical, neurodiversity and mental health, among others), with a free online Learning Hub, virtual events and a one-on-one Sibling Peer Mentorship Program. It also welcomes siblings-in-law, cousins and other second-generation caregivers.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_online",
+        "advocacy",
+        "prog_events"
+      ],
+      "cost": "free",
+      "cost_note": "The Learning Hub is described as a collection of free resources, and the peer mentoring page says 'It's free!'",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": "info@siblingscanada.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Siblings Canada exists to ensure that Canadian siblings are recognized, valued and supported.",
+      "notes": "The Peer Mentoring program (8 months, free, with mentor training that includes Zoom sessions) is on pause until April 2027; a waitlist is open at learning.siblingscanada.ca/courses/peer-mentor-siblings. The CCCE events page listed no sibling-specific events on 2026-10-17. The Sibling Leadership Network's site says Siblings Canada was formerly The Sibling Collaborative."
+    },
+    {
+      "slug": "savvy-siblings-course",
+      "name": "Savvy Siblings: Strengthening the Financial Security of Your Sibling with a Disability (Siblings Canada)",
+      "website": "https://learning.siblingscanada.ca/courses/savvy-siblings",
+      "description": "A free, self-paced online course for adults in Canada who want to help build financial security for, and with, a sibling with a disability. Its nine chapters cover disability benefits and programs, income support rules, family conversations about money and the future, protection from financial exploitation, and a simple action plan.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page describes it as a free course ('Enroll today for free!').",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "This free, self-paced online course empowers Canadian adults to build financial security for—and with—their siblings with disabilities.",
+      "notes": "About 4-5 hours; content stays available for at least a year after registering and includes discussion boards. It does not give financial or legal advice. A French version, Frères et sœurs avisés, is on the same Learning Hub, which also has free guides on mental health and on communicating with family."
+    },
+    {
+      "slug": "autism-nova-scotia-sibsconnect",
+      "name": "SibsCONNECT (Autism Nova Scotia)",
+      "website": "https://www.autismnovascotia.ca/programs/sibsconnect/",
+      "description": "A play-based and educational program for children ages 9 to 13 who have a sibling who is autistic or self-identifies as autistic. It focuses on the sibling's own strengths and needs, self-esteem and self-advocacy, learning about autism, and making friends with children who have similar experiences.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_in_person",
+        "community_local",
+        "recreation"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention a fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": null,
+      "city": "Bedford",
+      "address": "Pinwheel Wellness Centre, Bedford Place Mall, 1658 Bedford Hwy., Suite 55, Bedford, NS",
+      "phone": "1-877-544-4495",
+      "email": null,
+      "age_ranges": [
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "SibsCONNECT is a play-based and educational program for children ages 9–13 who have a sibling who is Autistic or self-identifies as Autistic.",
+      "notes": "Nova Scotia, not Ontario. Fall 2026 run: 10 Wednesdays, September 23 to December 9, 6:00-7:30 p.m., with one outing in November; offered in the Halifax Regional Municipality, in English only. The phone is Autism Nova Scotia's toll-free line; the email is the program facilitator's."
+    },
+    {
+      "slug": "autism-alberta-adult-siblings-toolkit",
+      "name": "Adult Siblings Toolkit (Autism Society Alberta)",
+      "website": "https://autismalberta.ca/adult-siblings-toolkit/",
+      "description": "A toolkit of guidance, practical ideas and resources for adults who have an autistic sibling, and for extended family and parents planning ahead. It covers staying connected, planning for the future (housing, work, social and medical needs), decision-making supports, money and funding, and protecting your own mental health.",
+      "category": "Support Group",
+      "tags": [
+        "siblings"
+      ],
+      "cost": "free",
+      "cost_note": "The toolkit is published openly on the page, with a PDF version; no fee is mentioned.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "A toolkit offering guidance, practical ideas, and resources for adults who have an Autistic sibling.",
+      "notes": "Some sections (decision-making supports, funding and tax programs) are specific to Alberta. The society also has a toolkit for parents on talking to young siblings about autism at autismalberta.ca/siblings/."
+    },
+    {
+      "slug": "sibling-support-project-sibnet",
+      "name": "SibNet (Sibling Support Project)",
+      "website": "https://siblingsupport.org/connect/sibnet/",
+      "description": "A closed Facebook group for adult brothers and sisters of people with disabilities, where members share concerns, insights and information about services and strategies. It began in 1996 as a listserv and has been co-sponsored by the Sibling Leadership Network since 2012.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online",
+        "advocacy"
+      ],
+      "cost": "free",
+      "cost_note": "Joining is through the Facebook group; the page mentions no fee.",
+      "delivery": "online",
+      "country": "United States",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "SibNet is a “closed” group. Only adult siblings of people with special needs may be members.",
+      "notes": "Run by the US-based Sibling Support Project; the page says SibNet has connected siblings from around the globe and links to the Facebook group to join. Members have siblings with autism, intellectual disabilities, cerebral palsy, Down syndrome, spina bifida, fragile X and other disabilities."
+    },
+    {
+      "slug": "sibling-support-project-sib20",
+      "name": "Sib20 (Sibling Support Project)",
+      "website": "https://siblingsupport.org/connect/sib20/",
+      "description": "A closed Facebook group where siblings in their twenties (about 18 to 30) of people with disabilities connect with others who understand, sharing concerns, joys and information about services and resources.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "Joining is through the Facebook group; the page mentions no fee.",
+      "delivery": "online",
+      "country": "United States",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Sib20 is a Facebook group where twenty-something sibs of people with disabilities connect with others who “get it.”",
+      "notes": "Moderated by Don Meyer of the Sibling Support Project. The FAQ says sibs 18 to 30 are welcome; 18- and 19-year-olds may also stay in SibTeen, and those in their early thirties may also join SibNet. Only members can see posts."
+    },
+    {
+      "slug": "sibling-support-project-sibteen",
+      "name": "SibTeen (Sibling Support Project)",
+      "website": "https://siblingsupport.org/connect/sibteen/",
+      "description": "A closed Facebook group where teenage siblings of people with disabilities connect with others who understand and share concerns, joys, frustrations and information. It is kept as a private space for teens rather than parents or service providers.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "Joining is through the Facebook group; the page mentions no fee.",
+      "delivery": "online",
+      "country": "United States",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "teens_13_17"
+      ],
+      "evidence": "SibTeen is Facebook group where teenage sibs of people with disabilities can connect with others who get it.",
+      "notes": "Co-hosted by the Sibling Support Project and Siblings Australia; the hosts say they read each message posted. Teens join by clicking 'Join Group' on the Facebook page linked from this page."
+    },
+    {
+      "slug": "oar-autism-sibling-support-guides",
+      "name": "Autism Sibling Support guides (Organization for Autism Research)",
+      "website": "https://researchautism.org/families/sibling-support/",
+      "description": "Three guides for families with an autistic child: 'Autism, My Sibling, and Me', a workbook for children ages 5 to 10; 'Life as an Autism Sibling: A Guide for Teens'; and 'Brothers, Sisters, and Autism: A Parent's Guide to Supporting Siblings'.",
+      "category": "Support Group",
+      "tags": [
+        "siblings",
+        "parent_children",
+        "parent_preteens",
+        "parent_teens"
+      ],
+      "cost": "free",
+      "cost_note": "Each guide is listed at $0.00-$2.50 (download or paperback), and the page says 'First two resources are free.'",
+      "delivery": "online",
+      "country": "United States",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "OAR’s Autism Sibling Support initiative offers guidance for young children, teenagers, and parents on how to productively address the ups and downs",
+      "notes": "OAR is based in Arlington, Virginia. The guides come as a download or a paperback; the page does not say whether paperbacks ship to Canada."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "SibsAbility Workshops (KidsAbility, Waterloo and Guelph)",
+      "reason": "kidsability.ca pages load, but the latest sessions listed are November 2025 and KidsAbility's events calendar shows no 2026 sibling dates, so it could not be confirmed as currently offered."
+    },
+    {
+      "name": "Super Siblings sibling workshop (Maltby Centre, Kingston)",
+      "reason": "The only sibling workshop page on maltbycentre.ca (April 9-30, 2026 series, free, OAP reference number required) is marked Expired, and no current sibling session is listed."
+    },
+    {
+      "name": "Geneva Centre for Autism sibling groups (Toronto)",
+      "reason": "Mentioned only in third-party directory listings; the genevacentre.ca program pages fetched today do not mention a sibling group."
+    },
+    {
+      "name": "SibShop (Thames Valley Children's Centre, London)",
+      "reason": "Seen only on a third-party fundraising page; TVCC's own site search found no SibShop page. TVCC co-runs Autism Ontario's London and Windsor Sib Squad, which are listed."
+    },
+    {
+      "name": "Virtual Group for Siblings of JMCC Clients (John McGivney Children's Centre, Windsor)",
+      "reason": "Only a February 2021 post on jmccentre.ca; no current session."
+    },
+    {
+      "name": "Ensemble dinner for adults who have siblings with intellectual disabilities (Windsor)",
+      "reason": "Only a December 2023 post on the John McGivney Children's Centre site; not checked on Ensemble's own website."
+    },
+    {
+      "name": "McMaster Children's Hospital / Autism Ontario / Young Caregivers Association sibling groups (Hamilton)",
+      "reason": "Seen only on 2021 school-board flyers found in search results; not found on the organisations' own sites."
+    },
+    {
+      "name": "Provincial Sibshop (14-18 yrs) and Mississauga 'The Amazing Race' sibling workshop (Autism Ontario)",
+      "reason": "Past events: the Provincial Sibshop page is for June 15, 2023 with registration closed; the Mississauga page was seen only in search results with past dates and was not fetched."
+    },
+    {
+      "name": "Upopolis Sibling Island (Kids' Health Links Foundation)",
+      "reason": "upopolis.com describes its islands as spaces for youth 13-23 navigating a parent's or sibling's critical illness, joined by professional referral; it does not say the sibling island covers siblings of disabled or neurodivergent youth."
+    },
+    {
+      "name": "Sibling Leadership Network (United States)",
+      "reason": "siblingleadership.org loads, but it is a US network of state chapters and its site does not say whether its meet-ups are open to people in Canada."
+    },
+    {
+      "name": "Alberta Sibshops (Elevated Abilities, Inclusion Foothills, McMan Milestones)",
+      "reason": "Listed on Autism Calgary's Sibling Supports page; not checked on the providers' own websites."
+    },
+    {
+      "name": "Sibkids/Sibteens (Community Options for Children and Families, Victoria BC) and Young Sibling Peer Support Network (BC Children's Hospital)",
+      "reason": "Seen only in third-party directory search results; not fetched on the organisations' own sites."
+    },
+    {
+      "name": "Sibling-specific counselling or therapy in Ontario",
+      "reason": "None found on an Ontario organisation's own site. Autism Calgary's counselling (autismcalgary.com/counselling/) lists siblings among the family members it serves, on a sliding scale, but it is in Alberta and not sibling-specific, so it was left out."
+    }
+  ]
+}

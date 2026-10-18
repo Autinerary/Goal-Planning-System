@@ -1,0 +1,923 @@
+{
+  "topic": "nd_mentoring",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "queens-rarc-olts-provincial",
+      "name": "On-Line to Success (OLTS) Provincial - Regional Assessment and Resource Centre, Queen's University",
+      "website": "https://www.queensu.ca/rarc/transitions",
+      "description": "A fully online transition program from Queen's University's Regional Assessment and Resource Centre (RARC) for Grade 12 students in Ontario with a learning disability, ADHD, ASD or a mental health disorder. RARC's transition programs cover topics such as self-advocacy, IEPs and accommodations, assistive technology and stress management.",
+      "category": "Education Support",
+      "tags": [
+        "prog_accessibility",
+        "edu_secondary",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "Listed under 'Check out these free programs, available to students and parents in Ontario.'",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kingston",
+      "address": "Mackintosh-Corry Hall, B100, 68 University Avenue, Kingston, ON K7L 3N6",
+      "phone": "(613) 533-6311",
+      "email": "rarc.transitions@queensu.ca",
+      "age_ranges": [],
+      "evidence": "This program is for students in Ontario in Grade 12 with a learning disability, ADHD, ASD or a mental health disorder.",
+      "notes": "Open to Grade 12 students (and an additional year). RARC also runs Kingston-area programs (STEPS for Grades 7-8 with LD/ADHD; OLTS Kingston) and free transition information webinars for Grade 11-12 students and parents."
+    },
+    {
+      "slug": "uwindsor-build-transition-program",
+      "name": "BUILD: Bridge to University for Individuals with Learning Disabilities and/or ADHD and/or Autism - University of Windsor",
+      "website": "https://www.uwindsor.ca/studentaccessibility/387/transition-programs",
+      "description": "A transition program from the University of Windsor's Student Accessibility Services for high school students entering first year at university who have documented learning disabilities, ADHD or autism. Students learn about campus supports, learning strategies and technology, and meet other students, staff and faculty.",
+      "category": "Education Support",
+      "tags": [
+        "prog_accessibility",
+        "edu_secondary",
+        "edu_university"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention fees.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Windsor",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "a transition program for high school students entering their first year at university who have documented learning disabilities and/or ADHD/ and or Autism",
+      "notes": "The page does not give dates, format or a program contact; it links to the university's general Contact Us page."
+    },
+    {
+      "slug": "jakes-house-legends-mentoring-program",
+      "name": "Legends Mentoring Program - Jake's House",
+      "website": "https://www.jakeshouse.ca/legends-mentoring-program/",
+      "description": "Jake's House pairs individuals with autism with mentors and runs themed group mentoring workshops where youth and mentors take part in activities together. Current workshops are listed in Toronto, in person.",
+      "category": "Education Support",
+      "tags": [
+        "prog_mentorship",
+        "community_group",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention fees; it says the program is 'Supported by the Government of Ontario.'",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "+1 (416) 247-5253",
+      "email": "charityliaison@jakeshouse.ca",
+      "age_ranges": [],
+      "evidence": "Through Legends Mentoring Program (LMP), Jake's House provides personal support and social opportunities to individuals with autism.",
+      "notes": "Page says 'mentoring opportunities are limited right now.' Past workshops ran in Mississauga and Lucan; most online workshops are marked On-Hold. Applications: https://www.jakeshouse.ca/program-application/"
+    },
+    {
+      "slug": "jakes-house-employment-training-program",
+      "name": "Jake's House Employment Training Program",
+      "website": "https://www.jakeshouse.ca/employment-training-program/",
+      "description": "Skills development and training followed by placements at companies, for people aged 16 and over with autism or a developmental disability, under the guidance of trained instructors and mentors.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "job_opportunities",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention fees; it says the program is funded by Ontario's Ministry of Labour, Immigration, Training and Skills Development.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "+1 (416) 247-5253",
+      "email": "charityliaison@jakeshouse.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "supports the integration of individuals aged 16+ years with autism or a developmental disability, into the workforce",
+      "notes": "Candidates register through the For Candidates page. Jake's House also holds an annual Employment Expo in Toronto."
+    },
+    {
+      "slug": "kerrys-place-peers-for-young-adults",
+      "name": "PEERS for Young Adults - Kerry's Place",
+      "website": "https://kerrysplace.org/product/peers-for-young-adults/",
+      "description": "A 16-week group program for autistic adults aged 18 to 35 who want to learn and practise the social skills for making and keeping friendships and dating relationships. Parents or family members join as social coaches.",
+      "category": "Support Group",
+      "tags": [
+        "prog_social_clubs",
+        "community_group",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "paid",
+      "cost_note": "Listed at $2000.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45"
+      ],
+      "evidence": "a group program for Autistic adults ages 18 – 35 who want to learn and practice the social skills",
+      "notes": "16 weeks, 1.5 hours a week; 'In-Person & Virtual'. Regions listed: Dufferin, Halton, Peel, Simcoe, Toronto, Waterloo, Wellington, York. Overseen by a Registered Behaviour Analyst.",
+      "price": 2000
+    },
+    {
+      "slug": "geneva-centre-adult-social-club",
+      "name": "Adult Social Club - Geneva Centre for Autism",
+      "website": "https://www.genevacentre.ca/programs_/t24573/t24576-social-club",
+      "description": "A monthly social club where neurodiverse adults aged 18 and over meet for activities such as movie nights, themed parties and local community events, in person and online.",
+      "category": "Support Group",
+      "tags": [
+        "prog_social_clubs",
+        "recreation",
+        "community_group",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "paid",
+      "cost_note": "$20 per session.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "164 Merton St. Toronto, ON, M4S 3A8",
+      "phone": "(416) 322-7877",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Social Club creates opportunities for neurodiverse adults to share interests and experiences while building new relationships.",
+      "notes": "Thursdays, once a month, 6:00-8:00 p.m.; 1 to 15 support ratio. Pre-screening is required before joining.",
+      "price": 20
+    },
+    {
+      "slug": "autism-ontario-community-events",
+      "name": "Autism Ontario community events and programs",
+      "website": "https://www.autismontario.com/events",
+      "description": "Autism Ontario's regional teams list short programs and events across Ontario for autistic children, teens, adults and families, such as art, chess, sports and STEM series. Fall 2026 listings include a run/walk club for autistic teens and adults (16+) in Toronto and a Dungeons and Dragons night for autistic adults (18+) in Windsor.",
+      "category": "Support Group",
+      "tags": [
+        "prog_events",
+        "prog_social_clubs",
+        "recreation",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "Fees vary by event, e.g. $5 for the 6-week Toronto run/walk club and $15 per autistic participant for the Windsor Dungeons and Dragons night.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Autistic children ages 8-16 are invited to join us for a 5-week chess program in Hamilton.",
+      "notes": "Listings change each season and registration opens on set dates. Example pages checked: run/walk club https://autismontario.com/civicrm/event/info?id=12991 and D&D night https://autismontario.com/civicrm/event/info?id=12962 (both in person)."
+    },
+    {
+      "slug": "autism-ontario-career-connections-job-seekers",
+      "name": "Autism Career Connections - Job Seekers Course (Autism Ontario)",
+      "website": "https://www.autismontario.com/seekers",
+      "description": "A free, self-paced online course from Autism Ontario for autistic job seekers, covering skills discovery, resumes and cover letters, applying for jobs, interviews, and how, if and when to disclose a disability.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page says: 'This is a free, no-cost to you program.'",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Find Meaningful Work as an Autistic Person",
+      "notes": "Sign-up form: https://www.autismontario.com/Seeker-Form. The page also recommends the course's Employer Module."
+    },
+    {
+      "slug": "caddac-adult-adhd-peer-led-support-groups",
+      "name": "Adult ADHD Peer-led Support Groups - CADDAC",
+      "website": "https://caddac.ca/programs-events/monday-adult-adhd-peer-led-support-group/",
+      "description": "Free monthly support groups on Zoom from CADDAC, a national ADHD charity, led by trained facilitators who are adults with ADHD. Members share stories and strategies with others affected by ADHD, personally or as a parent or caregiver.",
+      "category": "Support Group",
+      "tags": [
+        "community_group",
+        "community_online",
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "Group title says '(FREE!)'.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "(416) 637-8584",
+      "email": "info@CADDAC.ca",
+      "age_ranges": [],
+      "evidence": "led by trained facilitators who are all adults with ADHD",
+      "notes": "Monday group meets the first Monday of each month, 6:30 pm ET, 1.5 hours (no meeting in December 2026); the Zoom link is emailed a day before. CADDAC also runs Wednesday and Thursday adult groups, a women's group and an ADHD/substance use group. Toll-free 1-800-807-0090."
+    },
+    {
+      "slug": "caddac-youth-adhd-peer-support-group",
+      "name": "Youth ADHD Peer-facilitated Support Group (ages 16-24) - CADDAC",
+      "website": "https://caddac.ca/programs-events/youth-peer-facilitated-support-group/",
+      "description": "A free monthly online support group for young people aged 16 to 24 with ADHD, led by CADDAC-trained peer facilitators.",
+      "category": "Support Group",
+      "tags": [
+        "community_group",
+        "community_online",
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "Group title says '(FREE!)'.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "(416) 637-8584",
+      "email": "info@CADDAC.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Youth ADHD Peer-facilitated Support Group: Age 16-24 (FREE!)",
+      "notes": "Meets the 4th Wednesday of each month at 8:00 pm ET, August 19, 2026 to June 23, 2027 (no meeting in December 2026)."
+    },
+    {
+      "slug": "caddac-youth-adhd-group-coaching",
+      "name": "Youth ADHD Group Coaching Program (ages 16-24) - CADDAC",
+      "website": "https://caddac.ca/programs-events/youth-adhd-group-coaching-program-16-24-years/",
+      "description": "A 10-session online group coaching program for young adults aged 16 to 24 with ADHD, working on executive functioning skills such as organization, planning, time management, motivation and self-regulation. It was developed by a certified ADHD coach.",
+      "category": "Education Support",
+      "tags": [
+        "prog_mentorship",
+        "community_online",
+        "charity"
+      ],
+      "cost": "paid",
+      "cost_note": "$100 + HST for the full 10-session program.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "(416) 637-8584",
+      "email": "info@CADDAC.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "designed specifically for young adults ages 16 to 24 who have been diagnosed with ADHD",
+      "notes": "Group coaching, not one-to-one mentoring. Fall 2026 session: twice a week, 75 minutes, November 5 to December 7, 2026, on Zoom. The page also says youth 'not yet diagnosed' may join.",
+      "price": 100
+    },
+    {
+      "slug": "caddac-annual-adhd-conference",
+      "name": "CADDAC Annual ADHD Conference",
+      "website": "https://caddac.ca/programs-events/caddacs-18th-annual-adhd-conference/",
+      "description": "CADDAC's yearly ADHD conference for adults with ADHD, parents and caregivers of children with ADHD, educators and health professionals. The 18th conference is on October 24-25, 2026 at Centennial College Event Centre in Toronto, with a live stream option.",
+      "category": "Education Support",
+      "tags": [
+        "prog_events",
+        "community_in_person",
+        "community_online",
+        "charity"
+      ],
+      "cost": "paid",
+      "cost_note": "2026 prices including HST: live stream $125-$250; in person $214-$344; student in-person rates $113-$225 (proof required).",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "Centennial College Event Centre, 937 Progress Ave, Toronto ON, M1G 3T8",
+      "phone": "(416) 637-8584",
+      "email": "info@CADDAC.ca",
+      "age_ranges": [],
+      "evidence": "CADDAC's ADHD Conference provides information for adults with ADHD, parents and/or caregivers of children with ADHD and their families",
+      "notes": "Held every year; the 2026 event is the 18th."
+    },
+    {
+      "slug": "camp-kirk",
+      "name": "Camp Kirk",
+      "website": "https://www.campkirk.com/",
+      "description": "A summer camp in Kirkfield, Ontario, two hours north-east of Toronto, with recreational programs designed for kids and youth with ADHD, autism, learning disabilities and other exceptionalities.",
+      "category": "Recreation",
+      "tags": [
+        "recreation",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site has a Financial Aid section but the pages checked list no fees.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kirkfield",
+      "address": "1083 Portage Road, Kirkfield, Ontario K0M 2B0",
+      "phone": "416-782-3310",
+      "email": "Campkirk@campkirk.com",
+      "age_ranges": [],
+      "evidence": "Recreational programs designed for kids with ADHD, autism, learning disabilities and other exceptionalities.",
+      "notes": "City office (September-May): Unit #350, 610 Ford Drive, Oakville, ON L6J 7W4. Ages served are not stated on the pages checked.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "camp-winston",
+      "name": "Camp Winston",
+      "website": "https://www.campwinston.com/",
+      "description": "Summer and respite camp programs in Muskoka for neurodiverse youth living with autism, Tourette's, ADHD, learning disabilities, OCD, anxiety and ODD. Summer programs are for ages 7 to 17.",
+      "category": "Recreation",
+      "tags": [
+        "recreation",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The home page does not list fees.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Kilworthy",
+      "address": "1147 Riverlane Private, Kilworthy, ON P0E 1G0",
+      "phone": "416-487-6229",
+      "email": "mail@campwinston.com",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "supports neurodiverse youth living with Autism, Tourettes, ADHD, Learning Disabilities, OCD, Anxiety and ODD",
+      "notes": "14-day summer sessions run June to August; respite weekend sessions in September and May.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "arrowsmith-school-toronto",
+      "name": "Arrowsmith School",
+      "website": "https://school.arrowsmith.ca/",
+      "description": "An independent special education school in Toronto offering in-person and online cognitive programming for individuals with learning disabilities, for learners from age 6 to adulthood.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "paid",
+      "cost_note": "The site has a 'Tuition & Cognitive Assessment Fees' page; amounts are not on the home page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "245 St. Clair Avenue West, Toronto, Ontario M4V 1R3",
+      "phone": "+1 416 963-4962",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "A co-educational, independent, special education school for learners 6 to 90+, offering online and in-person cognitive programming for individuals with learning disabilities.",
+      "notes": ""
+    },
+    {
+      "slug": "ontario-provincial-demonstration-schools",
+      "name": "Provincial Demonstration Schools (Amethyst, Sagonaska and Trillium)",
+      "website": "https://www.pdsbnet.ca/schools/demonstration_schools",
+      "description": "Three English-language demonstration schools run by the Provincial and Demonstration Schools Branch of Ontario's Ministry of Education. They offer a one-year, high-intensity reading and writing placement for students diagnosed with a severe learning disability.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The pages checked do not mention costs.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The demonstration schools, Amethyst, Sagonaska and Trillium, provide a one-year placement program for students diagnosed with a severe learning disability",
+      "notes": "Schools are in Belleville, London and Milton. Referrals come from the student's school board after an IPRC recommendation (see the Criteria for Placement page). Reading is taught with the Empower program from SickKids.",
+      "usual_cost": "free"
+    },
+    {
+      "slug": "lda-wellington-county-reading-rocks",
+      "name": "Reading Rocks! - Learning Disabilities Association of Wellington County",
+      "website": "https://ldawc.ca/programs/",
+      "description": "A one-to-one reading program where children aged 6 to 12 with a suspected or diagnosed learning disability or ADHD work with a trained volunteer tutor on phonics, sight words and fluency. Offered online and in person in Guelph.",
+      "category": "Education Support",
+      "tags": [
+        "prog_tutoring",
+        "edu_elementary",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page says 'as we continue to strive to keep this a free program, spaces are limited to the amount of funding we have.'",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Guelph",
+      "address": "Post Office Box 233, 17A - 218 Silvercreek Pkwy N, Guelph, ON N1H 8E8",
+      "phone": "(519) 837-2050",
+      "email": "info@ldawc.ca",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "For: Children aged 6-12, who have a suspected or diagnosed learning disability/ADHD and are struggling readers.",
+      "notes": "Fall 2026 sessions: September 28 to December 4, twice a week, 6:30-7:30 pm. The chapter also runs Social Skills (ages 8-12), Executive Skills (ages 10-16) and SOAR transition programs for students with LD/ADHD. Programs are not structured for people with an intellectual disability or significant behavioural support needs."
+    },
+    {
+      "slug": "lda-ottawa-carleton-1-1-tutoring",
+      "name": "1:1 Tutoring Programs (RISE Reading, Math Support, Academic Coaching) - Learning Disabilities Association of Ottawa-Carleton",
+      "website": "https://www.ldaottawa.com/individual-programs/",
+      "description": "One-to-one tutoring in reading (an Orton-Gillingham reading program), math and academic coaching, at the centre or online. Math Support is for children in Grades 1 to 8 who are at least a year behind in math because of a diagnosed, identified or suspected math disability (dyscalculia) and/or ADHD.",
+      "category": "Education Support",
+      "tags": [
+        "prog_tutoring",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "paid",
+      "cost_note": "Each program is listed at $500.00.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": "450-1547 Merivale Road, Ottawa",
+      "phone": "(613) 621-3043",
+      "email": "info@ldaottawa.com",
+      "age_ranges": [],
+      "evidence": "behind in the area of math due to a diagnosed, identified, or suspected math disability (dyscalculia) and/or ADHD",
+      "notes": "RISE Reading: 10 sessions of 60 minutes, once or twice a week. Academic Coaching covers elementary to high school students. Location and times are arranged between tutor and student.",
+      "price": 500
+    },
+    {
+      "slug": "lda-peel-region-tutoring",
+      "name": "Reading and Math Tutoring - Learning Disabilities Association of Peel Region",
+      "website": "https://ldapr.ca/",
+      "description": "One-to-one reading and math tutoring with LDAPR-trained tutors for children and youth with learning differences. Math support is for students in Grades 1 to 8 who are at least a year behind because of a diagnosed, identified or suspected math disability (dyscalculia).",
+      "category": "Education Support",
+      "tags": [
+        "prog_tutoring",
+        "edu_elementary",
+        "edu_middle"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not list fees.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Mississauga",
+      "address": "Rooms 205-206 St. Hilary Elementary School, 5070 Fairwind Drive, Mississauga, Ontario L5R 2N4",
+      "phone": "+1 905-272-4100",
+      "email": "programcoordinator@ldapr.ca",
+      "age_ranges": [],
+      "evidence": "programs and resources for children and youth with learning differences and their families",
+      "notes": "The address is the association's office; the page does not say where tutoring takes place. LDAPR also runs a F.R.I.E.N.D.S. Summer Camp (listed as returning in 2026).",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "lda-york-simcoe-skills-builder-adventure-club",
+      "name": "Skills Builder Adventure Club - Learning Disabilities Association of York-Simcoe",
+      "website": "https://ldays.org/our-popular-skills-builder-social-skills-groups-are-back/",
+      "description": "A social skills group for children aged 8 to 12 with diagnosed or suspected learning disabilities and/or ADHD, held at the association's Richmond Hill office.",
+      "category": "Support Group",
+      "tags": [
+        "prog_social_clubs",
+        "edu_elementary",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not list fees.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Richmond Hill",
+      "address": "9030 Leslie Street, Unit 216, Richmond Hill, ON L4B 1G2",
+      "phone": "(905) 884-7933",
+      "email": "info@ldays.org",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "Designed with children ages 8–12 who have diagnosed or suspected learning disabilities (LD) and/or ADHD in mind",
+      "notes": "Fall 2026 session: Wednesdays 5:30-6:30 p.m., November 11 to December 16, 2026; registration closes November 6 and spaces are limited. The page gives an address but does not state the format. The chapter's home page also lists sessions in Newmarket and Vaughan and a small-group study skills program for ages 14-17.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "lda-niagara-ld-student-social",
+      "name": "LD Student Social - Learning Disabilities Association of Niagara Region",
+      "website": "https://ldaniagara.org/programs/ld-student-social/",
+      "description": "A small-group program where students in Grades 6 to 10 with a diagnosed or suspected learning disability meet and connect, building confidence, coping and self-advocacy skills through discussion, games and activities.",
+      "category": "Support Group",
+      "tags": [
+        "prog_social_clubs",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "$100.00; the page says fees may change and a subsidy or payment plan may be available.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Thorold",
+      "address": null,
+      "phone": "(905) 641-1021",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "a safe and inclusive space for students with learning disabilities to meet and connect",
+      "notes": "Listed session: January 20 to April 7, Wednesdays 6:00-7:00 pm, 8 weeks, at Our Lady of the Holy Rosary School, Thorold (venue tentative). Chapter office: The Branscombe Centre, 1338 Fourth Avenue, Unit S215, St. Catharines, ON L2S 0G1.",
+      "price": 100
+    },
+    {
+      "slug": "lda-toronto-smart-kidz-tutoring",
+      "name": "Smart Kidz Tutoring - Learning Disabilities Association of Toronto",
+      "website": "https://www.ldatd.on.ca/programs/children/smart-kidz-tutoring/",
+      "description": "A six-week small-group homework and tutoring program (up to 3 students per tutor) with tutors trained to work with students with learning disabilities, online on Zoom or in person.",
+      "category": "Education Support",
+      "tags": [
+        "prog_tutoring",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "paid",
+      "cost_note": "$225 per 3- or 6-week online session; $250 per 6-week in-person session; fees are non-refundable.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416.229.1680",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Provide qualified tutors with a background in education and training to cater to individuals with LDs.",
+      "notes": "The page gives two age ranges (5-12 in the session details, 6-17 in the eligibility section). Eligibility includes students working with an IEP.",
+      "price": 225
+    },
+    {
+      "slug": "lda-toronto-befriend",
+      "name": "Befriend - Learning Disabilities Association of Toronto",
+      "website": "https://www.ldatd.on.ca/programs/youth/befriend/",
+      "description": "A six-week social skills and communication program for teens aged 14 to 18 with learning disabilities and/or ADHD who have difficulty interacting and socializing with peers. Held on Saturdays in North York.",
+      "category": "Support Group",
+      "tags": [
+        "prog_social_clubs",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "$300 per 6-week session; fees are non-refundable.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "121 Willowdale Avenue, North York",
+      "phone": "416.229.1680",
+      "email": null,
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Children ages 14 -18 with Learning Disabilities and/or AD(H)D",
+      "notes": "2026 sessions: September 26-October 31 and November 7-December 12, Saturdays 2-3:30 pm. Groups are confirmed after an intake interview. The page says the program does not take the place of therapy.",
+      "price": 300
+    },
+    {
+      "slug": "lda-toronto-yield",
+      "name": "Y.I.E.L.D. (Youths' Initiative and Excellence with LDs) - Learning Disabilities Association of Toronto",
+      "website": "https://www.ldatd.on.ca/programs/youth/y-i-e-l-d-youths-initiative-and-excellence-with-lds/",
+      "description": "A free program for youth aged 15 to 30 with learning disabilities that offers certified leadership workshops, civic engagement and community service projects, online and in person.",
+      "category": "Education Support",
+      "tags": [
+        "career_training",
+        "community_group",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page says 'The Y.I.E.L.D. program is free of charge!'",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "121 Willowdale Avenue, North York",
+      "phone": "416.229.1680",
+      "email": null,
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "designed to support L.D. youth to gain valuable skills and increase civic engagement opportunities",
+      "notes": "Participants commit 120 hours over 4 months. The page mentions free TTC fares and snacks based on eligibility."
+    },
+    {
+      "slug": "lda-toronto-adult-support-group",
+      "name": "Adult Support Group - Learning Disabilities Association of Toronto",
+      "website": "https://www.ldatd.on.ca/programs/adults/adult-support-group/",
+      "description": "A free online support group for adults who have or think they have a learning disability or ADHD, with open discussion and problem-solving on topics such as employment, social skills and life skills.",
+      "category": "Support Group",
+      "tags": [
+        "community_group",
+        "community_online"
+      ],
+      "cost": "free",
+      "cost_note": "The page says the program 'is free of cost.'",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "(416) 229-1680",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Adults who have or think they have a Learning Disability or AD(H)D.",
+      "notes": "Meets online every other week on Tuesday evenings, 7-9 pm. An intake meeting with the program facilitator is required first (book by phone)."
+    },
+    {
+      "slug": "lightwell-learning",
+      "name": "Lightwell Learning",
+      "website": "https://lightwelllearning.ca/",
+      "description": "A Vancouver charity offering individualized learning support, assessments and workshops for children, youth and adults with learning and brain-based differences such as dyslexia, ADHD and autism, in physical and virtual learning spaces.",
+      "category": "Education Support",
+      "tags": [
+        "prog_tutoring",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person",
+        "community_online",
+        "charity"
+      ],
+      "cost": "paid",
+      "cost_note": "The page says it uses a sliding fee scale; no amounts are listed.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": "3292 East Broadway, Vancouver, BC V5M 1Z8",
+      "phone": "604.873.8139",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Serving individuals with learning and brain-based differences, such as dyslexia, ADHD, and autism.",
+      "notes": "Programs listed: Early Years (ages 3-6), School-Age (K-12), Youth (15-21) and Adults (18+). The old ldsociety.ca address redirects to this site."
+    },
+    {
+      "slug": "fraser-academy",
+      "name": "Fraser Academy",
+      "website": "https://fraseracademy.ca/",
+      "description": "An independent day school in Vancouver for students with dyslexia and other language-based learning differences, from Grade 1 to Grade 12.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "prog_tutoring",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "The site has a 'Tuition & Tuition Relief' page; amounts are not on the home page.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": "2294 West 10th Ave, Vancouver, BC V6K 2H8",
+      "phone": "604 736 5575",
+      "email": "info@fraseracademy.ca",
+      "age_ranges": [],
+      "evidence": "dedicated to helping students with dyslexia in grades 1-12",
+      "notes": "Junior (Grades 1-6), Middle (7-9) and Senior (10-12) schools. The site also lists tutoring and summer programs."
+    },
+    {
+      "slug": "foothills-academy",
+      "name": "Foothills Academy",
+      "website": "https://www.foothillsacademy.org/our-school/explore-our-school",
+      "description": "A designated special education private school in Calgary for students in Grades 3 to 12 who have diagnosed learning disabilities such as dyslexia. Its community services also serve people of all ages with learning disabilities and/or ADHD.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page gives no tuition amounts; it says the school aims to provide 'a financially accessible school program'.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "address": "745 37 St NW, Calgary AB T2N 4T1",
+      "phone": "(403) 270-9400",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "a Designated Special Education Private School for students in grades 3 to 12, all of whom have diagnosed Learning Disabilities (such as Dyslexia)",
+      "notes": "Community services (in person and online) include read/write and math intervention, camps and recreation, and parent education.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "landmark-east-school",
+      "name": "Landmark East School",
+      "website": "https://www.landmarkeast.org/",
+      "description": "A day and boarding school in Wolfville, Nova Scotia for children aged 8 to 19 (Grades 3 to 12) with learning differences who need a school designed for how they learn.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "The home page does not list tuition.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Wolfville",
+      "address": "708 Main Street, Wolfville, Nova Scotia B4P 1G4",
+      "phone": "902-542-2237",
+      "email": "admissions@landmarkeast.org",
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Landmark East School is for children with learning differences who need a school designed for how they learn.",
+      "notes": "Page header lists 'Dyslexia, ADHD, LD.' Toll-free 1-800-565-5887; general email Info@landmarkeast.org.",
+      "usual_cost": "paid"
+    },
+    {
+      "slug": "giant-steps-school-montreal",
+      "name": "Giant Steps School",
+      "website": "https://giantstepsmontreal.com/giant-steps-school/",
+      "description": "A bilingual, neuroaffirmative school in Montréal for autistic students aged 4 to 21, subsidized by Quebec's ministère de l'Éducation. Giant Steps also runs adult education programs for autistic adults aged 21 and over.",
+      "category": "School",
+      "tags": [
+        "prog_special_education",
+        "edu_elementary",
+        "edu_middle",
+        "edu_secondary",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "Annual registration fee of $200, plus listed fees for lunchtime supervision ($720), school materials ($220) and Parents' Committee ($60).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montréal",
+      "address": "4400, rue Molson, Montréal, Québec, H1Y 0A3",
+      "phone": "514-935-1911",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "A specialized, bilingual, and neuroaffirmative school supporting autistic students from ages 4 to 21",
+      "notes": "Admission requires a primary autism diagnosis. Classes in French and English; English classes require a certificate of English eligibility."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Autism Mentorship Initiative (Simon Fraser University)",
+      "reason": "Own page loads but says 'AMI is currently not taking place.'"
+    },
+    {
+      "name": "York University Student Accessibility Services transition programs, incl. Strengthening Pathways to Success for Autistic Students",
+      "reason": "students.yorku.ca pages would not load (TLS certificate error)."
+    },
+    {
+      "name": "AIDE Canada (autism and intellectual disability webinars and events)",
+      "reason": "aidecanada.ca would not load (TLS certificate error)."
+    },
+    {
+      "name": "Ausome Ottawa (sports programs for autistic people)",
+      "reason": "ausomeottawa.com redirects to an unrelated website; no own page verified."
+    },
+    {
+      "name": "Autism Mentorship Program (AMP), Ottawa - student-athlete mentors for autistic youth",
+      "reason": "Found only in an Ontario Health atHome directory listing and a student newspaper article; no organisation website found."
+    },
+    {
+      "name": "Autism Moves (OSEG Foundation, Ottawa)",
+      "reason": "Found only through a volunteer listing; own page not checked."
+    },
+    {
+      "name": "The Dunblaine School (Toronto, school for students with learning disabilities)",
+      "reason": "Only third-party directory listings found; dunblaine.ca does not resolve and no official site was found."
+    },
+    {
+      "name": "The Learning Common, The Claremont School, AVRO Academy and Toronto STEM School (Toronto)",
+      "reason": "Found only on a third-party school directory (OurKids); own sites not checked."
+    },
+    {
+      "name": "Integra program, Integra Social ACES and Camp Towhee (Child Development Institute, Toronto)",
+      "reason": "CDI's own home page no longer names Integra; program details only on third-party pages."
+    },
+    {
+      "name": "Kohai Educational Centre (Toronto)",
+      "reason": "Only third-party listings seen, describing an adult day program for developmental disabilities rather than an autism or LD program; own site not checked."
+    },
+    {
+      "name": "Geneva Centre for Autism Symposium (Toronto, November 12-13, 2026)",
+      "reason": "Symposium page loads but does not say who the event is for or list fees; left out."
+    },
+    {
+      "name": "Geneva Centre for Autism Workforce Solutions",
+      "reason": "Page does not describe job-seeker services, cost or format clearly enough to list."
+    },
+    {
+      "name": "LDA London Region Academic Tutoring",
+      "reason": "Tutoring page only says 'for students in Grades 3-12' and does not say it is for students with LD or ADHD."
+    },
+    {
+      "name": "LDA Ottawa-Carleton Saturday Morning Social Club",
+      "reason": "Club page does not say who the club is for."
+    },
+    {
+      "name": "LDA Windsor-Essex County Thrive Coaching",
+      "reason": "Coaching page offers coaching (including 'ADHD support') to everyone and does not say it is made for people with LD or ADHD."
+    },
+    {
+      "name": "Camp Kodiak (Ontario)",
+      "reason": "Own page describes an integrated camp for children and teens 'with & without' learning disabilities, ADHD and ASD Level 1, so not made only for neurodivergent campers; left out."
+    },
+    {
+      "name": "Xenia hospitality employment program (Giant Steps Montreal)",
+      "reason": "Own page describes Phase 1 in the past tense; no current intake found."
+    },
+    {
+      "name": "Toronto Metropolitan University SHIFT and Portage transition programs",
+      "reason": "Only a 2015 third-party source found; own pages not checked."
+    },
+    {
+      "name": "Algonquin College autism support / transition centre",
+      "reason": "Only an old student-newspaper article found; own page not checked."
+    },
+    {
+      "name": "Autism Ontario chapter adult social groups (e.g. Peterborough Adult Social Group)",
+      "reason": "Found only on a third-party directory; current Autism Ontario events are covered by the events calendar entry."
+    },
+    {
+      "name": "LDA Durham Region",
+      "reason": "Home page lists advocacy and resource services but no tutoring, mentoring or social programs."
+    }
+  ]
+}

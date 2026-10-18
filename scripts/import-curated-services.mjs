@@ -10,10 +10,16 @@
  * Reads scripts/data/services/<topic>.json:
  *   {"topic", "checked", "entries": [{slug, name, website, description,
  *    category, tags, cost, cost_note, delivery, country, province, city,
- *    address, phone, email, currency?, age_ranges, evidence, notes}]}
+ *    address, phone, email, currency?, price?, usual_cost?, age_ranges,
+ *    evidence, notes}]}
+ *
+ * cost is what the page says (free, paid or unknown), and price the amount it
+ * lists. When it says nothing, usual_cost (checked by hand) or the category
+ * gives what that kind of service usually costs, and the listing says so.
  *
  * Each website is fetched again before saving, and one that does not load is
- * left out. Tags and age ranges outside ResourceHub's vocabularies are
+ * left out (one that answers with a robot check, or Facebook's sign-in, loads
+ * for people and is kept). Tags and age ranges outside ResourceHub's vocabularies are
  * dropped. A street address is placed on the map with OpenStreetMap's
  * Nominatim (one request a second); without one there is no map point, and
  * search lists the service after places near the person. Rows are approved
@@ -27,6 +33,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const DIR = path.join(ROOT, 'scripts/data/services')
@@ -59,17 +66,33 @@ function loadEnv() {
   }
 }
 
+// 'yes', or why a site that answers turns a script away but loads for people
+// (a robot check, Facebook without signing in), or null when it is gone.
 async function loads(url) {
   for (const method of ['HEAD', 'GET']) {
     try {
       const res = await fetch(url, { method, redirect: 'follow', headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(25000) })
-      if (res.status < 400) return true
-      if (method === 'GET') return false
-    } catch {
-      if (method === 'GET') return false
+      if (res.status < 400) return 'yes'
+      if (res.headers.get('cf-mitigated') === 'challenge') return 'checks for robots'
+      if (res.status === 400 && /(^|\.)facebook\.com$/.test(new URL(res.url).hostname)) return 'needs a sign-in'
+      if (method === 'GET') return null
+    } catch (e) {
+      // A browser fetches a missing middle certificate itself; Node does not,
+      // and curl, with the system's certificates, does.
+      if (/CERT|SIGNATURE|ISSUER/.test(e?.cause?.code || '')) return viaCurl(url)
+      if (method === 'GET') return null
     }
   }
-  return false
+  return null
+}
+
+function viaCurl(url) {
+  try {
+    const code = execFileSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '-L', '--max-time', '25', '-A', UA, url]).toString()
+    return Number(code) > 0 && Number(code) < 400 ? 'yes' : null
+  } catch {
+    return null
+  }
 }
 
 async function geocode(address, city, province, country) {
@@ -107,10 +130,13 @@ async function main() {
     let kept = 0, dropped = 0
     for (const e of data.entries || []) {
       if (!e?.name || !/^https?:\/\//.test(e?.website || '') || !e?.slug) { dropped++; continue }
-      if (!(await loads(e.website))) { console.log(`  ${topic}: site did not load, left out: ${e.name}`); dropped++; continue }
+      const site = await loads(e.website)
+      if (!site) { console.log(`  ${topic}: site did not load, left out: ${e.name}`); dropped++; continue }
+      if (site !== 'yes') console.log(`  ${topic}: kept, the site ${site} (it loaded for the check on ${data.checked}): ${e.name}`)
       const country = e.country || 'Canada'
       const point = e.address ? await geocode(e.address, e.city, e.province, country) : null
       const known = e.cost === 'free' || e.cost === 'paid'
+      const usual = e.usual_cost === 'free' || e.usual_cost === 'paid' ? e.usual_cost : USUALLY_FREE.has(e.category) ? 'free' : 'paid'
       rows.push({
         name: String(e.name).slice(0, 200),
         description: String(e.description || '').slice(0, 900),
@@ -119,8 +145,9 @@ async function main() {
         contact_info: { phone: e.phone || null, email: e.email || null, website: e.website },
         tags: [...new Set((e.tags || []).filter((t) => TAGS.has(t)))],
         age_ranges: [...new Set((e.age_ranges || []).filter((a) => AGES.has(a)))],
-        cost_type: known ? e.cost : USUALLY_FREE.has(e.category) ? 'free' : 'paid',
+        cost_type: known ? e.cost : usual,
         cost_source: known ? 'listed' : 'usual',
+        price: known && e.cost === 'paid' && typeof e.price === 'number' && e.price > 0 ? e.price : null,
         currency: e.currency || CURRENCY[String(country).toLowerCase()] || 'CAD',
         delivery: ['in_person', 'online', 'both'].includes(e.delivery) ? e.delivery : null,
         status: 'approved',

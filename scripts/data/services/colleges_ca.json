@@ -1,0 +1,1486 @@
+{
+  "topic": "colleges_ca",
+  "checked": "2026-10-17",
+  "entries": [
+    {
+      "slug": "bcit-accessibility",
+      "name": "BCIT — Accessibility Services",
+      "website": "https://www.bcit.ca/accessibility/",
+      "description": "Accessibility Services supports BCIT students with disabilities and medical conditions, permanent or temporary, through accommodations, services, and disability-related information and resources. Diagnoses it commonly supports include ADHD, learning disabilities and autism spectrum disorder.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "BCIT",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Neurological disabilities: Attention-deficit/hyperactivity disorder (ADHD), learning disabilities, head injuries, and autism spectrum disorder.",
+      "notes": "Names ADHD and autism spectrum disorder among diagnoses commonly supported. Registered students manage approved services through an online portal."
+    },
+    {
+      "slug": "bcit-peer-tutoring",
+      "name": "BCIT — Peer Tutoring (Learning Commons)",
+      "website": "https://www.bcit.ca/learning-commons/peer-tutoring/",
+      "description": "Peer tutors are current BCIT students with strong grades who help you review and apply course concepts and share learning strategies that helped them. Tutoring is drop-in with no advance registration, at campus libraries and rooms or online through the Learning Hub.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "edu_trade",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Peer tutoring is free and available to all BCIT students.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "BCIT",
+      "address": "3700 Willingdon Ave., Burnaby, British Columbia, Canada V5G 3H2",
+      "phone": null,
+      "email": "learningcommons@bcit.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutoring is free and available to all BCIT students.",
+      "notes": "Burnaby Campus Library main floor (SE14); also at the Aerospace Technology, Downtown and Marine campuses. Engineering tutors help with Trades math and physics. Times change by program; check the online schedule."
+    },
+    {
+      "slug": "bcit-learning-strategies",
+      "name": "BCIT — Learning Strategists (Learning Commons)",
+      "website": "https://www.bcit.ca/learning-commons/learning-strategies/",
+      "description": "A Learning Strategist gives one-on-one support to help you become a more confident and efficient learner, with topics including focus and productivity, managing your workload, learning with ADHD and reducing anxiety. Appointments are at the Burnaby Campus Library or virtual, and there is a drop-in study skills session on Wednesday afternoons.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "institution": "BCIT",
+      "address": "3700 Willingdon Ave., Burnaby, British Columbia, Canada V5G 3H2",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Skills and strategies they can help with include focus and productivity, reading and note-taking, test preparation, managing your workload, learning with ADHD, and reducing anxiety.",
+      "notes": "Lists 'learning with ADHD' as a topic. Online study skills guides are also offered."
+    },
+    {
+      "slug": "langara-accessibility",
+      "name": "Langara College — Accessibility Services",
+      "website": "https://langara.ca/student-services/academic-support/accessibility-services",
+      "description": "Accessibility Services meets with self-identified students with disabilities to decide on reasonable academic accommodations and arrange support services case by case. It also helps eligible students apply for StudentAid BC special programs and offers assistive technology training and a Learning Technology Lab.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "No cost is stated. Staff help eligible students apply for StudentAid BC grants that can pay for assessments, assistive technology and tutoring.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "Langara College",
+      "address": "100 West 49th Avenue, Vancouver, B.C., V5Y 2Z6",
+      "phone": "604-323-5509",
+      "email": "accessibilityservices@langara.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our dedicated Accessibility Services team meets with self-identified students with disabilities to determine reasonable academic accommodations and arrange appropriate support services on a case-by-case basis.",
+      "notes": "Office B146. Langara asks for documentation at least three months before the semester; its contact page lists the current wait for an intake appointment as 6 to 7 weeks. You can bring a parent or supporter to the intake appointment."
+    },
+    {
+      "slug": "langara-academic-success-centre",
+      "name": "Langara College — Academic Success Centre",
+      "website": "https://langara.ca/student-services/academic-support/academic-success-centre",
+      "description": "The Academic Success Centre offers free academic support, including peer tutoring in over 15 subjects, peer academic coaching on study skills, Peer Supported Learning study sessions led by students who have succeeded in the course, and Writing Centre appointments.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "The page describes free academic support and free peer tutoring for over 15 subjects.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "Langara College",
+      "address": "100 West 49th Avenue, Vancouver, B.C., V5Y 2Z6",
+      "phone": null,
+      "email": "academicsupport@langara.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Informal study sessions for challenging courses led by students who have succeeded the course before.",
+      "notes": "Peer Supported Learning (PSL) and academic coaching are student-led. Langara's separate Tutoring and Study Groups page did not load (see unverified)."
+    },
+    {
+      "slug": "douglas-accessibility",
+      "name": "Douglas College — Accessibility Services",
+      "website": "https://www.douglascollege.ca/student-services/accessibility-services",
+      "description": "Accessibility Services works with students and their instructors to create an individual plan for accommodations and support, such as extra exam time, audio recording of lectures or text-to-speech software. Support can also include help applying for StudentAidBC disability funding, building self-advocacy skills, and planning courses and transitions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "New Westminster",
+      "institution": "Douglas College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We work with students to remove barriers related to learning disabilities, ADHD, mental health issues, physical disabilities, sensory impairments, TBI, chronic illnesses, and more.",
+      "notes": "Appointments in person or by Zoom. Zoom drop-in hours for 10-minute questions: Tuesdays 9-11am, Thursdays 2-4pm, Fridays 11am-1pm. Campuses in New Westminster and Coquitlam."
+    },
+    {
+      "slug": "douglas-learning-centre",
+      "name": "Douglas College — Learning Centre (peer tutoring)",
+      "website": "https://library.douglascollege.ca/learningcentre/how-tutoring-works",
+      "description": "Peer tutors help with study skills, understanding course-specific content, and writing assignments for all Douglas College courses. Sessions are 25 or 55 minutes at the Coquitlam campus, the New Westminster campus or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "No charge when you book; the page says tutoring is already included in student fees.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "New Westminster",
+      "institution": "Douglas College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutors can help with study skills, understanding course-specific content, and writing assignments for all Douglas College courses.",
+      "notes": "Book at douglas.mywconline.com. Tutors do not proofread or correct your writing; they show you how. A sign language interpreter can be booked for sessions. The page lists phone numbers 1-604-527-5568 and 1-604-777-6130."
+    },
+    {
+      "slug": "camosun-centre-accessible-learning",
+      "name": "Camosun College — Centre for Accessible Learning (CAL)",
+      "website": "https://camosun.ca/services/academic-supports/accessible-learning",
+      "description": "The Centre for Accessible Learning coordinates academic accommodations and related programs and services for students with documented disabilities. It supports students who self-identify with a documented, diagnosed disability in reaching their educational goals.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "Camosun College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Centre for Accessible Learning (CAL) coordinates academic accommodations and provides related programs and services to students with documented disabilities.",
+      "notes": "Lansdowne CAL offices are on the 2nd floor of the Dawson building; Interurban stays in its usual location. The separate Contact CAL page (camosun.ca/services/academic-supports/accessible-learning/contact-cal) offers appointments in person, by phone, by video or by email, and lists 250-370-3312 (Lansdowne), 250-370-4049 (Interurban) and accessible@camosun.ca."
+    },
+    {
+      "slug": "camosun-academic-help-centres",
+      "name": "Camosun College — Academic Help Centres",
+      "website": "https://camosun.ca/services/academic-and-learning-resources/academic-help-centres",
+      "description": "Academic Help Centres offer free one-on-one tutoring, writing and learning skills support for Camosun students at any level, in business, English upgrading, ELD/ESL, math and science. Appointments are face-to-face or online.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free one-on-one tutoring for all Camosun students.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "Camosun College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Academic Help Centres offer free one-on-one tutoring, writing and learning skills support for all Camosun students at any level.",
+      "notes": "Tutors are staff instructional assistants with a bachelor's degree and teaching or tutoring experience, not peers. Students can use Help Centres at both the Lansdowne and Interurban campuses."
+    },
+    {
+      "slug": "camosun-writing-learning-skills",
+      "name": "Camosun College — Writing Centre and Learning Skills",
+      "website": "https://camosun.ca/services/academic-and-learning-resources/writing-centre-and-learning-skills",
+      "description": "The Writing Centre gives feedback on writing, oral communication and reading, meeting in person at Lansdowne or Interurban, online by video chat, or by written feedback emailed the same day. A learning specialist offers consultations on time management, exam preparation, stress management and study strategies.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "Learning Skills consultations are described as free; no cost is stated for the Writing Centre.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Victoria",
+      "institution": "Camosun College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "A learning specialist provides free, timely, and customized consultation for students seeking to develop learning skills",
+      "notes": "If the Writing Centre schedule is full, students can submit work to WriteAway. The learning specialist's office is Wilna Thomas 218."
+    },
+    {
+      "slug": "vcc-disability-services",
+      "name": "Vancouver Community College — Disability Services",
+      "website": "https://www.vcc.ca/keep-learning/get-support/services-for-students/#q-10687735",
+      "description": "Disability Services assists students with known or potential disabilities who are experiencing barriers to learning. It provides academic accommodations, accessible course materials, help with disability-related funding and other supports.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "Vancouver Community College",
+      "address": null,
+      "phone": "604.871.7500",
+      "email": "disabilityservices@vcc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Assists students with known or potential disabilities who are experiencing barriers to learning.",
+      "notes": "Listed on VCC's Services for students page (the link goes to its Disability Services section). VCC's separate About Disability Services page returned a not-found page. VCC has Broadway and Downtown campuses."
+    },
+    {
+      "slug": "vcc-learning-centre",
+      "name": "Vancouver Community College — Learning Centre",
+      "website": "https://learningcentre.vcc.ca/learning-centre/about/services/",
+      "description": "The VCC Learning Centre gives free academic and career support to VCC students through professional tutors and a learning strategist. Services include one-on-one or small-group tutoring, academic coaching, workshops, career skills help and WriteAway online writing feedback.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "The page lists these services as free for current VCC students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "Vancouver Community College",
+      "address": null,
+      "phone": null,
+      "email": "lccoordinator@vcc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The VCC Learning Centre provides free academic and career support for all VCC students in a welcoming and respectful learning environment.",
+      "notes": "Tutors are professional staff, not peers. The Learning Centre does not check homework or proofread, but teaches students to check their own work. Resume and interview help stays open for 3 months after a program ends."
+    },
+    {
+      "slug": "vcc-career-awareness",
+      "name": "Vancouver Community College — Career Awareness (for adults with cognitive disabilities)",
+      "website": "https://www.vcc.ca/programs/career-awareness/",
+      "description": "Career Awareness is a 38-week certificate program that builds practical skills for work through classroom learning, field trips and three work experience placements. It is intended for adults with cognitive disabilities.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "edu_certificate",
+        "career_training",
+        "prog_accessibility"
+      ],
+      "cost": "paid",
+      "cost_note": "The page lists domestic tuition of 1981 plus a 36 application fee and other fees (student union, U-PASS and more); fees are approximate.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "institution": "Vancouver Community College",
+      "address": "250 West Pender St., Vancouver, B.C., V6B 1S9",
+      "phone": null,
+      "email": "easd@vcc.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Intended for adults with cognitive disabilities.",
+      "notes": "Program designed for adults with cognitive disabilities, at the Downtown campus. Admission asks for a diagnosis or history that identifies difficulty with learning and an interview with an instructor; family or support persons can join planning meetings if the student chooses. Part of VCC's Students with Disabilities program area, which also lists Food Service Careers, Retail and Hospitality Careers, and Retail and Service Careers.",
+      "price": 1981
+    },
+    {
+      "slug": "kpu-accessibility",
+      "name": "Kwantlen Polytechnic University — Accessibility Services",
+      "website": "https://www.kpu.ca/access",
+      "description": "Accessibility Services works with students with disabilities who need personalized academic plans, helping with academic accommodations, the move from high school, applying for disability-related funding, and connecting with KPU services. Staff work with instructors to put individualized accommodation plans in place.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Surrey",
+      "institution": "Kwantlen Polytechnic University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "At Accessibility Services, we work with students with disabilities who require personalized academic plans to ensure access to university and success in achieving academic goals.",
+      "notes": "Includes support with the transition from high school."
+    },
+    {
+      "slug": "kpu-learning-centres",
+      "name": "Kwantlen Polytechnic University — Learning Centres",
+      "website": "https://www.kpu.ca/learningcentres",
+      "description": "KPU's four Learning Centres offer free individual help, one-to-one and small-group tutoring with peer tutors and academic coaches, workshops, and online writing help. Students can also sign up for mentoring services and Peer Assisted Study Skills (PASS) sessions.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring",
+        "prog_mentorship",
+        "prog_events"
+      ],
+      "cost": "free",
+      "cost_note": "The page describes free individual help.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Surrey",
+      "institution": "Kwantlen Polytechnic University",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "one-to-one and small-group tutoring with 100 peer tutors and academic coaches to choose from",
+      "notes": "The page lists KPU Surrey, Richmond, Langley, KPU Tech and KPU Civic Plaza; workshops (for example on focus and attention, and procrastination) are listed on an events calendar."
+    },
+    {
+      "slug": "sait-accessibility",
+      "name": "SAIT — Accessibility Services",
+      "website": "https://www.sait.ca/student-life/learning-support/accessibility-and-accommodations",
+      "description": "Accessibility Services supports students with documented mobility, sensory, learning, attentional, neurological, psychological or temporary disabilities. It reduces barriers through classroom and exam accommodations, help with funding applications, equipment loans, and consultations and referrals.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "SAIT",
+      "address": "1301 16 Avenue NW, Calgary AB, T2M 0L4",
+      "phone": "403.774.5093",
+      "email": "accessibility.services@sait.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "we support students with documented mobility, sensory (vision, hearing), learning, attentional, neurological, psychological or temporary disabilities.",
+      "notes": "In the Lamb Learner Success Centre, MC221, Stan Grad Centre; Monday to Friday 8am-4pm. New students complete an intake form, then get an email link to book an Accessibility Advisor."
+    },
+    {
+      "slug": "sait-learning-support-neurodiversity",
+      "name": "SAIT — Lamb Learner Success Centre (learning support and Neurodiversity Specialist)",
+      "website": "https://www.sait.ca/student-life/learning-support",
+      "description": "The Lamb Learner Success Centre helps with accommodations, learning skills, tutoring, writing feedback, test booking and financial advising. Its Neurodiversity Specialist helps students explore strategies that suit their ways of learning, build executive functioning skills and find helpful tools.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "SAIT",
+      "address": "1301 16 Avenue NW, Calgary AB, T2M 0L4",
+      "phone": "403.284.7050",
+      "email": "LLSC@sait.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Connect with our Neurodiversity Specialist to explore strategies that support your unique ways of learning, build executive functioning skills",
+      "notes": "Has a dedicated Neurodiversity Specialist, reached through an email link on this page. MC221, Stan Grad Centre, SAIT Main Campus; Monday to Friday 8am-4pm."
+    },
+    {
+      "slug": "sait-tutoring",
+      "name": "SAIT — Tutoring (drop-in peer and apprentice tutoring)",
+      "website": "https://www.sait.ca/student-life/learning-support/tutoring",
+      "description": "SAIT lists drop-in peer tutoring for selected math, science, business and other courses, and drop-in apprenticeship tutoring for select trades, with days, times and rooms or MS Teams. The page also has self-study handouts for English as an additional language.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "edu_apprenticeship",
+        "edu_trade",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "SAIT",
+      "address": "1301 16 Avenue NW, Calgary AB, T2M 0L4",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Drop-in apprenticeship tutoring is available for select trades.",
+      "notes": "Schedules name tutors, days, times and rooms (for example MC 209) or MS Teams."
+    },
+    {
+      "slug": "nait-learning-services-disability",
+      "name": "NAIT — Learning Services (disability supports)",
+      "website": "https://learningservices.nait.ca/ltc_ls?id=ltc_ls_disability_services",
+      "description": "Learning Services is NAIT's disability support unit, offering accommodations such as alternate format course materials, assistive technologies, sign language interpreters and note-taking. Learning Advisors guide students through intake, documentation and individual Service Plans, and help with disability funding applications.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "NAIT",
+      "address": null,
+      "phone": null,
+      "email": "learningservices@nait.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Whether you have a documented disability, suspect you may have one, or are encountering academic barriers, our team of trained professionals is here",
+      "notes": "Open to students who suspect they may have a disability, not only those with documentation. The page is drawn by a script; its text was read from the page's own data. NAIT's Academic Support page links to it as Disability Services."
+    },
+    {
+      "slug": "nait-peer-mentorship",
+      "name": "NAIT — Peer Mentorship",
+      "website": "https://www.nait.ca/nait/student-life/clubs-groups-community/mentorship-at-nait/peer-mentorship",
+      "description": "NAIT's Peer Mentorship program matches first-year students with experienced upper-year mentors for a low-pressure space for learning and support. Pairs are matched by academic program, shared goals, interests and personal background, and meet weekly online or in person through the academic year.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "NAIT",
+      "address": "11762 - 106 Street, Edmonton, AB, Canada, T5G 2R1",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This program matches first-year students (mentees) with experienced peers (mentors) to create a low-pressure space for learning and support to take place.",
+      "notes": "Open to all NAIT students. Mentees complete a 30-minute online orientation and meet their mentor weekly for at least 30 minutes; mentors complete training."
+    },
+    {
+      "slug": "bvc-accessibility",
+      "name": "Bow Valley College — Accessibility Services",
+      "website": "https://www.bowvalleycollege.ca/student-life/student-services/accessibility-services",
+      "description": "Bow Valley College offers a range of services for students who identify as having a disability. An Accessibility Advisor can talk through your needs and help you with the accommodations process; documentation may be needed for some accommodations.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "Bow Valley College",
+      "address": "345 - 6 Avenue SE, Calgary, AB T2G 4V1",
+      "phone": "403-410-1440",
+      "email": "accessibility@bowvalleycollege.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "An Accessibility Advisor can discuss your needs and assist you with the accommodations process.",
+      "notes": "Current students book an Accessibility Advisor through BVC Central. The page links a Functional Limitation Form for a doctor to complete and explains how to get school accommodation records."
+    },
+    {
+      "slug": "bvc-academic-support",
+      "name": "Bow Valley College — Academic Support (learning support and peer tutors)",
+      "website": "https://www.bowvalleycollege.ca/student-life/academic-support",
+      "description": "Academic Support helps with course selection and program planning and offers learning supports individually, in groups or through workshops. Learning Support helps with research strategies, academic writing and APA formatting and connects students with peer tutors, and Student Success & Early Support helps students facing academic challenges.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "institution": "Bow Valley College",
+      "address": "345 - 6 Avenue SE, Calgary, AB T2G 4V1",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "we'll connect you with appropriate peer tutors for additional support.",
+      "notes": "A separate Peer Tutoring Program page could not be found on the current site (see unverified)."
+    },
+    {
+      "slug": "norquest-accessibility",
+      "name": "NorQuest College — Accessibility Services",
+      "website": "https://www.norquest.ca/student-services/accessibility-services/",
+      "description": "NorQuest offers services for students who experience disability, including accessibility advising, assistive technology, academic coaching, accommodated exams and sign language interpretation. Accessibility advisors help students submit documentation, explore accommodations and apply for disability funding.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "NorQuest College",
+      "address": "10215 108 Street NW, Edmonton, Alberta, Canada T5J 1L6",
+      "phone": "587.596.1572",
+      "email": "accessibilityregistration@norquest.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "NorQuest College offers a wide range of services to support students who experience disability.",
+      "notes": "Connect by phone, email or in person; in-person drop-in Monday to Friday 9am-12pm and 1-3pm in SCFL 2-096, no appointment needed. Students have five business days to write accommodated exams, in person or online."
+    },
+    {
+      "slug": "norquest-tutorial-coaching",
+      "name": "NorQuest College — Tutorial and Academic Coaching Services",
+      "website": "https://libguides.norquest.ca/tutorialcoaching",
+      "description": "A team of professional learning support specialists helps students build academic skills, confidence and independence, including homework help, exam preparation, study strategies, time management and managing anxiety. Drop-in help is in person at the Learner Centre or online through a sign-in queue.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free for NorQuest students taking courses in any program.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "institution": "NorQuest College",
+      "address": null,
+      "phone": "780-644-5864",
+      "email": "tutorial.coaching@norquest.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We are a team of professional learning support specialists who will work with you to build academic skills, confidence and independence.",
+      "notes": "Learner Centre, 2nd floor, Singhmar Centre for Learning (Downtown Edmonton Campus). Online sessions run on MS Teams. Toll free 1-866-534-7218. Staff specialists, not peers."
+    },
+    {
+      "slug": "rrc-student-accessibility-services",
+      "name": "RRC Polytech — Student Accessibility Services (SAS)",
+      "website": "https://www.rrc.ca/accessibility/contact/",
+      "description": "Accessibility specialists develop accommodation plans with each student, such as extended exam time, audio recording of lectures, electronic course materials and text-to-speech software. SAS can also connect students with tutors, academic coaches, assistive technology training, counselling and Indigenous supports, and help with disability funding applications.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "Red River College Polytechnic",
+      "address": null,
+      "phone": "204.632.3966",
+      "email": "accessibility@rrc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "including students with medical conditions, physical disabilities, mental health conditions such as anxiety and depression, learning disabilities, ADHD, and autism spectrum disorder.",
+      "notes": "Names ADHD and autism spectrum disorder among students served, and notes some students do not identify with the word disability. Offices at Notre Dame Campus D102 and Exchange District Campus P210; Monday to Friday 8am-4pm. Support in person, by Teams/Webex or by phone."
+    },
+    {
+      "slug": "rrc-tutoring-services",
+      "name": "RRC Polytech — Academic Success Centre Tutoring Services",
+      "website": "https://library.rrc.ca/tutoring",
+      "description": "The Academic Success Centre offers individual and group tutoring, free for RRC Polytech students, including peer tutoring, tech peer tutoring, study groups, review workshops, academic coaching, and writing and English language tutoring. Students with a disability may be eligible for free weekly tutoring and/or academic coaching.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Tutoring options are free for RRC Polytech students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "Red River College Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Academic Success Centre offers a wide range of individual and group tutoring options (free for RRC Polytech students)",
+      "notes": "Peer tutors are current students recommended by their instructors who have completed the courses they tutor and the ASC's training course."
+    },
+    {
+      "slug": "rrc-accessibility-tutoring",
+      "name": "RRC Polytech — Accessibility Tutoring Services",
+      "website": "https://library.rrc.ca/supports_disabilities",
+      "description": "For students with a disability who need tutoring or academic coaching, the Academic Success Centre provides up to 8 hours of tutoring and/or up to 4 academic coaching sessions per term with an assigned staff tutor, after a referral from an Accessibility Specialist. More hours can be provided for a fee when funded by a disability grant or agency.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Up to 8 hours of free tutoring and/or up to 4 hours of academic coaching after referral; extra hours are fee-for-service when funded through the Canada Student Grant for Services and Equipment or another approved agency.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "institution": "Red River College Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The ASC can provide up to 8 hours of tutoring and/or up to 4 academic coaching sessions per term with an assigned ASC staff tutor",
+      "notes": "Needs a referral from Student Accessibility Services. The page was last updated February 1, 2024."
+    },
+    {
+      "slug": "saskpolytech-accessibility",
+      "name": "Saskatchewan Polytechnic — Accessibility Services",
+      "website": "https://saskpolytech.ca/student-services/support/accessibility-services/",
+      "description": "Accessibility consultants work with students with disabilities to find accommodations and supports, such as extra time or a quiet space for exams, a reader or scribe, reduced course load, peer note-takers, assistive technology and tutor funding. Some first-year seats in select certificate and diploma programs are set aside for persons with disabilities.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page notes some accommodations have a financial cost and lists funding options.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "SK",
+      "city": null,
+      "institution": "Saskatchewan Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Accessibility Services is committed to ensuring that equal access for students with disabilities is provided at Saskatchewan Polytechnic.",
+      "notes": "The page's disability definition lists Attention Deficit/Hyperactivity Disorder and Autism Spectrum Disorder. Help is offered in person and from a distance. Student Services contacts: Moose Jaw 306-691-8311, Prince Albert 306-765-1611, Regina 306-775-7324, Saskatoon 306-659-4050. Requests go through the Accommodate online system."
+    },
+    {
+      "slug": "saskpolytech-easy-start-workshop",
+      "name": "Saskatchewan Polytechnic — Easy Start Transition Workshop",
+      "website": "https://saskpolytech.ca/student-services/support/accessibility-services/transition-workshop.aspx",
+      "description": "A workshop for students living with a disability who are about to start post-secondary studies, covering academic accommodation, documentation, financial help, assistive technology and booking exams. It includes tips to prepare, a campus tour at in-person sessions and a chance to meet other new students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "SK",
+      "city": null,
+      "institution": "Saskatchewan Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": "as.forms@saskpolytech.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "If you are a student living with a disability, about to begin your post-secondary studies at Saskatchewan Polytechnic, the Easy Start Transition Workshop will provide",
+      "notes": "Dates on the page ran from October 2025 to July 2026 (Zoom, plus campus sessions in Moose Jaw, Regina and Saskatoon and an online Prince Albert session); check for new dates. Students may bring up to two guests."
+    },
+    {
+      "slug": "saskpolytech-learning-services",
+      "name": "Saskatchewan Polytechnic — Learning Services",
+      "website": "https://saskpolytech.ca/student-services/academic/learning-services.aspx",
+      "description": "Learning Services instructors help with study skills, math and science, and writing and communication through appointments, Zoom drop-in rooms, scheduled tutorials, and individual and group tutoring. Writing feedback is available through an Online Writing Request app.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free to all current Saskatchewan Polytechnic students.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "SK",
+      "city": null,
+      "institution": "Saskatchewan Polytechnic",
+      "address": null,
+      "phone": null,
+      "email": "learningservices@saskpolytech.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Learning Services supports, resources and events are free to all current Saskatchewan Polytechnic students.",
+      "notes": "Rooms at the Moose Jaw, Prince Albert, Regina and Saskatoon campuses are listed on the page; Monday to Friday 9am-4pm. Tutors are instructors, not peers."
+    },
+    {
+      "slug": "dawson-student-accessability-centre",
+      "name": "Dawson College — Student AccessAbility Centre (SAAC)",
+      "website": "https://www.dawsoncollege.qc.ca/student-accessability/",
+      "description": "The Student AccessAbility Centre provides academic accommodations and strategies for students with disabilities whose disability has a significant and persistent impact on their learning. An Adapted Services Counsellor works with each student on accommodations such as a separate exam room, extra time, a computer, peer note-taking and assistive technology.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Dawson College",
+      "address": "3040 Sherbrooke St. W, Montreal, Quebec, Canada H3Z 1A4",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Accommodations are typically provided to students with a diagnosis of hearing, visual, motor or organic impairments, learning disabilities, neurological and/or mental health disorders.",
+      "notes": "For students in day or evening credit courses. Students without diagnostic documents can still go through the process and get a consultation; some support may be available while awaiting assessment."
+    },
+    {
+      "slug": "dawson-learning-centre",
+      "name": "Dawson College — Learning Centre",
+      "website": "https://www.dawsoncollege.qc.ca/learning-centre/",
+      "description": "Dawson's Learning Centre helps students improve their learning, reading and writing skills with Learning and Writing Specialists and Peer Tutors, individually or in small groups. Specialists help with academic writing, time management, study skills, reading, oral presentations and exam preparation.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "All services are free and confidential.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Dawson College",
+      "address": "3040 Sherbrooke St. W, Montreal, Quebec, Canada H3Z 1A4",
+      "phone": null,
+      "email": "learningcentre@dawsoncollege.qc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The role of Dawson’s Learning Centre is to help students improve their learning, reading and writing skills.",
+      "notes": "Upstairs in the Library, room 6D.2. Formerly the Academic Skills Centre; the old address now leads here."
+    },
+    {
+      "slug": "dawson-peer-tutoring",
+      "name": "Dawson College — Peer Tutoring",
+      "website": "https://www.dawsoncollege.qc.ca/learning-centre/peer-tutoring/",
+      "description": "Peer tutors are Dawson students who help with material for specific courses, including math, science, social science, career programs, foreign languages and AEC courses. Tutoring for English courses is arranged with a Learning & Writing Specialist, and French tutoring is provided by CLEO.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "All Learning Centre and Peer Tutoring services are free to Dawson students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Dawson College",
+      "address": "3040 Sherbrooke St. W, Montreal, Quebec, Canada H3Z 1A4",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Peer tutors are Dawson students who help with material for specific courses.",
+      "notes": "Also covers review of high school math and science material."
+    },
+    {
+      "slug": "vanier-access-centre",
+      "name": "Vanier College — Access Centre (Access for Students with Disabilities)",
+      "website": "https://www.vaniercollege.qc.ca/access-centre",
+      "description": "Access for Students with Disabilities provides specialized support services for students with learning, physical, medical and mental health disabilities through reasonable and appropriate accommodations. Examples include extended exam time in a minimally distracting environment, note-takers, adaptive software and training, and time management and exam-taking strategies.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Vanier College",
+      "address": "821 Sainte-Croix Avenue, Montréal, QC H4L 3X9",
+      "phone": "514.744.7500 x 7891",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Access for Students with Disabilities is responsible for providing specialized support services for students with learning, physical, medical, and mental health disabilities.",
+      "notes": "Office B-207. To register, complete the New Student Intake Form, gather documentation and meet an Adapted Services Counsellor."
+    },
+    {
+      "slug": "vanier-tasc",
+      "name": "Vanier College — Tutoring and Academic Success Centre (TASC)",
+      "website": "https://www.vaniercollege.qc.ca/learning-commons/tasc",
+      "description": "TASC offers drop-in peer tutoring and paired private tutoring with peers in subjects including math and science, English and French, plus a Writing Centre, Student Success advising and skills workshops. Its VConnect peer mentors give first-year students one-on-one support and guidance.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring",
+        "prog_mentorship",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montreal",
+      "institution": "Vanier College",
+      "address": "821 Sainte-Croix Avenue, Montréal, QC H4L 3X9",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "TASC promotes student success across all programs. We offer peer tutoring and mentoring, as well as help with writing, study skills and exam preparation.",
+      "notes": "Location E-300, Monday to Friday 8:30am-4:30pm; the Writing Centre is in E-320. Workshops are announced on Omnivox and need advance registration."
+    },
+    {
+      "slug": "champlain-student-access-centre",
+      "name": "Champlain College Saint-Lambert — Student Access Centre (SAC)",
+      "website": "https://champlainsaintlambert.ca/student-access-centre/",
+      "description": "The Student Access Centre offers accommodations and support to students with disabilities, including learning disabilities, neurological disorders and mental health disorders, through an individualized college IEP. It also offers in-person or online sessions on learning strategies and self-advocacy, and a quiet room dedicated to SAC students.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Saint-Lambert",
+      "institution": "Champlain College Saint-Lambert",
+      "address": "900 Riverside Drive St-Lambert, Québec J4P 3P2",
+      "phone": "450-672-7360, ext: 3446",
+      "email": "sac@crcmail.net",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This includes learning disabilities, physical disabilities, neurological disorders, sensory impairments, organic disorders, mental health disorders as well as temporary disabilities or injuries.",
+      "notes": "The page says: \"The quiet room, located in F145, is a safe space that is dedicated to SAC students.\" Students use it to take a breather, connect with other SAC students or a counsellor, or work; counsellors run workshops there. Serves full-time, part-time and Continuing Education students. Students without a diagnostic report can still reach out."
+    },
+    {
+      "slug": "champlain-learning-centre",
+      "name": "Champlain College Saint-Lambert — The Learning Centre (peer tutoring)",
+      "website": "https://champlainsaintlambert.ca/services-for-students/tutoring/",
+      "description": "The Learning Centre provides free individual peer tutoring, in person and online, by appointment or drop-in, in subjects such as calculus, biology, physics, psychology and economics. Tutors also help with study skills, time management and exam preparation, and a Writing Centre offers peer tutoring for academic writing.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free individual peer tutoring.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Saint-Lambert",
+      "institution": "Champlain College Saint-Lambert",
+      "address": "900 Riverside Drive St-Lambert, Québec J4P 3P2",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "This centre provides free individual peer tutoring (both in-person and online) with appointments or through the drop-in service.",
+      "notes": "Room B-309, second floor of the library. French-language help centres (CRF) are also described on the page."
+    },
+    {
+      "slug": "champlain-peer-mentorship",
+      "name": "Champlain College Saint-Lambert — Peer Mentorship Program",
+      "website": "https://champlainsaintlambert.ca/champlain-news/new-peer-mentorship-program-launches-this-fall/",
+      "description": "The Peer Mentorship Program matches first-year students with second- or third-year student mentors who help guide and support them through their first semesters. It aims to reduce isolation and build connections; mentors are trained in active listening, communication and mental health skills.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Saint-Lambert",
+      "institution": "Champlain College Saint-Lambert",
+      "address": "900 Riverside Drive St-Lambert, Québec J4P 3P2",
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The goal of the Mentorship Program is to reduce isolation and promote connections here at Champlain College.",
+      "notes": "College news post published August 20, 2024; check that the program runs this year. Mentors and mentees meet weekly for at least 30 minutes. Register by MIO to the college social worker named on the page."
+    },
+    {
+      "slug": "john-abbott-access-centre",
+      "name": "John Abbott College — Access Centre",
+      "website": "https://johnabbott.qc.ca/services-to-students/access-centre/",
+      "description": "The Access Centre works with teachers, staff and outside agencies to offer accommodations to students with limitations resulting from a specific diagnosis or medical condition, including specific learning disabilities, neurological disorders and mental health disorders. Services include extra time for tests, note-taking, time management strategies, specialized software and regular check-ins with a contact person.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Sainte-Anne-de-Bellevue",
+      "institution": "John Abbott College",
+      "address": "21 275 lakeshore, Sainte-Anne-de-Bellevue (Quebec) H9X 3L9",
+      "phone": "514-457-6610 x5398",
+      "email": "access.centre@johnabbott.qc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our mandate is to collaborate with teachers, staff, and outside agencies in order to offer accommodations to students who have limitations and/or incapacities",
+      "notes": "Herzberg H-129, by the Library entrance. The intake meeting is in person or virtual. New-student deadlines: June 1 (Fall), January 1 (Winter). High school IEPs alone are not enough documentation."
+    },
+    {
+      "slug": "john-abbott-academic-success-centre",
+      "name": "John Abbott College — Academic Success Centre",
+      "website": "https://johnabbott.qc.ca/services-to-students/academic-success-centre/",
+      "description": "The Academic Success Centre helps students become successful and independent learners through peer and English language learner tutoring, study skills help, small group tutorials, one-on-one tutoring with staff and workshops. It also runs a Community Volunteer Tutor program.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Sainte-Anne-de-Bellevue",
+      "institution": "John Abbott College",
+      "address": null,
+      "phone": "(514) 457-6610, ext. 5285",
+      "email": "academicsuccesscentre@johnabbott.qc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our main function is to help students become successful and independent learners.",
+      "notes": "Main office H139 in the Herzberg building; the peer tutoring centre is in the library basement."
+    },
+    {
+      "slug": "john-abbott-writing-centre",
+      "name": "John Abbott College — Writing Centre",
+      "website": "https://johnabbott.qc.ca/services-to-students/writing-centre/",
+      "description": "The Writing Centre provides free peer tutoring to John Abbott students from any program who need help with reading or writing assignments. Trained student tutors help with brainstorming, thesis statements, revisions, reading comprehension, MLA and APA format and time management.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free peer tutoring for all John Abbott students.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Sainte-Anne-de-Bellevue",
+      "institution": "John Abbott College",
+      "address": null,
+      "phone": null,
+      "email": "writing.centre@johnabbott.qc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Writing Centre provides free, high-quality peer tutoring to all John Abbott students who require assistance with their reading or writing assignments.",
+      "notes": "Library basement, room L-023, drop-ins welcome. Over sixty students are trained as peer tutors each term."
+    },
+    {
+      "slug": "nscc-accessibility-services",
+      "name": "Nova Scotia Community College — Accessibility Services",
+      "website": "https://www.nscc.ca/student-experience/student-supports/accessibility-services/accessibility-supports.asp",
+      "description": "NSCC's Accessibility Services offers free, confidential supports including academic accommodations, assistive technologies, help exploring grants and funding, and referrals to campus and community services. Students register through the Accommodate system and meet staff to build an Academic Accommodation Plan.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Free, confidential supports and services.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NS",
+      "city": null,
+      "institution": "Nova Scotia Community College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We offer a wide range of free, confidential supports and services, including:",
+      "notes": "Staff contacts are listed by campus on NSCC's Contact Accessibility Services staff page. Register soon after you are accepted, because accommodations and funding take time to arrange. The page suggests questions to ask, such as how to focus in a classroom or large shop."
+    },
+    {
+      "slug": "nscc-tutoring-pals",
+      "name": "Nova Scotia Community College — Tutoring and Peer Assisted Learning Supports (PALS)",
+      "website": "https://www.nscc.ca/student-experience/student-supports/learning-support-services/tutoring/index.asp",
+      "description": "Tutors help students improve study skills, prepare for tests and assignments, and stay focused and organized, in person and online. PALS is a program where students support students through group study, one-to-one support, course drop-ins and webinars, and NSCC students also get up to four hours a month of free Nimbus tutoring.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Up to four hours of free tutoring through Nimbus each month; no cost is stated for PALS.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "NS",
+      "city": null,
+      "institution": "Nova Scotia Community College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "PALS is a program where students support students in their learning.",
+      "notes": "Funded students with a disability can ask their student supports team about extra tutoring options. Questions go to your campus library."
+    },
+    {
+      "slug": "nbcc-accessibility-inclusion",
+      "name": "New Brunswick Community College — Accessibility and Inclusion Services",
+      "website": "https://nbcc.ca/student-services/accessibility-inclusion-services",
+      "description": "NBCC accommodates students with various accessibility needs, learning disabilities and/or physical or mental barriers, and reviews academic and service accommodations individually. Accessibility and Inclusion Services staff also help all students with study and test-taking tips.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NB",
+      "city": null,
+      "institution": "New Brunswick Community College",
+      "address": null,
+      "phone": null,
+      "email": "learnerservices@nbcc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We accommodate students with various accessibility needs, learning disabilities and/or physical or mental barriers.",
+      "notes": "Students who had accommodations in high school or another post-secondary school are asked to get in touch. The page lists a Learning Strategist contact for each group of programs."
+    },
+    {
+      "slug": "nbcc-inclusive-education-pathway",
+      "name": "New Brunswick Community College — Inclusive Education Pathway",
+      "website": "https://nbcc.ca/admissions/inclusive-education",
+      "description": "The Inclusive Education Pathway (formerly Special Admissions) offers education and training to applicants who graduated from high school with modified or adjusted outcomes and do not meet NBCC's admission requirements. Applicants interview with a Learning Strategist and the program's Academic Chair, and may graduate with a regular certificate or diploma, or a Certificate of Completion and a Skills Profile.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "edu_certificate",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NB",
+      "city": null,
+      "institution": "New Brunswick Community College",
+      "address": null,
+      "phone": null,
+      "email": "IEP@nbcc.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "NBCC's Inclusive Education Pathway provides accessible education and training opportunities for applicants who have graduated from high school with modified or adjusted outcomes",
+      "notes": "Eligibility: high school completed (or in final year) with course modifications in Math, Science or English. Programs at NBCC's six campuses. The page notes Inclusion NB can help applicants who have an intellectual disability plan the move into the pathway. Learning Strategist contacts are listed by campus."
+    },
+    {
+      "slug": "nbcc-student-success-coaching",
+      "name": "New Brunswick Community College — Student Success Coaching",
+      "website": "https://nbcc.ca/student-services/student-success-coaching",
+      "description": "Student Success Coaches guide and support students through college life with one-on-one coaching and connections to resources at NBCC and in the community. Coaches help students find their way through college processes, get past barriers and build community connections.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NB",
+      "city": null,
+      "institution": "New Brunswick Community College",
+      "address": null,
+      "phone": null,
+      "email": "success@nbcc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Student Success Coaches are here to guide and support you through college life and help you grow personally, academically, and professionally.",
+      "notes": "Staff coaching rather than peer mentoring. NBCC's tutoring page did not load (see unverified)."
+    },
+    {
+      "slug": "holland-college-academic-support",
+      "name": "Holland College — Academic Support",
+      "website": "https://hollandcollege.com/student-experience/student-support-services/academic-support/",
+      "description": "The Academic Support team supports students with learning disabilities, physical disabilities or mental illness, and students beginning to struggle in their program, with time management, organization, study skills and accommodations such as assistive technology, testing accommodations and tutoring. Students can get up to three hours of free one-on-one tutoring through the Nimbus Learning App.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Up to three hours of free one-on-one tutoring through Nimbus; no cost is stated for other supports.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "PE",
+      "city": null,
+      "institution": "Holland College",
+      "address": null,
+      "phone": "902-629-4237",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "We provide support for students with learning disabilities, physical disabilities, mental illness, or students who are beginning to struggle in their program.",
+      "notes": "Applicants can check 'yes' in the Students with Learning Needs section of the application and send documentation; support can also be requested any time in the school year, ahead of when it is needed. The contact listed is a named staff member (Velda Crane)."
+    },
+    {
+      "slug": "holland-college-transitions",
+      "name": "Holland College — Transitions (career exploration for PEI high school students)",
+      "website": "https://hollandcollege.com/academics/specialized-training/transitions.html",
+      "description": "Transitions is a two-credit high school course in which PEI high school students explore post-secondary options and careers in a college setting, working in small groups with Holland College Transitions mentors. It includes projects, workplace experiences, community partnerships and tours of local businesses and non-profits.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "career_training",
+        "prog_mentorship"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "PE",
+      "city": null,
+      "institution": "Holland College",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "teens_13_17"
+      ],
+      "evidence": "Transitions is a two-credit high school course offers students an opportunity to explore potential post-secondary options in a college setting for two hours each day.",
+      "notes": "Not disability-specific. Only for PEI high school students; register through your school's guidance counsellor."
+    },
+    {
+      "slug": "cna-accessibility-services",
+      "name": "College of the North Atlantic — Accessibility Services",
+      "website": "https://cna.nl.ca/student-support/accessibility-services",
+      "description": "Accessibility Services supports students who face barriers to learning because of a disability, medical or mental health condition, or other documented need, by reviewing documentation and identifying academic accommodations. Services may include exam accommodations, assistive technology such as Read & Write, note-taking or alternative-format materials, and strategies for managing coursework.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NL",
+      "city": null,
+      "institution": "College of the North Atlantic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "supports students who experience barriers to learning because of a disability, medical or mental health condition, or other documented need.",
+      "notes": "The documentation guide lists ADHD and Autism Spectrum Disorder (a letter or CNA form from a physician, psychiatrist or psychologist). Contact your campus Accessibility Services Coordinator early; disclosure can happen on the application or later."
+    },
+    {
+      "slug": "cna-peer-tutoring",
+      "name": "College of the North Atlantic — Peer Tutoring",
+      "website": "https://www.cna.nl.ca/mycna/supports/Peer-Tutoring",
+      "description": "The Peer Tutoring program is a free service for CNA students who are still having difficulty in a specific subject area; students may be matched with a peer approved to tutor that course. Students apply through their campus guidance counsellor.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free service for CNA students.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NL",
+      "city": null,
+      "institution": "College of the North Atlantic",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Peer Tutoring program is a free service offered to College of the North Atlantic students.",
+      "notes": "Peer tutors are paid $20 per hour; students apply to tutor through their instructor. Guidance counsellors are listed by campus."
+    },
+    {
+      "slug": "okanagan-disability-access-services",
+      "name": "Okanagan College — Disability Access Services (DAS)",
+      "website": "https://www.okanagancollege.ca/disability-access-services",
+      "description": "Disability Access Services works with students who experience disability-related barriers to learning, including autism spectrum disorder, learning disabilities, mental health disabilities and neurological disabilities, and explores reasonable accommodations and related supports. Everyone starts with a Disability Self-Assessment, and documentation helps but should not stop you from getting started.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not state a cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Kelowna",
+      "institution": "Okanagan College",
+      "address": null,
+      "phone": "1-250-862-5404",
+      "email": "disabilityaccess@okanagan.bc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "You may think of your experience as a medical condition, mental health condition, learning difference, neurodivergence, chronic health concern, temporary or changing condition",
+      "notes": "Names neurodivergence and autism spectrum disorder, and says you do not need the right words before contacting them. Phone is the DAS hotline. Coordinators are listed for the Kelowna, Penticton, Salmon Arm and Vernon campuses."
+    },
+    {
+      "slug": "okanagan-success-centres",
+      "name": "Okanagan College — Success Centres",
+      "website": "https://www.okanagancollege.ca/success-centres",
+      "description": "Success Centres offer one-on-one and small-group academic help with English, writing, reading, math, science and trades, plus study skills, time management and exam preparation. Help is available on all campuses and online, by appointment or drop-in with coordinators and learning strategists.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "edu_trade",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "No cost for students registered in any Okanagan College course or program.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Kelowna",
+      "institution": "Okanagan College",
+      "address": null,
+      "phone": null,
+      "email": "OCSuccessCentres@okanagan.bc.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Students registered in any Okanagan College course or program may access the services offered by the Success Centres at no cost.",
+      "notes": "Locations at the Kelowna, Penticton, Salmon Arm and Vernon campuses; trades students also have a Trades Success Centre. Staff coordinators, not peers. The page shows OCSuccessCentres@okanagan.bc.ca, but its email link points to a misspelled domain (okanaganc.bc.ca)."
+    },
+    {
+      "slug": "lethbridge-accessibility-services",
+      "name": "Lethbridge Polytechnic — Accessibility Services",
+      "website": "https://lethpolytech.ca/departments/accessibility-services",
+      "description": "Accessibility Services offers free, confidential supports to prospective and current students with disabilities, including learning disabilities, developmental disabilities such as autism spectrum, ADD/ADHD and mental health concerns. Services include disability advising, funding applications, academic accommodations, accommodated testing and referrals to academic strategists, peer tutoring, technology training and counselling.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_accessibility"
+      ],
+      "cost": "free",
+      "cost_note": "Free, confidential supports and services.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Lethbridge",
+      "institution": "Lethbridge Polytechnic",
+      "address": "3000 Polytechnic Drive South, Lethbridge, Alberta, Canada T1K 1L6",
+      "phone": "403-382-6952",
+      "email": "accessibilityservices@lethpolytech.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "developmental disabilities (e.g., fetal alcohol effect and autism spectrum)",
+      "notes": "Office CE1341, just inside the library; Monday to Friday 8:30am-4:30pm. Connect online by phone, email or video chat. Toll-free 1-800-572-0103. Formerly Lethbridge College."
+    },
+    {
+      "slug": "lethbridge-peer-tutoring",
+      "name": "Lethbridge Polytechnic — Peer Tutoring (Student Learning Services)",
+      "website": "https://lethpolytech.ca/departments/learning-services/peer-tutoring",
+      "description": "Peer tutoring provides free one-on-one and group learning help to students in Lethbridge Polytechnic credit courses who are having difficulty with specialized course content. Students usually qualify for up to one hour a week per course, on campus or online, depending on tutor availability.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "free",
+      "cost_note": "Free one-on-one and group learning assistance.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Lethbridge",
+      "institution": "Lethbridge Polytechnic",
+      "address": "3000 Polytechnic Drive South, Lethbridge, Alberta, Canada T1K 1L6",
+      "phone": "403-382-6952",
+      "email": "learningservices@lethpolytech.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our peer tutoring service provides free, one-on-one and group learning assistance to students who are experiencing difficulties with specialized course content",
+      "notes": "Students registered with Accessibility Services may qualify for additional support. Tutoring Monday to Thursday 8am-8pm and Fridays 8am-5pm; office CE1341."
+    },
+    {
+      "slug": "lethbridge-student-learning-services",
+      "name": "Lethbridge Polytechnic — Student Learning Services (academic strategists)",
+      "website": "https://lethpolytech.ca/departments/learning-services",
+      "description": "Student Learning Services staff help in person and online with academic writing, APA style, citations, science, math and study skills. Academic Strategists are full-time staff who support writing, math and science, and study skills such as time management, exam strategies and memory retention, and peer writing tutors are also available.",
+      "category": "Education Support",
+      "tags": [
+        "edu_college",
+        "prog_tutoring"
+      ],
+      "cost": "unknown",
+      "cost_note": "No cost is stated for academic strategists; peer tutoring is described as free.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Lethbridge",
+      "institution": "Lethbridge Polytechnic",
+      "address": "3000 Polytechnic Drive South, Lethbridge, Alberta, Canada T1K 1L6",
+      "phone": "403-382-6952",
+      "email": "learningservices@lethpolytech.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Student Learning Services staff are available in person and online to help you with academic writing, APA style guide, citations, science, math and study skills.",
+      "notes": "In the Student Learning Hub near the Buchanan Library entrance, which also has semi-private workspace and a single-stall gender-neutral bathroom. Drop-ins and booked appointments, plus the online Drop Zone."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Langara College — Tutoring and Study Groups (https://langara.ca/student-services/academic-support/academic-success-centre/tutoring-and-study-groups)",
+      "reason": "Page returned HTTP 403 Forbidden to every fetch on 2026-10-17. Langara's Academic Success Centre page (included) covers tutoring."
+    },
+    {
+      "name": "Langara College — Writing and Assignment Help (https://langara.ca/student-services/academic-support/academic-success-centre/writing-and-assignment-help)",
+      "reason": "Page returned HTTP 403 Forbidden on 2026-10-17."
+    },
+    {
+      "name": "New Brunswick Community College — Tutoring Services (https://nbcc.ca/student-services/tutoring-services and the linked guide https://nbcc.libguides.com/nbcctutoring)",
+      "reason": "Both returned 404 Not Found on 2026-10-17, so NBCC's tutoring hours and rules could not be checked."
+    },
+    {
+      "name": "NAIT — Writing Centre (https://www.nait.ca/nait/student-life/academic-support/writing-centre)",
+      "reason": "Redirects to a script-drawn library knowledge-base page whose text could not be read. NAIT's Academic Support page only says it offers writing support and employs peer writing tutors."
+    },
+    {
+      "name": "Bow Valley College — Peer Tutoring Program (RGO Library & Learning Commons)",
+      "reason": "No current page found on bowvalleycollege.ca; the old student-services/academic-services address returned 404. The Academic Support page (included) mentions peer tutors."
+    },
+    {
+      "name": "Holland College — Nimbus Learning tutoring page (https://hollandcollege.com/student-support-services/nimbus-learning)",
+      "reason": "Redirected to the site's 404 page. Nimbus tutoring is described on the Academic Support page instead (included)."
+    },
+    {
+      "name": "Vancouver Community College — About Disability Services (https://www.vcc.ca/services/services-for-students/disability-services/about-disability-services/)",
+      "reason": "Returned VCC's not-found page. The Disability Services listing on VCC's Services for students page was used instead (included)."
+    }
+  ]
+}

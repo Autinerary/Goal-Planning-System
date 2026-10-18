@@ -275,7 +275,9 @@ export async function GET(request: NextRequest) {
     // The same goes for the other filters only venues carry: who rated them,
     // the special tags, age bands and commentary sources (Riipen Labs, Group
     // 3's functional check: those filters used to be ignored, and products
-    // still showed under them).
+    // still showed under them). And the service directory's (STEP 78): a
+    // tag, online, the age of a service, and "Free", which shop items never
+    // are; "Paid" keeps them.
     const normFilterActive =
       (barriers && barriers.length > 0) ||
       (conditions && conditions.length > 0) ||
@@ -283,7 +285,11 @@ export async function GET(request: NextRequest) {
       (connectionTypes && connectionTypes.length > 0) ||
       (specialTags && specialTags.length > 0) ||
       (ageRanges && ageRanges.length > 0) ||
-      (sourceTypes && sourceTypes.length > 0)
+      (sourceTypes && sourceTypes.length > 0) ||
+      tagGroups.length > 0 ||
+      costType === 'free' ||
+      !!delivery ||
+      !!startedAfter
     const shopCategorySelected =
       Array.isArray(categories) &&
       categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))
