@@ -494,7 +494,7 @@ async function CheapestSection() {
                 ratingCount={resource.ratingCount || 0}
               />
               {price !== null && price !== undefined && typeof price === 'number' && (
-                <div className="absolute top-2 right-2 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                <div className="absolute top-2 right-2 bg-green-700 text-white px-3 py-1 rounded-full text-sm font-semibold">
                   ${price.toFixed(2)}
                 </div>
               )}
