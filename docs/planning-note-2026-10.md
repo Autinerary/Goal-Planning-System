@@ -206,11 +206,15 @@ one kind of place at a time, in the note's order of priority:
 | Cafés (Café) | 5,100 | 5,001 |
 | Museums (Museum) | 488 | 461 |
 | Zoos and aquariums (Zoo & Aquarium) | 46 | 43 |
-| Amusement parks, banks, hotels, restaurants | still being fetched on 17 October: the public servers were overloaded | |
+| Amusement parks (Amusement Park) | 93 | 65 |
+| Banks (Bank) | 2,833 | 2,799 |
+| Hotels (Hotel) | 1,777 | 1,672 |
+| Restaurants (Restaurant) | 12,711 | 12,451 |
+| **All** | | **26,999** |
 
-**Written on 17 October, the ten kinds above: 8,738 new places, pending, in
-batch `ontario-2026-10`.** The other 1,274 were already in ResourceHub and
-were left exactly as they are. With STEP 78 in, each has free or paid (from a
+**Written on 17 and 18 October: 25,725 new places, pending, in batch
+`ontario-2026-10`.** The other 1,274 (therapists to zoos) were already in
+ResourceHub and were left exactly as they are. With STEP 78 in, each has free or paid (from a
 fee a mapper recorded, otherwise what that kind of place usually is), Canadian
 dollars, in person, and the tags its kind makes plain (recreation for museums
 and zoos, job opportunities for employment services, college or university
