@@ -50,9 +50,7 @@ export function loadVoices(): Promise<SpeechSynthesisVoice[]> {
   })
 }
 
-/** Speak, replacing anything already being said. Returns the utterance. */
-export function speak(text: string): SpeechSynthesisUtterance | null {
-  if (!speechSupported() || !text) return null
+function utteranceFor(text: string): SpeechSynthesisUtterance {
   const prefs = loadPreferences()
   const a = prefs.accessibility
   const utterance = new SpeechSynthesisUtterance(text)
@@ -66,9 +64,54 @@ export function speak(text: string): SpeechSynthesisUtterance | null {
       utterance.lang = voice.lang
     }
   }
+  return utterance
+}
+
+/** Speak, replacing anything already being said. Returns the utterance. */
+export function speak(text: string): SpeechSynthesisUtterance | null {
+  if (!speechSupported() || !text) return null
+  const utterance = utteranceFor(text)
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
   return utterance
+}
+
+/**
+ * Text in pieces short enough for every browser to read (some stop a long
+ * utterance after about 15 seconds): by line, then by sentence.
+ */
+export function speechChunks(text: string, max = 220): string[] {
+  const out: string[] = []
+  for (const line of text.split(/\n+/).map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean)) {
+    if (line.length <= max) {
+      out.push(line)
+      continue
+    }
+    let piece = ''
+    for (const sentence of line.match(/[^.!?]+[.!?]*\s*/g) || [line]) {
+      if ((piece + sentence).length > max && piece) {
+        out.push(piece.trim())
+        piece = ''
+      }
+      piece += sentence
+    }
+    if (piece.trim()) out.push(piece.trim())
+  }
+  return out
+}
+
+/** Reads several pieces in order, replacing anything being said; `onEnd` runs after the last one, or when stopped. */
+export function speakAll(chunks: string[], onEnd?: () => void): void {
+  if (!speechSupported() || !chunks.length) return onEnd?.()
+  window.speechSynthesis.cancel()
+  chunks.forEach((chunk, i) => {
+    const u = utteranceFor(chunk)
+    if (i === chunks.length - 1) {
+      u.onend = () => onEnd?.()
+      u.onerror = () => onEnd?.()
+    }
+    window.speechSynthesis.speak(u)
+  })
 }
 
 export function stopSpeaking(): void {

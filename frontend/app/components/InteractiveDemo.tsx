@@ -306,7 +306,7 @@ export default function InteractiveDemo() {
     // still starts by itself once, on the next page.
     if (pathname === '/onboarding-confirmation') return
     // Nor over the one-question check-in someone opened from an email.
-    if (['/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/help', '/forgot-password', '/reset-password'].includes(pathname)) return
+    if (['/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers/survey', '/billing', '/free-access', '/business', '/business/outreach', '/help', '/forgot-password', '/reset-password'].includes(pathname)) return
     try {
       if (!localStorage.getItem(SEEN_KEY)) {
         // Slight delay so the app renders first.

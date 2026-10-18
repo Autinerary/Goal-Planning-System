@@ -9,6 +9,7 @@ import { LogOut, User, ExternalLink, Settings, PlayCircle } from 'lucide-react'
 import InfoModeButton from './InfoModeButton'
 import VoiceNavigation from './VoiceNavigation'
 import NotificationBell from './NotificationBell'
+import FeedbackButton from './FeedbackButton'
 import { goHubHref } from '@/lib/serviceHub'
 import { useCssHeightVar } from '@/lib/useCssHeightVar'
 
@@ -111,6 +112,14 @@ export default function Navigation() {
                 places on the Path, and Family is a Quick Link for parents. */}
             <InfoModeButton />
             <VoiceNavigation />
+
+            {/* Goal 8: feedback to the team. From tablets up; on a phone the bar
+                keeps one row, and Settings has it at the top. */}
+            <FeedbackButton
+              className={`${ITEM} hidden sm:flex text-slate-600 hover:text-slate-900 hover:bg-white/40`}
+              label={t('nav.feedback')}
+              iconClassName={ICON}
+            />
 
             <Link
               href="/profile/settings"

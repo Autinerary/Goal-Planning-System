@@ -26,7 +26,8 @@
  * (checked operator listings, like backend/scripts/add_support_organisations.py),
  * source_type 'operator', and each topic is its own batch (import_batch
  * curated-<topic>-2026-10), so Spot Guides can see and, if needed, hide it.
- * Safe to re-run: rows are matched on source_ref.
+ * Safe to re-run: rows are matched on source_ref, and a service ResourceHub
+ * already has from elsewhere with the same website is left out.
  *
  *   node scripts/import-curated-services.mjs [topic ...]           # check only
  *   node scripts/import-curated-services.mjs --apply [topic ...]
@@ -168,6 +169,32 @@ async function main() {
     return
   }
   const supabase = await supabaseClient()
+  // A service already in ResourceHub from somewhere else (another list, or
+  // OpenStreetMap) with the same website is left out, so nobody sees it twice.
+  const norm = (u) => {
+    try {
+      const x = new URL(u)
+      return `${x.hostname.toLowerCase().replace(/^www\./, '')}${x.pathname.replace(/\/+$/, '').toLowerCase()}`
+    } catch {
+      return String(u || '').toLowerCase()
+    }
+  }
+  const hosts = [...new Set(rows.map((r) => { try { return new URL(r.source_url).hostname.toLowerCase().replace(/^www\./, '') } catch { return '' } }).filter(Boolean))]
+  const taken = new Map()
+  for (const host of hosts) {
+    const { data } = await supabase.from('resources').select('source_ref, contact_info').ilike('contact_info->>website', `%${host.replace(/[\\%_]/g, (c) => `\\${c}`)}%`).limit(100)
+    for (const r of data || []) if (r.contact_info?.website) taken.set(norm(r.contact_info.website), r.source_ref || 'another listing')
+  }
+  const fresh = rows.filter((r) => {
+    const other = taken.get(norm(r.source_url))
+    if (other && other !== r.source_ref) {
+      console.log(`  left out, already in ResourceHub (${other}): ${r.name}`)
+      return false
+    }
+    return true
+  })
+  rows.length = 0
+  rows.push(...fresh)
   let saved = 0
   for (let i = 0; i < rows.length; i += 200) {
     const { data, error } = await supabase.from('resources').upsert(rows.slice(i, i + 200), { onConflict: 'source_ref' }).select('id')

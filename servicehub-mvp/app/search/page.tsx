@@ -26,6 +26,8 @@ import { useMyProfile } from '@/lib/useMyProfile'
 import { findNorm, normForSearch } from '@/lib/onboarding/setup'
 import { track } from '@/lib/track'
 import CommunityChoiceBanner from '@/components/communityChoice/CommunityChoiceBanner'
+import FoundSummary from '@/components/search/FoundSummary'
+import SponsoredCard from '@/components/search/SponsoredCard'
 
 /** Where "near" is, as the search API reports it (Riipen Labs, Group 8). */
 interface NearInfo {
@@ -599,6 +601,22 @@ function SearchResults() {
                   onFilterAges={(ranges) => updateSearchParams({ ageRanges: Array.from(new Set([...ageRanges, ...ranges])) })}
                   normsApplied={understood.norms.some((n) => barriers.includes(n.id))}
                   agesApplied={understood.ages.some((a) => a.ranges.some((r) => ageRanges.includes(r)))}
+                />
+              )}
+              {/* A sponsored listing, only when the team turns them on (Resource Accounts; off: the privacy page says we don't show ads). */}
+              {page === 1 && !loading && !error && (searchParams.get('q') || categories.length > 0) && (
+                <SponsoredCard q={searchParams.get('q') || ''} category={categories[0] || understood?.intents[0]?.id || ''} province={understood?.place?.province || ''} />
+              )}
+              {/* After Enter: "Here's what we found!" (Goal 7), above the full list. */}
+              {ai && page === 1 && !loading && !error && results.some((r: any) => r.kind !== 'product') && (
+                <FoundSummary
+                  services={results.filter((r: any) => r.kind !== 'product')}
+                  understood={understood}
+                  query={searchParams.get('q') || ''}
+                  team={team}
+                  signedIn={Boolean(nearInfo?.signedIn)}
+                  nearFirst={Boolean(nearInfo?.nearFirst)}
+                  onTeamChange={(id, state) => setTeam((t) => ({ ...t, [id]: state }))}
                 />
               )}
               <CommunityChoiceBanner />

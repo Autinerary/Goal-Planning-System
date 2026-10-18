@@ -198,7 +198,8 @@ service, Undo) are checked in the browser on production with Goal 5's
 - **heydevs@autinerary.ca** receives proof of use and the monthly digests
   (Goal 5); make sure that inbox exists and someone reads it.
 - **Which forms are worst**: the conversation with parents comes before any
-  form-filling work.
+  form-filling work; `docs/parent-forms-interview-2026-10.md` is a guide for
+  it, and `docs/terms-lawyer-review-2026-10.md` a pack for the lawyer.
 
 ## Sources (read 18 October 2026)
 

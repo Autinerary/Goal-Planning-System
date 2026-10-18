@@ -19,7 +19,8 @@ const HUB = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'https://servicehub-six.
  *
  * The team gets a digest of every service at 3.5 or under (RATING_SWEEP_TO,
  * else heydevs@autinerary.ca). Services are emailed about a change at the
- * address they publish only with RATING_SWEEP_EMAIL_SERVICES=on.
+ * address they publish (the team turned this on, 18 October 2026);
+ * RATING_SWEEP_EMAIL_SERVICES=off stops it.
  * ?dry=1 changes and sends nothing to services, and says what would happen.
  */
 async function run(req: NextRequest) {
@@ -33,7 +34,7 @@ async function run(req: NextRequest) {
     return NextResponse.json({ ok: false, error: note }, { status: error.code === 'PGRST202' ? 200 : 500 })
   }
   const rows = (data || []) as SweepRow[]
-  const toServices = !dry && process.env.RATING_SWEEP_EMAIL_SERVICES === 'on' && emailEnabled()
+  const toServices = !dry && process.env.RATING_SWEEP_EMAIL_SERVICES !== 'off' && emailEnabled()
   const postal = postalAddress()
   const failures: string[] = []
   let emailed = 0

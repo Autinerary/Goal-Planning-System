@@ -4,6 +4,7 @@ import FunnelPing from '../components/FunnelPing'
 import StartHere from '../components/StartHere'
 import AccountLink from './AccountLink'
 import PublicDisplay from '../components/PublicDisplay'
+import FeedbackButton from '../components/FeedbackButton'
 
 export const metadata: Metadata = {
   title: 'Start here · Autinerary',
@@ -52,6 +53,7 @@ export default function StartPage() {
             <Link href="/terms" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">
               Terms
             </Link>
+            <FeedbackButton icon={false} className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900" />
           </span>
           <span>© 2026 Autinerary Corp. All rights reserved.</span>
         </div>

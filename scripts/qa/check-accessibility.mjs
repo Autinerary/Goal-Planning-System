@@ -42,13 +42,17 @@ const SIGNED_OUT = [
   HUB + '/search?ai=1&q=' + encodeURIComponent('a quiet pool for my son near Kitchener'), HUB + '/campus',
   // Goals 2 and 5: the terms, the newsletter's sign-up and Community's Choice.
   APP + '/terms', APP + '/newsletter', APP + '/community-choice',
+  // Goals 6 to 11: how Autinerary is paid for, #FundAutinerary, the Spot
+  // Guides program, Help us rate, and a service page with the 2D/3D map
+  // switch and the claim card (a checked listing with a map point).
+  APP + '/pricing', APP + '/petition', APP + '/spot-guides', HUB + '/help-us-rate', HUB + '/resources/47d371eb-1a92-4df7-b1d6-acc0e286dc29',
 ]
 const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
 const SIGNED_IN = (ALL
   ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
      '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
-  : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).map((p) => APP + p)
+  : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility']).map((p) => APP + p)
 // ResourceHub signed in, through the app's hand-off: its account menu and its
 // profile had problems only a signed-in check could see (found 15 October
 // 2026, Riipen Labs Groups 8 to 14).

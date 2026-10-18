@@ -1,0 +1,120 @@
+{
+  "topic": "cnaf_nt",
+  "checked": "2026-10-18",
+  "source": "Canadian National Autism Foundation, cnaf.net/provinceres.html; each entry checked on its own website",
+  "entries": [
+    {
+      "slug": "nwt-student-financial-assistance",
+      "name": "NWT Student Financial Assistance (SFA)",
+      "website": "https://www.ece.gov.nt.ca/en/services/student-financial-assistance",
+      "description": "The Government of the Northwest Territories' grants and loans for NWT residents in part-time or full-time post-secondary education. It includes Grants for Students with Disabilities: up to $4,000 a year for tuition, books, travel and accommodation, and up to $20,000 a year for costs such as a tutor, interpreter or special equipment.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "Government grant and loan program; the page lists no application fee.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "4501 – 50th Avenue",
+      "phone": "1-800-661-0793",
+      "email": "nwtsfa@gov.nt.ca",
+      "age_ranges": [],
+      "evidence": "This program provides financial assistance to eligible Northwest Territories (NWT) residents to assist with post-secondary education-related expenses.",
+      "notes": "CNAF links twice to the old ece.gov.nt.ca income-security page (once as 'FORMS and APPLICATIONS'); it now redirects to this page. Applicants must be NWT residents studying in an approved program at a designated institution and must reapply each academic year. Address is the SFA office (1st Floor, Lahm Ridge Tower, Yellowknife)."
+    },
+    {
+      "slug": "nthssa-speech-language-pathology",
+      "name": "Speech Language Pathology (Northwest Territories Health and Social Services Authority)",
+      "website": "https://www.nthssa.ca/en/services/rehabilitation-services/speech-language-pathology",
+      "description": "The NWT health authority's speech-language pathology service for children and adults with speech delay, language, communication, stuttering or swallowing difficulties. It is offered across the NWT (visiting therapists or travel to a larger centre for smaller communities), and people can refer themselves without a doctor's referral.",
+      "category": "Therapist",
+      "tags": [
+        "provides_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "550 Byrne Rd",
+      "phone": "867-767-9299",
+      "email": "sth_rehab@gov.nt.ca",
+      "age_ranges": [],
+      "evidence": "Our Speech Language Pathologists provide a full range of SLP services, including the identification, evaluation, diagnosis, treatment, and management of speech delay, language development and communication disorders.",
+      "notes": "CNAF lists the Yellowknife Health and Social Services Authority at yhssa.org (now 'Sorry, the website has been stopped') and says it provides speech-language assessment. NTHSSA's About page says it was formed by amalgamating six regional authorities, including Yellowknife; this is its speech-language service. Yellowknife rehabilitation services have moved to 550 Byrne Rd; self-referral forms go to the email given."
+    },
+    {
+      "slug": "nwt-services-persons-disabilities",
+      "name": "Services for Persons with Disabilities (NWT Health and Social Services)",
+      "website": "https://www.hss.gov.nt.ca/en/services/services-persons-disabilities",
+      "description": "A Government of the Northwest Territories page that points people with disabilities and their families to territorial programs across departments, such as income security, home and community care, supported living, the Office of the Public Guardian, housing mobility modifications, the Public Trustee and property tax relief. It also lists partner organizations, including the NWT Disabilities Council and Inclusion NWT.",
+      "category": "Social Services",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "Government information page; it does not mention cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "867-767-9030",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Each individual accesses different programs based on their wants and needs. Sometimes, the largest barrier is knowing where to start.",
+      "notes": "Not from CNAF: added because the Northwest Territories has fewer than 5 kept entries. Phone is Seniors and Continuing Care Services, Department of Health and Social Services; the page also gives the NWT Disabilities Council's toll-free line, 1-800-491-8885. No NWT autism society was found (autismnwt.ca, .com and .org do not resolve, and none is among this page's partner organizations)."
+    },
+    {
+      "slug": "nwt-income-assistance",
+      "name": "Income Assistance Program (Government of the Northwest Territories)",
+      "website": "https://www.ece.gov.nt.ca/en/services/income-security-programs/income-assistance-program",
+      "description": "A Northwest Territories Department of Education, Culture and Employment program that gives monthly financial assistance to NWT residents whose needs are greater than their income, to help meet basic needs. People apply each month at a local ECE Service Centre, where a Client Navigator can help with the application.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "Government financial assistance.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "(867) 767-9355",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "This program provides financial assistance to Northwest Territories (NWT) residents to help meet their basic needs.",
+      "notes": "Not a Yukon resource: CNAF's Yukon page links an AIDE Canada guide to NWT adult funding and names 'Income Assistance' in unlinked text. The NWT also has a separate Income Assistance for Seniors and Persons with Disabilities program (listed in this page's menu). Toll free (866) 973-7252."
+    },
+    {
+      "slug": "nwtdc-learning-supports",
+      "name": "Learning Supports for Persons with Disabilities (NWT Disabilities Council)",
+      "website": "https://www.nwtdc.net/learning-supports",
+      "description": "A fund run by the NWT Disabilities Council that helps NWT residents with disabilities reach their learning goals. Adults 18 and older who are out of high school and cannot get training funding elsewhere, and organizations, can apply with a proposal showing how the money will help overcome barriers to learning.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "Funding for learning supports, given by proposal.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "867.873.8230",
+      "email": "info@nwtdc.net",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "The Learning Support for Persons with Disabilities Fund helps NWT residents with disabilities achieve their learning goals.",
+      "notes": "Not a Yukon resource: named in unlinked text on CNAF's Yukon page (taken from an AIDE Canada guide to NWT adult funding). Contact details from the same page (Information, Referral, and Support Coordinator); toll free 1.800.491.8885."
+    }
+  ]
+}

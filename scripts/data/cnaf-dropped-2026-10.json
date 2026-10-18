@@ -1,0 +1,1250 @@
+{
+  "source": "cnaf.net provincial and national pages, checked 18 October 2026",
+  "why": "Items on CNAF pages that were not added to ResourceHub, with the reason for each (gone, closed, not a service, could not confirm, moved, blocked).",
+  "pages": {
+    "ab": [
+      {
+        "name": "MEP – Family Law Act",
+        "reason": "BLOCKED: https://morrisonllp.com/alberta-maintenance-enforcement-program/ returns only a 'Checking your browser before redirecting' firewall page. From its URL and CNAF's text it is a law firm's (Morrison LLP) article about the Maintenance Enforcement Program and Family Law Act changes, i.e. a document rather than a service."
+      },
+      {
+        "name": "Children’s Services Centre",
+        "reason": "No link: CNAF's unlinked text gives only a generic name and an old Red Deer address (401 5000 Gaetz Avenue); the organisation's own current site could not be identified."
+      },
+      {
+        "name": "Blind Person’s Rights Act",
+        "reason": "A law (Alberta statute on CanLII), not a service."
+      },
+      {
+        "name": "Service Dogs Act",
+        "reason": "A law (Alberta statute on CanLII), not a service."
+      },
+      {
+        "name": "Standards for Special Education",
+        "reason": "Links to Ontario's 'Special education in Ontario, Kindergarten to Grade 12 – Policy and resource guide' on ontario.ca; a policy document, not a service (and about Ontario)."
+      },
+      {
+        "name": "Special Education Index",
+        "reason": "CNAF links to a BC government PDF (http://www.mcf.gov.bc.ca/spec_needs/pdf/support_guide.pdf); the domain no longer exists, and it was a guide, not a service."
+      },
+      {
+        "name": "Boards of Education",
+        "reason": "CNAF links to an OISE (University of Toronto) page of links to school boards; it returns 404, and it was a list of links, not a service."
+      },
+      {
+        "name": "Special Education Review",
+        "reason": "A 2000 Alberta Education review (document); the old education.gov.ab.ca page returns 404."
+      },
+      {
+        "name": "Standards of Special Education",
+        "reason": "An Alberta Education standards document for school boards; the old education.alberta.ca page returns 404."
+      },
+      {
+        "name": "Special Education Coding Criteria 2005/06",
+        "reason": "A 2005/06 Alberta Education coding-criteria document; the old education.alberta.ca page returns 404."
+      },
+      {
+        "name": "Individualized Program Planning",
+        "reason": "An Alberta Education guide (Book 3 of the Programming for Students with Special Needs series); the old page returns 404."
+      },
+      {
+        "name": "Early Childhood Special Education",
+        "reason": "An Alberta Education standards document for ECS special education; the old page returns 404. The ECS program itself is kept as ecs-pre-kindergarten-alberta."
+      },
+      {
+        "name": "Designated Special Education Private Schools",
+        "reason": "An old Alberta Education page explaining a category of private schools; it returns 404. Not a service on its own (New Heights and Renfrew, both designated special education schools, are kept)."
+      },
+      {
+        "name": "French Immersion for Students with Special Needs",
+        "reason": "An old Alberta Education document page; it returns 404."
+      },
+      {
+        "name": "Family Support for Children with Disabilities Act",
+        "reason": "A law (the FSCD Act); the old humanservices.alberta.ca page returns 'Page not found'. The FSCD program is kept as fscd-alberta."
+      },
+      {
+        "name": "Family Support for Children with Disabilities Government Program",
+        "reason": "The FSCD Policy and Procedures Manual, a PDF hosted by calgarycp.org that now returns 404; a document. The FSCD program is kept as fscd-alberta."
+      },
+      {
+        "name": "Alberta Government Support for Families of Children and Youth with Disabilities",
+        "reason": "A November 2014 FSCD tip-sheet PDF (a chart of government services); a document, not a service. The programs are kept as their own entries."
+      },
+      {
+        "name": "Disability Services",
+        "reason": "A general humanservices.alberta.ca index of disability services, now 'Page not found'; a ministry index page is not a resource on its own. The programs it led to (FSCD, PDD, AISH, DRES) are kept."
+      },
+      {
+        "name": "Special Needs Resources",
+        "reason": "An old Alberta Education catalogue of special-education resources with ordering information; the page returns 404."
+      },
+      {
+        "name": "Children with Special Needs",
+        "reason": "An old Alberta Education page of links to services; it returns 404. A list of links, not a service."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home, which returns 404; it was a national directory of links, not a service."
+      },
+      {
+        "name": "Alberta Speech & Language Private Practice",
+        "reason": "MOVED?: CNAF links to http://asapp.ca/slp-listings/, which redirects to https://www.asapp.ca/slp-listings; www.asapp.ca now serves an unrelated '404 - Page Not Found | Galaxy' page with a certificate for another host, and https://asapp.ca/ times out. No current site for the association or its SLP listings was found."
+      },
+      {
+        "name": "Therapy Assistant Association of Alberta",
+        "reason": "CNAF links to http://thaaa.ca/; the domain no longer exists."
+      },
+      {
+        "name": "Alberta Therapeutic Recreation Association",
+        "reason": "MOVED?: CNAF links to http://www.alberta-tr.org/pages/home/default.aspx; the domain no longer resolves (also tried https://alberta-tr.org/ and https://www.albertatr.ca/). No current site found."
+      },
+      {
+        "name": "F.E.A.T Families for Early Treatment Alberta",
+        "reason": "CNAF links to http://members.shaw.ca/feat.ab/FEAT.html; Shaw has retired its members' web space, and no current site was found (featalberta.ca does not resolve)."
+      },
+      {
+        "name": "CIGNA Health Care Coverage -Intensive Intervention Program",
+        "reason": "A US health insurer's coverage-policy PDF (the link now redirects to a Cigna login page for health care professionals); a document, not a service, and not in Canada."
+      }
+    ],
+    "bc": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "School Act",
+        "reason": "A law (B.C. School Act on bclaws.gov.bc.ca), not a service."
+      },
+      {
+        "name": "Special Needs Contacts - Basic Information",
+        "reason": "CNAF links to http://www.bced.gov.bc.ca/apps/imcl/imclWeb/SN.do; it returns 404, and it was a contact list by school district, not a service."
+      },
+      {
+        "name": "British Columbia Council of Administrators of Special Education (BCCASE)",
+        "reason": "CNAF links to http://www.bc-case.org/; the domain no longer resolves, and bccase.ca, bccase.org, www.bccase.org and bccaise.ca do not resolve either. It was an association of school-district special education administrators."
+      },
+      {
+        "name": "Ministerial order on IEPs",
+        "reason": "A ministerial order (Individual Education Plan Order PDF on gov.bc.ca), plus a link to the Inclusive Education Services policy manual PDF; regulations and a policy manual, not services."
+      },
+      {
+        "name": "B.C. Ministry of Education ~ A Manual of Policies, Procedures and Guidelines",
+        "reason": "A policy manual; the old bced.gov.bc.ca link now redirects to the ministry's 'Inclusive education resources' page for teachers (a list of orders, policies and documents), not a service."
+      },
+      {
+        "name": "Boards of Education",
+        "reason": "Redirects to the general gov.bc.ca 'Education and training' page; not a resource on its own."
+      },
+      {
+        "name": "B.C. Ministry of Education ~ Individual Education Planning for Students with Special Needs",
+        "reason": "CNAF links to http://www.bced.gov.bc.ca/specialed/iepssn.htm (404, redirects to a document download); a guide, not a service."
+      },
+      {
+        "name": "B.C. Ministry of Education ~ Special Considerations for Individual Planning for Students with Autism",
+        "reason": "A section of the Inclusive Education Services policy manual (PDF on gov.bc.ca), not a service."
+      },
+      {
+        "name": "B.C. Ministry of Education ~ Parents Guide to Individual Education Planning",
+        "reason": "CNAF links to http://www.bcssa.org/PDFs/Resources/IEP.pdf; it returns 404, and it was a guide (PDF), not a service."
+      },
+      {
+        "name": "British Columbia Early Childhood Development Special Report",
+        "reason": "CNAF links to a PDF on mcf.gov.bc.ca; the domain no longer resolves, and it was a report, not a service."
+      },
+      {
+        "name": "Ministry of Advanced Education",
+        "reason": "The old aved.gov.bc.ca link redirects to the general page of the Ministry of Post-Secondary Education and Future Skills; a ministry page, not a resource on its own."
+      },
+      {
+        "name": "Guide Animal Act",
+        "reason": "A law (Guide Animal Act on CanLII), not a service."
+      },
+      {
+        "name": "Landmark Supreme Court decision on LD case",
+        "reason": "A court decision (Moore v. British Columbia (Education), on scc.lexum.org), not a service."
+      },
+      {
+        "name": "B.C. Human Rights Code",
+        "reason": "A law (B.C. Human Rights Code on bclaws.gov.bc.ca), not a service."
+      },
+      {
+        "name": "Ministry of Health Services",
+        "reason": "CNAF links to http://www.gov.bc.ca/health/, which redirects to the general Ministry of Health page; a ministry page, not a resource on its own (the At Home Program for medical equipment is kept as its own entry)."
+      },
+      {
+        "name": "Ministry of Children and Family Development",
+        "reason": "CNAF links to http://www.gov.bc.ca/mcf/, which redirects to the ministry's general page; not a resource on its own. Its programs for children with support needs (CYSN, Autism Funding, At Home Program) are kept as entries."
+      },
+      {
+        "name": "British Columbia Therapeutic Recreation Association",
+        "reason": "bctra.org is current, but it is a professional association for recreation therapists (membership, standards, events, job board); it offers no service, program or therapist directory that a person or family can use."
+      },
+      {
+        "name": "Vancouver Speech Language Therapy",
+        "reason": "CNAF links to https://www.vancouverspeechtherapy.com/; it cannot be reached over https, and over http it redirects to expiredwixdomain.com (the domain has expired)."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404, and it was a directory of links, not a service."
+      },
+      {
+        "name": "Adult Special Education-Resource Directory for Post-secondary Students with Disabilities",
+        "reason": "A resource directory; both aved.gov.bc.ca links now redirect to the general Ministry of Post-Secondary Education and Future Skills page."
+      },
+      {
+        "name": "Autism Spectrum Disorder Parent Resource Directory Leaving the Nest (Transition to Adult Services)",
+        "reason": "A resource directory (document); CNAF's link goes to the general Ministry of Children and Family Development page, not to the directory."
+      },
+      {
+        "name": "Post Secondary Education for Adults with a Disability",
+        "reason": "CNAF links to a School District 43 PDF list of post-secondary resources; it returns 404, and it was a list, not a service."
+      },
+      {
+        "name": "Workable Solutions ~ Training and Employment Programs for Persons with Disabilities",
+        "reason": "CNAF links to workablesolutionsbc.ca/site/workable_solutions/resources/resources_programs.asp (404); the domain now hosts an unrelated 'News and Trends' blog (dental implants, car dealerships), so the initiative is gone."
+      },
+      {
+        "name": "Speech and Language Pathologist Private Practice List",
+        "reason": "CNAF links to http://www.cshhpbc.org/docs/registry.pdf; it returns 404, and it was a list of practitioners, not a service."
+      }
+    ],
+    "mb": [
+      {
+        "name": "Educational Assistance in Manitoba Schools",
+        "reason": "A guide (PDF) for educators on the work of educational assistants (edu.gov.mb.ca/k12/docs/support/ed_assistants/educational_assistants.pdf), not a service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ School Support",
+        "reason": "CNAF's link now goes to the Student Services section of Manitoba Education and Early Childhood Learning (edu.gov.mb.ca/k12/specedu/index.html): an information hub of documents on special-education planning, programming and funding. Supports are arranged through each school division, so it is not a program people apply to."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Individual Education Planning A Handbook for Developing and Implementing IEP's",
+        "reason": "A handbook (document) on edu.gov.mb.ca/k12/specedu/iep/, not a service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Guidelines for Early Transition to School for Children with Special Needs",
+        "reason": "A guidelines document, not a service; CNAF's link (gov.mb.ca/fs/childcare/transition_protocol.html) now redirects to the general Manitoba Child Care page."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Supporting Inclusive Schools: A Handbook for Developing and Implementing Programming for Students with Autism Spectrum Disorder",
+        "reason": "A handbook for school teams (PDF chapters on edu.gov.mb.ca/k12/specedu/aut/), not a service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Supporting Inclusive Schools: School-Based Planning and Reporting",
+        "reason": "A planning document for educators; CNAF's link goes to the same autism handbook page as the item above. Not a service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Bill 13 - Appropriate Educational Programming",
+        "reason": "Legislation and standards (the Appropriate Educational Programming page on edu.gov.mb.ca/k12/specedu/aep/ with the regulation and standards documents), not a service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Special Needs Funding",
+        "reason": "Funding the province pays to school divisions (edu.gov.mb.ca/k12/specedu/funding/); the page says student-specific applications have not been needed since 2017/18 except in a few cases, and those are made by school staff. Families cannot apply, so not a family service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Funding Guidelines",
+        "reason": "Criteria for the same Level 2 and Level 3 school-division funding (edu.gov.mb.ca/k12/specedu/funding/level2-3.html); a guideline page, not a family service."
+      },
+      {
+        "name": "Manitoba Education, Citizenship and Youth ~ Special Needs Categorical Funding Booklet",
+        "reason": "Link returns 404 (edu.gov.mb.ca/k12/specedu/funding/booklet.html); it was a booklet for school administrators, not a service."
+      },
+      {
+        "name": "Manitoba Education ~ Individual Education Plans",
+        "reason": "An information page with IEP handbook chapters (edu.gov.mb.ca/k12/specedu/iep/), not a service."
+      },
+      {
+        "name": "University of Manitoba, Certificate in Applied Behaviour Analysis (ABA)",
+        "reason": "Both CNAF links (umanitoba.ca/faculties/con_ed/mpcp/aba/ on the Manitoba page and umanitoba.ca/extended/mpcp/aba/ on the ABA sub-page) return 404, and U of M Extended Education's current program pages (applied social sciences) show no ABA certificate. It was a training course for professionals rather than a service."
+      },
+      {
+        "name": "Application for Financial Assistance for Full-time Students (2015-16 form)",
+        "reason": "A 2015-16 application form (PDF, edu.gov.mb.ca/msa/pdf/2015-16_app_form.pdf); the link returns 404. Manitoba Student Aid itself is kept as an entry."
+      },
+      {
+        "name": "The Human Rights Code",
+        "reason": "A law (Manitoba's Human Rights Code) on CanLII, not a service. The Manitoba Human Rights Commission is kept as an entry."
+      },
+      {
+        "name": "The Service Animals Protection Act",
+        "reason": "A law on CanLII, not a service."
+      },
+      {
+        "name": "Human Rights and Reasonable Accommodations",
+        "reason": "A Manitoba government information page explaining the Human Rights Code (manitoba.ca/fs/imd/hr.html), not a service; the Manitoba Human Rights Commission is kept as an entry."
+      },
+      {
+        "name": "Manitoba's Ongoing Commitment to Early Childhood Development",
+        "reason": "A policy statement, not a service; the link (gov.mb.ca/healthychild/ecd/) now lands on Manitoba's 'Resource Not Found' page."
+      },
+      {
+        "name": "Sterling Lyon Office",
+        "reason": "Not confirmable with the saved pages: sterlinglyonpediatrics.ca loads but is a JavaScript-only app, so fetch.py saves no visible text (only the title 'Sterling Lyon Pediatrics') and no quote or phone can be checked. Its script file does show a pediatric practice at Suite 401-1020 Lorimer Blvd, Winnipeg, phone (204) 942-0949, with Dr. Tannis Wiebe (developmental pediatrics); worth adding by hand after a browser check."
+      },
+      {
+        "name": "Music Therapy Association of Manitoba",
+        "reason": "MOVED?: CNAF links to manitobamusictherapy.ca; the domain no longer resolves. Tried mtam.ca, musictherapymanitoba.ca and manitobamusictherapy.com (none resolve)."
+      },
+      {
+        "name": "Bang A Beat Music Therapy Centre",
+        "reason": "CNAF links to bangabeat.com; the domain no longer resolves (http and https). Tried bangabeat.ca (does not resolve)."
+      },
+      {
+        "name": "Family Services and Programs for Children",
+        "reason": "An FAQ page (gov.mb.ca/fs/imd/services-children.html) answering questions about child care, subsidies and Children's disABILITY Services; CDS is kept as its own entry. Not a service on its own."
+      },
+      {
+        "name": "ADAPT Manitoba (Association for Developmental Autism Programs and Therapies)",
+        "reason": "adaptmanitoba.ca (home page and /about/) shows only the word 'maintenance'; nothing on the site shows the group is active."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "Link returns 404 (disabilityweblinks.ca/pls/dwl/dl.home); it was a directory of links, not a service."
+      },
+      {
+        "name": "MFEAT ~ Manitoba Families for Effective Autism Treatment",
+        "reason": "CNAF links to mfeat.ca (on the Manitoba page and the ABA sub-page); the domain no longer resolves. Tried mfeat.org (does not resolve)."
+      },
+      {
+        "name": "ASDMB.ca",
+        "reason": "An information portal and resource database that links to other organisations (asdmb.ca), not a service itself."
+      },
+      {
+        "name": "University Of Manitoba Unveils Dental Facility For Special Needs Children",
+        "reason": "A 2012 news story, not a service; the link returns 404."
+      },
+      {
+        "name": "Tannis Miles Speech-Language Pathologist",
+        "reason": "No link on CNAF's page (only a Winnipeg street address); no website for this practitioner could be found to check, so not confirmable."
+      },
+      {
+        "name": "ABC All aBout Children",
+        "reason": "CNAF links to allaboutchildrenslp.com; the domain no longer resolves. Tried allaboutchildrenslp.ca (does not resolve)."
+      }
+    ],
+    "national": [
+      {
+        "name": "Canada`s Autism Strategy",
+        "reason": "A federal strategy document (Canada's Autism Strategy, 2024) on canada.ca, not a service."
+      },
+      {
+        "name": "recent recommendation",
+        "reason": "Links to a House of Commons committee study page (CIMM, medical inadmissibility of immigrants) and a section of the Immigration and Refugee Protection Act on laws-lois.justice.gc.ca; not services."
+      },
+      {
+        "name": "permanent residence",
+        "reason": "An article about permanent residence on moving2canada.com (an immigration information site), not a service."
+      },
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Funding: Social Development",
+        "reason": "The Disability Component of the Social Development Partnerships Program (SDPP-D), listed twice by CNAF (also as item 89). CNAF's link http://www.edsc.gc.ca/eng/disability/social_development/index.shtml now lands on the ESDC home page. SDPP-D is still listed on ESDC's 'Find funding programs' page, but it funds not-for-profit organisations' projects; it is not something a person or family can apply to."
+      },
+      {
+        "name": "Warm Buddy",
+        "reason": "A shop selling microwavable plush animals (warmbuddy.com); a product, not a service."
+      },
+      {
+        "name": "Innovaid",
+        "reason": "A shop selling weighted blankets and other sensory products (innovaid.ca); a product, not a service."
+      },
+      {
+        "name": "Canadian Therapeutic Recreation Association",
+        "reason": "CNAF's link for this item (http://canadianarttherapy.org/) goes to the Canadian Art Therapy Association's site. CTRA's own site, https://canadian-tr.org/, is a professional association for recreation therapists (membership, conference, member check); it offers no service or therapist directory for people or families."
+      },
+      {
+        "name": "Facilitated communication",
+        "reason": "A Wikipedia article, not a service."
+      },
+      {
+        "name": "A article by Emma who has autism on those who used facilitated communication and can now communicate on their own",
+        "reason": "A blog post (emmashopebook.com), not a service."
+      },
+      {
+        "name": "Autism National Committee on their policy of facilitated communication",
+        "reason": "A policy PDF from a US organisation; the link http://www.autcom.org/articles/PPFC.pdf now returns 404."
+      },
+      {
+        "name": "TouchAutism Autism Apps",
+        "reason": "A list of apps (touchautism.com), not a service."
+      },
+      {
+        "name": "Magnus Cards",
+        "reason": "An app (MagnusCards, by the company Magnusmode), not a service."
+      },
+      {
+        "name": "Proloquo2Go",
+        "reason": "An AAC app, not a service; the CNAF link http://www.assistiveware.com/product/proloquo2go also failed to load (connection error)."
+      },
+      {
+        "name": "Niki Talk",
+        "reason": "An AAC app (nikitalk.com), not a service."
+      },
+      {
+        "name": "My Voice",
+        "reason": "An app (App Store listing) and a 2011 CBC News story; not a service."
+      },
+      {
+        "name": "Best iPad Apps for Autism and Asperger’s Syndrome",
+        "reason": "An App Store listing for an 'Autism Apps' list app, not a service."
+      },
+      {
+        "name": "Dr. Brown's Apps",
+        "reason": "Apps, not a service; the domain drbrownsapps.com no longer resolves."
+      },
+      {
+        "name": "Different Types of Benefits",
+        "reason": "The general canada.ca Benefits index page (https://www.canada.ca/en/services/benefits.html), a list of links, not a program on its own."
+      },
+      {
+        "name": "Disability Benefits",
+        "reason": "Item 33: the canada.ca 'Disability benefits' index page (a list of links), not a program on its own; the programs it lists are entered separately (Canada Disability Benefit, CPP disability, Child Disability Benefit, RDSP, student grants, excise gasoline tax refund, CPP children's benefit)."
+      },
+      {
+        "name": "President's Choice Children's Charity",
+        "reason": "CNAF's link (presidentschoice.ca/en_CA/community/pccc/apply-for-funding.html) now redirects to a generic PC Optimum page. The charity's own site, https://www.pcchildrenscharity.ca/, now describes only child-hunger and school food programs and does not show the disability funding CNAF describes; not confirmable."
+      },
+      {
+        "name": "Univeristy Study.ca",
+        "reason": "A list of scholarships (not a service); the link now shows a notice that UniversityStudy.ca has closed."
+      },
+      {
+        "name": "Click here to download the list.",
+        "reason": "A 2011 Word document listing speech-language pathologists, stored on cnaf.net (documents/SLPs.doc); a document on cnaf.net, not a service, and not expanded here."
+      },
+      {
+        "name": "Law Foundations Across Canada",
+        "reason": "A list of legal-help links on lawfoundation.on.ca; the link now redirects to a Law Foundation of Ontario news article (https://lawfoundation.on.ca/news/legal-help-on-the-frontlines/). Not a service."
+      },
+      {
+        "name": "People First Ontario",
+        "reason": "MOVED?: CNAF links to http://www.peoplefirstontario.com/; the site now shows a web host's 'Account Suspended' page (peoplefirstontario.ca redirects there too; peoplefirstofontario.ca and .com do not resolve). No current site found."
+      },
+      {
+        "name": "Angel Guard Seat Buckle Safety Guard",
+        "reason": "A product page on a shop (babytosenior.ca), not a service."
+      },
+      {
+        "name": "Angel Guard Seat Belt Buckle Safety Guard 2 Pack",
+        "reason": "A product listing on Amazon.ca, not a service."
+      },
+      {
+        "name": "Seat Belt Buckle Guard Pro",
+        "reason": "A product page (perfectlysafe.com, US), not a service."
+      },
+      {
+        "name": "Debbaudt Legacy Productions, LLC (DLP)",
+        "reason": "debbaudtlegacy.com now redirects to Autism Risk & Safety Management (autismriskmanagement.com), a US training business for police and first responders based in Port St. Lucie, Florida; not a service for people or families in Canada."
+      },
+      {
+        "name": "Best Provinces for Acessability In Canada",
+        "reason": "A real-estate blog post (zolo.ca, blocked by a Cloudflare challenge) and a Statistics Canada report; not services."
+      },
+      {
+        "name": "Tuition Fees and Charitable Donations Paid to Privately Supported Secular and Religious Schools",
+        "reason": "A CRA information circular (IC75-23) on the tax treatment of tuition and donations; the old cra-arc.gc.ca link now lands on the CRA home page. A tax guidance document, not a service."
+      },
+      {
+        "name": "Council of Ministers of Education, Canada",
+        "reason": "An intergovernmental council of provincial and territorial education ministers (cmec.ca); not a service people or families can use."
+      },
+      {
+        "name": "Autism Treatment Network (ATN)",
+        "reason": "Now Holland Bloorview's Autism Care Network (ACNet) page: a research network and study (participation deadline March 2023, for existing Holland Bloorview clients), not a service. Holland Bloorview's autism diagnostic services are already in scripts/data/services/early_years.json as holland-bloorview-autism-diagnostic-services."
+      },
+      {
+        "name": "Active Living Alliance for Canadians with a Disability",
+        "reason": "CNAF links to a 2015 partner listing on cdpp.ca whose only contact is a named person's gmail; the alliance's former domain ala.ca now belongs to an unrelated payday-loan site. No current site found."
+      },
+      {
+        "name": "The Association for the Neurologically Disabled of Canada",
+        "reason": "CNAF's link (cwhn.ca/en/node/16670) no longer resolves, its other links are Google searches, and CNAF itself says there is no longer a website; the former domain and.ca does not resolve either. Not confirmable."
+      },
+      {
+        "name": "Service Canada-",
+        "reason": "An old Service Canada 'persons with disabilities' page (a list of programs, per an archived 2015 copy); it now lands on the general Service Canada page, not a program on its own. The programs it listed were checked one by one."
+      },
+      {
+        "name": "Bureau of Pensions Advocates",
+        "reason": "veterans-only program, outside this directory's audience: an archived 2014 copy of the old Service Canada page (https://web.archive.org/web/2014/http://www.servicecanada.gc.ca/eng/goc/pension_advocates.shtml) shows it is Veterans Affairs Canada's free legal help for appealing VAC disability pension decisions."
+      },
+      {
+        "name": "Clothing Allowance",
+        "reason": "veterans-only program, outside this directory's audience: an archived 2014 copy of the old page (https://web.archive.org/web/2014/http://www.servicecanada.gc.ca/eng/goc/clothing_allowance.shtml) shows it is a Veterans Affairs Canada allowance for veterans who receive a VAC disability benefit."
+      },
+      {
+        "name": "Disability Benefits",
+        "reason": "veterans-only program, outside this directory's audience: item 79; an archived 2014 copy of the old page (https://web.archive.org/web/2014/http://www.servicecanada.gc.ca/eng/goc/disability_benefits.shtml) shows it is Veterans Affairs Canada's Disability Pension / Disability Award for service-related disabilities."
+      },
+      {
+        "name": "Enabling Accessibility Fund",
+        "reason": "CNAF's esdc.gc.ca link now lands on the ESDC home page. The fund is current (canada.ca page dated 2026-01-16) but gives grants and contributions to organisations for accessibility building projects; it is not something a person or family can apply to."
+      },
+      {
+        "name": "Opportunities Fund for Persons with Disabilities",
+        "reason": "CNAF's servicecanada.gc.ca link now lands on the general Service Canada page. The fund pays organisations to run employment projects; its current canada.ca page is a call for proposals for organisations that closed in July 2022, so there is nothing a person can apply to directly."
+      },
+      {
+        "name": "Rehabilitation Program",
+        "reason": "veterans-only program, outside this directory's audience: an archived 2014 copy of the old page (https://web.archive.org/web/2014/http://www.servicecanada.gc.ca/eng/goc/rehabilitation.shtml) shows it is Veterans Affairs Canada's Rehabilitation Program for Canadian Forces veterans."
+      }
+    ],
+    "nb": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "New Brunswick Education Act ~ The Education Act for K-12",
+        "reason": "A law (Education Act, chapter E-1.12) on laws.gnb.ca, not a service."
+      },
+      {
+        "name": "New Brunswick Education ~ Teaching Students with Autism Spectrum Disorders",
+        "reason": "A Department of Education teaching guide (PDF); gnb.ca/0000/publications/ss/ still answered 522 (origin timeout) after --force. A document, not a service."
+      },
+      {
+        "name": "Guidelines and Standards Educational Planning for Students With Diverse Learning Needs",
+        "reason": "A Department of Education guidelines PDF (it loads on www2.gnb.ca); a document, not a service."
+      },
+      {
+        "name": "Current Status of the Education System in New Brunswick",
+        "reason": "A 2005 report appendix (MacKay review, Appendix L) PDF on www2.gnb.ca; a document, not a service."
+      },
+      {
+        "name": "Resource for the Identification andTeaching of Students with SpecificLearning Disability: High School Program",
+        "reason": "A Department of Education teaching resource PDF on www2.gnb.ca; a document, not a service."
+      },
+      {
+        "name": "Guidelines and Standards Educational Planning for Students With Exceptionalities",
+        "reason": "An older Department of Education guidelines PDF (gnb.ca/0000/publications/ss/sep.pdf); still 522 (origin timeout) after --force. A document, not a service."
+      },
+      {
+        "name": "TEACHER ASSISTANT GUIDELINES",
+        "reason": "A Department of Education guidelines PDF; the link returns 404 (Page Not Found on gnb.ca). A document, not a service."
+      },
+      {
+        "name": "New Brunswick Education ~ Inclusive Education: A Review of Programming and Services in New Brunswick",
+        "reason": "A review report appendix (MacKay review) PDF at gnb.ca/0000/publications/mackay/appendixi.pdf; still 522 (origin timeout) after --force. A document, not a service."
+      },
+      {
+        "name": "Boards of Education",
+        "reason": "CNAF links to an OISE (University of Toronto) list of school boards, http://www.oise.utoronto.ca/canedweb/edboards.html; it returns 404. A list of links, not a service."
+      },
+      {
+        "name": "GRADUATION REQUIREMENTS FOR A NEW BRUNSWICK HIGH SCHOOL DIPLOMA",
+        "reason": "A Department of Education policy PDF (316AA.pdf); the link now redirects to the general K-12 policies page on gnb.ca. A policy, not a service."
+      },
+      {
+        "name": "New Brunswick Post-Secondary Education, Training and Labour",
+        "reason": "A general department page; it now redirects to gnb.ca's general \"Education and training\" topic page, not a program. Student aid is covered by the \"Student Aid for students with disabilities\" entry."
+      },
+      {
+        "name": "Medical Assessment Form",
+        "reason": "A form (PDF, www2.gnb.ca/content/dam/gnb/Departments/petl-epft/PDF/SFS/maf-e.pdf); the link returns 404. Not a service."
+      },
+      {
+        "name": "Canada Student Grant for Services and Equipment for Persons with Permanent Disabilities Government of Canada",
+        "reason": "A form (PDF, csg-pd-e.pdf on www2.gnb.ca); the link returns 404. The grant itself is covered by the \"Student Aid for students with disabilities\" entry."
+      },
+      {
+        "name": "Department of Health and Wellness ~ Program and Project Criteria for Community Centres for Persons with Autism Spectrum Disorder and Their Families",
+        "reason": "http://www.gnb.ca/0055/autism-e.asp still answered 522 (origin timeout) after --force; it set out funding criteria for community autism centres (for organisations, not families). No current page found; the centres themselves are listed separately."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law (New Brunswick Human Rights Act) on CanLII, not a service. The Human Rights Commission is kept as its own entry."
+      },
+      {
+        "name": "The Atlantic Association for Music Therapy",
+        "reason": "BLOCKED: http://atlanticmusictherapy.ca/index.php/site/about/ returns 403 in every fetch mode. The Canadian Association of Music Therapists lists the association's current site as www.atlanticassociationmt.com, but that Wix page gives fetch.py no readable text (empty page.txt), so nothing could be checked. Worth a look in a browser."
+      },
+      {
+        "name": "Ms. Jaclyn Trecartin",
+        "reason": "A Psychology Today profile link; it now redirects to Psychology Today's generic US therapist search, so the profile is gone. No website of the practitioner's own was found."
+      },
+      {
+        "name": "Living Autism Now",
+        "reason": "http://livingautismnow.com/music-therapist/ shows \"Error. Page cannot be displayed\" and the home page redirects to a 404 page; the site is gone."
+      },
+      {
+        "name": "Speech Therapy Success",
+        "reason": "CNAF links to http://www.speechtherapysuccess.ca/; the domain no longer exists (also without www)."
+      },
+      {
+        "name": "Speech Path 4U",
+        "reason": "BLOCKED: http://www.speechpath4u.ca/about redirects to https, where every fetch fails the TLS handshake (curl exit 35); the home page with and without www fails the same way. Needs a check in a browser."
+      },
+      {
+        "name": "Kelsey Manderville MSc. SLP",
+        "reason": "CNAF links to http://www.kelseymandervilleslp.com/; the domain no longer exists (also without www)."
+      },
+      {
+        "name": "Hébert Family Support Services (HFSS)",
+        "reason": "MOVED?: http://hfss.ca/ timed out on every try. The Hébert Centre (kept as Hébert Individualized Learning Services) now lists HILS at the same address, which offers similar services, but the site does not say it replaced HFSS."
+      },
+      {
+        "name": "Community Autism Center",
+        "reason": "Not confirmable: CNAF gives only a Facebook group link (login wall, HTTP 400) and an address (55 Westmorland Rd, Saint John); guessed domains (communityautismcentre.ca, .com) do not resolve. NB EECD's Autism Resource Hub lists \"Community Autism Centre Inc. (Saint John Region)\" with an email only, so it seems to exist, but no page of its own was found."
+      },
+      {
+        "name": "Pathways Educational Services",
+        "reason": "http://www.pathwayseducationalservices.com/ now hosts an unrelated UK careers site for teachers and healthcare educators, not the New Brunswick multisensory language centre."
+      },
+      {
+        "name": "The Chaleur Autism and Asperger Family Centre Inc.",
+        "reason": "MOVED?: http://www.autismchaleur.com/ now redirects to serijal.com (unrelated, 403) and autismchaleur.ca does not resolve. NB EECD's Autism Resource Hub still lists the centre, with an email only."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home, which returns 404; the site is gone, and it was a directory of links, not a service."
+      }
+    ],
+    "nl": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Disability Policy Office (Department of Human Resources, Labour and Employment)",
+        "reason": "No link on CNAF. Its current page (https://www.gov.nl.ca/cssd/disabilities/, now gov.nl.ca/sswb/disabilities/) describes a government policy office that works with departments, businesses and community groups on accessibility, not a service people use or apply to. That page links to a \"Newfoundland and Labrador Disability Benefit\", which a reviewer may want to check separately."
+      },
+      {
+        "name": "The Provincial Advisory Council for the Inclusion of Persons with Disabilities",
+        "reason": "CNAF links to a 2014-17 activity plan PDF on aes.gov.nl.ca (now 404); an advisory council to government, not a service."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404, and it was a directory of links, not a service."
+      },
+      {
+        "name": "Department of Health and Community Services - Medical Services",
+        "reason": "A general ministry home page (http://www.health.gov.nl.ca/health/ now redirects to https://www.gov.nl.ca/hcs/), not a resource on its own."
+      },
+      {
+        "name": "Government of Newfoundland & Labrador ~ Student Support Services",
+        "reason": "CNAF's link (http://www.ed.gov.nl.ca/edu/k12/studentsupportservices/) now redirects to the department home page. The current Student Services page (https://www.gov.nl.ca/education/k12/studentsupportservices/) is a list of policies, guidelines and forms rather than a program page, and its Special Education hub is an information page."
+      },
+      {
+        "name": "Student Support Services - Forms and Applications",
+        "reason": "A forms page; the link now redirects to the education department's home page (https://www.gov.nl.ca/education/)."
+      },
+      {
+        "name": "Student Support Information",
+        "reason": "A 2006-07 statistics PDF; the link now redirects to the education department's home page (https://www.gov.nl.ca/education/)."
+      },
+      {
+        "name": "Student Support Services Publications",
+        "reason": "A publications page; the link now redirects to the education department's home page (https://www.gov.nl.ca/education/)."
+      },
+      {
+        "name": "Boards of Education Newfoundland and Labrador",
+        "reason": "Two links: the old education department home page (now a general ministry home page) and a list of school boards on oise.utoronto.ca (404). Not a service."
+      },
+      {
+        "name": "Role of Education Personnel in the Delivery of Services to Students with Special Needs",
+        "reason": "Role descriptions (a document) on esdnl.ca; the link now lands on the ESDNL home page. Not a service."
+      },
+      {
+        "name": "The Individual Support Services Planning Process",
+        "reason": "A description of the ISSP process on edu.gov.nf.ca; the link returns 404. Not a service."
+      },
+      {
+        "name": "Inclusion",
+        "reason": "A chapter (PDF) of a core French curriculum guide; the link now redirects to the education department's home page (https://www.gov.nl.ca/education/). Not a service."
+      },
+      {
+        "name": "News Release on new resource for students with Autism Spectrum Disorders",
+        "reason": "A 2003 news release; the link now redirects to the gov.nl.ca home page."
+      },
+      {
+        "name": "Employability Assistance for Persons with Disabilities (Department of Advanced Education & Skills)",
+        "reason": "MOVED?: http://www.aes.gov.nl.ca/disabilities/services.html returns 404. The current link on the health department's disability page (https://www.gov.nl.ca/aesl/disabilities/services/) and gov.nl.ca/isl|ipgs|aesl/disabilities/ all redirect to the Jobs, Growth and Rural Development home page, and its Employment Services page does not mention a disability program."
+      },
+      {
+        "name": "Labour Market and Career Information HotlineDepartment of Advanced Education and Skills",
+        "reason": "MOVED?: same link as Employability Assistance for Persons with Disabilities (http://www.aes.gov.nl.ca/disabilities/services.html, 404); describes the Labour Market Agreement for Persons with Disabilities (LMAPD); no current page found."
+      },
+      {
+        "name": "Planning Support for Students with Autism Spectrum Disorders:Handbook",
+        "reason": "A handbook chapter PDF on gov.nl.ca; the link returns 404. A document, not a service."
+      },
+      {
+        "name": "Pathways Brochure",
+        "reason": "A brochure PDF; the link now redirects to the education department's home page (https://www.gov.nl.ca/education/). A document, not a service."
+      },
+      {
+        "name": "Programming for Individual Needs: Communication Disorders Handbook",
+        "reason": "Handbooks (Teaching Students with Autism Spectrum Disorders; Communication Disorders); one link redirects to the department home page and the other returns 404. Documents, not services."
+      },
+      {
+        "name": "Blind Persons Rights Act",
+        "reason": "A law on CanLII, not a service."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law on CanLII, not a service."
+      },
+      {
+        "name": "Helping Matters Counselling and Assessment Centre",
+        "reason": "No link on CNAF; the domain of its email address (helpingmattersnl.ca) no longer resolves (tried https://helpingmattersnl.ca/ and https://www.helpingmattersnl.ca/), and no current site was found."
+      },
+      {
+        "name": "Adrienne C. Thoms",
+        "reason": "No link on CNAF, only a personal Yahoo email address and a phone number; no practice website found, so not confirmable."
+      },
+      {
+        "name": "Dawn Mayo, Occupational Therapy Services for Children in NL",
+        "reason": "No link on CNAF, only a personal Gmail address and a phone number; tried https://ots4children.ca/ and https://www.ots4children.com/ (neither resolves); no website found."
+      },
+      {
+        "name": "Susan Sparkes, OT (R)NL Occupational Therapist",
+        "reason": "CNAF links to an image file (a JPG on Amazon S3, now 403), not a website; no site for the practice found."
+      },
+      {
+        "name": "The Atlantic Association for Music Therapy",
+        "reason": "BLOCKED: http://atlanticmusictherapy.ca/index.php/site/about/ - every fetch mode gets a 403 that redirects to a Cisco Umbrella/OpenDNS block page (a network filter on our side), so the site could not be checked. Also on CNAF's Nova Scotia and PEI pages."
+      },
+      {
+        "name": "Theraputic Recreation Newfoundland and Labrador Therapeutic Recreation Association",
+        "reason": "CNAF links to http://nltra.ca/; the domain no longer exists."
+      },
+      {
+        "name": "Secret Chords Music Therapy",
+        "reason": "CNAF links to http://secretchordmusictherapy.com/vision/; the domain no longer exists."
+      },
+      {
+        "name": "Renee White Music Therapy",
+        "reason": "CNAF links to https://rwhitemta.musicteachershelper.com/; it now redirects to duetpartner.com, an unrelated studio-management software company; no current site for the practice found."
+      },
+      {
+        "name": "Aboriginal Patient Navigator Program",
+        "reason": "No link on CNAF (phone numbers only, 709-777-2119/2110, for a hospital-based program). Not found on NL Health Services' site (https://nlhealthservices.ca/ home and areas of care), so not confirmable. First Light (kept) runs its own Indigenous Patient Navigation program."
+      }
+    ],
+    "ns": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Lesley Hartman Associates",
+        "reason": "CNAF links to https://www.lesleyhartmanassociates.ca/autismasdassessment; the page is 404 and the domain now redirects to East Coast Psychotherapy & Trauma Clinic (Halifax and Membertou, founded by Beth Toomey), whose site never mentions Lesley Hartman Associates, so it cannot be confirmed as the same practice. Note for reviewers: East Coast Psychotherapy itself offers adult autism assessments in Halifax (https://eastcoastpsychotherapy.ca/mental-health-assessments/)."
+      },
+      {
+        "name": "Halifax Regional School Board Special Education Policy",
+        "reason": "A school board policy PDF (http://www.hrsb.ns.ca/...C.006-special-education.pdf); the link returns 404. A policy document, not a service."
+      },
+      {
+        "name": "The Teacher Assistant Guidelines",
+        "reason": "A guidelines PDF on ccrsb.ednet.ns.ca; the link times out. A document, not a service."
+      },
+      {
+        "name": "Nova Scotia Department of Education",
+        "reason": "CNAF links to a Google search redirect for the department's home page; a general ministry home page is not a resource on its own."
+      },
+      {
+        "name": "Early Childhood Development Strategy",
+        "reason": "A strategy/news-release page (http://novascotia.ca/coms/families/provider/ECDS.html); the link returns 404."
+      },
+      {
+        "name": "Special Education Policy Manual",
+        "reason": "A policy manual PDF on an old ftp server (ftp://ftp.ednet.ns.ca/...speceng.pdf), listed twice on CNAF's page; a document, not a service."
+      },
+      {
+        "name": "Department of Education Business Plan 2006-2007",
+        "reason": "A 2006-07 business plan PDF; the link returns 404."
+      },
+      {
+        "name": "Nova Scotia Education and Culture",
+        "reason": "A handbook PDF (transportation of students with special needs) on an old ftp server; a document, not a service."
+      },
+      {
+        "name": "Programming for Students with Special Needs",
+        "reason": "A PDF document; the link now lands on the department's Document Depot page. Not a service."
+      },
+      {
+        "name": "Nova Scotia Learning Disabilities Resources",
+        "reason": "CNAF links to a resource directory at http://www.ldans.ca/resdir.php; the domain no longer exists (https://ldans.ca/ does not resolve either)."
+      },
+      {
+        "name": "Special Needs Information Service",
+        "reason": "CNAF links to http://www.nsnet.org/directory.html; the domain now redirects to an unrelated hotel site (topmunichhotels.com)."
+      },
+      {
+        "name": "St. Francis Xavier University",
+        "reason": "BLOCKED: https://www.stfx.ca/ - CNAF links to http://sites.stfx.ca/accessible_learning/policy (and a bursary page), whose domain no longer exists. StFX's main site (also tried /student-services/accessible-learning and /accessible-learning) answers every fetch mode with an Akamai \"Access Denied\" 403, so its current accessible learning page could not be checked."
+      },
+      {
+        "name": "Nova Scotia Department of Community Services",
+        "reason": "A general ministry home page (now the Department of Opportunities and Social Development), not a resource on its own; its programs (DSP, DFSC, Income Assistance, Child Benefit, day programs) are separate entries."
+      },
+      {
+        "name": "Minister of Community Services Office Honourable Joanne Bernard (Liberal)",
+        "reason": "A page about a former minister on nslegislature.ca; the link returns 404. Not a service."
+      },
+      {
+        "name": "Minister responsible for the Advisory Council on the Status of Women Act-",
+        "reason": "CNAF links to http://women.gov.ns.ca; the domain no longer exists. A ministerial responsibility, not a service."
+      },
+      {
+        "name": "Programs, Services & Community Supports",
+        "reason": "A page of links on http://disability.novascotia.ca/content/links; the domain no longer exists."
+      },
+      {
+        "name": "Nova Scotia Department of Community Services ~ Early Childhood Develpment Services",
+        "reason": "Link (http://novascotia.ca/coms/families/provider/ECDS.html) returns 404; no current page for this found on novascotia.ca."
+      },
+      {
+        "name": "Support for Persons with Disabilities",
+        "reason": "CNAF links to the old Community Services site map (http://novascotia.ca/coms/Sitemap.html), now 404; a list of links, not a service."
+      },
+      {
+        "name": "Blind Persons Rights Act",
+        "reason": "A law on CanLII, not a service."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law on CanLII, not a service."
+      },
+      {
+        "name": "The Atlantic Association for Music Therapy",
+        "reason": "BLOCKED: http://atlanticmusictherapy.ca/index.php/site/about/ (and https://atlanticmusictherapy.ca/) - every fetch mode gets a 403 that redirects to a Cisco Umbrella/OpenDNS block page (a network filter on our side), so the site could not be checked. Also on CNAF's PEI and Newfoundland pages."
+      },
+      {
+        "name": "Therapeutic Recreation Association of Atlantic Canada (Nova Scotia)",
+        "reason": "CNAF links to http://www.traac.ca/; the site is now an empty directory listing (\"Index of /\"), and no current site was found."
+      }
+    ],
+    "nt": [
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404. It was a directory of links to disability programs, not a service."
+      },
+      {
+        "name": "DISABILITY ASSESSMENT FORM (ece.gov.nt.ca disabilityassessmentform.pdf)",
+        "reason": "A form, not a service; the link now redirects to ECE's general Resources page. The program it belongs to is kept as NWT Student Financial Assistance (SFA)."
+      },
+      {
+        "name": "LEARNING SUPPORT FOR PERSONS WITH DISABILITIES FUND (LSPD)",
+        "reason": "The ece.gov.nt.ca link now redirects to the general 'Post-Secondary Education Institutions and Accreditation' page, which does not mention the fund, and ECE's current programs list has no page for it. Disability grants for post-secondary students are covered by the SFA entry."
+      },
+      {
+        "name": "Northwest Territories Education, Culture and Employment ~ Early Childhood",
+        "reason": "A general division page; the ece.gov.nt.ca link returns 404 (Page not found)."
+      },
+      {
+        "name": "Northwest Territories Education, Culture and Employment ~ K to 12",
+        "reason": "A general division page; the ece.gov.nt.ca link returns 404 (Page not found)."
+      },
+      {
+        "name": "Ministry of Education",
+        "reason": "The link is the Education, Culture and Employment department home page (ece.gov.nt.ca), a general ministry page, not a resource on its own."
+      },
+      {
+        "name": "Northwest Territories Education, Culture and Employment Establishment Policy",
+        "reason": "A policy document (PDF), not a service; the link returns 404."
+      },
+      {
+        "name": "Governement of Northwest Territories",
+        "reason": "The general Government of the Northwest Territories home page (gov.nt.ca), not a resource on its own."
+      },
+      {
+        "name": "Northwest Territories;Education;Financial Assistance: Aboriginal",
+        "reason": "CNAF links to http://www.aboriginalcanada.gc.ca/acp/site.nsf/en/ao20140.html (links to bursary lists); the domain no longer resolves."
+      },
+      {
+        "name": "Learning Disabilities Association of the NWT",
+        "reason": "MOVED?: CNAF links to http://www.nald.ca/litweb/province/nt/ldanwt/index.htm; the nald.ca domain no longer resolves, and ldanwt.ca and ldanwt.org do not resolve either. No current site for the association was found."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law (NWT Human Rights Act on CanLII), not a service."
+      }
+    ],
+    "nu": [
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404. It was a directory of links to disability programs, not a service."
+      },
+      {
+        "name": "Department of Health and Social Services",
+        "reason": "CNAF links to http://www.hss.gov.nu.ca/en/, which no longer connects; it was a general department home page (contact names and numbers), not a resource on its own. The Department of Health’s rehabilitation services are added separately."
+      },
+      {
+        "name": "Nunavut Human Rights Act",
+        "reason": "A law (Nunavut Human Rights Act), not a service; the link (nhrt.ca general information page) returns 404."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law (Nunavut Human Rights Act on CanLII), not a service."
+      },
+      {
+        "name": "DISABILITIY ASSESSMENT FORM (FANS disability assessment eform PDF)",
+        "reason": "A form (PDF), not a service; the gov.nu.ca link returns 404. The program it belongs to is kept as Financial Assistance for Nunavut Students (FANS)."
+      },
+      {
+        "name": "Centre of Excellence for Children and Adolescents with Special Needs - Meeting the Needs of Children and Adolescents with Special Needs in Rural and Northern Canada",
+        "reason": "A roundtable summary report (PDF), not a service; cprn.org now belongs to an unrelated organisation (Cerebral Palsy Research Network) and the page returns 404."
+      },
+      {
+        "name": "Nunavut’s Education Act",
+        "reason": "A law, not a service; CNAF links to edu.gov.nu.ca, which no longer resolves."
+      },
+      {
+        "name": "Inclusive Education Regulation",
+        "reason": "Draft policy intentions for a regulation (PDF), not a service; edu.gov.nu.ca no longer resolves. Nunavut’s inclusive education is kept as the Inuglugijaittuq entry."
+      },
+      {
+        "name": "Department of Education",
+        "reason": "CNAF links to the old Department of Education home page (edu.gov.nu.ca), which no longer resolves; a general department page, not a resource on its own. The Healthy Children Initiative it names still exists on gov.nu.ca, but it funds licensed child care centres and other organizations, not families directly."
+      },
+      {
+        "name": "Public Investments in Early Childhood Education and Care in Canada 2010",
+        "reason": "A 2010 report, not a service; the ecd-elcc.ca link now redirects to a canada.ca 404 page."
+      },
+      {
+        "name": "Department of Education List of Licenced Daycare Facilities and Aboriginal Head Start Programs in Nunavut",
+        "reason": "A list (PDF), not a service; edu.gov.nu.ca no longer resolves."
+      },
+      {
+        "name": "Inuit Children with Special Needs: Perspectives of Early Childhood Educators",
+        "reason": "A report (PDF), not a service; inuitknowledge.ca no longer resolves."
+      },
+      {
+        "name": "2012/2013 Nunavut Approved Curriculum and Teaching Resources",
+        "reason": "A 2012 curriculum guide (PDF), not a service; edu.gov.nu.ca no longer resolves."
+      }
+    ],
+    "on_aba": [
+      {
+        "name": "Ministry of Children and Youth Services-Guidelines Bridging Children from Intensive Behavioural Intervention Services to the New Ontario Autism Program",
+        "reason": "A 2016 guideline document (PDF on children.gov.on.ca), not a service; the link now redirects to the general Ministry of Children, Community and Social Services page. The program itself is kept as the Ontario Autism Program entry."
+      },
+      {
+        "name": "Ontario Providing More Supports For Children With Autism",
+        "reason": "A June 2016 news release on news.ontario.ca, not a service."
+      },
+      {
+        "name": "Strengthening the Ontario Autism Program",
+        "reason": "A June 2016 news backgrounder on news.ontario.ca, not a service."
+      },
+      {
+        "name": "Ontario Investing $333 Million to Improve Autism Services",
+        "reason": "A March 2016 news release on news.ontario.ca, not a service."
+      },
+      {
+        "name": "Benchmarks Panel Meeting Summary, June 2008",
+        "reason": "A 2008 meeting summary (.doc hosted on cnaf.net), not a service."
+      },
+      {
+        "name": "Making a Difference for Children with Autism Spectrum Disorders in Ontario Schools",
+        "reason": "A 2007 report (PDF on edu.gov.on.ca), not a service; the link now returns a Page Not Found page."
+      },
+      {
+        "name": "Ontario Ministry of Education: PPM 140 - Incoporating Methods of Applied Behaviour Analysis into Programs for Students with Autism Spectrum Disorders",
+        "reason": "A 2007 policy/program memorandum, not a service; the edu.gov.on.ca link now returns a Page Not Found page."
+      },
+      {
+        "name": "225 Spaces Being Created in January 2007",
+        "reason": "A 2007 document (.doc hosted on cnaf.net), not a service."
+      },
+      {
+        "name": "Ontario Ministry of Child and Youth Services ~ What is Intensive Behavioural Intervention",
+        "reason": "An information page about the former IBI program; the children.gov.on.ca link now redirects to the general Ministry of Children, Community and Social Services page. Ontario's current autism services are covered by the Ontario Autism Program entry."
+      },
+      {
+        "name": "Ontario Ministry of Child and Youth Services Guidelines for IBI therapy",
+        "reason": "A guideline document (children.gov.on.ca guidelines-2011), not a service; the link now redirects to the general ministry page."
+      },
+      {
+        "name": "Autism and Behavioural Science Certificate- Seneca College",
+        "reason": "A college certificate program for people training to work in ABA/IBI, not a service for autistic people or their families. (CNAF's Google redirect leads to the senecapolytechnic.ca part-time program page, which still exists.)"
+      },
+      {
+        "name": "Autism Behavioural Science Graduate Certificate | Online (Mohawk College; listed twice)",
+        "reason": "A college certificate program for people training to work in ABA/IBI, not a service for autistic people or their families; the mohawkcollege.ca program page now returns 404."
+      },
+      {
+        "name": "Autism and Behavioural Science (Full-time Online) | Centre ... (Algonquin College)",
+        "reason": "A college certificate program for people training to work in ABA/IBI, not a service for autistic people or their families; the algonquincollege.com link now redirects to the general list of online programs."
+      },
+      {
+        "name": "Autism Employment Opportunities",
+        "reason": "A ministry careers-information page for professionals, not a service; the children.gov.on.ca link now redirects to the general ministry page."
+      },
+      {
+        "name": "Child Care Resources (Northern)",
+        "reason": "MOVED?: CNAF links to http://www.childcare.on.ca/Programs/RegionalPreschoolAutismProgram.aspx and lists it as the Northern region's lead agency for publicly funded IBI; the domain no longer resolves, and ccrsudbury.ca, childandcommunityresources.ca and childcommunityresources.ca do not resolve either. Its current site was not found."
+      },
+      {
+        "name": "Autism Intervention Program Guideline Revision",
+        "reason": "A ministry guideline document, not a service; the children.gov.on.ca link now redirects to the general ministry page."
+      },
+      {
+        "name": "flowchart (overview of the IBI service process)",
+        "reason": "A flowchart document (.doc hosted on cnaf.net), not a service."
+      },
+      {
+        "name": "ABA4 Autism (also listed as ABA Educational Services and ABA Autism Services Niagara)",
+        "reason": "CNAF links to http://home.cogeco.ca/~aba4autism/ (a personal Cogeco web page) for both listings; it times out with no response, and no other site for it was found."
+      },
+      {
+        "name": "FOCA (Friends of Children with Autism) ~ Facts about Autism in Ontario",
+        "reason": "A fact sheet, not a service; CNAF links to http://dawn.thot.net/autism_fact_sheet.html and the domain no longer resolves."
+      },
+      {
+        "name": "ABA Educational Resources",
+        "reason": "A website of downloadable ABA teaching materials, a therapist directory and an online shop (abaresources.com), not a service; it does not say where it is based."
+      },
+      {
+        "name": "Respite Services.com",
+        "reason": "Closed: respiteservices.com says that effective April 1, 2025 the site is no longer operational (the Geneva Centre ended its role as host); the page now only lists former host agencies."
+      },
+      {
+        "name": "ACIS~ Autism Children`s Intervention Services",
+        "reason": "CNAF links to a listing on autismawarenesscentre.com, which returns 404; no site of ACIS's own was found."
+      },
+      {
+        "name": "Autism Centre of Canada",
+        "reason": "CNAF links to http://www.autismcentreofcanada.org; the domain no longer resolves."
+      },
+      {
+        "name": "Beecroft Learning Centre",
+        "reason": "No link on CNAF (only an address, 250 Beecroft Road, Toronto, and phone); beecroftlearningcentre.com and beecroftlearningcentre.ca do not resolve and no site of its own was found. Shining Through Centre (kept) now lists its North York centre at the same address, but its site does not mention Beecroft Learning Centre."
+      },
+      {
+        "name": "Four Points, Inc.",
+        "reason": "CNAF links to http://www.fourpointsinc.com/; it returns 403, and over https (certificate error) the domain now shows an unrelated Chinese-language page."
+      },
+      {
+        "name": "Sky Is The Limit",
+        "reason": "CNAF links to http://www.skyautism.ca/; the domain no longer resolves."
+      },
+      {
+        "name": "The Children`s Treatment & Learning & Centre",
+        "reason": "CNAF links to http://www.childrenstreatmentcentre.com/; the domain no longer resolves."
+      }
+    ],
+    "pe": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404, and it was a directory of links, not a service."
+      },
+      {
+        "name": "Student Financial Services Post Secondary",
+        "reason": "BLOCKED: http://www.studentloan.pe.ca/ - redirects to https://www.princeedwardisland.ca/en/topic/student-loans-bursaries-grants-and-awards, which returns a Radware \"Verifying your browser before proceeding\" page (HTTP 200) on every fetch, so the program page could not be checked."
+      },
+      {
+        "name": "Information Guide and Forms",
+        "reason": "Forms on the old studentloan.pe.ca site (http://www.studentloan.pe.ca/index.php3?number=1040568&lang=E), which now redirects to the same Radware-blocked princeedwardisland.ca page; forms, not a service."
+      },
+      {
+        "name": "Information and Guidelines for the Canada Student Grant application for Services and Equipment for students with Permanent Disabilities",
+        "reason": "A form/guidelines PDF (http://www.gov.pe.ca/forms/pdf/2075.pdf); gov.pe.ca refuses connections. A form, not a service."
+      },
+      {
+        "name": "Canada Student Grant Application for Students with Disabilities",
+        "reason": "A form PDF (http://www.gov.pe.ca/forms/pdf/2074.pdf); gov.pe.ca refuses connections. A form, not a service."
+      },
+      {
+        "name": "Education: The Review of Special Education",
+        "reason": "A review of special education policy (a report) on gov.pe.ca; gov.pe.ca refuses connections. Not a service."
+      },
+      {
+        "name": "Who are the students with Special Needs? Identification and Assessment",
+        "reason": "A PDF document on gov.pe.ca (eecd_admin12-13.pdf); gov.pe.ca refuses connections. Not a service."
+      },
+      {
+        "name": "What is Special Education? System Options: Continuum of Services Versus Inclusion",
+        "reason": "An information page on gov.pe.ca; gov.pe.ca refuses connections. Not a service."
+      },
+      {
+        "name": "Prince Edward Island Early Childhood Care and Education in Canada",
+        "reason": "A PDF report on gov.pe.ca; gov.pe.ca refuses connections. Not a service."
+      },
+      {
+        "name": "Prince Edward Island Department of Health and Social Services ~ A Parent's Guide to Early Childhood Programs",
+        "reason": "A guide (PDF) on gov.pe.ca; gov.pe.ca refuses connections. A document, not a service."
+      },
+      {
+        "name": "Prince Edward Island Eastern School District ~ Student Services Referral Process",
+        "reason": "BLOCKED: https://psb.edu.pe.ca/ - CNAF links to http://www.edu.pe.ca/esd/main/student_services_referral.htm, whose domain no longer exists. The likely successor is the Public Schools Branch (not confirmed from a fetched page), whose site returns a Radware bot-check page (validate.perfdrive.com) on every fetch, so its student services page could not be checked."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law (PDF on gov.pe.ca, which refuses connections), not a service."
+      },
+      {
+        "name": "The Atlantic Association for Music Therapy",
+        "reason": "BLOCKED: http://atlanticmusictherapy.ca/index.php/site/about/ - every fetch mode gets a 403 that redirects to a Cisco Umbrella/OpenDNS block page (a network filter on our side), so the site could not be checked. Also on CNAF's Nova Scotia and Newfoundland pages."
+      },
+      {
+        "name": "Not from CNAF (step 4): Government of PEI autism funding and AccessAbility Supports pages",
+        "reason": "BLOCKED: https://www.princeedwardisland.ca/en/information/education-and-lifelong-learning/autism-funding and https://www.princeedwardisland.ca/en/information/social-development-and-housing/accessability-supports (linked from the Autism Society of PEI site; also tried .../social-development-and-seniors/disability-supports-program and https://www.princeedwardisland.ca/en/topic/autism) - every page returns a Radware \"Verifying your browser\" page, so the PEI government's autism and disability services pages could not be checked."
+      }
+    ],
+    "qc": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home, which returns 404; the site is gone, and it was a directory of links, not a service."
+      },
+      {
+        "name": "Ministere de la Famille",
+        "reason": "CNAF links to a PDF guide on finding child care (mfa.gouv.qc.ca/fr/publication/Documents/SF_recherche_service_garde_en.pdf); it now redirects to the general \"Famille et soutien aux personnes\" section of Québec.ca, not a specific program."
+      },
+      {
+        "name": "Quebec Education Act",
+        "reason": "A law (Education Act, chapter I-13.3) on CanLII, not a service."
+      },
+      {
+        "name": "Adapting Our Schools to the Needs of All Students",
+        "reason": "A Ministère de l'Éducation policy PDF (plan of action on special education, planade00A.pdf); the link now redirects to the general Québec.ca Éducation page. A document, not a service."
+      },
+      {
+        "name": "Inclusive Education Service",
+        "reason": "MOVED?: CNAF links to learnquebec.ca/en/content/pedagogy/insight/partners/ies.html, which now redirects to the LEARN home page; neither the LEARN home nor its About page mentions the Inclusive Education Service, and ies.learnquebec.ca does not resolve."
+      },
+      {
+        "name": "Dignity, Freedoms, Rights, Equality, Protection",
+        "reason": "A law (Quebec Charter of Human Rights and Freedoms) on www2.publicationsduquebec.gouv.qc.ca, a host that no longer resolves; not a service."
+      },
+      {
+        "name": "Ministere de l'Education - Special Services",
+        "reason": "A Ministère de l'Éducation PDF (special education action plan, PlanActionEHDAA_a.pdf); the link now redirects to the general Québec.ca Éducation page. A document, not a service."
+      },
+      {
+        "name": "Application for Financial Assistance Loans and Bursaries Program (1001) Including the guide and lists of institution and program codes",
+        "reason": "A form (old afe.gouv.qc.ca URL, now redirected to the AFE page on Québec.ca), not a service; the program is covered by the Aide financière aux études entry."
+      },
+      {
+        "name": "Morneau Shepell",
+        "reason": "CNAF links to http://childrensupportsolutions.com/about/ (Children's Support Solutions); the domain no longer exists (www.childrensupportsolutions.com also fails to resolve)."
+      },
+      {
+        "name": "Quebec Association of Activity Professionals (QAAP) / Association Quebecoise des professionels en loisirs (AQPL)",
+        "reason": "http://www.qaap-aqpl.com/ now hosts an unrelated Japanese teeth-whitening blog; qaap.ca and aqpl.ca do not resolve. No current site for the association was found."
+      },
+      {
+        "name": "Collage Pediatric Therapy",
+        "reason": "Site down: every collagetherapies.ca page CNAF links to, and the home page (http and https, with and without www), timed out on 18 Oct 2026 (curl exit 28)."
+      },
+      {
+        "name": "Individuals with Disabilities Act",
+        "reason": "A law (Act to secure handicapped persons in the exercise of their rights, chapter E-20.1) on CanLII, not a service."
+      },
+      {
+        "name": "Charter of Human Rights and Freedoms",
+        "reason": "A law (chapter C-12) on CanLII, not a service."
+      },
+      {
+        "name": "Assistive Technology in Education",
+        "reason": "An information page on the LEARN site (learnquebec.ca/en/content/pedagogy/insight/intech/assistive_technology/); it now redirects to the LEARN home page. Not a service."
+      },
+      {
+        "name": "ASD Montrwal Clinic",
+        "reason": "CNAF links to http://www.asdmontreal.com/clinic.html; the domain no longer exists (asdmontreal.com without www also fails to resolve)."
+      }
+    ],
+    "sk": [
+      {
+        "name": "Education Act, 1995",
+        "reason": "A law (PDF on qp.gov.sk.ca), not a service; the domain no longer resolves."
+      },
+      {
+        "name": "Ministry of Education Student Support Services",
+        "reason": "CNAF links to education.gov.sk.ca/IntensiveSupports; the domain no longer resolves. The nearest current page, saskatchewan.ca 'Supporting Students with Additional Needs' (residents/education-and-learning/prek-12-education-early-learning-and-schools/supporting-students-with-additional-needs), is an information page on how school divisions support students (Inclusion and Intervention Plans, Early School Entrance) and points families to their school division, so it is not a program people apply to."
+      },
+      {
+        "name": "Faculty of Education University of Regina",
+        "reason": "A faculty member's profile page (uregina.ca/education/faculty-staff/faculty/lyons-wanda.html), not a service; the link returns 404."
+      },
+      {
+        "name": "Saskatchewan Learning ~ Special Education Unit",
+        "reason": "CNAF's link goes to Manitoba's Student Services page (edu.gov.mb.ca/k12/specedu/), not to Saskatchewan; 'Saskatchewan Learning' is an old ministry name and the unit was a government branch for school divisions, not a service families use."
+      },
+      {
+        "name": "Saskatchewan Learning ~ Children's Services Branch",
+        "reason": "A PDF on education.gov.sk.ca; the domain no longer resolves. It described a ministry branch that supports school divisions, not a service."
+      },
+      {
+        "name": "Saskatchewan Learning ~ Early Childhood Development Unit",
+        "reason": "CNAF links to education.gov.sk.ca/prek; the domain no longer resolves. It described an interministerial government initiative, not a program families apply to."
+      },
+      {
+        "name": "Human Rights Code",
+        "reason": "A law (The Saskatchewan Human Rights Code) on CanLII, not a service. The Saskatchewan Human Rights Commission is kept as an entry."
+      },
+      {
+        "name": "Saskatchewan Office of Disability Issues",
+        "reason": "CNAF links to gov.sk.ca/odi; the domain no longer resolves. The office's current page (saskatchewan.ca/government/government-structure/boards-commissions-and-agencies/office-of-disability-issues) describes a policy and coordination office in the Ministry of Social Services, not a program people apply to. Its page links to SAID, the Cognitive Disability Strategy, Autism Spectrum Disorder Individualized Funding and CLSD (CLSD is kept as its own entry)."
+      },
+      {
+        "name": "A Guide to Health Coverage in Saskatchewan",
+        "reason": "A booklet (document), not a service; the link (health.gov.sk.ca/health-coverage-booklet) now redirects to the saskatchewan.ca home page."
+      },
+      {
+        "name": "Saskatoon Health Region ~ Dental Health of Your Special Needs Child",
+        "reason": "A health information page, not a service; the old Saskatoon Health Region link now redirects to the Saskatchewan Health Authority home page."
+      },
+      {
+        "name": "Music Therapy Association of Saskatchewan",
+        "reason": "MOVED?: CNAF links to musictherapysk.webs.com; the domain no longer resolves. Tried musictherapysk.ca and musictherapysask.ca (do not resolve) and mtas.ca (a parked 'lander' page)."
+      },
+      {
+        "name": "Saskatchewan Association of Recreation Professionals",
+        "reason": "CNAF links to sarp-online.ca; the domain no longer resolves. Tried sarp.ca (does not resolve). It was a professional association for recreation staff."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "Link returns 404 (disabilityweblinks.ca/pls/dwl/dl.home); it was a directory of links, not a service."
+      },
+      {
+        "name": "The Saskatchewan Epilepsy Program",
+        "reason": "MOVED?: CNAF links to the old Saskatoon Health Region site, which now redirects to the Saskatchewan Health Authority home page. No current page for the program was found in the SHA's A-Z service list; tried saskhealthauthority.ca/your-health/conditions-illnesses-services-wellness/all-z/epilepsy and .../saskatchewan-epilepsy-program (both 404)."
+      }
+    ],
+    "yt": [
+      {
+        "name": "Autism Spectrum Disorder Amoung Children and Youth in Canada 2018",
+        "reason": "A 2018 Public Health Agency of Canada surveillance report on canada.ca, not a service."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "CNAF links to http://www.disabilityweblinks.ca/pls/dwl/dl.home; it returns 404, and it was a directory of links, not a service."
+      },
+      {
+        "name": "Boards of Education",
+        "reason": "CNAF links to http://www.oise.utoronto.ca/canedweb/edboards.html (a University of Toronto list of school boards); it returns 404, and it was a list of links, not a service."
+      },
+      {
+        "name": "Education Act",
+        "reason": "A law (Yukon Education Act PDF on gov.yk.ca), not a service."
+      },
+      {
+        "name": "Yukon Council on disabilty",
+        "reason": "CNAF links to http://www.ycod.yk.ca/; the domain no longer resolves (ycod.yk.ca, ycod.ca and www.ycod.ca do not resolve either), and the Government of Yukon's list of disability resources does not mention it."
+      },
+      {
+        "name": "Other Yukon Government Departments and Agencies",
+        "reason": "A Government of Yukon phone directory listing (http://www.gov.yk.ca/phone/DetailD.CFM?Department_Select=EDUCATION), not a service; the Education department's school supports are kept as their own entry."
+      },
+      {
+        "name": "Human Rights Act",
+        "reason": "A law (Yukon Human Rights Act on CanLII), not a service; the Yukon Human Rights Commission is kept as its own entry."
+      }
+    ]
+  }
+}

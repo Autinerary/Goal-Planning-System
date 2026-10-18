@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { gaEnabled } from '@/lib/analytics'
 import { CONTACT_EMAIL } from '@/lib/contact'
+import { USERWAY_ACCOUNT } from '../components/UserWay'
 
 export const metadata: Metadata = {
   title: 'Privacy · Autinerary',
@@ -23,6 +24,11 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
+  {
+    name: 'Stripe',
+    does: 'Takes payments for paid plans, if you choose one',
+    gets: 'Your email address, your card (we never see its number), your billing address when tax is added, and your plan. Stripe keeps payment records as tax law requires, even after you delete your account',
+  },
   { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, and for a meeting with a team member when you choose “Make a free video link”, if you join one', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
   {
     name: 'Twilio',
@@ -37,14 +43,18 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'Google',
     does: gaEnabled()
-      ? 'Sign in with Google, our feedback form (Google Forms), and Google Analytics if you allow it'
-      : 'Sign in with Google, and our feedback form (Google Forms)',
+      ? 'Sign in with Google, our feedback form (Google Forms), maps of places in ResourceHub, and Google Analytics if you allow it'
+      : 'Sign in with Google, our feedback form (Google Forms), and maps of places in ResourceHub',
     gets: gaEnabled()
-      ? 'Only what you share through them, if you use them. Google Analytics gets which pages you open and the same counts described under "How the app is used", never anything you type'
-      : 'Only what you share through them, if you use them',
+      ? 'Only what you share through them, if you use them. A map gets the place it shows and your network address. Google Analytics gets which pages you open and the same counts described under "How the app is used", never anything you type'
+      : 'Only what you share through them, if you use them. A map gets the place it shows and your network address',
   },
-  { name: 'OpenStreetMap (Nominatim)', does: 'Finds the map position of the city you enter', gets: 'The place name, not who you are' },
+  { name: 'OpenStreetMap', does: 'Finds the map position of the city you enter, and shows the map on a ResourceHub listing', gets: 'The place name or the map area, and your network address; not who you are' },
+  { name: 'OpenFreeMap (through Cloudflare)', does: 'The 3D view of a place in ResourceHub, if you open it', gets: 'Your network address and the pieces of map for that area' },
   { name: 'Open-Meteo', does: 'Weather forecasts, if you turn weather on', gets: 'Your approximate location' },
+  ...(USERWAY_ACCOUNT
+    ? [{ name: 'UserWay', does: 'The accessibility menu (the round button), if you open it', gets: 'Your requests for it, the page you are on, and the settings you choose in it, under UserWay’s own privacy policy' }]
+    : []),
 ]
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -164,6 +174,35 @@ export default function PrivacyPage() {
                 If you search in a sentence and press Enter, the sentence is sent to OpenAI to pick the kind of place, the town
                 and who it is for. It is not saved, and nothing else about you is sent with it.
               </li>
+            </List>
+          </Sub>
+          <Sub title="If you choose a paid plan, or free access">
+            <List>
+              <li>Your plan, whether it is paid up, and its dates, from Stripe. Never your card number.</li>
+              <li>When your free month started and ends.</li>
+              <li>The emails we sent about your plan (a copy of your agreement, reminders) and when, as a record that they went out.</li>
+              <li>For free access: the code you used, or your school, or your town and what you wrote about your situation. Only the team reads it.</li>
+              <li>If you tell us why you didn’t continue or cancelled, your answer. Only the team reads it.</li>
+            </List>
+          </Sub>
+          <Sub title="If you sign the #FundAutinerary petition">
+            <List>
+              <li>
+                Your name, email address, province, who you are asking (and which school, workplace or city), your comment, and a
+                scrambled form of your network address, used only to stop floods.
+              </li>
+              <li>
+                The number of signatures is public. Your first name and province are shown only if you choose. We may tell the
+                people you asked how many signed, and show them names only of people who chose to show theirs.
+              </li>
+              <li>We email you about the campaign only if you tick that box.</li>
+            </List>
+          </Sub>
+          <Sub title="If you manage a listing (Resource Accounts)">
+            <List>
+              <li>Your organization, role and contact details, the listings you claim and how they were checked, your changes (kept with what they were before), and promotions you ask for.</li>
+              <li>The code to check a claim is sent to the email the listing publishes, and only a scrambled form of it is kept.</li>
+              <li>Owners see counts about their listing, such as saves, teams and ratings. Never who.</li>
             </List>
           </Sub>
           <Sub title="If you share your story">

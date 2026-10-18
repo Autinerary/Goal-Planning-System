@@ -30,7 +30,7 @@ const FORM_URL = process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || DEFAULT_FORM_URL
 
 // Routes where the gate must NOT block (auth/onboarding entry — otherwise
 // brand-new users could be locked out before they have an account).
-const SKIP_PREFIXES = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth', '/onboarding', '/onboarding-confirmation', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/help']
+const SKIP_PREFIXES = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth', '/onboarding', '/onboarding-confirmation', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/spot-guides', '/petition', '/pricing', '/providers', '/billing', '/free-access', '/business', '/help']
 
 /**
  * How much use has to happen before we are entitled to ask.

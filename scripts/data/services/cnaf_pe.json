@@ -1,0 +1,57 @@
+{
+  "topic": "cnaf_pe",
+  "checked": "2026-10-18",
+  "source": "Canadian National Autism Foundation, cnaf.net/provinceres.html; each entry checked on its own website",
+  "entries": [
+    {
+      "slug": "ecda-of-pei",
+      "name": "Early Childhood Development Association of PEI (ECDA)",
+      "website": "https://ecdaofpei.ca/",
+      "description": "A provincial non-profit association, formed in 1974, that promotes quality early learning and child care on Prince Edward Island and supports the early childhood education workforce with resources and professional learning. For families, it points to the PEI Early Learning and Child Care Registry, a tool for searching and signing up for regulated child care programs.",
+      "category": "Organization",
+      "tags": [
+        "charity",
+        "advocacy"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost for families.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "PE",
+      "city": null,
+      "address": null,
+      "phone": "(902) 368-1866",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12"
+      ],
+      "evidence": "The PEI ELCC Registry provides families with a powerful tool to search and sign-up for regulated early learning and child care programs across PEI.",
+      "notes": "CNAF links to http://earlychildhooddevelopment.ca/; that now redirects to the association's current site, https://ecdaofpei.ca/. The association mainly serves early childhood educators (membership, careers, training) and says it champions healthy development for PEI children aged 0 to 12. Phone is from the Contact page; the email there is hidden by an email-protection script, so it is left out."
+    },
+    {
+      "slug": "autism-society-of-pei",
+      "name": "Autism Society of PEI",
+      "website": "https://autismsociety.pe.ca/about-us/",
+      "description": "A provincial charity that supports autistic Islanders and their families from before diagnosis onward, with social programming, parent and caregiver supports, education and training resources, help navigating services, and advocacy resources. Newly diagnosed families can arrange a meeting to get a Family Diagnosis Package that explains provincial and federal autism services.",
+      "category": "Organization",
+      "tags": [
+        "charity",
+        "advocacy"
+      ],
+      "cost": "paid",
+      "cost_note": "Family membership is $50 per year and gives access to family events, parent training, diagnosis kits, the autism library and subsidized programming.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "PE",
+      "city": "Charlottetown",
+      "address": "161 St. Peters Road, Sherwood Business Centre Charlottetown, PE",
+      "phone": "902-566-4844",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The Autism Society of PEI strives to enhance the lives of Autistic Islanders and their families.",
+      "notes": "Not from CNAF: added under step 4 because CNAF's PEI page yields only one other entry. Toll-free 1-888-360-8681. The site lists only named staff email addresses, so email is left blank. Registered charity #139029301 RR 0001; member of the Autism Alliance of Canada."
+    }
+  ]
+}

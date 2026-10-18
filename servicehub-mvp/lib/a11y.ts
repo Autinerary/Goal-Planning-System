@@ -28,6 +28,12 @@ const ATTRS: [string, string, string][] = [
   ['theme-ocean', 'theme', 'ocean'],
   ['theme-sand', 'theme', 'sand'],
   ['theme-classic', 'theme', 'classic'],
+  // Listening, the notes for today, and the speaking speed (the planning
+  // note, Goals 10 and 11): the app's Settings, Accessibility.
+  ['listen-off', 'listen', 'off'],
+  ['notes-off', 'dailyNotes', 'off'],
+  ['speak-slow', 'speechRate', 'slow'],
+  ['speak-fast', 'speechRate', 'fast'],
 ]
 
 /** The cookie value for an ?a11y= value: known tokens only, one per setting, 'none' if none. */

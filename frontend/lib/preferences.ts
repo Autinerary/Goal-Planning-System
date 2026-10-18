@@ -177,6 +177,14 @@ export interface AccessibilitySettings {
    * with colourStrengthOf, which also understands softColors.
    */
   colorStrength?: ColourStrength
+  /**
+   * "Listen to this page" at the foot of every page, read with the voice and
+   * speed above (the planning note, October 2026, Goal 10: "make the site
+   * audible"). On unless turned off. ResourceHub follows it.
+   */
+  readAloud?: boolean
+  /** A note for today at the foot of each page (Goal 11, the Positivity Quota). On unless turned off. */
+  dailyNotes?: boolean
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -191,6 +199,8 @@ export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   voiceName: '',
   speechRate: 1,
   speechVolume: 1,
+  readAloud: true,
+  dailyNotes: true,
 }
 
 export const DEFAULT_LAYOUT: LayoutPositions = {

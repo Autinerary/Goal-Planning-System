@@ -7,6 +7,33 @@ This file indexes every Markdown document currently in the repository.
 - [README.md](README.md): High-level overview of the Goal Planning System, its intended multi-agent architecture, and core user-facing flows.
 - [SETUP.md](SETUP.md): Root setup guide for backend and frontend services, database setup, and local environment bootstrapping.
 
+## Team docs (docs/)
+
+Start here:
+
+- [docs/new-team-members.md](docs/new-team-members.md): For anyone joining: what Autinerary is, how the code is laid out, running it, how changes reach users, and where everything is written down.
+- [docs/debugging.md](docs/debugging.md): Problems the team has hit (deploys, cron jobs, database grants, email, search) and how to tell.
+- [docs/pitch-facts.md](docs/pitch-facts.md): Numbers (each with a date) and what makes Autinerary different, for pitches and partners.
+
+The October 2026 planning note, round by round:
+
+- [docs/planning-note-2026-10.md](docs/planning-note-2026-10.md): The Earthy theme and colour strength, AI search and the three-click team, the Ontario import, job partners and campus pages.
+- [docs/service-directory-2026-10.md](docs/service-directory-2026-10.md): Goal 1, the service directory: tags, cost, the checked lists, the service loop and Spot Guides.
+- [docs/contracting-2026-10.md](docs/contracting-2026-10.md): Goal 2: the Terms and Conditions, meetings with a team member, and the legal notes.
+- [docs/ratings-and-community-choice-2026-10.md](docs/ratings-and-community-choice-2026-10.md): Goal 5: ratings from experience, comments, the monthly rating sweep and Community's Choice.
+- [docs/goals-6-11-2026-10.md](docs/goals-6-11-2026-10.md): Goals 6 to 11: 3D maps, the results page, feedback, accessibility (Listen, UserWay), Resource Accounts, Spot Guides, the Positivity Quota, the provinces, and the V1.5 survey of services.
+- [docs/subscriptions-2026-10.md](docs/subscriptions-2026-10.md): Goal 9: paid plans, the free month, free access, #FundAutinerary, and what consumer law asks for.
+- [docs/terms-lawyer-review-2026-10.md](docs/terms-lawyer-review-2026-10.md): Questions for the lawyer, including paid plans.
+- [docs/parent-forms-interview-2026-10.md](docs/parent-forms-interview-2026-10.md): An interview guide about the forms parents find hardest.
+
+How we write, design and run things:
+
+- [docs/voice.md](docs/voice.md): How Autinerary talks: nine rules, with before-and-after examples.
+- [docs/design-guide.md](docs/design-guide.md): How things look.
+- [docs/release-checks.md](docs/release-checks.md), [docs/data-residency.md](docs/data-residency.md), [docs/admin-role.md](docs/admin-role.md): Releasing, where data lives, and the admin role.
+
+Riipen Labs students' feedback, round by round: [docs/groups-8-14.md](docs/groups-8-14.md), [docs/groups-15-19.md](docs/groups-15-19.md), [docs/groups-20-24.md](docs/groups-20-24.md), [docs/groups-25-30.md](docs/groups-25-30.md), [docs/groups-31-33.md](docs/groups-31-33.md), [docs/groups-34-36.md](docs/groups-34-36.md), and [docs/cohort-report-2026-09.md](docs/cohort-report-2026-09.md).
+
 ## Frontend
 
 - [frontend/README_ENV_SETUP.md](frontend/README_ENV_SETUP.md): Frontend-specific environment variable setup, mainly for Supabase credentials and shared auth wiring.

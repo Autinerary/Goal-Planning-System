@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, Star } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import ClaimListing from '@/components/resources/detail/ClaimListing'
 import ProductPurchasePanel from '@/components/shop/ProductPurchasePanel'
 import WhereToGetIt from '@/components/shop/WhereToGetIt'
 import ProductReviewForm from '@/components/shop/ProductReviewForm'
@@ -219,6 +220,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               existingRating={myReview}
             />
           </section>
+
+          <ClaimListing kind="product" id={product.id} />
         </div>
 
         {/* Community reviews */}

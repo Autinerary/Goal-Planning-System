@@ -5,6 +5,7 @@ import { goHubHref } from '@/lib/serviceHub'
 import { CONTACT_EMAIL } from '@/lib/contact'
 import TellUsForm from '../components/TellUsForm'
 import HelpSearch, { type HelpEntry } from './HelpSearch'
+import FeedbackButton from '../components/FeedbackButton'
 
 export const metadata: Metadata = {
   title: 'What things are called · Autinerary',
@@ -341,6 +342,10 @@ export default function HelpPage() {
           <div id="tell-us" className="scroll-mt-20">
             <TellUsForm />
           </div>
+          <p className="mt-4 text-slate-800">
+            Rather write an email?{' '}
+            <FeedbackButton icon={false} label="Send feedback to the team" className={linkClass} />
+          </p>
         </Section>
 
         <Section id="not-yet" title="Not working yet" intro="These are planned, but they don’t work yet, so the app doesn’t offer them:">

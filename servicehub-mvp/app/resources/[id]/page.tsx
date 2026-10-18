@@ -20,6 +20,8 @@ import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMat
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import HiddenService from '@/components/resources/detail/HiddenService'
 import ServiceComments from '@/components/resources/detail/ServiceComments'
+import ClaimListing from '@/components/resources/detail/ClaimListing'
+import ServiceSidebarNote from '@/components/resources/detail/ServiceSidebar'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import type { Location } from '@/types/database'
 
@@ -242,9 +244,12 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Similar resources on mobile moved to main content */}
+          {/* Sidebar: a note for the person's norms (Goal 11), and the way in
+              for whoever runs the service (Resource Accounts). Similar
+              resources on mobile moved to main content. */}
+          <div className="lg:col-span-1 space-y-4">
+            <ServiceSidebarNote />
+            <ClaimListing kind="resource" id={resourceId} />
           </div>
         </div>
       </div>

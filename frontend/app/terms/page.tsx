@@ -66,6 +66,7 @@ export default function TermsPage() {
             <li>Be kind to other people here, and don’t share anyone’s private information.</li>
             <li>What you post is yours; you let us show it in Autinerary.</li>
             <li>Autinerary is free during the beta. We will tell you before anything you use costs money.</li>
+            <li>When paid plans start: a free first month with no card, then monthly or yearly, and you can cancel any time.</li>
           </List>
         </Section>
 
@@ -113,6 +114,33 @@ export default function TermsPage() {
             </li>
             <li>
               Some services need a diagnosis first. Make sure you have one: Autinerary does not diagnose directly (yet).
+            </li>
+            <li>
+              Some maps in ResourceHub are Google Maps. Using them is subject to the{' '}
+              <a href="https://maps.google.com/help/terms_maps/" className="font-medium text-indigo-800 underline underline-offset-2">
+                Google Maps/Google Earth Additional Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="https://policies.google.com/privacy" className="font-medium text-indigo-800 underline underline-offset-2">
+                Google’s Privacy Policy
+              </a>
+              . Other maps, and the 3D view, use OpenStreetMap’s data.
+            </li>
+          </List>
+        </Section>
+
+        <Section id="listings" title="Managing a listing (Resource Accounts)">
+          <List>
+            <li>
+              If you run a service or sell a product listed in ResourceHub, you can make a Resource Account and claim its
+              listing. We check by sending a code to the email the listing publishes, or the team checks another way.
+            </li>
+            <li>Claim only listings you are allowed to manage, and keep what you change true. Every change is kept, with what it was before, and the team can undo it.</li>
+            <li>Ratings and comments come from people who used the service. You can’t change or remove them.</li>
+            <li>
+              You can ask for a promotion. A promotion is labelled “Sponsored”, appears only beside searches it matches, and
+              only after the team approves it and turns sponsored listings on. We don’t show sponsored listings yet; before
+              we do, we will update these terms and the privacy page.
             </li>
           </List>
         </Section>
@@ -212,8 +240,50 @@ export default function TermsPage() {
 
         <Section id="emails" title="Emails and money">
           <List>
-            <li>We send the emails your account needs, such as sign-in emails and notice of changes to these terms. Newsletters and reminders come only if you choose them, and each says how to stop.</li>
-            <li>Autinerary is free during the beta. If we ever charge for something you use, we will tell you first, and you will choose whether to pay.</li>
+            <li>We send the emails your account needs, such as sign-in emails, notice of changes to these terms, and emails about a paid plan you choose. Newsletters and reminders come only if you choose them, and each says how to stop.</li>
+            <li>Autinerary is free during the beta. If we ever charge for something you use, we will tell you first, and you will choose whether to pay (see Paid plans).</li>
+          </List>
+        </Section>
+
+        <Section id="paid-plans" title="Paid plans">
+          <p>
+            Autinerary is free during the beta. When paid plans start, we will tell you first. This part applies to anyone who
+            chooses a plan, and {link('/pricing', 'How Autinerary is paid for')} shows the prices.
+          </p>
+          <List>
+            <li>
+              <strong>The free month.</strong> Everyone gets a free first month of the app. It needs no card, and nothing is
+              charged. When it ends, everything you added is kept, and you can choose a plan or free access.
+            </li>
+            <li>
+              <strong>Plans.</strong> Monthly or yearly, at the prices on the pricing page, in Canadian dollars, plus GST or HST
+              where it applies. There are no other fees. You pay by card through Stripe, which handles the payment; we never see
+              your card number.
+            </li>
+            <li>
+              <strong>When you pay.</strong> If you choose a plan during your free month, your first payment is when the month
+              ends, and we email you a few days before. Otherwise, it is the day you choose. A plan renews each month or year
+              until you cancel. We email you 60 to 75 days before a yearly plan renews.
+            </li>
+            <li>
+              <strong>Cancelling.</strong> Cancel any time in Billing, with “Cancel my plan”. Your plan runs to the end of the
+              time you have paid for, and you are not charged again. Unless the law gives you a refund, cancelling doesn’t
+              refund time already paid for. If you were charged by mistake, tell us within 30 days and we will refund it.
+            </li>
+            <li>
+              <strong>Changes.</strong> We will email you at least 30 days before a change to your price or plan, and you can
+              cancel before it applies. A yearly plan’s price doesn’t change until it renews.
+            </li>
+            <li>
+              <strong>Payments that don’t go through.</strong> We email you, and the payment is tried again over the next days.
+              If it still doesn’t go through, your plan ends.
+            </li>
+            <li>
+              <strong>Free access.</strong> Free access through a school, workplace, government or partner lasts as long as its
+              code or agreement says, and a code is only for the people it was given to. Free access for explaining your
+              situation is our decision, and we may ask you to renew it.
+            </li>
+            <li>When you choose a plan, we email you a copy of what you agreed to. Deleting your account cancels your plan.</li>
           </List>
         </Section>
 

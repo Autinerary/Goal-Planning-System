@@ -1,0 +1,262 @@
+{
+  "topic": "cnaf_yt",
+  "checked": "2026-10-18",
+  "source": "Canadian National Autism Foundation, cnaf.net/provinceres.html; each entry checked on its own website",
+  "entries": [
+    {
+      "slug": "yukonu-learning-strategies",
+      "name": "Learning Strategies (Yukon University)",
+      "website": "https://www.yukonu.ca/current-students/learning-matters/learning-strategies",
+      "description": "Yukon University's Learning Strategist helps students build study skills and habits: managing time, planning study and assignment calendars, reading and note-taking strategies, dealing with procrastination or distraction, and staying motivated. The service also connects students to other supports at the university.",
+      "category": "Education Support",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "Open to Yukon University students in credit courses; the page does not mention a separate fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": "Whitehorse",
+      "address": "500 University Drive, PO Box 2799 Whitehorse, Yukon Y1A 5K4",
+      "phone": "867 456 8572",
+      "email": "studyskills@yukonu.ca",
+      "age_ranges": [],
+      "evidence": "Learning strategies support is available for all full- and part-time Yukon University students currently studying in credit-based course(s).",
+      "notes": "CNAF's link (yukonu.ca/student-life/learning-matters/learning-strategies) redirects to this page. Phone and email are the Learning Strategist's (Student Success, Ayamdigut campus). Yukon University also has Accessibility Services, which CNAF does not list."
+    },
+    {
+      "slug": "yukon-student-disability-grants",
+      "name": "Grants for post-secondary students with disabilities (Government of Yukon Student Financial Assistance)",
+      "website": "https://yukon.ca/en/student-disability-grants",
+      "description": "The Government of Yukon's Student Financial Assistance office handles two Canada Student Grants for Yukon college and university students with a permanent, or persistent or prolonged, disability. One gives up to $2,800 a year; the other gives up to $20,000 a year for education-related services and equipment such as tutors, note takers or voice-recognition software.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Grants of up to $2,800 and up to $20,000 per academic year; receipts are needed for services and equipment.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": "867-667-5929",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "You can receive grants if you are a post-secondary student with a disability.",
+      "notes": "CNAF links to yukon.ca's Financial support for students page and to old education.gov.yk.ca pages (student funding application, a 2013-14 Schedule D form, a Canada Student Loans FAQ) that now redirect to yukon.ca; this is the current page (modified 2026-06-17). The grant amounts on CNAF's page ($2,000 and $8,000) are out of date. Students apply with their Canada Student Financial Assistance application and proof of disability; toll free in Yukon 1-800-661-0408, ext. 5929."
+    },
+    {
+      "slug": "yukon-grant",
+      "name": "Yukon Grant",
+      "website": "https://yukon.ca/en/yukon-grant",
+      "description": "A Government of Yukon grant for Yukon students in full-time post-secondary programs at designated schools, paid for each week of study ($195 a week in 2026-27) for up to 170 weeks in a lifetime, with a travel allowance for some students. Students must meet Yukon residency rules and apply every academic year through the Student Financial Assistance portal.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "A grant of $195 per week of study in 2026-27; part or all may have to be repaid if the student withdraws or switches to part-time.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": "867-667-5929",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The Yukon Grant is a student funding program provided by the Government of Yukon.",
+      "notes": "CNAF says students with disabilities can get the Yukon Grant without a full course load; the current page says students must be full-time and does not mention a disability exception, so a reviewer may want to confirm with Student Financial Assistance. CNAF's link (with #learn-about-the-yukon-grant) loads this same page."
+    },
+    {
+      "slug": "yukon-human-rights-commission",
+      "name": "Yukon Human Rights Commission",
+      "website": "https://yukonhumanrights.ca/",
+      "description": "An independent commission that answers questions about human rights in the Yukon and handles complaints of discrimination under the Yukon Human Rights Act, screening them and trying to settle them. It also offers public education, resources and training on human rights.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "advocacy"
+      ],
+      "cost": "free",
+      "cost_note": "The site says all inquiries are free and confidential.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": "867.667.6226",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The Yukon Human Rights Commission (the “Commission”) was created in 1987 to promote equality and diversity through research, education, and enforcement of the Yukon Human Rights Act (the “Act”).",
+      "notes": "CNAF links to http://www.yhrc.yk.ca/; that domain no longer resolves. The Commission now uses https://yukonhumanrights.ca/ (the Government of Yukon's disability services page links there). Inquiry appointments are by telephone as standard; in-person meetings can be arranged as an accommodation."
+    },
+    {
+      "slug": "yukon-student-support-services",
+      "name": "Supports for students with diverse abilities (Government of Yukon, Department of Education)",
+      "website": "https://yukon.ca/en/student-supports",
+      "description": "How Yukon schools support students with diverse abilities or special education needs. A school-based team that includes the parents, helped by the Department of Education's Student Support Services unit, identifies the student's needs and writes a learning plan (an IEP, student support plan or behaviour support plan); supports can include adaptations, assistive technology and speech or occupational therapy.",
+      "category": "Education Support",
+      "tags": [],
+      "cost": "free",
+      "cost_note": "Part of Yukon public schooling; the page does not mention any cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "We provide a range of supports so students can succeed at school and reach their goals.",
+      "notes": "CNAF links to old education.gov.yk.ca pages for 'Speech and Language Services in School' and 'Student Support Services'; both now redirect to yukon.ca's general Education page. This is the current page on school-based supports (modified 2026-05-14). Parents can ask for a school-based team meeting at any time; the page gives no central phone number (contact the child's teacher or principal)."
+    },
+    {
+      "slug": "yukon-childrens-disability-services",
+      "name": "Children's Disability Services (Government of Yukon)",
+      "website": "https://yukon.ca/en/health-and-wellness/babies-and-childrens-health/find-supports-your-child-disability",
+      "description": "A Government of Yukon service, available in every Yukon community, for families of children under 19 with a disability. Social workers help families get funded supports such as an inclusion worker, respite, a behaviour consultant and applied behaviour analysis (ABA) therapy, occupational and physical therapy, and speech-language therapy; parents, doctors or teachers can make a referral.",
+      "category": "Social Services",
+      "tags": [
+        "funding",
+        "respite_care",
+        "parent_babies",
+        "parent_children",
+        "parent_preteens",
+        "parent_teens"
+      ],
+      "cost": "free",
+      "cost_note": "Government-funded supports; for autism services, families are asked to use private insurance or employee benefits first.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": "867-393-7464",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "If your child has a disability, Children’s Disability Services can help you care for them.",
+      "notes": "From CNAF's 'Social Services/Family and Children's Services/Regional Services' link (hss.gov.yk.ca), which no longer loads. Its autism page (https://yukon.ca/en/legal-and-social-supports/supports-youth/find-support-your-child-autism-spectrum-disorder) covers ABA support for children diagnosed with, or suspected to have, autism. Office: 49B Waterfront Place, Whitehorse; toll free in Yukon 1-800-661-0408, ext. 7464. Funding can take 4 to 6 weeks to set up."
+    },
+    {
+      "slug": "yukon-disability-services",
+      "name": "Disability Services (Government of Yukon)",
+      "website": "https://yukon.ca/en/health-and-wellness/care-services/find-services-if-you-have-disability",
+      "description": "Government of Yukon disability services for adults and families. Adult's Disability Services supports adults 19 and older with intellectual or developmental disabilities through case management, respite funding for families, day programs and supported living. Its Developmental Diagnostic and Support Clinic does autism (ASD) assessments for school-aged children and FASD assessments for adults.",
+      "category": "Social Services",
+      "tags": [
+        "respite_care",
+        "provides_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "YT",
+      "city": null,
+      "address": null,
+      "phone": "867-393-7464",
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Adult's Disability Services provides support for adults 19 years of age or older living with intellectual or developmental disabilities.",
+      "notes": "From CNAF's 'Social Services/Family and Children's Services/Regional Services' link (hss.gov.yk.ca), which no longer loads; this is the current yukon.ca page (modified 2025-11-24). Children's Disability Services is a separate entry. The phone number is the one given for the clinic (the email address is hidden)."
+    },
+    {
+      "slug": "inclusion-yukon",
+      "name": "Inclusion Yukon",
+      "website": "https://www.inclusionyukon.org/",
+      "description": "A Whitehorse community organization that works alongside people with intellectual and developmental disabilities and their families. It offers one-on-one support work, respite (a Wednesday drop-in program for adults and a service that matches families with respite workers), employment supports, advocacy and public education.",
+      "category": "Social Services",
+      "tags": [
+        "respite_care",
+        "advocacy"
+      ],
+      "cost": "paid",
+      "cost_note": "The drop-in respite program is $75 per morning; Inclusion Yukon does not pay for respite workers.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": "Whitehorse",
+      "address": "4230 4th Avenue (Suite 7), Whitehorse, Yukon",
+      "phone": "(867) 667-4606",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Inclusion Yukon is a community-based organization working to build more inclusive communities for people with disabilities.",
+      "notes": "CNAF lists the Yukon Association for Community Living with no link (P.O. Box 31478, Whitehorse; (867) 667-4606). Inclusion Yukon's About page says that association was renamed Inclusion Yukon in 2019, and the phone number is the same. Email is by contact form only."
+    },
+    {
+      "slug": "yukon-child-development-centre",
+      "name": "Yukon Child Development Centre",
+      "website": "https://cdcyukon.ca/programs",
+      "description": "A non-profit that gives free therapies and developmental support to Yukon children from birth to kindergarten, including speech-language therapy, physiotherapy, occupational therapy, child therapy, psychology and groups for parents and children. Its diagnostic clinic assesses for autism (ASD), FASD and complex behaviours, and staff travel to every Yukon community.",
+      "category": "Social Services",
+      "tags": [
+        "provides_diagnosis",
+        "charity",
+        "parent_babies"
+      ],
+      "cost": "free",
+      "cost_note": "The site says its services are free.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": "Whitehorse",
+      "address": "206 Hanson Street Whitehorse, Yukon",
+      "phone": "(867) 456.8182",
+      "email": "info@cdcyukon.ca",
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "We provide therapies and developmental supports to children from birth to kindergarten.",
+      "notes": "CNAF links to cdcyukon.com, which now redirects to cdcyukon.ca. Anyone can refer a child (parents, relatives, educators, doctors) and the centre calls back within 2 weeks. Offices also in Dawson City, Watson Lake and McIntyre; email from the About page."
+    },
+    {
+      "slug": "lday-centre-for-learning",
+      "name": "LDAY Centre for Learning",
+      "website": "https://www.ldayukon.com/about",
+      "description": "A Whitehorse non-profit, formerly the Learning Disabilities Association of Yukon, that supports children, youth and adults with learning difficulties or disabilities. It offers tutoring, consultation and literacy screening, help for parents working with schools, adult learning services, Camp Raven, and workshops.",
+      "category": "Education Support",
+      "tags": [
+        "advocacy",
+        "charity"
+      ],
+      "cost": "paid",
+      "cost_note": "Tutoring costs $31.50 to $50.00 per hour; formal meetings with parents or teachers are $20.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "YT",
+      "city": "Whitehorse",
+      "address": "128A Copper Road Whitehorse, Yukon Canada Y1Z 2Z6",
+      "phone": "867-668-5167",
+      "email": "office@LDAYukon.com",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "LDAY Centre for Learning is a non-profit organization dedicated to increasing awareness of learning differences.",
+      "notes": "CNAF uses the old name, Learning Disabilities Association of Yukon; ldayukon.com now redirects to www.ldayukon.com. The child and youth page says LDAY does not do psycho-educational assessments itself (it keeps a list of local psychologists), while the About page mentions assessment clinics run with a visiting psychologist. Contact details from the site footer."
+    }
+  ]
+}

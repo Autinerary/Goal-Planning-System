@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
-import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle } from 'lucide-react'
+import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle, Star } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 function NavbarInner() {
@@ -132,6 +132,14 @@ function NavbarInner() {
                 Admin
               </Link>
             )}
+            {/* The planning note's Goal 11: last in the bar. */}
+            <Link
+              href="/help-us-rate"
+              className="text-gray-700 hover:text-amber-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 flex items-center"
+            >
+              <Star className="w-4 h-4 mr-2" aria-hidden="true" />
+              Help us rate our resources!
+            </Link>
           </div>
 
           {/* Back to Goal Planning */}

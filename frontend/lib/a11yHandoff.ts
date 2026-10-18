@@ -28,5 +28,10 @@ export function a11yParam(a: Partial<AccessibilitySettings> | undefined, layout?
   // planning note, October 2026).
   const theme = themeOf(layout)
   if (theme !== 'earthy') t.push(`theme-${theme}`)
+  // Listening and the notes for today (Goals 10 and 11), and the speaking speed.
+  if (a?.readAloud === false) t.push('listen-off')
+  if (a?.dailyNotes === false) t.push('notes-off')
+  if (a?.speechRate && a.speechRate < 1) t.push('speak-slow')
+  if (a?.speechRate && a.speechRate > 1) t.push('speak-fast')
   return t.length ? t.join('.') : 'none'
 }

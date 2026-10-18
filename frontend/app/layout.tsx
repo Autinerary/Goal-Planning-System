@@ -20,6 +20,9 @@ import InstallPrompt from './components/InstallPrompt'
 import InfoModeProvider from './components/InfoModeProvider'
 import AnalyticsConsent from './components/AnalyticsConsent'
 import TermsNotice from './components/TermsNotice'
+import Paywall from './components/Paywall'
+import PageFooter from './components/PageFooter'
+import UserWay from './components/UserWay'
 
 /**
  * Typeface.
@@ -125,17 +128,20 @@ export default function RootLayout({
             <AppWideTranslator />
             <Navigation />
             <TermsNotice />
+            <Paywall />
             <ViewTabs />
             <MovementTracker />
             <main>
               {children}
             </main>
+            <PageFooter />
             <FeedbackGate />
             <Toaster />
             <InteractiveDemo />
             <PageGuide />
             <InfoModeProvider />
             <AnalyticsConsent />
+            <UserWay />
             </LanguageProvider>
           </AgentPathProvider>
         </AuthProvider>

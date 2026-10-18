@@ -1,11 +1,22 @@
 'use client'
 
 import Link from 'next/link'
+import FeedbackLink from './FeedbackLink'
+import ListenButton from './ListenButton'
+import PositiveNote from './PositiveNote'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
+    <>
+    {/* Listening and a note for today, on every page (the planning note, October 2026, Goals 10 and 11). */}
+    <aside aria-label="Listen, and a note for today" className="border-t border-gray-200 bg-white px-4 py-3">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 sm:px-2 lg:px-4">
+        <PositiveNote />
+        <ListenButton />
+      </div>
+    </aside>
     <footer className="bg-gray-900 text-gray-300" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -65,6 +76,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <FeedbackLink className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded" />
+              </li>
+              <li>
                 <Link
                   href="/privacy"
                   className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
@@ -92,5 +106,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   )
 }

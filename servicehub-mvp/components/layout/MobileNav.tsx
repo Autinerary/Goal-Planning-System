@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles, Handshake, FolderKanban } from 'lucide-react'
+import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles, Handshake, FolderKanban, ShoppingBag, MessageSquareHeart } from 'lucide-react'
+import FeedbackLink from './FeedbackLink'
 import { useAuth } from '@/lib/auth/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
@@ -234,6 +235,17 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
               </Link>
 
               <Link
+                href="/shop"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  pathname?.startsWith('/shop') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={onClose}
+              >
+                <ShoppingBag className="w-5 h-5" aria-hidden="true" />
+                Shop
+              </Link>
+
+              <Link
                 href="/community"
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
                   pathname?.startsWith('/community')
@@ -321,6 +333,22 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
               >
                 <User className="w-5 h-5" aria-hidden="true" />
                 Accessibility Settings
+              </Link>
+
+              <FeedbackLink className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <MessageSquareHeart className="w-5 h-5" aria-hidden="true" />
+                Send feedback
+              </FeedbackLink>
+
+              <Link
+                href="/help-us-rate"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                  pathname === '/help-us-rate' ? 'bg-amber-50 text-amber-900' : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={onClose}
+              >
+                <Star className="w-5 h-5" aria-hidden="true" />
+                Help us rate our resources!
               </Link>
             </div>
           </div>

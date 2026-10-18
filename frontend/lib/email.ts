@@ -508,3 +508,212 @@ export function choiceTallyEmail(month: string, winners: { kind: string; name: s
     }</div>`,
   }
 }
+
+/**
+ * Billing emails (lib/billingNotices.ts sends each once; docs/subscriptions-2026-10.md
+ * says which law asks for which). Plain and calm: no countdowns or pressure
+ * (Riipen Labs, Group 15), and always how to stop paying.
+ */
+export interface BillingFacts {
+  appUrl: string
+  business: { name: string; address: string; phone: string; email: string }
+}
+
+const billingSign = (f: BillingFacts) =>
+  [f.business.name, f.business.address, f.business.phone, f.business.email].filter(Boolean).join(' · ')
+
+function billingEmail(f: BillingFacts, subject: string, lines: string[], button: { label: string; href: string } | null, small: string[] = []) {
+  const sign = billingSign(f)
+  return {
+    subject,
+    text: `Hi,\n\n${lines.join('\n\n')}\n\n${button ? `${button.label}: ${button.href}\n\n` : ''}${small.length ? `${small.join('\n')}\n\n` : ''}${sign}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}${
+      button ? `<p style="margin:24px 0"><a href="${button.href}" style="${BUTTON}">${esc(button.label)}</a></p>` : ''
+    }${small.length ? `<p style="${SMALL}">${small.map(esc).join('<br>')}</p>` : ''}<p style="${SMALL}">${esc(sign)}</p></div>`,
+  }
+}
+
+/**
+ * A copy of the agreement, right after subscribing (Ontario, O. Reg. 17/05
+ * s. 33: within 15 days, with what s. 32 lists, the person's name and the date).
+ */
+export function agreementCopyEmail(
+  f: BillingFacts,
+  a: { name: string; date: string; planWords: string; price: string; firstCharge: string; taxes: boolean; termsUrl: string }
+) {
+  const billing = `${f.appUrl.replace(/\/$/, '')}/billing`
+  return billingEmail(
+    f,
+    'Your Autinerary plan: a copy of your agreement',
+    [
+      `Thank you for choosing a plan, ${a.name}. This is a copy of what you agreed to on ${a.date}. Please keep it.`,
+      `What you get: full use of the Autinerary app (your plan, calendar, check-ins and the people helping you). ResourceHub's directory, ratings and Tidbits stay free for everyone.`,
+      `Price: ${a.price} ${a.planWords}${a.taxes ? ', plus GST or HST where it applies' : ''}, in Canadian dollars, paid by card through Stripe, ${a.planWords === 'a month' ? 'every month' : 'every year'} until you cancel. There are no other fees.`,
+      `Your first payment: ${a.firstCharge}.`,
+      `Cancelling: any time in Billing, with "Cancel my plan". Your plan then runs to the end of the time you have paid for, and you are not charged again. If you think you were charged by mistake, email us within 30 days and we will look at it and refund it if it was.`,
+      `Changes: we will email you at least 30 days before a change to your price or plan. You can then cancel, or keep your plan as it was where the law gives you that choice.`,
+    ],
+    { label: 'Your billing', href: billing },
+    [`The terms you agreed to, including Paid plans: ${a.termsUrl}`, 'Your rights under Ontario’s Consumer Protection Act, 2002 (and the law where you live) still apply.']
+  )
+}
+
+/**
+ * Before a free period becomes paid, when someone subscribed during their free
+ * month (Quebec, Consumer Protection Act s. 187.29: 2 to 10 days before, with
+ * the end date and the price).
+ */
+export function freePeriodEndingEmail(f: BillingFacts, a: { ends: string; price: string; planWords: string }) {
+  const billing = `${f.appUrl.replace(/\/$/, '')}/billing`
+  return billingEmail(
+    f,
+    `Your free month ends on ${a.ends}`,
+    [
+      `Your free month of Autinerary ends on ${a.ends}. From then, your plan costs ${a.price} ${a.planWords}, plus tax where it applies, charged to your card on ${a.ends}.`,
+      `If you don't want to pay, cancel before ${a.ends} in Billing, with "Cancel my plan". You won't be charged.`,
+    ],
+    { label: 'Your billing', href: billing }
+  )
+}
+
+/** The free month that needs no card: a heads-up, nothing to pay. */
+export function freeMonthEndingEmail(f: BillingFacts, a: { ends: string }) {
+  const app = f.appUrl.replace(/\/$/, '')
+  return billingEmail(
+    f,
+    `Your free month of Autinerary ends on ${a.ends}`,
+    [
+      `Your free month ends on ${a.ends}. Nothing will be charged: there is no card on file.`,
+      `To keep using the app after that, you can choose a plan, or see whether you can use it free, through your school, workplace or city, or by explaining your situation.`,
+      `Your plan and everything you added are kept either way. ResourceHub stays free.`,
+    ],
+    { label: 'See your options', href: `${app}/billing` },
+    [`Free access: ${app}/free-access`]
+  )
+}
+
+/** After the free month, with the one question (the planning note: feedback from people who didn't continue). */
+export function freeMonthEndedEmail(f: BillingFacts) {
+  const app = f.appUrl.replace(/\/$/, '')
+  return billingEmail(
+    f,
+    'Your free month of Autinerary has ended',
+    [
+      `Your free month has ended, and nothing was charged. Your plan and everything you added are kept, if you come back.`,
+      `If you decided not to continue, would you tell us why? It's one question, and it helps us make Autinerary better and cheaper.`,
+    ],
+    { label: 'Tell us why (one question)', href: `${app}/billing?why=1` },
+    [`To keep going: choose a plan or free access at ${app}/billing.`]
+  )
+}
+
+/** Before a yearly plan renews (Ontario, O. Reg. 17/05 s. 42: 30 to 90 days before). */
+export function renewalNoticeEmail(f: BillingFacts, a: { renews: string; price: string }) {
+  const billing = `${f.appUrl.replace(/\/$/, '')}/billing`
+  return billingEmail(
+    f,
+    `Your yearly Autinerary plan renews on ${a.renews}`,
+    [
+      `Your yearly plan renews on ${a.renews} for ${a.price}, plus tax where it applies, charged to your card on file.`,
+      `To change to monthly, or to cancel, go to Billing before ${a.renews}. If you do nothing, it renews for another year at that price.`,
+    ],
+    { label: 'Your billing', href: billing }
+  )
+}
+
+/** A payment that didn't go through. */
+export function paymentFailedEmail(f: BillingFacts) {
+  const billing = `${f.appUrl.replace(/\/$/, '')}/billing`
+  return billingEmail(
+    f,
+    'Your Autinerary payment didn’t go through',
+    [
+      `Your last payment for Autinerary didn't go through. You can still use the app while your card is tried again over the next days.`,
+      `To fix it, update your card in Billing. If you'd rather stop, cancel there and you won't be charged.`,
+    ],
+    { label: 'Update your card', href: billing }
+  )
+}
+
+/** Confirming a cancellation. */
+export function planCancelledEmail(f: BillingFacts, a: { until: string | null }) {
+  const billing = `${f.appUrl.replace(/\/$/, '')}/billing`
+  return billingEmail(
+    f,
+    'Your Autinerary plan is cancelled',
+    [
+      a.until
+        ? `Your plan is cancelled. You can keep using the app until ${a.until}, and you won't be charged again.`
+        : `Your plan is cancelled, and you won't be charged again.`,
+      `Your plan and everything you added are kept, if you come back.`,
+    ],
+    { label: 'Your billing', href: billing },
+    ['Changed your mind? You can choose a plan again in Billing at any time.']
+  )
+}
+
+/**
+ * The code that proves someone runs a listing (Resource Accounts, STEP 81),
+ * sent to the email the listing publishes. Not marketing: it is sent only
+ * because someone asked to manage that listing, and says how to ignore it.
+ */
+export function listingClaimCodeEmail(a: { listing: string; code: string; askedBy: string; minutes: number }): { subject: string; html: string; text: string } {
+  const lines = [
+    `Someone using Autinerary asked to manage the listing for ${a.listing} on ResourceHub. The request came from an account with the email ${a.askedBy}.`,
+    `If it was you or your team, your code is ${a.code}. It works for ${a.minutes} minutes.`,
+    `If it wasn't you, ignore this email: nothing changes, and the code stops working.`,
+  ]
+  return {
+    subject: `Your code to manage ${a.listing} on ResourceHub`,
+    text: `Hello,\n\n${lines.join('\n\n')}\n\n- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p><p style="font-size:16px;line-height:1.5">${esc(lines[0])}</p>
+      <p style="font-size:16px;line-height:1.5">If it was you or your team, your code is:</p>
+      <p style="font-size:28px;font-weight:700;letter-spacing:6px;margin:16px 0">${esc(a.code)}</p>
+      <p style="${SMALL}">It works for ${a.minutes} minutes. ${esc(lines[2])}</p></div>`,
+  }
+}
+
+/**
+ * To services (V1.5, the planning note's Goal 11), from their published
+ * address, only when an admin sends a batch (/business/outreach): what they
+ * would like in a Resource Account, and, once a month, that someone who used
+ * them rated them. Each says who we are, our mailing address, and how to stop
+ * (Canada's anti-spam law); services that reply "stop" are never emailed
+ * again (service_email_optouts).
+ */
+export function providerSurveyEmail(a: { name: string; listing: string; survey: string; claim: string; image: string | null; postal: string }) {
+  const sign = `Autinerary Corp., ${a.postal}. To stop these emails, reply "stop".`
+  const lines = [
+    `${a.name} is listed in ResourceHub, Autinerary's free directory of services for neurodivergent people and their families.`,
+    `We are building Resource Accounts, so services can keep their listing right and see how people use it. What would you like in yours? It's a few checkboxes.`,
+  ]
+  const picture = a.image ? `This is the picture we show for ${a.name}. If it isn't right, say so in the survey.` : `We don't have a picture for ${a.name} yet. You can add one once you claim your listing.`
+  return {
+    subject: `What would ${a.name} like in its ResourceHub account?`,
+    text: `Hello,\n\n${lines.join('\n\n')}\n\nThe survey: ${a.survey}\n\nYour listing: ${a.listing}\n${picture}\n\nClaim your listing: ${a.claim}\n\n${sign}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}
+      <p style="margin:24px 0"><a href="${a.survey}" style="${BUTTON}">Answer the survey</a></p>
+      ${a.image ? `<p style="margin:0 0 8px"><img src="${a.image}" alt="" width="240" style="max-width:240px;border-radius:8px;border:1px solid #e2e8f0"></p>` : ''}
+      <p style="font-size:15px;line-height:1.5">${esc(picture)} <a href="${a.listing}" style="color:#1b5d30">See your listing</a> · <a href="${a.claim}" style="color:#1b5d30">Claim it</a></p>
+      <p style="${SMALL}">${esc(sign)}</p></div>`,
+  }
+}
+
+export function providerReviewedEmail(a: { name: string; ratings: number; listing: string; survey: string; claim: string; image: string | null; postal: string }) {
+  const sign = `Autinerary Corp., ${a.postal}. To stop these emails, reply "stop".`
+  const who = a.ratings === 1 ? 'Someone who used' : `${a.ratings} people who used`
+  const lines = [
+    `${who} ${a.name} rated it on ResourceHub this month. Ratings come only from people who have used a service.`,
+    `You can read what they said on your listing. Run ${a.name}? Claim your listing to keep its details right, and tell us what you'd like in a Resource Account.`,
+  ]
+  const picture = a.image ? `Is this the right picture for ${a.name}? If not, say so in the survey.` : `We don't have a picture for ${a.name} yet.`
+  return {
+    subject: `${a.name} was rated on ResourceHub`,
+    text: `Hello,\n\n${lines.join('\n\n')}\n\nYour listing: ${a.listing}\nClaim it: ${a.claim}\nThe survey: ${a.survey}\n${picture}\n\n${sign}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}
+      <p style="margin:24px 0"><a href="${a.listing}" style="${BUTTON}">Read the ratings</a></p>
+      ${a.image ? `<p style="margin:0 0 8px"><img src="${a.image}" alt="" width="240" style="max-width:240px;border-radius:8px;border:1px solid #e2e8f0"></p>` : ''}
+      <p style="font-size:15px;line-height:1.5">${esc(picture)} <a href="${a.survey}" style="color:#1b5d30">The survey</a> · <a href="${a.claim}" style="color:#1b5d30">Claim your listing</a></p>
+      <p style="${SMALL}">${esc(sign)}</p></div>`,
+  }
+}

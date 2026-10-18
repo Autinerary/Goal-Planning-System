@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2, Moon } from 'lucide-react'
+import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2, Moon, Leaf } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
 import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
 import { SPEECH_RATES, SPEECH_VOLUMES, loadVoices, speak, speechSupported, voicesFor } from '@/lib/speech'
@@ -47,6 +47,8 @@ export default function AccessibilitySettingsPage() {
     { key: 'soundEffects', label: 'Task completion sound', desc: 'Play a soft "pop" when you check off a task.', icon: Volume2 },
     { key: 'spokenDescriptions', label: 'Spoken descriptions', desc: 'Read control names and descriptions when clicked or focused. Off by default to avoid duplicating a screen reader.', icon: Volume2 },
     { key: 'voiceNavigation', label: 'Voice navigation', desc: 'Enable a microphone button. Listening starts only when pressed. Your browser may send audio to its speech service; Autinerary does not store recordings.', icon: Volume2 },
+    { key: 'readAloud', label: 'Listen to this page', desc: 'A button at the foot of every page, in Autinerary and ResourceHub, that reads the page (or the words you select) aloud, with the voice below.', icon: Volume2 },
+    { key: 'dailyNotes', label: 'A note for today', desc: 'A short, kind note at the foot of each page.', icon: Leaf },
   ]
 
   return (

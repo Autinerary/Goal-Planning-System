@@ -28,6 +28,7 @@ import { EXPLAINER } from '@/lib/media'
 import { gaEnabled } from '@/lib/analytics'
 import StartHere from './components/StartHere'
 import { CONTACT_EMAIL } from '@/lib/contact'
+import FeedbackButton from './components/FeedbackButton'
 
 /**
  * Landing page: what a visitor needs before deciding to make an account.
@@ -696,6 +697,7 @@ export default function HomePage() {
           <span className="flex gap-4">
             <Link href="/privacy" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">Privacy</Link>
             <Link href="/terms" className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900">Terms</Link>
+            <FeedbackButton icon={false} className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-900" />
           </span>
           <span>© 2026 Autinerary Corp. All rights reserved.</span>
         </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { step64Missing } from '@/lib/publicProfiles'
+import { stripeClient } from '@/lib/stripe'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,13 +54,23 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error }, { status: check.reason === 'staff' ? 403 : 503 })
   }
 
+  // A paid plan ends first, so nobody is charged for an account that is gone.
+  const admin = createAdminClient()
+  const { data: plan } = await admin.from('subscriptions').select('stripe_subscription_id, status').eq('user_id', user.id).maybeSingle()
+  if (plan?.stripe_subscription_id && !['canceled', 'incomplete_expired'].includes(plan.status)) {
+    const stripe = stripeClient()
+    const ended = stripe ? await stripe.subscriptions.cancel(plan.stripe_subscription_id).then(() => true, (e: any) => e?.code === 'resource_missing') : false
+    if (!ended) {
+      return NextResponse.json({ error: 'Your paid plan could not be cancelled, so your account was not deleted. Cancel it in Billing first, or email us.' }, { status: 500 })
+    }
+  }
+
   // Photos first: once the account is gone, nobody may remove them.
   const storage = supabase.storage.from('avatars')
   const { data: photos } = await storage.list(user.id, { limit: 100 })
   if (photos?.length) await storage.remove(photos.map((f) => `${user.id}/${f.name}`))
 
   // A newsletter sign-up with the same address is the same person.
-  const admin = createAdminClient()
   if (user.email) await admin.from('newsletter_subscribers').delete().ilike('email', user.email.replace(/[\\%_]/g, (c) => `\\${c}`))
 
   const { data: outcome, error } = await supabase.rpc('delete_my_account', { confirm: 'DELETE' })

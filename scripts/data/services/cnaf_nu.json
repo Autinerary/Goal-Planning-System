@@ -1,0 +1,105 @@
+{
+  "topic": "cnaf_nu",
+  "checked": "2026-10-18",
+  "source": "Canadian National Autism Foundation, cnaf.net/provinceres.html; each entry checked on its own website",
+  "entries": [
+    {
+      "slug": "nunavummi-disabilities-makinnasuaqtiit-society",
+      "name": "Nunavummi Disabilities Makinnasuaqtiit Society (NDMS)",
+      "website": "https://nuability.ca/services/",
+      "description": "Nunavut's cross-disability organization, based in Iqaluit, for Nunavummiut with disabilities of all ages and their families. It offers individual and group advocacy, help applying for disability benefits such as the Disability Tax Credit and the Child First Initiative, employment supports, and accessible community activities.",
+      "category": "Organization",
+      "tags": [
+        "advocacy",
+        "charity"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NU",
+      "city": "Iqaluit",
+      "address": "110-505B Astro Hill Terrace",
+      "phone": "(867) 979-2228",
+      "email": "connect@nuability.ca",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "We provide advocacy, employment support, training, and accessibility services to help individuals, families, and organizations.",
+      "notes": "CNAF's link for this item goes to Nunavut Tunngavik Inc.'s About page (tunngavik.com/about), which does not mention NDMS; NDMS's own site is nuability.ca (its About page says NTI supported the group when it began in 1999, and it incorporated as a society in 2005). Contact details from the site footer; toll-free (877) 354-0916. Nunavut has no autism society of its own that could be found; NDMS describes itself as the territory's only cross-disability organization."
+    },
+    {
+      "slug": "financial-assistance-nunavut-students-fans",
+      "name": "Financial Assistance for Nunavut Students (FANS)",
+      "website": "https://www.gov.nu.ca/en/education-and-schools/financial-assistance-nunavut-students-fans",
+      "description": "The Government of Nunavut's financial help for Nunavut residents in full-time or part-time post-secondary programs, run by the Department of Education. Students with a disability can apply at any time during the academic year for a disability grant of up to $20,000.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "Government grant and loan program; the page lists no application fee.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NU",
+      "city": null,
+      "address": null,
+      "phone": "1-877-860-0680",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Financial Assistance for Nunavut Students (FANS) is designed to ensure that financial need is not a barrier to higher education.",
+      "notes": "CNAF links to the old gov.nu.ca/family-services FANS page, which now redirects to this Department of Education page. Eligibility needs 12 months of Nunavut residency; the page describes 2025/2026 program changes and a coming name change. The FANS email on the page is hidden, and gov.nu.ca loaded only in some of fetch.py's modes (others got a Cloudflare check)."
+    },
+    {
+      "slug": "nunavut-inuglugijaittuq-inclusive-education",
+      "name": "Inuglugijaittuq: Inclusive Education (Nunavut Department of Education)",
+      "website": "https://www.gov.nu.ca/en/education-and-schools/inuglugijaittuq-inclusive-education",
+      "description": "The Nunavut Department of Education's inclusive education approach for students in Nunavut schools, with supports that increase from classroom practice to individual student support plans. Education support services include American Sign Language, assistive technology, instruction for students who are blind or have low vision or are Deaf or hard of hearing, educational psychology assessments, occupational therapy, speech language therapy and school mental health.",
+      "category": "Education Support",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "The page does not mention cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NU",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "Nunavut's model includes the provision of education support services: American Sign language, assistive technology for learning, Blind or Low Vision instruction, Deaf or Hard of Hearing instruction, educational psychology assessments, neurodiverse learner self-regulation",
+      "notes": "CNAF lists 'Inclusive Schooling' on its Nunavut page with text about Nunavut's inclusive schools but links to an old NWT page (ece.gov.nt.ca/fr/..., now 404); this is the Nunavut Department of Education's current inclusive education page (it also has information for parents and an autism resource for educators). CNAF's other Nunavut inclusive-education links (edu.gov.nu.ca) no longer resolve. The page's contact email is hidden."
+    },
+    {
+      "slug": "nunavut-rehabilitation-services",
+      "name": "Rehabilitation Services (Nunavut Department of Health)",
+      "website": "https://www.gov.nu.ca/en/health/rehabilitation",
+      "description": "Free physiotherapy, occupational therapy, speech-language pathology and audiology from the Nunavut Department of Health for residents with a Nunavut Health Care Card, including for developmental delays and conditions. Services are based in Iqaluit and Rankin Inlet, with a visiting team for the Kitikmeot region and community therapy assistants in some communities; no doctor's referral is needed.",
+      "category": "Therapist",
+      "tags": [],
+      "cost": "free",
+      "cost_note": "Free for Nunavut residents with a Nunavut Health Care Card.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NU",
+      "city": null,
+      "address": null,
+      "phone": "(867) 975-5970",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The Department of Health provides the following rehabilitation services free of charge to all Nunavut residents with a Nunavut Health Care Card:",
+      "notes": "Not from CNAF: added because Nunavut has fewer than 5 kept entries; no Nunavut autism society was found (autismnunavut.ca and .com do not resolve) and no separate Government of Nunavut disability services page was found. Phone is for the Baffin Region (Timimut Ikajuqsivik); Kivalliq (867) 645-8077, Kitikmeot (867) 983-4500. The Department of Health's Home, Community, and Continuing Care page (home care and respite for illness or disability) is another possible addition."
+    }
+  ]
+}

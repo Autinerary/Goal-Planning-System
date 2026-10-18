@@ -61,8 +61,10 @@ export async function middleware(request: NextRequest) {
   // What is near each college and university, for anyone (the planning
   // note, October 2026: the campus package).
   const isCampus = pathname === '/campus' || pathname.startsWith('/campus/')
+  // "Help us rate our resources!" (the planning note's Goal 11), for anyone.
+  const isHelpUsRate = pathname === '/help-us-rate'
 
-  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines || isCampus) {
+  if (isPublicRoute || isHomePage || isSearchPage || isResourcePage || isGuidelines || isCampus || isHelpUsRate) {
     // Nothing here depends on who the user is, so don't ask.
     return response
   }

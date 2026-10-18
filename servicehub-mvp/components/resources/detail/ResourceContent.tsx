@@ -2,10 +2,9 @@
 
 import { Phone, Mail, Globe, MapPin, Navigation } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
-import LocationMap from './LocationMap'
 import ResourceBadgesLoader from '../ResourceBadgesLoader'
 import RelatedTidbits from '../RelatedTidbits'
-import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
+import ServiceMap from './ServiceMap'
 import ContactActions from './ContactActions'
 import type { Location, ContactInfo } from '@/types/database'
 import { costLabel } from '../ResourceCard'
@@ -62,11 +61,7 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
           </div>
           {(location.lat && location.lng) ? (
             <>
-              {hasGoogleMapsEmbedKey() ? (
-                <GoogleMapsEmbed lat={location.lat} lng={location.lng} name={resource.name} />
-              ) : (
-                <LocationMap lat={location.lat} lng={location.lng} name={resource.name} />
-              )}
+              <ServiceMap lat={location.lat} lng={location.lng} name={resource.name} />
               <div className="mt-4">
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`}

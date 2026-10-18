@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 import ProfileSync from '@/components/layout/ProfileSync'
 import VisitTracker from '@/components/layout/VisitTracker'
 import { A11Y_SCRIPT } from '@/lib/a11y'
+import UserWay from '@/components/layout/UserWay'
 
 export const metadata: Metadata = {
   title: "ResourceHub",
@@ -76,6 +77,7 @@ export default function RootLayout({
             },
           }}
         />
+        <UserWay />
       </body>
     </html>
   );
