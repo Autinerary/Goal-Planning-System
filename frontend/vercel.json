@@ -109,8 +109,20 @@
       "schedule": "0 23 * * *"
     },
     {
-      "path": "/api/cron/service-loop",
-      "schedule": "15 */6 * * *"
+      "path": "/api/cron/service-loop/0",
+      "schedule": "15 0 * * *"
+    },
+    {
+      "path": "/api/cron/service-loop/1",
+      "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/service-loop/2",
+      "schedule": "15 12 * * *"
+    },
+    {
+      "path": "/api/cron/service-loop/3",
+      "schedule": "15 18 * * *"
     },
     {
       "path": "/api/cron/rating-sweep",
