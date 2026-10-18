@@ -107,6 +107,10 @@
     {
       "path": "/api/cron/reminders/23",
       "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/service-loop",
+      "schedule": "15 */6 * * *"
     }
   ]
 }

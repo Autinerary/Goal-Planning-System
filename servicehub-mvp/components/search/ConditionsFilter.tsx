@@ -16,9 +16,13 @@ interface ConditionsFilterProps {
   /** When true, render just the accordion rows (no header/border) so it can be
    *  merged into another section — e.g. the combined "Norms" filter. */
   embedded?: boolean
+  /** Only these top-level groups; or all but these (personality is shown apart from norms). */
+  only?: string[]
+  except?: string[]
 }
 
-export default function ConditionsFilter({ selected, onChange, embedded = false }: ConditionsFilterProps) {
+export default function ConditionsFilter({ selected, onChange, embedded = false, only, except }: ConditionsFilterProps) {
+  const groups = CONDITION_GROUPS.filter((g) => (!only || only.includes(g.id)) && !(except || []).includes(g.id))
   // Which top-level group + nested group is currently expanded (one at a time
   // for top-level; nested groups can be independently expanded).
   const [expandedTop, setExpandedTop] = useState<string | null>(null)
@@ -141,7 +145,7 @@ export default function ConditionsFilter({ selected, onChange, embedded = false 
 
   // Embedded: just the accordion rows, to slot into another section's box.
   if (embedded) {
-    return <>{CONDITION_GROUPS.map((group) => renderGroup(group))}</>
+    return <>{groups.map((group) => renderGroup(group))}</>
   }
 
   return (
@@ -159,7 +163,7 @@ export default function ConditionsFilter({ selected, onChange, embedded = false 
         )}
       </div>
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        {CONDITION_GROUPS.map((group) => renderGroup(group))}
+        {groups.map((group) => renderGroup(group))}
       </div>
     </div>
   )

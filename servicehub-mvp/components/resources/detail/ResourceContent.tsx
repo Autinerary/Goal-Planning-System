@@ -8,6 +8,8 @@ import RelatedTidbits from '../RelatedTidbits'
 import GoogleMapsEmbed, { hasGoogleMapsEmbedKey } from './GoogleMapsEmbed'
 import ContactActions from './ContactActions'
 import type { Location, ContactInfo } from '@/types/database'
+import { costLabel } from '../ResourceCard'
+import { SERVICE_TAGS, tagLabel } from '@/lib/filters/tags'
 
 interface ResourceContentProps {
   resource: ResourceDetail
@@ -31,6 +33,9 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
           <p className="text-gray-700 whitespace-pre-wrap">{resource.description}</p>
         </section>
       )}
+
+      {/* Cost, how it is offered, and its tags (the planning note, October 2026). */}
+      <ServiceFacts resource={resource} />
 
       <RelatedTidbits resourceName={resource.name} />
 
@@ -201,5 +206,52 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
         </section>
       )}
     </div>
+  )
+}
+
+function ServiceFacts({ resource }: { resource: ResourceDetail }) {
+  const r = resource as any
+  const cost = costLabel(r)
+  const tags: string[] = Array.isArray(r.tags) ? r.tags : []
+  const delivery = { in_person: 'In person', online: 'Online', both: 'In person and online' }[String(r.delivery)] || null
+  if (!cost && !delivery && tags.length === 0) return null
+  const requires = SERVICE_TAGS.find((t) => t.id === 'requires_diagnosis')
+  return (
+    <section aria-labelledby="facts-heading">
+      <h2 id="facts-heading" className="text-xl font-semibold text-gray-900 mb-3">At a glance</h2>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+        {cost && (
+          <div>
+            <dt className="font-medium text-gray-900">Cost</dt>
+            <dd className="text-gray-700">
+              {cost}
+              {r.cost_source === 'usual' && (
+                <span className="block text-xs text-gray-600">
+                  {r.cost_type === 'free' ? 'Usually free for this kind of place.' : 'Usually paid for this kind of place; the cost is not listed.'}
+                </span>
+              )}
+            </dd>
+          </div>
+        )}
+        {delivery && (
+          <div>
+            <dt className="font-medium text-gray-900">Offered</dt>
+            <dd className="text-gray-700">{delivery}</dd>
+          </div>
+        )}
+      </dl>
+      {tags.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Tags">
+          {tags.map((t) => (
+            <li key={t} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+              {tagLabel(t)}
+            </li>
+          ))}
+        </ul>
+      )}
+      {tags.includes('requires_diagnosis') && requires?.note && (
+        <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{requires.note}</p>
+      )}
+    </section>
   )
 }

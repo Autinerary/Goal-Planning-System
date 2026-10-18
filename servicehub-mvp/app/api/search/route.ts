@@ -17,6 +17,7 @@ import { searchProducts } from '@/lib/search/products'
 import { SHOP_CATEGORIES } from '@/lib/shop/categories'
 import { understandByWords, understandWithAI, withoutParts, searchFor, type Understood } from '@/lib/search/understand'
 import { teamStates } from '@/lib/team'
+import { tagGroupsFor, wantsLocalGroups, isTag, SERVICE_AGES } from '@/lib/filters/tags'
 
 const VALID_SORT_KEYS: SortOption[] = [
   'relevance',
@@ -118,6 +119,16 @@ export async function GET(request: NextRequest) {
     const connectionTypes = csv('connectionTypes')?.filter(isConnectionType)
     const sourceTypes = csv('sourceTypes')?.filter(isSourceType)
 
+    // Tags, free or paid, online, and the age of a service (lib/filters/tags.ts;
+    // the team's planning note, October 2026, Goal 1).
+    const tagIds = csv('tags')?.filter(isTag) || []
+    const tagGroups = tagGroupsFor(tagIds)
+    const costParam = searchParams.get('cost')
+    const costType = costParam === 'free' || costParam === 'paid' ? costParam : undefined
+    const delivery = searchParams.get('online') === '1' ? ('online' as const) : undefined
+    const age = SERVICE_AGES.find((a) => a.id === searchParams.get('age'))
+    const startedAfter = age ? new Date(Date.now() - age.days * 86_400_000).toISOString().slice(0, 10) : undefined
+
     const sort = parseSortParam(searchParams.get('sort'))
     const page = Number(searchParams.get('page') || '1')
     const pageSize = Number(searchParams.get('pageSize') || '20')
@@ -129,6 +140,7 @@ export async function GET(request: NextRequest) {
     let signedIn = false
     let place: string | null = null
     let userId: string | null = null
+    let country: string | null = null
 
     try {
       const supabase = createClient()
@@ -147,6 +159,7 @@ export async function GET(request: NextRequest) {
 
         if (profile.data?.location) {
           const location = profile.data.location as any
+          country = typeof location?.country === 'string' && location.country.trim() ? location.country.trim() : null
           if (location?.lat && location?.lng) {
             userLocation = {
               lat: location.lat,
@@ -174,9 +187,21 @@ export async function GET(request: NextRequest) {
       place = `${understood.place.name}, ${understood.place.province}`
     }
 
+    // "Local" community groups: community groups in the person's city (about
+    // 30 km from their place); without a place, community groups anywhere.
+    let maxKm = maxDistance
+    if (wantsLocalGroups(tagIds)) {
+      if (!tagGroups.some((g) => g.includes('community_group'))) tagGroups.push(['community_group'])
+      if (userLocation) maxKm = Math.min(maxDistance ?? 30, 30)
+    }
+
     // Build filters
     const filters: SearchFilters = {
       query,
+      tagGroups: tagGroups.length ? tagGroups : undefined,
+      costType,
+      delivery,
+      startedAfter,
       groups: asked?.groups.length ? asked.groups : undefined,
       softWords: asked?.softWords.length ? asked.softWords : undefined,
       categories,
@@ -187,7 +212,7 @@ export async function GET(request: NextRequest) {
       minRating,
       minPrice,
       maxPrice,
-      maxDistance,
+      maxDistance: maxKm,
       userLocation,
       ageRanges,
       specialTags,
@@ -278,6 +303,39 @@ export async function GET(request: NextRequest) {
         return {}
       }
     }
+    // The person's own tags on the page (the planning note, October 2026):
+    // already in their support team, already owned (shop items they bought),
+    // already read (articles they opened).
+    const mineFor = async (rows: any[], team: Record<string, string>) => {
+      const mine: Record<string, string[]> = {}
+      const add = (id: string, tag: string) => { mine[id] = [...(mine[id] || []), tag] }
+      for (const [id, state] of Object.entries(team)) if (state === 'signed') add(id, 'team')
+      if (!userId) return mine
+      const supabase = createClient()
+      const productIds = rows.filter((r) => r.kind === 'product').map((r) => r.id)
+      const resourceIds = rows.filter((r) => r.kind !== 'product').map((r) => r.id)
+      try {
+        if (productIds.length) {
+          const { data } = await supabase
+            .from('order_items')
+            .select('product_id, orders!inner(user_id, status)')
+            .in('product_id', productIds)
+            .eq('orders.user_id', userId)
+          for (const r of (data || []) as any[]) {
+            if (!['cancelled', 'returned'].includes(String(r.orders?.status))) add(r.product_id, 'owned')
+          }
+        }
+        if (resourceIds.length) {
+          // STEP 78; before it the table is missing and nothing is marked.
+          const { data } = await supabase.from('resource_reads').select('resource_id').in('resource_id', resourceIds)
+          for (const r of (data || []) as any[]) add(r.resource_id, 'read')
+        }
+      } catch {
+        /* the cards just go without */
+      }
+      for (const id of Object.keys(mine)) mine[id] = Array.from(new Set(mine[id]))
+      return mine
+    }
 
     // Combine results: semantic results first (higher relevance), then keyword
     if (semanticResults.length > 0) {
@@ -352,9 +410,12 @@ export async function GET(request: NextRequest) {
         nearCount: nearFirst
           ? Math.max(keywordResult.nearCount || 0, merged.filter((r) => nearGroup(r, radiusKm, userLocation?.province) === 0).length)
           : undefined,
-        you: { signedIn, place },
+        you: { signedIn, place, country },
         understood,
-        team: await teamFor(combinedResults),
+        ...(await (async () => {
+          const team = await teamFor(combinedResults)
+          return { team, mine: await mineFor([...combinedResults, ...products], team) }
+        })()),
       })
     }
 
@@ -364,9 +425,12 @@ export async function GET(request: NextRequest) {
       results: [...keywordResult.results, ...products],
       total: (keywordResult.total || 0) + products.length,
       productCount: products.length,
-      you: { signedIn, place },
+      you: { signedIn, place, country },
       understood,
-      team: await teamFor(keywordResult.results),
+      ...(await (async () => {
+        const team = await teamFor(keywordResult.results)
+        return { team, mine: await mineFor([...keywordResult.results, ...products], team) }
+      })()),
     })
   } catch (error) {
     console.error('Error in search API:', error)

@@ -682,6 +682,8 @@ export async function createOrUpdateRating(rating: {
   rater_org_ids?: string[]
   /** { barrier_type: relationship } for the rater — powers weighted averages. */
   rater_relationships?: Record<string, string>
+  /** How the rater is connected to their norms (CONNECTION_TYPES ids) — the connection-type filter. */
+  rater_connection_types?: string[]
 }): Promise<Rating | null> {
   const supabase = createClient()
   // Check if rating exists
@@ -932,6 +934,17 @@ export interface SearchFilters {
   groups?: string[][]
   /** Words that only count towards relevance (understood searches). */
   softWords?: string[]
+  /**
+   * Tags (lib/filters/tags.ts, STEP 78): every group required, any tag in a
+   * group enough ("Daycare or Kindergarten", and "Free").
+   */
+  tagGroups?: string[][]
+  /** Free or paid (STEP 78). */
+  costType?: 'free' | 'paid'
+  /** Online or in person; each includes services offered both ways. */
+  delivery?: 'online' | 'in_person'
+  /** Started (or was added) on or after this date, YYYY-MM-DD: "Age of service". */
+  startedAfter?: string
   categories?: string[] // Category multi-select
   barriers?: string[] // Barrier types (e.g., 'autism', 'adhd')
   /**
@@ -1271,6 +1284,10 @@ async function searchPage(
       cond_keys: condKeys ? Array.from(condKeys).map(cleanTerm).filter(Boolean) : undefined,
       cond_ids: condKeys ? condIds : undefined,
       allowed: allowedIds ?? undefined,
+      tag_groups: filters.tagGroups?.length ? filters.tagGroups : undefined,
+      cost_type: filters.costType,
+      delivery: filters.delivery,
+      started_after: filters.startedAfter,
       lat: userLocation?.lat,
       lng: userLocation?.lng,
       province: userLocation?.province,
@@ -1672,6 +1689,14 @@ async function queryMatches(
     if (filters.sourceTypes && filters.sourceTypes.length > 0) {
       query = query.in('source_type', filters.sourceTypes)
     }
+
+    // Tags, free or paid, delivery and age (STEP 78), as the database search does.
+    for (const group of filters.tagGroups || []) {
+      if (group.length > 0) query = query.overlaps('tags', group)
+    }
+    if (filters.costType) query = query.eq('cost_type', filters.costType)
+    if (filters.delivery) query = query.in('delivery', [filters.delivery, 'both'])
+    if (filters.startedAfter) query = query.gte('created_at', filters.startedAfter)
 
     // Price. A venue with no price (free or not given) is shown unless a
     // minimum above 0 is set.

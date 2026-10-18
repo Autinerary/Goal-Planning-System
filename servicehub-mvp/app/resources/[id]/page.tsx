@@ -67,6 +67,13 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
     notFound()
   }
 
+  // Opening an article counts as reading it, for "Already read" (the planning
+  // note, October 2026; STEP 78). Best-effort: before STEP 78 the table is
+  // missing and nothing is kept.
+  if (user?.id && (resource.category === 'commentary' || ['news', 'reddit', 'twitter', 'facebook', 'youtube', 'tiktok', 'instagram'].includes(String((resource as any).source_type)))) {
+    await supabase.from('resource_reads').upsert({ user_id: user.id, resource_id: resource.id }, { onConflict: 'user_id,resource_id', ignoreDuplicates: true })
+  }
+
   const location = resource.location as Location | null
 
   // Diagnostics-profile match: how many users who share this user's barrier

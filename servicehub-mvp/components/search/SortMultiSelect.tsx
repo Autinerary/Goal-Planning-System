@@ -37,13 +37,19 @@ const COST_DIRECTION_LABELS: Record<'asc' | 'desc', string> = {
 interface SortMultiSelectProps {
   value: SortRule[]
   onChange: (next: SortRule[]) => void
+  /** Cost is offered only once "Paid" is chosen (the team's planning note, October 2026). */
+  allowCost?: boolean
+  /** Distance is offered only when there is a place to measure from. */
+  allowDistance?: boolean
 }
 
-export default function SortMultiSelect({ value, onChange }: SortMultiSelectProps) {
+export default function SortMultiSelect({ value, onChange, allowCost = true, allowDistance = true }: SortMultiSelectProps) {
   const [open, setOpen] = useState(false)
 
   const usedKeys = new Set(value.map((r) => r.key))
-  const availableKeys = (Object.keys(SORT_LABELS) as SortKey[]).filter((k) => !usedKeys.has(k))
+  const availableKeys = (Object.keys(SORT_LABELS) as SortKey[]).filter(
+    (k) => !usedKeys.has(k) && (k !== 'cost' || allowCost) && (k !== 'distance' || allowDistance)
+  )
 
   const addRule = (key: SortKey) => {
     // Default direction: cost ascending (cheap first), everything else

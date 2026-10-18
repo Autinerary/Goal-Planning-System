@@ -15,6 +15,8 @@
  *  self-identification is never weighted below a diagnosis here. */
 export const CONNECTION_TYPES = [
   { id: 'diagnosed',               label: 'Diagnosed',                           tier: 'lived' },
+  // Under "Diagnosed" (the team's planning note, October 2026; STEP 78).
+  { id: 'self_diagnosed',          label: 'Self-diagnosed',                      tier: 'lived', parent: 'diagnosed' },
   { id: 'undiagnosed_identifying', label: 'Undiagnosed & identifying with norm', tier: 'lived' },
   { id: 'undiagnosed_unsure',      label: 'Undiagnosed & unsure',                tier: 'lived' },
   { id: 'parent_guardian',         label: 'Parent / guardian',                   tier: 'direct_support' },

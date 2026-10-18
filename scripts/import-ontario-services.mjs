@@ -138,12 +138,49 @@ function tiles() {
   return out
 }
 
-const query = (group, box) => `[out:json][timeout:${box ? 300 : 900}][maxsize:1073741824];
-area["ISO3166-2"="CA-ON"]["admin_level"="4"]->.on;
+// All of Ontario inside its boundary; or one piece of the map as a plain box,
+// which every public server can answer quickly (some have no boundaries
+// built), kept to Ontario afterwards with its outline.
+const query = (group, box) => box
+  ? `[out:json][timeout:300];
 (
-${group.select.map((s) => `  ${s}${box ? `(${box.join(',')})` : ''}(area.on);`).join('\n')}
+${group.select.map((s) => `  ${s}(${box.join(',')});`).join('\n')}
 );
 out tags center;`
+  : `[out:json][timeout:900][maxsize:1073741824];
+area["ISO3166-2"="CA-ON"]["admin_level"="4"]->.on;
+(
+${group.select.map((s) => `  ${s}(area.on);`).join('\n')}
+);
+out tags center;`
+
+// Ontario's outline (OpenStreetMap, through Nominatim, simplified to about
+// 100 m), kept on disk; and whether a point is inside it.
+let OUTLINE = null
+async function outline() {
+  if (OUTLINE) return OUTLINE
+  const file = path.join(CACHE, 'ontario-nominatim.json')
+  if (!fs.existsSync(file)) {
+    const res = await fetch('https://nominatim.openstreetmap.org/search?q=Ontario%2C%20Canada&format=json&polygon_geojson=1&polygon_threshold=0.001&limit=1', { headers: { 'User-Agent': UA } })
+    fs.writeFileSync(file, await res.text())
+  }
+  const g = JSON.parse(fs.readFileSync(file, 'utf8'))[0].geojson
+  OUTLINE = g.type === 'Polygon' ? [g.coordinates] : g.coordinates
+  return OUTLINE
+}
+function insideRing(ring, lng, lat) {
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j]
+    if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside
+  }
+  return inside
+}
+const inOntario = (polys, el) => {
+  const lat = el.lat ?? el.center?.lat, lng = el.lon ?? el.center?.lon
+  if (typeof lat !== 'number') return false
+  return polys.some((rings) => insideRing(rings[0], lng, lat) && !rings.slice(1).some((hole) => insideRing(hole, lng, lat)))
+}
 
 /** One kind of place across Ontario, kept on disk while the import runs. */
 async function fetchGroup(group) {
@@ -152,18 +189,20 @@ async function fetchGroup(group) {
   if (!REFRESH && fs.existsSync(file)) return { elements: JSON.parse(fs.readFileSync(file, 'utf8')), cached: true }
   let elements
   try {
-    elements = await overpass(query(group, null), 1, 4)
+    elements = await overpass(query(group, null), 1, 2)
   } catch {
-    // Too big for now: in pieces, each kept as it arrives.
+    // Too big for now: in pieces, each kept as it arrives, then only what
+    // is inside Ontario.
     process.stdout.write('in pieces: ')
+    const polys = await outline()
     const seen = new Map()
     for (const [i, box] of tiles().entries()) {
       const part = path.join(CACHE, `${group.id}.tile${i}.json`)
-      const els = fs.existsSync(part) ? JSON.parse(fs.readFileSync(part, 'utf8')) : await overpass(query(group, box))
+      const els = fs.existsSync(part) ? JSON.parse(fs.readFileSync(part, 'utf8')) : await overpass(query(group, box), 2)
       if (!fs.existsSync(part)) fs.writeFileSync(part, JSON.stringify(els))
-      for (const el of els) seen.set(`${el.type}/${el.id}`, el)
+      for (const el of els) if (inOntario(polys, el)) seen.set(`${el.type}/${el.id}`, el)
       process.stdout.write('.')
-      await sleep(1500)
+      await sleep(1000)
     }
     elements = [...seen.values()]
   }
@@ -187,6 +226,28 @@ function website(raw) {
 }
 
 const titleCase = (s) => s.replace(/_/g, ' ').replace(/;/g, ', ')
+
+// Free or paid (STEP 78): what a mapper recorded (fee=no / fee=yes), else
+// what the kind of place usually is, as the migration fills in for the rest.
+const USUALLY_FREE = new Set(['Doctor', 'Employment', 'Community Center', 'School'])
+function costOf(tags, group) {
+  if (tags.fee === 'no') return { cost_type: 'free', cost_source: 'listed' }
+  if (tags.fee === 'yes' || tags.charge) return { cost_type: 'paid', cost_source: 'listed' }
+  // Colleges and universities charge tuition; public schools are free.
+  return { cost_type: USUALLY_FREE.has(group.category) && group.id !== 'campus' ? 'free' : 'paid', cost_source: 'usual' }
+}
+
+// Tags the kind of place and its name make plain (servicehub-mvp/lib/filters/tags.ts).
+function tagsOf(tags, group, name) {
+  const out = []
+  if (['swimming', 'riding', 'zoo', 'amusement', 'museum'].includes(group.id)) out.push('recreation')
+  if (group.id === 'jobs') out.push('job_opportunities')
+  if (group.id === 'campus') {
+    if (/universit/i.test(name) || tags.amenity === 'university') out.push('edu_university', 'edu_undergraduate')
+    else out.push('edu_college', 'edu_undergraduate')
+  }
+  return out
+}
 
 /** One OSM element to a ResourceHub row, or null. Plain facts only. */
 export function toRow(el, group, now) {
@@ -227,6 +288,10 @@ export function toRow(el, group, now) {
       email: tags.email || tags['contact:email'] || null,
     },
     status: 'pending',
+    ...costOf(tags, group),
+    currency: 'CAD',
+    delivery: 'in_person',
+    tags: tagsOf(tags, group, name),
     source_type: 'openstreetmap',
     source_ref: `osm:${el.type}/${el.id}`,
     source_url: `https://www.openstreetmap.org/${el.type}/${el.id}`,
@@ -333,6 +398,13 @@ async function main() {
   if (!tagged) {
     console.log(`\nSTEP 77 is not applied yet (${probe.error.message}): writing without import_batch; this run is last_verified_at = ${now}.`)
     for (const row of all) delete row.import_batch
+  }
+  // Tags, cost, currency and delivery come with STEP 78; without it the rows
+  // are written without them, and the migration fills cost and currency in.
+  const probe78 = await supabase.from('resources').select('tags').limit(1)
+  if (probe78.error) {
+    console.log(`STEP 78 is not applied yet (${probe78.error.message}): writing without tags, cost, currency and delivery.`)
+    for (const row of all) { delete row.tags; delete row.cost_type; delete row.cost_source; delete row.currency; delete row.delivery }
   }
   let added = 0
   let failed = 0

@@ -185,6 +185,29 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       /* non-fatal — rating still saves without diagnostics */
     }
 
+    // Snapshot how the rater is connected to their norms (lib/filters/
+    // taxonomy.ts CONNECTION_TYPES), for the "Connection type to norm"
+    // filter. It was read but never written, so that filter had nothing to
+    // find. From the connection types on their norms, their diagnostic
+    // profile in the app (professionally diagnosed, self-identified, exploring)
+    // and who they are here for.
+    const rater_connection_types: string[] = []
+    try {
+      const add = (t: string | null | undefined) => { if (t && !rater_connection_types.includes(t)) rater_connection_types.push(t) }
+      const { data: mine } = await supabase.from('user_barriers').select('connection_type').eq('user_id', user.id)
+      for (const b of mine || []) add((b as any).connection_type)
+      const { data: diag } = await supabase.from('user_diagnostic_profiles').select('profile').eq('user_id', user.id).maybeSingle()
+      const statuses: string[] = ((diag as any)?.profile?.conditions || []).map((c: any) => String(c?.status || ''))
+      if (statuses.includes('diagnosed')) add('diagnosed')
+      if (statuses.includes('self_identified')) add('self_diagnosed')
+      if (statuses.includes('exploring')) add('undiagnosed_unsure')
+      const { data: prof } = await supabase.from('profiles').select('preferences').eq('id', user.id).maybeSingle()
+      const audience = String((prof as any)?.preferences?.audience || '')
+      add(({ parent: 'parent_guardian', family: 'caretaker', teach: 'educator', educator: 'educator', ally: 'ally' } as Record<string, string>)[audience])
+    } catch {
+      /* non-fatal — rating still saves without it */
+    }
+
     // Snapshot which organisations the rater belongs to, so ratings can be
     // grouped per organisation later without cross-user membership reads
     // (RLS-safe: the rater reads their own memberships).
@@ -211,6 +234,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       rater_diagnostics,
       rater_relationships,
       rater_org_ids,
+      rater_connection_types,
     })
 
     if (!rating) {

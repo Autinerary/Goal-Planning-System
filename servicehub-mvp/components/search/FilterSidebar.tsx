@@ -7,7 +7,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import ConditionsFilter from './ConditionsFilter'
 import CostFilter from './CostFilter'
 import RatingChipsFilter from './RatingChipsFilter'
-import { LIFE_AREAS } from '@/lib/search/lifeAreas'
+import TagFilters from './TagFilters'
+import LifeCategoryFilters from './LifeCategoryFilters'
+import type { CostType } from '@/lib/filters/tags'
 import { FILTER_NORM_GROUPS } from '@/lib/norms/taxonomy'
 import { SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
 
@@ -44,6 +46,17 @@ interface FilterSidebarProps {
    *  signed in, so the distance filter can say so (Riipen Labs, Group 8). */
   place?: string | null
   signedIn?: boolean
+  /** Tags, free or paid, online and the age of a service (the planning note, October 2026). */
+  tags?: string[]
+  costType?: CostType
+  online?: boolean
+  serviceAge?: string
+  /** The person's country, for the school system in Education. */
+  country?: string | null
+  onTagToggle?: (id: string) => void
+  onCostTypeChange?: (next: CostType | undefined) => void
+  onOnlineChange?: (next: boolean) => void
+  onServiceAgeChange?: (next: string | undefined) => void
 }
 
 export default function FilterSidebar({
@@ -75,6 +88,15 @@ export default function FilterSidebar({
   onClearFilters,
   place = null,
   signedIn = false,
+  tags: selectedTags = [],
+  costType,
+  online = false,
+  serviceAge,
+  country = null,
+  onTagToggle,
+  onCostTypeChange,
+  onOnlineChange,
+  onServiceAgeChange,
 }: FilterSidebarProps) {
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   // Odosa: "they are working; they're just not showing up like the other ones."
@@ -228,35 +250,43 @@ export default function FilterSidebar({
               )
             })}
           {/* Conditions taxonomy, merged into the same "Norms" box */}
-          <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} />
+          <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} except={['personality_disorders']} />
         </div>
       </div>
 
-      {/* Life area — folded-in Resource Roadmap domains (Odosa). Filters
-          resources by life domain. Matching is best-effort, so some domains
-          may return few results until resources are tagged. */}
+      {/* Personality, apart from norms (the planning note, October 2026:
+          "Personality vs Norm"), so either can be chosen on its own. */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">Life Category</h3>
-        <p className="text-xs text-gray-500 mb-3">
-          Filter by life domain (from the Resource Roadmap).
-        </p>
-        <div className="space-y-2">
-          {LIFE_AREAS.map((area) => (
-            <label
-              key={area.id}
-              className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
-            >
-              <input
-                type="checkbox"
-                checked={selectedLifeAreas.includes(area.id)}
-                onChange={() => onLifeAreaToggle(area.id)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">{area.label}</span>
-            </label>
-          ))}
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Personality</h3>
+        <p className="text-xs text-gray-600 mb-2">Lasting patterns in how someone thinks, feels and relates; kept apart from norms.</p>
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <ConditionsFilter embedded selected={selectedConditions} onChange={onConditionsChange} only={['personality_disorders']} />
         </div>
       </div>
+
+      {/* Life categories, each with its own choices (lib/search/lifeAreas.ts,
+          lib/filters/tags.ts). Matching by words until places are tagged. */}
+      <LifeCategoryFilters
+        lifeAreas={selectedLifeAreas}
+        tags={selectedTags}
+        country={country}
+        onLifeAreaToggle={onLifeAreaToggle}
+        onTagToggle={(id) => onTagToggle?.(id)}
+      />
+
+      {onTagToggle && onCostTypeChange && onOnlineChange && onServiceAgeChange && (
+        <TagFilters
+          tags={selectedTags}
+          costType={costType}
+          online={online}
+          age={serviceAge}
+          hasLocation={Boolean(place)}
+          onTagToggle={onTagToggle}
+          onCostChange={onCostTypeChange}
+          onOnlineChange={onOnlineChange}
+          onAgeChange={onServiceAgeChange}
+        />
+      )}
 
       {/* Service Ratings (chip style) */}
       <RatingChipsFilter selectedStars={ratingStars} onChange={onRatingStarsChange} />
@@ -349,7 +379,7 @@ export default function FilterSidebar({
           <p className="text-[0.6875rem] text-gray-500 mb-2">Whose experience the ratings come from.</p>
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {CONNECTION_TYPES.map((c) => (
-              <label key={c.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <label key={c.id} className={`flex items-center gap-2 text-sm text-gray-700 cursor-pointer ${'parent' in c ? 'ml-5' : ''}`}>
                 <input
                   type="checkbox"
                   checked={selectedConnectionTypes.includes(c.id)}

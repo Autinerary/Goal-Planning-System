@@ -98,6 +98,10 @@ function SearchResults() {
   // on the page is on the person's team (lib/team.ts).
   const [understood, setUnderstood] = useState<Understood | null>(null)
   const [team, setTeam] = useState<Record<string, TeamState>>({})
+  // The person's own tags on the page (in their support team, owned, read),
+  // and their country, for Education's school system.
+  const [mine, setMine] = useState<Record<string, string[]>>({})
+  const [country, setCountry] = useState<string | null>(null)
   const { profile, setProfile } = useMyProfile()
   // One rh_search event per search, not per render.
   const trackedSearch = useRef<string>('')
@@ -133,6 +137,11 @@ function SearchResults() {
   const ai = searchParams.get('ai') === '1'
   const exact = searchParams.get('exact') === '1'
   const drop = searchParams.get('drop')?.split(',').filter(Boolean) || []
+  // Tags, free or paid, online, and the age of a service (lib/filters/tags.ts).
+  const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
+  const costType = (['free', 'paid'] as const).find((c) => c === searchParams.get('cost'))
+  const online = searchParams.get('online') === '1'
+  const serviceAge = searchParams.get('age') || undefined
   // Near a given point instead of the profile's place (the campus pages).
   const near = searchParams.get('near') || ''
   const nearName = searchParams.get('nearName') || ''
@@ -194,6 +203,10 @@ function SearchResults() {
           drop: drop.join(','),
           near,
           nearName,
+          tags: tags.join(','),
+          cost: costType || '',
+          online: online ? '1' : '',
+          age: serviceAge || '',
         })
         const response = await fetch(`/api/search?${apiParams.toString()}`)
 
@@ -205,6 +218,8 @@ function SearchResults() {
         const data = await response.json()
         setUnderstood(data.understood || null)
         setTeam(data.team || {})
+        setMine(data.mine || {})
+        setCountry(data.you?.country || null)
         setResults(data.results || [])
         setTotal(data.total || 0)
         setProductCount(data.productCount || 0)
@@ -268,6 +283,10 @@ function SearchResults() {
     drop.join(','),
     near,
     nearName,
+    tags.join(','),
+    costType,
+    online,
+    serviceAge,
   ])
 
   // A new search starts a new reading: AI only on Enter.
@@ -416,6 +435,23 @@ function SearchResults() {
     [updateSearchParams]
   )
 
+  const handleTagToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({ tags: tags.includes(id) ? tags.filter((t) => t !== id) : [...tags, id] })
+    },
+    [tags, updateSearchParams]
+  )
+  // Sorting by cost is offered once "Paid" is chosen; leaving Paid drops it.
+  const handleCostTypeChange = useCallback(
+    (next: 'free' | 'paid' | undefined) => {
+      const keep = sortRules.filter((r) => next === 'paid' || r.key !== 'cost')
+      updateSearchParams({ cost: next, sort: keep.length === sortRules.length ? searchParams.get('sort') || undefined : encodeSortRules(keep) || undefined })
+    },
+    [sortRules, searchParams, updateSearchParams]
+  )
+  const handleOnlineChange = useCallback((next: boolean) => updateSearchParams({ online: next ? '1' : undefined }), [updateSearchParams])
+  const handleServiceAgeChange = useCallback((next: string | undefined) => updateSearchParams({ age: next }), [updateSearchParams])
+
   const clearFilters = useCallback(() => {
     updateSearchParams({
       q: '',
@@ -428,6 +464,10 @@ function SearchResults() {
       minPrice: undefined,
       maxPrice: undefined,
       maxDistance: undefined,
+      tags: undefined,
+      cost: undefined,
+      online: undefined,
+      age: undefined,
       sort: 'relevance',
     })
   }, [updateSearchParams])
@@ -445,7 +485,11 @@ function SearchResults() {
     connectionTypes.length > 0 ||
     ageRanges.length > 0 ||
     specialTags.length > 0 ||
-    sourceTypes.length > 0
+    sourceTypes.length > 0 ||
+    tags.length > 0 ||
+    costType !== undefined ||
+    online ||
+    serviceAge !== undefined
 
   // A search for one topic that is not on the profile: offer to add it
   // (Riipen Labs, Group 8). From a condition filter, or the words searched.
@@ -530,6 +574,15 @@ function SearchResults() {
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
                   place={nearInfo?.place}
                   signedIn={nearInfo?.signedIn}
+                  tags={tags}
+                  costType={costType}
+                  online={online}
+                  serviceAge={serviceAge}
+                  country={country}
+                  onTagToggle={handleTagToggle}
+                  onCostTypeChange={handleCostTypeChange}
+                  onOnlineChange={handleOnlineChange}
+                  onServiceAgeChange={handleServiceAgeChange}
                 />
               </div>
             </aside>
@@ -602,7 +655,12 @@ function SearchResults() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <SortMultiSelect value={sortRules} onChange={handleSortChange} />
+                    <SortMultiSelect
+                      value={sortRules}
+                      onChange={handleSortChange}
+                      allowCost={costType === 'paid'}
+                      allowDistance={Boolean(nearInfo?.place)}
+                    />
                     <ViewToggle value={viewMode} onChange={setViewMode} />
                   </div>
                 </div>
@@ -788,6 +846,8 @@ function SearchResults() {
                               distance={resource.distance}
                               showBadges={true}
                               variant={viewMode}
+                              mine={mine[resource.id] || []}
+                              locationShared={Boolean(nearInfo?.place)}
                               footer={
                                 (resource as any).kind === 'product' ? undefined : (
                                   <TeamAction
@@ -879,6 +939,15 @@ function SearchResults() {
                   onClearFilters={hasActiveFilters ? clearFilters : undefined}
                   place={nearInfo?.place}
                   signedIn={nearInfo?.signedIn}
+                  tags={tags}
+                  costType={costType}
+                  online={online}
+                  serviceAge={serviceAge}
+                  country={country}
+                  onTagToggle={handleTagToggle}
+                  onCostTypeChange={handleCostTypeChange}
+                  onOnlineChange={handleOnlineChange}
+                  onServiceAgeChange={handleServiceAgeChange}
                 />
               </div>
             </aside>

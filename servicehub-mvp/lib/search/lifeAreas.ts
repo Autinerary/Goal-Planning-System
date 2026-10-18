@@ -19,10 +19,17 @@ export interface LifeArea {
   keywords: string[]
 }
 
+// The team's planning note (October 2026): "Workplace — fitting in" became
+// Career (with workplace life and a career level), "After-school &
+// activities" became Education (with education navigation), "After-death
+// planning" a gentler name that still says what it is for, and Adulting and
+// Parenting were added. The ids stay, so links made before still work. The
+// choices under each are tags (lib/filters/tags.ts).
+
 export const LIFE_AREAS: LifeArea[] = [
   {
     id: 'workplace',
-    label: 'Workplace — fitting in',
+    label: 'Career',
     keywords: [
       'workplace',
       'work',
@@ -34,6 +41,7 @@ export const LIFE_AREAS: LifeArea[] = [
       'vocation',
       'internship',
       'apprenticeship',
+      'training',
     ],
   },
   {
@@ -54,8 +62,19 @@ export const LIFE_AREAS: LifeArea[] = [
   },
   {
     id: 'afterschool',
-    label: 'After-school & activities',
+    label: 'Education',
     keywords: [
+      'education',
+      'school',
+      'kindergarten',
+      'daycare',
+      'tutor',
+      'tutoring',
+      'mentor',
+      'learning',
+      'college',
+      'university',
+      'literacy',
       'after-school',
       'after school',
       'afterschool',
@@ -72,8 +91,10 @@ export const LIFE_AREAS: LifeArea[] = [
   },
   {
     id: 'legacy',
-    label: 'After-death planning',
+    label: 'Future planning (wills, trusts, guardianship)',
     keywords: [
+      'henson',
+      'future planning',
       'legacy',
       'estate',
       'will',
@@ -85,6 +106,35 @@ export const LIFE_AREAS: LifeArea[] = [
       'after-death',
       'inheritance',
       'special needs trust',
+    ],
+  },
+  {
+    id: 'adulting',
+    label: 'Adulting',
+    keywords: [
+      'tax',
+      'taxes',
+      'finance',
+      'financial',
+      'budget',
+      'banking',
+      'cooking',
+      'independent living',
+      'life skills',
+      'roommate',
+      'friends',
+      'meetup',
+    ],
+  },
+  {
+    id: 'parenting',
+    label: 'Parenting',
+    keywords: [
+      'parent',
+      'parenting',
+      'caregiver',
+      'family support',
+      'families',
     ],
   },
 ]

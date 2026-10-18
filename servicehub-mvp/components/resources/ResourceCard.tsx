@@ -6,6 +6,7 @@ import type { Resource } from '@/types/database'
 import BarrierBadge from './BarrierBadge'
 import { MapPin, Star, Users } from 'lucide-react'
 import CategoryIcon from './CategoryIcon'
+import { tagLabel } from '@/lib/filters/tags'
 
 /** "Under 1 km", "4.2 km", "31 km", "3,675 km". */
 export function formatDistance(km: number): string {
@@ -27,6 +28,53 @@ interface ResourceCardProps {
    * cannot sit inside a link). The card and its actions share one frame.
    */
   footer?: ReactNode
+  /** The person's own tags: 'team' (in their support team), 'owned', 'read'. */
+  mine?: string[]
+  /** Whether the person's place is known, for "location not shared". */
+  locationShared?: boolean
+}
+
+// The tags worth showing on a card, in this order (lib/filters/tags.ts).
+const CARD_TAGS = ['requires_diagnosis', 'provides_diagnosis', 'funding', 'new_to_country', 'new_to_city', 'respite_care', 'siblings', 'charity', 'community_group', 'job_opportunities']
+const MINE_LABELS: Record<string, string> = { team: 'In your support team', owned: 'Already owned', read: 'Already read' }
+
+/** "Free", "Paid · $12.50", "Paid" (the planning note, October 2026: free or paid on every service). */
+export function costLabel(r: { cost_type?: string | null; price?: number | null; currency?: string | null }): string | null {
+  if (r.cost_type === 'free') return 'Free'
+  if (r.cost_type !== 'paid') return null
+  if (typeof r.price === 'number' && r.price > 0) {
+    try {
+      return `Paid · ${new Intl.NumberFormat('en-CA', { style: 'currency', currency: r.currency || 'CAD' }).format(r.price)}`
+    } catch {
+      return `Paid · ${r.price}`
+    }
+  }
+  return 'Paid'
+}
+
+function Chips({ resource, mine }: { resource: Resource; mine: string[] }) {
+  const r = resource as any
+  const cost = costLabel(r)
+  const tags: string[] = (Array.isArray(r.tags) ? r.tags : []).filter((t: string) => CARD_TAGS.includes(t))
+  tags.sort((a, b) => CARD_TAGS.indexOf(a) - CARD_TAGS.indexOf(b))
+  if (!cost && tags.length === 0 && mine.length === 0) return null
+  return (
+    <ul className="mb-3 flex flex-wrap gap-1.5" aria-label="Tags">
+      {mine.map((m) => (
+        <li key={m} className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-900">
+          {MINE_LABELS[m] || m}
+        </li>
+      ))}
+      {cost && (
+        <li className="inline-flex items-center rounded-full border border-gray-300 bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800">{cost}</li>
+      )}
+      {tags.slice(0, 3).map((t) => (
+        <li key={t} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+          {tagLabel(t)}
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 export default function ResourceCard({
@@ -38,6 +86,8 @@ export default function ResourceCard({
   showBadges = false,
   variant = 'grid',
   footer,
+  mine = [],
+  locationShared,
 }: ResourceCardProps) {
   // With actions, the frame moves from the link to a box around both.
   const FRAME = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow'
@@ -51,8 +101,12 @@ export default function ResourceCard({
       link
     )
   const location = resource.location as any
+  // Distance from you (the planning note, October 2026): the distance, or
+  // "Online · 0 km", or that the person has not shared where they are.
+  const online = (resource as any).delivery === 'online'
   // With a distance, a missing city needs no apology.
-  const city = location?.city || (distance === undefined ? 'Location not specified' : '')
+  const city = online ? 'Online · 0 km' : location?.city || (distance === undefined ? 'Location not specified' : '')
+  const notShared = !online && distance === undefined && locationShared === false && Boolean(location?.lat)
   // A real photo when there is one (Odosa). Most places have none, and the
   // initials that stood in for them told people nothing, so the category's
   // icon does instead (Riipen Labs, Group 8).
@@ -95,6 +149,7 @@ export default function ResourceCard({
                     {resource.category}
                   </span>
                 </div>
+                <Chips resource={resource} mine={mine} />
               </div>
             </div>
 
@@ -126,9 +181,10 @@ export default function ResourceCard({
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
                   <span className="truncate">{city}</span>
-                  {distance !== undefined && (
+                  {distance !== undefined && !online && (
                     <span className={`${city ? 'ml-2 ' : ''}text-gray-500 whitespace-nowrap`}>{formatDistance(distance)} away</span>
                   )}
+                  {notShared && <span className="ml-2 text-gray-500 whitespace-nowrap">· location not shared</span>}
                 </div>
               )}
             </div>
@@ -193,6 +249,8 @@ export default function ResourceCard({
           {resource.name}
         </h3>
 
+        <Chips resource={resource} mine={mine} />
+
         {/* Description */}
         {resource.description && (
           <p className="text-sm text-gray-600 mb-4 line-clamp-2">{resource.description}</p>
@@ -223,9 +281,10 @@ export default function ResourceCard({
           <div className="flex items-center text-sm text-gray-600 mb-4">
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
             <span className="truncate">{city}</span>
-            {distance !== undefined && (
+            {distance !== undefined && !online && (
               <span className={`${city ? 'ml-2 ' : ''}text-gray-500 whitespace-nowrap`}>{formatDistance(distance)} away</span>
             )}
+            {notShared && <span className="ml-2 text-gray-500 whitespace-nowrap">· location not shared</span>}
           </div>
         )}
 
