@@ -115,6 +115,206 @@
       ],
       "evidence": "The Learning Support for Persons with Disabilities Fund helps NWT residents with disabilities achieve their learning goals.",
       "notes": "Not a Yukon resource: named in unlinked text on CNAF's Yukon page (taken from an AIDE Canada guide to NWT adult funding). Contact details from the same page (Information, Referral, and Support Coordinator); toll free 1.800.491.8885."
+    },
+    {
+      "slug": "nwtdc-information-referral-support",
+      "name": "Information, Referral and Support (NWT Disabilities Council)",
+      "website": "https://www.nwtdc.net/information-referral-and-support",
+      "description": "A free NWT Disabilities Council program for residents anywhere in the Northwest Territories, with any type of disability; people can refer themselves and do not need a formal diagnosis. Staff give information about disability services in the NWT, link people to them, help with applications such as CPP Disability, Income Support and Learning Supports for Persons with Disabilities, and can go to meetings or appeals as an advocate.",
+      "category": "Social Services",
+      "tags": [
+        "advocacy"
+      ],
+      "cost": "free",
+      "cost_note": "A toll-free number lets all territorial residents use the program free of charge.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "Suite 116, 5102 50th Avenue",
+      "phone": "1.867.873.8230",
+      "email": "info@nwtdc.net",
+      "age_ranges": [],
+      "evidence": "This program is available to all Territorial residents regardless of where they live, or the type of disability.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. The Council's Learning Supports fund is already listed (cnaf_nt.json, nwtdc-learning-supports); this is its separate information and navigation program. Toll free 1.800.491.8885; the office is on the lower level of the Scotia Center in Yellowknife (the Contact page gives admin@nwtdc.net for general inquiries)."
+    },
+    {
+      "slug": "nwtdc-community-respite",
+      "name": "Community Respite (NWT Disabilities Council)",
+      "website": "https://www.nwtdc.net/community-respite",
+      "description": "A respite program, funded by the GNWT Department of Health and Social Services, for families outside Yellowknife who care at home for children and youth with disabilities. The Council recruits and trains local respite workers (or a friend or relative the family suggests) to give planned relief at home or in the community; it runs in Deline, Fort Smith, Aklavik, Fort Liard, Fort McPherson, Inuvik, Behchoko, Whati and Dettah.",
+      "category": "Social Services",
+      "tags": [
+        "respite_care"
+      ],
+      "cost": "unknown",
+      "cost_note": "Funded by the GNWT Department of Health and Social Services; the page does not mention a fee for families.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "1.867.873.8230",
+      "email": "respite@nwtdc.net",
+      "age_ranges": [],
+      "evidence": "The program hires and trains local community members as Respite Workers to provide planned in-home or in-community relief for primary care-givers, families, and the children and youth with disabilities that they care for.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. Families can refer themselves or be referred by a health centre, social worker, school or therapist; the person cared for must live with family or a legal guardian and have a disability that needs ongoing (not specialized medical) support. The page also has an adult referral form. Contact is the Community Respite Coordinator; toll free 1.800.491.8885."
+    },
+    {
+      "slug": "nwtdc-early-childhood-intervention",
+      "name": "Early Childhood Intervention Program (NWT Disabilities Council)",
+      "website": "https://www.nwtdc.net/early-childhood-intervention",
+      "description": "Early intervention for children from birth to school entry who have disabilities or developmental delays. Early Childhood Intervention Workers give one-to-one support, usually in the preschool the parents choose (sometimes at home or a day home), working with parents and other professionals; the Council also has a Snoezelen multisensory room that families can book.",
+      "category": "Social Services",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "Funded by the GNWT Healthy Children Initiative, YHSSA, Jordan's Principle and others; the page does not mention a fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "Suite 116, 5102 50th Avenue",
+      "phone": "1.867.873.8230",
+      "email": "csm@nwtdc.net",
+      "age_ranges": [
+        "babies_0_4"
+      ],
+      "evidence": "The Early Childhood Intervention Program (ECIP) provides early intervention services for children between birth and school entry who have disabilities and/or developments delays.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. Parents, a physician or others can refer a child, but only with the parent's or guardian's permission (referral form on the page). The page does not say which communities are served; the office is in Yellowknife, toll free 1.800.491.8885. The email is the Child Services Manager's role address."
+    },
+    {
+      "slug": "inclusion-nwt",
+      "name": "Inclusion NWT",
+      "website": "https://www.inclusionnwt.ca/service",
+      "description": "A Yellowknife non-profit charity, part of Inclusion Canada, that has supported people with intellectual disabilities and their families in the Northwest Territories since 1962. Its services are supported living for adults with intellectual or developmental disabilities or brain injury who live in their own homes, respite for caregiving families, skills training and supported employment for adults with more complex needs, and employment services for adults with disabilities.",
+      "category": "Social Services",
+      "tags": [
+        "respite_care",
+        "charity",
+        "advocacy"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "4912 53 St",
+      "phone": "(867)920-2644",
+      "email": "info@inclusionnwt.ca",
+      "age_ranges": [],
+      "evidence": "We provide lifelong support for individuals with intellectual disabilities and their families in the Northwest Territories, since 1962.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services; the GNWT's Services for Persons with Disabilities page (already listed) names it as a partner. People ask for support through the site's Apply for Support form. The email link on the site points to a placeholder address, so use the address as shown; mailing address PO Box 981, Yellowknife, NT X1A 2N7."
+    },
+    {
+      "slug": "nwt-income-assistance-seniors-persons-disabilities",
+      "name": "Income Assistance for Seniors and Persons with Disabilities (Government of the Northwest Territories)",
+      "website": "https://www.ece.gov.nt.ca/en/services/income-security-programs/income-assistance-seniors-and-persons-disabilities",
+      "description": "An annual Department of Education, Culture and Employment program that helps NWT residents aged 19 to 59 with a permanent or long-term disability, and seniors 60 and over, meet their basic needs when their need is greater than their income. Funding depends on family income and community and covers actual shelter and utility costs; people apply at a local ECE Service Centre, where a Client Navigator can help.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding"
+      ],
+      "cost": "free",
+      "cost_note": "Government financial assistance.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "(867) 767-9355",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "This program provides financial assistance to Northwest Territories (NWT) seniors and persons with disabilities to help meet their basic needs.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. This is separate from the general Income Assistance Program already listed (cnaf_nt.json, nwt-income-assistance). Applications are accepted from July 1 each year; phone is Income Security Programs in Yellowknife, toll free (866) 973-7252, and the page lists regional ECE Service Centre numbers."
+    },
+    {
+      "slug": "nwt-office-of-the-public-guardian",
+      "name": "Office of the Public Guardian (NWT Health and Social Services)",
+      "website": "https://www.hss.gov.nt.ca/en/services/guardianship-adults-northwest-territories",
+      "description": "The NWT office for guardianship of adults 18 and older who cannot make their own personal or health care decisions. Anyone can call to ask about guardianship or request a referral package; staff explain how it works, look first at less restrictive options, start the guardianship process when it is needed, and can help prepare later guardianship reviews.",
+      "category": "Legal & Future Planning",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "The page does not mention cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "5022-49th Street",
+      "phone": "867-767-9155, ext. 49460",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Anyone can call the Office of the Public Guardian (OPG) to ask questions about guardianship or request a guardianship referral package.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. Guardians do not make financial decisions; trusteeship goes through the Public Trustee Office (867-767-9252 ext. 82447). The office is on the 7th floor of Centre Square Towers, Yellowknife. The URL /en/services/office-public-guardian redirects to this page."
+    },
+    {
+      "slug": "nwt-supported-living",
+      "name": "Supported Living (NWT Health and Social Services)",
+      "website": "https://www.hss.gov.nt.ca/en/services/continuing-care-services/supported-living",
+      "description": "A GNWT program for adults 19 and older with a permanent or long-duration cognitive, physical or mental health disability who need help with daily tasks to live as independently as possible. Based on assessed need, it gives non-medical support, from minimal help to 24 hours a day, in the person's own or family home or in supported living accommodations, with case management and respite for families who are the main supporters.",
+      "category": "Social Services",
+      "tags": [
+        "respite_care"
+      ],
+      "cost": "unknown",
+      "cost_note": "The page does not mention cost.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "867-767-9030",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Supported Living helps adults with disabilities live as independently and safely as possible and participate fully in their community.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. The application is completed by a social worker, occupational therapist, nurse or adult service worker; day programs and skills training are not included. Phone is Seniors and Continuing Care Services, Department of Health and Social Services (the same contact as the Services for Persons with Disabilities page already listed)."
+    },
+    {
+      "slug": "special-olympics-nwt",
+      "name": "Special Olympics NWT",
+      "website": "https://www.specialolympics.ca/northwest-territories/athletes/become-a-sport-athlete-ages-12plus/",
+      "description": "Special Olympics NWT, based in Yellowknife, offers free sport programs for people with an intellectual or developmental disability. Youth programs (Active Start for ages 2 to 6 and FUNdamentals for 7 to 11) run on Saturday mornings from October to May with a parent taking part, and athletes 12 and over can train and compete in sports such as swimming, bowling, skating, snowshoeing, track and field and golf.",
+      "category": "Recreation",
+      "tags": [
+        "recreation"
+      ],
+      "cost": "free",
+      "cost_note": "Taking part is free; athletes pay for their own sport equipment and families provide transport.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NT",
+      "city": "Yellowknife",
+      "address": "4902 Franklin Avenue - Second Floor",
+      "phone": "867-445-8608",
+      "email": "sport@sonwt.ca",
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Special Olympics NWT offers sports opportunity to individuals with an intellectual disability.",
+      "notes": "Not from CNAF: added because the NWT has only 5 checked services. 2026-27 registration is open (online athlete and parent/guardian forms). The office is by appointment only; phone and email are the Sport Program Coordinator's (Executive Director 867-446-2266). The site is a section of specialolympics.ca."
     }
   ]
 }

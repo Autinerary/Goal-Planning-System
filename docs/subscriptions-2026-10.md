@@ -89,7 +89,16 @@ SELECT moment, reason, count(*) FROM public.subscription_feedback GROUP BY 1, 2 
 
 ## Turning it on
 
-1. **Stripe** (start with a sandbox and test keys):
+1. **Stripe** (start with a sandbox and test keys). The quickest way is one
+   command, run by whoever holds the Stripe account, with its key in the
+   environment:
+
+   ```sh
+   STRIPE_SECRET_KEY=sk_test_... node scripts/stripe-setup.mjs --monthly 9.99 --yearly 99.90
+   ```
+
+   It does everything in this step, can be run again safely, and prints the
+   four values for Vercel. By hand, it is:
    - Make one product, "Autinerary", with two prices in CAD: monthly and
      yearly. The usual yearly discount is "2 months free" (10 times the
      monthly price, 16.7% off): Microsoft 365 Canada and Slack do exactly

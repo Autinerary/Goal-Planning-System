@@ -16,8 +16,15 @@ promise, and the questions we most want answered. Prepared 18 October 2026.
   first month, free access through universities, workplaces and governments)
   are being built, switched off.
 - **Listings** come from OpenStreetMap (ODbL), services' own websites,
-  research, and users' recommendations. About 35,000 places in Ontario once
-  the current import is published. Nobody at Autinerary vets each one.
+  research, and users' recommendations: about 35,900 places, most in Ontario
+  (published 18 October 2026). Nobody at Autinerary vets each one.
+- **Resource Accounts**: a service can claim its listing (a code sent to the
+  email the listing publishes, or the team checks), edit its details, and
+  see counts about it, never who. It can ask for a promotion; sponsored
+  listings are switched off (question 8).
+- **#FundAutinerary**: a public petition asking governments, schools and
+  workplaces to fund Autinerary (name, email, province; first name shown
+  only if the signer chooses).
 - **Ratings** come only from people with experience of a service (in their
   team, recommended by them, or proof of earlier use). A monthly sweep warns,
   puts on probation and hides services rated low; it can email services at

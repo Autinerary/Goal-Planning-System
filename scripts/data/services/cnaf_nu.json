@@ -100,6 +100,130 @@
       "age_ranges": [],
       "evidence": "The Department of Health provides the following rehabilitation services free of charge to all Nunavut residents with a Nunavut Health Care Card:",
       "notes": "Not from CNAF: added because Nunavut has fewer than 5 kept entries; no Nunavut autism society was found (autismnunavut.ca and .com do not resolve) and no separate Government of Nunavut disability services page was found. Phone is for the Baffin Region (Timimut Ikajuqsivik); Kivalliq (867) 645-8077, Kitikmeot (867) 983-4500. The Department of Health's Home, Community, and Continuing Care page (home care and respite for illness or disability) is another possible addition."
+    },
+    {
+      "slug": "piruqatigiit-resource-centre",
+      "name": "Piruqatigiit Resource Centre",
+      "website": "https://www.piruqatigiit.ca/about-us/about-piruqatigiit/",
+      "description": "An Iqaluit non-profit that offers Inuit-guided education, support and programs for Nunavummiut of all ages with suspected or confirmed FASD or other neurodiversities, and their families. Programs listed on its site include the Qaumajuut caregiver skills program, a monthly Qaggiq caregiver support group (also open across Nunavut through a private Facebook group), children's clubs, a siblings club and remote family support by phone or video.",
+      "category": "Organization",
+      "tags": [
+        "siblings",
+        "community_group",
+        "community_online"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "NU",
+      "city": "Iqaluit",
+      "address": "1043 AI Woodhouse St",
+      "phone": "867-877-4155",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "We are a nonprofit organization located in Iqaluit, Nunavut providing evidence-based, Inuit guided education, support and programming for Nunavummiut with FASD/other neurodiversities and their families across the lifespan.",
+      "notes": "Not from CNAF: added because Nunavut has only 4 checked services and no autism society. The children's and caregiver program pages were last updated in 2020 and 2021 and the calendar showed no upcoming events, so check which programs are running now. Email addresses on the site are hidden; use the phone or contact form. Funders listed: the GN Department of Health, Nunavut Tunngavik and the Government of Canada's Child First Initiative."
+    },
+    {
+      "slug": "piruqatigiit-assessment-clinic",
+      "name": "Assessment Clinic (Piruqatigiit Resource Centre)",
+      "website": "https://www.piruqatigiit.ca/programs/assessment-clinic/",
+      "description": "A specialized clinic in Iqaluit with a psychologist, occupational therapist, speech-language pathologist and doctor who assess whether someone meets the criteria for an FASD diagnosis and/or other diagnoses. It does developmental assessments for children and youth aged 3 to 17 and some adults, and accepts self-referrals.",
+      "category": "Doctor",
+      "tags": [
+        "provides_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "The clinic is funded by the Inuit Child First Initiative; the page does not mention a fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NU",
+      "city": "Iqaluit",
+      "address": "1043 AI Woodhouse St",
+      "phone": "867-877-4155",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8",
+        "preteens_9_12",
+        "teens_13_17"
+      ],
+      "evidence": "At the clinic, the staff can conduct tests and determine if someone meets the criteria for an FASD diagnosis, and/or other diagnoses.",
+      "notes": "Not from CNAF: added because Nunavut has only 4 checked services. The referral or self-referral form is optional; completed forms can be dropped off at 1089F Mivvik St, Iqaluit. The page's email address is hidden, so only the phone is given; the page links a 2025 caregiver's guide to the clinic."
+    },
+    {
+      "slug": "nunavut-representative-for-children-and-youth",
+      "name": "Representative for Children and Youth's Office (Nunavut)",
+      "website": "https://www.rcynu.ca/what-we-do/how-we-help",
+      "description": "An independent office, reporting to the Legislative Assembly of Nunavut, that makes sure Government of Nunavut programs and services meet the needs and rights of young Nunavummiut and their families. Anyone with a complaint about a department's service, or who cannot get a service for a young person or their family, can contact the office confidentially, even anonymously, for individual advocacy.",
+      "category": "Organization",
+      "tags": [
+        "advocacy"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NU",
+      "city": "Iqaluit",
+      "address": "3-C-630 Queen Elizabeth Way",
+      "phone": "867-975-5090",
+      "email": "contact@rcynu.ca",
+      "age_ranges": [],
+      "evidence": "If anyone has a complaint about a department's service, or is unable to receive a service for a young person and/or their family, they can bring it to the attention of our office for review.",
+      "notes": "Not from CNAF: added because Nunavut has only 4 checked services. It reviews services of Government of Nunavut departments and designated authorities. Toll free (and text) 1-855-449-8118; the office is on the 3rd floor of the Qamutiq Building, Iqaluit, and visits need an appointment."
+    },
+    {
+      "slug": "kamatsiaqtut-nunavut-helpline",
+      "name": "Kamatsiaqtut Nunavut Helpline",
+      "website": "https://nunavuthelpline.ca/helpline",
+      "description": "A 24-hour, toll-free, anonymous and confidential telephone help line for Nunavut (and Nunavik), staffed by trained volunteers. It is for anyone who needs someone to talk to, not only people in crisis, including family members worried about someone; all volunteers speak English and many speak Inuktitut and French.",
+      "category": "Social Services",
+      "tags": [
+        "charity"
+      ],
+      "cost": "free",
+      "cost_note": "The help line is toll-free.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "NU",
+      "city": null,
+      "address": null,
+      "phone": "1-800-265-3333",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Kamatsiaqtut is here for all people who need someone to talk to about their troubles, concerns, and anything that bothers you.",
+      "notes": "Not from CNAF: added because Nunavut has only 4 checked services. The Iqaluit number is 867-979-3333. Since 2015 Iqaluit volunteers take calls from 6 PM to 11 PM and the Distress Centre of Ottawa and Region takes them the rest of the day. Registered charity 868077546RR0001."
+    },
+    {
+      "slug": "nunavut-human-rights-tribunal",
+      "name": "Nunavut Human Rights Tribunal",
+      "website": "https://nhrt.ca/how-to-file/",
+      "description": "The territorial tribunal that resolves claims of discrimination or harassment in Nunavut under the Nunavut Human Rights Act, including discrimination based on disability. A person files a Notification form, orally or in writing and in any official language of Nunavut, within two years of what happened (family or community members can help); claims can go to mediation or a public hearing.",
+      "category": "Legal & Future Planning",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "The site does not mention a fee to file; it suggests getting a lawyer where possible.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NU",
+      "city": "Coral Harbour",
+      "address": null,
+      "phone": "1-866-413-6478",
+      "email": "nunavuthumanrights@gov.nu.ca",
+      "age_ranges": [],
+      "evidence": "If you believe that you have experienced discrimination or harassment in Nunavut, which has occurred within the last two years, you should contact the Nunavut Human Rights Tribunal.",
+      "notes": "Not from CNAF: added because Nunavut has only 4 checked services (other provinces' human rights commissions are already listed). It does not handle claims against federal businesses or organizations, which go to the Canadian Human Rights Commission (1-888-214-1090). The office is in Coral Harbour (PO Box 15); phone and fax are toll-free."
     }
   ]
 }

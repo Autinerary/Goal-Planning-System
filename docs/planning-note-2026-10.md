@@ -213,7 +213,7 @@ one kind of place at a time, in the note's order of priority:
 | **All** | | **26,999** |
 
 **Written on 17 and 18 October: 25,725 new places, pending, in batch
-`ontario-2026-10`.** The other 1,274 (therapists to zoos) were already in
+`ontario-2026-10`; published on 18 October 2026** (docs/goals-6-11-2026-10.md). The other 1,274 (therapists to zoos) were already in
 ResourceHub and were left exactly as they are. With STEP 78 in, each has free or paid (from a
 fee a mapper recorded, otherwise what that kind of place usually is), Canadian
 dollars, in person, and the tags its kind makes plain (recreation for museums

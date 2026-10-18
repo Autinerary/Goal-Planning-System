@@ -15,9 +15,9 @@ them. Two apps, one account:
   steps (written with AI), a calendar, check-ins, reflections, Hare World
   (connecting with people), and starter resources without an account.
 - **ResourceHub** (servicehub-six.vercel.app, `servicehub-mvp/`): a
-  directory of services, products and articles (about 10,100 published,
-  with 25,725 more in Ontario waiting to be published, and checked services
-  in every province and territory), ratings from people who have
+  directory of services, products and articles (about 35,900 places, most
+  in Ontario, with checked services in every province and territory),
+  ratings from people who have
   used them, Tidbits (questions and answers), Build a Team, Community's
   Choice, and the Spot Guides who review new listings. Services manage their
   own listing through a Resource Account (app.autinerary.ca/business).

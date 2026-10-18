@@ -1245,6 +1245,632 @@
         "name": "Human Rights Act",
         "reason": "A law (Yukon Human Rights Act on CanLII), not a service; the Yukon Human Rights Commission is kept as its own entry."
       }
+    ],
+    "on_1 (evening)": [
+      {
+        "name": "People First Ontario",
+        "reason": "Gone: http://www.peoplefirstontario.com/ redirects to a Bluehost \"Account Suspended\" page (cgi-sys/suspendedpage.cgi); peoplefirstontario.ca redirects to the same suspended page and peoplefirstontario.org does not resolve. People First of Canada is already in scripts/data/services/cnaf_national.json as people-first-of-canada."
+      },
+      {
+        "name": "OAP (Ontario Autism Program)",
+        "reason": "Already in scripts/data/services/funding.json as accessoap. (CNAF links to the AccessOAP home page, https://accessoap.ca/.)"
+      },
+      {
+        "name": "Ontario Autism Program",
+        "reason": "Already in scripts/data/services/funding.json as ontario-autism-program. CNAF's old children.gov.on.ca link (htdocs/English/specialneeds/autism/ontario-autism-program.aspx) now returns an empty page."
+      },
+      {
+        "name": "CTV NEWS",
+        "reason": "Not a service: a 2019 CTV News story about autism funding changes (https://www.ctvnews.ca/canada/article/principals-concerned-about-impact-of-autism-funding-changes-on-students/)."
+      },
+      {
+        "name": "Children with special needs",
+        "reason": "Not a service on its own: https://www.ontario.ca/page/children-special-needs is an overview page that links to other programs. The programs it lists (Ontario Autism Program, Special Services at Home, ACSD, Assistive Devices Program, children's rehabilitation services) are already in scripts/data/services/funding.json and early_years.json."
+      },
+      {
+        "name": "The Autism Parent Resource Kit",
+        "reason": "Not a service: a PDF guide. The link (children.gov.on.ca/.../Autism_Parenting_Kit_English.pdf) now redirects to the Ministry of Children, Community and Social Services home page."
+      },
+      {
+        "name": "Spectrum Works",
+        "reason": "Already in ResourceHub as Spectrum Works career fair."
+      },
+      {
+        "name": "Specialisterne",
+        "reason": "Already in ResourceHub as Specialisterne Canada. https://ca.specialisterne.com/aboutus/ is the About page of the same organisation, not a different service."
+      },
+      {
+        "name": "Disability Credit Canada",
+        "reason": "Already in ResourceHub as DCCI Scholarship for Canadian Students with Disabilities (Disability Credit Canada)."
+      },
+      {
+        "name": "Canada Benefits",
+        "reason": "Gone: http://www.canadabenefits.gc.ca/faechome.jsp?lang=en does not connect (Network is unreachable, tried twice). It was a federal portal of links to benefits; the Government of Canada Benefits Finder is already in scripts/data/services/funding.json as government-of-canada-benefits-finder."
+      },
+      {
+        "name": "Special Services at Home Provincial Coalition",
+        "reason": "Gone: www.ssahcoalition.ca does not resolve (also tried ssahcoalition.ca and www.ssahcoalition.org). Special Services at Home itself is already in scripts/data/services/funding.json as special-services-at-home."
+      },
+      {
+        "name": "Special Services at Home",
+        "reason": "Already in scripts/data/services/funding.json as special-services-at-home. CNAF's old children.gov.on.ca link (htdocs/English/specialneeds/specialservices.aspx) now returns an empty page."
+      },
+      {
+        "name": "Passport: Funding for Community Participation Supports.",
+        "reason": "Already in scripts/data/services/funding.json as passport-program. CNAF's old mcss.gov.on.ca link now redirects to ontario.ca's \"Adults with developmental disabilities in Ontario\" page."
+      },
+      {
+        "name": "Developmental Services Ontario",
+        "reason": "Already in scripts/data/services/funding.json as developmental-services-ontario."
+      },
+      {
+        "name": "Ministry of Child and Youth Services - Ontario Disability Support Program",
+        "reason": "Already in ResourceHub as Ontario Disability Support Program (ODSP)."
+      },
+      {
+        "name": "Registered disability savings plan (RDSP)",
+        "reason": "Already in scripts/data/services/funding.json as registered-disability-savings-plan. https://www.rdsp.com/about/ is Plan Institute's information page about the RDSP; its helpline is already in funding.json as plan-institute-disability-planning-helpline."
+      },
+      {
+        "name": "How to Open an RDSP-(Canada Revenue)",
+        "reason": "Already in scripts/data/services/funding.json as registered-disability-savings-plan (this CRA page explains how to open one). The canada.ca page timed out when fetched today."
+      },
+      {
+        "name": "Size of Canada Disability Savings Gran",
+        "reason": "Not a service: a tutorial page on rdsp.com (Plan Institute) about the grant. The Canada Disability Savings Grant is paid into an RDSP, already in scripts/data/services/funding.json as registered-disability-savings-plan."
+      },
+      {
+        "name": "Canada Disability Savings Grant; Canada Disability Savings Bond;",
+        "reason": "Already in scripts/data/services/funding.json as registered-disability-savings-plan, which covers the grant and bond paid into an RDSP. The canada.ca page (.../disability/savings/grants-bonds.html) timed out when fetched today (tried twice)."
+      },
+      {
+        "name": "Carry Forward Entitlements",
+        "reason": "Gone: http://www.hrsdc.gc.ca/eng/disability_issues/disability_savings/carry_forward.shtml timed out (old HRSDC domain, tried twice). Carrying forward grants and bonds is part of the RDSP, already in scripts/data/services/funding.json as registered-disability-savings-plan."
+      },
+      {
+        "name": "Assistive Devices Program",
+        "reason": "Already in scripts/data/services/funding.json as assistive-devices-program. CNAF's health.gov.on.ca link no longer resolves."
+      },
+      {
+        "name": "ABOUT THE PROGRAM",
+        "reason": "Already in scripts/data/services/funding.json as assistive-devices-program (this was the ADP About page). CNAF's health.gov.on.ca link no longer resolves."
+      },
+      {
+        "name": "Disability tax credit (DTC)",
+        "reason": "Already in scripts/data/services/funding.json as disability-tax-credit. CNAF's canadabenefits.gc.ca link does not connect."
+      },
+      {
+        "name": "medical practitioner",
+        "reason": "Not a service: a CRA glossary entry for the DTC (cra-arc.gc.ca timed out). The Disability Tax Credit is already in scripts/data/services/funding.json as disability-tax-credit."
+      },
+      {
+        "name": "Form T2201, Disability Tax Credit Certificate",
+        "reason": "Not a service: a form (cra-arc.gc.ca timed out). The Disability Tax Credit is already in scripts/data/services/funding.json as disability-tax-credit."
+      },
+      {
+        "name": "Assistance for Children with Severe Disabilities - Ministry of Children and Youth Services",
+        "reason": "Already in scripts/data/services/funding.json as assistance-children-severe-disabilities. CNAF's old children.gov.on.ca link now redirects to the ministry home page."
+      },
+      {
+        "name": "President's Choice Children's Charity",
+        "reason": "Program ended: CNAF's link (presidentschoice.ca/en_CA/community/pccc/apply-for-funding.html) now redirects to a President's Choice brand page (pcoptimum.ca/presidents-choice). The charity's own site, https://www.pcchildrenscharity.ca/, now describes only child hunger and school food programs (Power Full Kids) and shows no funding for children with disabilities."
+      },
+      {
+        "name": "Jennifer Ashleigh Children's Charity",
+        "reason": "Already in scripts/data/services/funding.json as jennifer-ashleigh-family-financial-support. CNAF's link (jenash.org/get-help-now/) returns 404."
+      },
+      {
+        "name": "For The Love of A Child",
+        "reason": "Already in scripts/data/services/cnaf_on.json as for-the-love-of-a-child-durham. CNAF's fortheloveofachild.com is now for sale at HugeDomains; the charity is at fortheloveofachild.ca."
+      },
+      {
+        "name": "Children`s Wish Foundation",
+        "reason": "Already in scripts/data/services/cnaf_national.json as make-a-wish-canada (childrenswish.ca now redirects to makeawish.ca)."
+      },
+      {
+        "name": "A Child’s Voice Foundation",
+        "reason": "Already in ResourceHub as A Child’s Voice Foundation."
+      },
+      {
+        "name": "Ministry of Children and Youth Services",
+        "reason": "Not a service on its own: a ministry home page. http://www.children.gov.on.ca/ now returns an empty page."
+      },
+      {
+        "name": "Canada. Canada Revenue Agency - Tax Services for People with Disabilities",
+        "reason": "Gone: http://www.cra-arc.gc.ca/tx/ndvdls/vlntr/menu-eng.html timed out (old CRA domain), so the page could not be checked. The CRA services for people with disabilities are already listed: Disability Tax Credit (scripts/data/services/funding.json disability-tax-credit) and free tax clinics (funding.json free-tax-clinics)."
+      },
+      {
+        "name": "Ministry of Children and Youth Services",
+        "reason": "Not a service on its own: a list of ministry regional offices. The old page (children.gov.on.ca/htdocs/English/about/regionaloffices.aspx) now returns an empty page."
+      },
+      {
+        "name": "Ministry of Children and Youth Services ~ Preschool Speech and Language Programs",
+        "reason": "Already in scripts/data/services/early_years.json as ontario-preschool-speech-language-program. CNAF's children.gov.on.ca locations page returns 404."
+      },
+      {
+        "name": "Ontario Human Rights Commission",
+        "reason": "Not a service: the link now leads to an OHRC fact sheet (http://www.ohrc.on.ca/en/accommodating-students-disabilities-roles-and-responsibilities-fact-sheet). The OHRC's Contact page says it cannot provide information, advice or legal opinions on individual cases and refers people to the Human Rights Legal Support Centre and the Human Rights Tribunal of Ontario."
+      },
+      {
+        "name": "Law Commission of Ontario",
+        "reason": "Not a service: https://lco-cdo.org/en/projects/persons-with-disabilities/ is a law reform research project (completed in 2012) of the Law Commission of Ontario, which produces research and reports."
+      },
+      {
+        "name": "Law Commission Of Ontario LEGAL CAPACITY,DECISION MAKING AND GUARDIANSHIP",
+        "reason": "Not a service: a discussion paper PDF, and https://lco-cdo.org/capacity-guardianship-discussion-paper.pdf returns 404."
+      },
+      {
+        "name": "Understanding Consent and Capacity Rules in Canada-Toolkit",
+        "reason": "Not a service: a toolkit (document) on aidecanada.ca. AIDE Canada itself is already in scripts/data/services/cnaf_national.json as aide-canada."
+      },
+      {
+        "name": "Forms for Guardianship, Assessment, Management plan etc",
+        "reason": "Not a service: a forms search page, and www.forms.ssb.gov.on.ca does not resolve."
+      }
+    ],
+    "on_2 (evening)": [
+      {
+        "name": "Duties and Powers of a Guardian of Property",
+        "reason": "A guide (document), not a service. CNAF's link (https://www.attorneygeneral.jus.gov.on.ca/english/family/pgt/guardduties.php) now redirects to the Ministry of the Attorney General home page; the guide is now a Publications Ontario item linked from https://www.ontario.ca/page/guardianship, which is kept as the Guardianship (Office of the Public Guardian and Trustee) entry."
+      },
+      {
+        "name": "Ontario’s Family Law Act",
+        "reason": "A 2017 Toronto Star news story, not a service; the link (https://www.thestar.com/news/gta/2017/07/08/ontario-to-change-child-support-law-to-give-adult-children-with-disabilities-access-to-parental-cash.html) now redirects to the Star's GTA news page."
+      },
+      {
+        "name": "SUBSECTION 2(1) OF THE DIVORCE ACT: DEFINITIONS-CHILD OF THE MARRIAGE.....BACKGROUND",
+        "reason": "A Department of Justice research report about the Divorce Act, not a service; http://www.justice.gc.ca/eng/rp-pr/fl-lf/child-enfant/rp/v2/v2_7.html timed out."
+      },
+      {
+        "name": "[424]",
+        "reason": "A footnote in the same Department of Justice research report, not a service; http://www.justice.gc.ca/eng/rp-pr/fl-lf/child-enfant/rp/v2/notes2b.html#ftn424 timed out."
+      },
+      {
+        "name": "The Law Foundation Of Ontario",
+        "reason": "Not a service people or families can use: The Law Foundation of Ontario makes grants to nonprofits and funds Legal Aid Ontario (https://lawfoundation.on.ca/about-us/). CNAF's link (http://www.lawfoundation.on.ca/resources/legal-help/) now redirects to a 2018 research news post, 'New research: Legal help on the frontlines'."
+      },
+      {
+        "name": "Law Society Referral Service",
+        "reason": "BLOCKED: https://lso.ca/public-resources/finding-a-lawyer-or-paralegal/law-society-referral-service (also https://lsrs.lso.ca/lsrs/, https://lso.ca/ and https://www.lso.ca/public-resources/finding-a-lawyer-or-paralegal) returned 403 on every fetch. CNAF's link (https://lsrs.lsuc.on.ca/lsrs/) no longer resolves; the Law Society now uses lso.ca, so the referral service probably still runs there, but it could not be checked."
+      },
+      {
+        "name": "Lawyer and Paralegal Directory",
+        "reason": "A directory search page, not a service. CNAF's link (http://www2.lsuc.on.ca/LawyerParalegalDirectory/index.jsp) no longer resolves, and the Law Society of Ontario's site (lso.ca) refused every fetch (403)."
+      },
+      {
+        "name": "ARCH Disability Law Service (Toronto)",
+        "reason": "Already in scripts/data/services/cnaf_on.json as arch-disability-law-centre. (CNAF's link http://www.archdisabilitylaw.ca/index.asp now returns 404 at https://archdisabilitylaw.ca/index.asp.)"
+      },
+      {
+        "name": "Ombudsman Ontario",
+        "reason": "BLOCKED: http://www.ombudsman.on.ca/annrep0304/contact.html (redirects to https://www.ombudsman.on.ca/annrep0304/contact.html), https://www.ombudsman.on.ca/, https://www.ombudsman.on.ca/en/contact-us and https://www.ombudsman.on.ca/en/complaints all returned 403 on every fetch. A current provincial service, worth adding once its site can be checked."
+      },
+      {
+        "name": "Education Law and Policy",
+        "reason": "BLOCKED: http://www.schooladvocacy.ca/left_level3/law_policy.html (also http://www.schooladvocacy.ca/, https://www.schooladvocacy.ca/ and https://schooladvocacy.ca/) returned 503 on every fetch. CNAF quotes it as an information page on education law (the Charter, the Human Rights Code, the Education Act), so even if it loads it is a guide rather than a service."
+      },
+      {
+        "name": "Provincial Advocate for Children and Youth",
+        "reason": "Gone: http://www.provincialadvocate.on.ca/main/en/about/aboutus.cfm - the domain does not resolve. (The office is understood to have closed in 2019, with its investigations moving to Ombudsman Ontario, whose site refused every fetch, so this could not be confirmed on a live page.)"
+      },
+      {
+        "name": "The Office is guided by the principles of the UN Convention on the Rights of the Child",
+        "reason": "A news release (PDF), not a service, from the same closed office; http://www.provincialadvocate.on.ca/documents/en/Investigative_Unit_launch_release_En.pdf - the domain does not resolve."
+      },
+      {
+        "name": "Bill 13, Accepting Schools Act, 2012",
+        "reason": "A bill (law), not a service; http://www.ontla.on.ca/web/bills/bills_detail.do?locale=en&BillID=2549 - the domain does not resolve."
+      },
+      {
+        "name": "Ontario Making Schools Safer For Students and Staff",
+        "reason": "A 2018 government news release, not a service (https://news.ontario.ca/edu/en/2018/03/ontario-making-schools-safer-for-students-and-staff.html; the page now shows only the Ontario Newsroom title)."
+      },
+      {
+        "name": "Bullying",
+        "reason": "A government information page about bullying, not a service; http://healthycanadians.gc.ca/healthy-living-vie-saine/bullying-intimidation/index-eng.php timed out."
+      },
+      {
+        "name": "Bullying",
+        "reason": "An RCMP information page about bullying, not a service; http://www.rcmp-grc.gc.ca/cycp-cpcj/bull-inti/index-eng.htm now redirects to the RCMP home page (https://rcmp.ca/en)."
+      },
+      {
+        "name": "Blind Persons Rights Act",
+        "reason": "A law (Ontario statute on CanLII), not a service; http://www.canlii.org/en/on/laws/stat/rso-1990-c-b-7/latest/ returned 403."
+      },
+      {
+        "name": "Accessibility for Ontarians with Disabilities Act",
+        "reason": "A law (Ontario statute on CanLII), not a service; http://www.canlii.org/en/on/laws/stat/so-2005-c-11/latest/ returned 403."
+      },
+      {
+        "name": "Human Rights Code",
+        "reason": "A law (Ontario statute on CanLII), not a service; http://www.canlii.org/en/on/laws/stat/rso-1990-c-h-19/latest/ returned 403."
+      },
+      {
+        "name": "Special Education in Ontario - Policy and Resource Guide",
+        "reason": "A policy and resource guide (PDF), not a service (https://files.ontario.ca/edu-special-education-policy-resource-guide-en-2022-05-30.pdf). The program it describes is kept as the Special education (Ontario Ministry of Education) entry."
+      },
+      {
+        "name": "Ontario HUman Right Commission~ Under Regulation 306 to the Act",
+        "reason": "A chapter of the Ontario Human Rights Commission's 2003 consultation report on education for students with disabilities, not a service (https://www.ohrc.on.ca/en/opportunity-succeed-achieving-barrier-free-education-students-disabilities/elementary-and-secondary). The OHRC says it cannot give information or advice on individual cases (https://www.ohrc.on.ca/en/contact-us) and points people to the Human Rights Legal Support Centre and the Human Rights Tribunal of Ontario."
+      },
+      {
+        "name": "The Identification, Placement and Review Process",
+        "reason": "A chapter of a ministry guide (PDF), not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/guide/specedpartde.pdf: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca). The IPRC process is now described at https://www.ontario.ca/page/identifying-students-special-education-needs and is covered by the Special education entry."
+      },
+      {
+        "name": "Individual Education Plan",
+        "reason": "A standards document for IEPs, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/iep/iep.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca). IEPs are now described at https://www.ontario.ca/page/individual-education-plans and are covered by the Special education entry."
+      },
+      {
+        "name": "Ministry of Education of Ontario ~ Special Education Regulations",
+        "reason": "A list of regulations, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/regs.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "Regulation 181/98: Identification and Placement of Exceptional Pupils",
+        "reason": "A regulation (e-Laws), not a service; http://www.e-laws.gov.on.ca/html/regs/english/elaws_regs_980181_e.htm redirects to https://www.ontario.ca/laws/regulation/980181."
+      },
+      {
+        "name": "Regulation 306: Special Education Programs and Services",
+        "reason": "A regulation (e-Laws), not a service; http://www.e-laws.gov.on.ca/html/regs/english/elaws_regs_900306_e.htm redirects to https://www.ontario.ca/laws/regulation/900306."
+      },
+      {
+        "name": "Regulation 464/97: Special Education Advisory Committees",
+        "reason": "A regulation (e-Laws), not a service; http://www.e-laws.gov.on.ca/html/regs/english/elaws_regs_970464_e.htm redirects to https://www.ontario.ca/laws/regulation/970464."
+      },
+      {
+        "name": "Highlights of Regulation 181/98",
+        "reason": "A summary of a regulation, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/hilites.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "Ministry of Education of Ontario ~ The Education Act on Special Education",
+        "reason": "A summary of the law, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/edact.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "Ministry of Education ~ Transition Planning: A Resource Guide",
+        "reason": "A resource guide, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/transiti/transition.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca). Transition planning is covered by the Special education entry."
+      },
+      {
+        "name": "Ministry of Education of Ontario ~ Standards for School Boards Special Education Plans",
+        "reason": "A policy standards document for school boards, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/iepstand/iepstand.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "Ministry of Education of Ontario ~ Policy/Program Memoranda Concerning Special Education",
+        "reason": "A list of policy memoranda, not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/ppms.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 1",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/1.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 8-",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/ppm8.pdf: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 11",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/11.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 59-",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/59.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 76C-",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/76c.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "PPM 81",
+        "reason": "A policy/program memorandum to school boards, not a service; http://www.edu.gov.on.ca/extra/eng/ppm/81.html: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      },
+      {
+        "name": "Ensuring Success for Students with Special Needs-Class Sizes and More",
+        "reason": "A union position paper (PDF), not a service; http://www.etfo.ca/Publications/PositionPapers/Documents/Fulfilling%20The%20Promise%20-%20Ensuring%20Success%20for%20Children%20with%20Special%20Needs.pdf could not connect (TLS protocol error)."
+      },
+      {
+        "name": "Questions and Answers Parents May Have Regarding Special Education",
+        "reason": "A question-and-answer document (PDF), not a service; http://www.edu.gov.on.ca/eng/general/elemsec/speced/Questions_and_Answers_Parents_English.pdf: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca). Covered by the Special education entry."
+      },
+      {
+        "name": "Special Education Funding Guidelines Special Incidence Portion (SIP)",
+        "reason": "A 2013-14 funding guideline document for school boards (they, not families, apply for SIP funding), not a service people can apply to; http://www.edu.gov.on.ca/eng/funding/1314/2013_14_SIP_Guidelines.pdf: the old edu.gov.on.ca link now shows 'Page Not Found' (the site says it is being migrated to Ontario.ca)."
+      }
+    ],
+    "on_3 (evening)": [
+      {
+        "name": "Confederation College (CICE)",
+        "reason": "BLOCKED: https://www.confederationcollege.ca/program/community-integration-through-co-operative-education (403; /cice and the home page also 403). CNAF's link http://www.confederationc.on.ca/cice could not connect (network unreachable), and the college's current site refuses the fetcher, so its CICE program could not be checked."
+      },
+      {
+        "name": "FIND A FORM (OSAP forms page)",
+        "reason": "Not a service: a list of OSAP forms (https://osap.gov.on.ca/OSAPPortal/en/PostsecondaryEducation/OSAP/Forms/index.htm?ssDynCurYearCursor=&ssUserYear=2015-2016, now showing 2026-27 forms). OSAP itself is kept as an entry (osap-ontario-student-assistance-program)."
+      },
+      {
+        "name": "Disability Verification Form for the Ontario Student Assistance Program (OSAP)",
+        "reason": "Not a service: a PDF form; https://osap.gov.on.ca/prodconsum/groups/forms/documents/forms/prdr013158.pdf redirects to a 404. OSAP itself is kept as an entry."
+      },
+      {
+        "name": "Application for Ontario Bursary for Students with Disabilities (BSWD) & Canada Student Grant for Services and Equipment for Persons with Permanent Disabilities (CSG-PDSE)",
+        "reason": "Already in scripts/data/services/cnaf_on.json as ontario-bursary-students-with-disabilities (the federal grant is in cnaf_national.json as canada-student-grant-services-equipment). CNAF's link https://osap.gov.on.ca/OSAPPortal/en/A-ZListofAid/PRDR008120.html shows 'Page Not Found', and the application itself is a form."
+      },
+      {
+        "name": "HTML FORMAT (BSWD and CSG-PDSE application)",
+        "reason": "Not a service: the application form in HTML; https://osap.gov.on.ca/prodconsum/groups/forms/documents/forms/prdr013139.htm redirects to a 404. The bursary is already in scripts/data/services/cnaf_on.json as ontario-bursary-students-with-disabilities."
+      },
+      {
+        "name": "PDF FORMAT (BSWD and CSG-PDSE application)",
+        "reason": "Not a service: the application form as a PDF; https://osap.gov.on.ca/prodconsum/groups/forms/documents/forms/prdr013141.pdf redirects to a 404. The bursary is already in scripts/data/services/cnaf_on.json as ontario-bursary-students-with-disabilities."
+      },
+      {
+        "name": "Suspension and Expulsion, What parents need to know",
+        "reason": "Not a service: a Ministry of Education guide for parents (PDF); http://www.edu.gov.on.ca/eng/safeschools/NeedtoKnowSExp.pdf now returns 'Page Not Found'."
+      },
+      {
+        "name": "Evaluating Postsecondary Supports for Ontario Students With Learning Disabilities",
+        "reason": "Not a service: a HEQCO research report (PDF), now at https://heqco.ca/wp-content/uploads/2020/03/EvaluatingPSESupportsForStudentsWithLearningDisabilities.pdf."
+      },
+      {
+        "name": "Ontario Coalition for Inclusive Education",
+        "reason": "Gone: inclusive-education.ca does not resolve (http://www.inclusive-education.ca/resources/document_list.php and https://www.inclusive-education.ca/ tried); no current site found."
+      },
+      {
+        "name": "Building Inclusive Schools Project",
+        "reason": "Gone: http://www.inclusive-education.ca/about/projects.php#building does not resolve (DNS); it was a project of the Ontario Coalition for Inclusive Education, whose site is gone."
+      },
+      {
+        "name": "Annual report on schools 2013 (People for Education)",
+        "reason": "Not a service: a research report. http://www.peopleforeducation.ca/research/annual-report/ now redirects to the 2015 Annual report on schools; People for Education describes itself as an independent, non-partisan charity that creates evidence and dialogue about public education, not a service families contact, join or apply to."
+      },
+      {
+        "name": "Ministry of Education of Ontario ~ Funding for Special Education",
+        "reason": "Not a service: it describes per-student base funding to school boards, which families do not apply to; http://www.edu.gov.on.ca/eng/general/elemsec/speced/funding.html now returns 'Page Not Found'."
+      },
+      {
+        "name": "The Elementary Teachers' Federation of Ontario (ETFO) ~ Use of Restraint, Advice to Members",
+        "reason": "Not a service for families: an advice bulletin for ETFO's teacher members on physical restraint. http://www.etfo.ca/AdviceForMembers/PRSMattersBulletins/Pages/Use%20of%20Restraint%20Advice%20to%20Members.aspx (and the https version) fail to connect (TLS protocol error)."
+      },
+      {
+        "name": "Best Practice Guidelines (CanChild)",
+        "reason": "Not a service: a PDF of guidelines; http://transitions.canchild.ca/en/OurResearch/resources/BJAmodelandbestpracticeguidelinespdf2009.pdf does not resolve (DNS)."
+      },
+      {
+        "name": "List of Eligible and Ineligible Services and supports with the Ontario Autism Program Funds (childhood budgets)",
+        "reason": "Closed: https://www.ontario.ca/page/ontario-autism-program-childhood-budgets says childhood budget applications are now closed (they were for children registered in the OAP before April 2021). The Ontario Autism Program is already in scripts/data/services/funding.json as ontario-autism-program."
+      },
+      {
+        "name": "submit an expense report",
+        "reason": "Not a service: https://www.ontario.ca/#section-3 lands on the ontario.ca home page; the expense report belongs to the closed OAP childhood budgets."
+      },
+      {
+        "name": "Forms for Guardianship, Assessment, Management plan etc",
+        "reason": "Not a service: a government forms page; https://www.forms.ssb.gov.on.ca/mbs/ssb/forms/ssbforms.nsf/FormDetail?...NO=ON00073E does not resolve (DNS)."
+      },
+      {
+        "name": "Apply for a childhood budget",
+        "reason": "Not a service: the application form for OAP childhood budgets, which are closed; http://www.forms.ssb.gov.on.ca/mbs/ssb/forms/ssbforms.nsf/FormDetail?...NO=006-3256E does not resolve (DNS)."
+      },
+      {
+        "name": "Autism Spectrum Disorder Program (McMaster Children's Hospital, Ron Joyce Children's Health Centre)",
+        "reason": "Already in scripts/data/services/cnaf_on.json as mcmaster-childrens-autism-program. CNAF's link http://www.mcmasterchildrenshospital.ca/body.cfm?id=65 now redirects to a 404 on hamiltonhealthsciences.ca."
+      },
+      {
+        "name": "CHEO Autism Program",
+        "reason": "Already in ResourceHub as Autism Services (CHEO)."
+      },
+      {
+        "name": "Social ABCs program (CHEO)",
+        "reason": "Already in scripts/data/services/cnaf_on.json as cheo-autism-services: the old page https://www.cheo.on.ca/en/clinics-services-programs/social-abcs.aspx is 404, and Social ABCs is now a section of CHEO's Autism Services page."
+      },
+      {
+        "name": "Maltby Centre",
+        "reason": "Already in ResourceHub as Autism Services (Maltby Centre)."
+      },
+      {
+        "name": "Ministry of Community and Social Services Explaining Passport and SSAH",
+        "reason": "Already in scripts/data/services/funding.json as passport-program and special-services-at-home. CNAF's mcss.gov.on.ca link now redirects to the general ontario.ca page 'Adults with developmental disabilities in Ontario'."
+      },
+      {
+        "name": "Direct Funding (Developmental Services Ontario)",
+        "reason": "Already in scripts/data/services/funding.json as developmental-services-ontario (direct funding for adults is passport-program). https://www.dsontario.ca/direct-funding is 404."
+      },
+      {
+        "name": "website of the Ministry of Children and Youth Services",
+        "reason": "Not a resource on its own: http://www.children.gov.on.ca/htdocs/English/topics/specialneeds/developmental/index.aspx now redirects to the Ministry of Children, Community and Social Services home page on ontario.ca."
+      },
+      {
+        "name": "Passport Funding Program (Contact Hamilton)",
+        "reason": "Already in scripts/data/services/funding.json as passport-program. CNAF's Contact Hamilton page http://contacthamilton.com/main/?wptheme=passport is 404."
+      },
+      {
+        "name": "Morneau Shepell - Children's Support Solutions",
+        "reason": "BLOCKED: https://www.telus.com/en/health/individuals/children-support (403). CNAF's link http://childrensupportsolutions.com/about/ does not resolve; childrensupportsolutions.ca now redirects to that TELUS Health page, which refuses the fetcher, so the service could not be checked."
+      },
+      {
+        "name": "Grandview Children's Centre - Durham Region",
+        "reason": "Already in ResourceHub as Grandview Kids."
+      },
+      {
+        "name": "The Therapy Centre (Hamilton)",
+        "reason": "Not confirmable: CNAF links to a Psychology Today profile (https://therapists.psychologytoday.com/rms/prof_detail.php?profid=309068...) that now redirects to the generic US 'Find a Therapist' directory page; no own website given."
+      },
+      {
+        "name": "Sylvia Sikakane and Associates",
+        "reason": "Gone: http://www.sylviasikakane.ca/ does not resolve (DNS); sylviasikakane.com also does not resolve."
+      },
+      {
+        "name": "Sandra Aronoff",
+        "reason": "Not confirmable: CNAF links to a Psychology Today profile (https://therapists.psychologytoday.com/rms/prof_detail.php?profid=220432...) that now redirects to the generic US 'Find a Therapist' directory page; no own website given."
+      },
+      {
+        "name": "Building Blocks Speech Pathology",
+        "reason": "The site (https://bbsp.ca/) loads, but nothing on it is newer than 2013. Confirm it still operates (by phone) before listing it."
+      }
+    ],
+    "on_4 (evening)": [
+      {
+        "name": "Marie-Eve Dubois",
+        "reason": "Gone: http://www.marieevedubois.com/ now redirects to https://marieevedubois.royallepage.ca/, a Royal LePage real-estate agent subdomain (it refuses the fetch with HTTP 403), so the domain no longer belongs to the psychologist. https://www.marieevedubois.com/ fails (TLS error); guesses drmarieevedubois.com and marieevedubois.ca do not resolve. No current site for her practice found."
+      },
+      {
+        "name": "Autism Therapists in Windsor - Psychology Today",
+        "reason": "Not a service: a Psychology Today directory search page (http://therapists.psychologytoday.com/rms/prof_results.php?city=Windsor&state=ON&spec=167), which now redirects to its generic US therapist search."
+      },
+      {
+        "name": "About Intensive Behavioural Intervention (IBI)",
+        "reason": "Already in scripts/data/services/funding.json as ontario-autism-program. CNAF links to http://www.children.gov.on.ca/htdocs/english/specialneeds/autism/ontario-autism-program.aspx, which now returns an empty page; IBI is no longer a separate program and autism services are now the Ontario Autism Program (https://www.ontario.ca/page/ontario-autism-program)."
+      },
+      {
+        "name": "Ontario Adult Autism",
+        "reason": "Gone: http://www.ont-autism.uoguelph.ca/newpage4.shtml - the domain does not resolve."
+      },
+      {
+        "name": "Disability Weblinks",
+        "reason": "Not a service (a list of links to programs) and gone: http://www.disabilityweblinks.ca/pls/dwl/dl.home returns HTTP 404."
+      },
+      {
+        "name": "Count Me In! Tools for an Inclusive Ontario",
+        "reason": "Gone and not a service (a set of inclusion tools): http://www.count-me-in.ca/about.htm - the domain does not resolve."
+      },
+      {
+        "name": "The Hawkins Institute",
+        "reason": "Gone: http://www.hawkinsinstitute.com/ - the domain does not resolve."
+      },
+      {
+        "name": "Ontario Association of Community Care Access Centre",
+        "reason": "Closed: the association of CCACs no longer exists; http://www.oaccac.on.ca/ now redirects to the Ontario Health home page (https://www.ontariohealth.ca/). Home care coordination once done by CCACs is in the Ontario Health atHome entry (item 186)."
+      },
+      {
+        "name": "Inner Strength for Life ~ Life Coaching",
+        "reason": "Not confirmable: http://www.innerstrengthforlife.com/index.html (and https://www.innerstrengthforlife.com/, https://innerstrengthforlife.com/) load but return an empty page with no text, so the coaching service cannot be confirmed as current."
+      },
+      {
+        "name": "ABA Educational Resources",
+        "reason": "Not a service: https://abaresources.com/ offers free downloadable ABA materials, a therapist directory and an online shop."
+      },
+      {
+        "name": "MukiBaum Treatment Centres",
+        "reason": "BLOCKED: http://www.mukibaum.com/ - every fetch (also https://mukibaum.com/ and https://www.mukibaum.com/contact-us, retried) returns only a \"Checking your browser\" robot check."
+      },
+      {
+        "name": "Collage Pediatric Therapy",
+        "reason": "Gone (site down): http://www.collagetherapies.ca/en/autism-spectrum-disorder, https://www.collagetherapies.ca/ and https://collagetherapies.ca/ all time out on repeated fetches."
+      },
+      {
+        "name": "Developmental Services Ontario agencies",
+        "reason": "Already in scripts/data/services/funding.json as developmental-services-ontario. (CNAF's page http://www.dsontario.ca/Overview is 404.)"
+      },
+      {
+        "name": "https://www.natalie-engelbrecht.com/",
+        "reason": "Gone: https://www.natalie-engelbrecht.com/ - the domain does not resolve. Dr. Engelbrecht's current work is covered by the Embrace Autism entry (item 198)."
+      },
+      {
+        "name": "JVS Toronto",
+        "reason": "Closed: https://www.jvstoronto.org/assessments/asd-assessments/ is 404 and https://www.jvstoronto.org/assessments/ says \"JVS Toronto’s psychology services closed on March 31, 2023.\" (JVS Toronto still runs employment services, including an Autism Spectrum Disorder (ASD) Job Readiness Project for ages 18 to 30 at https://www.jvstoronto.org/find-a-job/disability-employment-services/, which a reviewer could add separately.)"
+      },
+      {
+        "name": "Mountain Speech Language Services- Hamilton Mountain",
+        "reason": "Gone (site down): https://www.mountainspeech.ca/, https://mountainspeech.ca/ and http://mountainspeech.ca/ all return HTTP 522 (the host server does not respond), also on a forced retry."
+      },
+      {
+        "name": "Therapeutic Recreation Ontario",
+        "reason": "Not a service for people or families: https://www.trontario.org/ is the professional association for therapeutic recreation practitioners (membership, R/TRO designation, professional development, advocacy for the profession); it has no public service or practitioner directory."
+      },
+      {
+        "name": "Ontario HBOT Inc",
+        "reason": "Not confirmable as the service CNAF describes: https://www.ontariohbot.ca/ is now a Toronto hyperbaric clinic for OHIP-covered medical conditions (wounds, anemia, radiation injury) and private-pay concussion and sports care; its home and private-pay pages no longer mention autism or developmental conditions."
+      },
+      {
+        "name": "Snowflake Therapy Services",
+        "reason": "BLOCKED: http://www.snowflaketherapy.com/index.php - refused with HTTP 403 on every fetch (including the retry); https://www.snowflaketherapy.com/ and https://snowflaketherapy.com/ load but return an empty page, so the service cannot be confirmed."
+      },
+      {
+        "name": "Brain Engineering Labs",
+        "reason": "Gone (site down): http://www.ebrainlabs.com/home.do and https://www.ebrainlabs.com/ time out on repeated fetches."
+      },
+      {
+        "name": "Hamilton Psychological Services",
+        "reason": "Already in ResourceHub as Hamilton Psychological Services. (Its autism service page, item 197, is a separate entry.)"
+      },
+      {
+        "name": "Jennifer Jennings Registered Psychotherapist, MA, RP, CCC",
+        "reason": "Not confirmable on its own site: the link is a Psychology Today directory profile (now https://www.psychologytoday.com/ca/therapists/jen-jennings-stratford-on/302155, listed as online only); its \"My website\" link goes through a Psychology Today redirect page (https://www.psychologytoday.com/ca/profile/302155/website) that does not expose the destination, so the practitioner's own site could not be checked."
+      },
+      {
+        "name": "Michele James Marriage & Family Therapist,BA, MTS, RP, RMFT, AccFM",
+        "reason": "Not confirmable on its own site: the link is a Psychology Today directory profile (now https://www.psychologytoday.com/ca/therapists/michele-james-dundas-on/134067); its \"My website\" link goes through a Psychology Today redirect page (https://www.psychologytoday.com/ca/profile/134067/website) that does not expose the destination, so the practitioner's own site could not be checked."
+      },
+      {
+        "name": "Crossfire Assembly",
+        "reason": "Gone: http://www.crossfireassembly.com/adult-community-support-program-acsp/ is 404, and the church's current site (https://crossfireassembly.com/) lists no Adult Community Support Program or other day program for people with developmental disabilities."
+      },
+      {
+        "name": "Kids CAN",
+        "reason": "Gone: http://www.kidscancentre.com/ (and https://www.kidscancentre.com/) show a Web.com placeholder: \"Sorry, but this user has been suspended.\""
+      },
+      {
+        "name": "Ontario Special Needs Camps",
+        "reason": "Not a service: a list of camps on mysummercamps.com (http://www.mysummercamps.com/camps/ontario-special-needs-camps.html, now 404 and redirecting to https://www.mysummercamps.com/camps/ontario/special-needs/)."
+      },
+      {
+        "name": "Hamilton Psychological Services: ASD services",
+        "reason": "Already in ResourceHub as Hamilton Psychological Services (https://www.hamiltonpsych.ca/). Its autism page (https://www.hamiltonpsych.ca/autism-spectrum-disorder-asd-services/) could be added to that listing instead."
+      },
+      {
+        "name": "Building Blocks Speech Pathology",
+        "reason": "The site (https://bbsp.ca/) loads, but nothing on it is newer than 2013. Confirm it still operates (by phone) before listing it."
+      },
+      {
+        "name": "Building New Paths Behaviour Services Inc.",
+        "reason": "Its site (https://buildingnewpaths.com/) shows only its title to an automated check, so nothing about the service could be confirmed. Check it by hand."
+      }
+    ],
+    "territories (evening)": [
+      {
+        "name": "AccessAbility Supports and Preschool Autism Services (Government of PEI)",
+        "reason": "BLOCKED: https://www.princeedwardisland.ca/en/information/social-development-and-seniors/accessability-supports (also the www-less, http, /en/topic/ and French forms) and https://www.princeedwardisland.ca/en/information/education-and-early-years/preschool-autism-services all return a Radware 'Verifying your browser' page, so no PEI government program could be checked."
+      },
+      {
+        "name": "Student services (PEI Public Schools Branch)",
+        "reason": "BLOCKED: https://psb.edu.pe.ca/ redirects to a Radware captcha page (validate.perfdrive.com)."
+      },
+      {
+        "name": "Stars for Life Foundation for Autism (PEI)",
+        "reason": "Not confirmable: https://www.starsforlife.ca/ now belongs to an unrelated childcare business in West Vancouver and New Westminster, BC; starsforlifepei.ca does not resolve, and no current site for the PEI foundation was found."
+      },
+      {
+        "name": "Inclusion PEI",
+        "reason": "Not confirmable: https://www.inclusionpei.ca/ fails to connect (TLS protocol error). PEI's Inclusion Canada member is PEIACL, which is kept."
+      },
+      {
+        "name": "Inclusive Schooling (NWT Education, Culture and Employment)",
+        "reason": "MOVED?: https://www.ece.gov.nt.ca/en/services/inclusive-schooling loads only the generic Programs and Services list, none of its three pages lists an inclusive schooling program, and https://www.ece.gov.nt.ca/en/inclusive-schooling is 404."
+      },
+      {
+        "name": "Experience Summer (NWT Disabilities Council)",
+        "reason": "Stale: https://www.nwtdc.net/experience-summer (summer day camp support for children 4 to 12 with disabilities) still says registration for Experience Summer 2026 'will be available soon', so it is unclear whether it runs now."
+      },
+      {
+        "name": "Home and Community Care, Healthy Children Initiative, Family Services (Government of Nunavut)",
+        "reason": "BLOCKED: every gov.nu.ca page tried returns 403 (Cloudflare), including https://www.gov.nu.ca/en/health/home-and-community-care, https://www.gov.nu.ca/en/education-and-schools/healthy-children-initiative, https://www.gov.nu.ca/en/family-services and https://www.gov.nu.ca/, even with --force."
+      },
+      {
+        "name": "Nunavut Disabilities Makimaniq Society",
+        "reason": "Already in scripts/data/services/cnaf_nu.json as nunavummi-disabilities-makinnasuaqtiit-society: no separate 'Makimaniq' society or site was found; the territory's cross-disability society is the Nunavummi Disabilities Makinnasuaqtiit Society (NDMS, https://nuability.ca/), whose services page (advocacy, service navigation, employment supports, activities) is already listed."
+      },
+      {
+        "name": "Special Olympics Nunavut",
+        "reason": "Not found: https://www.specialolympics.ca/nunavut/ and /nu/ are 404; Special Olympics Canada's site has PEI and NWT sections but none for Nunavut."
+      },
+      {
+        "name": "Inuit Child First Initiative help (Nunavut Inuit organizations)",
+        "reason": "Not found: the program lists at https://tunngavik.com/programs-services, https://www.qia.ca/what-we-do/ and https://kivalliqinuit.ca/programs/family/ have no Child First Initiative or disability program. (NDMS, already listed, helps with Child First applications.)"
+      },
+      {
+        "name": "Accessibility services (Nunavut Arctic College)",
+        "reason": "Not found: https://www.arcticcollege.com/learners lists counselling, day care and other student services but no accessibility or disability service."
+      },
+      {
+        "name": "Legal Services Board of Nunavut (legal aid)",
+        "reason": "Could not connect: https://www.nulas.ca/ and https://nulas.ca/ reset the connection on every try."
+      }
     ]
   }
 }

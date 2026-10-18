@@ -624,6 +624,101 @@
       "age_ranges": [],
       "evidence": "The Canadian Association of Music Therapists (CAMT) is a federally incorporated, self-regulated non-profit professional association dedicated to fostering the practice of music therapy in clinical, educational, and community settings throughout Canada.",
       "notes": "CNAF links to CAMT's French home page inside its Quebec listing for the AQM. The site gives an office address in Vancouver (303-2346 W 43rd Ave.) and a registered address in Ottawa. The \"charity\" tag reflects the site's \"non-profit\" wording."
+    },
+    {
+      "slug": "cybertip-ca",
+      "name": "Cybertip.ca (Canadian Centre for Child Protection)",
+      "website": "https://www.cybertip.ca/en/about/",
+      "description": "Cybertip.ca is Canada's national tipline, run by the Canadian Centre for Child Protection, for reporting the online sexual abuse and exploitation of children, such as online luring and the sharing of intimate images of anyone under 18. It takes reports online or by phone, refers leads to police or child welfare, and offers information, support and referrals to help families stay safe online.",
+      "category": "Social Services",
+      "tags": [],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-866-658-9022",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Cybertip.ca is Canada’s tipline for reporting the online sexual abuse and exploitation of children.",
+      "notes": "CNAF's link (cybertip.ca/app/en/report) redirects to the current report page. The tipline works 8:30am to 4:00pm Central Time, Monday to Friday; for a child in immediate danger the site says to call 9-1-1. Phone from the Contact page. CNAF lists it as a place to report cyberbullying that may be a crime; it handles online sexual exploitation of children, not bullying in general."
+    },
+    {
+      "slug": "inclusive-education-canada",
+      "name": "Inclusive Education Canada (IEC)",
+      "website": "https://www.inclusiveeducation.ca/about-iec",
+      "description": "Inclusive Education Canada, an initiative of Inclusion Canada, advocates for schools across Canada where students with intellectual and other disabilities learn alongside their peers with the support they need. Its website gives parents, educators and communities information, news and guides on inclusive education and the right to education.",
+      "category": "Organization",
+      "tags": [
+        "advocacy"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not mention cost.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-416-661-9611 x 234",
+      "email": "inclusiveeducation@inclusioncanada.ca",
+      "age_ranges": [],
+      "evidence": "Inclusive Education Canada (IEC) advocates for equitable and inclusive education across Canada, ensuring every student, regardless of ability, has the support and opportunities they need to succeed.",
+      "notes": "CNAF links to https://inclusiveeducation.ca/learn/right-to-education/, which now returns 404; the same topic is at https://www.inclusiveeducation.ca/right-to-education. IEC (est. 2002) is an information and advocacy group rather than a direct service; contact details from its Contact page (head office Toronto, mailing address Oshawa), and the email is the organisation's own address."
+    },
+    {
+      "slug": "hanen-centre",
+      "name": "The Hanen Centre",
+      "website": "https://www.hanen.org/about-us/who-we-help-parents",
+      "description": "A Toronto-based not-for-profit that develops parent programs to build young children's language and social communication skills, run in small in-person or online groups by speech-language pathologists it trains and certifies. Its More Than Words program is for parents of young autistic children, and another program is for parents of autistic children aged 4 to 8; the site helps families find a Hanen-certified SLP and has free articles and tips.",
+      "category": "Therapist",
+      "tags": [
+        "parent_babies",
+        "parent_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "The site does not list program fees (programs are run by Hanen-certified SLPs); articles and tips are free to read and guidebooks are sold in its shop.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": "110 Eglinton Avenue East Suite 601 Toronto, ON Canada, M4P 2Y1",
+      "phone": "416-921-1073",
+      "email": null,
+      "age_ranges": [
+        "babies_0_4",
+        "children_5_8"
+      ],
+      "evidence": "Hanen Programs are offered by speech-language pathologists (SLPs) around the world who’ve received special training and certification from The Hanen Centre™.",
+      "notes": "National (and international) resource: programs are led by Hanen-certified SLPs wherever families live, in person or online, so it is placed in national entries. The Hanen Centre does not run therapy itself; families find a certified SLP through its site. Address and phone from the contact page (contact form, no public email)."
+    },
+    {
+      "slug": "embrace-autism",
+      "name": "Embrace Autism",
+      "website": "https://embrace-autism.com/autism-assessments/",
+      "description": "An autistic-led organization that offers online autism and AuDHD screenings and full diagnostic assessments for adults (18+), carried out by licensed psychologists, including autistic psychologists, with experience assessing late-identified and high-masking adults. It also publishes free articles, tests and resources for autistic adults and offers post-diagnostic support.",
+      "category": "Therapist",
+      "tags": [
+        "provides_diagnosis"
+      ],
+      "cost": "paid",
+      "cost_note": "An autism screening assessment costs CA$625 and an autism diagnostic assessment CA$1,895 (as listed on its assessments page).",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65",
+        "seniors_65_plus"
+      ],
+      "evidence": "Formal autism assessments offered through Embrace Autism are conducted by licensed psychologists, including autistic psychologists, with experience assessing autism in adults, including late-identified and high-masking autistic adults.",
+      "notes": "CNAF links to an old page about Dr. Natalie Engelbrecht on embrace-autism.com, which now redirects to a 404 page; the organisation's current site is embrace-autism.com. Online only: its land acknowledgement refers to Ontario, and its psychologists are in Canada, the US, Australia and elsewhere, with the assessor depending on where the client lives, so a reviewer may decide whether it belongs in national entries. No phone or email is published (contact form only). Moved to national: it works online and serves people across Canada."
     }
   ]
 }

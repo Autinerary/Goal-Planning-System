@@ -14,8 +14,8 @@ supporters around them, free during the beta.
 
 | What | How many |
 | --- | --- |
-| Places listed in ResourceHub | 10,120, plus 25,725 more in Ontario ready to publish (about 35,850) |
-| Services checked by hand on their own websites | 556: 364 in nine lists (funding, newcomers, young children, neurodivergent mentoring and tutoring, siblings, 20 universities, 45 colleges), and 192 from the Canadian National Autism Foundation's pages, in every province and territory and nationally |
+| Places listed in ResourceHub | 35,938, most in Ontario (25,725 Ontario places published 18 October) |
+| Services checked by hand on their own websites | 649: 364 in nine lists (funding, newcomers, young children, neurodivergent mentoring and tutoring, siblings, 20 universities, 45 colleges), and 285 from the Canadian National Autism Foundation's pages, in every province and territory and nationally |
 | Ratings from the community | 521 |
 | Colleges and universities with campus pages | 47 |
 | Kinds of service and education tags | 95, plus 43 fields of post-secondary study |
