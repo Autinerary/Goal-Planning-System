@@ -3,9 +3,10 @@
 The team's planning note, "Goal 5: Recommendation Nomination System", worked
 through on 18 October 2026: rate a service (from experience), comment on a
 service (any time), nominate the best (monthly, through the newsletter), and
-vote out the worst (the monthly rating sweep). It needs **STEP 79**
-(`backend/database/migrations/2026_terms_ratings_community_choice.sql`, also
-at the end of `setup/all_migrations.sql`).
+vote out the worst (the monthly rating sweep). It uses **STEP 79**
+(`backend/database/migrations/2026_terms_ratings_community_choice.sql`) and
+**STEP 80** (`2026_function_grants.sql`), both applied on 18 October 2026 and
+at the end of `setup/all_migrations.sql`.
 
 ## What changed
 
@@ -46,11 +47,19 @@ setting in `rating_sweep()` (its arguments are the thresholds: 4.0, 3.5, two
 months, five ratings). Five ratings is our addition, so that one bad first
 rating cannot hide a service.
 
-## STEP 79
+## STEPs 79 and 80
 
-Paste it into Supabase's SQL editor, after STEP 78. It also holds Goal 2's
-parts (the terms record, meetings, the free-first-visit tag). Idempotent:
-applied twice in a local test, with 75 checks.
+STEP 79 holds the database side of Goals 2 and 5 (also the terms record,
+meetings and the free-first-visit tag). STEP 80 closes a gap it left:
+Supabase gives every new function to signed-out and signed-in callers
+directly, so STEP 79's "REVOKE ... FROM PUBLIC" left the sweep, the ballot
+and the tally (which write, and take their date and thresholds as arguments)
+callable by anyone for the few minutes between the two. STEP 80 makes those
+three the server's only, and the rest signed-in only. Nothing was changed in
+that time: no ballot, winner or hidden service existed, and the only calls
+were the check's own dry runs. Both idempotent; the local test now copies
+Supabase's default privileges, which is how it reproduces the gap and shows
+it closed.
 
 ## For the team
 
@@ -61,4 +70,37 @@ applied twice in a local test, with 75 checks.
 
 ## Checks
 
-CHECKS
+- **STEPs 79 and 80 in a local Postgres**: 75 checks for STEP 79 (rating
+  from experience in each of its three ways,
+  ratings from before the rule still editable, comments, the sweep's warning,
+  probation, hiding after two months and coming back, the number of 5s
+  needed, opt-outs, Toronto months, nominations and their limit, the ballot
+  made once, one vote per kind, the tally and its tags), and 15 for STEP 80,
+  with Supabase's default privileges copied: first the gap reproduced (anyone
+  could run the sweep), then closed (only the server runs the sweep, ballot
+  and tally; the rest signed in only; team members still rate).
+- **On the live database, signed out** (`step79_live.mjs`, reads only), 26 of
+  26: the new tables give nothing away, comments, ballots and winners are
+  public, nothing can be written signed out, every function that is not for
+  signed-out callers refuses them (HTTP 401), Toronto's month, an item's kind,
+  the free first visit. **Signed in** (QA A), the sweep, ballot and tally
+  refuse them (HTTP 403) and their own functions answer.
+- **In the browser on production** (`plan12.mjs`), 39 of 39: the Terms page
+  and where it is linked, the newsletter's page, Community's Choice's page and
+  the closed vote, the directory's banner and "Sign up now", the terms notice
+  and its record, rating refused (403) and "Who can rate", a proof-of-use code
+  and its email, the claim on the admin page, scheduling a video call (a
+  Jitsi link, the calendar's name and time without the link, the details kept
+  privately and back on the next visit), being able to rate once in the
+  team, Undo, a comment posted and removed, a nomination made and taken back,
+  and "They offer a free first visit". Everything QA A did is undone.
+- **The emails**, built from made-up rows (nothing sent): the vote section in
+  both weekly emails, the team's digest, each email to a service, the tally;
+  the vote links' signatures. 17 checks.
+- **Unit tests** for the vote's calendar (Toronto months, the month's last
+  Monday, leap years), in CI.
+- **The earlier rounds on production**, after this deploy: Groups 31 and 31b
+  (43, 34), 25 (72), default races (2), Group 34's live and admin checks (27,
+  11), the planning note's search and team (42), Goal 1's directory (28), and
+  the accessibility check, now with the new pages: 98 page views, no serious
+  or critical problems.

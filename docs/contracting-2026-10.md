@@ -181,6 +181,13 @@ monthly billing):
 contracts carry anything sensitive (Canadian data, embedded signing, $0.75
 each). DocuSign and Dropbox Sign cost the most per contract at our volumes.
 
+## Checks
+
+The Terms page, its links, the notice and its record, and the meeting
+scheduler (video link, calendar, privately kept details, the email to the
+service, Undo) are checked in the browser on production with Goal 5's
+(`docs/ratings-and-community-choice-2026-10.md`, Checks): 39 of 39.
+
 ## For the team
 
 - **A lawyer's read of the Terms** before launch, and before any contract
