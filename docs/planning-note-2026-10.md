@@ -204,7 +204,17 @@ one kind of place at a time, in the note's order of priority:
 | Colleges and universities (School) | 327 | 314 |
 | Libraries, for study spots (Community Center) | 918 | 897 |
 | Cafés (Café) | 5,100 | 5,001 |
-| Museums, zoos and aquariums, amusement parks, banks, hotels, restaurants | still being fetched on 17 October: the public servers were overloaded | |
+| Museums (Museum) | 488 | 461 |
+| Zoos and aquariums (Zoo & Aquarium) | 46 | 43 |
+| Amusement parks, banks, hotels, restaurants | still being fetched on 17 October: the public servers were overloaded | |
+
+**Written on 17 October, the ten kinds above: 8,738 new places, pending, in
+batch `ontario-2026-10`.** The other 1,274 were already in ResourceHub and
+were left exactly as they are. With STEP 78 in, each has free or paid (from a
+fee a mapper recorded, otherwise what that kind of place usually is), Canadian
+dollars, in person, and the tags its kind makes plain (recreation for museums
+and zoos, job opportunities for employment services, college or university
+for campuses).
 
 The dry run reads everything and writes nothing; places already in
 ResourceHub are left out when it writes. Riding centres are often mapped
@@ -251,6 +261,10 @@ programs are added by hand, checked on their websites.
   UPDATE public.resources SET status = 'rejected'
    WHERE import_batch = 'ontario-2026-10';
   ```
+
+  A Spot Guide (an admin counts) can do either at ResourceHub's
+  `/spot-guides` instead, the whole batch or one place at a time
+  (`docs/service-directory-2026-10.md`).
 
 - **No photos looked up** (50,000 Wikidata calls); the category's icon stands
   in, as for most places now.
