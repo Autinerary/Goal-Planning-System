@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '12 October 2026'
+const UPDATED = '18 October 2026'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -20,10 +20,10 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
-  { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, if you join one the app made', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
+  { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, and for a meeting with a team member when you choose “Make a free video link”, if you join one', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
   {
     name: 'Twilio',
     does: 'Sends reminder texts, and the code that confirms your number, if you choose reminders by text',
@@ -146,9 +146,20 @@ export default function PrivacyPage() {
               <li>Ratings and reviews, questions and answers in Tidbits, resources you save or suggest, photos you upload, and your community profile.</li>
               <li>Ratings, reviews, Tidbits posts and your community profile can be seen by other people using Autinerary.</li>
               <li>
-                Services you add to your team and sign on. Adding one puts “book a first meeting” in your Autinerary calendar;
-                nothing is sent to the service.
+                Services you add to your team and sign on, and the first meeting you schedule with one: how (video, phone or in
+                person), when, and the link or the place. The details stay with your team, which only you can see. The time and
+                “Video call with” the service go in your Autinerary calendar, which people you connect with can see. Nothing is
+                sent to the service: if you email them, it is from your own email app.
               </li>
+              <li>Comments you post on a service, which everyone using ResourceHub can see, with your display name.</li>
+              <li>
+                Your Community’s Choice nominations and votes. They are counted; nobody sees who nominated or voted for what.
+              </li>
+              <li>
+                If you used a service before joining and want to rate it: that you said so, its code, and whether we confirmed
+                it. The proof you email us is used only to check, and we delete the email once we have.
+              </li>
+              <li>When you accepted the Terms and Conditions, and which version.</li>
               <li>
                 If you search in a sentence and press Enter, the sentence is sent to OpenAI to pick the kind of place, the town
                 and who it is for. It is not saved, and nothing else about you is sent with it.
@@ -168,6 +179,10 @@ export default function PrivacyPage() {
                 scrambled form of your network address, used only to stop floods of sign-ups.
               </li>
               <li>Nothing is sent until you confirm from the first email, and every email has a link to stop them.</li>
+              <li>
+                In a month’s last week, the weekly email has a link to vote for Community’s Choice that works without signing
+                in. Your vote is kept with a code for your subscription, not your address.
+              </li>
             </List>
           </Sub>
           <Sub title="Connecting with people">
@@ -259,6 +274,11 @@ export default function PrivacyPage() {
             </li>
             <li>To find out where people get stuck and fix it. These reports show totals only, and leave out any group smaller than five people.</li>
             <li>To keep Autinerary safe: moderating community posts, preventing abuse, and limiting very heavy use.</li>
+            <li>
+              To keep ratings honest: each month, a service’s ratings decide whether it is warned, on probation or hidden, as the{' '}
+              <Link href="/terms#ratings" className="font-medium text-indigo-800 underline underline-offset-2">Terms</Link> say. The
+              ratings are counted, not who gave them.
+            </li>
           </List>
           <p>We don’t sell, rent or trade your information, and we don’t show ads. We don’t use your information to train AI models.</p>
         </Section>

@@ -291,11 +291,36 @@ ${reviewUrl}
 
 export interface NewsletterLink { label: string; detail?: string; href: string }
 
+/** The vote for Community's Choice, in the month's last newsletter (Goal 5). */
+export interface ChoiceVoteSection {
+  /** "October". */
+  month: string
+  /** This person's link to the vote page. */
+  link: string
+  /** A few of the most nominated, by kind, to show what is on the ballot. */
+  nominees: { kind: string; name: string }[]
+}
+
+function voteSection(vote: ChoiceVoteSection | null | undefined): { text: string; html: string } {
+  if (!vote) return { text: '', html: '' }
+  const names = vote.nominees.slice(0, 6)
+  const disclaimer = "Community's Choice services are chosen through monthly nomination rounds, where all users can nominate a service."
+  return {
+    text: `\nVote for ${vote.month}'s Community's Choice: the most nominated service, shop item and article this month. One vote of each:\n${names.map((n) => `- ${n.name} (${n.kind})`).join('\n')}\nVote: ${vote.link}\n${disclaimer}\n`,
+    html: `<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:16px;margin:20px 0">
+      <p style="font-size:17px;font-weight:700;margin:0 0 6px;color:#451a03">Vote for ${esc(vote.month)}'s Community's Choice</p>
+      <p style="font-size:15px;line-height:1.5;margin:0 0 8px;color:#1e293b">The most nominated service, shop item and article this month. One vote of each.</p>
+      <ul style="padding-left:18px;margin:0 0 12px;color:#1e293b">${names.map((n) => `<li>${esc(n.name)} <span style="color:#475569">(${esc(n.kind)})</span></li>`).join('')}</ul>
+      <a href="${vote.link}" style="${BUTTON}">Vote now</a>
+      <p style="${SMALL};margin:10px 0 0">${esc(disclaimer)}</p></div>`,
+  }
+}
+
 function footer(unsubscribe: string, postal: string | null, why: string): { text: string; html: string } {
   const address = postal ? `Autinerary Corp., ${postal}` : 'Autinerary Corp.'
   return {
-    text: `\n${why}\nStop these emails: ${unsubscribe}\n${address} · https://app.autinerary.ca/privacy`,
-    html: `<p style="${SMALL};margin-top:28px">${esc(why)} <a href="${unsubscribe}" style="color:#334155">Stop these emails</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a></p>`,
+    text: `\n${why}\nStop these emails: ${unsubscribe}\n${address} · https://app.autinerary.ca/privacy · https://app.autinerary.ca/terms`,
+    html: `<p style="${SMALL};margin-top:28px">${esc(why)} <a href="${unsubscribe}" style="color:#334155">Stop these emails</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a> · <a href="https://app.autinerary.ca/terms" style="color:#334155">Terms</a></p>`,
   }
 }
 
@@ -332,13 +357,14 @@ export function newsletterListEmail(title: string, links: NewsletterLink[], star
 }
 
 /** The weekly email: three places and ideas to start with, and one practical tip. */
-export function newsletterWeeklyEmail(links: NewsletterLink[], tip: string, unsubscribe: string, postal: string): { subject: string; html: string; text: string } {
+export function newsletterWeeklyEmail(links: NewsletterLink[], tip: string, unsubscribe: string, postal: string, vote?: ChoiceVoteSection | null): { subject: string; html: string; text: string } {
   const list = linkList(links)
   const foot = footer(unsubscribe, postal, 'You signed up for this weekly email on autinerary.ca.')
+  const choice = voteSection(vote)
   return {
-    subject: 'This week from Autinerary: three places to start, and a tip',
-    text: `Hi,\n\nThree places and ideas to start with this week:\n\n${list.text}\n\nOne practical tip: ${tip}\n\nThese are places to start looking, not medical or clinical advice.\n${foot.text}`,
-    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p><p style="font-size:16px;line-height:1.5">Three places and ideas to start with this week:</p>${list.html}
+    subject: vote ? `This week from Autinerary: vote for ${vote.month}'s Community's Choice` : 'This week from Autinerary: three places to start, and a tip',
+    text: `Hi,\n${choice.text}\nThree places and ideas to start with this week:\n\n${list.text}\n\nOne practical tip: ${tip}\n\nThese are places to start looking, not medical or clinical advice.\n${foot.text}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>${choice.html}<p style="font-size:16px;line-height:1.5">Three places and ideas to start with this week:</p>${list.html}
       <p style="font-size:16px;line-height:1.5;background:#eef2ff;border-radius:12px;padding:14px"><strong>One practical tip:</strong> ${esc(tip)}</p>
       <p style="${SMALL}">These are places to start looking, not medical or clinical advice.</p>${foot.html}</div>`,
   }
@@ -360,8 +386,11 @@ export function weeklyPicksEmail(input: {
   appUrl: string
   unsubscribe: string
   postal: string
+  /** In the month's last week: the vote for Community's Choice. */
+  vote?: ChoiceVoteSection | null
 }): { subject: string; html: string; text: string } {
   const who = input.name ? `Hi ${input.name},` : 'Hi,'
+  const choice = voteSection(input.vote)
   const path = `${input.appUrl.replace(/\/$/, '')}/path`
   const picks = linkList(input.picks)
   const saved = linkList(input.saved)
@@ -374,12 +403,108 @@ export function weeklyPicksEmail(input: {
     : `<p style="font-size:16px;line-height:1.5">Nothing saved yet. When a place looks useful in ResourceHub, save it and it will be here next week.</p>`
   const foot = footer(input.unsubscribe, input.postal, 'You turned on this weekly email in Autinerary, under Settings → Emails.')
   return {
-    subject: 'Your saved resources, plus new picks this week',
-    text: `${who}\n\n${savedText}\nNew picks for you this week:\n\n${picks.text}\n\nOne practical tip: ${input.tip}\n\nYour Path: ${path}\n\nThese are places to start looking, not medical or clinical advice.\n${foot.text}`,
-    html: `<div style="${BOX}"><p style="font-size:16px">${esc(who)}</p>${savedHtml}
+    subject: input.vote ? `Your saved resources, new picks, and the vote for ${input.vote.month}'s Community's Choice` : 'Your saved resources, plus new picks this week',
+    text: `${who}\n${choice.text}\n${savedText}\nNew picks for you this week:\n\n${picks.text}\n\nOne practical tip: ${input.tip}\n\nYour Path: ${path}\n\nThese are places to start looking, not medical or clinical advice.\n${foot.text}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">${esc(who)}</p>${choice.html}${savedHtml}
       <p style="font-size:16px;line-height:1.5;font-weight:600">New picks for you this week</p>${picks.html}
       <p style="font-size:16px;line-height:1.5;background:#eef2ff;border-radius:12px;padding:14px"><strong>One practical tip:</strong> ${esc(input.tip)}</p>
       <p style="margin:24px 0"><a href="${path}" style="${BUTTON}">Open my Path</a></p>
       <p style="${SMALL}">These are places to start looking, not medical or clinical advice.</p>${foot.html}</div>`,
+  }
+}
+
+/** One service's line in the rating sweep (STEP 79's rating_sweep()). */
+export interface SweepRow {
+  resource_id: string
+  name: string
+  category: string | null
+  email: string | null
+  email_ok: boolean
+  from_state: 'good' | 'warned' | 'probation' | 'hidden'
+  to_state: 'good' | 'warned' | 'probation' | 'hidden'
+  average: number
+  ratings: number
+  needed_to_return: number
+  needed_for_good: number
+  probation_ends: string | null
+}
+
+const STATE_WORDS: Record<SweepRow['to_state'], string> = {
+  good: 'in good standing',
+  warned: 'warned (under 4.0)',
+  probation: 'on probation (3.5 or under)',
+  hidden: 'hidden (3.5 or under for two months)',
+}
+
+/**
+ * The monthly rating sweep's digest for the team (Goal 5: "Automated so we
+ * get email of any services below 3.5/5"): what changed, and every service at
+ * 3.5 or under, with how many ratings of 5 would bring each back.
+ */
+export function ratingSweepDigestEmail(rows: SweepRow[], hubUrl: string, applied: boolean, servicesEmailed: number): { subject: string; html: string; text: string } {
+  const low = rows.filter((r) => r.to_state === 'probation' || r.to_state === 'hidden')
+  const changed = rows.filter((r) => r.from_state !== r.to_state)
+  const line = (r: SweepRow) =>
+    `${r.name} (${r.category || 'service'}): ${Number(r.average).toFixed(2)} from ${r.ratings} ratings, ${STATE_WORDS[r.to_state]}` +
+    (r.needed_to_return ? `; ${r.needed_to_return} more rating${r.needed_to_return === 1 ? '' : 's'} of 5 would bring it above 3.5` : '') +
+    (r.probation_ends ? `; probation ends ${r.probation_ends}` : '')
+  const link = (r: SweepRow) => `${hubUrl.replace(/\/$/, '')}/resources/${r.resource_id}`
+  const section = (title: string, list: SweepRow[]) =>
+    list.length
+      ? {
+          text: `${title}:\n${list.map((r) => `- ${line(r)}\n  ${link(r)}`).join('\n')}\n`,
+          html: `<p style="font-size:16px;font-weight:600">${esc(title)}</p><ul style="padding-left:18px">${list.map((r) => `<li style="margin:0 0 8px"><a href="${link(r)}" style="color:#3730a3">${esc(r.name)}</a>: ${esc(line(r).slice(r.name.length + 2))}</li>`).join('')}</ul>`,
+        }
+      : { text: `${title}: none.\n`, html: `<p style="font-size:16px">${esc(title)}: none.</p>` }
+  const a = section('Changed this month', changed)
+  const b = section('At 3.5 or under', low)
+  const how = applied
+    ? `Applied. ${servicesEmailed} service${servicesEmailed === 1 ? '' : 's'} emailed.`
+    : 'A dry run: nothing was changed or sent.'
+  return {
+    subject: `Rating sweep: ${low.length} service${low.length === 1 ? '' : 's'} at 3.5 or under`,
+    text: `The monthly rating sweep (services with at least five ratings). ${how}\n\n${a.text}\n${b.text}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">The monthly rating sweep (services with at least five ratings). ${esc(how)}</p>${a.html}${b.html}</div>`,
+  }
+}
+
+/**
+ * The email to a service whose standing changed (sent only with
+ * RATING_SWEEP_EMAIL_SERVICES=on), to the address it publishes. Informational,
+ * from Autinerary Corp., with how to stop it.
+ */
+export function serviceStandingEmail(r: SweepRow, hubUrl: string, postal: string | null): { subject: string; html: string; text: string } | null {
+  const page = `${hubUrl.replace(/\/$/, '')}/resources/${r.resource_id}`
+  const avg = Number(r.average).toFixed(1)
+  const body =
+    r.from_state === 'hidden' && r.to_state !== 'hidden'
+      ? `${r.name} is back in ResourceHub's search: its rating is now ${avg} out of 5.`
+      : r.to_state === 'warned'
+        ? `${r.name}'s rating on ResourceHub is ${avg} out of 5, from ${r.ratings} people who used it. That is under 4. Nothing changes yet: this is a heads-up, so you can read what people said.`
+        : r.to_state === 'probation'
+          ? `${r.name}'s rating on ResourceHub is ${avg} out of 5, from ${r.ratings} people who used it. At 3.5 or under, a service has two months to improve${r.probation_ends ? ` (until ${r.probation_ends})` : ''}; if its rating is still 3.5 or under then, it is hidden from search. Nothing is deleted.`
+          : r.to_state === 'hidden'
+            ? `${r.name}'s rating on ResourceHub stayed at 3.5 out of 5 or under for two months, so it is hidden from search for now. Nothing is deleted: people who have used it can still rate it, and it comes back as soon as its rating rises above 3.5${r.needed_to_return ? ` (about ${r.needed_to_return} more rating${r.needed_to_return === 1 ? '' : 's'} of 5)` : ''}.`
+            : ''
+  if (!body) return null
+  const sign = `Autinerary Corp.${postal ? `, ${postal}` : ''}. To stop these emails, reply "stop".`
+  return {
+    subject: r.to_state === 'warned' ? `Your rating on ResourceHub` : r.to_state === 'probation' ? `Your rating on ResourceHub: two months to improve` : r.to_state === 'hidden' ? `Your listing on ResourceHub is hidden for now` : `Your listing on ResourceHub is back`,
+    text: `Hello,\n\n${body}\n\nYour listing: ${page}\n\nRatings on ResourceHub come only from people who have used a service.\n\n${sign}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p><p style="font-size:16px;line-height:1.5">${esc(body)}</p><p style="margin:20px 0"><a href="${page}" style="${BUTTON}">See your listing</a></p><p style="${SMALL}">Ratings on ResourceHub come only from people who have used a service.<br>${esc(sign)}</p></div>`,
+  }
+}
+
+/** The month's Community's Choice winners, for the team. */
+export function choiceTallyEmail(month: string, winners: { kind: string; name: string; votes: number; url: string }[], applied: boolean): { subject: string; html: string; text: string } {
+  const how = applied ? 'Saved, and tagged Community’s Choice.' : 'A dry run: nothing was saved.'
+  return {
+    subject: `Community's Choice for ${month}: ${winners.length} winner${winners.length === 1 ? '' : 's'}`,
+    text: `Community's Choice for ${month}. ${how}\n\n${winners.length ? winners.map((w) => `- ${w.kind}: ${w.name} (${w.votes} vote${w.votes === 1 ? '' : 's'})\n  ${w.url}`).join('\n') : 'No votes this month.'}\n`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Community's Choice for ${esc(month)}. ${esc(how)}</p>${
+      winners.length
+        ? `<ul style="padding-left:18px">${winners.map((w) => `<li style="margin:0 0 8px">${esc(w.kind)}: <a href="${w.url}" style="color:#3730a3">${esc(w.name)}</a> (${w.votes} vote${w.votes === 1 ? '' : 's'})</li>`).join('')}</ul>`
+        : '<p style="font-size:16px">No votes this month.</p>'
+    }</div>`,
   }
 }

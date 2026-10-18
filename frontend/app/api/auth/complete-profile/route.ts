@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { computeAge, MIN_SIGNUP_AGE } from '@/lib/age'
+import { TERMS_VERSION } from '@/lib/legal'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'under_age',
-        message: 'Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!',
+        message: 'Sorry, Autinerary is only for people 18 or older right now. A parent or legal guardian can add you from their own account, on their Family page.',
       },
       { status: 403 }
     )
@@ -55,5 +56,7 @@ export async function POST(req: NextRequest) {
   } catch {
     /* non-fatal, as at sign-up */
   }
+  // The terms, agreed to by continuing (STEP 79; nothing before the table exists).
+  await admin.from('terms_acceptances').upsert({ user_id: user.id, version: TERMS_VERSION, via: 'signup' }, { onConflict: 'user_id,version', ignoreDuplicates: true })
   return NextResponse.json({ ok: true })
 }

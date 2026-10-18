@@ -148,6 +148,10 @@ export default function NewResourcePage() {
             submitFormData.append('price', formData.price.toString())
           }
 
+          if (formData.free_first_visit) {
+            submitFormData.append('free_first_visit', 'true')
+          }
+
           if (formData.image) {
             submitFormData.append('image', formData.image)
           }
@@ -160,6 +164,17 @@ export default function NewResourcePage() {
 
       if (!response.ok) {
         const data = await response.json()
+        // Already listed: recommending it is noted, and they can rate it (Goal 5).
+        if (response.status === 409 && data.existingResourceId) {
+          clearDraft()
+          showToast.success(
+            data.recommended
+              ? 'It is already on ResourceHub. We have noted that you recommend it, so you can rate it.'
+              : 'It is already on ResourceHub.'
+          )
+          router.push(`/resources/${data.existingResourceId}`)
+          return
+        }
         if (data.errors) {
           setErrors(data.errors)
           showToast.error('Please fix the errors in the form')

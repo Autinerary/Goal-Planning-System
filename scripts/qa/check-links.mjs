@@ -28,7 +28,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 // Pages added since the first run (Riipen Labs, Group 12: "Crawl the site
 // for broken links or 404 errors"): Start here, the starter kits, help, the
 // profile pages, Hare World and ResourceHub's community.
-const APP_SIGNED_OUT = ['/', '/signup', '/login', '/privacy', '/checkin', '/start', '/kits', '/kits/assessment', '/kits/school', '/help', '/forgot-password']
+// The planning note's Goals 2 and 5: the terms, the newsletter and Community's Choice.
+const APP_SIGNED_OUT = ['/', '/signup', '/login', '/privacy', '/terms', '/newsletter', '/community-choice', '/checkin', '/start', '/kits', '/kits/assessment', '/kits/school', '/help', '/forgot-password']
 const APP_SIGNED_IN = ['/path', '/calendar', '/tasks', '/races', '/pit-stop', '/reflection', '/profile/settings', '/family', '/path-market',
   '/ideal-self', '/paths/compare', '/stats', '/tools', '/milestones', '/gamification', '/assistant', '/reels', '/recommend-choices', '/onboarding-confirmation',
   '/profile', '/profile/diagnostic', '/profile/accessibility', '/about-me', '/hare-world', '/hare-world/role-models', '/reflection/history', '/help', '/share-your-story']

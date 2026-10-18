@@ -120,6 +120,19 @@ export function occurrencesInRange(
   )
 }
 
+/**
+ * Whether a task shows under this weekday in the weekly views (list and time
+ * blocks), which have no dates: every week when it has none, otherwise only
+ * in the week it falls in. A meeting booked from ResourceHub for a Tuesday
+ * three weeks out is not on this Tuesday.
+ */
+export function showsThisWeek(task: { scheduledDate?: string | null }, dayName: string, today = new Date()): boolean {
+  if (!task.scheduledDate) return true
+  const index = (WEEKDAYS as readonly string[]).indexOf(dayName)
+  if (index < 0) return false
+  return format(addDays(startOfWeek(today), index), 'yyyy-MM-dd') === task.scheduledDate
+}
+
 /** The 6-week grid a month view draws, including leading/trailing days. */
 export function monthGridDays(month: Date): Date[] {
   return eachDayOfInterval({

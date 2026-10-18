@@ -6,6 +6,7 @@ import { CalendarCheck, CheckCircle2, Globe, Mail, Phone } from 'lucide-react'
 import { appSignInHref, APP_CALENDAR } from '@/lib/appSignIn'
 import { nextMeeting, type Meeting, type TeamState } from '@/lib/team'
 import type { ContactInfo } from '@/types/database'
+import MeetingPlanner from './MeetingPlanner'
 
 /** "Mon 20 Oct, 10:00". */
 export function meetingWhen(m: Meeting): string {
@@ -29,7 +30,7 @@ export default function TeamAction({
   onChange,
   onTeamPage = false,
 }: {
-  resource: { id: string; name: string; contact_info?: unknown }
+  resource: { id: string; name: string; contact_info?: unknown; tags?: unknown; delivery?: unknown; location?: unknown }
   initial?: TeamState
   signedIn: boolean
   /** Add at once (coming back from signing in to add). */
@@ -49,6 +50,17 @@ export default function TeamAction({
   useEffect(() => {
     if (initial) setState(initial)
   }, [initial])
+
+  // The meeting as scheduled, when the page did not just add it.
+  const loaded = useRef(false)
+  useEffect(() => {
+    if (state !== 'meeting' || !signedIn || meeting || loaded.current) return
+    loaded.current = true
+    fetch(`/api/team?meeting=${resource.id}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.meeting && setMeeting(d.meeting))
+      .catch(() => {})
+  }, [state, signedIn, meeting, resource.id])
 
   const change = (next: TeamState) => {
     setState(next)
@@ -185,7 +197,15 @@ export default function TeamAction({
             <CalendarCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-700" aria-hidden="true" />
             <span>
               On your team.{' '}
-              {meeting ? (
+              {meeting?.type ? (
+                <>
+                  Your first meeting is{' '}
+                  <a href={APP_CALENDAR} className="font-medium text-blue-700 underline">
+                    in your calendar
+                  </a>
+                  .
+                </>
+              ) : meeting ? (
                 <>
                   First meeting to book: {meetingWhen(meeting)},{' '}
                   <a href={APP_CALENDAR} className="font-medium text-blue-700 underline">
@@ -198,6 +218,14 @@ export default function TeamAction({
               )}
             </span>
           </p>
+          <MeetingPlanner
+            resource={resource}
+            meeting={meeting}
+            onSaved={(m) => {
+              setMeeting(m)
+              setMessage(`Your meeting with ${resource.name} is saved, and in your calendar for ${meetingWhen(m)}.`)
+            }}
+          />
           {(contact?.phone || mail || contact?.website) && (
             <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {contact?.phone && (

@@ -25,6 +25,7 @@ import type { TeamState } from '@/lib/team'
 import { useMyProfile } from '@/lib/useMyProfile'
 import { findNorm, normForSearch } from '@/lib/onboarding/setup'
 import { track } from '@/lib/track'
+import CommunityChoiceBanner from '@/components/communityChoice/CommunityChoiceBanner'
 
 /** Where "near" is, as the search API reports it (Riipen Labs, Group 8). */
 interface NearInfo {
@@ -600,6 +601,7 @@ function SearchResults() {
                   agesApplied={understood.ages.some((a) => a.ranges.some((r) => ageRanges.includes(r)))}
                 />
               )}
+              <CommunityChoiceBanner />
               {/* Toolbar */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

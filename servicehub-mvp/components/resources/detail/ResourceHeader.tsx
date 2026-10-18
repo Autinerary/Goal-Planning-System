@@ -5,6 +5,7 @@ import { Star, Bookmark, Share2, MapPin, Plus } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import { showToast } from '@/lib/toast'
 import AddRatingModal from './AddRatingModal'
+import NominateButton from '@/components/communityChoice/NominateButton'
 import { appSignInHref } from '@/lib/appSignIn'
 import Link from 'next/link'
 import TeamAction from '@/components/team/TeamAction'
@@ -213,6 +214,11 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
         />
       </div>
 
+      {/* Community's Choice (Goal 5): its badge if it won, and nominating it. */}
+      <div className="mb-4">
+        <NominateButton itemId={resource.id} itemName={resource.name} signedIn={Boolean(userId)} />
+      </div>
+
       {/* Rating and Badges */}
       <div className="flex items-center gap-4 flex-wrap">
         {resource.ratingCount > 0 && (
@@ -256,6 +262,7 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
       {showRatingModal && (
         <AddRatingModal
           resourceId={resource.id}
+          resourceName={resource.name}
           onClose={() => setShowRatingModal(false)}
           onRatingAdded={handleRatingAdded}
         />

@@ -18,12 +18,14 @@ interface AddRatingButtonProps {
    * without being told.
    */
   hasRated?: boolean
+  resourceName?: string
   onRatingAdded?: () => void
 }
 
 export default function AddRatingButton({
   resourceId,
   hasRated = false,
+  resourceName,
   onRatingAdded,
 }: AddRatingButtonProps) {
   const [showModal, setShowModal] = useState(false)
@@ -52,6 +54,7 @@ export default function AddRatingButton({
       {showModal && (
         <AddRatingModal
           resourceId={resourceId}
+          resourceName={resourceName}
           onClose={() => setShowModal(false)}
           onRatingAdded={handleRatingAdded}
         />

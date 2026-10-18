@@ -123,6 +123,10 @@ export default function DateOfBirthPage() {
               'Continue to setup'
             )}
           </button>
+          <p className="mt-3 text-center text-xs text-slate-700">
+            By continuing you agree to the{' '}
+            <Link href="/terms" className="font-medium text-indigo-800 underline underline-offset-2">Terms and Conditions</Link>.
+          </p>
           <button
             type="button"
             onClick={logout}

@@ -31,11 +31,21 @@ export async function searchProducts(filters: ProductSearchFilters = {}, limit =
   return rows.map((row) => ({ ...row }))
 }
 
+const PRODUCT_COLUMNS = 'id, name, description, category, price, currency, image_urls, created_at'
+
 async function findProducts(filters: ProductSearchFilters, limit: number, dontKeep: () => void) {
+  // Tags (Community's Choice) came with STEP 79; before it, without them.
+  const first = await queryProducts(filters, limit, `${PRODUCT_COLUMNS}, tags`)
+  return first.error && /tags/.test(first.error.message || '')
+    ? rowsOf(await queryProducts(filters, limit, PRODUCT_COLUMNS), dontKeep)
+    : rowsOf(first, dontKeep)
+}
+
+async function queryProducts(filters: ProductSearchFilters, limit: number, columns: string) {
   const supabase = createClient()
   let q = supabase
     .from('products')
-    .select('id, name, description, category, price, currency, image_urls, created_at')
+    .select(columns)
     .eq('status', 'active')
 
   // Every word somewhere in the name, description or category, as in venue
@@ -49,7 +59,11 @@ async function findProducts(filters: ProductSearchFilters, limit: number, dontKe
   if (typeof filters.minPrice === 'number') q = q.gte('price', filters.minPrice)
   if (typeof filters.maxPrice === 'number') q = q.lte('price', filters.maxPrice)
 
-  const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
+  return q.order('created_at', { ascending: false }).limit(limit)
+}
+
+async function rowsOf({ data, error }: { data: any[] | null; error: { message?: string } | null }, dontKeep: () => void) {
+  const supabase = createClient()
   if (error) {
     // The products table may not exist yet (migration not run). Never let that
     // break resource search.
@@ -93,6 +107,7 @@ async function findProducts(filters: ProductSearchFilters, limit: number, dontKe
       updated_at: p.created_at,
       averageRating: a && a.count ? a.sum / a.count : 0,
       ratingCount: a?.count ?? 0,
+      tags: Array.isArray(p.tags) ? p.tags : [],
       // Marks this as a Shop item so the card links to /shop/<id>.
       kind: 'product' as const,
     }

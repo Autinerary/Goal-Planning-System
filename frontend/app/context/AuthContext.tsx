@@ -43,7 +43,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // app/emails), and so does stopping the first two weeks' emails. The starter
 // kits for parents (app/kits) need no account. /go/servicehub only passes
 // people on to ResourceHub, signed in or not, so setup never interrupts it.
-const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/go/servicehub']
+// The terms, the newsletter's sign-up and Community's Choice (its vote comes
+// from the newsletter) are for anyone too.
+const publicRoutes = ['/', '/start', '/login', '/signup', '/forgot-password', '/reset-password', '/checkin', '/privacy', '/terms', '/newsletter', '/community-choice', '/help', '/newsletter/confirm', '/newsletter/unsubscribe', '/emails/weekly-stop', '/emails/setup-reminder', '/emails/first-weeks', '/go/servicehub']
 const isPublicRoute = (pathname: string) => publicRoutes.includes(pathname) || pathname === '/kits' || pathname.startsWith('/kits/')
 const AGE_ROUTE = '/auth/age'
 

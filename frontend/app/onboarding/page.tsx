@@ -1476,7 +1476,7 @@ export default function OnboardingPage() {
               )}
               {guardianApproved && <p role="status" className="mb-4 text-sm text-emerald-700">Your legal adult has approved this supervised account.</p>}
               {!guardianApproved && (formData.ageConfirmation === 'under18' || isManagedAccount) && (
-                <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!</p>
+                <p role="alert" className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">Sorry, Autinerary is only for people 18 or older right now. A parent or legal guardian can add you from their own account, on their Family page.</p>
               )}
 
               {/* The energy check-in (ENERGY_CHOICES; Riipen Labs, Group 23). */}

@@ -7,6 +7,7 @@ import { listProducts, listProductCategories } from '@/lib/shop/queries'
 import { formatPrice, type Product } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
 import { SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
+import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,11 @@ function ProductCard({ product, preview = false }: { product: Product; preview?:
       </div>
       <div className="p-3">
         <div className="text-sm font-medium text-gray-900 line-clamp-2">{product.name}</div>
+        {Array.isArray((product as any).tags) && (product as any).tags.includes('community_choice') && (
+          <div className="mt-1">
+            <CommunityChoiceBadge />
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-2">
           <span className="text-sm font-bold text-purple-700">{formatPrice(product.price, product.currency)}</span>
           {product.compare_at_price != null && product.compare_at_price > product.price && (

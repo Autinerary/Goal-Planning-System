@@ -12,11 +12,20 @@
  * 'current' once signed on (added_to_team_at). The meeting is a calendar task
  * the person can move or tick off in the app; nobody else's calendar is
  * touched, and nothing is sent to the service.
+ *
+ * Then the meeting itself (Goal 2, "Schedule Video Call + In-Person Meet w/
+ * Free 1st Visit"): a video call, a phone call or in person, on a day and at
+ * a time, with the video link or the place. Those details stay in the
+ * person's own team row (saved_resources.meeting, STEP 79), which only they
+ * can read; the calendar, which connections can read, gets the time and
+ * "Video call with <service>".
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type TeamState = 'none' | 'saved' | 'meeting' | 'signed'
+
+export type MeetingType = 'video' | 'phone' | 'in_person'
 
 export interface Meeting {
   /** YYYY-MM-DD, the person's own date. */
@@ -25,6 +34,77 @@ export interface Meeting {
   day: string
   /** HH:MM. */
   time: string
+  /** How they meet; none yet while the first meeting is still to book. */
+  type?: MeetingType
+  /** A video call's link (https). */
+  link?: string
+  /** Where, in person. */
+  place?: string
+  /** The service's first visit is free. */
+  freeFirstVisit?: boolean
+  /** How long, in minutes. */
+  minutes?: number
+}
+
+export const MEETING_TYPES: { id: MeetingType; label: string }[] = [
+  { id: 'video', label: 'Video call' },
+  { id: 'phone', label: 'Phone call' },
+  { id: 'in_person', label: 'In person' },
+]
+
+/** The calendar's name for it: "Video call with …", or still to book. */
+export function meetingTaskName(m: Meeting | null, name: string): string {
+  const who = name.slice(0, 150)
+  const free = m?.freeFirstVisit ? ' (free first visit)' : ''
+  switch (m?.type) {
+    case 'video':
+      return `Video call with ${who}${free}`
+    case 'phone':
+      return `Phone call with ${who}${free}`
+    case 'in_person':
+      return `Meet ${who} in person${free}`
+    default:
+      return `Contact ${who} to book a first meeting`
+  }
+}
+
+/** A link someone pasted for a call: https, no spaces, not too long. */
+export function cleanLink(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined
+  try {
+    const url = new URL(value.trim())
+    if (url.protocol !== 'https:' || value.length > 300 || /[\s<>"]/.test(value.trim())) return undefined
+    return url.toString()
+  } catch {
+    return undefined
+  }
+}
+
+/** A video room nobody can guess, on Jitsi Meet (free, no account to join). */
+export function newVideoLink(): string {
+  const bytes = new Uint8Array(12)
+  crypto.getRandomValues(bytes)
+  const code = Array.from(bytes, (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('')
+  return `https://meet.jit.si/Autinerary-${code}`
+}
+
+/** A meeting sent from the browser, cleaned: only what this page writes. */
+export function cleanMeeting(m: unknown): Meeting | null {
+  if (!isMeeting(m)) return null
+  const x = m as Meeting
+  const type = MEETING_TYPES.some((t) => t.id === x.type) ? x.type : undefined
+  const place = typeof x.place === 'string' ? x.place.trim().slice(0, 200) : ''
+  const minutes = Number(x.minutes)
+  return {
+    date: x.date,
+    day: x.day,
+    time: x.time,
+    ...(type ? { type } : {}),
+    ...(type === 'video' && cleanLink(x.link) ? { link: cleanLink(x.link) } : {}),
+    ...(type === 'in_person' && place ? { place } : {}),
+    ...(x.freeFirstVisit ? { freeFirstVisit: true } : {}),
+    ...(Number.isInteger(minutes) && minutes >= 10 && minutes <= 240 ? { minutes } : {}),
+  }
 }
 
 /** The calendar task for a team member's first meeting. One per service. */
@@ -53,7 +133,7 @@ export function isMeeting(m: unknown): m is Meeting {
 // Before STEP 77 the team columns may be missing; everything still works,
 // with the meeting kept only in the calendar.
 const missingColumn = (error: { code?: string; message?: string } | null) =>
-  !!error && (error.code === '42703' || error.code === 'PGRST204' || /calls_scheduled|added_to_team_at/.test(error.message || ''))
+  !!error && (error.code === '42703' || error.code === 'PGRST204' || /calls_scheduled|added_to_team_at|meeting/.test(error.message || ''))
 
 type Row = { resource_id: string; status: string; calls_scheduled?: boolean | null }
 
@@ -114,7 +194,7 @@ export async function addToTeam(
         day: meeting.day,
         time: meeting.time,
         scheduled_date: meeting.date,
-        name: `Contact ${resource.name.slice(0, 150)} to book a first meeting`,
+        name: meetingTaskName(null, resource.name),
         duration: '15 min',
         duration_minutes: 15,
         priority: 'high',
@@ -130,6 +210,61 @@ export async function addToTeam(
   return { state: 'meeting', created: !existing, meeting: booked }
 }
 
+/**
+ * The first meeting, scheduled: how, when, and the link or the place. The
+ * calendar task gets the time and its name; the details stay in the team row.
+ */
+export async function scheduleMeeting(
+  supabase: SupabaseClient,
+  userId: string,
+  resource: { id: string; name: string },
+  meeting: Meeting
+): Promise<{ meeting: Meeting; saved: boolean }> {
+  const { data: row } = await supabase.from('saved_resources').select('id, status').eq('user_id', userId).eq('resource_id', resource.id).maybeSingle()
+  if (!row) await addToTeam(supabase, userId, resource, null)
+  const minutes = meeting.minutes || 30
+  const { error } = await supabase.from('calendar_tasks').upsert(
+    {
+      user_id: userId,
+      client_id: meetingTaskId(resource.id),
+      day: meeting.day,
+      time: meeting.time,
+      scheduled_date: meeting.date,
+      name: meetingTaskName(meeting, resource.name),
+      duration: `${minutes} min`,
+      duration_minutes: minutes,
+      priority: 'high',
+      source: 'ResourceHub',
+      completed: false,
+      completed_at: null,
+    },
+    { onConflict: 'user_id,client_id' }
+  )
+  if (error) throw error
+  // The details, in the person's own row (STEP 79); before it, the calendar only.
+  const res = await supabase
+    .from('saved_resources')
+    .update({ meeting: { ...meeting, updated_at: new Date().toISOString() }, calls_scheduled: true })
+    .eq('user_id', userId)
+    .eq('resource_id', resource.id)
+  if (res.error && !missingColumn(res.error)) throw res.error
+  return { meeting, saved: !res.error }
+}
+
+/** The first meeting as scheduled (STEP 79), or its time from the calendar. */
+export async function readMeeting(supabase: SupabaseClient, userId: string, resourceId: string): Promise<Meeting | null> {
+  const { data, error } = await supabase.from('saved_resources').select('meeting').eq('user_id', userId).eq('resource_id', resourceId).maybeSingle()
+  if (!error && data?.meeting && isMeeting(data.meeting)) return cleanMeeting(data.meeting)
+  const { data: task } = await supabase
+    .from('calendar_tasks')
+    .select('day, time, scheduled_date, completed')
+    .eq('user_id', userId)
+    .eq('client_id', meetingTaskId(resourceId))
+    .maybeSingle()
+  if (!task?.scheduled_date) return null
+  return cleanMeeting({ date: task.scheduled_date, day: task.day, time: task.time })
+}
+
 /** Undo "Add to my team": the meeting task goes, and the row if it was new. */
 export async function undoAddToTeam(supabase: SupabaseClient, userId: string, resourceId: string, created: boolean): Promise<TeamState> {
   const { data: row } = await supabase.from('saved_resources').select('id, status').eq('user_id', userId).eq('resource_id', resourceId).maybeSingle()
@@ -141,7 +276,8 @@ export async function undoAddToTeam(supabase: SupabaseClient, userId: string, re
     if (error) throw error
     return 'none'
   }
-  const res = await supabase.from('saved_resources').update({ calls_scheduled: false }).eq('id', row.id)
+  let res = await supabase.from('saved_resources').update({ calls_scheduled: false, meeting: null }).eq('id', row.id)
+  if (missingColumn(res.error)) res = await supabase.from('saved_resources').update({ calls_scheduled: false }).eq('id', row.id)
   if (res.error && !missingColumn(res.error)) throw res.error
   return 'saved'
 }

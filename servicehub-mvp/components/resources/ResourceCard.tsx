@@ -7,6 +7,7 @@ import BarrierBadge from './BarrierBadge'
 import { MapPin, Star, Users } from 'lucide-react'
 import CategoryIcon from './CategoryIcon'
 import { tagLabel } from '@/lib/filters/tags'
+import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 
 /** "Under 1 km", "4.2 km", "31 km", "3,675 km". */
 export function formatDistance(km: number): string {
@@ -35,7 +36,7 @@ interface ResourceCardProps {
 }
 
 // The tags worth showing on a card, in this order (lib/filters/tags.ts).
-const CARD_TAGS = ['requires_diagnosis', 'provides_diagnosis', 'funding', 'new_to_country', 'new_to_city', 'respite_care', 'siblings', 'charity', 'community_group', 'job_opportunities']
+const CARD_TAGS = ['free_first_visit', 'requires_diagnosis', 'provides_diagnosis', 'funding', 'new_to_country', 'new_to_city', 'respite_care', 'siblings', 'charity', 'community_group', 'job_opportunities']
 const MINE_LABELS: Record<string, string> = { team: 'In your support team', owned: 'Already owned', read: 'Already read' }
 
 /** "Free", "Paid · $12.50", "Paid" (the planning note, October 2026: free or paid on every service). */
@@ -57,9 +58,16 @@ function Chips({ resource, mine }: { resource: Resource; mine: string[] }) {
   const cost = costLabel(r)
   const tags: string[] = (Array.isArray(r.tags) ? r.tags : []).filter((t: string) => CARD_TAGS.includes(t))
   tags.sort((a, b) => CARD_TAGS.indexOf(a) - CARD_TAGS.indexOf(b))
-  if (!cost && tags.length === 0 && mine.length === 0) return null
+  // A month's winner of the community's vote (Goal 5), first.
+  const choice = Array.isArray(r.tags) && r.tags.includes('community_choice')
+  if (!cost && tags.length === 0 && mine.length === 0 && !choice) return null
   return (
     <ul className="mb-3 flex flex-wrap gap-1.5" aria-label="Tags">
+      {choice && (
+        <li className="inline-flex">
+          <CommunityChoiceBadge />
+        </li>
+      )}
       {mine.map((m) => (
         <li key={m} className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-900">
           {MINE_LABELS[m] || m}

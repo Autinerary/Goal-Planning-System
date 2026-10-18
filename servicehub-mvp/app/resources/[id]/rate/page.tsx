@@ -15,6 +15,8 @@ import { ArrowLeft, Save, Camera } from 'lucide-react'
 import Link from 'next/link'
 import type { Resource, UserBarrier, Rating } from '@/types/database'
 import type { BarrierScores } from '@/types/database'
+import type { RatingAccess } from '@/lib/ratings/access'
+import RatingAccessPanel from '@/components/resources/detail/RatingAccessPanel'
 
 const MAX_COMMENT_LENGTH = 500
 
@@ -47,6 +49,17 @@ function RateResourceContent() {
   const [images, setImages] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [toasts, setToasts] = useState<Toast[]>([])
+  // Whether they may rate (Goal 5): in their team, recommended, or used before.
+  const [access, setAccess] = useState<RatingAccess | null>(null)
+  const checkAccess = () =>
+    fetch(`/api/resources/${resourceId}/rating-access`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => setAccess(j?.access || null))
+      .catch(() => {})
+  useEffect(() => {
+    if (resourceId) void checkAccess()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resourceId])
 
   // Fetch data
   useEffect(() => {
@@ -273,6 +286,26 @@ function RateResourceContent() {
 
   if (!resource) {
     return null
+  }
+
+  if (access && access.signed_in && !access.can_rate) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <Link href={`/resources/${resource.id}`} className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back to {resource.name}
+            </Link>
+            <h1 className="mt-4 text-2xl font-bold text-gray-900">Rate {resource.name}</h1>
+            <div className="mt-4 rounded-lg border border-gray-200 bg-white">
+              <RatingAccessPanel resourceId={resource.id} resourceName={resource.name} access={access} onCanRate={() => void checkAccess()} />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   return (

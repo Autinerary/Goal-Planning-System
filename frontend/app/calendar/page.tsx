@@ -17,7 +17,7 @@ import WeekTimeGrid from '../components/calendar/WeekTimeGrid'
 import MonthGrid from '../components/calendar/MonthGrid'
 import GamificationSettings, { useGamification } from '../components/GamificationSettings'
 import { animalForDay, themeForDate, ANIMAL_COLORS, WEEKDAYS, type GamificationPreferences } from '@/lib/gamification'
-import { parseDurationString, toISODate, type CalendarTask as DatedTask } from '@/lib/calendarModel'
+import { parseDurationString, showsThisWeek, toISODate, type CalendarTask as DatedTask } from '@/lib/calendarModel'
 import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
 import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
@@ -644,7 +644,7 @@ function CalendarContent() {
   // Merge added tasks with scenario data
   const getTasksForDay = (dayName: string) => {
     const dayData = currentData.days.find((d: any) => d.name === dayName)
-    const addedForDay = addedTasks.filter((t: any) => t.day === dayName)
+    const addedForDay = addedTasks.filter((t: any) => t.day === dayName && showsThisWeek(t, dayName))
     
     if (!dayData) return []
     
@@ -1315,7 +1315,7 @@ function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, g
 
   const getTasksForDay = (dayName: string) => {
     const dayData = days.find(d => d.name === dayName)
-    const addedForDay = (addedTasks || []).filter(t => t.day === dayName)
+    const addedForDay = (addedTasks || []).filter(t => t.day === dayName && showsThisWeek(t, dayName))
     
     if (!dayData) return []
     
@@ -1425,7 +1425,7 @@ function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchD
   
   const getTasksForDay = (dayName: string) => {
     const dayData = days.find(d => d.name === dayName)
-    const addedForDay = (addedTasks || []).filter(t => t.day === dayName)
+    const addedForDay = (addedTasks || []).filter(t => t.day === dayName && showsThisWeek(t, dayName))
     
     if (!dayData) return []
     

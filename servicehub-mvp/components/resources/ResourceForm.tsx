@@ -31,6 +31,8 @@ export interface ResourceFormData {
   location: Location | null
   contact_info: ContactInfo
   price?: number | null
+  /** They offer a free first visit (Goal 2): the free_first_visit tag. */
+  free_first_visit?: boolean
   image?: File
   recommendation_reason?: string
 }
@@ -55,6 +57,7 @@ export default function ResourceForm({
   const [email, setEmail] = useState(initialData?.contact_info?.email || '')
   const [website, setWebsite] = useState(initialData?.contact_info?.website || '')
   const [price, setPrice] = useState(initialData?.price ? initialData.price.toString() : '')
+  const [freeFirstVisit, setFreeFirstVisit] = useState(false)
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialData?.image_url || null
@@ -227,6 +230,7 @@ export default function ResourceForm({
         website: website.trim() || undefined,
       },
       price: price.trim() ? parseFloat(price.trim()) : null,
+      free_first_visit: freeFirstVisit || undefined,
       recommendation_reason: recommendationReason.trim() || undefined,
     }
 
@@ -480,6 +484,13 @@ export default function ResourceForm({
           )}
           <p className="mt-1 text-xs text-gray-500">Leave blank if the resource is free or pricing is not applicable.</p>
         </div>
+        <label className="flex items-start gap-2 text-sm text-gray-900">
+          <input type="checkbox" checked={freeFirstVisit} onChange={(e) => setFreeFirstVisit(e.target.checked)} className="mt-0.5 h-4 w-4" />
+          <span>
+            They offer a free first visit
+            <span className="block text-xs text-gray-600">The first visit or meeting costs nothing.</span>
+          </span>
+        </label>
       </section>
 
       {/* Photo */}

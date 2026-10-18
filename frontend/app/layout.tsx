@@ -19,6 +19,7 @@ import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
 import InfoModeProvider from './components/InfoModeProvider'
 import AnalyticsConsent from './components/AnalyticsConsent'
+import TermsNotice from './components/TermsNotice'
 
 /**
  * Typeface.
@@ -123,6 +124,7 @@ export default function RootLayout({
             <InstallPrompt />
             <AppWideTranslator />
             <Navigation />
+            <TermsNotice />
             <ViewTabs />
             <MovementTracker />
             <main>

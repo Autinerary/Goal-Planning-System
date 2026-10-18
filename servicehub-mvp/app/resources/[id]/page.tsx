@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { ratingAccess } from '@/lib/ratings/access'
 import { getResourceDetail, getSimilarResources } from '@/lib/supabase/queries'
 import { findSimilarResources } from '@/lib/supabase/vector-queries'
 import { findSimilarUsers } from '@/lib/supabase/vector-queries'
@@ -16,6 +18,8 @@ import ResourcePatterns from '@/components/resources/detail/ResourcePatterns'
 import SensoryPanel from '@/components/sensory/SensoryPanel'
 import DiagnosticsMatchBanner from '@/components/resources/detail/DiagnosticsMatchBanner'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
+import HiddenService from '@/components/resources/detail/HiddenService'
+import ServiceComments from '@/components/resources/detail/ServiceComments'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import type { Location } from '@/types/database'
 
@@ -64,6 +68,20 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
   const resource = await getResourceDetail(resourceId, user?.id)
 
   if (!resource) {
+    // Hidden by the rating sweep (Goal 5): shown only to those who may rate
+    // it, whose ratings can bring it back.
+    if (user?.id && /^[0-9a-f-]{36}$/i.test(resourceId)) {
+      const access = await ratingAccess(supabase, resourceId).catch(() => null)
+      if (access?.can_rate && !access.legacy) {
+        const { data: hidden } = await createAdminClient()
+          .from('resources')
+          .select('id, name, category, description')
+          .eq('id', resourceId)
+          .eq('status', 'hidden')
+          .maybeSingle()
+        if (hidden) return <HiddenService resource={hidden} />
+      }
+    }
     notFound()
   }
 
@@ -214,6 +232,8 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
             />
 
             <CommunityReviews resourceId={resourceId} userId={user?.id} />
+
+            <ServiceComments resourceId={resourceId} resourceName={resource.name} signedIn={Boolean(user?.id)} />
 
             <ResourcePatterns resourceId={resourceId} category={resource.category} />
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { computeAge, MIN_SIGNUP_AGE } from '@/lib/age'
+import { TERMS_VERSION } from '@/lib/legal'
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'under_age',
           message:
-            'Sorry, this app is only for those who are 18+ right now. Soon, we’ll have an option to sign in with a trusted legal adult!',
+            'Sorry, Autinerary is only for people 18 or older right now. A parent or legal guardian can add you from their own account, on their Family page.',
         },
         { status: 403 }
       )
@@ -59,6 +60,11 @@ export async function POST(req: NextRequest) {
     } catch {
       /* non-fatal */
     }
+
+    // The terms they agreed to by creating the account (STEP 79). Before the
+    // table exists this does nothing.
+    const accepted = await admin.from('terms_acceptances').insert({ user_id: data.user.id, version: TERMS_VERSION, via: 'signup' })
+    if (accepted.error && !/terms_acceptances/.test(accepted.error.message || '')) console.error('terms acceptance not recorded:', accepted.error.message)
 
     return NextResponse.json({ user: { id: data.user.id, email: data.user.email } })
   } catch (err: any) {

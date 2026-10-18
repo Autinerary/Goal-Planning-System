@@ -24,3 +24,12 @@ export const APP_CALENDAR = `${APP}/calendar`
 
 /** "How Autinerary uses AI", in the app's glossary. */
 export const APP_AI_HELP = `${APP}/help#ai`
+
+/** The app itself, for its own pages (Community's Choice, the newsletter, the terms). */
+export const APP_URL = APP
+
+/** The newsletter's sign-up, in the app (the vote for Community's Choice is in it). */
+export const APP_NEWSLETTER = `${APP}/newsletter`
+
+/** The Terms and Conditions, which cover both apps. */
+export const APP_TERMS = `${APP}/terms`

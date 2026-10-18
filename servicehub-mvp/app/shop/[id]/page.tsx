@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
+import NominateButton from '@/components/communityChoice/NominateButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const signedIn = Boolean(user)
 
   // "Based on those who matched your Diagnostics profile" — needs the viewer's
   // own norms, which they are always allowed to read.
@@ -89,6 +91,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           <div>
             {product.seller && <div className="text-xs text-gray-500 mb-1">{product.seller}</div>}
             <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+            {/* Community's Choice (Goal 5): its badge if it won, and nominating it. */}
+            <div className="mt-2">
+              <NominateButton itemId={product.id} itemName={product.name} signedIn={signedIn} />
+            </div>
             {(product.rating_count ?? 0) > 0 && (
               <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />

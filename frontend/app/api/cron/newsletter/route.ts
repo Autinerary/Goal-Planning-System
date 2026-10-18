@@ -5,6 +5,8 @@ import { postalAddress, tipFor, weeklyLinks } from '@/lib/newsletter'
 import { runWeeklyPicks } from '@/lib/weeklyPicks'
 import { pausedEmails } from '@/lib/pause'
 import { cronAuthorized } from '@/lib/cronAuth'
+import { choiceForNewsletter } from '@/lib/communityChoice'
+import { voteLink } from '@/lib/choiceLinks'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -16,7 +18,8 @@ export const maxDuration = 60
  * for the same address. Off until NEWSLETTER_POSTAL_ADDRESS is set, as
  * Canada's anti-spam law requires a mailing address in it. Each email has a
  * one-click unsubscribe (List-Unsubscribe) and is sent at most once in six
- * days per person.
+ * days per person. The month's last one carries each person's vote for
+ * Community's Choice (lib/communityChoice.ts), when anything was nominated.
  */
 export async function GET(req: NextRequest) {
   if (!cronAuthorized(req)) {
@@ -29,8 +32,9 @@ export async function GET(req: NextRequest) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin).replace(/\/$/, '')
   const now = new Date()
   const failures: string[] = []
+  const choice = await choiceForNewsletter(createAdminClient(), now).catch(() => null)
   // People with an account first: whoever gets theirs is skipped below.
-  const accounts = await runWeeklyPicks(now, appUrl).catch((e: any) => {
+  const accounts = await runWeeklyPicks(now, appUrl, choice).catch((e: any) => {
     failures.push(`accounts: ${e?.message || 'failed'}`)
     return null
   })
@@ -51,7 +55,8 @@ export async function GET(req: NextRequest) {
     const key = `${row.role || ''}.${row.need || ''}`
     if (!picks.has(key)) picks.set(key, await weeklyLinks(row.role, row.need, now, appUrl))
     const stop = `${appUrl}/newsletter/unsubscribe?t=${row.token}`
-    const { subject, html, text } = newsletterWeeklyEmail(picks.get(key)!, tip, stop, postal)
+    const vote = choice ? { month: choice.name, link: voteLink(appUrl, `s:${row.id}`, choice.month), nominees: choice.nominees } : null
+    const { subject, html, text } = newsletterWeeklyEmail(picks.get(key)!, tip, stop, postal, vote)
     const res = await sendEmail({
       to: row.email, subject, html, text,
       from: process.env.NEWSLETTER_FROM_EMAIL || undefined,
@@ -66,5 +71,5 @@ export async function GET(req: NextRequest) {
       await admin.from('newsletter_subscribers').update({ last_sent_at: now.toISOString() }).eq('id', row.id)
     } else if (!res.skipped) failures.push(`${row.id}: ${res.error}`)
   }
-  return NextResponse.json({ ok: true, sent, accounts: accounts?.sent ?? 0, failures: [...failures, ...(accounts?.failures || [])].slice(0, 10) })
+  return NextResponse.json({ ok: true, sent, accounts: accounts?.sent ?? 0, vote: choice?.month || null, failures: [...failures, ...(accounts?.failures || [])].slice(0, 10) })
 }

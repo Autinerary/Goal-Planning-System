@@ -20,6 +20,8 @@ import { isPaused } from '@/lib/pause'
 import { postalAddress, tipFor, weeklyLinks } from '@/lib/newsletter'
 import { HUB_URL } from '@/lib/starterItems'
 import { isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
+import type { ChoiceRun } from '@/lib/communityChoice'
+import { voteLink } from '@/lib/choiceLinks'
 
 const SIX_DAYS = 6 * 86400000
 const SAVED_SHOWN = 3
@@ -93,7 +95,7 @@ export interface WeeklyPicksResult {
 }
 
 /** This Monday's emails to everyone with an account who turned them on. */
-export async function runWeeklyPicks(now: Date, appUrl: string): Promise<WeeklyPicksResult> {
+export async function runWeeklyPicks(now: Date, appUrl: string, choice: ChoiceRun | null = null): Promise<WeeklyPicksResult> {
   const result: WeeklyPicksResult = { considered: 0, sent: 0, failures: [], addresses: new Set() }
   const postal = postalAddress()
   if (!emailEnabled() || !postal) return result
@@ -105,7 +107,7 @@ export async function runWeeklyPicks(now: Date, appUrl: string): Promise<WeeklyP
     .eq('preferences->weeklyPicks->>enabled', 'true')
   if (error) throw new Error(error.message)
 
-  const run: Run = { admin, now, appUrl, postal, tip: tipFor(now), picks: new Map() }
+  const run: Run = { admin, now, appUrl, postal, tip: tipFor(now), picks: new Map(), choice }
   for (const row of rows || []) {
     try {
       const outcome = await sendOne(run, row.id, (row.preferences as Record<string, any>) || {}, result.addresses)
@@ -128,6 +130,8 @@ interface Run {
   tip: string
   /** This week's picks for each kind of person, worked out once. */
   picks: Map<string, NewsletterLink[]>
+  /** In the month's last week: the vote for Community's Choice. */
+  choice: ChoiceRun | null
 }
 
 /** One person's email: 'skipped' when none is due, 'sent', or an error thrown. */
@@ -167,6 +171,7 @@ async function sendOne(run: Run, userId: string, prefs: Record<string, any>, add
     appUrl,
     unsubscribe: stopLink(appUrl, userId, code),
     postal: run.postal,
+    vote: run.choice ? { month: run.choice.name, link: voteLink(appUrl, `u:${userId}`, run.choice.month), nominees: run.choice.nominees } : null,
   })
   const res = await sendEmail({
     to: account.email,

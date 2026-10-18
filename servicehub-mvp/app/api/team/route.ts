@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { addToTeam, isMeeting, teamStates, undoAddToTeam } from '@/lib/team'
+import { addToTeam, cleanMeeting, isMeeting, readMeeting, scheduleMeeting, teamStates, undoAddToTeam } from '@/lib/team'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -8,10 +8,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
  * POST /api/team  { resourceId, meeting?: { date, day, time } }
  *   "Add to my team" (lib/team.ts): on the team, with a first meeting to book
  *   in the Autinerary calendar on the date the browser chose.
+ * PATCH /api/team  { resourceId, meeting: { date, day, time, type, link?, place?, freeFirstVisit? } }
+ *   The first meeting, scheduled: a video call, a phone call or in person.
  * DELETE /api/team?resourceId=&created=1
  *   Undo it.
  * GET /api/team?ids=a,b,c
  *   Where each of these services is on the person's team.
+ * GET /api/team?meeting=<resourceId>
+ *   The first meeting with this team member, as scheduled.
  */
 export async function POST(request: NextRequest) {
   const supabase = createClient()
@@ -33,6 +37,30 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('POST /api/team failed:', error?.message || error)
     return NextResponse.json({ error: 'Could not add them to your team. Please try again.' }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Sign in to schedule a meeting.' }, { status: 401 })
+
+  const body = await request.json().catch(() => ({}))
+  const resourceId = String(body?.resourceId || '')
+  if (!UUID.test(resourceId)) return NextResponse.json({ error: 'Which service?' }, { status: 400 })
+  const meeting = cleanMeeting(body?.meeting)
+  if (!meeting || !meeting.type) return NextResponse.json({ error: 'Choose how and when to meet.' }, { status: 400 })
+
+  const { data: resource } = await supabase.from('resources').select('id, name').eq('id', resourceId).maybeSingle()
+  if (!resource) return NextResponse.json({ error: 'That service could not be found.' }, { status: 404 })
+
+  try {
+    return NextResponse.json(await scheduleMeeting(supabase, user.id, resource, meeting))
+  } catch (error: any) {
+    console.error('PATCH /api/team failed:', error?.message || error)
+    return NextResponse.json({ error: 'Could not save the meeting. Please try again.' }, { status: 500 })
   }
 }
 
@@ -58,6 +86,11 @@ export async function GET(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const one = request.nextUrl.searchParams.get('meeting') || ''
+  if (one) {
+    if (!user || !UUID.test(one)) return NextResponse.json({ meeting: null })
+    return NextResponse.json({ meeting: await readMeeting(supabase, user.id, one) })
+  }
   if (!user) return NextResponse.json({ team: {} })
   const ids = (request.nextUrl.searchParams.get('ids') || '').split(',').filter((id) => UUID.test(id)).slice(0, 100)
   return NextResponse.json({ team: await teamStates(supabase, user.id, ids) })

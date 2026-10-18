@@ -111,6 +111,14 @@
     {
       "path": "/api/cron/service-loop",
       "schedule": "15 */6 * * *"
+    },
+    {
+      "path": "/api/cron/rating-sweep",
+      "schedule": "0 13 1 * *"
+    },
+    {
+      "path": "/api/cron/choice-tally",
+      "schedule": "30 5 1 * *"
     }
   ]
 }

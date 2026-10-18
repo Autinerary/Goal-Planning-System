@@ -6,9 +6,13 @@ import { showToast } from '@/lib/toast'
 import { formatErrorForUser } from '@/lib/errors/handler'
 import type { BarrierScores } from '@/types/database'
 import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
+import type { RatingAccess } from '@/lib/ratings/access'
+import RatingAccessPanel from './RatingAccessPanel'
 
 interface AddRatingModalProps {
   resourceId: string
+  /** For the proof email's subject, when someone cannot rate yet. */
+  resourceName?: string
   onClose: () => void
   onRatingAdded: () => void
 }
@@ -21,7 +25,7 @@ const barrierTypes = [
   { key: 'social', label: 'Social' },
 ]
 
-export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: AddRatingModalProps) {
+export default function AddRatingModal({ resourceId, resourceName, onClose, onRatingAdded }: AddRatingModalProps) {
   const [overallRating, setOverallRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [barrierScores, setBarrierScores] = useState<BarrierScores>({})
@@ -37,6 +41,17 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
   // turned that into an update. Load the existing rating so the UI tells the
   // truth about what pressing the button will do.
   const [existingRating, setExistingRating] = useState<any>(null)
+  // Whether they may rate (Goal 5): in their team, recommended, or used before.
+  const [access, setAccess] = useState<RatingAccess | null>(null)
+  const checkAccess = () =>
+    fetch(`/api/resources/${resourceId}/rating-access`, { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => setAccess(j?.access || null))
+      .catch(() => {})
+  useEffect(() => {
+    void checkAccess()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resourceId])
   useEffect(() => {
     fetch(`/api/resources/${resourceId}/ratings`, { cache: 'no-store', credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
@@ -130,7 +145,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-xl font-semibold text-gray-900">
-            {existingRating ? 'Edit Your Rating' : 'Add Your Rating'}
+            {access && access.signed_in && !access.can_rate ? 'Who can rate' : existingRating ? 'Edit Your Rating' : 'Add Your Rating'}
           </h2>
           <button
             onClick={onClose}
@@ -141,6 +156,9 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
           </button>
         </div>
 
+        {access && access.signed_in && !access.can_rate ? (
+          <RatingAccessPanel resourceId={resourceId} resourceName={resourceName} access={access} onCanRate={() => void checkAccess()} />
+        ) : (
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* How this rating gets categorized (norm · level) */}
           {diagnostics.length > 0 && (
@@ -307,6 +325,7 @@ export default function AddRatingModal({ resourceId, onClose, onRatingAdded }: A
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   )

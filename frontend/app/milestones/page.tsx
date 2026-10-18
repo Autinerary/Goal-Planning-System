@@ -10,6 +10,7 @@ import { resolveToolLink } from '@/lib/toolLink'
 import { goHubHref } from '@/lib/serviceHub'
 import { computeRaceProgress, fetchCompletedMilestoneIds, type ProgressMilestone } from '@/lib/raceProgress'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
+import { toast } from '../components/Toaster'
 
 const SERVICE_HUB_URL = process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001'
 
@@ -167,7 +168,15 @@ export default function MilestoneView() {
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({ resourceId, score: stars }),
-        }).catch(() => {})
+        })
+          .then(async (res) => {
+            // Kept here either way; ResourceHub's ratings need experience (Goal 5).
+            if (res.status === 403) {
+              const d = await res.json().catch(() => ({}))
+              if (d?.reason === 'not_eligible') toast.info('Saved here. To add it to ResourceHub’s ratings too, add it to your team there first.')
+            }
+          })
+          .catch(() => {})
       } catch { /* ignore */ }
     }
   }

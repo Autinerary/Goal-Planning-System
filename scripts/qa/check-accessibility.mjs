@@ -40,6 +40,8 @@ const SIGNED_OUT = [
   // The planning note, October 2026: a search read the way it was said, with
   // "Add to my team" on each result, and the campus pages.
   HUB + '/search?ai=1&q=' + encodeURIComponent('a quiet pool for my son near Kitchener'), HUB + '/campus',
+  // Goals 2 and 5: the terms, the newsletter's sign-up and Community's Choice.
+  APP + '/terms', APP + '/newsletter', APP + '/community-choice',
 ]
 const ALL = process.env.ALL === '1'
 if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')

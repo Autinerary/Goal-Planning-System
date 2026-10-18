@@ -290,6 +290,13 @@ export default function SignupPage() {
                 'Create your free account'
               )}
             </button>
+            {/* The terms, agreed to by creating the account (recorded with the account, lib/legal.ts). */}
+            <p className="text-center text-xs text-slate-700">
+              By creating an account you agree to the{' '}
+              <Link href="/terms" className="font-medium text-indigo-800 underline underline-offset-2">Terms and Conditions</Link>{' '}
+              and the{' '}
+              <Link href="/privacy" className="font-medium text-indigo-800 underline underline-offset-2">Privacy policy</Link>.
+            </p>
           </form>
         </div>
       </div>

@@ -11,6 +11,8 @@ import {
   ratingToReward,
 } from '@/lib/agents/shared/servicehub-learning'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { RATING_RULE, ratingAccess } from '@/lib/ratings/access'
 
 /**
  * Pull the barrier-type list to attribute a rating against. We prefer the
@@ -73,8 +75,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: error.userMessage }, { status: 401 })
     }
 
-    // Check if resource exists
-    const { data: resource, error: resourceError } = await supabase
+    // Rating comes from experience (Goal 5, lib/ratings/access.ts).
+    const access = await ratingAccess(supabase, params.id)
+    if (!access.can_rate) {
+      return NextResponse.json({ error: RATING_RULE, reason: 'not_eligible', access }, { status: 403 })
+    }
+
+    // Check if resource exists (read as the service: a hidden one, which
+    // its team members may still rate, is not readable to them).
+    const { data: resource, error: resourceError } = await createAdminClient()
       .from('resources')
       .select('id, name, status')
       .eq('id', params.id)
@@ -88,8 +97,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: error.userMessage }, { status: 404 })
     }
 
-    // Check if resource is approved
-    if (resource.status !== 'approved') {
+    // Check if resource is approved (or hidden by the rating sweep, which
+    // new ratings can bring back; not before STEP 79).
+    if (!(resource.status === 'approved' || (resource.status === 'hidden' && !access.legacy))) {
       const error = createAppError('This resource is not yet approved for ratings', 'validation', {
         statusCode: 400,
       })
@@ -349,21 +359,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Check if user is a rater (architecture requirement: only raters can rate)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_rater')
-          .eq('id', user.id)
-          .single()
-
-        if (!profile?.is_rater) {
-          return NextResponse.json(
-            {
-              error: 'Only authorized raters can submit ratings',
-              message: 'You must be authorized as a rater to submit ratings. All users can recommend resources, but only selected raters can rate them.',
-            },
-            { status: 403 }
-          )
+        // Rating comes from experience (Goal 5, lib/ratings/access.ts); one's
+        // own rating can always be edited. This replaces "only selected
+        // raters" (profiles.is_rater, set by hand with
+        // scripts/grant-rater-status.sql), which only editing checked.
+        const access = await ratingAccess(supabase, params.id)
+        if (!access.can_rate) {
+          return NextResponse.json({ error: RATING_RULE, reason: 'not_eligible', access }, { status: 403 })
         }
 
     const body = await request.json()

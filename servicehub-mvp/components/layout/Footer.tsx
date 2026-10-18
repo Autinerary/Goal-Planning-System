@@ -17,7 +17,7 @@ export default function Footer() {
               people like you.
             </p>
             <p className="text-xs text-gray-400">
-              © {currentYear} ResourceHub. All rights reserved.
+              © {currentYear} Autinerary Corp. All rights reserved.
             </p>
           </div>
 
@@ -70,6 +70,14 @@ export default function Footer() {
                   className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
                 >
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
+                >
+                  Terms and Conditions
                 </Link>
               </li>
             </ul>

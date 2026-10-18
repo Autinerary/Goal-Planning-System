@@ -81,6 +81,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Resource is not available for rating' }, { status: 400 })
   }
 
+  // Ratings come from experience (Goal 5; STEP 79's can_rate(), which the
+  // database checks too): in their team, recommended by them, or used before
+  // they joined. Before STEP 79 there is no check, as before.
+  const { data: access, error: accessError } = await supabase.rpc('rating_access', { p_resource: resourceId })
+  if (!accessError && access && (access as any).can_rate === false) {
+    return NextResponse.json(
+      {
+        error: 'You can rate a service in ResourceHub once it is in your team, if you recommended it, or if you used it before you joined and sent us proof.',
+        reason: 'not_eligible',
+      },
+      { status: 403 }
+    )
+  }
+
   // Upsert this user's rating for the resource.
   const { error } = await supabase
     .from('ratings')

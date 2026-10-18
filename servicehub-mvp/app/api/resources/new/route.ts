@@ -6,6 +6,17 @@ import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
 import { onResourceCreated } from '@/lib/embeddings/auto-generate'
 import type { Location, ContactInfo } from '@/types/database'
 import type { ValidationAgentInput } from '@/lib/agents/validation-agent/types'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+// Recommending a service lets the person rate it (Goal 5; STEP 79), so the
+// recommendation is written here, by the service, not by the browser.
+async function recordRecommendation(userId: string, resourceId: string, reason: string | null): Promise<boolean> {
+  const { error } = await createAdminClient()
+    .from('resource_recommendations')
+    .upsert({ user_id: userId, resource_id: resourceId, reason: reason ? reason.trim().slice(0, 500) || null : null }, { onConflict: 'user_id,resource_id', ignoreDuplicates: true })
+  if (error && !/resource_recommendations/.test(error.message || '')) console.error('recommendation not recorded:', error.message)
+  return !error
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -166,6 +177,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isDuplicate) {
+      const recommended = duplicateId ? await recordRecommendation(user.id, duplicateId, recommendation_reason) : false
       return NextResponse.json(
         {
           error: 'A resource with this name and location already exists',
@@ -175,6 +187,7 @@ export async function POST(request: NextRequest) {
           // a dead end -- people re-submit with a tweaked name to get past it,
           // which produces exactly the duplicate this check exists to stop.
           existingResourceId: duplicateId,
+          recommended,
         },
         { status: 409 }
       )
@@ -251,6 +264,13 @@ export async function POST(request: NextRequest) {
 
     if (!resource) {
       return NextResponse.json({ error: 'Failed to create resource' }, { status: 500 })
+    }
+
+    await recordRecommendation(user.id, resource.id, recommendation_reason)
+    // They offer a free first visit (Goal 2).
+    if (formData.get('free_first_visit') === 'true') {
+      const { error: tagError } = await supabase.from('resources').update({ tags: ['free_first_visit'] }).eq('id', resource.id)
+      if (tagError) console.error('free_first_visit not tagged:', tagError.message)
     }
 
     // Add to moderation queue if pending or flagged

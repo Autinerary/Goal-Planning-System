@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getRatingsByResource } from '@/lib/supabase/queries'
 
 type SortOption = 'date' | 'rating' | 'distance'
@@ -73,7 +74,26 @@ export async function GET(request: NextRequest) {
     // missing instead of letting it vanish without explanation. Nothing is
     // deleted: the saved_resources row is untouched and reappears by itself
     // if the resource is approved again.
-    const resolved = savedResources.filter((sr: any) => sr.resource)
+    const readable = savedResources.filter((sr: any) => sr.resource)
+    // Hidden by the monthly rating sweep (Goal 5): still shown to those who
+    // may rate it (a meeting arranged, signed on or completed), whose ratings
+    // can bring it back. Marked hidden for the page.
+    const teamMissing = savedResources
+      .filter((sr: any) => !sr.resource && (sr.status !== 'wishlist' || sr.calls_scheduled))
+      .map((sr: any) => sr.resource_id)
+    let hidden: any[] = []
+    if (teamMissing.length > 0) {
+      const { data } = await createAdminClient().from('resources').select('*').in('id', teamMissing).eq('status', 'hidden')
+      hidden = data || []
+    }
+    const back = savedResources
+      .filter((sr: any) => !sr.resource)
+      .map((sr: any) => {
+        const r = hidden.find((h) => h.id === sr.resource_id)
+        return r ? { ...sr, resource: r, hidden: true } : null
+      })
+      .filter(Boolean)
+    const resolved = [...readable, ...back]
     const unavailable = savedResources.length - resolved.length
 
     // Filter by category if provided

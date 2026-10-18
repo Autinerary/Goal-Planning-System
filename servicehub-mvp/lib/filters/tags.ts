@@ -26,10 +26,11 @@ export interface TagGroup {
 /** Kinds of service. */
 export const SERVICE_TAGS: Tag[] = [
   { id: 'funding', label: 'Funding resources', note: 'Help applying for financial assistance, or the assistance itself.' },
+  { id: 'free_first_visit', label: 'Free first visit', note: 'The first visit or meeting costs nothing.' },
   { id: 'new_to_country', label: 'New to the country' },
   { id: 'new_to_city', label: 'New to the city' },
   { id: 'large_resource_centre', label: 'Large-scale resource centre' },
-  { id: 'community_choice', label: "Community's choice" },
+  { id: 'community_choice', label: "Community's Choice", note: 'Chosen by the community: nominated through the month, voted for in the newsletter.' },
   { id: 'job_opportunities', label: 'Job opportunities' },
   { id: 'community_group', label: 'Community groups' },
   { id: 'charity', label: 'Charity' },
