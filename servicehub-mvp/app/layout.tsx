@@ -8,6 +8,7 @@ import ProfileSync from '@/components/layout/ProfileSync'
 import VisitTracker from '@/components/layout/VisitTracker'
 import { A11Y_SCRIPT } from '@/lib/a11y'
 import UserWay from '@/components/layout/UserWay'
+import InfoModeProvider from '@/components/layout/InfoModeProvider'
 
 export const metadata: Metadata = {
   title: "ResourceHub",
@@ -50,6 +51,7 @@ export default function RootLayout({
           <Suspense fallback={null}><ProfileSync /></Suspense>
           <VisitTracker />
           {children}
+          <InfoModeProvider />
         </AuthProvider>
         <Toaster
           position="top-right"

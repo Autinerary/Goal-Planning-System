@@ -119,6 +119,14 @@ class OutboundTextTests(unittest.TestCase):
         p = dict(FULL_PROFILE, preferences={"ageRange": "19"})
         self.assertNotIn("age band", self.text(profile=p))
 
+    def test_personality_only_from_known_bands(self):
+        text = build_embedding_text(["Autism"], ["Get a job"], {"personality": {"extraversion": "low", "openness": "high", "agreeableness": "very", "secret": "x@y.com"}})
+        self.assertIn("personality: extraversion low, openness high", text)
+        self.assertNotIn("very", text)
+        self.assertNotIn("x@y.com", text)
+        self.assertEqual(audit_embedding_text(text), [])
+        self.assertNotIn("personality", build_embedding_text(["Autism"], ["Get a job"], {"personality": "INTJ"}))
+
     def test_motivation_only_from_known_options(self):
         self.assertIn("motivation: intrinsic", self.text())
         p = dict(FULL_PROFILE, motivationType="my mum")

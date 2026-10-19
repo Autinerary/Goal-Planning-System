@@ -41,6 +41,27 @@ SERVICE_HUB_URL = os.getenv("SERVICE_HUB_URL", "http://localhost:3001")
 _SELF_NAME = re.compile(r"^\s*(autinerary|resource\s*hub|service\s*hub)\b", re.IGNORECASE)
 
 
+def cost_order(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """A step's suggestions, free first, then the cheapest, then cost unknown
+    (feedback, October 2026: "Recommend free (or if none, then cheapest)
+    resources first"). Only reorders the best matches; never adds one. Ties
+    keep their relevance order (the sort is stable)."""
+    def key(t: Dict[str, Any]):
+        price = t.get('price')
+        try:
+            price = float(price) if price is not None else None
+        except (TypeError, ValueError):
+            price = None
+        if t.get('costType') == 'free' or price == 0:
+            return (0, 0.0)
+        if price is not None and price > 0:
+            return (1, price)
+        if t.get('costType') == 'paid':
+            return (2, 0.0)
+        return (3, 0.0)
+    return sorted(tools, key=key)
+
+
 def is_self_listing(row: Dict[str, Any]) -> bool:
     """True for Autinerary's or ResourceHub's own listing."""
     return bool(row.get('is_first_party')) or bool(_SELF_NAME.match(str(row.get('name') or '')))
@@ -279,7 +300,7 @@ class ToolRecommendationAgent(BaseAgent):
             ranked.append(t)
 
         ranked.sort(key=lambda x: x.get('relevanceScore', 0), reverse=True)
-        return ranked[:6]
+        return cost_order(ranked[:6])
 
     async def _fetch_resource_pool(self) -> List[Dict[str, Any]]:
         """Load approved ServiceHub resources with their REAL rating figures.
@@ -301,21 +322,8 @@ class ToolRecommendationAgent(BaseAgent):
             self._resource_pool = []
             return []
 
-        try:
-            res = (
-                self.supabase.table('resources')
-                .select('id, name, description, category, contact_info, image_url, price, is_first_party')
-                .eq('status', 'approved')
-                .limit(500)
-                .execute()
-            )
-            rows = [r for r in (res.data or []) if not is_self_listing(r)]
-        except Exception as e:
-            print(f"[tool_recommendation] resources query failed — recommending nothing: {e}")
-            self._resource_pool = []
-            return []
-
-        # Real ratings, aggregated per resource.
+        # Real ratings, aggregated per resource (read first: the pool includes
+        # every rated resource).
         agg: Dict[str, Dict[str, float]] = {}
         try:
             rat = self.supabase.table('ratings').select('resource_id, overall_score').execute()
@@ -332,6 +340,38 @@ class ToolRecommendationAgent(BaseAgent):
             # means unrated resources, not fabricated ones.
             print(f"[tool_recommendation] ratings query failed, continuing unrated: {e}")
 
+        # The pool: the services checked by hand on their own websites
+        # (source_type 'operator') and everything people have rated. It used to
+        # be the first 500 approved rows in no order, out of about 36,000
+        # (mostly Ontario's open data), so suggestions came from an arbitrary
+        # slice that rarely held the checked services (feedback, October 2026:
+        # "This straight up doesn't work").
+        cols = 'id, name, description, category, contact_info, image_url, price, cost_type, is_first_party'
+        try:
+            try:
+                checked = (self.supabase.table('resources').select(cols)
+                           .eq('status', 'approved').eq('source_type', 'operator').limit(3000).execute()).data or []
+            except Exception:
+                cols = cols.replace(', cost_type', '')
+                checked = (self.supabase.table('resources').select(cols)
+                           .eq('status', 'approved').eq('source_type', 'operator').limit(3000).execute()).data or []
+            have = {r.get('id') for r in checked}
+            rated_ids = [rid for rid in agg if rid not in have]
+            rated: List[Dict[str, Any]] = []
+            for i in range(0, len(rated_ids), 100):
+                part = (self.supabase.table('resources').select(cols)
+                        .eq('status', 'approved').in_('id', rated_ids[i:i + 100]).execute()).data or []
+                rated.extend(part)
+            rows = checked + rated
+            if not rows:
+                rows = (self.supabase.table('resources').select(cols)
+                        .eq('status', 'approved').limit(500).execute()).data or []
+            rows = [r for r in rows if not is_self_listing(r)]
+        except Exception as e:
+            print(f"[tool_recommendation] resources query failed — recommending nothing: {e}")
+            self._resource_pool = []
+            return []
+
         pool: List[Dict[str, Any]] = []
         for r in rows:
             rid = r.get('id')
@@ -345,6 +385,7 @@ class ToolRecommendationAgent(BaseAgent):
                 'url': contact.get('website') or f"{SERVICE_HUB_URL}/resources/{rid}",
                 'imageUrl': r.get('image_url'),
                 'price': r.get('price'),
+                'costType': r.get('cost_type'),
                 # REAL figures, or honest absence.
                 'rating': round(a['sum'] / a['count'], 2) if a and a['count'] else None,
                 'reviews': int(a['count']) if a else 0,

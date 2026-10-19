@@ -92,8 +92,18 @@ function buildPrompt(input: {
     .join(' ')
 }
 
+// Dream Self pictures are made with the look editors on the Ideal Self page
+// now, not by AI (Odosa, October 2026: "replace the AI image generation with
+// the customization of look like for your avatar"). Nothing calls this any
+// more; it answers "gone" and never reaches OpenAI. Earlier pictures stay
+// readable through GET.
+const AI_PICTURES_OFF = true
+
 // ── POST: generate + persist ──────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  if (AI_PICTURES_OFF) {
+    return NextResponse.json({ error: 'Dream Self pictures are made with the look editor on the Ideal Self page now.', code: 'gone' }, { status: 410 })
+  }
   const supabase = createServerSupabase()
   const {
     data: { user },

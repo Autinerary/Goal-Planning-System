@@ -10,6 +10,7 @@ import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
 import GoogleSignIn from '../components/GoogleSignIn'
 import PublicDisplay from '../components/PublicDisplay'
+import { TEEN_REQUESTS_ON } from '@/lib/trustedAdult'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -22,6 +23,9 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Under 18: ask a trusted adult (STEP 84), when the team has turned it on.
+  const [adultEmail, setAdultEmail] = useState('')
+  const [asked, setAsked] = useState('')
 
   useEffect(() => {
     track('signup_view')
@@ -59,6 +63,23 @@ export default function SignupPage() {
     // 18+ gate (also enforced server-side).
     if (!dob) {
       setError('Please enter your date of birth.')
+      return
+    }
+    if (!isAdult(dob) && TEEN_REQUESTS_ON) {
+      if (!adultEmail.trim()) {
+        setError('Enter the email of your parent or legal guardian.')
+        return
+      }
+      setIsSubmitting(true)
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password, name, dateOfBirth: dob, trustedAdultEmail: adultEmail.trim().toLowerCase() }),
+      }).catch(() => null)
+      const j = await res?.json().catch(() => null)
+      setIsSubmitting(false)
+      if (!res?.ok) { setError(j?.error || 'That didn’t work. Please try again.'); return }
+      setAsked(j?.message || 'We have asked them. You can sign in once they approve.')
       return
     }
     if (!isAdult(dob)) {
@@ -179,7 +200,7 @@ export default function SignupPage() {
             </div>
 
             {/* Under-18 explainer */}
-            {underAge && (
+            {underAge && !TEEN_REQUESTS_ON && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 <p className="font-semibold mb-0.5">Under 18?</p>
                 <p>
@@ -187,6 +208,24 @@ export default function SignupPage() {
                   set things up for you. Ask them to sign up, then add you from their <strong>Family</strong> page.
                 </p>
               </div>
+            )}
+            {underAge && TEEN_REQUESTS_ON && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <p className="font-semibold mb-0.5">Under 18? Ask a trusted adult</p>
+                <p>
+                  Your parent or legal guardian approves your account from theirs. They need an Autinerary account. Until
+                  they approve, your account stays locked.
+                </p>
+                <label htmlFor="signup-adult-email" className="mt-2 block font-medium text-slate-900">
+                  Their email {required}
+                </label>
+                <input id="signup-adult-email" type="email" autoComplete="off" value={adultEmail} onChange={(e) => setAdultEmail(e.target.value)} className={`${field} mt-1`} />
+              </div>
+            )}
+            {asked && (
+              <p role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-950">
+                {asked}
+              </p>
             )}
 
             {/* Email */}

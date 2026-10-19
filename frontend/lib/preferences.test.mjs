@@ -35,3 +35,16 @@ assert.equal(colourStrengthOf({ colorStrength: 'brightest' }), 'brightest')
 assert.equal(colourStrengthOf({ colorStrength: 'loud' }), 'usual')
 
 console.log('preferences: ok')
+
+// How you see the screen: what it turns on (and never off).
+{
+  const { visionSettings } = await import('./preferences.ts')
+  const assertMod = (await import('node:assert/strict')).default
+  assertMod.deepEqual(visionSettings('blind', false), { vision: 'blind', screenReader: false, voiceNavigation: true, readAloud: true, spokenDescriptions: true })
+  // With a screen reader, it already speaks: no spoken descriptions on top.
+  assertMod.deepEqual(visionSettings('blind', true), { vision: 'blind', screenReader: true, voiceNavigation: true, readAloud: true })
+  assertMod.deepEqual(visionSettings('low', false).spokenDescriptions, true)
+  // No answer changes nothing else.
+  assertMod.deepEqual(visionSettings('', false), { vision: '', screenReader: false })
+  console.log('preferences vision: ok')
+}

@@ -180,6 +180,10 @@ def build_goals_text(goals: Iterable[object]) -> str:
     return "goals: " + "; ".join(parts)
 
 
+PERSONALITY_TRAITS = ("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness")
+PERSONALITY_BANDS = ("low", "middle", "high")
+
+
 def _age_band(profile: dict) -> Optional[str]:
     for source in (profile.get("preferences") or {}, profile.get("demographics") or {}):
         if isinstance(source, dict):
@@ -199,6 +203,14 @@ def build_embedding_text(barriers, goals, profile: Optional[dict] = None) -> str
     motivation = str(profile.get("motivationType") or "").strip().casefold()
     if motivation in MOTIVATIONS:
         parts.append(f"motivation: {motivation}")
+    # Personality bands, when given (Big Five; fixed words only): so similar
+    # people are found by norms and personality together, the intersection
+    # the team asked Pattern Recognition to watch (October 2026).
+    personality = profile.get("personality")
+    if isinstance(personality, dict):
+        bands = [f"{t} {personality[t]}" for t in PERSONALITY_TRAITS if personality.get(t) in PERSONALITY_BANDS]
+        if bands:
+            parts.append("personality: " + ", ".join(bands))
     return ". ".join(parts) + "."
 
 
@@ -249,5 +261,6 @@ def _allowed_output_words() -> set:
         words |= set(" ".join(AGE_BANDS).split()) | MOTIVATIONS
         words |= {"conditions", "none", "shared", "goals", "personal", "goals",
                   "age", "band", "motivation", "a", "self-described", "difference"}
+        words |= {"personality"} | set(PERSONALITY_TRAITS) | set(PERSONALITY_BANDS)
         _ALLOWED_CACHE = words
     return _ALLOWED_CACHE

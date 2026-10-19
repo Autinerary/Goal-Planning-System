@@ -25,7 +25,26 @@ export interface SupportContext {
   biggestChallengeResponse: string
   recentChallenge: string
   recentChallengeResponse: string
+  /** How communication works (Odosa, October 2026: "verbal vs. non-verbal"), for everyone, not only autism. */
+  communication?: CommunicationChoice
+  /** What helps them communicate, in their words (an AAC app, sign, writing…). */
+  communicationTools?: string
 }
+
+export type CommunicationChoice = '' | 'speaking' | 'some_speech' | 'non_speaking' | 'prefer_not_to_say'
+
+/**
+ * Speaking, some speech, or not using speech, asked of everyone (many people
+ * communicate without speech some or all of the time, for many reasons).
+ * "Non-speaking" and "minimally speaking" rather than "non-verbal": many
+ * people who don't speak use language every day, by AAC, sign or writing.
+ */
+export const COMMUNICATION_OPTIONS: { id: Exclude<CommunicationChoice, ''>; label: string; hint: string }[] = [
+  { id: 'speaking', label: 'Speaks', hint: 'Uses speech to communicate.' },
+  { id: 'some_speech', label: 'Speaks some of the time, or a little', hint: 'Minimally speaking, or speech that comes and goes, for example under stress.' },
+  { id: 'non_speaking', label: 'Doesn’t use speech', hint: 'Non-speaking: communicates with AAC, sign, writing, pictures or gestures.' },
+  { id: 'prefer_not_to_say', label: 'Prefer not to say', hint: '' },
+]
 
 export interface DiagnosticProfile {
   version: 1
@@ -52,6 +71,8 @@ export interface RecommendationSupportContext {
   biggestChallengeResponse: string
   recentChallenge: string
   recentChallengeResponse: string
+  /** How they communicate, in a sentence the planner can use; '' when not said. */
+  communication?: string
 }
 
 export interface ConditionOption {
@@ -87,6 +108,17 @@ export const EMPTY_SUPPORT_CONTEXT: SupportContext = {
   biggestChallengeResponse: '',
   recentChallenge: '',
   recentChallengeResponse: '',
+  communication: '',
+  communicationTools: '',
+}
+
+/** The planner's sentence for how someone communicates; '' when not said. */
+export function communicationSentence(choice: CommunicationChoice | undefined, tools = ''): string {
+  const helps = tools.trim() ? ` What helps: ${tools.trim().slice(0, 200)}.` : ''
+  if (choice === 'speaking') return tools.trim() ? `Speaks.${helps}` : ''
+  if (choice === 'some_speech') return `Speaks some of the time or a little; offer written, AAC or text options, and never require a phone call.${helps}`
+  if (choice === 'non_speaking') return `Doesn't use speech (non-speaking); every step must work by AAC, writing or text, with no phone calls or spoken interviews required.${helps}`
+  return ''
 }
 
 export const EMPTY_DIAGNOSTIC_PROFILE: DiagnosticProfile = {
@@ -118,6 +150,7 @@ export function toRecommendationSupportContext(
     biggestChallengeResponse: support.biggestChallengeResponse.trim().slice(0, 1000),
     recentChallenge: support.recentChallenge.trim().slice(0, 1000),
     recentChallengeResponse: support.recentChallengeResponse.trim().slice(0, 1000),
+    communication: communicationSentence(support.communication, support.communicationTools || '').slice(0, 300),
   }
 
   return context.conditionSupportNotes.length > 0 ||

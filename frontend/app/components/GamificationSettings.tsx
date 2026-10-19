@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePreferences } from '../context/usePreferences'
-import { ANIMAL_COLORS, ANIMAL_TYPES, WEEKDAYS, normalizeGamification, type GamificationPreferences } from '@/lib/gamification'
+import { ANIMAL_COLORS, ANIMAL_TYPES, SPIRIT_MODES, WEEKDAYS, normalizeGamification, slotCount, slotLabel, type GamificationPreferences } from '@/lib/gamification'
 
 export function useGamification() {
   const { prefs, update, saveError } = usePreferences()
@@ -30,20 +30,34 @@ export default function GamificationSettings() {
     <h2 id="spirit-animals-heading" className="mb-1 text-xl font-semibold text-slate-900">Spirit animals and themes</h2>
     <p className="mb-4 text-sm text-slate-700">Spirit animals are friendly guides shown at the top of your Path: one for every day, one for busy and one for lighter days, or one per weekday.</p>
     {saveError && <p role="alert" className="mb-3 text-sm text-red-700">{saveError}</p>}
-    <div className="grid gap-4 sm:grid-cols-2">
-      <label className="text-sm">Spirit animals (0-7)<input aria-label="Number of spirit animals" type="number" min={0} max={7} value={value.animals.length} onChange={event => {
-        const count = Math.max(0, Math.min(7, Math.trunc(Number(event.target.value) || 0)))
-        patch({ animals: Array.from({ length: count }, (_, index) => value.animals[index] || { type: '', color: 'orange' }) })
-      }} className="mt-1 block w-full rounded border p-2" /></label>
-      <label className="text-sm">Animal assignment<select value={value.mode} onChange={event => patch({ mode: event.target.value as GamificationPreferences['mode'] })} className="mt-1 block w-full rounded border p-2"><option value="general">General</option><option value="fastSlow">Fast / slow</option><option value="weekly">Weekdays</option></select></label>
-    </div>
+    {/* One choice decides how many animals there are: one, two (fast and slow
+        days) or seven (the week). A separate count and mode let the labels say
+        "Fast day" for a single animal, and the 1/2 or 1/7 counts only
+        appeared after choosing one animal first (Odosa, October 2026). */}
+    <fieldset>
+      <legend className="text-sm font-medium text-slate-900">How many spirit animals?</legend>
+      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        {SPIRIT_MODES.map((m) => (
+          <label key={m.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${value.mode === m.id ? 'border-slate-900 bg-slate-50' : 'border-slate-300'}`}>
+            <input type="radio" name="spirit-mode" value={m.id} checked={value.mode === m.id} onChange={() => patch({ mode: m.id })} className="mt-0.5 h-4 w-4" />
+            <span><span className="block font-medium text-slate-900">{m.label}</span><span className="text-slate-700">{m.note}</span></span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      {value.animals.map((animal, index) => <fieldset key={index} className="flex min-w-0 flex-wrap items-center gap-2 border-b pb-3">
-        <legend className="mb-1 text-sm font-medium">{value.mode === 'weekly' ? WEEKDAYS[index] : value.mode === 'fastSlow' && index < 2 ? index === 0 ? 'Fast day' : 'Slow day' : index === 0 ? 'General guide' : `Unassigned guide ${index + 1}`}</legend>
-        {animal.type && <img src={`/spirit-animals/${animal.type}.png`} alt="" width={40} height={40} style={{ filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
-        <select aria-label={`Animal ${index + 1}`} value={animal.type} onChange={event => patch({ animals: value.animals.map((item, position) => position === index ? { ...item, type: event.target.value } : item) })} className="max-w-full rounded border p-2 text-sm"><option value="">Not assigned</option>{ANIMAL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}</select>
-        <div role="group" aria-label={`Animal ${index + 1} color`} className="flex flex-wrap gap-2">{Object.keys(ANIMAL_COLORS).map(color => <button key={color} type="button" title={color} aria-label={`Animal ${index + 1}: ${color}`} aria-pressed={animal.color === color} onClick={() => patch({ animals: value.animals.map((item, position) => position === index ? { ...item, color } : item) })} className={`h-6 w-6 rounded-full border-2 ${animal.color === color ? 'border-slate-900 ring-2 ring-offset-2 ring-slate-600' : 'border-slate-300'}`} style={{ backgroundColor: color }} />)}</div>
-      </fieldset>)}
+      {Array.from({ length: slotCount(value.mode) }, (_, index) => {
+        const animal = value.animals[index] || { type: '', color: 'orange' }
+        const label = slotLabel(value.mode, index)
+        // Choosing for a slot fills any empty ones before it, so the order holds.
+        const setSlot = (change: Partial<typeof animal>) => patch({ animals: Array.from({ length: Math.max(value.animals.length, index + 1) }, (_, position) => position === index ? { ...animal, ...change } : value.animals[position] || { type: '', color: 'orange' }) })
+        return <fieldset key={`${value.mode}-${index}`} className="flex min-w-0 flex-wrap items-center gap-2 border-b pb-3">
+          <legend className="mb-1 text-sm font-medium">{label}</legend>
+          {animal.type && <img src={`/spirit-animals/${animal.type}.png`} alt="" width={40} height={40} style={{ filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
+          <select aria-label={label} value={animal.type} onChange={event => setSlot({ type: event.target.value })} className="max-w-full rounded border p-2 text-sm"><option value="">Not chosen yet</option>{ANIMAL_TYPES.map(type => <option key={type} value={type}>{type}</option>)}</select>
+          <div role="group" aria-label={`${label}: colour`} className="flex flex-wrap gap-2">{Object.keys(ANIMAL_COLORS).map(color => <button key={color} type="button" title={color} aria-label={`${label}: ${color}`} aria-pressed={animal.color === color} onClick={() => setSlot({ color })} className={`h-6 w-6 rounded-full border-2 ${animal.color === color ? 'border-slate-900 ring-2 ring-offset-2 ring-slate-600' : 'border-slate-300'}`} style={{ backgroundColor: color }} />)}</div>
+        </fieldset>
+      })}
     </div>
     <label className="mt-6 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => patch({ yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Monthly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-3">{Array.from({ length: 12 }, (_, index) => <label key={index} className="text-sm">{new Date(2026, index, 1).toLocaleString('en', { month: 'long' })}<input maxLength={100} value={value.monthlyThemes[index] || ''} onChange={event => setTheme('monthlyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>

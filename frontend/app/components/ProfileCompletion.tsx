@@ -98,6 +98,7 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
     theme: prefs.layout?.theme,
     reminders: prefs.reminders,
     firstWeeks: prefs.firstWeeks,
+    personality: prefs.personality,
   }
   const { done, todo } = profileProgress(state)
 
@@ -152,6 +153,7 @@ export default function ProfileCompletion({ variant = 'path' }: { variant?: 'pat
       ].filter(Boolean)
       return names.join('; ')
     }
+    if (id === 'personality') return prefs.personality?.skipped ? 'Not for me' : Object.keys(prefs.personality?.profile || {}).length ? 'Answered' : ''
     if (id === 'reminders' && prefs.firstWeeks?.enabled) return 'On: three emails about your first two weeks'
     if (id === 'reminders' && prefs.reminders?.enabled) {
       const until = prefs.reminders.until

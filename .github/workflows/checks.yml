@@ -58,7 +58,7 @@ jobs:
           cache-dependency-path: servicehub-mvp/package-lock.json
       - name: Shop taxonomy (the two apps' copies match)
         run: node ../scripts/qa/check-taxonomy.mjs
-      - name: Sponsored listings (the two apps' copies match)
+      - name: Shared code (sponsored listings, Info Mode; the two apps' copies match)
         run: node ../scripts/qa/check-sponsored.mjs
       - run: npm ci
       - name: Type check

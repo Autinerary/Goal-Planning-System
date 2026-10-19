@@ -5,6 +5,7 @@ import { usePreferences } from '../context/usePreferences'
 import type { AccessibilitySettings, FontScale } from '@/lib/preferences'
 import { trackDisplayChoice, type DisplayChoice } from '@/lib/displayChoices'
 import ColourSettings from './ColourSettings'
+import SkySettings from './SkySettings'
 
 /**
  * "Pick your settings" (Riipen Labs, Group 34, slide 25): light or dark,
@@ -89,6 +90,7 @@ export default function QuickSettings({ embedded = false }: { embedded?: boolean
           colour schemes"). */}
       <div className="mb-4">
         <ColourSettings compact idPrefix="qs-colours" />
+        <SkySettings idPrefix="qs-sky" />
       </div>
 
       {/* Calm motion (Riipen Labs, Group 22: "sensory control before the

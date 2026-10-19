@@ -12,10 +12,15 @@
  *
  *   action     normal app. THE DEFAULT — nobody is opted into a changed
  *              interaction model without asking for it.
- *   info       first click explains, second click runs it.
- *   infoAction first click explains, second click runs it.
+ *   info       every time: the first click explains, the second runs it.
+ *   infoAction the first time only: a control is explained once, then it
+ *              works with one click (remembered on this device), so what
+ *              has been learned stops getting in the way.
  *
- * Cycle: action → info → infoAction → action.
+ * Cycle: action → info → infoAction → action (Odosa, October 2026: "If
+ * selected, the first click of every action should give a description …
+ * selected again, Info + Action Mode … a third time, action mode … on 4th
+ * click cycles back to Info Mode. Have this on action mode to start").
  *
  * Descriptions come from a `data-info` attribute on (or above) the element, so
  * a control without one says plainly that it has no description rather than a
@@ -38,11 +43,11 @@ export const INFO_MODE_META: Record<InfoMode, { label: string; description: stri
   },
   info: {
     label: 'Info Mode',
-    description: 'First click explains. Click the same control again to use it.',
+    description: 'Every click explains first. Click the same thing again to use it.',
   },
   infoAction: {
     label: 'Info + Action Mode',
-    description: 'First tap explains a button. Tap again to actually use it.',
+    description: 'New things are explained once. After that, they work with one click.',
   },
 }
 
@@ -64,6 +69,33 @@ export function setInfoMode(mode: InfoMode): void {
     window.dispatchEvent(new CustomEvent(INFO_MODE_EVENT))
   } catch {
     /* quota or blocked storage — the mode simply will not persist */
+  }
+}
+
+const KNOWN_KEY = 'autinerary_info_known'
+
+/** A control's name for "already explained": its data-info, or its label, with the page. */
+export function controlKey(el: Element, path: string): string {
+  const info = (el.closest('[data-info]') as HTMLElement | null)?.dataset.info || ''
+  const { title } = describeElement(el)
+  return `${path.split('?')[0]}|${(info || title).slice(0, 120)}`
+}
+
+/** Explained before, in Info + Action Mode (this device only). */
+export function isKnown(key: string): boolean {
+  try {
+    return (JSON.parse(window.localStorage.getItem(KNOWN_KEY) || '[]') as string[]).includes(key)
+  } catch {
+    return false
+  }
+}
+
+export function markKnown(key: string): void {
+  try {
+    const known = JSON.parse(window.localStorage.getItem(KNOWN_KEY) || '[]') as string[]
+    if (!known.includes(key)) window.localStorage.setItem(KNOWN_KEY, JSON.stringify([...known, key].slice(-500)))
+  } catch {
+    /* blocked storage: it is explained again next time, which is safe */
   }
 }
 

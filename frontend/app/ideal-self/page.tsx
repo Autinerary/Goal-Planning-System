@@ -3,15 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Target, Users, Loader2 } from 'lucide-react'
+import { ArrowLeft, Sparkles, Target, Users } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import { useAuth } from '../context/AuthContext'
 import AvatarEditor, { type Appearance } from '../components/AvatarEditor'
 import { usePreferences } from '../context/usePreferences'
 import { DEFAULT_HAIR_COLOR, DEFAULT_SKIN_TONE } from '@/lib/avatar'
 import DreamGoals from './DreamGoals'
+import SupportedDream from './SupportedDream'
 
-type Portrait = { imageUrl: string; prompt?: string; style?: string; updatedAt?: string }
+// Who the "Dreams for…" section is about, by "Who are you here for?" (lib/audiences.ts).
+const SUPPORTED_WHO: Record<string, string> = { child: 'your child', family: 'your family member', friend: 'your friend', work: 'the person you support' }
+
 // value is null when the API has no signal for that stat yet. The bar
 // renders as a dash rather than an empty-but-scored-looking zero.
 type Stat = { name: string; value: number | null; max: number }
@@ -104,29 +107,16 @@ export default function IdealSelfPage() {
   // Names only, so the card keeps its shape while the real values load.
   const STAT_NAMES = ['Mentality', 'Happiness', 'Focus', 'Activity']
 
-  // Portrait state.
-  const [portrait, setPortrait] = useState<Portrait | null>(null)
-  const [loadingSaved, setLoadingSaved] = useState(true)
+  // The AI portrait is replaced by the look editors (Odosa, October 2026:
+  // "replace the AI image generation with the customization of look like
+  // for your avatar"). Pictures made before stay stored; they aren't shown.
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      if (!isSignedIn) { setLoadingSaved(false); return }
-      try {
-        const res = await fetch('/api/me/ideal-self', { cache: 'no-store', credentials: 'include' })
-        if (res.ok) {
-          const j = await res.json()
-          if (cancelled) return
-          if (j?.portrait) setPortrait(j.portrait)
-        }
-      } catch {
-        /* ignore */
-      } finally {
-        if (!cancelled) setLoadingSaved(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [isSignedIn])
+  // Someone here for another person also dreams for them (Odosa and Eli).
+  const supportedWho = SUPPORTED_WHO[prefs.audience || ''] || null
+  const parentFirst = prefs.audience === 'child'
+  const supportedSection = supportedWho ? (
+    <SupportedDream who={supportedWho} saved={prefs.supported} fallback={defaultAppearance} onSave={(supported) => update({ supported })} />
+  ) : null
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
@@ -149,6 +139,7 @@ export default function IdealSelfPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {parentFirst && supportedSection}
           <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-4">
             <AvatarEditor title="Your character" hint="Shown on your race track, at the step you're on." full value={character} onChange={appearance => update({ character: appearance })} />
             <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
@@ -161,11 +152,9 @@ export default function IdealSelfPage() {
               </label>
               <AvatarEditor title="Alternate Persona appearance" value={persona.appearance} onChange={appearance => update({ alternatePersona: { ...persona, appearance } })} />
             </div>
-            {portrait && <details className="sm:col-span-2">
-              <summary className="cursor-pointer text-sm">Previously saved portrait</summary>
-              <img src={portrait.imageUrl} alt="Previously saved Dream Self portrait" className="mt-3 aspect-square w-48 object-cover" />
-            </details>}
           </section>
+          {/* Theirs after yours, except for a parent or guardian, where it comes first. */}
+          {!parentFirst && supportedSection}
 
           {/* Your biggest dream, beyond any one goal. It was the last
               question of setup's goal step until Riipen Labs, Group 17 found
@@ -295,11 +284,6 @@ export default function IdealSelfPage() {
           </div>
         </div>
 
-        {loadingSaved && (
-          <div className="mt-4 flex items-center justify-center text-slate-400 text-xs gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" /> Loading your Ideal Self…
-          </div>
-        )}
       </div>
     </div>
   )

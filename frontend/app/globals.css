@@ -57,6 +57,21 @@ body {
 }
 
 
+/* The adjustable sky (components/SkyBackdrop.tsx, lib/sky.ts): sized like
+   the page background above, cover, and on a phone pinned to the top at its
+   own proportions so the clouds stay clouds. */
+.sky-clouds {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+@media (max-width: 640px) {
+  .sky-clouds {
+    background-size: 100% auto;
+    background-position: top center;
+  }
+}
+
 /* ── Accessibility settings (driven by data-attributes on <html>) ── */
 /* Font scaling — rem-based so the whole UI scales proportionally. */
 html[data-font-scale="large"] { font-size: 18px; }

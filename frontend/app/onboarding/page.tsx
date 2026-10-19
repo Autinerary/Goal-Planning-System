@@ -21,6 +21,7 @@ import { wakeBackend } from '@/lib/wakeBackend'
 import { START_FOR_KEY, START_NEED_KEY, START_GOALS, isStartGoal, isStartRole, suggestedStart } from '@/lib/startHere'
 import GoalHelper from '@/app/components/GoalHelper'
 import { GOAL_AREAS, isGoalArea } from '@/lib/goalAreas'
+import { workingStyleFor } from '@/lib/personality'
 import ChatSetup from '@/app/components/ChatSetup'
 import { AUDIENCES, AUDIENCE_GROUPS, AUDIENCE_VALUE, AUDIENCE_EFFECT } from '@/lib/audiences'
 import { browserTimeZone } from '@/lib/reminderSchedule'
@@ -1031,7 +1032,14 @@ export default function OnboardingPage() {
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         // Asked on the "Complete your profile" card now; the first one, as setup sent it.
         motivationType: saved.motivation?.types?.[0] || formData.motivationType,
-        supportContext: agentSupportContext,
+        // How steps are written for them, from the optional personality
+        // statements (lib/personality.ts): the planner adds it to its
+        // strategies; Pattern Recognition matches on the bands.
+        supportContext: (() => {
+          const style = workingStyleFor(loadPreferences().personality?.profile, selectedBarrierTypes)
+          return style ? { ...(agentSupportContext || {}), workingStyle: style } : agentSupportContext
+        })(),
+        personality: loadPreferences().personality?.skipped ? null : loadPreferences().personality?.profile || null,
         // Who the plan is for: a parent's plan is about supporting their child,
         // never the parent's own career (Riipen Labs, Group 24;
         // backend/core/agents/path_planning_agent.py).
@@ -1870,17 +1878,39 @@ export default function OnboardingPage() {
                             const forThem = `What do you hope this leads to for ${otherPersonLabel}?`
                             const forYou = 'What do you hope this leads to for you?'
                             const fields: Array<{ key: 'dreams' | 'selfDream'; label: string }> = [{ key: 'dreams', label: hasOtherPerson ? forThem : forYou }]
+                            // Your own hopes stay, when you have a norm too (Odosa,
+                            // with Eli's feedback): yours first, theirs second,
+                            // except for a parent or guardian, where theirs comes first.
                             if (hasOtherPerson && formData.barrierConnections.self?.length) {
                               const selfField = { key: 'selfDream' as const, label: forYou }
                               if (formData.barrierConnections.parent !== undefined) fields.push(selfField)
                               else fields.unshift(selfField)
                             }
-                            return fields.map(field => (
-                              <label key={field.key} className="ml-4 mb-2 block text-xs font-medium text-purple-600">
-                                {field.label} (optional)
-                                <input value={entry[field.key] || ''} onChange={event => setFormData(previous => ({ ...previous, goalsByCategory: { ...previous.goalsByCategory, [cat.id]: previous.goalsByCategory[cat.id].map((goal, index) => index === idx ? { ...goal, [field.key]: event.target.value } : goal) } }))} placeholder="For example: more confidence, or a job they enjoy" className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" />
-                              </label>
-                            ))
+                            const example = (GOAL_AREAS.find(area => area.id === cat.id) as { dream?: string } | undefined)?.dream
+                            return (<>
+                              {hasOtherPerson && (
+                                <label className="ml-4 mb-2 flex items-center gap-2 text-xs font-medium text-slate-800">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!formData.barrierConnections.self?.length}
+                                    onChange={event => setFormData(previous => {
+                                      const next = { ...previous.barrierConnections }
+                                      if (event.target.checked) next.self = ['self']
+                                      else delete next.self
+                                      return { ...previous, barrierConnections: next }
+                                    })}
+                                    className="h-4 w-4"
+                                  />
+                                  I have a norm too: ask about my own hopes as well
+                                </label>
+                              )}
+                              {fields.map(field => (
+                                <label key={field.key} className="ml-4 mb-2 block text-xs font-medium text-purple-600">
+                                  {field.label} (optional)
+                                  <input value={entry[field.key] || ''} onChange={event => setFormData(previous => ({ ...previous, goalsByCategory: { ...previous.goalsByCategory, [cat.id]: previous.goalsByCategory[cat.id].map((goal, index) => index === idx ? { ...goal, [field.key]: event.target.value } : goal) } }))} placeholder={example ? `For example: ${example}` : 'For example: more confidence'} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700" />
+                                </label>
+                              ))}
+                            </>)
                           })()}
 
                           {/* Ideal relationship — second option when the goal

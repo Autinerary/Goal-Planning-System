@@ -23,7 +23,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Render', does: 'Runs our planning service', gets: 'What is needed to create and adapt your plan' },
   {
     name: 'OpenAI',
-    does: 'Writes plans and suggestions, and creates Dream Self pictures',
+    does: 'Writes plans and suggestions',
     gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
@@ -37,6 +37,11 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
     name: 'Twilio',
     does: 'Sends reminder texts, and the code that confirms your number, if you choose reminders by text',
     gets: 'Your mobile number and the text',
+  },
+  {
+    name: 'Your browser’s speech service (for example Google in Chrome, Apple in Safari, Microsoft in Edge)',
+    does: 'Understands voice commands, if you turn them on in Accessibility (or choose low vision or blind) and press the microphone',
+    gets: 'What you say while the microphone is on. Autinerary gets only the words, and keeps no recordings',
   },
   {
     name: 'Your browser’s notification service (for example Google, Apple or Mozilla)',

@@ -267,7 +267,10 @@ class PathPlanningAgent(BaseAgent):
         # diagnostic claims.
         if support_context.get('strategiesWorked'):
             combined_strategies.append(str(support_context['strategiesWorked']))
-        for key in ('schoolAccommodations', 'workplaceAccommodations', 'sensoryNeeds'):
+        # How they work best, from their own personality answers (optional).
+        if support_context.get('workingStyle'):
+            combined_strategies.append(str(support_context['workingStyle']))
+        for key in ('schoolAccommodations', 'workplaceAccommodations', 'sensoryNeeds', 'communication'):
             if support_context.get(key):
                 combined_accommodations.append(str(support_context[key]))
         

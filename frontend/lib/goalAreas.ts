@@ -4,13 +4,16 @@
  * goals, so they never change; "barrier" is shown as Norms.
  */
 export const GOAL_AREAS = [
-  { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate university, Learn a trade' },
-  { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business' },
-  { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication' },
-  { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Find an ADHD coach, Start therapy' },
+  // `dream`: an example of what it could lead to, for the dream question
+  // (Odosa, October 2026: "For education, graduating; for Healthcare &
+  // wellness, eating healthier").
+  { id: 'education', label: 'Education', emoji: '🎓', placeholder: 'e.g., Graduate, Learn a trade', dream: 'graduating' },
+  { id: 'career', label: 'Career', emoji: '💼', placeholder: 'e.g., Get a tech job, Start a business', dream: 'a job worth getting up for' },
+  { id: 'relationships', label: 'Relationships', emoji: '❤️', placeholder: 'e.g., Build a support network, Improve communication', dream: 'a close friend' },
+  { id: 'health', label: 'Healthcare & Wellness', emoji: '🏥', placeholder: 'e.g., Eat healthier, Start therapy', dream: 'eating healthier' },
   // Odosa: never show the word "barrier". The id stays for data matching.
-  { id: 'barrier', label: 'Norms', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills' },
-  { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city' },
+  { id: 'barrier', label: 'Norms', emoji: '🌟', placeholder: 'e.g., Normalizing/Positivity, Self-advocacy skills', dream: 'speaking up when something is needed' },
+  { id: 'other', label: 'Other', emoji: '✨', placeholder: 'e.g., Travel, Learn to cook, Move to a new city', dream: 'travelling independently' },
 ] as const
 
 export type GoalAreaId = (typeof GOAL_AREAS)[number]['id']

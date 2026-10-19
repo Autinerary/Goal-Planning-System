@@ -5,8 +5,8 @@ import assert from 'node:assert/strict'
 import { PROFILE_ITEMS, itemDone, nextProfileItem, profileProgress, profileItem } from './profileItems.ts'
 
 const ids = PROFILE_ITEMS.map((i) => i.id)
-// Seven questions, each once, each saying what it changes.
-assert.deepEqual(ids, ['location', 'reminders', 'look', 'motivation', 'norms', 'character', 'spiritAnimal'])
+// Eight questions, each once, each saying what it changes.
+assert.deepEqual(ids, ['location', 'reminders', 'look', 'motivation', 'norms', 'personality', 'character', 'spiritAnimal'])
 for (const item of PROFILE_ITEMS) {
   assert.ok(item.unlocks.length > 20, item.id)
   assert.ok(item.inline || item.href, `${item.id} is answered somewhere`)
@@ -14,11 +14,15 @@ for (const item of PROFILE_ITEMS) {
 
 const empty = { hasCity: false, hasNorms: false }
 assert.deepEqual(profileProgress(empty).done, [])
-assert.equal(profileProgress(empty).todo.length, 7)
+assert.equal(profileProgress(empty).todo.length, 8)
 
 // What counts as answered.
 assert.ok(itemDone('location', { ...empty, hasCity: true }))
 assert.ok(itemDone('norms', { ...empty, hasNorms: true }))
+// Personality: answered, or "Not for me"; an empty answer isn't.
+assert.ok(!itemDone('personality', { ...empty, personality: { profile: {} } }))
+assert.ok(itemDone('personality', { ...empty, personality: { profile: { extraversion: 'low' } } }))
+assert.ok(itemDone('personality', { ...empty, personality: { skipped: true } }))
 assert.ok(!itemDone('motivation', { ...empty, motivation: { types: [] } }))
 assert.ok(itemDone('motivation', { ...empty, motivation: { types: ['social'] } }))
 assert.ok(itemDone('character', { ...empty, character: { hairStyle: 'curly' } }))

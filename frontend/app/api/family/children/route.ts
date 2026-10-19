@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { FAMILY_NEEDS_PLAN, familyAllowed } from '@/lib/trustedAdult'
 import { computeAge } from '@/lib/age'
 
 /**
@@ -66,6 +67,8 @@ export async function POST(req: NextRequest) {
   if (guardianAge === null || guardianAge < 18 || guardian.app_metadata?.managed_by_guardian || guardian.user_metadata?.managed_by_guardian) {
     return NextResponse.json({ error: 'An adult account with a recorded date of birth is required.' }, { status: 403 })
   }
+  // Part of a paid plan once paid plans are on (lib/trustedAdult.ts).
+  if (!(await familyAllowed(createServerSupabase()))) return NextResponse.json({ error: FAMILY_NEEDS_PLAN, code: 'plan' }, { status: 402 })
 
   let body: any
   try {

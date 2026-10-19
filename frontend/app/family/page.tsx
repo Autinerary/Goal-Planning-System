@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Users, Plus, Loader2, ChevronRight, ShieldCheck } from 'lucide-react'
 import { computeAge } from '@/lib/age'
+import ApprovalRequests from './ApprovalRequests'
 
 interface Child {
   id: string
@@ -114,6 +115,9 @@ export default function FamilyPage() {
             </span>
           </div>
         )}
+
+        {/* Teens who asked this adult to approve them (STEP 84). */}
+        <ApprovalRequests onApproved={() => { setLoading(true); void load() }} />
 
         {/* Children list */}
         {loading ? (

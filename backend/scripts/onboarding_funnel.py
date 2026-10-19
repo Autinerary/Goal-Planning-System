@@ -217,6 +217,7 @@ ASK_LATER = [
 PROFILE_ITEMS = [
     ("location", "Your city"),
     ("norms", "Norms and support needs"),
+    ("personality", "Personality (optional)"),
     ("motivation", "What motivates you"),
     ("character", "Character and Dream Self"),
     ("spiritAnimal", "Spirit animals"),

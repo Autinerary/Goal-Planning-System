@@ -8,6 +8,7 @@ import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
 import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle, Star } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import InfoModeButton from './InfoModeButton'
 
 function NavbarInner() {
   const { user } = useAuth()
@@ -73,6 +74,7 @@ function NavbarInner() {
                 services only, which is why it was renamed to Services. */}
             <Link
               href="/search-all"
+              data-info="Search everything at once: services, products and Tidbits."
               className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
               aria-label="Search everything"
             >
@@ -81,6 +83,7 @@ function NavbarInner() {
             </Link>
             <Link
               href="/search"
+              data-info="Find services near you, with filters for norms, cost, waits and more."
               className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
               aria-label="Services"
             >
@@ -89,6 +92,7 @@ function NavbarInner() {
             </Link>
             <Link
               href="/shop"
+              data-info="Products people recommend, with the qualities that matter, like tagless, quiet or fragrance-free."
               className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center"
               aria-label="Shop"
             >
@@ -97,6 +101,7 @@ function NavbarInner() {
             </Link>
             <Link
               href="/community"
+              data-info="Tidbits: short pieces and questions from people who have been there."
               className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 flex items-center"
               aria-label="Tidbits community"
             >
@@ -106,6 +111,7 @@ function NavbarInner() {
             {user && (
               <Link
                 href="/my-resources"
+                data-info="Your saved services, and the team you are building."
                 className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
                 aria-label="Resource Manager"
               >
@@ -116,6 +122,7 @@ function NavbarInner() {
             {user && (
               <Link
                 href="/resources/new"
+                data-info="Recommend a service ResourceHub should list."
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
               >
                 <PlusCircle className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -135,6 +142,7 @@ function NavbarInner() {
             {/* The planning note's Goal 11: last in the bar. */}
             <Link
               href="/help-us-rate"
+              data-info="Rate services you have used, so others can choose well."
               className="text-gray-700 hover:text-amber-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 flex items-center"
             >
               <Star className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -153,8 +161,9 @@ function NavbarInner() {
             </a>
           </div>
 
-          {/* Notifications & Auth */}
+          {/* Notifications & Auth, with the ? for Info Mode (All Apps). */}
           <div className="flex items-center gap-2">
+            <InfoModeButton />
             {user && (
               <div className="hidden md:block">
                 <NotificationBell userId={user.id} />

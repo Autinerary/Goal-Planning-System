@@ -387,6 +387,34 @@ function linkList(links: NewsletterLink[]): { text: string; html: string } {
   }
 }
 
+/**
+ * A teen asked this adult to approve their account (STEP 84,
+ * app/api/auth/signup): who asked, and where to review it. Sent only to an
+ * adult who already has an account.
+ */
+export function trustedAdultRequestEmail(childName: string, reviewLink: string): { subject: string; html: string; text: string } {
+  const who = childName.trim() || 'Someone'
+  return {
+    subject: `${who} asked you to approve their Autinerary account`,
+    text: `Hi,\n\n${who} is under 18 and asked you, as their parent or legal guardian, to approve their Autinerary account. Their account stays locked until you do.\n\nSign in to review their details, then approve or decline: ${reviewLink}\n\nIf you don't know them, decline, or ignore this email.\n\n- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>
+      <p style="font-size:16px;line-height:1.5"><strong>${esc(who)}</strong> is under 18 and asked you, as their parent or legal guardian, to approve their Autinerary account. Their account stays locked until you do.</p>
+      <p style="margin:24px 0"><a href="${reviewLink}" style="${BUTTON}">Review and decide</a></p>
+      <p style="${SMALL}">If you don't know them, decline, or ignore this email.</p></div>`,
+  }
+}
+
+/** The teen's account is approved and open (STEP 84). */
+export function teenApprovedEmail(signInLink: string): { subject: string; html: string; text: string } {
+  return {
+    subject: 'Your Autinerary account is approved',
+    text: `Hi,\n\nYour trusted adult approved your account. You can sign in now: ${signInLink}\n\n- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hi,</p>
+      <p style="font-size:16px;line-height:1.5">Your trusted adult approved your account. You can sign in now.</p>
+      <p style="margin:24px 0"><a href="${signInLink}" style="${BUTTON}">Sign in</a></p></div>`,
+  }
+}
+
 /** Double opt-in: nothing else is sent until this is confirmed (app/api/newsletter). */
 export function newsletterConfirmEmail(confirm: string, asked: string): { subject: string; html: string; text: string } {
   return {

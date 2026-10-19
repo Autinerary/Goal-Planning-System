@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAgentPath } from '../context/AgentPathContext'
 import { usePreferences } from '../context/usePreferences'
 import { toLlmConfig } from '@/lib/modelPrefs'
+import { speak } from '@/lib/speech'
 
 interface Msg {
   role: 'user' | 'assistant'
@@ -87,6 +88,34 @@ export default function AssistantPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => setContext(buildContext(payload)), [payload])
+
+  // A question asked by voice (VoiceNavigation: "ask …"): sent once on
+  // arrival, and the answer read aloud.
+  const fromVoice = useRef(false)
+  const askedByVoice = useRef(false)
+  useEffect(() => {
+    if (askedByVoice.current) return
+    const params = new URLSearchParams(window.location.search)
+    const q = params.get('q')
+    if (!q) return
+    // With the plan's context when it arrives; without it after a moment
+    // (someone without a plan still gets an answer).
+    const timer = setTimeout(() => {
+      if (askedByVoice.current) return
+      askedByVoice.current = true
+      fromVoice.current = params.get('voice') === '1'
+      void send(q)
+    }, context ? 0 : 2500)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context])
+  useEffect(() => {
+    const last = messages[messages.length - 1]
+    if (fromVoice.current && !sending && last?.role === 'assistant' && messages.length > 2) {
+      fromVoice.current = false
+      speak(last.content)
+    }
+  }, [messages, sending])
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, sending])

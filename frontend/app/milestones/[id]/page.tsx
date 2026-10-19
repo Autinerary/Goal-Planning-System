@@ -20,6 +20,8 @@ interface Tool {
   description: string
   url?: string
   rating?: number | null
+  /** 0 for free, a price, or null when the listing doesn't say. */
+  cost?: number | null
   progress?: number // Progress percentage for this service (0-100)
   status?: 'not_started' | 'in_progress' | 'completed'
 }
@@ -84,7 +86,11 @@ export default function MilestoneDetailView() {
         description: t.description || '',
         url: t.url,
         rating: typeof t.rating === 'number' ? t.rating : null,
+        cost: t.costType === 'free' || t.price === 0 ? 0 : Number(t.price) > 0 ? Number(t.price) : null,
       }))
+        // Free first, then the cheapest; plans made before the agent ordered
+        // them that way get the same order here. Ties keep the agent's order.
+        .sort((a, b) => (a.cost ?? Infinity) - (b.cost ?? Infinity))
       // A milestone's own tasks (stored with it since this change); older
       // paths have them only in path planning's flat list.
       const raceMilestone = ((payload?.races || []) as any[])
@@ -419,6 +425,11 @@ function ToolSection({ title, icon: Icon, tools, colorClass, third }: {
                     )}
                   </div>
                   <p className="text-sm text-slate-600 mb-2">{tool.description}</p>
+                  {tool.cost !== undefined && tool.cost !== null && (
+                    <span className={`mb-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${tool.cost === 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-100 text-slate-800'}`}>
+                      {tool.cost === 0 ? 'Free' : `$${tool.cost.toFixed(2)}`}
+                    </span>
+                  )}
                   {tool.rating && (
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-amber-400 fill-amber-400" />

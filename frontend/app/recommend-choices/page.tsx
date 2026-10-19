@@ -21,12 +21,23 @@ interface RecommendedChoice {
   bestFor?: string[]
   status?: 'not_started' | 'in_progress' | 'completed'
   progress?: number
+  /** 0 for free, a price, or null when the listing doesn't say (the agent's costType and price). */
+  cost: number | null
 }
+
+// Free first, then the cheapest, then cost unknown (feedback, October 2026:
+// "Recommend free (or if none, then cheapest) resources first").
+const costOf = (t: any): number | null => {
+  if (t?.costType === 'free' || t?.price === 0) return 0
+  const p = Number(t?.price)
+  return Number.isFinite(p) && p > 0 ? p : null
+}
+const costRank = (c: number | null) => (c === null ? Number.POSITIVE_INFINITY : c)
 
 export default function RecommendChoicesPage() {
   const router = useRouter()
   const [filterService, setFilterService] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<'success' | 'attempts' | 'name'>('success')
+  const [sortBy, setSortBy] = useState<'cost' | 'success' | 'attempts' | 'name'>('cost')
   const { toolRecommendation, pathPlanning, payload } = useAgentPath()
 
   // Build choices from the tool-recommendation agent. Each milestone becomes a
@@ -46,6 +57,7 @@ export default function RecommendChoicesPage() {
       service: serviceName,
       rating: typeof t.rating === 'number' ? t.rating : null,
       reviews: typeof t.reviews === 'number' ? t.reviews : 0,
+      cost: costOf(t),
       estimatedTime: t.estimatedTime || 30,
       bestFor: userBarriers.slice(0, 3),
       status: 'not_started' as const,
@@ -66,6 +78,8 @@ export default function RecommendChoicesPage() {
 
   const sortedChoices = [...filteredChoices].sort((a, b) => {
     switch (sortBy) {
+      case 'cost':
+        return costRank(a.cost) - costRank(b.cost)
       case 'success':
         // Unrated resources sort last rather than being given a stand-in score.
         return (b.rating ?? -1) - (a.rating ?? -1)
@@ -163,12 +177,14 @@ export default function RecommendChoicesPage() {
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-sm text-slate-600">Sort by:</span>
+              <label htmlFor="choices-sort" className="text-sm text-slate-600">Sort by:</label>
               <select
+                id="choices-sort"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'success' | 'attempts' | 'name')}
+                onChange={(e) => setSortBy(e.target.value as 'cost' | 'success' | 'attempts' | 'name')}
                 className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
               >
+                <option value="cost">Free first</option>
                 <option value="success">Highest Rated</option>
                 <option value="attempts">Most Reviewed</option>
                 <option value="name">Name</option>
@@ -243,6 +259,9 @@ export default function RecommendChoicesPage() {
             
             {/* Stats */}
             <div className="flex flex-wrap items-center gap-4 text-sm">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${choice.cost === 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-100 text-slate-800'}`}>
+                {choice.cost === 0 ? 'Free' : choice.cost !== null ? `$${choice.cost.toFixed(2)}` : 'Cost not listed'}
+              </span>
               {choice.rating !== null && choice.reviews > 0 ? (
                 <>
                   <div className="flex items-center gap-2">

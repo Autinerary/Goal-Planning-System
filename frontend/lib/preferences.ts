@@ -72,6 +72,8 @@ export interface LayoutPositions {
    * colours). Saved to the account, like the accent; sent to ResourceHub.
    */
   theme?: ColourTheme
+  /** The sky behind the app (lib/sky.ts): night to bright, clouds, cloud colour, stars. */
+  sky?: import('./sky').SkyPrefs
 }
 
 export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'warm' | 'cool' | 'bakery' | 'classic'
@@ -140,6 +142,14 @@ export interface UserPreferences {
   invitedBy?: string
   /** The emails for their first two weeks, on days 1, 7 and 14 (lib/firstWeeks.ts; Group 15). */
   firstWeeks?: import('./firstWeeks').FirstWeeksChoice
+  /** Personality, optional (app/profile/personality; lib/personality.ts): their answers, the bands, a type label, or "not for me". */
+  personality?: import('./personality').PersonalityChoice
+  /**
+   * For someone here for another person (a parent, sibling, friend): that
+   * person's dream, how things could be between them, and the look of that
+   * person's Dream Self, on the Ideal Self page (Odosa and Eli, October 2026).
+   */
+  supported?: { dream?: string; relationship?: string; appearance?: { hairStyle: string; hairColor: string; skinColor: string } }
   /** ISO timestamp of last update — useful for analytics. */
   updatedAt?: string
 }
@@ -185,6 +195,26 @@ export interface AccessibilitySettings {
   readAloud?: boolean
   /** A note for today at the foot of each page (Goal 11, the Positivity Quota). On unless turned off. */
   dailyNotes?: boolean
+  /**
+   * How they see the screen (Odosa, October 2026: "give anyone who selects
+   * 'blind' or something similar [a way] to 'hear' what a certain part is,
+   * and to 'voice command' & 'talk' with the app"). Choosing low vision or
+   * blind turns on voice commands, and spoken descriptions unless they use a
+   * screen reader (which already speaks). '' is no answer.
+   */
+  vision?: '' | 'low' | 'blind'
+  /** They use a screen reader (VoiceOver, NVDA, JAWS, TalkBack). */
+  screenReader?: boolean
+}
+
+/**
+ * What choosing how you see the screen turns on: voice commands and "Listen
+ * to this page" for low vision or blind, and spoken descriptions too unless
+ * a screen reader already speaks. Never turns anything off.
+ */
+export function visionSettings(vision: AccessibilitySettings['vision'], screenReader: boolean): Partial<AccessibilitySettings> {
+  if (vision !== 'low' && vision !== 'blind') return { vision: vision || '', screenReader }
+  return { vision, screenReader, voiceNavigation: true, readAloud: true, ...(screenReader ? {} : { spokenDescriptions: true }) }
 }
 
 export const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {

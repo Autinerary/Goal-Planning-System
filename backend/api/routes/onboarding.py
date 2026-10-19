@@ -257,6 +257,24 @@ class RecommendationSupportContext(BaseModel):
     biggestChallengeResponse: str = Field(default="", max_length=1000)
     recentChallenge: str = Field(default="", max_length=1000)
     recentChallengeResponse: str = Field(default="", max_length=1000)
+    # How steps are written for them, from the optional personality
+    # statements (frontend/lib/personality.ts, workingStyleFor).
+    workingStyle: str = Field(default="", max_length=1000)
+    # How they communicate (speaking, some speech, non-speaking), as a
+    # sentence (frontend/lib/diagnostic-profile.ts, communicationSentence).
+    communication: str = Field(default="", max_length=300)
+
+
+PERSONALITY_TRAITS = ("extraversion", "agreeableness", "conscientiousness", "neuroticism", "openness")
+PERSONALITY_BANDS = ("low", "middle", "high")
+
+
+def clean_personality(value) -> dict:
+    """The Big Five bands someone chose to give (frontend/lib/personality.ts):
+    only the five traits and the three bands; anything else is dropped."""
+    if not isinstance(value, dict):
+        return {}
+    return {t: value[t] for t in PERSONALITY_TRAITS if value.get(t) in PERSONALITY_BANDS}
 
 
 class OnboardingRequest(BaseModel):
@@ -283,6 +301,10 @@ class OnboardingRequest(BaseModel):
     # "person", how the agents write about autism and ADHD (Riipen Labs,
     # Group 15). Optional; anything else is ignored.
     languageStyle: Optional[str] = Field(default=None, max_length=10)
+    # Optional personality bands (Big Five: low, middle, high), from the
+    # profile's personality statements. Pattern Recognition matches on them
+    # with the norms; the planner gets them as supportContext.workingStyle.
+    personality: Optional[dict] = None
 
 
 NO_ANSWER = "prefer not to share"
@@ -448,6 +470,7 @@ async def _generate_path_for(
         "dreams": request.dreams,
         "currentChallenges": request.currentChallenges,
         "supportContext": request.supportContext.model_dump() if request.supportContext else {},
+        "personality": clean_personality(request.personality),
         # Unknown answers read as planning for themselves (core/agents/path_planning_agent.py).
         "audience": (request.audience or "").strip().lower() or None,
         # Carried so the app can render the user's own choices (spirit animals,

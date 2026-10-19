@@ -26,6 +26,22 @@ export function normalizeGamification(value?: Partial<GamificationPreferences> |
   }
 }
 
+/** The three ways to have spirit animals; each decides how many there are. */
+export const SPIRIT_MODES: { id: SpiritAnimalMode; label: string; note: string }[] = [
+  { id: 'general', label: 'One spirit animal', note: 'The same guide every day.' },
+  { id: 'fastSlow', label: 'Two: fast and slow days', note: 'One for busy days, one for lighter days.' },
+  { id: 'weekly', label: 'Seven: one for each weekday', note: 'A different guide each day of the week.' },
+]
+
+export const slotCount = (mode: SpiritAnimalMode): number => (mode === 'weekly' ? 7 : mode === 'fastSlow' ? 2 : 1)
+
+/** What each animal is for: "Choose your spirit animal", or which of 2 or 7 it is. */
+export function slotLabel(mode: SpiritAnimalMode, index: number): string {
+  if (mode === 'weekly') return `Choose your ${WEEKDAYS[index]} animal (${index + 1}/7)`
+  if (mode === 'fastSlow') return index === 0 ? 'Choose your fast day animal (1/2)' : 'Choose your slow day animal (2/2)'
+  return 'Choose your spirit animal'
+}
+
 export function animalForDay(prefs: GamificationPreferences, date: Date, pace: 'fast' | 'slow' | 'unknown') {
   const index = prefs.mode === 'weekly' ? (date.getDay() + 6) % 7 : prefs.mode === 'fastSlow' ? pace === 'slow' ? 1 : pace === 'fast' ? 0 : -1 : 0
   const animal = prefs.animals[index]

@@ -54,7 +54,10 @@ const SIGNED_IN = (ALL
      '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
   : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility',
     // The Tidbits round: the resources for each path, before choosing one.
-    '/path-market']).map((p) => APP + p)
+    '/path-market',
+    // The All Apps round: personality (optional), norms with how
+    // communication works, the Dream Self, suggestions free first, Family.
+    '/profile/personality', '/profile/diagnostic', '/ideal-self', '/recommend-choices', '/family']).map((p) => APP + p)
 // ResourceHub signed in, through the app's hand-off: its account menu and its
 // profile had problems only a signed-in check could see (found 15 October
 // 2026, Riipen Labs Groups 8 to 14).

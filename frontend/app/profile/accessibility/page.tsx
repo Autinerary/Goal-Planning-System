@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Type, Contrast, Zap, BookOpen, Underline, RotateCcw, Palette, Maximize, Volume2, Moon, Leaf } from 'lucide-react'
 import { usePreferences } from '../../context/usePreferences'
-import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, type FontScale } from '@/lib/preferences'
+import { DEFAULT_ACCESSIBILITY, WIDGET_SIZES, ACCENTS, visionSettings, type FontScale } from '@/lib/preferences'
 import { SPEECH_RATES, SPEECH_VOLUMES, loadVoices, speak, speechSupported, voicesFor } from '@/lib/speech'
 import ColourSettings from '../../components/ColourSettings'
+import SkySettings from '../../components/SkySettings'
 
 const FONT_SCALES: { id: FontScale; label: string; sample: string }[] = [
   { id: 'default', label: 'Default', sample: 'Aa' },
@@ -46,7 +47,7 @@ export default function AccessibilitySettingsPage() {
     { key: 'underlineLinks', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
     { key: 'soundEffects', label: 'Task completion sound', desc: 'Play a soft "pop" when you check off a task.', icon: Volume2 },
     { key: 'spokenDescriptions', label: 'Spoken descriptions', desc: 'Read control names and descriptions when clicked or focused. Off by default to avoid duplicating a screen reader.', icon: Volume2 },
-    { key: 'voiceNavigation', label: 'Voice navigation', desc: 'Enable a microphone button. Listening starts only when pressed. Your browser may send audio to its speech service; Autinerary does not store recordings.', icon: Volume2 },
+    { key: 'voiceNavigation', label: 'Voice commands', desc: 'A microphone at the top. Press it once and it keeps listening until you press it again: go to a page, go back, read this page, click a button by its name, search ResourceHub, or ask the assistant. Say "help" for the list. Your browser sends the audio to its speech service; Autinerary keeps no recordings.', icon: Volume2 },
     { key: 'readAloud', label: 'Listen to this page', desc: 'A button at the foot of every page, in Autinerary and ResourceHub, that reads the page (or the words you select) aloud, with the voice below.', icon: Volume2 },
     { key: 'dailyNotes', label: 'A note for today', desc: 'A short, kind note at the foot of each page.', icon: Leaf },
   ]
@@ -69,6 +70,44 @@ export default function AccessibilitySettingsPage() {
 
           {/* Language moved to the main Settings page (Odosa): needing another
               language is not an accessibility need, and it was hard to find here. */}
+
+          {/* How you see the screen (Odosa, October 2026: "make the site
+              audible … for anyone who selects 'blind' or something similar").
+              Choosing low vision or blind turns the spoken help on at once,
+              and says so; nothing is ever turned off by this. */}
+          <fieldset className="mb-6 rounded-xl border border-slate-200 p-4">
+            <legend className="px-1 font-semibold text-slate-800">How do you see the screen?</legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {([['', 'No changes needed'], ['low', 'Low vision'], ['blind', 'Blind']] as const).map(([id, label]) => (
+                <label key={id || 'none'} className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm ${(a11y.vision || '') === id ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200'}`}>
+                  <input
+                    type="radio"
+                    name="vision"
+                    checked={(a11y.vision || '') === id}
+                    onChange={() => {
+                      const patch = visionSettings(id, Boolean(a11y.screenReader))
+                      setA11y(patch)
+                      if (id && canSpeak) speak(a11y.screenReader ? 'Voice commands are on. Press the microphone at the top and say help.' : 'Spoken descriptions and voice commands are on. Press the microphone at the top and say help.')
+                    }}
+                    className="h-4 w-4"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+            {(a11y.vision === 'low' || a11y.vision === 'blind') && (
+              <>
+                <label className="mt-3 flex items-center gap-2 text-sm text-slate-800">
+                  <input type="checkbox" checked={Boolean(a11y.screenReader)} onChange={(e) => setA11y(visionSettings(a11y.vision, e.target.checked))} className="h-4 w-4" />
+                  I use a screen reader (VoiceOver, NVDA, JAWS or TalkBack)
+                </label>
+                <p role="status" className="mt-2 text-sm text-slate-700">
+                  On now: voice commands (the microphone at the top: say &quot;help&quot;), Listen to this page
+                  {a11y.screenReader ? '. Your screen reader reads the controls.' : ', and spoken descriptions of what you click or focus.'} You can change each one below.
+                </p>
+              </>
+            )}
+          </fieldset>
 
           {/* Appearance — widget size & accent color (persist across devices) */}
           <div className="mb-6">
@@ -104,6 +143,14 @@ export default function AccessibilitySettingsPage() {
               <Palette className="w-4 h-4 text-cyan-600" aria-hidden="true" /> Colours and colour strength
             </p>
             <ColourSettings idPrefix="a11y-colours" />
+          </div>
+
+          {/* The sky behind the app (Odosa, October 2026; lib/sky.ts). */}
+          <div className="mb-6">
+            <p className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+              <Moon className="w-4 h-4 text-cyan-600" aria-hidden="true" /> The sky
+            </p>
+            <SkySettings idPrefix="a11y-sky" />
           </div>
 
           <div className="mb-6">

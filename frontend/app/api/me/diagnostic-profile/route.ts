@@ -48,6 +48,8 @@ function sanitizeProfile(input: any) {
       biggestChallengeResponse: limitedString(support.biggestChallengeResponse, MAX_LONG_TEXT),
       recentChallenge: limitedString(support.recentChallenge, MAX_LONG_TEXT),
       recentChallengeResponse: limitedString(support.recentChallengeResponse, MAX_LONG_TEXT),
+      communication: ['speaking', 'some_speech', 'non_speaking', 'prefer_not_to_say'].includes(support.communication) ? support.communication : '',
+      communicationTools: limitedString(support.communicationTools, MAX_SHORT_TEXT),
     },
   }
 }

@@ -4,16 +4,18 @@
  * Intercepts clicks while Info Mode is on and shows what the control does.
  *
  * Capture phase, so the explanation happens before the app's own handler and
- * we can stop the action from running. In either help mode, clicking the
- * same element again lets the action through.
+ * we can stop the action from running. Clicking the same element again lets
+ * the action through. In Info Mode that happens every time; in Info + Action
+ * Mode a control is explained once and then works with one click.
  *
  * The ? button itself is exempt — being unable to turn the mode back off
  * without understanding the mode would be a trap.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { HelpCircle, X } from 'lucide-react'
-import { INFO_MODE_META, describeElement, useInfoMode } from '@/lib/infoMode'
+import { HelpCircle, Volume2, X } from 'lucide-react'
+import { INFO_MODE_META, controlKey, describeElement, isKnown, markKnown, useInfoMode } from '@/lib/infoMode'
+import { speakAll } from '@/lib/speech'
 
 interface Explanation {
   title: string
@@ -45,8 +47,13 @@ export default function InfoModeProvider() {
         return // let it through
       }
 
+      // Info + Action: explained once, then it just works.
+      const key = controlKey(actionable, window.location.pathname)
+      if (mode === 'infoAction' && isKnown(key)) return
+
       e.preventDefault()
       e.stopPropagation()
+      if (mode === 'infoAction') markKnown(key)
 
       const { title, body } = describeElement(actionable)
       const rect = actionable.getBoundingClientRect()
@@ -123,7 +130,18 @@ export default function InfoModeProvider() {
             <p className="text-xs text-slate-600">
               {shown.body ?? 'No description has been written for this one yet.'}
             </p>
-            <p className="mt-2 text-xs font-medium text-cyan-800">Tap it again to use it.</p>
+            <p className="mt-2 text-xs font-medium text-cyan-800">
+              {mode === 'infoAction' ? 'Tap it again to use it. Next time it works with one tap.' : 'Tap it again to use it.'}
+            </p>
+            {/* Heard as well as read (Odosa: "make the site audible"). */}
+            <button
+              type="button"
+              data-info-exempt="true"
+              onClick={() => speakAll([shown.title, shown.body || 'No description has been written for this one yet.'])}
+              className="mt-1 mr-3 inline-flex items-center gap-1 py-1 text-xs font-medium text-indigo-800 underline underline-offset-2"
+            >
+              <Volume2 className="h-3.5 w-3.5" aria-hidden="true" /> Hear it
+            </button>
             {/* Autinerary's own words, explained in one place (Riipen Labs,
                 Groups 34 and 36: "Races", "Norms", "Pit Stop" are unfamiliar). */}
             <a href="/help" data-info-exempt="true" className="mt-1 inline-block py-1 text-xs font-medium text-indigo-800 underline underline-offset-2">

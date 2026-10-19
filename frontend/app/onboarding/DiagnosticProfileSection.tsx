@@ -2,6 +2,7 @@
 
 import { ChevronDown, LockKeyhole, ShieldCheck } from 'lucide-react'
 import {
+  COMMUNICATION_OPTIONS,
   CONDITION_BY_LABEL,
   CONDITION_GROUPS,
   STATUS_OPTIONS,
@@ -152,6 +153,44 @@ export default function DiagnosticProfileSection({
       ) : (
         <p className="mt-4 text-sm text-slate-500">Select a listed condition above to optionally add type, presentation, or support details.</p>
       )}
+
+      {/* Speaking or not, for everyone (Odosa, October 2026: "verbal vs.
+          non-verbal"; lib/diagnostic-profile.ts). Plans then never depend
+          on phone calls or spoken interviews for someone who doesn't speak. */}
+      <fieldset className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <legend className="px-1 text-sm font-semibold text-slate-800">How does communication work? (optional)</legend>
+        <p className="text-xs text-slate-600">Yours, or the person you support. Some people speak, some speak a little or only some of the time, and some don&apos;t use speech and communicate in other ways.</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          {COMMUNICATION_OPTIONS.map((option) => (
+            <label key={option.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-sm ${value.supportContext.communication === option.id ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'}`}>
+              <input
+                type="radio"
+                name="communication"
+                checked={value.supportContext.communication === option.id}
+                onChange={() => updateSupport(value, onChange, { communication: option.id })}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>
+                <span className="block font-medium text-slate-800">{option.label}</span>
+                {option.hint && <span className="text-xs text-slate-600">{option.hint}</span>}
+              </span>
+            </label>
+          ))}
+        </div>
+        {(value.supportContext.communication === 'some_speech' || value.supportContext.communication === 'non_speaking') && (
+          <label className="mt-3 block text-sm font-medium text-slate-700">
+            What helps with communicating? (optional)
+            <input
+              type="text"
+              value={value.supportContext.communicationTools || ''}
+              onChange={(event) => updateSupport(value, onChange, { communicationTools: event.target.value })}
+              placeholder="e.g. Proloquo2Go on an iPad, sign, typing"
+              maxLength={200}
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </label>
+        )}
+      </fieldset>
 
       <details className="group mt-4 rounded-lg border border-slate-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium text-slate-800">

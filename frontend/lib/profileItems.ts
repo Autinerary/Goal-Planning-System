@@ -18,7 +18,7 @@
  * and pure functions; tested by lib/profileItems.test.mjs.
  */
 
-export type ProfileItemId = 'location' | 'norms' | 'motivation' | 'character' | 'spiritAnimal' | 'look' | 'reminders'
+export type ProfileItemId = 'location' | 'norms' | 'personality' | 'motivation' | 'character' | 'spiritAnimal' | 'look' | 'reminders'
 
 export interface ProfileItem {
   id: ProfileItemId
@@ -50,6 +50,9 @@ export const PROFILE_ITEMS: ProfileItem[] = [
   { id: 'look', title: 'How the app looks', unlocks: 'Light or dark, colours, larger text, higher contrast, and how lively it looks.', inline: true, fromDay: 0 },
   { id: 'motivation', title: 'What motivates you', unlocks: 'Helps match you with people motivated in similar ways when your plans are made.', inline: true, fromDay: 0 },
   { id: 'norms', title: 'Your norms and support needs', unlocks: 'Tools and services that fit how you work, and ratings from people with similar norms. Private.', href: '/profile/diagnostic', fromDay: 7 },
+  // Optional, and "Not for me" counts as answered (the team's note, October
+  // 2026: "Make this one optional/skippable"; lib/personality.ts).
+  { id: 'personality', title: 'Your personality (optional)', unlocks: 'Plans written to fit how you work: quieter or more social steps, more or less structure. Twenty quick statements; skip any.', href: '/profile/personality', fromDay: 7 },
   { id: 'character', title: 'Your character and Dream Self', unlocks: 'Puts you on your race track, and a picture of who you are working toward on the Ideal Self page.', href: '/ideal-self', fromDay: 10 },
   { id: 'spiritAnimal', title: 'Your spirit animals', unlocks: 'A guide for the day at the top of your Path.', href: '/profile/settings#spirit-animals', fromDay: 10 },
 ]
@@ -72,6 +75,8 @@ export interface ProfileState {
   /** The colour theme (lib/preferences.ts); Earthy is the default. */
   theme?: string | null
   reminders?: { enabled?: boolean } | null
+  /** Personality (lib/personality.ts): answered, or "Not for me". */
+  personality?: { profile?: Record<string, unknown>; skipped?: boolean } | null
   /** The first two weeks' emails (lib/firstWeeks.ts). */
   firstWeeks?: { enabled?: boolean } | null
 }
@@ -80,6 +85,7 @@ export function itemDone(id: ProfileItemId, state: ProfileState): boolean {
   switch (id) {
     case 'location': return state.hasCity
     case 'norms': return state.hasNorms
+    case 'personality': return Boolean(state.personality?.skipped) || Object.keys(state.personality?.profile || {}).length > 0
     case 'motivation': return (state.motivation?.types?.length || 0) > 0
     case 'character': return Boolean(state.character)
     case 'spiritAnimal': return (state.gamification?.animals || []).some((a) => Boolean(a?.type))

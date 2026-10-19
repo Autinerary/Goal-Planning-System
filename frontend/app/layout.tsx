@@ -18,6 +18,7 @@ import AppWideTranslator from './components/AppWideTranslator'
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 import InstallPrompt from './components/InstallPrompt'
 import InfoModeProvider from './components/InfoModeProvider'
+import SkyBackdrop from './components/SkyBackdrop'
 import AnalyticsConsent from './components/AnalyticsConsent'
 import TermsNotice from './components/TermsNotice'
 import Paywall from './components/Paywall'
@@ -140,6 +141,7 @@ export default function RootLayout({
             <InteractiveDemo />
             <PageGuide />
             <InfoModeProvider />
+            <SkyBackdrop />
             <AnalyticsConsent />
             <UserWay />
             </LanguageProvider>
