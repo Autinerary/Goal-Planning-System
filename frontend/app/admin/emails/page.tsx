@@ -20,13 +20,24 @@ export default function WelcomeEmailsPage() {
       .catch(() => setInfo({ error: 'Could not load.' }))
   }, [])
 
+  // A few at a time, so each request is short; stops by itself when none are left.
   const send = async () => {
     setBusy(true)
-    const r = await fetch('/api/admin/welcome', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ confirm: 'send-welcome' }) }).catch(() => null)
-    const j = await r?.json().catch(() => null)
+    let sent = 0
+    let failed: string[] = []
+    let error = ''
+    for (let round = 0; round < 40; round++) {
+      const r = await fetch('/api/admin/welcome', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ confirm: 'send-welcome', failed }) }).catch(() => null)
+      const j = await r?.json().catch(() => null)
+      if (!r?.ok) { error = j?.error || 'That didn’t work.'; break }
+      sent += j.sent
+      failed = [...failed, ...j.failed]
+      setResult(`Sent ${sent}… ${j.remaining} to go.`)
+      if (!j.remaining || (j.sent === 0 && j.failed.length === 0)) break
+    }
     setBusy(false)
     setConfirming(false)
-    setResult(r?.ok ? `Sent ${j.sent}${j.failed ? `; ${j.failed} could not be sent` : ''}.` : j?.error || 'That didn’t work.')
+    setResult(`${error ? `${error} ` : ''}Sent ${sent}${failed.length ? `; ${failed.length} could not be sent` : ''}.`)
   }
 
   return (
@@ -41,7 +52,7 @@ export default function WelcomeEmailsPage() {
         ) : (
           <>
             <p className="text-slate-800">
-              {info.count} {info.count === 1 ? 'person' : 'people'} finished setup before the welcome email existed and never got one. Team and test accounts are left out.
+              {info.count} {info.count === 1 ? 'person' : 'people'} finished setup before the welcome email existed, have a Path, and never got one. Left out: team and test accounts, anyone under 18, and anyone on a break.
             </p>
             {!info.canSend && <p className="text-amber-900">Email isn&apos;t set up on this server (RESEND_API_KEY), so nothing can be sent from here.</p>}
             {info.canSend && !!info.count && !confirming && (

@@ -31,7 +31,7 @@ The database change is **STEP 83**
 | What | Where | Why it waits |
 | --- | --- | --- |
 | Paste STEP 83 | [2026_tidbits_round.sql](../backend/database/migrations/2026_tidbits_round.sql) | Migrations are pasted by the team |
-| Load the 10 articles as drafts, read each, publish | `node scripts/import-articles.mjs --apply` (after STEP 83) | Each has notes on what to check first |
+| Read the 10 articles (loaded as drafts on 19 October), then publish each | As an admin: My Tidbits, Drafts (admins see the team's), open one, Edit, Publish | Each has notes on what to check first; nobody is an admin yet (see [the All Apps round](all-apps-round-2026-10.md#nobody-is-an-admin-yet)) |
 | Hide 24 weight-loss businesses filed as "Therapist" | The SQL in [Feedback of 31 August](#the-feedback-of-31-august) | Changing live listings is the team's call |
 | Find the old Tidbits web app | Goal 1 | Daniel has the link |
 | Sponsored listings | [Goal 7](#goal-7-sponsored-listings-off) | Off: needs Autinerary's own Stripe account, the terms, and both flags |
@@ -324,9 +324,15 @@ Draft for the terms, "Managing a listing":
 ### Goal 10: articles, sorting, the best, and the chef hat
 
 **Articles by "Autinerary".** Ten drafts, in `scripts/data/articles/`. They
-are loaded as **unpublished drafts** with the byline Autinerary by
-`node scripts/import-articles.mjs --apply` (after STEP 83). Every fact has
-an exact quote from its source.
+were loaded on 19 October as **unpublished drafts** with the byline
+Autinerary (`node scripts/import-articles.mjs --apply`). Nobody but an admin
+or the account that holds them can see a draft, and none is published. Every
+fact has an exact quote from its source.
+
+The drafts are saved under the team account (`aayush+team@autinerary.ca`).
+Any admin can open, edit and publish them: they are under My Tidbits, Drafts.
+To move them to another account instead:
+`update public.community_posts set author_id = (select id from auth.users where email = 'THEIR-EMAIL') where byline = 'autinerary';`
 
 | Article | Length | Group |
 | --- | --- | --- |
@@ -420,7 +426,8 @@ From the note, for later rounds:
 | Browser suite for this round, before STEP 83 (`.qa-local/browser/plan15.mjs`) | 37/37 locally, and **37/37 on production** (4aa08b9) |
 | The products round's suite again, after this round's shop changes (`plan14.mjs`) | **68/68 on production**, nothing left behind |
 | Accessibility, signed out and in, phone and desktop, with this round's pages | 98 page checks, no serious or critical problems, locally and **on production** |
-| STEP 83 on the live database, once pasted (`.qa-local/browser/step83_live.mjs`) | Ready; it stops before the paste and writes nothing |
+| STEP 83 on the live database (`.qa-local/browser/step83_live.mjs`), pasted 19 October | 26/26 |
+| Tidbits written for real on production, with two QA accounts (`.qa-local/browser/plan17.mjs`): the rules, groups, drafts, the word limits, moderation, publishing, Bites, Well-Dones, comments, anonymous posts, Best and My Tidbits | 36/36, and everything they made was removed |
 | Services import | 86 saved: 41 conditions, 45 parents and social; 3 left out as already listed or not loading |
 | Starter products import | 36 saved |
 | Parent-support tags | 44 existing listings tagged |

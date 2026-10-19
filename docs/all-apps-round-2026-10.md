@@ -29,7 +29,8 @@ The database change is **STEP 84**
 | What | Where | Why it waits |
 | --- | --- | --- |
 | Paste STEP 84 | [2026_trusted_adults.sql](../backend/database/migrations/2026_trusted_adults.sql) | Migrations are pasted by the team |
-| Send the welcome email to the 58 people who finished setup before it existed | The app's `/admin/emails` (team only): it shows the count and asks twice | It emails real people |
+| **Make yourself an admin** (nobody is yet; see below) | The SQL in "Nobody is an admin yet" | Granting admin is the team's call, and it needs your own account |
+| Send the welcome email to the 54 people who finished setup before it existed (approved 19 October) | The app's `/admin/emails`, once you are an admin: one click, then "Yes, send" | It needs an admin session, which only you can give it |
 | Turn on trusted adults for under-18s | `NEXT_PUBLIC_TEEN_REQUESTS=on` in the app, after the terms and privacy page say how under-18s join | Under-18s' accounts are a legal question first |
 | Answer the questions below | Eliyana, Madhureema, Odosa | Product decisions |
 
@@ -56,11 +57,47 @@ and Info + Action modes behaved the same. Now each mode is distinct:
 
 The welcome email is sent once, after setup, and works: the three people who
 finished setup from 1 to 8 October each got one. No one new has finished
-setup since. **58 people** finished setup before it existed and never got
-one; 4 have.
+setup since.
 
-The team-only page `/admin/emails` shows that count and sends it to each of
-them, once, after a second "Yes, send". Nothing has been sent.
+**54 people** finished setup before it existed, have a Path, and never got
+one (44 joined over a month ago, 10 two to four weeks ago). Left out: the
+team's and test accounts, anyone under 18 or locked, anyone on a break, and
+one person whose Path was never made.
+
+**Approved on 19 October; not sent yet.** Sending needs an admin signed in,
+and nobody is one (see below). Once you are, open `/admin/emails`: it shows
+the count, asks "Send it to 54 real people now?", and then sends a dozen at
+a time with a pause between, each person once (the same receipt as after
+setup, so nothing can go twice). It stops by itself, and says how many were
+sent and how many could not be.
+
+### Nobody is an admin yet
+
+An admin is someone in `public.admin_users` (or with the admin role on their
+profile). **Both are empty on production**, so nobody can use what needs one:
+
+- the new `/admin/emails` page;
+- publishing and editing the team's articles from another account;
+- the moderation page and its "Flagged automatically" list;
+- the requests queue in ResourceHub (claims, promotions, products, access
+  requests, Spot Guide applications).
+
+To make yourself an admin, run this in the Supabase SQL editor, with the
+email you sign in to Autinerary with (it must be an Autinerary account:
+`sysadmin@autinerary.ca` has none; the accounts that exist for the team are
+`aayush+team@autinerary.ca`, `bhanaayush@gmail.com` and
+`aayush_bhan@hotmail.com`):
+
+```sql
+insert into public.admin_users (user_id, granted_by, note)
+select id, 'sql editor', 'Autinerary team'
+from auth.users
+where email = 'YOUR-SIGN-IN-EMAIL'
+on conflict (user_id) do nothing;
+```
+
+It takes effect at once. To take it away: `delete from public.admin_users
+where user_id = (select id from auth.users where email = 'YOUR-SIGN-IN-EMAIL');`
 
 ### Eliyana: "has this gotten easier?"
 

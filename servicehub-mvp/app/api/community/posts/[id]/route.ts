@@ -168,7 +168,8 @@ export async function GET(
     created_at: post.created_at,
     viewer_vote: postVotes.get(post.id) ?? 0,
     answers: tree,
-    viewer_can_edit: mine,
+    // Team articles (byline Autinerary) can be edited and published by any admin.
+    viewer_can_edit: mine || (!!viewer?.is_admin && post.byline === 'autinerary'),
     viewer_can_accept: !!viewer && (mine || viewer.is_admin) && post.kind !== 'tidbit',
     viewer_can_moderate: !!viewer && viewer.is_admin,
     ...(tidbits

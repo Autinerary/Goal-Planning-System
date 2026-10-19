@@ -39,12 +39,13 @@ export async function GET(request: NextRequest) {
       rows = ((data as any[]) ?? []).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
     }
   } else {
-    const { data, error } = await client
+    // An admin also sees the team's articles (byline Autinerary), whoever saved them.
+    const own = client
       .from('community_posts')
       .select(COLUMNS)
-      .eq('author_id', viewer.user_id)
       .eq('is_deleted', false)
       .eq('status', tab === 'drafts' ? 'draft' : 'published')
+    const { data, error } = await (viewer.is_admin ? own.or(`author_id.eq.${viewer.user_id},byline.eq.autinerary`) : own.eq('author_id', viewer.user_id))
       .order('updated_at', { ascending: false })
       .limit(100)
     if (error) return NextResponse.json({ posts: [], open: !step83Missing(error) })
