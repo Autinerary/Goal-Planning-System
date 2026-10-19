@@ -62,7 +62,10 @@ export function placeholderImage(name: string, label?: string): string {
   const safeName = (name || 'Item').trim() || 'Item'
   const [from, to] = PALETTES[hash(safeName) % PALETTES.length]
   const text = escapeXml(initials(safeName))
-  const caption = label ? escapeXml(label.toUpperCase().slice(0, 22)) : ''
+  const captionText = label ? label.toUpperCase().slice(0, 32) : ''
+  // Long names (MEMOIRS & LIVED EXPERIENCE) get smaller type rather than cut words.
+  const captionSize = Math.max(14, Math.min(22, Math.floor(440 / Math.max(captionText.length, 1))))
+  const caption = escapeXml(captionText)
 
   // 400x400 square: gradient, two soft translucent circles, initials + caption.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
@@ -73,7 +76,7 @@ export function placeholderImage(name: string, label?: string): string {
 <circle cx="320" cy="90" r="130" fill="#ffffff" opacity="0.10"/>
 <circle cx="70" cy="330" r="90" fill="#ffffff" opacity="0.08"/>
 <text x="200" y="${caption ? 205 : 225}" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="128" font-weight="700" fill="#ffffff" opacity="0.95">${text}</text>
-${caption ? `<text x="200" y="260" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="#ffffff" opacity="0.75">${caption}</text>` : ''}
+${caption ? `<text x="200" y="260" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="${captionSize}" font-weight="600" letter-spacing="${captionSize >= 20 ? 2 : 1}" fill="#ffffff" opacity="0.75">${caption}</text>` : ''}
 </svg>`
 
   return `data:image/svg+xml,${encodeURIComponent(svg.replace(/\n/g, ''))}`

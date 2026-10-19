@@ -178,7 +178,9 @@ Core qualities are the filters.
   what it means, and its values (noise reduction, weight, ages, material...).
   Cards show three.
 - **Filters:** the shop shows the core qualities for the group you're in, as
-  switches. A product must have all the ones switched on.
+  switches. A product must have all the ones switched on. On a phone the
+  categories and filters fold under one button ("Categories and filters ·
+  Books"), so the first product is near the top rather than 1,700 pixels down.
 - **Sorting:** by category (the default: each category under its own heading),
   matches what you like (see v1.5), highest rated, price, newest, or name.
 
@@ -359,17 +361,19 @@ the shop.
   was pasted: 33 of 33 (`step82_live.mjs`): the new columns and tables, the
   three discount events, who can read and write what when signed out and
   signed in, and the two functions only the server may run.
-- **The browser suite** (`.qa-local/browser/plan14.mjs`, 61 checks, before
-  STEP 82; all 61 pass on the local build and on production, 19 October;
-  Goals 6 to 11's suite still passes, 52 of 52):
+- **The browser suite** (`.qa-local/browser/plan14.mjs`, 68 checks; it runs
+  before and after STEP 82, taking the matching path; Goals 6 to 11's suite
+  still passes, 52 of 52):
   - the help chat (an answer; 911 and 9-8-8 for someone in crisis);
   - the labelled feedback menus and "Report a problem";
   - the terms and privacy pages;
   - 12 closed doors;
   - the Warm and Cool themes with colour strength, in the app and through
     the hand-off;
-  - the shop's groups, filters, search, sorting and older categories;
-  - a product page; suggesting a product (it waits);
+  - the shop's groups, filters, search, sorting and older categories, and the
+    folded filters on a phone;
+  - a product page; suggesting a product (it waits, and isn't in the shop);
+  - what you like and avoid, saved on the profile (after STEP 82);
   - the cart and orders;
   - the Resource Account as a product vendor and as a service provider.
   - Everything it makes is removed at the end.

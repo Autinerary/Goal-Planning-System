@@ -98,7 +98,22 @@ SELECT moment, reason, count(*) FROM public.subscription_feedback GROUP BY 1, 2 
    ```
 
    It does everything in this step, can be run again safely, and prints the
-   four values for Vercel. By hand, it is:
+   four values for Vercel. Use a Stripe account that is only Autinerary's:
+   Stripe sends every event to every webhook endpoint in the account, so
+   another app's endpoint would receive our customers' billing events.
+
+   To check what is there without changing anything (it reads only, and
+   prints no keys), run it with the same values as Vercel will have:
+
+   ```sh
+   STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_MONTHLY=price_... STRIPE_PRICE_YEARLY=price_... \
+     node scripts/stripe-check.mjs
+   ```
+
+   It says whether the variable names are the ones the app reads, the prices
+   are Autinerary's, in Canadian dollars and not swapped, the webhook is for
+   the app and hears every event it handles, the portal lets people cancel at
+   the end of the period, and Connect is on for the shop. By hand, it is:
    - Make one product, "Autinerary", with two prices in CAD: monthly and
      yearly. The usual yearly discount is "2 months free" (10 times the
      monthly price, 16.7% off): Microsoft 365 Canada and Slack do exactly

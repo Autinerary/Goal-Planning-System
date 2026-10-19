@@ -11,6 +11,7 @@ import { qualitiesForGroup, qualitiesOf, SHARED_CORE, isQuality, qualityLabel } 
 import { usersChoiceFor, type UsersChoice } from '@/lib/shop/usersChoice'
 import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
+import FilterPanel from '@/components/shop/FilterPanel'
 import { CHECKOUT_ON } from '@/lib/shop/selling'
 
 export const dynamic = 'force-dynamic'
@@ -122,6 +123,8 @@ export default async function ShopPage({
   }
   const filterQualities = group ? qualitiesForGroup(group, true) : SHARED_CORE
   const groupInfo = group ? shopGroup(group) : null
+  // Where you are, for the phone's folded button: "Sensory › Sound · 2 filters".
+  const where = [category ? `${groupInfo?.label} › ${shopCategory(category).label}` : groupInfo?.label || 'All', selected.length ? `${selected.length} filter${selected.length === 1 ? '' : 's'}` : ''].filter(Boolean).join(' · ')
 
   // Grouped by category when sorted by category (Goal 4: "sort functionality based on category of item").
   const sections =
@@ -179,66 +182,70 @@ export default async function ShopPage({
         </form>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_1fr]">
-          <aside aria-label="Categories and qualities" className="space-y-6">
-            <nav aria-label="Categories">
-              <h2 className="mb-2 text-sm font-semibold text-gray-900">Categories</h2>
-              <ul className="space-y-1">
-                <li>
-                  <Link href={href({ group: undefined, category: undefined, qualities: undefined })} aria-current={!group ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${!group ? 'bg-blue-700 text-white' : 'text-gray-800 hover:bg-gray-100'}`}>
-                    <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" /> All
-                  </Link>
-                </li>
-                {SHOP_GROUPS.map((g) => {
-                  const Icon = g.icon
-                  const open = group === g.id
-                  return (
-                    <li key={g.id}>
-                      <Link href={href({ group: g.id, category: undefined, qualities: undefined })} aria-current={open && !category ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${open && !category ? 'bg-blue-700 text-white' : open ? 'font-semibold text-gray-900' : 'text-gray-800 hover:bg-gray-100'}`}>
-                        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> {g.label}
+          <aside aria-label="Categories and qualities">
+            <FilterPanel where={where}>
+              <div className="space-y-6">
+                <nav aria-label="Categories">
+                  <h2 className="mb-2 text-sm font-semibold text-gray-900">Categories</h2>
+                  <ul className="space-y-1">
+                    <li>
+                      <Link href={href({ group: undefined, category: undefined, qualities: undefined })} aria-current={!group ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${!group ? 'bg-blue-700 text-white' : 'text-gray-800 hover:bg-gray-100'}`}>
+                        <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" /> All
                       </Link>
-                      {open && (
-                        <ul className="ml-6 mt-1 space-y-0.5">
-                          {SHOP_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
-                            <li key={c.id}>
-                              <Link href={href({ group: g.id, category: c.id })} aria-current={category === c.id ? 'page' : undefined} className={`block rounded px-2 py-1 text-sm ${category === c.id ? 'bg-blue-700 text-white' : 'text-gray-800 hover:bg-gray-100'}`}>
-                                {c.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </li>
-                  )
-                })}
-              </ul>
-            </nav>
+                    {SHOP_GROUPS.map((g) => {
+                      const Icon = g.icon
+                      const open = group === g.id
+                      return (
+                        <li key={g.id}>
+                          <Link href={href({ group: g.id, category: undefined, qualities: undefined })} aria-current={open && !category ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${open && !category ? 'bg-blue-700 text-white' : open ? 'font-semibold text-gray-900' : 'text-gray-800 hover:bg-gray-100'}`}>
+                            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> {g.label}
+                          </Link>
+                          {open && (
+                            <ul className="ml-6 mt-1 space-y-0.5">
+                              {SHOP_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
+                                <li key={c.id}>
+                                  <Link href={href({ group: g.id, category: c.id })} aria-current={category === c.id ? 'page' : undefined} className={`block rounded px-2 py-1 text-sm ${category === c.id ? 'bg-blue-700 text-white' : 'text-gray-800 hover:bg-gray-100'}`}>
+                                    {c.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </nav>
 
-            <section aria-labelledby="qualities-heading">
-              <h2 id="qualities-heading" className="mb-1 text-sm font-semibold text-gray-900">
-                {groupInfo ? `What matters for ${groupInfo.label.toLowerCase()}` : 'What matters'}
-              </h2>
-              <p className="mb-2 text-xs text-gray-700">Show only products that are all of these.</p>
-              <ul className="flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
-                {filterQualities.map((q) => {
-                  const on = selected.includes(q.id)
-                  return (
-                    <li key={q.id}>
-                      {/* A link (it changes the page), so its state is in its words, not aria-pressed (buttons only). */}
-                      <Link href={toggle(q.id)} title={q.help} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm ${on ? 'border-emerald-700 bg-emerald-50 font-semibold text-emerald-900' : 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50'}`}>
-                        {on && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-                        {q.label}
-                        {on && <span className="sr-only"> (on)</span>}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-              {selected.length > 0 && (
-                <Link href={href({ qualities: undefined })} className="mt-2 inline-block text-sm font-medium text-blue-800 underline underline-offset-2">
-                  Clear ({selected.map(qualityLabel).join(', ')})
-                </Link>
-              )}
-            </section>
+                <section aria-labelledby="qualities-heading">
+                  <h2 id="qualities-heading" className="mb-1 text-sm font-semibold text-gray-900">
+                    {groupInfo ? `What matters for ${groupInfo.label.toLowerCase()}` : 'What matters'}
+                  </h2>
+                  <p className="mb-2 text-xs text-gray-700">Show only products that are all of these.</p>
+                  <ul className="flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
+                    {filterQualities.map((q) => {
+                      const on = selected.includes(q.id)
+                      return (
+                        <li key={q.id}>
+                          {/* A link (it changes the page), so its state is in its words, not aria-pressed (buttons only). */}
+                          <Link href={toggle(q.id)} title={q.help} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm ${on ? 'border-emerald-700 bg-emerald-50 font-semibold text-emerald-900' : 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50'}`}>
+                            {on && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                            {q.label}
+                            {on && <span className="sr-only"> (on)</span>}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  {selected.length > 0 && (
+                    <Link href={href({ qualities: undefined })} className="mt-2 inline-block text-sm font-medium text-blue-800 underline underline-offset-2">
+                      Clear ({selected.map(qualityLabel).join(', ')})
+                    </Link>
+                  )}
+                </section>
+              </div>
+            </FilterPanel>
           </aside>
 
           <div>

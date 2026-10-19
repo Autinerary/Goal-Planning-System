@@ -141,7 +141,6 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               ) : (
                 <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price, product.currency)}</span>
               )}
-              {product.price != null && product.currency && product.currency !== 'CAD' && <span className="text-sm text-gray-700">({product.currency})</span>}
             </div>
             {product.price_note && <p className="mt-1 text-xs text-gray-700">{product.price_note}</p>}
             {discount && (
@@ -193,7 +192,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 )}
                 <p className="mt-2 text-xs text-gray-700">
                   {product.last_verified_at
-                    ? `Checked on the maker's or seller's own pages on ${new Date(product.last_verified_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric' })}. People's reviews below say how it worked for them.`
+                    ? `Checked on the maker's or seller's own pages on ${new Date(product.last_verified_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}. People's reviews below say how it worked for them.`
                     : "From the seller. People's reviews below say how it worked for them."}
                 </p>
               </section>
