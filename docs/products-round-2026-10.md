@@ -51,16 +51,60 @@ own pages, preferring products sold in Canada.
 - **Prices** are the ones shown on a page, or "varies".
 - **Buy links** are checked when the product is saved.
 
-The brief, the checker and the tools are in `.qa-local/products/`: outside
-git, with the brief copied into the data folder when the files are added.
+The brief is [scripts/data/products/BRIEF.md](../scripts/data/products/BRIEF.md);
+the checker and the tools are in `.qa-local/products/`, outside git.
 
-**Status:** the research started on 18 October and stopped on a usage limit
-before writing products. It resumes after the limit resets (2:20 a.m.
-Toronto). When it is done:
+**Found (18–19 October): 211 products, in all 40 categories,** in
+`scripts/data/products/`:
 
-1. Its drafts go to `scripts/data/products/`.
-2. `node scripts/import-products.mjs` checks them.
-3. `node scripts/import-products.mjs --apply --archive-demo` saves them and
+| Group | Products |
+| --- | --- |
+| Food | 15 |
+| Allergies | 11 |
+| Clothes | 30 |
+| Sensitive skin | 21 |
+| Self-care | 20 |
+| Sensory | 33 |
+| Books | 23 |
+| Movies & TV | 14 |
+| Apps | 22 |
+| Safety at home | 11 |
+| Play & school | 11 |
+
+- 196 are sold in Canada (a Canadian store, or a maker that ships here).
+- 16 prices are in US dollars, shown as such.
+- 67 have no price: food, books and films sold in many places, subscriptions,
+  and pages that don't say which currency.
+- Every maker page and buy link was loaded again before saving.
+
+**What a reviewer should know:**
+
+- **Left out:** products whose pages make medical claims ("clinically
+  proven", "treats anxiety"). Our descriptions don't repeat claims from the
+  pages we kept.
+- **Allergens** (gluten-, dairy-, nut-, soy-free...) are quoted from the
+  maker's own pages; a store's copy can be wrong (one showed another flavour's
+  ingredients).
+- **Where to watch** isn't checked for Canada for most films and series
+  (Netflix and Disney+ pages can't be read by our tools); links say where they
+  go, such as "HBO (US page)".
+- **Walmart:** 15 everyday foods link to a Walmart Canada search ("(search)"),
+  because Walmart's product pages turn our tools away.
+- **Titles some may question**, kept for now, so the team can decide:
+  - *Atypical* and *The Good Doctor* (the leads aren't played by autistic
+    actors, so neither has "Neurodivergent cast");
+  - *The Reason I Jump* (the way its people communicate is debated);
+  - *Autism in Love* (its page uses older words);
+  - the AngelSense tracker. It can't be taken off without a key, and it can
+    answer calls by itself; its description says so, and that the wearer
+    should be part of the decision.
+- **Few "where people recommend it" links** (12): Reddit and most forums
+  can't be read by our tools. Ratings in the shop will fill this in.
+
+**To import** (after STEP 82, which adds the columns):
+
+1. `node scripts/import-products.mjs` checks them again.
+2. `node scripts/import-products.mjs --apply --archive-demo` saves them and
    archives the 16 "Demo Seller" placeholders. Archived, not deleted.
 
 **Still needed from the team:**
@@ -313,7 +357,8 @@ the shop.
 - **STEP 82**, on a local copy of the database with Supabase's grants: 34
   checks, all passing (`.qa-local/pgtest/step82_test.py`).
 - **The browser suite** (`.qa-local/browser/plan14.mjs`, 61 checks, before
-  STEP 82):
+  STEP 82; all 61 pass on the local build and on production, 19 October;
+  Goals 6 to 11's suite still passes, 52 of 52):
   - the help chat (an answer; 911 and 9-8-8 for someone in crisis);
   - the labelled feedback menus and "Report a problem";
   - the terms and privacy pages;
@@ -327,7 +372,8 @@ the shop.
   - Everything it makes is removed at the end.
 - **The accessibility checker** now covers the shop, a group with its
   filters, Suggest a product, the cart, orders and a product page, at phone
-  and desktop widths. It found that the filters were links marked
+  and desktop widths: 84 pages and widths on production, no serious or
+  critical problems. It found that the filters were links marked
   `aria-pressed` (for buttons only); they now say "(on)" to screen readers.
 - **Unit tests:** the labelled emails (`frontend/lib/feedback.test.mjs`) and
   the Warm and Cool themes (`frontend/lib/preferences.test.mjs`). CI also
@@ -336,8 +382,8 @@ the shop.
 ## Still with the team
 
 1. **Paste STEP 82** into Supabase's SQL editor.
-2. **Resume the product research** after the usage limit resets, then import
-   (Goal 1 above). Send Odosa's starter list.
+2. **Import the 211 products** once STEP 82 is in (Goal 1 above), and look at
+   the titles some may question. Send Odosa's starter list.
 3. **Keys and switches, when ready:**
    - `NEXT_PUBLIC_SHOP_DISCOUNTS=on`, with the first vendors;
    - `NEXT_PUBLIC_SHOP_CHECKOUT=on`, with Stripe Connect and

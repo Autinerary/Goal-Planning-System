@@ -1,0 +1,1912 @@
+{
+ "topic": "products_sensory_safety_play",
+ "checked": "2026-10-18",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "loop-quiet-2-earplugs",
+   "name": "Loop Quiet 2",
+   "brand": "Loop",
+   "category": "sensory-sound",
+   "description": "Reusable soft silicone earplugs that turn down everyday noise for focus, travel and rest. They come with four ear tip sizes, from extra small to large.",
+   "qualities": [
+    "noise_reduction",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "14 dB (NRR) of noise reduction for getting in your quiet bubble at home, work and beyond",
+    "sold_in_canada": "Enjoy free shipping on orders over $44 USD in the United States or $64 CAD in Canada"
+   },
+   "values": {
+    "noise_reduction_db": "14",
+    "material": "silicone"
+   },
+   "price": 34.95,
+   "currency": "CAD",
+   "price_note": "Canadian price shown on Loop's North American store (us.loopearplugs.com) on 18 October 2026",
+   "maker_url": "https://us.loopearplugs.com/products/quiet",
+   "buy_links": [
+    {
+     "label": "Loop",
+     "url": "https://us.loopearplugs.com/products/quiet"
+    }
+   ],
+   "community": [
+    {
+     "label": "Recommended on Neurodiverging (an autistic writer's earplug picks)",
+     "url": "https://neurodiverging.com/my-favorite-earplugs-for-autism-sound-sensitivity/"
+    }
+   ],
+   "evidence": "Ultra-comfy earplugs for deep focus, travel, sleep and getting in your quiet bubble.",
+   "notes": "Loop's European site gives 24 dB (SNR) for the same earplug; the North American page gives 14 dB (NRR), used here. The store shows Canadian dollars to Canadian visitors (free shipping over $64 CAD)."
+  },
+  {
+   "slug": "loop-engage-kids-2-earplugs",
+   "name": "Loop Engage Kids 2",
+   "brand": "Loop",
+   "category": "sensory-sound",
+   "description": "Child-sized silicone earplugs that soften background noise at school, at home and in busy places. Made for ages 6 to 12, with four ear tip sizes.",
+   "qualities": [
+    "noise_reduction",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "Reduce the volume to keep them safe and peaceful with 8 dB (NRR) of noise reduction",
+    "for_children": "Noise-filtering earplugs for learning, playing and growing (ages 6-12).",
+    "sold_in_canada": "Enjoy free shipping on orders over $44 USD in the United States or $64 CAD in Canada"
+   },
+   "values": {
+    "noise_reduction_db": "8",
+    "ages": "6 to 12",
+    "material": "silicone"
+   },
+   "price": 49.95,
+   "currency": "CAD",
+   "price_note": "Canadian price shown on Loop's North American store (us.loopearplugs.com) on 18 October 2026",
+   "maker_url": "https://us.loopearplugs.com/products/engage-kids",
+   "buy_links": [
+    {
+     "label": "Loop",
+     "url": "https://us.loopearplugs.com/products/engage-kids"
+    }
+   ],
+   "community": [],
+   "evidence": "Noise-filtering earplugs for learning, playing and growing (ages 6-12).",
+   "notes": "A light filter (8 dB NRR), not a blocker: for children who still need to hear the teacher. Prices show in Canadian dollars to Canadian visitors."
+  },
+  {
+   "slug": "macks-ultra-soft-foam-earplugs",
+   "name": "Ultra Soft Foam Ear Plugs",
+   "brand": "Mack's",
+   "category": "sensory-sound",
+   "description": "Soft, low-pressure foam earplugs with a high noise reduction rating, used for sleep, travel and loud places. Sold in large packs, so they are cheap to replace.",
+   "qualities": [
+    "noise_reduction",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "Highest Noise Reduction Rating (NRR) – 33 decibels",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0051U7W32"
+   },
+   "values": {
+    "noise_reduction_db": "33",
+    "material": "foam"
+   },
+   "price": 23.57,
+   "currency": "CAD",
+   "price_note": "Price of the 50-pair pack on amazon.ca on 18 October 2026",
+   "maker_url": "https://www.macksearplugs.com/product/ultra-soft-foam-ear-plugs/",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0051U7W32"
+    }
+   ],
+   "community": [
+    {
+     "label": "Recommended on Neurodiverging (an autistic writer's earplug picks)",
+     "url": "https://neurodiverging.com/my-favorite-earplugs-for-autism-sound-sensitivity/"
+    }
+   ],
+   "evidence": "Made with super low-pressure, Comfy Cush® Comfort Foam",
+   "notes": "Mack's own store does not ship outside the U.S. (its shipping page says so); Amazon.ca sells the 50-pair pack. Foam plugs are for short-term use."
+  },
+  {
+   "slug": "califone-hush-buddy-hearing-protector",
+   "name": "Hush Buddy Hearing Protector Headphones",
+   "brand": "Califone",
+   "category": "sensory-sound",
+   "description": "Passive ear defenders sized for smaller heads, with cushioned cups that sit around the ears and a padded headband. Made for children who need more quiet because of sound sensitivity, or for focused work such as reading.",
+   "qualities": [
+    "noise_reduction",
+    "for_children",
+    "gentle_fit",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "Industry Leading Noise Reduction Rating of 27dB",
+    "for_children": "this Hush Buddy is for children who need increased quiet for sensitivity reasons",
+    "gentle_fit": "comfortable, cushioned ear pads that go around, not resting on, the ears",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/hush-buddy-hearing-protector-headphones"
+   },
+   "values": {
+    "noise_reduction_db": "27"
+   },
+   "price": 49.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/hush-buddy-hearing-protector-headphones",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/hush-buddy-hearing-protector-headphones"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed to fit smaller heads, this Hush Buddy is for children who need increased quiet for sensitivity reasons or just for more focused activities such as reading.",
+   "notes": "Califone's own site now forwards to a School Specialty dealer page, so the Canadian seller's page is the source. Scholar's Choice lists it as suitable from 5 years."
+  },
+  {
+   "slug": "alpine-muffy-kids-earmuffs",
+   "name": "Muffy Kids",
+   "brand": "Alpine",
+   "category": "sensory-sound",
+   "description": "Children's earmuffs with an adjustable headband, for noisy outings and for quieter focus at school. Made for ages 5 to 16.",
+   "qualities": [
+    "noise_reduction",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "High damping of 25dB",
+    "for_children": "For children aged 5-16 years",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B08JYZLZPP"
+   },
+   "values": {
+    "noise_reduction_db": "25",
+    "ages": "5 to 16"
+   },
+   "price": 44.95,
+   "currency": "CAD",
+   "price_note": "Price on Alpine's Canadian store (alpinehearingprotection.com/en-ca) on 18 October 2026",
+   "maker_url": "https://www.alpinehearingprotection.com/en-ca/products/muffy-kids",
+   "buy_links": [
+    {
+     "label": "Alpine Canada",
+     "url": "https://www.alpinehearingprotection.com/en-ca/products/muffy-kids"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B08JYZLZPP"
+    }
+   ],
+   "community": [],
+   "evidence": "The Alpine Muffy Kids earmuffs are specially designed to protect the extra-sensitive hearing of children aged 5 to 16 from harmful noises.",
+   "notes": "Alpine runs a Canadian storefront (prices in CA$, free delivery from CA$40). Amazon.ca also lists it (CA$44.87 on the same day)."
+  },
+  {
+   "slug": "decibel-defense-safety-earmuffs",
+   "name": "Decibel Defense Safety Earmuffs",
+   "brand": "Decibel Defense",
+   "category": "sensory-sound",
+   "description": "Heavy-duty passive earmuffs with a very high noise rating, for times when near-silence is needed. They fold to fit in a bag, and the regular size fits most adults and teens.",
+   "qualities": [
+    "noise_reduction",
+    "for_adults",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "INDUSTRY-LEADING 37 dB NRR",
+    "for_adults": "Regular fits most adults and teens ages 10+.",
+    "portable": "Foldable design stores easily in your bag",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B01BEENYCQ"
+   },
+   "values": {
+    "noise_reduction_db": "37",
+    "ages": "10+"
+   },
+   "price": 37.98,
+   "currency": "CAD",
+   "price_note": "Price on amazon.ca on 18 October 2026 (an Amazon international listing, shipped from abroad)",
+   "maker_url": "https://www.decibeldefense.com/products/decibel-defense-ear-protection",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B01BEENYCQ"
+    }
+   ],
+   "community": [
+    {
+     "label": "Recommended on Neurodiverging (an autistic writer's earplug picks)",
+     "url": "https://neurodiverging.com/my-favorite-earplugs-for-autism-sound-sensitivity/"
+    }
+   ],
+   "evidence": "Also helpful for studying or reducing sensory overload in noisy settings, including for those with autism or ASD.",
+   "notes": "The maker ships only within the U.S.; Amazon.ca sells it as an international listing from abroad, so delivery and returns differ. The maker says the snug fit is intentional and can be eased by stretching."
+  },
+  {
+   "slug": "bose-quietcomfort-ultra-headphones-2nd-gen",
+   "name": "QuietComfort Ultra Headphones (2nd Gen)",
+   "brand": "Bose",
+   "category": "sensory-sound",
+   "description": "Wireless over-ear headphones with adjustable active noise cancelling and an Aware mode that lets outside sound in when needed. Suits adults and teens who want to turn noise down, with or without music.",
+   "qualities": [
+    "noise_cancelling",
+    "gentle_fit",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_cancelling": "Adjustable Noise Cancelling, Active Noise Cancelling, Echo Reduction",
+    "gentle_fit": "Plush cushions wrap your ears in a soft embrace, while the headband distributes pressure evenly.",
+    "sold_in_canada": "store:https://www.bose.ca/en/p/headphones/bose-quietcomfort-ultra-headphones-2nd-gen/QCUH2-HEADPHONEARN.html"
+   },
+   "values": {},
+   "price": 599.0,
+   "currency": "CAD",
+   "price_note": "Price on bose.ca on 18 October 2026",
+   "maker_url": "https://www.bose.ca/en/p/headphones/bose-quietcomfort-ultra-headphones-2nd-gen/QCUH2-HEADPHONEARN.html",
+   "buy_links": [
+    {
+     "label": "Bose Canada",
+     "url": "https://www.bose.ca/en/p/headphones/bose-quietcomfort-ultra-headphones-2nd-gen/QCUH2-HEADPHONEARN.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Quiet Mode engages full noise cancellation, so you can listen uninterrupted. Aware Mode lets the outside in, only when you want it.",
+   "notes": "Bose gives no dB rating for its noise cancelling, so no value is listed. The most expensive item in this category, and it needs charging."
+  },
+  {
+   "slug": "safety-1st-noise-reduction-earmuffs",
+   "name": "Noise Reduction Earmuffs",
+   "brand": "Safety 1st",
+   "category": "sensory-sound",
+   "description": "Small padded earmuffs for babies and toddlers, for loud outings such as fireworks, parades, sports events and flights. The headband adjusts as the child grows, and a storage bag is included.",
+   "qualities": [
+    "noise_reduction",
+    "for_children",
+    "gentle_fit",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "22 decibels noise reduction rating helps protect your little one’s ears in loud environments.",
+    "for_children": "designed for babies and toddlers from 3 months to 3 years",
+    "gentle_fit": "Cushioned design offers a gentle, secure fit for infants and toddlers.",
+    "portable": "Grows with your child and includes a compact storage bag for travel convenience.",
+    "sold_in_canada": "store:https://safety1st.ca/products/noise-reduction-earmuffs-ts388"
+   },
+   "values": {
+    "noise_reduction_db": "22",
+    "ages": "3 months to 3 years"
+   },
+   "price": 19.99,
+   "currency": "CAD",
+   "price_note": "Price on safety1st.ca on 18 October 2026",
+   "maker_url": "https://safety1st.ca/products/noise-reduction-earmuffs-ts388",
+   "buy_links": [
+    {
+     "label": "Safety 1st Canada",
+     "url": "https://safety1st.ca/products/noise-reduction-earmuffs-ts388"
+    }
+   ],
+   "community": [],
+   "evidence": "Ideal for outings like concerts, sporting events, parades, fireworks, and airplane travel.",
+   "notes": "The only option here for children under 5. Sold on Safety 1st's Canadian site."
+  },
+  {
+   "slug": "theraspecs-fl-pro-glasses",
+   "name": "FL-Pro",
+   "brand": "TheraSpecs",
+   "category": "sensory-light",
+   "description": "Glasses with a rose-coloured FL-41 tint that filters part of the light given off by fluorescent tubes, LEDs and screens. Worn indoors by children, teens and adults who find artificial light overwhelming.",
+   "qualities": [
+    "blocks_light",
+    "for_adults",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "blocks_light": "It filters wavelengths between 480 and 520nm, the range behind most artificial light and device screens.",
+    "for_adults": "TheraSpecs are worn by children, teenagers, and adults alike",
+    "for_children": "TheraSpecs are worn by children, teenagers, and adults alike",
+    "sold_in_canada": "We are able to ship TheraSpecs to most countries all over the world, including Canada"
+   },
+   "values": {},
+   "price": 99.0,
+   "currency": "USD",
+   "price_note": "Lowest frame price shown on theraspecs.com (US dollars) on 18 October 2026; the price depends on the frame",
+   "maker_url": "https://www.theraspecs.com/fl-pro/",
+   "buy_links": [
+    {
+     "label": "TheraSpecs",
+     "url": "https://www.theraspecs.com/fl-pro/"
+    }
+   ],
+   "community": [],
+   "evidence": "FL-Pro® is our precision-tinted FL-41 lens",
+   "notes": "Prices are in US dollars and vary by frame (from US$99); smaller frames are offered for children. Ships to Canada with the cost shown at checkout, and there is a 60-day return and exchange policy."
+  },
+  {
+   "slug": "teacher-created-resources-calming-covers-light-filters",
+   "name": "Calming Covers Ceiling Light Filters",
+   "brand": "Teacher Created Resources",
+   "category": "sensory-light",
+   "description": "Fabric covers that fix to 2' x 4' ceiling light panels with magnets to soften harsh fluorescent and LED glare in classrooms and other rooms. They come in several prints and colours.",
+   "qualities": [
+    "blocks_light",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "blocks_light": "Gently filter harsh fluorescent and LED lighting to create a more calming and focused learning environment.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/light-blue-calming-covers-ceiling-light-filters"
+   },
+   "values": {
+    "material": "fire-resistant fabric"
+   },
+   "price": 69.99,
+   "currency": "CAD",
+   "price_note": "Price of the Light Blue design on scholarschoice.ca on 18 October 2026; the page does not say how many covers are included",
+   "maker_url": "https://scholarschoice.ca/products/light-blue-calming-covers-ceiling-light-filters",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/light-blue-calming-covers-ceiling-light-filters"
+    }
+   ],
+   "community": [],
+   "evidence": "These visually-appealing fabric light covers filter out harsh glare to create a more calm and soothing environment.",
+   "notes": "The seller's copy also says the covers can reduce headaches and eye strain; that health claim is not repeated here, so a reviewer may want to weigh it. The maker's own site gave an error, so the Canadian seller's page is the source."
+  },
+  {
+   "slug": "ikea-majgull-blackout-curtains",
+   "name": "MAJGULL blackout curtains, 1 pair",
+   "brand": "IKEA",
+   "category": "sensory-light",
+   "description": "A pair of floor-length blackout curtains that keep out daylight and glare, for a bedroom or a dark, calm room during the day. Machine washable.",
+   "qualities": [
+    "blocks_light",
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "blocks_light": "The fabric blocks out all light and glare on TV/screens.",
+    "soft_fabric": "MAJGULL block-out curtains in dark green have a butter-soft texture",
+    "washable": "Machine wash cold, durable-press cycle.",
+    "sold_in_canada": "IKEA Canada Terms & conditions"
+   },
+   "values": {
+    "material": "recycled polyester"
+   },
+   "price": 59.99,
+   "currency": "CAD",
+   "price_note": "Price for one pair (145x250 cm) on IKEA Canada's site on 18 October 2026",
+   "maker_url": "https://www.ikea.com/ca/en/p/majgull-blackout-curtains-1-pair-dark-green-with-heading-tape-50586027/",
+   "buy_links": [
+    {
+     "label": "IKEA Canada",
+     "url": "https://www.ikea.com/ca/en/p/majgull-blackout-curtains-1-pair-dark-green-with-heading-tape-50586027/"
+    }
+   ],
+   "community": [],
+   "evidence": "MAJGULL dark green curtains: two solid dark green floor-length curtains with rod pockets, made from recycled polyester.",
+   "notes": "Sold online and in stores by IKEA Canada (ikea.com/ca, prices in CAD). The checker does not list ikea.com/ca as a Canadian host, so the Canada quote is from IKEA Canada's delivery page."
+  },
+  {
+   "slug": "philips-hue-white-ambiance-a19-bulb",
+   "name": "Hue White Ambiance A19 E26 smart bulb (75 W)",
+   "brand": "Philips Hue",
+   "category": "sensory-light",
+   "description": "A smart LED bulb whose brightness and colour, from warm to cool white, can be turned down from a phone app or a switch. A way to soften a room's light without changing the fixture.",
+   "qualities": [
+    "dimmable"
+   ],
+   "quality_evidence": {
+    "dimmable": "Dimmable with Hue app and switch"
+   },
+   "values": {},
+   "price": 31.49,
+   "currency": "CAD",
+   "price_note": "Sale price on Philips Hue's Canadian site (philips-hue.com/en-ca) on 18 October 2026; regular price $44.99",
+   "maker_url": "https://www.philips-hue.com/en-ca/p/hue-white-ambiance-a19-e26-smart-bulb-75-w/046677563240",
+   "buy_links": [
+    {
+     "label": "Philips Hue Canada",
+     "url": "https://www.philips-hue.com/en-ca/p/hue-white-ambiance-a19-e26-smart-bulb-75-w/046677563240"
+    }
+   ],
+   "community": [],
+   "evidence": "Get cool light, warm light, and all the shades in between with this E26 smart LED bulb.",
+   "notes": "Works over Bluetooth with the Hue app; a Hue Bridge adds more features. Sold on Philips Hue's Canadian site in CAD."
+  },
+  {
+   "slug": "bouncyband-sensory-dark-den",
+   "name": "Framed Indoor Sensory Dark Den",
+   "brand": "Bouncyband",
+   "category": "sensory-light",
+   "description": "A framed, folding den that makes a dark, quiet corner where a child can calm down, at home or in a classroom. It can also hold glow or light-up toys for gentle visual play, and folds into a case.",
+   "qualities": [
+    "blocks_light",
+    "for_children",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "blocks_light": "Designed to provide a quiet, dark cool down spot for children to relax and have time to regulate their sensory systems",
+    "for_children": "Ideal for kids who become easily overwhelmed by sensory stimuli",
+    "portable": "Folds away into a small case",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/indoor-framed-sensory-dark-den"
+   },
+   "values": {},
+   "price": 299.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/indoor-framed-sensory-dark-den",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/indoor-framed-sensory-dark-den"
+    }
+   ],
+   "community": [],
+   "evidence": "Sturdy ready-made safe sensory environment for classroom & home use.",
+   "notes": "Bouncyband's own site would not load for us (TLS error), so the Canadian seller's page is the source. A costly, classroom-sized item."
+  },
+  {
+   "slug": "ono-roller-aluminum",
+   "name": "ONO Roller (Aluminum)",
+   "brand": "ONO",
+   "category": "sensory-touch",
+   "description": "A hand fidget made of two smooth aluminum rollers that roll around each other silently, for keeping hands busy in meetings, class or travel. Made with adults in mind.",
+   "qualities": [
+    "silent",
+    "discreet",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "silent": "Calm restless fidgeting with two frictionless rollers that silently orbit in your hand, offering smooth and satisfying motion.",
+    "discreet": "Silent & Discreet",
+    "for_adults": "Premium Sensory Fidget Toys for Adults",
+    "sold_in_canada": "$58.00 CAD"
+   },
+   "values": {
+    "material": "aluminum"
+   },
+   "price": 58.0,
+   "currency": "CAD",
+   "price_note": "Canadian-dollar price on getono.com for Canadian visitors on 18 October 2026",
+   "maker_url": "https://getono.com/products/ono-roller-aluminum",
+   "buy_links": [
+    {
+     "label": "ONO",
+     "url": "https://getono.com/products/ono-roller-aluminum"
+    }
+   ],
+   "community": [
+    {
+     "label": "Listed in ADDitude's fidget picks for adults with ADHD",
+     "url": "https://www.additudemag.com/slideshows/best-fidget-toys-adults-stimming-adhd/"
+    }
+   ],
+   "evidence": "The original ONO fidget roller with two frictionless aircraft-grade 6061 aluminum columns that silently orbit in the palm of your hand",
+   "notes": "ONO's store prices in CAD for Canada and ships internationally (5 to 18 business days; its shipping policy says import duties may apply). ADDitude's pick is the smaller Junior size of the same roller. Cheaper plastic and silicone versions exist."
+  },
+  {
+   "slug": "tangle-jr-classic",
+   "name": "Tangle Jr. Classic",
+   "brand": "Tangle Creations",
+   "category": "sensory-touch",
+   "description": "A small chain of 18 curved plastic pieces that can be twisted and looped endlessly with one or both hands. A long-standing desk and classroom fidget for children over 3, teens and adults.",
+   "qualities": [
+    "for_children",
+    "for_adults",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Tangles are the ultimate creativity tool for kids and adults alike.",
+    "for_adults": "Tangles are the ultimate creativity tool for kids and adults alike.",
+    "portable": "Measures 1.5\" x 2\" x 1.5\" when coiled.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/tangle-jr-classic-fidget-toy"
+   },
+   "values": {
+    "ages": "3+"
+   },
+   "price": 10.99,
+   "currency": "CAD",
+   "price_note": "Sale price on scholarschoice.ca on 18 October 2026 (regular $11.99)",
+   "maker_url": "https://www.tanglecreations.com/products/classic-tangle-jr",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/tangle-jr-classic-fidget-toy"
+    },
+    {
+     "label": "Tangle Creations",
+     "url": "https://www.tanglecreations.com/products/classic-tangle-jr"
+    }
+   ],
+   "community": [],
+   "evidence": "Consists of eighteen 1\" curved sections.",
+   "notes": "The maker warns it is a choking hazard under age 3 because the sections can separate. The maker's own store showed it as unavailable on 18 October; Scholar's Choice had it in stock."
+  },
+  {
+   "slug": "crazy-aarons-thinking-putty-liquid-glass",
+   "name": "Liquid Glass Thinking Putty (Crystal Clear)",
+   "brand": "Crazy Aaron's",
+   "category": "sensory-touch",
+   "description": "A clear silicone hand putty in a tin that can be stretched, squished and twisted, and does not dry out. A hand fidget for desk work, screen time or waiting.",
+   "qualities": [
+    "non_toxic",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "non_toxic": "Crazy Aaron's putty is non-toxic, won't dry out, and won't leave a sticky or slippery residue on your fingers.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/crazy-aarons-thinking-putty-liquid-glass"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "silicone"
+   },
+   "price": 24.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://www.crazyaarons.com/products/crystal-clear-liquid-glass-thinking-putty",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/crazy-aarons-thinking-putty-liquid-glass"
+    }
+   ],
+   "community": [],
+   "evidence": "Crazy Aaron's putty is non-toxic, won't dry out, and won't leave a sticky or slippery residue on your fingers.",
+   "notes": "The maker's price is US$15 for a 3.2 oz tin, with shipping offers for U.S. orders; Scholar's Choice sells it in Canada for CA$24.99. Ages 3 and up."
+  },
+  {
+   "slug": "schylling-needoh-nice-cube",
+   "name": "NeeDoh Nice Cube",
+   "brand": "Schylling",
+   "category": "sensory-touch",
+   "description": "A squeezable, squishy cube that always springs back to its square shape and feels cool to the touch. A small, simple squeeze toy for stressful moments.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://scholarschoice.ca/products/needoh-nice-cube"
+   },
+   "values": {},
+   "price": 9.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/needoh-nice-cube",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/needoh-nice-cube"
+    }
+   ],
+   "community": [],
+   "evidence": "Squish it, Squeeze it! It always goes back to its square shape.",
+   "notes": "Schylling's own site refused our fetch (403), so the Canadian seller's page is the source. Scholar's Choice limits it to 2 per customer, ships a random colour, and showed a 6 to 7 week wait."
+  },
+  {
+   "slug": "yellow-door-worry-stones",
+   "name": "Worry Stones",
+   "brand": "Yellow Door",
+   "category": "sensory-touch",
+   "description": "A set of twelve tactile stones in six shapes and textures (heart, egg, grooved, knobbly, two-tone and hollowed) for children to hold or rub while they listen or work. For ages 3 and up.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "These tactile stones have been designed to soothe and calm children",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/worry-stones"
+   },
+   "values": {
+    "ages": "3+"
+   },
+   "price": 39.99,
+   "currency": "CAD",
+   "price_note": "Sale price for the set of 12 on scholarschoice.ca on 18 October 2026 (regular $44.99)",
+   "maker_url": "https://scholarschoice.ca/products/worry-stones",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/worry-stones"
+    }
+   ],
+   "community": [],
+   "evidence": "the set includes twelve stones: two each of six designs (heart, egg, grooved, knobbly, two-tone and hollowed).",
+   "notes": "Sold in Canada by Scholar's Choice; the maker's own page was not checked. The seller's copy says the stones relieve stress and anxiety; that claim is not repeated here."
+  },
+  {
+   "slug": "fun-and-function-denim-weighted-lap-pad",
+   "name": "Denim Weighted Lap Pad",
+   "brand": "Fun and Function",
+   "category": "sensory-weighted",
+   "description": "A 4 lb (about 1.8 kg) denim lap pad filled with small pellets, laid across the lap for steady pressure while sitting at school, work or home. Its plain look suits teens and adults.",
+   "qualities": [
+    "weighted",
+    "discreet",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "weighted": "Weighs 4 lbs.",
+    "discreet": "This lap pad's simple style and classic color make it a discreet choice for school, work or home.",
+    "for_adults": "This design is a favorite among teens and adults alike.",
+    "sold_in_canada": "To ship outside of the US, please select your country of choice by clicking on the flag at the top-left of your screen."
+   },
+   "values": {
+    "weight_kg": "1.8",
+    "material": "95% cotton, 5% spandex"
+   },
+   "price": 145.0,
+   "currency": "CAD",
+   "price_note": "Price shown in CAD on funandfunction.com for Canada on 18 October 2026",
+   "maker_url": "https://funandfunction.com/products/denim-weighted-lap-pad",
+   "buy_links": [
+    {
+     "label": "Fun and Function",
+     "url": "https://funandfunction.com/products/denim-weighted-lap-pad"
+    }
+   ],
+   "community": [],
+   "evidence": "Place on your lap for calming deep pressure and proprioceptive feedback to help stay focused and calm.",
+   "notes": "4 lbs converted to about 1.8 kg; the maker says it is for people weighing 40+ lbs. Ships from the U.S. with prices in CAD; the shipping policy says the customer pays duties and taxes. The page also mentions anxiety, which is not repeated here."
+  },
+  {
+   "slug": "fun-and-function-weighted-compression-vest",
+   "name": "The Original Weighted Compression Vest",
+   "brand": "Fun and Function",
+   "category": "sensory-weighted",
+   "description": "A stretchy neoprene and mesh vest with removable weights that gives a snug, even pressure. Hook-and-loop closures make it quick to put on, take off and adjust.",
+   "qualities": [
+    "weighted",
+    "gentle_compression",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "weighted": "Medium and Large vests hold up to 9 lbs., and X-Large vest holds up to 12 lbs.",
+    "gentle_compression": "Made of mesh and comfy neoprene that provides extra stretch and compression",
+    "washable": "Machine wash. Hang dry.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/weighted-compression-vest-medium-blue"
+   },
+   "values": {
+    "ages": "10+",
+    "material": "neoprene and mesh"
+   },
+   "price": 96.49,
+   "currency": "CAD",
+   "price_note": "Price of the Medium (blue) on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://funandfunction.com/products/the-original-weighted-compression-vesttm",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/weighted-compression-vest-medium-blue"
+    },
+    {
+     "label": "Fun and Function",
+     "url": "https://funandfunction.com/products/the-original-weighted-compression-vesttm"
+    }
+   ],
+   "community": [],
+   "evidence": "The vest is like a big wearable hug that provides steady proprioceptive input (body awareness) with deep pressure and balanced weight.",
+   "notes": "Weights are included and removed before washing. The maker advises asking an occupational therapist about weights and wear times (5% of body weight is common; never more than 10 to 15%). It should be worn by choice, not as a restraint."
+  },
+  {
+   "slug": "fun-and-function-minky-weighted-blanket",
+   "name": "Minky Weighted Blanket",
+   "brand": "Fun and Function",
+   "category": "sensory-weighted",
+   "description": "A soft, plush 5 lb (about 2.3 kg) weighted blanket for children and adults to use on the couch or in bed. The maker's safety rules say never to cover the face and not to use it with children under 3.",
+   "qualities": [
+    "weighted",
+    "soft_fabric",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "weighted": "Weighs 5 lbs.",
+    "soft_fabric": "Comfy, cuddly and perfectly plush!",
+    "for_children": "the perfect weighted blanket for kids and adults alike",
+    "for_adults": "the perfect weighted blanket for kids and adults alike",
+    "sold_in_canada": "To ship outside of the US, please select your country of choice by clicking on the flag at the top-left of your screen."
+   },
+   "values": {
+    "weight_kg": "2.3",
+    "material": "polyester, glass pellets"
+   },
+   "price": 175.0,
+   "currency": "CAD",
+   "price_note": "Price shown in CAD on funandfunction.com for Canada on 18 October 2026",
+   "maker_url": "https://funandfunction.com/products/minky-weighted-blanket",
+   "buy_links": [
+    {
+     "label": "Fun and Function",
+     "url": "https://funandfunction.com/products/minky-weighted-blanket"
+    }
+   ],
+   "community": [],
+   "evidence": "Made of 100% polyester. Filled with 100% polyester fiber. Weights are glass pellets in a 100% polyester lining",
+   "notes": "5 lbs converted to about 2.3 kg; for people weighing 50+ lbs, and the user must be able to get out from under it without help. Hand wash only. The page mentions anxiety and sleep benefits, which are not repeated here."
+  },
+  {
+   "slug": "sensory-basics-organic-cotton-compression-sheet",
+   "name": "Sensory Basics Organic Cotton Compression Sheet",
+   "brand": "Fun and Function",
+   "category": "sensory-weighted",
+   "description": "A stretchy organic cotton sheet that fits over a twin mattress, so the sleeper slides in and feels a snug, even squeeze. Deep pressure without added weight, and machine washable.",
+   "qualities": [
+    "gentle_compression",
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "The gentle squeeze of the sheet provides calming proprioceptive input, and the soft organic cotton creates an extra cozy feel.",
+    "soft_fabric": "the soft organic cotton creates an extra cozy feel",
+    "washable": "Machine wash cold with like colors, non-chlorine bleach when needed. Tumble dry low.",
+    "sold_in_canada": "To ship outside of the US, please select your country of choice by clicking on the flag at the top-left of your screen."
+   },
+   "values": {
+    "ages": "3+",
+    "material": "organic cotton"
+   },
+   "price": 120.0,
+   "currency": "CAD",
+   "price_note": "Price shown in CAD on funandfunction.com for Canada on 18 October 2026",
+   "maker_url": "https://funandfunction.com/products/sensory-basicsr-organic-cotton-compression-sheet",
+   "buy_links": [
+    {
+     "label": "Fun and Function",
+     "url": "https://funandfunction.com/products/sensory-basicsr-organic-cotton-compression-sheet"
+    }
+   ],
+   "community": [],
+   "evidence": "Simply pull the sheet onto your mattress and slide into your personal sensory cocoon.",
+   "notes": "Twin size (69 x 39 in). Use with adult guidance; not for children under 3, and never to cover the face or restrict movement, per the maker. The page says it can help ease anxiety, which is not repeated here."
+  },
+  {
+   "slug": "fdmt-weighted-shoulder-wrap-large",
+   "name": "Weighted Shoulder Wrap - Large",
+   "brand": "fdmt",
+   "category": "sensory-weighted",
+   "description": "A 2.3 kg fleece wrap that rests across the neck and shoulders to give steady, even pressure while sitting, reading or winding down. Made by a Canadian sensory-tool company for children and adults.",
+   "qualities": [
+    "weighted",
+    "soft_fabric",
+    "for_children",
+    "for_adults",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "weighted": "Weight: 2.3 kg",
+    "soft_fabric": "Its ultra-soft fleece fabric ensures maximum comfort",
+    "for_children": "A simple yet powerful aid for children and adults looking for calm and comfort throughout the day.",
+    "for_adults": "A simple yet powerful aid for children and adults looking for calm and comfort throughout the day.",
+    "canadian": "Proudly Canadian since 2002",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/weighted-shoulder-wrap-large-i-0873-g"
+   },
+   "values": {
+    "weight_kg": "2.3",
+    "ages": "3+",
+    "material": "polyester fleece, polyethylene pellets"
+   },
+   "price": 49.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 19 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/weighted-shoulder-wrap-large-i-0873-g",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/weighted-shoulder-wrap-large-i-0873-g"
+    }
+   ],
+   "community": [],
+   "evidence": "the evenly distributed weight delivers deep pressure to the neck, shoulders, and upper back",
+   "notes": "Hand wash only. The page says it helps reduce anxiety; that claim is not repeated here. fdmt also makes a 2 kg weighted lap pad (shown sold out on 19 October)."
+  },
+  {
+   "slug": "munchables-dragon-chewelry-necklace",
+   "name": "Dragon Chewelry Necklace (Medium Chew)",
+   "brand": "Munchables",
+   "category": "sensory-chew",
+   "description": "A chewable silicone pendant on a cord with a breakaway clasp, made to be chewed instead of sleeves, pencils or nails. Its black dragon design suits older children, teens and adults.",
+   "qualities": [
+    "chew_safe",
+    "for_children",
+    "for_adults",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "chew_safe": "Munchables chewelry is made from safe, non-toxic, durable silicone, entirely free from plastics, phthalates, lead, PVC, BPA, latex, or cadmium.",
+    "for_children": "creates safe, durable chewelry for kids, teens and adults with autism, ADHD, anxiety and oral sensory needs",
+    "for_adults": "creates safe, durable chewelry for kids, teens and adults with autism, ADHD, anxiety and oral sensory needs",
+    "canadian": "Munchables is a Canadian company owned by a mom with two sensory seeking children",
+    "sold_in_canada": "Free Shipping on Orders Over $35 CAD Within Canada"
+   },
+   "values": {
+    "chew_strength": "medium",
+    "material": "silicone",
+    "ages": "3+"
+   },
+   "price": 22.99,
+   "currency": "CAD",
+   "price_note": "Price on munchables.ca on 18 October 2026",
+   "maker_url": "https://www.munchables.ca/products/dragon-chew-necklace",
+   "buy_links": [
+    {
+     "label": "Munchables",
+     "url": "https://www.munchables.ca/products/dragon-chew-necklace"
+    }
+   ],
+   "community": [
+    {
+     "label": "Canadian Association of Occupational Therapists product recognition report (2019)",
+     "url": "https://www.caot.ca/uploaded/inst/7719587/599248/Report_Munchables.pdf"
+    }
+   ],
+   "evidence": "This chewelry is strung on a black cord with a break away clasp.",
+   "notes": "Not for children under 3 (small parts); the cord and clasp are not for chewing. The maker says the Canadian Association of Occupational Therapists recommends its chewelry. Firmer levels (Strong, X-Strong) exist for heavy chewers."
+  },
+  {
+   "slug": "ark-krypto-bite-chewable-gem-necklace",
+   "name": "Krypto-Bite Chewable Gem Necklace",
+   "brand": "ARK Therapeutic",
+   "category": "sensory-chew",
+   "description": "A slim, gem-shaped chewable pendant long enough to reach the back teeth, on a breakaway cord. Its crystal look makes it a low-key choice for children and adults, in three firmness levels.",
+   "qualities": [
+    "chew_safe",
+    "discreet",
+    "for_children",
+    "for_adults",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "chew_safe": "High quality food and medical grade materials",
+    "discreet": "it’s one of the most discreet and versatile chew necklaces.",
+    "for_children": "is a go-to chew for kids and adults",
+    "for_adults": "is a go-to chew for kids and adults",
+    "washable": "Handwash or top-rack dishwasher-safe.",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/krypto-bite-necklace-i-3365100-group"
+   },
+   "values": {
+    "chew_strength": "Standard, XT or XXT",
+    "material": "medical-grade elastomer",
+    "ages": "3+"
+   },
+   "price": 19.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca (Canadian store) on 18 October 2026; ARK's own site showed C$22.58",
+   "maker_url": "https://www.arktherapeutic.com/ark-krypto-bite-chewable-gem-necklace/",
+   "buy_links": [
+    {
+     "label": "fdmt (Canada)",
+     "url": "https://www.fdmt.ca/en/products/krypto-bite-necklace-i-3365100-group"
+    },
+    {
+     "label": "ARK Therapeutic",
+     "url": "https://www.arktherapeutic.com/ark-krypto-bite-chewable-gem-necklace/"
+    }
+   ],
+   "community": [],
+   "evidence": "3\" long chewable necklace on a 30\" necklace cord with safety breakaway clasp.",
+   "notes": "Ages 3+ with direct supervision, per the maker; replace at the first sign of wear. ARK also ships to Canada itself. The page lists conditions it can 'support'; no cure claims."
+  },
+  {
+   "slug": "ark-grabber-oral-motor-chew-tool",
+   "name": "Grabber Original Oral Motor Chew Tool",
+   "brand": "ARK Therapeutic",
+   "category": "sensory-chew",
+   "description": "A P-shaped chew with a loop to hold and a long arm that reaches the back teeth, used instead of chewing hands, shirts or pencils. Comes in three firmness levels.",
+   "qualities": [
+    "chew_safe",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "chew_safe": "High quality food and medical grade materials",
+    "washable": "Handwash or top-rack dishwasher-safe.",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/grabber-i-034501-group"
+   },
+   "values": {
+    "chew_strength": "Standard, XT or XXT",
+    "material": "medical-grade elastomer",
+    "ages": "3+"
+   },
+   "price": 15.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca (Canadian store) on 18 October 2026; ARK's own site showed C$15.89",
+   "maker_url": "https://www.arktherapeutic.com/ark-grabber-original-oral-motor-chew-tool/",
+   "buy_links": [
+    {
+     "label": "fdmt (Canada)",
+     "url": "https://www.fdmt.ca/en/products/grabber-i-034501-group"
+    },
+    {
+     "label": "ARK Therapeutic",
+     "url": "https://www.arktherapeutic.com/ark-grabber-original-oral-motor-chew-tool/"
+    }
+   ],
+   "community": [],
+   "evidence": "the P shaped design features a loop that makes it easy to hold, and a long extension that makes it easy to reach the back molars.",
+   "notes": "Ages 3+ with direct supervision; inspect and replace when worn. Also sold as an oral-motor practice tool by speech therapists."
+  },
+  {
+   "slug": "fdmt-chewy-pendant-circle",
+   "name": "Chewy Pendant - Circle",
+   "brand": "fdmt",
+   "category": "sensory-chew",
+   "description": "A simple round silicone chew pendant on a necklace with a clasp, for children and teens who need to chew during the day. Low-cost and made by a Canadian sensory-tool company.",
+   "qualities": [
+    "chew_safe",
+    "for_children",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "chew_safe": "Made of silicone, non-toxic, free of BPA, phthalates, cadmium and lead.",
+    "for_children": "This chewy is a good sensory tool to allow children and adolecents to improve their self-regulation, concentration, to calm down or reduce their stress.",
+    "canadian": "Proudly Canadian since 2002",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/chewy-pendant-circle-i-3720100-group"
+   },
+   "values": {
+    "material": "silicone"
+   },
+   "price": 9.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 18 October 2026 (Scholar's Choice lists an fdmt Chewy Necklace at $12.99)",
+   "maker_url": "https://www.fdmt.ca/en/products/chewy-pendant-circle-i-3720100-group",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/chewy-pendant-circle-i-3720100-group"
+    },
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/chewy-necklace"
+    }
+   ],
+   "community": [],
+   "evidence": "Made of silicone, non-toxic, free of BPA, phthalates, cadmium and lead.",
+   "notes": "Inspect often and stop using if damaged; the clasp is not for chewing. Not returnable for hygiene reasons. Some colours were sold out on 18 October."
+  },
+  {
+   "slug": "fun-and-function-chewy-bands",
+   "name": "Chewy Bands (set of 2)",
+   "brand": "Fun and Function",
+   "category": "sensory-chew",
+   "description": "Thick terry-cloth wristbands for children who chew their sleeves, hair or hands: the cotton soaks up saliva and keeps clothes dry. A fabric option for kids who dislike silicone chews.",
+   "qualities": [
+    "for_children",
+    "washable",
+    "soft_fabric",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "They fit snugly on kids’ wrists",
+    "washable": "Machine washable and long-lasting durable design.",
+    "soft_fabric": "Soft against the skin with a comfy tagless design to reduce irritation.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/chewy-wrist-bands-set-of-2"
+   },
+   "values": {
+    "chew_strength": "moderate",
+    "material": "cotton terry cloth",
+    "ages": "3+"
+   },
+   "price": 10.49,
+   "currency": "CAD",
+   "price_note": "Price for a set of 2 on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/chewy-wrist-bands-set-of-2",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/chewy-wrist-bands-set-of-2"
+    }
+   ],
+   "community": [],
+   "evidence": "These thick, terrycloth chewy bands are made from super absorbent cotton that absorbs saliva and keeps sleeves dry.",
+   "notes": "For moderate chewers; not a food-grade chew, so 'safe to chew' is not claimed. Non-returnable. The Canadian seller's page is the source."
+  },
+  {
+   "slug": "bouncyband-for-desks",
+   "name": "Bouncyband for Desks",
+   "brand": "Bouncyband",
+   "category": "sensory-movement",
+   "description": "A thick rubber band that stretches between the front legs of a school desk, so a child can push and bounce their feet while staying seated. Quiet enough for a classroom and installs without tools.",
+   "qualities": [
+    "silent",
+    "discreet",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "silent": "Quiet operation makes it well suited to classroom environments.",
+    "discreet": "The Bouncyband for Desks allows children to move their feet discreetly while remaining seated and engaged in their activity.",
+    "for_children": "The Bouncyband for Desks allows children to move their feet discreetly while remaining seated and engaged in their activity.",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/bouncyband-for-desk-i-3156200"
+   },
+   "values": {
+    "material": "latex-free rubber"
+   },
+   "price": 29.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 18 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/bouncyband-for-desk-i-3156200",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/bouncyband-for-desk-i-3156200"
+    }
+   ],
+   "community": [],
+   "evidence": "Its patented design keeps the band elevated for continuous, quiet movement without distracting others.",
+   "notes": "Fits desks with legs 20 to 28 in (51 to 71 cm) apart; there is a separate version for chairs. Bouncyband's own site would not load for us (TLS error), so the Canadian seller's page is the source."
+  },
+  {
+   "slug": "gymnic-disc-o-sit-cushion",
+   "name": "Disc'o'Sit",
+   "brand": "Gymnic",
+   "category": "sensory-movement",
+   "description": "An inflatable wobble cushion that sits on a chair so the user can shift and move a little while staying seated. The regular 39 cm size takes up to 120 kg, so it suits adults as well as children; a junior size exists.",
+   "qualities": [
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_adults": "Recommended weight: max. 120 kg (270 lbs)",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/disc-o-sit-i-0108-01-group"
+   },
+   "values": {
+    "material": "PVC free from latex, phthalates, BPA and lead"
+   },
+   "price": 52.95,
+   "currency": "CAD",
+   "price_note": "Price of the regular (39 cm) size on fdmt.ca on 18 October 2026; the junior size is $43.95",
+   "maker_url": "https://www.gymnic.com/en/product/discosit/",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/disc-o-sit-i-0108-01-group"
+    }
+   ],
+   "community": [],
+   "evidence": "Placed on a chair, it creates a dynamic seating surface that encourages active posture and allows for gentle movement while remaining seated.",
+   "notes": "Maker material statement: PVC free from latex, phthalates, BPA and lead. The junior size (32 cm) is rated to 45 kg."
+  },
+  {
+   "slug": "kore-wobble-stool-36cm",
+   "name": "Kore Stool (36 cm)",
+   "brand": "Kore",
+   "category": "sensory-movement",
+   "description": "A low (36 cm) stool with a rounded base that wobbles as the sitter moves, for homework, reading or meals. A ring on the base stops it from tipping over.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "It can provide an outlet for children with high energy or sensory seating needs like ADHD or Autism.",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/kore-stool-36-cm-i-2715220-group"
+   },
+   "values": {},
+   "price": 106.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 18 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/kore-stool-36-cm-i-2715220-group",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/kore-stool-36-cm-i-2715220-group"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed with a rounded bottom, the Kore stool wiggles and wobbles with a motion that keeps the core engaged while strengthening posture.",
+   "notes": "Maximum load 125 kg; a 47 cm height is also sold. The maker's own site did not resolve (DNS) for us, so the Canadian seller's page is the source."
+  },
+  {
+   "slug": "gymnic-rody-hopping-horse",
+   "name": "Rody",
+   "brand": "Gymnic",
+   "category": "sensory-movement",
+   "description": "An inflatable hopping horse for young children to bounce and rock on. It gives lots of movement and helps with balance and coordination.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Rody helps your child develop balance, movement skills and coordination.",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/rody-horse-i-2625000"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "latex-free vinyl"
+   },
+   "price": 84.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 18 October 2026",
+   "maker_url": "https://www.gymnic.com/en/product/rody/",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/rody-horse-i-2625000"
+    }
+   ],
+   "community": [],
+   "evidence": "Rody helps your child develop balance, movement skills and coordination.",
+   "notes": "The maker recommends ages 3+, while fdmt's listing says ages 2 to 4; a reviewer may want to pick one. Inflated to suit the child's weight."
+  },
+  {
+   "slug": "moluk-bilibo",
+   "name": "Bilibo",
+   "brand": "MOLUK",
+   "category": "sensory-movement",
+   "description": "A sturdy plastic shell a child can sit in to rock and spin, turn over to balance on, or use in pretend play. Works indoors and outdoors, from age 2.",
+   "qualities": [
+    "for_children",
+    "non_toxic",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Bilibo's iconic shell shape and bright colors immediately appeal to children.",
+    "non_toxic": "Is 100% recyclable, shock resistant, non-toxic and UV stabilized.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/blue-bilibo"
+   },
+   "values": {
+    "ages": "2+",
+    "material": "HD-PE plastic"
+   },
+   "price": 44.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://www.moluk.com/products/bilibo-movement-toy",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/blue-bilibo"
+    }
+   ],
+   "community": [],
+   "evidence": "Children find unlimited ways to play with Bilibo – rocking and spinning inside, hiding underneath, peeking through, balancing on top",
+   "notes": "The maker says it is made of food-grade HD-PE, free from BPA and phthalates. Colour may vary."
+  },
+  {
+   "slug": "angelsense-gps-tracker",
+   "name": "AngelSense GPS Tracker",
+   "brand": "AngelSense",
+   "category": "safety-wandering",
+   "description": "A small GPS tracker made for autistic children and others who may wander, with live location in an app and alerts for unexpected places or late departures. It clips into holders on clothing or a belt, and can be worn by children, teens and adults. Its speakerphone can answer calls by itself, and it can't be taken off without a magnetic key, so talk about privacy with the person who wears it.",
+   "qualities": [
+    "gps_tracking",
+    "alerts",
+    "tamper_resistant",
+    "subscription",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gps_tracking": "Live GPS Tracking – Unlimited, Continuous, Accurate & Reliable",
+    "alerts": "Smart Alerts for Wandering, Unexpected Location, Late Departure, + More",
+    "tamper_resistant": "Durable and Unable to be Removed without a Special Magnetic Key",
+    "subscription": "No contract with month-to-month plan, cancel anytime.",
+    "for_children": "Can Be Worn by Kids, Teens, and Adults of All Ages",
+    "for_adults": "Can Be Worn by Kids, Teens, and Adults of All Ages",
+    "sold_in_canada": "US (AT&T or T-Mobile), CANADA (Rogers), and UK (O2) Service Plans Available"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Device plus a required service plan (month-to-month or annual); AngelSense's prices load only at checkout, so none is shown",
+   "maker_url": "https://www.angelsense.com/help/device-options/",
+   "buy_links": [
+    {
+     "label": "AngelSense",
+     "url": "https://www.angelsense.com/pricing/"
+    }
+   ],
+   "community": [
+    {
+     "label": "Listed by the National Council on Severe Autism (tracking devices for children who wander)",
+     "url": "https://ncsautism.org/blog//tracking-devices-for-autistic-children-who-wander"
+    }
+   ],
+   "evidence": "Can Be Worn by Kids, Teens, and Adults of All Ages",
+   "notes": "Canadian service runs on Rogers. The magnetic-key holder keeps the device on clothing; it does not hold the person. It also has auto-answer voice, so families should talk about consent and privacy with the wearer."
+  },
+  {
+   "slug": "apple-watch-for-your-kids",
+   "name": "Apple Watch (GPS + Cellular) with Apple Watch For Your Kids",
+   "brand": "Apple",
+   "category": "safety-wandering",
+   "description": "A cellular Apple Watch set up from a parent's iPhone, so a child without a phone can be located in Find My and can call approved contacts. Parents can get an alert when the child arrives at or leaves places like home or school.",
+   "qualities": [
+    "gps_tracking",
+    "alerts",
+    "subscription",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gps_tracking": "See the location of your kid’s Apple Watch by looking in the Find My app on your iPhone.",
+    "alerts": "you can set up Location Notifications that alert you when your child arrives at or leaves a specific location",
+    "subscription": "Having a cellular service is required to connect your kid’s Apple Watch to a cellular network with its own mobile service plan",
+    "for_children": "Set up any Apple Watch with cellular for your kids, even if they don’t have their own phone.",
+    "sold_in_canada": "Bell, Rogers, SaskTel and Telus currently support Apple Watch For Your Kids."
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Price depends on the Apple Watch (GPS + Cellular) model plus a monthly carrier plan; needs a parent's iPhone",
+   "maker_url": "https://www.apple.com/ca/apple-watch-for-your-kids/",
+   "buy_links": [
+    {
+     "label": "Apple Canada",
+     "url": "https://www.apple.com/ca/apple-watch-for-your-kids/"
+    }
+   ],
+   "community": [],
+   "evidence": "Set up any Apple Watch with cellular for your kids, even if they don’t have their own phone.",
+   "notes": "Only works if the child will keep a watch on; it needs charging daily. Supported in Canada by Bell, Rogers, SaskTel and Telus per Apple. Schooltime mode limits the watch during class."
+  },
+  {
+   "slug": "medicalert-id-and-service-plan",
+   "name": "MedicAlert ID and service plan (with Connect Protect)",
+   "brand": "MedicAlert Foundation Canada",
+   "category": "safety-wandering",
+   "description": "An engraved medical ID worn on the wrist or neck, backed by a subscription that lets 9-1-1, police and paramedics see the wearer's health record, including autism and wandering history. Useful for children and adults who may not be able to speak for themselves when lost.",
+   "qualities": [
+    "subscription",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "subscription": "At the end of your initial term, your subscription will automatically renew.",
+    "canadian": "MedicAlert Foundation Canada",
+    "sold_in_canada": "store:https://www.medicalert.ca/subscription-plans"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "ID prices vary by style and are paid together with a service plan (with a one-time activation fee); see medicalert.ca",
+   "maker_url": "https://www.medicalert.ca/subscription-plans",
+   "buy_links": [
+    {
+     "label": "MedicAlert Foundation Canada",
+     "url": "https://www.medicalert.ca/subscription-plans"
+    }
+   ],
+   "community": [],
+   "evidence": "Custom engraving on your MedicAlert ID alerts First Responders to your key health details.",
+   "notes": "Plans include '24/7 wandering support'. Connect Protect (first responders' access) is not in every community; MedicAlert asks people to email to check their area. The subscription renews automatically."
+  },
+  {
+   "slug": "ring-alarm-5-piece-kit",
+   "name": "Ring Alarm 5-Piece Kit",
+   "brand": "Ring",
+   "category": "safety-wandering",
+   "description": "A home alarm kit with a base station, keypad, motion detector and a door or window contact sensor that sends a phone alert when a door or window opens. More sensors can be added for each exit.",
+   "qualities": [
+    "alerts",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "alerts": "Secure each door and window in your home and get alerts when they open.",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B07ZDTCRNS"
+   },
+   "values": {},
+   "price": 289.99,
+   "currency": "CAD",
+   "price_note": "Price on amazon.ca on 18 October 2026",
+   "maker_url": "https://ring.com/ca/en/products/security-system-alarm-5",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B07ZDTCRNS"
+    }
+   ],
+   "community": [],
+   "evidence": "1 Base Station, 1 Keypad, 1 Door/Window Contact Sensor, 1 Motion Detector, 1 Range Extender",
+   "notes": "Alerts work without a subscription; professional monitoring and some features need a paid Ring plan. Ring's Canadian page showed US-dollar prices to our fetcher, so the price is Amazon.ca's."
+  },
+  {
+   "slug": "ikea-myggbett-door-window-sensor",
+   "name": "MYGGBETT door/window sensor, smart",
+   "brand": "IKEA",
+   "category": "safety-wandering",
+   "description": "A small, low-cost sensor that fits on a door or window frame and, through a smart-home hub, sends a phone notification when it opens. Can also switch on a light when a door opens.",
+   "qualities": [
+    "alerts",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "alerts": "When connected to a hub, the sensor sends a notification to your smartphone with information if a door or a window is opened.",
+    "sold_in_canada": "IKEA Canada Terms & conditions"
+   },
+   "values": {},
+   "price": 12.99,
+   "currency": "CAD",
+   "price_note": "Price on IKEA Canada's site on 18 October 2026 (battery and hub sold separately)",
+   "maker_url": "https://www.ikea.com/ca/en/p/myggbett-door-window-sensor-smart-60617641/",
+   "buy_links": [
+    {
+     "label": "IKEA Canada",
+     "url": "https://www.ikea.com/ca/en/p/myggbett-door-window-sensor-smart-60617641/"
+    }
+   ],
+   "community": [],
+   "evidence": "This sensor lets you know if a window or a door is open or closed",
+   "notes": "Needs a Matter-over-Thread hub such as IKEA's DIRIGERA (or a compatible Apple, Google or Amazon hub) to send phone alerts, plus one AAA battery. The Canada quote is from IKEA Canada's delivery page, since the checker does not list ikea.com/ca."
+  },
+  {
+   "slug": "safety-1st-adhesive-magnetic-lock-system",
+   "name": "Adhesive Magnetic Lock System (2 locks, 1 key)",
+   "brand": "Safety 1st",
+   "category": "safety-home",
+   "description": "Locks that stick inside cabinet doors and drawers and open only with a magnetic key, so cleaning products, medicines or sharp tools stay out of reach. Nothing shows on the outside.",
+   "qualities": [
+    "no_tools",
+    "discreet",
+    "tamper_resistant",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_tools": "No tools needed for most cabinets.",
+    "discreet": "These ingenious locks install discreetly inside of your cabinets and drawers, making them invisible from the outside.",
+    "tamper_resistant": "It unlocks with a magnetic key that can be stored high up and out of your child's reach.",
+    "sold_in_canada": "store:https://safety1st.ca/products/adhesive-magnetic-lock-3pc-kit-hs292"
+   },
+   "values": {},
+   "price": 19.99,
+   "currency": "CAD",
+   "price_note": "Price on safety1st.ca on 18 October 2026",
+   "maker_url": "https://safety1st.ca/products/adhesive-magnetic-lock-3pc-kit-hs292",
+   "buy_links": [
+    {
+     "label": "Safety 1st Canada",
+     "url": "https://safety1st.ca/products/adhesive-magnetic-lock-3pc-kit-hs292"
+    }
+   ],
+   "community": [],
+   "evidence": "The Safety 1st Adhesive Magnetic Lock System is simple to install, just peel and stick.",
+   "notes": "Some materials such as particle board need the included screws. Keep the key somewhere the child cannot reach."
+  },
+  {
+   "slug": "safety-1st-outsmart-outlet-shield",
+   "name": "OutSmart Outlet Shield (2 pack)",
+   "brand": "Safety 1st",
+   "category": "safety-home",
+   "description": "Flat covers that fit over unused wall outlets and blend into the wall, so children can't push things into the sockets. Fits over existing outlets without tools.",
+   "qualities": [
+    "no_tools",
+    "discreet",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_tools": "Fits directly over existing outlets with no tools required",
+    "discreet": "Fully covers unused outlets, blending seamlessly into your wall",
+    "sold_in_canada": "store:https://safety1st.ca/products/outsmart-outlet-shield-hs275"
+   },
+   "values": {},
+   "price": 6.99,
+   "currency": "CAD",
+   "price_note": "Price for 2 covers on safety1st.ca on 18 October 2026",
+   "maker_url": "https://safety1st.ca/products/outsmart-outlet-shield-hs275",
+   "buy_links": [
+    {
+     "label": "Safety 1st Canada",
+     "url": "https://safety1st.ca/products/outsmart-outlet-shield-hs275"
+    }
+   ],
+   "community": [],
+   "evidence": "Fully covers unused outlets, blending seamlessly into your wall",
+   "notes": "For unused outlets only; it is not a cover for plugged-in cords."
+  },
+  {
+   "slug": "safety-1st-foam-bumper-kit",
+   "name": "Foam Bumper Kit",
+   "brand": "Safety 1st",
+   "category": "safety-home",
+   "description": "A roll of foam edge guard plus four corner cushions to soften the hard edges of tables, counters and other furniture. Helpful for children who move fast, spin or fall often.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://safety1st.ca/products/foam-bumper-kit-hs251"
+   },
+   "values": {
+    "material": "foam"
+   },
+   "price": 29.99,
+   "currency": "CAD",
+   "price_note": "Price on safety1st.ca on 18 October 2026",
+   "maker_url": "https://safety1st.ca/products/foam-bumper-kit-hs251",
+   "buy_links": [
+    {
+     "label": "Safety 1st Canada",
+     "url": "https://safety1st.ca/products/foam-bumper-kit-hs251"
+    }
+   ],
+   "community": [],
+   "evidence": "Includes a 12 foot roll of foam and 4 corner cushions",
+   "notes": "Cut to fit. Foam can be picked at or chewed by some children, so check it from time to time."
+  },
+  {
+   "slug": "ikea-undvika-multi-latch",
+   "name": "UNDVIKA multi latch (2 pack)",
+   "brand": "IKEA",
+   "category": "safety-home",
+   "description": "A strap latch that sticks around the edge of a drawer, fridge or cupboard door to keep young children out. It attaches with tape on smooth surfaces, or with screws.",
+   "qualities": [
+    "no_tools",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_tools": "Easy to attach with tape to smooth bases.",
+    "sold_in_canada": "IKEA Canada Terms & conditions"
+   },
+   "values": {},
+   "price": 7.99,
+   "currency": "CAD",
+   "price_note": "Price for 2 on IKEA Canada's site on 18 October 2026",
+   "maker_url": "https://www.ikea.com/ca/en/p/undvika-multi-latch-white-50349069/",
+   "buy_links": [
+    {
+     "label": "IKEA Canada",
+     "url": "https://www.ikea.com/ca/en/p/undvika-multi-latch-white-50349069/"
+    }
+   ],
+   "community": [],
+   "evidence": "Use this multi-latch to lock drawers, fridges and doors – anything that could seem inviting to open for small, curious children.",
+   "notes": "For cupboards, drawers and appliances; not for keeping a person in a room. The tape can leave marks, and IKEA says furniture should still be fixed to the wall. Canada quote from IKEA Canada's delivery page."
+  },
+  {
+   "slug": "ikea-solstol-cabinet-lock",
+   "name": "SOLSTOL cabinet lock",
+   "brand": "IKEA",
+   "category": "safety-home",
+   "description": "A battery-powered cabinet lock that opens with a tap of an NFC key tag or card, for locking away medicines, tools or cleaning products. Older children and adults can use their own card, such as a library card.",
+   "qualities": [
+    "no_tools",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_tools": "designed to easily lock cabinets without screws or drilling",
+    "sold_in_canada": "IKEA Canada Terms & conditions"
+   },
+   "values": {},
+   "price": 17.99,
+   "currency": "CAD",
+   "price_note": "Price on IKEA Canada's site on 18 October 2026 (batteries sold separately)",
+   "maker_url": "https://www.ikea.com/ca/en/p/solstol-cabinet-lock-60541241/",
+   "buy_links": [
+    {
+     "label": "IKEA Canada",
+     "url": "https://www.ikea.com/ca/en/p/solstol-cabinet-lock-60541241/"
+    }
+   ],
+   "community": [],
+   "evidence": "Can be paired with any key tag or card that supports NFC – like library cards, membership cards and public transport cards.",
+   "notes": "Needs 2 AA rechargeable batteries, sold separately. The 'no screws or drilling' line comes from IKEA's video description on the page. Canada quote from IKEA Canada's delivery page."
+  },
+  {
+   "slug": "ikea-patrull-safety-plugs",
+   "name": "PATRULL safety plug (12 pack)",
+   "brand": "IKEA",
+   "category": "safety-home",
+   "description": "Plastic plugs that block the holes of wall sockets so a child can't push in fingers or objects. They come out only with the coloured key plug in the pack.",
+   "qualities": [
+    "tamper_resistant",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "tamper_resistant": "The plugs are easy to remove from the outlet by inserting the colored plug, which serves as a key.",
+    "sold_in_canada": "IKEA Canada Terms & conditions"
+   },
+   "values": {},
+   "price": 4.99,
+   "currency": "CAD",
+   "price_note": "Price for 12 on IKEA Canada's site on 18 October 2026",
+   "maker_url": "https://www.ikea.com/ca/en/p/patrull-safety-plug-white-30599554/",
+   "buy_links": [
+    {
+     "label": "IKEA Canada",
+     "url": "https://www.ikea.com/ca/en/p/patrull-safety-plug-white-30599554/"
+    }
+   ],
+   "community": [],
+   "evidence": "The safety plugs reduce the risk of your child sticking their finger or an object into a wall outlet.",
+   "notes": "A low-cost alternative to outlet covers; fits grounded and ungrounded outlets. Canada quote from IKEA Canada's delivery page."
+  },
+  {
+   "slug": "peaceable-kingdom-hoot-owl-hoot",
+   "name": "Hoot Owl Hoot!",
+   "brand": "Peaceable Kingdom",
+   "category": "toys-games",
+   "description": "A cooperative colour-matching board game where players work together to fly the owls home before sunrise, so everyone wins or loses together. Simple enough for first-time players from age 4, and older children or adults can join in.",
+   "qualities": [
+    "cooperative",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "cooperative": "Help all the owls get home before the sun rises and everyone wins!",
+    "for_children": "Ages 4 and up",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/hoot-owl-hoot-cooperative-game-by-peaceable-kingdom"
+   },
+   "values": {
+    "ages": "4+"
+   },
+   "price": 39.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/hoot-owl-hoot-cooperative-game-by-peaceable-kingdom",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/hoot-owl-hoot-cooperative-game-by-peaceable-kingdom"
+    }
+   ],
+   "community": [],
+   "evidence": "Play a color card and fly to that space.",
+   "notes": "Peaceable Kingdom's own site now redirects to an Oriental Trading store that refused our fetch (403), so the Canadian seller's page is the source. Adding owl tokens makes it harder for older players."
+  },
+  {
+   "slug": "gamewright-forbidden-island",
+   "name": "Forbidden Island",
+   "brand": "Gamewright",
+   "category": "toys-games",
+   "description": "A cooperative board game for 2 to 4 players aged 10 and up, where the team works together to collect four treasures before the island sinks. Games take about 30 minutes, and players win or lose as a group.",
+   "qualities": [
+    "cooperative",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "cooperative": "Your team will have to work together",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B003D7F4YY"
+   },
+   "values": {
+    "ages": "10+"
+   },
+   "price": 25.83,
+   "currency": "CAD",
+   "price_note": "Price on amazon.ca on 18 October 2026",
+   "maker_url": "https://gamewright.com/product/Forbidden-Island",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B003D7F4YY"
+    }
+   ],
+   "community": [],
+   "evidence": "Join a team of fearless adventurers on a do-or-die mission to capture four sacred treasures from the ruins of this perilous paradise.",
+   "notes": "Gamewright lists 10+, 2 to 4 players, 30 minutes. A tense theme (a sinking island), which some players may find stressful; Hoot Owl Hoot! is a gentler cooperative choice."
+  },
+  {
+   "slug": "thinkfun-rush-hour",
+   "name": "Rush Hour",
+   "brand": "ThinkFun",
+   "category": "toys-games",
+   "description": "A one-player sliding-block logic puzzle: set up the cars as shown on a challenge card, then slide them until the red car can get out. 40 cards go from easy to hard, for ages 8 and up.",
+   "qualities": [
+    "visual_instructions",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_instructions": "Set up vehicles on the game board according to the illustration on the challenge card",
+    "for_children": "Kids age 8 and up have to use their strategic thinking skills to solve 40 challenging puzzles.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/rush-hour-game-by-thinkfun"
+   },
+   "values": {
+    "ages": "8+"
+   },
+   "price": 29.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/rush-hour-game-by-thinkfun",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/rush-hour-game-by-thinkfun"
+    }
+   ],
+   "community": [],
+   "evidence": "Set up vehicles on the game board according to the illustration on the challenge card",
+   "notes": "Good for quiet, solo play with a clear right answer. ThinkFun's site now redirects to Ravensburger US, which refused our fetch (403), so the Canadian seller's page is the source. Rush Hour Jr. exists for younger children."
+  },
+  {
+   "slug": "kinetic-sand-8oz",
+   "name": "Kinetic Sand (8 oz)",
+   "brand": "Kinetic Sand (Spin Master)",
+   "category": "toys-games",
+   "description": "Moldable play sand that sticks to itself rather than to hands, for squeezing, shaping and calm sensory play at a table. It does not dry out and cleans up easily.",
+   "qualities": [
+    "open_ended",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "open_ended": "One Pile of Sand, Endless Possibilities",
+    "for_children": "Kinetic Sand is for ages 3 and up.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/kinetic-sand-8oz"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "sand"
+   },
+   "price": 10.99,
+   "currency": "CAD",
+   "price_note": "Price for 8 oz (227 g) on scholarschoice.ca on 18 October 2026",
+   "maker_url": "https://www.kineticsand.com/",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/kinetic-sand-8oz"
+    }
+   ],
+   "community": [],
+   "evidence": "Kinetic Sand is the squeezable sand you mold with your hands!",
+   "notes": "The colour is chosen at random. The seller says it is made from natural sand and is wheat- and gluten-free. The brand's site is a general brand page, not a product page."
+  },
+  {
+   "slug": "magna-tiles-classic-32-piece",
+   "name": "MAGNA-TILES Classic 32-Piece Set",
+   "brand": "MAGNA-TILES",
+   "category": "toys-games",
+   "description": "A starter set of 32 magnetic building tiles in squares and triangles that click together to make flat or 3D shapes, with no instructions needed. Open-ended building play from age 3.",
+   "qualities": [
+    "open_ended",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "open_ended": "Enjoy countless hours of open-ended play",
+    "for_children": "designed to be enjoyed for many years by builders ages 3 to 99",
+    "sold_in_canada": "store:https://www.mastermindtoys.com/products/magna-tiles-clear-colours-32-pack"
+   },
+   "values": {
+    "ages": "3+"
+   },
+   "price": 74.99,
+   "currency": "CAD",
+   "price_note": "Price on mastermindtoys.com on 18 October 2026",
+   "maker_url": "https://www.mastermindtoys.com/products/magna-tiles-clear-colours-32-pack",
+   "buy_links": [
+    {
+     "label": "Mastermind Toys",
+     "url": "https://www.mastermindtoys.com/products/magna-tiles-clear-colours-32-pack"
+    }
+   ],
+   "community": [],
+   "evidence": "32 magnetic pieces in 6 Classic colors",
+   "notes": "The maker's own page redirected to its general catalogue, so Mastermind Toys (a Canadian store) is the source. The tiles contain magnets, so replace any that crack."
+  },
+  {
+   "slug": "time-timer-original-8",
+   "name": "Time Timer Original 8\"",
+   "brand": "Time Timer",
+   "category": "school-work",
+   "description": "A 60-minute visual timer where a red disc shrinks as time passes, so time left can be seen at a glance. It runs silently, with an optional beep, and sits on a desk or sticks to a whiteboard or fridge.",
+   "qualities": [
+    "visual_supports",
+    "silent",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "This tool was designed to visually illustrate the time spent on a given task.",
+    "silent": "No ticking to distract students during silent reading or quiet assessment blocks.",
+    "for_children": "Age: 3 years old +",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/time-timer-original-8-medium-i-4078200"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "plastic"
+   },
+   "price": 43.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca (Canadian store) on 19 October 2026",
+   "maker_url": "https://www.timetimer.com/products/time-timer-8-magnet",
+   "buy_links": [
+    {
+     "label": "fdmt (Canada)",
+     "url": "https://www.fdmt.ca/en/products/time-timer-original-8-medium-i-4078200"
+    },
+    {
+     "label": "Time Timer",
+     "url": "https://www.timetimer.com/products/time-timer-8-magnet"
+    }
+   ],
+   "community": [
+    {
+     "label": "Recommended in ADDitude's gadgets for adult ADHD",
+     "url": "https://www.additudemag.com/adhd-gadgets-gizmos-timers/"
+    },
+    {
+     "label": "In the ADDitude Store (editor- or reader-picked)",
+     "url": "https://www.additudemag.com/product/time-timer-original-8-inch-time-management/"
+    }
+   ],
+   "evidence": "The Time Timer 8 is a 60-minute timer ideal to learn and improve time management.",
+   "notes": "Needs 2 AA batteries (not included). Used by adults at work too. fdmt's page listed one variant as sold out on 19 October."
+  },
+  {
+   "slug": "learning-resources-magnetic-time-tracker",
+   "name": "Magnetic Time Tracker",
+   "brand": "Learning Resources",
+   "category": "school-work",
+   "description": "A tabletop or magnetic visual timer that lights up green, yellow and red as time runs down, with alarms that can be lights only, sound only or both. Settings run from 1 minute to 24 hours.",
+   "qualities": [
+    "visual_supports",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "Features clear, 3 colour lighted display and simple-to-program alarms (1 minute to 24 hours).",
+    "for_children": "Ages: 4 years +",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/magnetic-time-tracker-i-0775-3"
+   },
+   "values": {
+    "ages": "4+"
+   },
+   "price": 63.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 19 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/magnetic-time-tracker-i-0775-3",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/magnetic-time-tracker-i-0775-3"
+    }
+   ],
+   "community": [
+    {
+     "label": "In the ADDitude Store (editor- or reader-picked)",
+     "url": "https://www.additudemag.com/product/time-tracker-visual-timer-adhd-time-management/"
+    }
+   ],
+   "evidence": "This visual timer is now more visible than ever - adheres to any magnetic surface!",
+   "notes": "The visual-only alarm setting suits sound-sensitive rooms. Needs 4 AA batteries (not included); the 3 button cells are included. The Canadian seller's page is the source."
+  },
+  {
+   "slug": "time-timer-watch",
+   "name": "Time Timer Watch",
+   "brand": "Time Timer",
+   "category": "school-work",
+   "description": "A wristwatch with the Time Timer red-disc countdown, for keeping track of time on the go without a phone. Low-key enough for students and adults at school or work.",
+   "qualities": [
+    "visual_supports",
+    "for_adults",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "Ergonomic: the patented red disc and larger numbers for easy reading",
+    "for_adults": "Its sporty design and enhanced durability will suit students, athletes, adults, and education and health professionals.",
+    "portable": "all in a discreet and portable way",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/watch-time-timer-i-4234000-group"
+   },
+   "values": {
+    "ages": "5+"
+   },
+   "price": 98.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 19 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/watch-time-timer-i-4234000-group",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/watch-time-timer-i-4234000-group"
+    }
+   ],
+   "community": [
+    {
+     "label": "Recommended in ADDitude's gadgets for adult ADHD",
+     "url": "https://www.additudemag.com/adhd-gadgets-gizmos-timers/"
+    }
+   ],
+   "evidence": "Its sporty design and enhanced durability will suit students, athletes, adults, and education and health professionals.",
+   "notes": "fdmt showed the adult model (Sequoia Green) sold out on 19 October; the youth model was listed. The band fits wrists 12.7 to 17.7 cm, so check size for adults."
+  },
+  {
+   "slug": "bouncyband-portable-study-partition",
+   "name": "Portable Partition",
+   "brand": "Bouncyband",
+   "category": "school-work",
+   "description": "A folding three-panel screen that stands on a desk to block out what's going on around a child while they read, write or do homework. Light, with a handle for carrying between home and class.",
+   "qualities": [
+    "portable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "portable": "foldable, lightweight and equipped with a handle, it’s easy to carry",
+    "for_children": "Perfect for children who are easily overwhelmed by stimuli in their environment",
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/portable-study-privacy-partition-i-4306000"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "vinyl"
+   },
+   "price": 37.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 19 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/portable-study-privacy-partition-i-4306000",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/portable-study-privacy-partition-i-4306000"
+    }
+   ],
+   "community": [],
+   "evidence": "The portable partition is a practical, lightweight tool for creating a distraction-free workspace.",
+   "notes": "Centre panel 51 x 35 cm, side panels 41 x 35 cm. Bouncyband's own site would not load for us, so the Canadian seller's page is the source."
+  },
+  {
+   "slug": "whisper-phone-junior",
+   "name": "Whisper Phone Junior",
+   "brand": "Whisper Phone",
+   "category": "school-work",
+   "description": "A small voice-feedback headset that carries a child's own whisper back to their ear, so they can hear sounds clearly while reading, spelling or thinking aloud at a low volume. Works on either ear.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.fdmt.ca/en/products/whisper-phone-junior-i-1601-1"
+   },
+   "values": {},
+   "price": 9.95,
+   "currency": "CAD",
+   "price_note": "Price on fdmt.ca on 19 October 2026",
+   "maker_url": "https://www.fdmt.ca/en/products/whisper-phone-junior-i-1601-1",
+   "buy_links": [
+    {
+     "label": "fdmt",
+     "url": "https://www.fdmt.ca/en/products/whisper-phone-junior-i-1601-1"
+    }
+   ],
+   "community": [],
+   "evidence": "An acoustical voice-feedback headset that enables learners to focus and hear phonemes more clearly as they learn to read, spell, acquire a new language or process language aloud.",
+   "notes": "fdmt also sells a hands-free version. The Canadian seller's page is the source; the maker's own page was not checked."
+  },
+  {
+   "slug": "the-pencil-grip-original",
+   "name": "The Pencil Grip (6 pack)",
+   "brand": "The Pencil Grip (TPG Creations)",
+   "category": "school-work",
+   "description": "A shaped grip that slides onto a pencil and guides the fingers into a steady, comfortable hold, for people who find holding a pencil tiring or awkward. Sold in a pack of six.",
+   "qualities": [
+    "fine_motor",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fine_motor": "Its unique, patented design gently encourages the fingers and hand to rest in the proper position for gripping",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/solo-pencil-grip-6-pack"
+   },
+   "values": {},
+   "price": 7.99,
+   "currency": "CAD",
+   "price_note": "Price for 6 on scholarschoice.ca on 19 October 2026",
+   "maker_url": "https://scholarschoice.ca/products/solo-pencil-grip-6-pack",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/solo-pencil-grip-6-pack"
+    }
+   ],
+   "community": [],
+   "evidence": "The Pencil Grip is the original ergonomic writing aid.",
+   "notes": "The seller says it improves handwriting and reduces hand fatigue; that is not repeated as a claim. The Canadian seller's page is the source."
+  }
+ ]
+}

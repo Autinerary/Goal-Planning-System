@@ -1,0 +1,1796 @@
+{
+ "topic": "products_clothes_selfcare",
+ "checked": "2026-10-18",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "primary-kids-classic-tee",
+   "name": "Kids short sleeve classic tee",
+   "brand": "Primary",
+   "category": "clothing-everyday",
+   "description": "A plain, slogan-free short-sleeve T-shirt for toddlers and kids. Primary says it makes its clothes with soft fabrics and flat seams, which suits children who are bothered by scratchy seams or busy prints.",
+   "qualities": [
+    "soft_fabric",
+    "seamless",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "We craft our clothes with soft fabrics, flat seams, and more sensory-friendly details",
+    "seamless": "soft fabrics, flat seams, and more sensory-friendly details",
+    "for_children": "Kids short sleeve classic tee",
+    "sold_in_canada": "We currently ship to all addresses in the U.S. and Canada."
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Price not shown: primary.com loads prices by script, which the fetch tool cannot read; Canadian prices are in CAD on primary.com/en-ca",
+   "maker_url": "https://www.primary.com/en-ca/products/the-classic-tee",
+   "buy_links": [
+    {
+     "label": "Primary (Canada site)",
+     "url": "https://www.primary.com/en-ca/products/the-classic-tee"
+    }
+   ],
+   "community": [],
+   "evidence": "We craft our clothes with soft fabrics, flat seams, and more sensory-friendly details so kids can be comfortable, inside and out.",
+   "notes": "US maker with a Canadian (CAD) site; free shipping to Canada on orders of $150 CAD or more, otherwise $14 CAD. The product description, sizes and price load by script, so check them by hand; the soft-fabric and flat-seam claims are from Primary's About page, not the product page."
+  },
+  {
+   "slug": "mightly-kids-cozy-fleece-wide-leg-pants",
+   "name": "Kids Cozy Fleece Wide Leg Pants: 100% Organic Cotton",
+   "brand": "Mightly",
+   "category": "clothing-everyday",
+   "description": "Pull-on, wide-leg sweatpants for kids in 100% organic cotton fleece, brushed soft on the inside, with an elastic waistband and drawstring. Suits children who refuse jeans or stiff trousers and are learning to dress themselves.",
+   "qualities": [
+    "soft_fabric",
+    "relaxed_fit",
+    "easy_on_off",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Crafted with a soft brushed inside",
+    "relaxed_fit": "Our wide leg design offers a chic alternative",
+    "easy_on_off": "The pull-on design with a functional drawstring ensures a snug and customizable fit, making dressing up a breeze.",
+    "for_children": "Whether your child is learning to dress themselves",
+    "sold_in_canada": "Canada - $25 flat rate for standard shipping."
+   },
+   "values": {
+    "material": "100% GOTS-certified organic cotton fleece"
+   },
+   "price": 42.95,
+   "currency": "USD",
+   "price_note": "Price on mightly.com (US dollars) on 18 October 2026; shipping to Canada is a $25 flat rate plus duties",
+   "maker_url": "https://www.mightly.com/products/kids-wide-leg-cozy-pant",
+   "buy_links": [
+    {
+     "label": "Mightly",
+     "url": "https://www.mightly.com/products/kids-wide-leg-cozy-pant"
+    }
+   ],
+   "community": [],
+   "evidence": "Made from 100% GOTS certified organic cotton, these pants are not only good for your child but also kind to the planet.",
+   "notes": "US maker; international orders, including Canada, cannot be returned or exchanged, so check sizes first (kids' sizes start at XS 4-5). The page does not mention tags."
+  },
+  {
+   "slug": "nest-designs-unisex-basics-short-sleeve-tee",
+   "name": "Unisex Basics Short Sleeve T-Shirt (Bamboo Cotton)",
+   "brand": "Nest Designs",
+   "category": "clothing-everyday",
+   "description": "A plain adult crewneck T-shirt in a soft bamboo-cotton blend, cut a little longer in the sleeve and body. A simple option for adults who find regular cotton tees rough or hot.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "hypoallergenic",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Soft, breathable, and hypoallergenic fabric",
+    "breathable": "It's so soft and breathable, you'll want to wear it all day.",
+    "hypoallergenic": "Hypoallergenic Bamboo",
+    "for_adults": "Adult Clothing",
+    "sold_in_canada": "Nest Designs offers free shipping to US and Canada orders over $120.00."
+   },
+   "values": {
+    "material": "bamboo cotton blend"
+   },
+   "price": 40.0,
+   "currency": "CAD",
+   "price_note": "Price on nestdesigns.com (Canadian site, CAD) on 18 October 2026",
+   "maker_url": "https://www.nestdesigns.com/en-CA/adult/clothing/unisex-basics-short-sleeve-t-shirt-bamboo-cotton",
+   "buy_links": [
+    {
+     "label": "Nest Designs (Canada site)",
+     "url": "https://www.nestdesigns.com/en-CA/adult/clothing/unisex-basics-short-sleeve-t-shirt-bamboo-cotton"
+    }
+   ],
+   "community": [],
+   "evidence": "This short sleeve t-shirt has elongated short sleeves and falls at the hips.",
+   "notes": "Same Canadian maker as the kids' PJ set and the throw. The page doesn't say whether the label is printed or sewn in, so check for tags by hand."
+  },
+  {
+   "slug": "yoga-jeans-malia-barrel-jeans",
+   "name": "Malia Barrel Jeans",
+   "brand": "Yoga Jeans",
+   "category": "clothing-everyday",
+   "description": "Relaxed-fit barrel-leg jeans with an elastic waistband and tie instead of a button and zip, in soft-washed cotton denim with a little stretch. For adults who want the look of jeans without a stiff waistband or fiddly fastenings.",
+   "qualities": [
+    "relaxed_fit",
+    "easy_closures",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "relaxed_fit": "These relaxed-fit barrel jeans are crafted in our Vintage denim",
+    "easy_closures": "Closure: Elastic waist",
+    "sold_in_canada": "store:https://yogajeans.ca/products/malia-relaxed-blissful"
+   },
+   "values": {
+    "material": "98% cotton, 2% spandex denim"
+   },
+   "price": 138.0,
+   "currency": "CAD",
+   "price_note": "Price on yogajeans.ca on 18 October 2026",
+   "maker_url": "https://yogajeans.ca/products/malia-relaxed-blissful",
+   "buy_links": [
+    {
+     "label": "Yoga Jeans",
+     "url": "https://yogajeans.ca/products/malia-relaxed-blissful"
+    }
+   ],
+   "community": [],
+   "evidence": "With a 28 inch inseam , and a classic rise with an elastic waistband, they're as comfortable as they are eye-catching.",
+   "notes": "Designed in Montreal (made abroad); Canadian shipping is a flat $12. This listing is the 'Blissful' floral-print wash; other Malia washes are separate listings. Women's sizing (24 and up); the maker says to size up for a baggier fit."
+  },
+  {
+   "slug": "blusss-air-flow-long-sensory-longsleeve",
+   "name": "Loose-Fit Boxy Sensory Longsleeve | AIR FLOW LONG",
+   "brand": "blusss",
+   "category": "clothing-everyday",
+   "description": "A boxy, unisex long-sleeve top made for sensory-sensitive adults: no label at the neck, flat seams sewn with soft thread, and a wide cut that hangs away from the body, in breathable bamboo-cotton. Small loops at the collar and hem can hold a fidget.",
+   "qualities": [
+    "tagless",
+    "seamless",
+    "relaxed_fit",
+    "breathable",
+    "soft_fabric",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "tagless": "Label-free at the neck",
+    "seamless": "Flatlock seams with soft thread, nothing you can feel",
+    "relaxed_fit": "Boxy, wider cut that doesn't cling",
+    "breathable": "Breathable bamboo-cotton blend",
+    "soft_fabric": "67% Bamboo, 28% Cotton, 5% Elastane",
+    "for_adults": "Loose-Fit Boxy Sensory Longsleeve for Men & Women",
+    "sold_in_canada": "Yes, we ship within the EU and beyond."
+   },
+   "values": {
+    "material": "67% bamboo, 28% cotton, 5% elastane"
+   },
+   "price": 79.0,
+   "currency": "CAD",
+   "price_note": "Price on blusss.com with the store set to Canada (CAD) on 18 October 2026",
+   "maker_url": "https://blusss.com/products/adults-loose-fit-sensory-longsleeve-air-flow-long",
+   "buy_links": [
+    {
+     "label": "blusss",
+     "url": "https://blusss.com/products/adults-loose-fit-sensory-longsleeve-air-flow-long"
+    }
+   ],
+   "community": [],
+   "evidence": "Breathable bamboo-cotton, no label at the neck, and flatlock seams sewn with soft thread: the seamless feel, without the seams.",
+   "notes": "Belgian sensory-clothing brand; Canada is in the store's country list with CAD prices, and the FAQ says it ships beyond the EU, so check shipping cost and duties by hand. The page showed 'Unavailable' beside 'Add to Bag' for the default selection. Men are told to size up."
+  },
+  {
+   "slug": "smartknitkids-seamless-sensitivity-socks",
+   "name": "SmartKnitKIDS Seamless Sensitivity Socks",
+   "brand": "SmartKnitKIDS",
+   "category": "clothing-socks-underwear",
+   "description": "Children's socks knit from the toe up with no seams, a non-binding top and no defined heel, so there are no lumps to rub. Made for kids who can't stand sock seams, including children with sensory sensitivities.",
+   "qualities": [
+    "seamless",
+    "soft_fabric",
+    "breathable",
+    "easy_on_off",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "seamless": "Truly seamless construction",
+    "soft_fabric": "Super soft material is made for comfort",
+    "breathable": "Lightweight and breathable",
+    "easy_on_off": "Tube shape allows kids to put socks on themselves with little adjustment",
+    "washable": "Machine washable",
+    "for_children": "Any toddlers and children with special needs or sensitivities",
+    "sold_in_canada": "For orders shipping to Puerto Rico and Canada there is one shipping option"
+   },
+   "values": {
+    "material": "polyester/Lycra"
+   },
+   "price": 11.5,
+   "currency": "USD",
+   "price_note": "Price for one pair on shopthuasne.com (US dollars) on 18 October 2026; 3-, 6- and 12-pair packs are also sold",
+   "maker_url": "https://shopthuasne.com/kids-seamless-sensitivity-socks.html",
+   "buy_links": [
+    {
+     "label": "Thuasne (SmartKnitKIDS store)",
+     "url": "https://shopthuasne.com/kids-seamless-sensitivity-socks.html"
+    }
+   ],
+   "community": [],
+   "evidence": "SmartKnitKIDS Seamless Sensitivity Socks for kids are completely free of seams.",
+   "notes": "smartknitkids.com now redirects to Thuasne's US store, which prices in USD and ships to Canada by USPS Parcel Post for a flat US$24.95. The page notes a folding line at the toe but no seam; sized by shoe size and length (ankle, crew, knee-high)."
+  },
+  {
+   "slug": "boody-bamboo-full-briefs",
+   "name": "Full Briefs (Bamboo Seamfree)",
+   "brand": "Boody",
+   "category": "clothing-socks-underwear",
+   "description": "High-rise women's briefs knit as a tube, so there are no side seams, with a soft, wide, flat-ribbed waistband. Made from bamboo viscose for people who find elastic edges and side seams irritating.",
+   "qualities": [
+    "seamless",
+    "soft_fabric",
+    "soft_waistband",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "seamless": "This eliminates side seams for a smooth, comfortable, and form fitting garment",
+    "soft_fabric": "Buttery soft",
+    "soft_waistband": "Soft, wide, flat-ribbed waistband for gentle support.",
+    "washable": "Machine wash warm with similar colors.",
+    "for_adults": "Women's Bamboo Full Briefs in Black",
+    "sold_in_canada": "Free shipping on CA orders over CA$110."
+   },
+   "values": {
+    "material": "79% viscose made from bamboo, 15% nylon, 6% elastane"
+   },
+   "price": 22.0,
+   "currency": "CAD",
+   "price_note": "Price for a single pair on ca.boodywear.com (Boody Canada) on 18 October 2026",
+   "maker_url": "https://ca.boodywear.com/products/full-briefs-black",
+   "buy_links": [
+    {
+     "label": "Boody Canada",
+     "url": "https://ca.boodywear.com/products/full-briefs-black"
+    }
+   ],
+   "community": [],
+   "evidence": "Seamfree construction - created by knitting a tube and turning this into a garment.",
+   "notes": "Australian maker with a Canadian store in CAD; free shipping to Canada over CA$110. Sizes XS to 4XL. There is a stitched seam at the back gusset; the side seams are what is removed."
+  },
+  {
+   "slug": "silkberry-baby-bamboo-boys-briefs-3-pack",
+   "name": "Bamboo Boys Briefs 3 pack",
+   "brand": "Silkberry Baby",
+   "category": "clothing-socks-underwear",
+   "description": "Everyday briefs for young boys (sizes 2T to 7/8) in smooth, stretchy bamboo rayon that is cool and not too snug. Suits children who find cotton underwear scratchy or tight.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "relaxed_fit",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Bamboo fibers are naturally smooth and round with no sharp spurs to irritate skin.",
+    "breathable": "Fabric breathes and keeps children cool and comfy.",
+    "relaxed_fit": "Fabric maintains its shape and is not too snug, allowing children to move with ease.",
+    "for_children": "Our basic briefs underwear is your little boy’s must-have everyday essential.",
+    "sold_in_canada": "FREE SHIPPING over $85 for Canada & USA"
+   },
+   "values": {
+    "material": "97% rayon from bamboo, 3% spandex"
+   },
+   "price": 32.0,
+   "currency": "CAD",
+   "price_note": "Price for a 3-pack on silkberrybaby.com (CAD) on 18 October 2026",
+   "maker_url": "https://silkberrybaby.com/products/bamboo-boys-briefs-galactic-owl-feather-almond",
+   "buy_links": [
+    {
+     "label": "Silkberry Baby",
+     "url": "https://silkberrybaby.com/products/bamboo-boys-briefs-galactic-owl-feather-almond"
+    }
+   ],
+   "community": [],
+   "evidence": "Fabric breathes and keeps children cool and comfy. Fabric has silk touch handfeel. It’s great for sensitive skin.",
+   "notes": "Canadian bamboo brand pricing in CAD; free shipping over $85 in Canada and the US. Every size of this colour set showed as sold out or unavailable on 18 October, so check stock or other colour packs; girls' bikini and boyshort packs are separate products. The page doesn't mention tags."
+  },
+  {
+   "slug": "jefferies-socks-seamless-sport-crew-half-cushion",
+   "name": "Jefferies Socks Girls and Boys Seamless Sport Crew Half Cushion Socks 3 Pair Pack",
+   "brand": "Jefferies Socks",
+   "category": "clothing-socks-underwear",
+   "description": "Cotton-rich children's sport crew socks with a smooth, flat toe seam and a half-cushion foot, sold in packs of three. A cheaper everyday option for kids who notice the bump of an ordinary toe seam.",
+   "qualities": [
+    "seamless",
+    "soft_fabric",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "seamless": "Sensory friendly smooth toe seam provides less bulk and irritation for sensitive feet",
+    "soft_fabric": "Cotton rich blend is soft, durable, and comfortable",
+    "for_children": "a must have for all active girls and boys",
+    "sold_in_canada": "Canada orders are USPS rates."
+   },
+   "values": {
+    "material": "80% cotton, 17% nylon, 3% spandex"
+   },
+   "price": 9.99,
+   "currency": "USD",
+   "price_note": "'As low as' price for a 3-pair pack on jefferiessocks.com (US dollars) on 18 October 2026; shipping to Canada at USPS rates",
+   "maker_url": "https://www.jefferiessocks.com/31170-seamless-sport-crew-half-cushion-3-pk",
+   "buy_links": [
+    {
+     "label": "Jefferies Socks",
+     "url": "https://www.jefferiessocks.com/31170-seamless-sport-crew-half-cushion-3-pk"
+    }
+   ],
+   "community": [],
+   "evidence": "These athletic socks feature a smooth toe seam that has an invisible feel that is non-irritating for superior all day comfort.",
+   "notes": "US maker (North Carolina); the price is from the home-page listing because the product page loads it by script. It has a flattened toe seam rather than no seam at all; 6-pair packs and other lengths are sold."
+  },
+  {
+   "slug": "knix-essential-no-show-bikini",
+   "name": "Essential Bikini (No-Show)",
+   "brand": "Knix",
+   "category": "clothing-socks-underwear",
+   "description": "Everyday mid-rise bikini underwear in a smooth, stretchy fabric with no visible seams or edges and a cotton-blend liner. Suits adults who are bothered by thick elastic or seams under clothes; it is not leakproof.",
+   "qualities": [
+    "seamless",
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "seamless": "You can count on these seamless bottoms for top-notch comfort",
+    "soft_fabric": "Made from our signature buttery-soft PerformaStretch® fabric",
+    "washable": "Machine wash cold with mild detergent on delicate",
+    "sold_in_canada": "store:https://knix.ca/products/essential-no-show-bikini"
+   },
+   "values": {
+    "material": "77% nylon, 23% Lycra; cotton-blend gusset"
+   },
+   "price": 22.0,
+   "currency": "CAD",
+   "price_note": "Price for one pair on knix.ca on 18 October 2026",
+   "maker_url": "https://knix.ca/products/essential-no-show-bikini",
+   "buy_links": [
+    {
+     "label": "Knix Canada",
+     "url": "https://knix.ca/products/essential-no-show-bikini"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed for daily comfort when you don't need absorbent protection.",
+   "notes": "Toronto-based maker; free shipping in Canada over $125 (a $20 fee applies to NWT, Nunavut and Yukon). Underwear can be exchanged but not refunded. The page says the fabric feels snug at first and relaxes with wear."
+  },
+  {
+   "slug": "silverts-magnetic-button-short-sleeve-shirt",
+   "name": "Magnetic Button Short Sleeve Shirt",
+   "brand": "Silverts",
+   "category": "clothing-adaptive",
+   "description": "A men's short-sleeve button-look shirt that closes with hidden magnets down the front and at the cuffs instead of buttons. Suits adults who find small buttons hard or tiring, and who dress themselves.",
+   "qualities": [
+    "easy_closures",
+    "easy_on_off",
+    "breathable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_closures": "Easy Magnetic Closure: Hidden magnets along the front and cuffs allow effortless dressing",
+    "easy_on_off": "Quick Struggle-Free Dressing: Magnetic closures reduce time and effort when getting dressed",
+    "breathable": "Smooth, breathable shirting fabric",
+    "for_adults": "Magnetic Buttons Mens Short Sleeve Shirt",
+    "sold_in_canada": "store:https://www.silverts.ca/products/magnetic-buttons-mens-short-sleeve-shirt"
+   },
+   "values": {
+    "material": "90% polyester, 10% spandex (one plaid is 97% cotton, 3% spandex)"
+   },
+   "price": 72.98,
+   "currency": "CAD",
+   "price_note": "Regular price on silverts.ca on 18 October 2026",
+   "maker_url": "https://www.silverts.ca/products/magnetic-buttons-mens-short-sleeve-shirt",
+   "buy_links": [
+    {
+     "label": "Silverts Canada",
+     "url": "https://www.silverts.ca/products/magnetic-buttons-mens-short-sleeve-shirt"
+    }
+   ],
+   "community": [],
+   "evidence": "Hidden magnets along the front and cuffs allow effortless dressing",
+   "notes": "Silverts' Canadian store, prices in CAD, free ground shipping over $150. Sizes S to 3XL; several colour and size variants showed as sold out or unavailable on 18 October, so check stock. Silverts warns elsewhere that sewn-in magnets can affect pacemakers and are an ingestion hazard if exposed, so keep worn garments away from young children."
+  },
+  {
+   "slug": "iz-adaptive-womens-long-sleeve-open-back-tee",
+   "name": "Women's Long Sleeve Open Back T-Shirt",
+   "brand": "IZ Adaptive",
+   "category": "clothing-adaptive",
+   "description": "A relaxed-fit, 100% cotton long-sleeve T-shirt with an open snap back, so it can be put on without pulling it over the head and arms the usual way. Designed for adults who dress seated or with help.",
+   "qualities": [
+    "easy_on_off",
+    "relaxed_fit",
+    "soft_fabric",
+    "breathable",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_on_off": "Open-snap back allows for easier dressing",
+    "relaxed_fit": "Relaxed fit supports comfort while seated",
+    "soft_fabric": "Soft cotton fabric that feels great against the skin",
+    "breathable": "Classic, breathable t-shirt fabric",
+    "washable": "Machine wash cold. Tumble dry low.",
+    "for_adults": "Women's Long Sleeve Open Back T-Shirt",
+    "sold_in_canada": "We offer free shipping to North America on orders over $250 CAD."
+   },
+   "values": {
+    "material": "100% cotton"
+   },
+   "price": 55.0,
+   "currency": "CAD",
+   "price_note": "Price on izadaptive.com (prices in CAD) on 18 October 2026",
+   "maker_url": "https://izadaptive.com/products/long-sleeve-adaptive-t-shirt-for-women",
+   "buy_links": [
+    {
+     "label": "IZ Adaptive",
+     "url": "https://izadaptive.com/products/long-sleeve-adaptive-t-shirt-for-women"
+    }
+   ],
+   "community": [],
+   "evidence": "A comfortable long sleeve tee designed for easy dressing and all-day wear. With an open-snap back and relaxed fit",
+   "notes": "Ships from Ontario (the page cites Canadian and Ontario holidays); free shipping in North America over $250 CAD. The page notes a Canada Post disruption and asks for street addresses rather than P.O. boxes; a men's version is also sold."
+  },
+  {
+   "slug": "magnaready-magnetic-fly-five-pocket-jean",
+   "name": "Magnetic Fly Five Pocket Jean",
+   "brand": "MagnaReady",
+   "category": "clothing-adaptive",
+   "description": "Men's straight-fit stretch jeans that look like ordinary five-pocket jeans but close with a magnetic fly and magnetic button instead of a zip and shank button. Suits adults who find zips and buttons slow or hard, for dressing and bathroom trips.",
+   "qualities": [
+    "easy_closures",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_closures": "Magnetic fly for fast, dignified bathroom access and independent dressing",
+    "for_adults": "Adaptive jeans for men",
+    "sold_in_canada": "We ship in the United States and Canada at present."
+   },
+   "values": {
+    "material": "70% cotton, 28% polyester, 2% Lycra denim"
+   },
+   "price": 74.99,
+   "currency": "USD",
+   "price_note": "Price on magnaready.com (US dollars) on 18 October 2026",
+   "maker_url": "https://magnaready.com/products/five-pocket-jean-mvp-magnetic-buttons-indigo",
+   "buy_links": [
+    {
+     "label": "MagnaReady",
+     "url": "https://magnaready.com/products/five-pocket-jean-mvp-magnetic-buttons-indigo"
+    }
+   ],
+   "community": [],
+   "evidence": "A patented magnetic fly makes opening and closing the front fast and manageable for better bathroom access and daily dressing",
+   "notes": "US maker, prices in USD; its FAQ says it ships to the US and Canada. The page asks people with a pacemaker, defibrillator or other implanted device to check with a doctor first because of the magnets. Also in light wash and black."
+  },
+  {
+   "slug": "kaycey-z-secret-zip-back-jumpsuit-kids",
+   "name": "KayCey®Z Secret Zip Back Jumpsuit (Kids), Long Sleeve / Ankle Length",
+   "brand": "The Special Kids Company",
+   "category": "clothing-adaptive",
+   "description": "A soft, tag-free one-piece jumpsuit that zips up the back with a button lock, so it is hard for a child to take off. Made for children aged 3 to 16 who undress or remove a diaper, and can be worn under or as clothing.",
+   "qualities": [
+    "tagless",
+    "seamless",
+    "soft_fabric",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "tagless": "Tag-free so your child can move without uncomfortable irritation",
+    "seamless": "Flat-locked side seams to prevent digging into the skin",
+    "soft_fabric": "supersoft cotton/elastane fabric which is gentle on the skin",
+    "washable": "Gentle machine wash with like colours",
+    "for_children": "Available for kids as small as 3 years old to 16 years old",
+    "sold_in_canada": "We also ship to Canada."
+   },
+   "values": {
+    "ages": "3 to 16 years",
+    "material": "cotton/elastane"
+   },
+   "price": 51.95,
+   "currency": "USD",
+   "price_note": "Price for most sizes on us.specialkids.company (US dollars) on 18 October 2026; sizes 11-12 and up are $53.95",
+   "maker_url": "https://us.specialkids.company/collections/sensory-friendly-clothing/products/kaycey-z-super-soft-zip-back-jumpsuit-long-sleeve-long-leg-kids-2025",
+   "buy_links": [
+    {
+     "label": "The Special Kids Company (US store)",
+     "url": "https://us.specialkids.company/collections/sensory-friendly-clothing/products/kaycey-z-super-soft-zip-back-jumpsuit-long-sleeve-long-leg-kids-2025"
+    }
+   ],
+   "community": [],
+   "evidence": "Not only is it a zip back but it has a double button lock system to make it that little bit more difficult for your child to undress",
+   "notes": "UK brand selling from a US store in USD; ships to Canada by USPS and the buyer pays any duties. Some colour and size combinations were sold out on 18 October. Adult sizes are sold as separate products."
+  },
+  {
+   "slug": "silverts-womens-magnetic-button-fleece-cardigan",
+   "name": "Women's Magnetic Button Fleece Cardigan",
+   "brand": "Silverts",
+   "category": "clothing-adaptive",
+   "description": "A soft, fleece-lined women's cardigan with decorative buttons that closes with hidden magnets down the front, so it fastens with a touch. For adults who find buttons hard or slow, and who dress themselves.",
+   "qualities": [
+    "easy_closures",
+    "easy_on_off",
+    "soft_fabric",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_closures": "Easy Magnetic Closure: Hidden magnetic front closure, secured with a touch of the hand",
+    "easy_on_off": "Quick Struggle-Free Dressing: Reduces dressing time",
+    "soft_fabric": "Soft sweatshirt exterior with a fuzzed, fleece lining, providing maximum skin comfort.",
+    "washable": "Machine washable and dryer friendly",
+    "for_adults": "Great for adults in hospitals, nursing facilities or recovery; disabled adults",
+    "sold_in_canada": "store:https://www.silverts.ca/products/womens-magnetic-button-fleece-cardigan"
+   },
+   "values": {
+    "material": "62% polyester, 33% cotton, 5% spandex"
+   },
+   "price": 69.98,
+   "currency": "CAD",
+   "price_note": "Regular price on silverts.ca on 18 October 2026",
+   "maker_url": "https://www.silverts.ca/products/womens-magnetic-button-fleece-cardigan",
+   "buy_links": [
+    {
+     "label": "Silverts Canada",
+     "url": "https://www.silverts.ca/products/womens-magnetic-button-fleece-cardigan"
+    }
+   ],
+   "community": [],
+   "evidence": "Senior Women's Fleece Magnetic Front Closure Cardigan features a discrete magent closure with decorative non-functional buttons",
+   "notes": "The page warns that the sewn-in magnets may interfere with pacemakers and other implanted devices, and are an ingestion hazard if exposed: keep worn garments away from children. Marketed mainly to seniors; heavyweight fleece."
+  },
+  {
+   "slug": "skechers-slip-ins-summits-high-range-kids",
+   "name": "Skechers Slip-ins: Summits - High Range (kids)",
+   "brand": "Skechers",
+   "category": "clothing-shoes",
+   "description": "A light, machine-washable kids' sneaker that slips on hands-free: a padded heel holds the foot and stretch laces never need tying. Suits children who struggle with laces or with the time it takes to put shoes on.",
+   "qualities": [
+    "easy_on_off",
+    "easy_closures",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_on_off": "Skechers easy-on, easy-off adaptive closure for a customized fit",
+    "easy_closures": "Mesh upper with stretch laces",
+    "washable": "Machine washable",
+    "for_children": "Bring the kids in on the comfort of a Skechers favorite",
+    "sold_in_canada": "store:https://www.skechers.ca/en/skechers-slip-ins-summits---high-range/403833L_BKCC.html"
+   },
+   "values": {},
+   "price": 65.0,
+   "currency": "CAD",
+   "price_note": "Price on skechers.ca (Kids Adaptable collection) on 18 October 2026",
+   "maker_url": "https://www.skechers.ca/en/skechers-slip-ins-summits---high-range/403833L_BKCC.html",
+   "buy_links": [
+    {
+     "label": "Skechers Canada",
+     "url": "https://www.skechers.ca/en/skechers-slip-ins-summits---high-range/403833L_BKCC.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed with our Heel Pillow®, this popular slip-on style features a mesh upper with stretch laces and a cushioned Skechers Air-Cooled Memory Foam® comfort insole.",
+   "notes": "Boys' sizing on skechers.ca, listed in Skechers' Kids Adaptable collection; adult Hands Free Slip-ins are sold separately. The price is shown on the collection page, not the product page."
+  },
+  {
+   "slug": "allbirds-mens-wool-runners",
+   "name": "Men's Wool Runners",
+   "brand": "Allbirds",
+   "category": "clothing-shoes",
+   "description": "A light, flexible lace-up sneaker with a soft merino wool upper and lining that can be worn without socks and goes in the washing machine. Suits adults who dislike stiff shoes or the feel of socks.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Our superfine ZQ Merino wool material is incredibly soft and cozy",
+    "breathable": "The Wool Runner is breathable, lightweight, and can be worn sockless.",
+    "washable": "Machine-washable materials keep shoes looking like new",
+    "for_adults": "Men's Wool Runners",
+    "sold_in_canada": "store:https://allbirds.ca/products/mens-wool-runners"
+   },
+   "values": {
+    "material": "ZQ merino wool upper"
+   },
+   "price": 140.0,
+   "currency": "CAD",
+   "price_note": "Regular price on allbirds.ca on 18 October 2026 (shown at $70.00 during a 50%-off sitewide sale)",
+   "maker_url": "https://allbirds.ca/products/mens-wool-runners",
+   "buy_links": [
+    {
+     "label": "Allbirds Canada",
+     "url": "https://allbirds.ca/products/mens-wool-runners"
+    }
+   ],
+   "community": [],
+   "evidence": "The Wool Runner is breathable, lightweight, and can be worn sockless.",
+   "notes": "Allbirds' Canadian store, prices in CAD, free shipping over $99. Women's Wool Runners are sold separately. It has laces, so it is not hands-free; some people find any wool itchy."
+  },
+  {
+   "slug": "bogs-kids-boga-boot",
+   "name": "Boga Boot (Kids' Boot)",
+   "brand": "BOGS",
+   "category": "clothing-shoes",
+   "description": "A light, waterproof, fleece-lined slip-on winter boot for kids, with no laces: a pull-cinch at the top tightens and loosens it. Suits children who can't manage laces or who want a warm boot that goes on quickly.",
+   "qualities": [
+    "easy_on_off",
+    "easy_closures",
+    "soft_fabric",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_on_off": "The Kids Boga Boot combines the slip-on comfort of the Boga",
+    "easy_closures": "Pull-cinch closure tightens and loosens with ease",
+    "soft_fabric": "Soft fleece lining with Max Wick and Durafresh coating for all-day comfort",
+    "for_children": "Kids' Boot",
+    "sold_in_canada": "store:https://www.bogsfootwear.ca/shop/style/73540-001.html"
+   },
+   "values": {
+    "material": "recycled EVA upper, fleece lining"
+   },
+   "price": 90,
+   "currency": "CAD",
+   "price_note": "Price on bogsfootwear.ca (BOGS Canada) on 18 October 2026",
+   "maker_url": "https://www.bogsfootwear.ca/shop/style/73540-001.html",
+   "buy_links": [
+    {
+     "label": "BOGS Canada",
+     "url": "https://www.bogsfootwear.ca/shop/style/73540-001.html"
+    }
+   ],
+   "community": [],
+   "evidence": "A thick fleece lining and high-abrasion fabric collar will keep your little ones warm as the cooler weather sets in",
+   "notes": "Little-kid and big-kid sizes; BOGS rates it from -30°C to 27°C. New style in October 2026, in several colours."
+  },
+  {
+   "slug": "kizik-little-kid-athens-2",
+   "name": "Little Kid Athens 2",
+   "brand": "Kizik",
+   "category": "clothing-shoes",
+   "description": "A hands-free knit sneaker for children aged 4 to 8: the heel compresses as the foot steps in, then springs back, so there is nothing to tie or pull. Suits kids who find laces or tight heels frustrating.",
+   "qualities": [
+    "easy_on_off",
+    "breathable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_on_off": "Step in easily. The heel compresses, springs back, and locks for a secure fit.",
+    "breathable": "unmatched comfort, and breathable materials",
+    "for_children": "Sizes 10C–3Y · Ages 4–8 Years",
+    "sold_in_canada": "We ship to most countries in North America, Europe, Asia, Latin America and Oceania."
+   },
+   "values": {
+    "ages": "4 to 8 years"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices show in your currency on kizik.com",
+   "maker_url": "https://kizik.com/products/little-kid-athens-2-blackout",
+   "buy_links": [
+    {
+     "label": "Kizik",
+     "url": "https://kizik.com/products/little-kid-athens-2-blackout"
+    }
+   ],
+   "community": [],
+   "evidence": "This active shoe combines HandsFree Labs® technology, unmatched comfort, and breathable materials.",
+   "notes": "US maker; Canada is listed in the store's shipping-country menu and the shipping page says it ships to most of North America, so check the Canadian price by hand. The tie laces are fixed and stay tied. Big-kid and adult versions are separate products."
+  },
+  {
+   "slug": "billy-limitless-kids",
+   "name": "BILLY Limitless (Kids')",
+   "brand": "BILLY Footwear",
+   "category": "clothing-shoes",
+   "description": "A kids' sneaker whose zipper runs around the side and toe so the whole top folds open, with a nearly seamless lining at the tongue and zip. Made for children with sensory needs or who wear ankle-foot orthoses (AFOs), in medium, wide and extra-wide.",
+   "qualities": [
+    "easy_on_off",
+    "easy_closures",
+    "seamless",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "easy_on_off": "Easy on / Easy off",
+    "easy_closures": "BILLY Full Wrap Zipper configuration with adjustable laces for a custom fit",
+    "seamless": "creates a nearly seamless tongue and zipper guard",
+    "for_children": "Kids' Charcoal BILLY Limitless",
+    "sold_in_canada": "Yes! We ship to countries outside of the US."
+   },
+   "values": {},
+   "price": 95.0,
+   "currency": "USD",
+   "price_note": "Regular price on billyfootwear.com (US dollars) on 18 October 2026",
+   "maker_url": "https://billyfootwear.com/products/charcoal-billy-limitless-sensory-friendly-shoes",
+   "buy_links": [
+    {
+     "label": "BILLY Footwear",
+     "url": "https://billyfootwear.com/products/charcoal-billy-limitless-sensory-friendly-shoes"
+    }
+   ],
+   "community": [],
+   "evidence": "Sensory-friendly lining that utilizes a stitch and turn technique that creates a nearly seamless tongue and zipper guard",
+   "notes": "US maker; ships internationally at carrier rates and the buyer pays duties. Its shipping page does not name Canada, but Canada is in the store's country list, so confirm by hand. Designed with Children's Specialized Hospital; comes with two spacer insoles."
+  },
+  {
+   "slug": "nest-designs-kids-bamboo-long-sleeve-pj-set",
+   "name": "Long Sleeve Two-Piece PJ Set (Bamboo Jersey)",
+   "brand": "Nest Designs",
+   "category": "clothing-sleepwear",
+   "description": "A two-piece long-sleeve pyjama set for kids in soft, stretchy bamboo jersey, with a seamless design and a wide waistband. Suits children who find cotton flannel or scratchy pyjamas uncomfortable.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "seamless",
+    "soft_waistband",
+    "hypoallergenic",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Made from soft, breathable bamboo jersey with gentle stretch",
+    "breathable": "soft, breathable bamboo jersey",
+    "seamless": "Seamless design for a snug, comfortable fit",
+    "soft_waistband": "Elastic, wide waistband on bottom",
+    "hypoallergenic": "Hypoallergenic Bamboo",
+    "for_children": "Kids PJs",
+    "sold_in_canada": "Nest Designs offers free shipping to US and Canada orders over $120.00."
+   },
+   "values": {
+    "material": "bamboo jersey"
+   },
+   "price": 48.0,
+   "currency": "CAD",
+   "price_note": "Price on nestdesigns.com (Canadian site, CAD) on 18 October 2026",
+   "maker_url": "https://www.nestdesigns.com/en-CA/kids/pjs/long-sleeve-pj-set-bamboo-jersey",
+   "buy_links": [
+    {
+     "label": "Nest Designs (Canada site)",
+     "url": "https://www.nestdesigns.com/en-CA/kids/pjs/long-sleeve-pj-set-bamboo-jersey"
+    }
+   ],
+   "community": [],
+   "evidence": "Made from buttery soft bamboo jersey, it feels gentle on the skin and easy to move in.",
+   "notes": "Snug-fitting by design to meet children's sleepwear safety rules; the maker suggests sizing up for a looser fit. Free shipping to Canada over $120; store pick-up is also offered."
+  },
+  {
+   "slug": "boody-goodnight-sleep-pants",
+   "name": "Goodnight Sleep Pants",
+   "brand": "Boody",
+   "category": "clothing-sleepwear",
+   "description": "Women's relaxed, straight-leg pyjama pants in stretchy bamboo jersey, with an elastic waistband and drawstring. Suits adults who want soft, loose sleepwear that doesn't overheat.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "relaxed_fit",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Soft stretch fabric with a relaxed drape",
+    "breathable": "Bamboo viscose is naturally breathable and temperature-regulating",
+    "relaxed_fit": "Relaxed straight leg",
+    "washable": "Machine wash cold with similar colors.",
+    "for_adults": "Women's Bamboo Sleep Pants",
+    "sold_in_canada": "Spend $110+ for Free Standard Shipping to Canada"
+   },
+   "values": {
+    "material": "95% viscose made from bamboo, 5% elastane"
+   },
+   "price": 74.0,
+   "currency": "CAD",
+   "price_note": "Price on ca.boodywear.com (Boody Canada) on 18 October 2026",
+   "maker_url": "https://ca.boodywear.com/products/goodnight-sleep-pants-black",
+   "buy_links": [
+    {
+     "label": "Boody Canada",
+     "url": "https://ca.boodywear.com/products/goodnight-sleep-pants-black"
+    }
+   ],
+   "community": [],
+   "evidence": "Comfortable, breathable sleep in cooler months with a relaxed straight leg, elastic waistband with drawstring and buttery-soft bamboo fabric.",
+   "notes": "Sizes XS to 4XL; matching Goodnight sleep tees, shorts and tops are sold separately. Free shipping to Canada over CA$110."
+  },
+  {
+   "slug": "seenin-zip-back-footed-sleepsuit",
+   "name": "Seenin Zip Back Footed Sleepsuit",
+   "brand": "Seenin",
+   "category": "clothing-sleepwear",
+   "description": "A roomy cotton-jersey sleepsuit for children aged 3 to 16 that zips down the back and one leg, with a hidden zip pull under a hook-and-loop tab at the neck. Made for children who undress or reach into a nappy at night, while staying comfortable and unrestricted.",
+   "qualities": [
+    "relaxed_fit",
+    "soft_fabric",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "relaxed_fit": "Designed with plenty of room for children to feel unrestricted",
+    "soft_fabric": "Available in cotton jersey in a variety of colours",
+    "washable": "Wash at 40 Degrees & re-shape whilst damp",
+    "for_children": "Suitable for ages 3-16 years old",
+    "sold_in_canada": "We also ship to Canada."
+   },
+   "values": {
+    "ages": "3 to 16 years",
+    "material": "cotton jersey"
+   },
+   "price": 55.95,
+   "currency": "USD",
+   "price_note": "Price for ages 3-4 and 5-6 on us.specialkids.company (US dollars) on 18 October 2026; larger sizes cost $59.95 to $64.95",
+   "maker_url": "https://us.specialkids.company/collections/sensory-friendly-clothing/products/seenin-zip-back-sleepsuits",
+   "buy_links": [
+    {
+     "label": "The Special Kids Company (US store)",
+     "url": "https://us.specialkids.company/collections/sensory-friendly-clothing/products/seenin-zip-back-sleepsuits"
+    }
+   ],
+   "community": [],
+   "evidence": "Our Back Opening Special Needs Sleepsuit unzips from the top of the neck to the ankle in one easy zip. Designed to keep hands out of nappies",
+   "notes": "Sold by The Special Kids Company's US store in USD; ships to Canada by USPS and the buyer pays duties. The 15-16 size has no feet, and some colour and size combinations were sold out on 18 October. Do not tumble dry."
+  },
+  {
+   "slug": "kyte-baby-toddler-long-sleeve-pajamas",
+   "name": "Long Sleeve Pajamas (toddler and kids)",
+   "brand": "Kyte Baby",
+   "category": "clothing-sleepwear",
+   "description": "A long-sleeved top and matching pants in stretchy bamboo rayon, in sizes from 18-24 months to 12. Suits young children who find flannel or stiff pyjamas uncomfortable.",
+   "qualities": [
+    "soft_fabric",
+    "hypoallergenic",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "you can still dress her in the same super soft, all-natural bamboo rayon you both love",
+    "hypoallergenic": "Buttery soft & hypoallergenic",
+    "for_children": "Our oh-so-adorable toddler pajamas include a long-sleeved top and matching pants.",
+    "sold_in_canada": "FREE shipping on US orders over $85 USD, Canadian orders over $135 USD"
+   },
+   "values": {
+    "material": "97% rayon made from bamboo, 3% spandex"
+   },
+   "price": 38,
+   "currency": "USD",
+   "price_note": "Price on kytebaby.com/en-ca (shown in US dollars) on 18 October 2026",
+   "maker_url": "https://kytebaby.com/en-ca/products/printed-toddler-pajama-set-in-vintage-hockey",
+   "buy_links": [
+    {
+     "label": "Kyte Baby (Canada site)",
+     "url": "https://kytebaby.com/en-ca/products/printed-toddler-pajama-set-in-vintage-hockey"
+    }
+   ],
+   "community": [],
+   "evidence": "Our oh-so-adorable toddler pajamas include a long-sleeved top and matching pants.",
+   "notes": "US maker; its Canadian page still prices in USD. Shipping to Canada is US$15 under US$135, free above. Listed here in the Vintage Hockey print; solid colours and other prints are separate listings."
+  },
+  {
+   "slug": "silverts-womens-stay-dressed-relaxed-fit-sleeper",
+   "name": "Women's Stay Dressed Relaxed Fit Sleeper",
+   "brand": "Silverts",
+   "category": "clothing-sleepwear",
+   "description": "A one-piece adult jumpsuit for sleep or day with a long back zipper and a dome at the neck, so it is hard to take off alone, in a soft, breathable cotton-blend knit. For adults who undress without meaning to, and for the people who help them dress.",
+   "qualities": [
+    "soft_waistband",
+    "breathable",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_waistband": "Elastic Waist: Soft, stretchy waistband allows natural movement",
+    "breathable": "Soft, breathable polyester-cotton interlock knit",
+    "washable": "Machine washable and tumble dry",
+    "for_adults": "Women’s Stay Dressed Anti-Strip Jumpsuit",
+    "sold_in_canada": "store:https://www.silverts.ca/products/adaptive-alzheimer-s-antistrip-suit-for-women"
+   },
+   "values": {
+    "material": "60% cotton, 40% polyester"
+   },
+   "price": 69.98,
+   "currency": "CAD",
+   "price_note": "Regular price on silverts.ca on 18 October 2026",
+   "maker_url": "https://www.silverts.ca/products/adaptive-alzheimer-s-antistrip-suit-for-women",
+   "buy_links": [
+    {
+     "label": "Silverts Canada",
+     "url": "https://www.silverts.ca/products/adaptive-alzheimer-s-antistrip-suit-for-women"
+    }
+   ],
+   "community": [],
+   "evidence": "Secure Full Back Zipper: Long, heavy-duty zipper with snap tab keeps the garment safely closed and difficult to remove independently.",
+   "notes": "Marketed for dementia care, but the same need comes up for some autistic and intellectually disabled adults; a borderline pick for review. Size Small showed as sold out on 18 October, so check other sizes. Designed for assisted dressing."
+  },
+  {
+   "slug": "smartknitkids-seamless-compresso-t",
+   "name": "SmartKnitKIDS Seamless Compresso-T",
+   "brand": "SmartKnitKIDS",
+   "category": "clothing-compression",
+   "description": "A seamless, tag-free compression undershirt with wide straps that hugs the torso with gentle, even pressure. Made for infants, toddlers and children who like deep pressure, and light enough to wear under other clothes.",
+   "qualities": [
+    "gentle_compression",
+    "seamless",
+    "tagless",
+    "soft_fabric",
+    "breathable",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "Ultra-stretchy yarns “hug” the torso and provide gentle compression",
+    "seamless": "Seamless and soft edging",
+    "tagless": "No elastic bands or tags",
+    "soft_fabric": "Super soft material",
+    "breathable": "Breathable Latex-Free fibers",
+    "washable": "Machine washable",
+    "for_children": "For Infants, Toddlers, and Children",
+    "sold_in_canada": "For orders shipping to Puerto Rico and Canada there is one shipping option"
+   },
+   "values": {
+    "material": "polyester/Lycra"
+   },
+   "price": 28.5,
+   "currency": "USD",
+   "price_note": "Price for one shirt on shopthuasne.com (US dollars) on 18 October 2026",
+   "maker_url": "https://shopthuasne.com/kids-seamless-compresso-t.html",
+   "buy_links": [
+    {
+     "label": "Thuasne (SmartKnitKIDS store)",
+     "url": "https://shopthuasne.com/kids-seamless-compresso-t.html"
+    }
+   ],
+   "community": [],
+   "evidence": "A unique kids' compression undershirt, Compresso-T hugs the torso providing gentle compression for kids.",
+   "notes": "USD prices; ships to Canada by USPS for a flat US$24.95. The page lists conditions it is 'best used for' and says it can support focus at school; we do not repeat those claims. A 3-pack is also sold."
+  },
+  {
+   "slug": "harkla-weighted-compression-vest",
+   "name": "Weighted Compression Vest",
+   "brand": "Harkla",
+   "category": "clothing-compression",
+   "description": "A soft neoprene vest worn over clothes that gives steady, hug-like pressure, with mesh panels to stay cool and small removable weights (2 lb included). Sized for children from about 2 to 10+ years who seek deep pressure.",
+   "qualities": [
+    "gentle_compression",
+    "breathable",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "Gentle Deep Pressure Input",
+    "breathable": "Breathable mesh on the front & back to keep your little one cool.",
+    "washable": "Machine & spot clean washable.",
+    "for_children": "Harkla’s weighted compression vest for kids",
+    "sold_in_canada": "If you are looking for Harkla products internationally, you can shop for us here: Amazon Canada"
+   },
+   "values": {
+    "ages": "2 to 10+ years",
+    "material": "neoprene with mesh panels"
+   },
+   "price": 108.0,
+   "currency": "USD",
+   "price_note": "Price on harkla.co (US dollars) on 18 October 2026; in Canada it is sold through Amazon Canada, where prices vary",
+   "maker_url": "https://harkla.co/products/weighted-compression-vest",
+   "buy_links": [
+    {
+     "label": "Harkla",
+     "url": "https://harkla.co/products/weighted-compression-vest"
+    }
+   ],
+   "community": [],
+   "evidence": "Provides a calming & gentle ongoing hug-like effect.",
+   "notes": "Harkla's own shop is US-only; its shipping page sends Canadian buyers to Amazon Canada, so check the listing there by hand. The page uses 'sensory integration therapy' language we don't repeat, and says total weight should be 5-10% of body weight. Similar to the Fun and Function vest in the Sensory draft, but a different product."
+  },
+  {
+   "slug": "nike-pro-mens-dri-fit-tight-short-sleeve-top",
+   "name": "Nike Pro Men's Dri-FIT Tight Short-Sleeve Fitness Top",
+   "brand": "Nike",
+   "category": "clothing-compression",
+   "description": "A tight-fitting, stretchy athletic top with flat seams that hugs the body evenly and wicks sweat. Suits adults who like steady, even pressure and want an everyday undershirt that hugs the body.",
+   "qualities": [
+    "gentle_compression",
+    "seamless",
+    "breathable",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "Stretchy knit fabric gives a body-hugging feel",
+    "seamless": "Flat seams feel smooth against your skin.",
+    "breathable": "Nike Dri-FIT technology moves sweat away from your skin for quicker evaporation",
+    "washable": "Machine wash",
+    "for_adults": "Men's Dri-FIT Tight Short-Sleeve Fitness Top",
+    "sold_in_canada": "Nike Pro Men's Dri-FIT Tight Short-Sleeve Fitness Top. Nike CA"
+   },
+   "values": {
+    "material": "90% polyester, 10% elastane"
+   },
+   "price": 35,
+   "currency": "CAD",
+   "price_note": "Price on nike.com/ca (Nike Canada) on 18 October 2026",
+   "maker_url": "https://www.nike.com/ca/t/pro-mens-dri-fit-tight-short-sleeve-fitness-top-bGqZQotd/FB7932-100",
+   "buy_links": [
+    {
+     "label": "Nike Canada",
+     "url": "https://www.nike.com/ca/t/pro-mens-dri-fit-tight-short-sleeve-fitness-top-bGqZQotd/FB7932-100"
+    }
+   ],
+   "community": [],
+   "evidence": "This slim-fitting top has a smooth and stretchy feel that suits your favourite sports and exercises.",
+   "notes": "Sold on Nike's Canadian site in CAD (the sold-in-Canada quote is the page title on nike.com/ca). Nike calls the fit 'tight: snug and form-fitting'; it is sportswear, not a sensory product. Women's and older-kids' Nike Pro tops are separate listings."
+  },
+  {
+   "slug": "nike-pro-dri-fit-older-kids-girls-leggings",
+   "name": "Nike Pro Dri-FIT Older Kids' (Girls') Leggings",
+   "brand": "Nike",
+   "category": "clothing-compression",
+   "description": "Snug, stretchy full-length leggings for older kids with a wide, flat elastic waistband and breathable mesh at the back of the legs. An easy-to-find option for children who like the firm, even feel of tight clothing.",
+   "qualities": [
+    "gentle_compression",
+    "soft_waistband",
+    "breathable",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "Tight fit: snug and form-fitting",
+    "soft_waistband": "Smooth, stretchy fabric and a wide elastic waistband lay flat against your skin.",
+    "breathable": "The mesh on the lower back of the legs keeps it breathable.",
+    "washable": "Machine wash",
+    "for_children": "Older Kids' (Girls') Leggings",
+    "sold_in_canada": "Nike Pro Dri-FIT Older Kids' (Girls') Leggings. Nike CA"
+   },
+   "values": {
+    "material": "83% polyester, 17% elastane"
+   },
+   "price": 45,
+   "currency": "CAD",
+   "price_note": "Price on nike.com/ca (Nike Canada) on 18 October 2026",
+   "maker_url": "https://www.nike.com/ca/t/pro-dri-fit-older-kids-girls-leggings-gYu6dbC5/DA1028-010",
+   "buy_links": [
+    {
+     "label": "Nike Canada",
+     "url": "https://www.nike.com/ca/t/pro-dri-fit-older-kids-girls-leggings-gYu6dbC5/DA1028-010"
+    }
+   ],
+   "community": [],
+   "evidence": "Smooth, stretchy fabric and a wide elastic waistband lay flat against your skin.",
+   "notes": "Nike's Canadian site, prices in CAD; Nike says it fits small and suggests a size up. Big-kids sizing (about 7-15 years). Sportswear rather than a sensory product."
+  },
+  {
+   "slug": "girlfriend-collective-compressive-high-rise-legging",
+   "name": "Compressive High-Rise Legging",
+   "brand": "Girlfriend Collective",
+   "category": "clothing-compression",
+   "description": "Thick, high-rise compressive leggings in recycled polyester with a brushed, soft feel inside and out, in a wide size range. For adults who find firm, all-over pressure on the legs calming.",
+   "qualities": [
+    "gentle_compression",
+    "soft_fabric",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gentle_compression": "Holds you in – so you never feel held back.",
+    "soft_fabric": "Double-sided mossing for softness – plush inside and out for all-day comfort.",
+    "for_adults": "ultra-high rise sustainable leggings",
+    "sold_in_canada": "Australia, UK, Canada: 8-12 business days (duties included)"
+   },
+   "values": {
+    "material": "79% recycled polyester (RPET), 21% spandex"
+   },
+   "price": 108.0,
+   "currency": "USD",
+   "price_note": "Price on girlfriend.com (US dollars) on 18 October 2026",
+   "maker_url": "https://girlfriend.com/products/black-compressive-high-rise-legging",
+   "buy_links": [
+    {
+     "label": "Girlfriend Collective",
+     "url": "https://girlfriend.com/products/black-compressive-high-rise-legging"
+    }
+   ],
+   "community": [],
+   "evidence": "Our #1 seller. Compressive, squat-proof, ultra-high rise sustainable leggings made from 25 recycled water bottles.",
+   "notes": "US maker; ships to Canada with duties included, and the page showed 'Final sale' near the price, so check return terms. The maker says they feel tight at first and relax with wear, and uses 'smoothing, sculpting' language we don't repeat. A borderline pick: sportswear, not made for sensory needs."
+  },
+  {
+   "slug": "manta-sleep-mask",
+   "name": "Manta Sleep Mask",
+   "brand": "Manta Sleep",
+   "category": "self-care-sleep",
+   "description": "A padded sleep mask with two movable, deep eye cups that block all light without pressing on the eyelids, on an adjustable hook-and-loop strap. Suits light-sensitive sleepers who find flat masks press on their eyes or let light in.",
+   "qualities": [
+    "blocks_light",
+    "soft_fabric",
+    "breathable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "blocks_light": "True 100% blackout",
+    "soft_fabric": "Soft, breathable, durable materials",
+    "breathable": "Soft & breathable",
+    "sold_in_canada": "Manta Sleep ships anywhere in the world."
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices show in your currency on mantasleep.com",
+   "maker_url": "https://mantasleep.com/products/manta-sleep-mask",
+   "buy_links": [
+    {
+     "label": "Manta Sleep",
+     "url": "https://mantasleep.com/products/manta-sleep-mask"
+    }
+   ],
+   "community": [],
+   "evidence": "100% blackout for deeper sleep",
+   "notes": "US maker; ships worldwide from its own site, and its FAQ says it also sells through Amazon Canada. A KIDS mask is sold separately. Possible overlap with the Sensory group's light-blocking products, so check for duplicates when merging."
+  },
+  {
+   "slug": "loop-dream-earplugs",
+   "name": "Loop Dream™",
+   "brand": "Loop",
+   "category": "self-care-sleep",
+   "description": "Low-profile, reusable silicone earplugs shaped for side sleepers, with foam-silicone tips in four sizes and a bedside case. For people kept awake by snoring, traffic or other night noise who find ordinary earplugs press when lying on their side.",
+   "qualities": [
+    "noise_reduction",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "noise_reduction": "21 dB (NRR) to muffle partner snoring, city sounds, or other nighttime distractions.",
+    "portable": "Loop Dream Carry Case",
+    "sold_in_canada": "Enjoy free shipping on orders over $44 USD in the United States or $64 CAD in Canada"
+   },
+   "values": {
+    "noise_reduction_db": "21",
+    "material": "silicone, foam-silicone ear tips"
+   },
+   "price": 69.95,
+   "currency": "CAD",
+   "price_note": "Price on Loop's North American store as shown to a Canadian visitor (free shipping over $64 CAD) on 18 October 2026",
+   "maker_url": "https://us.loopearplugs.com/products/dream",
+   "buy_links": [
+    {
+     "label": "Loop",
+     "url": "https://us.loopearplugs.com/products/dream"
+    }
+   ],
+   "community": [],
+   "evidence": "Low-profile shape with our softest silicone reduces pressure for all-night comfort",
+   "notes": "21 dB is the NRR the page gives for Dream; the same page's FAQ mentions 27 dB, likely a different rating scale, so check by hand. Different from Loop Quiet 2 and Engage Kids in the Sensory draft. 100-day returns."
+  },
+  {
+   "slug": "sleepphones-wireless",
+   "name": "SleepPhones® Wireless",
+   "brand": "SleepPhones (AcousticSheep)",
+   "category": "self-care-sleep",
+   "description": "Thin Bluetooth speakers inside a soft fabric headband, for listening to music, white noise or audiobooks in bed without earbuds or ear cups. Suits people who fall asleep to sound, or who find earbuds uncomfortable when lying on their side.",
+   "qualities": [
+    "washable",
+    "hypoallergenic",
+    "soft_fabric",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "washable": "Removable speakers in a hypoallergenic, machine washable fabric headband",
+    "hypoallergenic": "hypoallergenic, machine washable fabric headband",
+    "soft_fabric": "our ultra-slim, patented soft and comfortable “headphones in a headband”",
+    "sold_in_canada": "Ships worldwide from Pennsylvania, USA"
+   },
+   "values": {},
+   "price": 99.95,
+   "currency": "USD",
+   "price_note": "Price with eco-friendly packaging on sleepphones.com (US dollars) on 18 October 2026",
+   "maker_url": "https://www.sleepphones.com/sleepphones/bluetooth-sleep-headphones",
+   "buy_links": [
+    {
+     "label": "SleepPhones",
+     "url": "https://www.sleepphones.com/products/sleepphones/wireless-headband-headphones"
+    }
+   ],
+   "community": [],
+   "evidence": "SleepPhones® Wireless sleep headphones are traditional headphones made bed-friendly and cord-free.",
+   "notes": "US maker; ships worldwide and the buyer pays any duties. Sizes S, M and L in fleece or lighter 'Breeze' fabric, with about 24 hours of battery; a wired Classic version is cheaper. The page makes sleep claims ('without medications') that we don't repeat."
+  },
+  {
+   "slug": "harkla-sensory-compression-sheet",
+   "name": "Sensory Compression Sheet",
+   "brand": "Harkla",
+   "category": "self-care-sleep",
+   "description": "A stretchy nylon-spandex sheet that slips over about two-thirds of the mattress so the sleeper lies inside it and feels a gentle, even squeeze; both ends are open so head and feet can stay out. For children (and adults) who settle better with deep pressure but find weighted blankets too hot or heavy.",
+   "qualities": [
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Soft, comfortable, and made with sensory needs in mind",
+    "washable": "Machine & spot clean washable.",
+    "sold_in_canada": "If you are looking for Harkla products internationally, you can shop for us here: Amazon Canada"
+   },
+   "values": {
+    "material": "nylon and spandex"
+   },
+   "price": 51.0,
+   "currency": "USD",
+   "price_note": "Price for the twin size on harkla.co (US dollars) on 18 October 2026; full and queen sizes are also sold",
+   "maker_url": "https://harkla.co/products/sensory-compression-sheet",
+   "buy_links": [
+    {
+     "label": "Harkla",
+     "url": "https://harkla.co/products/sensory-compression-sheet"
+    }
+   ],
+   "community": [],
+   "evidence": "Fits snuggly around about two-thirds of a standard sizes mattress",
+   "notes": "The page says the edges and seams are non-elastic to limit irritation. Canada is served through Amazon Canada; check the listing by hand. The Sensory draft lists a different brand's compression sheet (Fun and Function)."
+  },
+  {
+   "slug": "yogasleep-dohm-classic",
+   "name": "Dohm Classic",
+   "brand": "Yogasleep",
+   "category": "self-care-sleep",
+   "description": "A fan-based white noise machine: a real fan inside makes a steady, non-looping whoosh, with two speeds and a twist-to-adjust tone. Suits sleepers who notice the repeating loops in digital sound machines, or who need to mask household noise.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "Amazon Canada"
+   },
+   "values": {},
+   "price": 49.99,
+   "currency": "USD",
+   "price_note": "Price on yogasleep.com (US dollars) on 18 October 2026; in Canada it is sold by the maker's listed retail partners, so prices vary",
+   "maker_url": "https://yogasleep.com/products/dohmclassic",
+   "buy_links": [
+    {
+     "label": "Yogasleep",
+     "url": "https://yogasleep.com/products/dohmclassic"
+    }
+   ],
+   "community": [],
+   "evidence": "The original white noise machine, fan-based, natural, and non-looping",
+   "notes": "Yogasleep's own store ships only within the US; its International Retailers page lists Canadian partners (KidCentral, ALDS Clear Sound Hearing and Amazon Canada), so buy through one of those and check the price by hand. Makes a steady sound by design; it is not silent."
+  },
+  {
+   "slug": "waterwipes-sensitive-body-intimate-wipes",
+   "name": "WaterWipes Sensitive Body & Intimate Wipes",
+   "brand": "WaterWipes",
+   "category": "self-care-hygiene",
+   "description": "Extra-large, unscented body wipes made of 99.9% water and a drop of fruit extract, for a quick whole-body or intimate clean without soap or scent. Useful on days when a shower is too much, during periods, or when travelling.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "FRAGRANCE FREE FOR SENSITIVE SKIN: Made without fragrance or harsh ingredients",
+    "hypoallergenic": "WaterWipes Sensitive Body & Intimate Wipes Unscented & Hypoallergenic",
+    "for_sensitive_skin": "created to gently cleanse the whole body and help protect sensitive skin",
+    "sold_in_canada": "store:https://well.ca/products/waterwipes-sensitive-body-intimate_272069.html"
+   },
+   "values": {
+    "material": "regenerated cellulose wipes; 99.9% water"
+   },
+   "price": 16.49,
+   "currency": "CAD",
+   "price_note": "Price for 3 x 30 wipes on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/waterwipes-sensitive-body-intimate_272069.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/waterwipes-sensitive-body-intimate_272069.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Extra large wipes made from 99.9% purified water, created to gently cleanse the whole body and help protect sensitive skin.",
+   "notes": "waterwipes.com refuses the fetch tool (403), so all details are from the maker's listing on Well.ca, a Canadian store. Ingredients: water and grapefruit seed extract (with a trace of benzalkonium chloride). The baby and on-the-go packs are separate products."
+  },
+  {
+   "slug": "attitude-deodorant-sensitive-skin-unscented",
+   "name": "Deodorant - Sensitive Skin (Unscented)",
+   "brand": "ATTITUDE",
+   "category": "self-care-hygiene",
+   "description": "An unscented, aluminum-free and baking-soda-free cream-stick deodorant with oat extract, made for delicate skin. A plain option for people who can't stand perfumed deodorants or the sting of baking soda.",
+   "qualities": [
+    "for_sensitive_skin",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_sensitive_skin": "This aluminum free deodorant with oat extract is gentle and effective for sensitive skin.",
+    "canadian": "Canadian Brand product",
+    "sold_in_canada": "store:https://well.ca/products/attitude-sensitive-natural-deodorant_332830.html"
+   },
+   "values": {},
+   "price": 12.99,
+   "currency": "CAD",
+   "price_note": "Price for one stick on well.ca on 18 October 2026",
+   "maker_url": "https://attitudeliving.com/products/deodorant-sensitive-skin",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/attitude-sensitive-natural-deodorant_332830.html"
+    },
+    {
+     "label": "ATTITUDE",
+     "url": "https://attitudeliving.com/products/deodorant-sensitive-skin"
+    }
+   ],
+   "community": [],
+   "evidence": "Made with clean ingredients, this vegan, unscented aluminum-free deodorant is EWG Verified®, dermatologically tested",
+   "notes": "Canadian (Montreal) brand. Choose the Unscented version: the same line also comes in Fresh Apple and Sweet Jasmine scents. The maker says 'unscented', not 'fragrance-free', so we did not tag it fragrance-free, though no fragrance is in the listed ingredients."
+  },
+  {
+   "slug": "aveeno-skin-relief-body-wash-fragrance-free",
+   "name": "Aveeno Skin Relief Body Wash, Fragrance Free",
+   "brand": "Aveeno",
+   "category": "self-care-hygiene",
+   "description": "A plain, unscented oat body wash made without fragrance, dye, parabens or soap, for dry and sensitive skin. An easy-to-find option for people who can't stand perfumed shower gels.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "The gentle body wash is made free of fragrance, parabens, dye and soap",
+    "dye_free": "made free of fragrance, parabens, dye and soap",
+    "for_sensitive_skin": "This unscented body wash is made with a soothing Triple Oat formula and is formulated for sensitive skin.",
+    "sold_in_canada": "store:https://well.ca/products/aveeno-skin-relief-body-wash_4252.html"
+   },
+   "values": {},
+   "price": 14.99,
+   "currency": "CAD",
+   "price_note": "Regular price for 532 mL on well.ca on 18 October 2026 (on sale for $11.99)",
+   "maker_url": "https://well.ca/products/aveeno-skin-relief-body-wash_4252.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/aveeno-skin-relief-body-wash_4252.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Aveeno Skin Relief body wash from a dermatologist recommended brand is allergy tested and formulated for sensitive skin.",
+   "notes": "Details are from the maker's listing on Well.ca (a Canadian store), used as the main seller page. Make sure to pick the Fragrance Free version; the Skin Relief line also comes scented. Possible overlap with the Skin care category's cleansers when merging."
+  },
+  {
+   "slug": "baby-dove-tip-to-toe-wash-sensitive-moisture",
+   "name": "Baby Dove Tip to Toe Wash Sensitive Moisture (Fragrance Free)",
+   "brand": "Baby Dove",
+   "category": "self-care-hygiene",
+   "description": "A fragrance-free, tear-free hair and body wash for babies and young children with sensitive skin. Useful for children who fight bath time over stinging eyes or strong smells.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "dye_free",
+    "for_sensitive_skin",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Fragrance free formula developed for sensitive skin",
+    "hypoallergenic": "Hypoallergenic, pH neutral and tear free",
+    "dye_free": "Baby Dove caring formulas are created with no dyes, no parabens, and no phthalates",
+    "for_sensitive_skin": "Fragrance free formula developed for sensitive skin",
+    "for_children": "This Baby Dove baby body wash for sensitive skin",
+    "sold_in_canada": "store:https://well.ca/products/baby-dove-tip-to-toe-wash-sensitive_128697.html"
+   },
+   "values": {},
+   "price": 12.99,
+   "currency": "CAD",
+   "price_note": "Price for 591 mL on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/baby-dove-tip-to-toe-wash-sensitive_128697.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/baby-dove-tip-to-toe-wash-sensitive_128697.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Hypoallergenic, pH neutral and tear free",
+   "notes": "Details are from the maker's listing on Well.ca, used as the main seller page. Marketed for babies but used for older children too; choose 'Sensitive Moisture', since other Baby Dove washes are scented."
+  },
+  {
+   "slug": "munchkin-shampoo-rinser",
+   "name": "Munchkin Shampoo Rinser",
+   "brand": "Munchkin",
+   "category": "self-care-hygiene",
+   "description": "A rinse cup with a soft, flexible rim that sits against the forehead so water and shampoo run back, away from the eyes and face, and an easy-grip handle. Helps children who panic about water on their face during hair washing.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "6+ Months",
+    "sold_in_canada": "store:https://well.ca/products/munchkin-shampoo-rinser_33683.html"
+   },
+   "values": {
+    "ages": "6 months+"
+   },
+   "price": 8.49,
+   "currency": "CAD",
+   "price_note": "Price on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/munchkin-shampoo-rinser_33683.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/munchkin-shampoo-rinser_33683.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Soft, contouring rim gently hugs child's forehead and keeps soap and water out of eyes",
+   "notes": "munchkin.com no longer shows a product page for it (the link redirects to its bath category), so details are from Well.ca. The colour is assigned at random. The Well.ca page offered both 'add to cart' and a back-in-stock notice, so check stock by hand."
+  },
+  {
+   "slug": "diva-cup-model-1",
+   "name": "DIVA™ Cup Model 1",
+   "brand": "DIVA",
+   "category": "self-care-period",
+   "description": "A reusable menstrual cup of flexible medical-grade silicone that can be worn for up to 12 hours, with no strings and nothing that rustles. Model 1 is the mid size for medium to heavy flow; it suits people who dislike the feel of pads or frequent changes.",
+   "qualities": [
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "canadian": "Proudly Canadian for over 20 years.",
+    "sold_in_canada": "store:https://shopdiva.ca/collections/all-diva-cup-products/products/diva-cup-model-1"
+   },
+   "values": {
+    "material": "100% medical grade silicone"
+   },
+   "price": 35.0,
+   "currency": "CAD",
+   "price_note": "Price on shopdiva.ca (DIVA Canada) on 18 October 2026",
+   "maker_url": "https://shopdiva.ca/collections/all-diva-cup-products/products/diva-cup-model-1",
+   "buy_links": [
+    {
+     "label": "DIVA Canada",
+     "url": "https://shopdiva.ca/collections/all-diva-cup-products/products/diva-cup-model-1"
+    }
+   ],
+   "community": [],
+   "evidence": "Flexible 100% medical grade silicone folds for easy insertion",
+   "notes": "Canadian maker (formerly The DivaCup); free shipping in Canada over $50. Three sizes: Model 0, 1 and 2; the maker says Model 1 is the most popular. Insertion and removal take practice, which some people find hard."
+  },
+  {
+   "slug": "knix-super-leakproof-dream-short",
+   "name": "Super Leakproof® Dream Short™",
+   "brand": "Knix",
+   "category": "self-care-period",
+   "description": "High-rise, boxer-style period shorts that absorb about 5.5 super tampons' worth, made to replace bulky overnight pads. Suits people who find pads noisy, scratchy or hard to keep in place, especially at night.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "the soft, breathable fabric ensures no-chafe comfort",
+    "breathable": "soft, breathable fabric",
+    "washable": "Machine washable",
+    "sold_in_canada": "store:https://knix.ca/products/super-leakproof-dream-short"
+   },
+   "values": {
+    "material": "70% nylon, 30% spandex body; modal top layer in the gusset"
+   },
+   "price": 42.0,
+   "currency": "CAD",
+   "price_note": "Price for one pair on knix.ca on 18 October 2026 (multi-buy discounts offered)",
+   "maker_url": "https://knix.ca/products/super-leakproof-dream-short",
+   "buy_links": [
+    {
+     "label": "Knix Canada",
+     "url": "https://knix.ca/products/super-leakproof-dream-short"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed to replace bulky overnight pads",
+   "notes": "Toronto-based maker; free shipping in Canada over $125, and the page says leakproof underwear is sales-tax-free in Canada. Sizes XS to 4XL; the page showed an out-of-stock notice for some selections, so check sizes. Knix also has a separate Teen line."
+  },
+  {
+   "slug": "natracare-ultra-regular-pads-with-wings",
+   "name": "Ultra Regular Pads with wings",
+   "brand": "Natracare",
+   "category": "self-care-period",
+   "description": "Thin, plastic-free period pads with wings and an organic cotton cover, free from fragrances and dyes, for light flow. Suits people bothered by the smell, rustle or plastic feel of standard pads; each pad is wrapped for carrying.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "for_sensitive_skin",
+    "soft_fabric",
+    "portable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Free from fragrances or dyes",
+    "dye_free": "Free from fragrances or dyes",
+    "for_sensitive_skin": "Suitable for sensitive skin",
+    "soft_fabric": "The cover is made from certified organic cotton, and this sits next to the skin, acting as a soft cover",
+    "portable": "come individually wrapped so are easily carried around when you are out and about",
+    "sold_in_canada": "store:https://well.ca/products/natracare-natural-ultra-pads-with_9442.html"
+   },
+   "values": {
+    "material": "organic cotton cover, cellulose pulp core"
+   },
+   "price": 6.99,
+   "currency": "CAD",
+   "price_note": "Price for 14 regular pads on well.ca on 18 October 2026",
+   "maker_url": "https://www.natracare.com/products/pads/ultra-regular-period-pads/",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/natracare-natural-ultra-pads-with_9442.html"
+    }
+   ],
+   "community": [],
+   "evidence": "95% plant-based ultra slim fitting pads with wings. Ultra absorbent cellulose core with an absorbency suitable for light flow",
+   "notes": "UK maker, widely sold in Canada (Well.ca lists it in CAD). Super, Long and Ultra Extra versions exist for heavier flow. Single-use; certified compostable per the maker."
+  },
+  {
+   "slug": "aisle-super-boxer",
+   "name": "Super Boxer",
+   "brand": "Aisle",
+   "category": "self-care-period",
+   "description": "Mid-rise leakproof boxer shorts in TENCEL lyocell and organic cotton that absorb about 8 regular tampons' worth, with leg coverage for overnight. Suits people who find pads or tampons uncomfortable and want one washable layer instead.",
+   "qualities": [
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Organic cotton gusset",
+    "washable": "Machine wash cold",
+    "sold_in_canada": "US & Canada"
+   },
+   "values": {
+    "material": "48% TENCEL lyocell, 48% organic cotton, 4% spandex"
+   },
+   "price": 55.0,
+   "currency": "CAD",
+   "price_note": "Regular price on periodaisle.com (CAD) on 18 October 2026; on sale for $44.00",
+   "maker_url": "https://periodaisle.com/products/super-boxer",
+   "buy_links": [
+    {
+     "label": "Aisle",
+     "url": "https://periodaisle.com/products/super-boxer"
+    }
+   ],
+   "community": [],
+   "evidence": "Aisle Heavy Flow Overnight Period Boxer with Leakproof Leg Coverage",
+   "notes": "Aisle (formerly Lunapads; lunapads.com now redirects here) prices in CAD and ships within the US and Canada; returns are store credit only for unopened items. The page says it runs large. Its leakproof layers are described as PFAS-safe."
+  },
+  {
+   "slug": "boody-period-leak-proof-full-brief-light-moderate",
+   "name": "Period & Leak Proof Full Brief (Light - Moderate)",
+   "brand": "Boody",
+   "category": "self-care-period",
+   "description": "High-rise bamboo period briefs with a built-in, three-layer absorbent gusset that holds about 2 regular tampons' worth, knit without side seams and with a soft, wide waistband. For lighter days, or as back-up for people who find pads uncomfortable.",
+   "qualities": [
+    "breathable",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "breathable": "All the comfort and breathability of our regular Full Brief undies",
+    "washable": "Machine washable with fast-absorbing leakproof technology.",
+    "sold_in_canada": "Spend $110+ for Free Standard Shipping to Canada"
+   },
+   "values": {
+    "material": "bamboo viscose, nylon and elastane outer; cotton and modal gusset layers"
+   },
+   "price": 34.0,
+   "currency": "CAD",
+   "price_note": "Price for one pair on ca.boodywear.com (Boody Canada) on 18 October 2026",
+   "maker_url": "https://ca.boodywear.com/products/period-leak-proof-full-brief-light-moderate-black",
+   "buy_links": [
+    {
+     "label": "Boody Canada",
+     "url": "https://ca.boodywear.com/products/period-leak-proof-full-brief-light-moderate-black"
+    }
+   ],
+   "community": [],
+   "evidence": "Featuring three-layer, fast-absorbing leakproof technology that holds up to 2 regular tampons, keeping you fresh and dry.",
+   "notes": "Light-to-moderate absorbency (10 ml); moderate-heavy and overnight versions are separate products. The maker says its period underwear is PFAS- and silver-free. Wash cold and don't tumble dry."
+  },
+  {
+   "slug": "magic-bag-warmy-noa-the-bear",
+   "name": "Magic Bag Warmy: Heated Stuffed Animal (Noa the Bear)",
+   "brand": "Magic Bag",
+   "category": "self-care-relaxation",
+   "description": "An 18-inch ultra-plush bear with a removable rice-filled insert that can be warmed in the microwave or chilled, for cuddling at bedtime. Suits children aged 3 and up who settle with warmth and something soft to hold; without the insert it is an ordinary plush toy.",
+   "qualities": [
+    "soft_fabric",
+    "washable",
+    "hypoallergenic",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "this heated plush animal remains ultra-soft even after multiple uses",
+    "washable": "The machine-washable design makes it easy to keep Noa clean and hygienic.",
+    "hypoallergenic": "hypoallergenic organic rice filling",
+    "for_children": "help your little ones aged 3+",
+    "sold_in_canada": "Free shipping on orders over $50 or just $9 across Canada!"
+   },
+   "values": {
+    "ages": "3+",
+    "material": "100% polyester plush; rice-filled insert"
+   },
+   "price": 25.99,
+   "currency": "CAD",
+   "price_note": "Price on masdelinc.com (Magic Bag's Canadian maker) on 18 October 2026",
+   "maker_url": "https://www.masdelinc.com/en/products/magic-bag-warmy-noa-the-bear-hot-cold-compress",
+   "buy_links": [
+    {
+     "label": "Magic Bag (Masdel)",
+     "url": "https://www.masdelinc.com/en/products/magic-bag-warmy-noa-the-bear-hot-cold-compress"
+    }
+   ],
+   "community": [],
+   "evidence": "When used without the insert, Noa becomes a cuddly friend for everyday snuggles",
+   "notes": "Magic Bag is made by Masdel, a Québec company; shipping in Canada is $9 or free over $50. The page also lists uses such as tummy aches and growing pains, which we don't repeat, and no scent is mentioned (unlike lavender-scented heatable plush toys). Follow the heating instructions, since heat packs can get hot."
+  },
+  {
+   "slug": "barefoot-dreams-cozychic-throw",
+   "name": "CozyChic® Throw",
+   "brand": "Barefoot Dreams",
+   "category": "self-care-relaxation",
+   "description": "A light, fluffy microfiber knit throw that is machine-washable and doesn't pill or shrink, for wrapping up on the sofa or in bed. Suits people who like a very soft, even texture to wrap up in when calming down.",
+   "qualities": [
+    "soft_fabric",
+    "washable",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "This buttery-soft knit is fluffy and light yet comfortably warm for every season",
+    "washable": "Our iconic, machine washable knit promises warmth and coziness for all to enjoy.",
+    "sold_in_canada": "We now offer shipping to Canada & Mexico."
+   },
+   "values": {
+    "material": "100% polyester microfiber"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Price not shown: barefootdreams.com loads prices by script, which the fetch tool cannot read",
+   "maker_url": "https://www.barefootdreams.com/products/copy-of-cozychic-throw-all-colors",
+   "buy_links": [
+    {
+     "label": "Barefoot Dreams",
+     "url": "https://www.barefootdreams.com/products/copy-of-cozychic-throw-all-colors"
+    }
+   ],
+   "community": [],
+   "evidence": "It won't shrink, pill or wrinkle, so it'll stay just right wash after wash, season after season.",
+   "notes": "US maker that now ships to Canada; check the price and Canadian shipping cost by hand. Polyester microfiber, so not breathable like cotton; some colours are excluded from sales."
+  },
+  {
+   "slug": "hatch-restore-3",
+   "name": "Restore 3",
+   "brand": "Hatch",
+   "category": "self-care-relaxation",
+   "description": "A bedside sleep clock that runs a set bedtime routine of soft light and sounds and wakes you with a gradual sunrise light instead of a phone alarm, controlled by one big button. Suits adults who want a predictable wind-down routine without picking up their phone.",
+   "qualities": [
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_adults": "The phone-free smart sleep clock for adults",
+    "sold_in_canada": "Currently, Hatch.co ships to the United States and Canada."
+   },
+   "values": {},
+   "price": 169.99,
+   "currency": "USD",
+   "price_note": "Price on hatch.co (US dollars) on 18 October 2026; Hatch+ content subscription extra after a 30-day trial",
+   "maker_url": "https://www.hatch.co/restore",
+   "buy_links": [
+    {
+     "label": "Hatch",
+     "url": "https://www.hatch.co/restore"
+    }
+   ],
+   "community": [],
+   "evidence": "The smart sleep clock that helps you build gentle, phone-free sleep routines.",
+   "notes": "Hatch+ (US$5.99/month or US$59.99/year) unlocks most of the audio library; 30 days are included, and the FAQ covers using it without a subscription. The page makes sleep-science claims we don't repeat. Separately, Hatch recalled power adapters sold with some 1st-generation Hatch Rest units (2019-2022); Restore 3 is not named in that recall."
+  },
+  {
+   "slug": "nest-designs-bamboo-nook-throw-blanket",
+   "name": "Bamboo Nook Throw Blanket",
+   "brand": "Nest Designs",
+   "category": "self-care-relaxation",
+   "description": "A light, breathable bamboo-blend throw for the sofa, bed or a reading chair, made for sensitive skin. Suits people who want a smooth, cool-feeling blanket to wind down under rather than a heavy or fuzzy one.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Buttery-soft bamboo blend for a smooth, gentle feel against skin",
+    "breathable": "Breathable and lightweight to help regulate temperature year-round",
+    "hypoallergenic": "Hypoallergenic fabric designed for sensitive skin",
+    "for_sensitive_skin": "Hypoallergenic fabric designed for sensitive skin",
+    "sold_in_canada": "Nest Designs offers free shipping to US and Canada orders over $120.00."
+   },
+   "values": {
+    "material": "bamboo blend"
+   },
+   "price": 101.0,
+   "currency": "CAD",
+   "price_note": "Price shown on nestdesigns.com (Canadian site, CAD) on 18 October 2026; it comes in three sizes, so the price may vary by size",
+   "maker_url": "https://www.nestdesigns.com/en-CA/adult/bath-bedding/throw-blanket-bamboo",
+   "buy_links": [
+    {
+     "label": "Nest Designs (Canada site)",
+     "url": "https://www.nestdesigns.com/en-CA/adult/bath-bedding/throw-blanket-bamboo"
+    }
+   ],
+   "community": [],
+   "evidence": "This throw blanket brings cozy comfort to your bed, sofa, or favourite reading chair, with breathable softness that works across seasons.",
+   "notes": "Same Canadian maker as the kids' bamboo PJ set in Sleepwear. Not weighted. Free shipping to Canada over $120."
+  },
+  {
+   "slug": "masdel-cozy-hot-water-bottle-2l",
+   "name": "Cozy Hot Water Bottle, 2L",
+   "brand": "Masdel (Vie Art)",
+   "category": "self-care-relaxation",
+   "description": "A 2-litre hot water bottle with a removable soft, plush cover, for steady, quiet warmth on the lap, back or feet while winding down. A simple, scent-free option for people who calm down with warmth.",
+   "qualities": [
+    "soft_fabric",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Generous 2L Capacity with a removable soft and plush cover.",
+    "sold_in_canada": "Free shipping on orders over $50 or just $9 across Canada!"
+   },
+   "values": {},
+   "price": 15.99,
+   "currency": "CAD",
+   "price_note": "Price on masdelinc.com on 18 October 2026",
+   "maker_url": "https://www.masdelinc.com/en/products/cozy-hot-water-bottle-2l-vie-art",
+   "buy_links": [
+    {
+     "label": "Masdel",
+     "url": "https://www.masdelinc.com/en/products/cozy-hot-water-bottle-2l-vie-art"
+    }
+   ],
+   "community": [],
+   "evidence": "Hot Water Bottle with Plush Turquoise Cover – Cozy 2L Warmth & Comfort",
+   "notes": "Sold by Masdel, a Québec company (maker of Magic Bag); $9 shipping in Canada or free over $50. The page describes 'heat therapy' and pain relief, which we don't repeat. Hot water can scald: for adults, or with an adult filling it; never use boiling water."
+  }
+ ]
+}

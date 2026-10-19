@@ -1,0 +1,2203 @@
+{
+ "topic": "products_books_movies_apps",
+ "checked": "2026-10-18",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "unmasking-autism-devon-price",
+   "name": "Unmasking Autism",
+   "brand": "Devon Price",
+   "category": "books-guides",
+   "description": "A guide for autistic adults who mask or found out late, written by an autistic social psychologist. It mixes his own story with research, profiles of other autistic people and exercises for unmasking.",
+   "qualities": [
+    "own_voices",
+    "for_adults",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "is a social psychologist, professor, author, and proud Autistic person",
+    "for_adults": "help masked autistic adults",
+    "audiobook": "Read by Devon Price, PhD",
+    "sold_in_canada": "store:https://www.indigo.ca/products/unmasking-autism-discovering-the-new-faces-of-neurodiversity"
+   },
+   "values": {
+    "pages": "320"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the hardcover at $37.99 and the new paperback at $24.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/688819/unmasking-autism-by-devon-price-phd/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/unmasking-autism-discovering-the-new-faces-of-neurodiversity"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/688819/unmasking-autism-by-devon-price-phd/"
+    }
+   ],
+   "community": [],
+   "evidence": "A deep dive into the spectrum of Autistic experience and the phenomenon of masked Autism, giving individuals the tools to safely uncover their true selves",
+   "notes": "Published by Harmony (Penguin Random House), 2022. The 320-page paperback is a pre-order on Indigo until 20 October 2026; the hardcover (304 pages), ebook and Kobo audiobook are available now."
+  },
+  {
+   "slug": "how-to-adhd-jessica-mccabe",
+   "name": "How to ADHD",
+   "brand": "Jessica McCabe",
+   "category": "books-guides",
+   "description": "A practical guide to working with an ADHD brain, by the creator of the How to ADHD YouTube channel, who was diagnosed at twelve. It collects the strategies she learned from experts and from her own life.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Diagnosed with ADHD at age twelve",
+    "audiobook": "Read by Jessica McCabe",
+    "sold_in_canada": "store:https://www.indigo.ca/products/how-to-adhd"
+   },
+   "values": {
+    "pages": "464"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $29.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/710890/how-to-adhd-by-jessica-mccabe/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/how-to-adhd"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/710890/how-to-adhd-by-jessica-mccabe/"
+    }
+   ],
+   "community": [],
+   "evidence": "In this honest, friendly, and shame-free guide, the creator of the award-winning YouTube channel How to ADHD shares the hard-won insights and practical strategies",
+   "notes": "Published by Rodale Books (Penguin Random House). McCabe also runs the How to ADHD YouTube channel, which the book grew out of."
+  },
+  {
+   "slug": "adhd-2-0-hallowell-ratey",
+   "name": "ADHD 2.0",
+   "brand": "Edward M. Hallowell and John J. Ratey",
+   "category": "books-guides",
+   "description": "A short guide to ADHD in children and adults by two psychiatrists who have ADHD themselves. It treats ADHD as a trait with upsides as well as challenges and gives everyday strategies.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Two psychiatrists who have ADHD themselves",
+    "audiobook": "Read by Fred Sanders",
+    "sold_in_canada": "store:https://www.indigo.ca/products/adhd-2-0"
+   },
+   "values": {
+    "pages": "208"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $27.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/550868/adhd-20-by-edward-m-hallowell-md-and-john-j-ratey-md/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/adhd-2-0"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/550868/adhd-20-by-edward-m-hallowell-md-and-john-j-ratey-md/"
+    }
+   ],
+   "community": [],
+   "evidence": "A revolutionary new approach to ADD/ADHD featuring cutting-edge research and strategies to help readers thrive",
+   "notes": "Published by Ballantine Books (Penguin Random House). The authors also wrote Driven to Distraction. Its strategies include medication alongside lifestyle changes."
+  },
+  {
+   "slug": "look-me-in-the-eye-robison",
+   "name": "Look Me in the Eye",
+   "brand": "John Elder Robison",
+   "category": "books-memoir",
+   "description": "A memoir by John Elder Robison, who was diagnosed autistic at forty, about growing up feeling different, building guitars for KISS and raising a family. Told with dark humour.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "It was not until he was forty that he was diagnosed with a form of autism called Asperger’s syndrome.",
+    "audiobook": "Read by John Elder Robison",
+    "sold_in_canada": "store:https://www.indigo.ca/products/look-me-in-the-eye"
+   },
+   "values": {
+    "pages": "320"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $23.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/156298/look-me-in-the-eye-by-john-elder-robison/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/look-me-in-the-eye"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/156298/look-me-in-the-eye-by-john-elder-robison/"
+    }
+   ],
+   "community": [],
+   "evidence": "A born storyteller, Robison has written a moving, darkly funny memoir about a life that has taken him from developing exploding guitars for KISS to building a family of his own.",
+   "notes": "Published by Crown (Penguin Random House). It uses the older term Asperger’s. Robison is the neurodiversity scholar in residence at the College of William & Mary, per the publisher."
+  },
+  {
+   "slug": "strong-female-character-fern-brady",
+   "name": "Strong Female Character",
+   "brand": "Fern Brady",
+   "category": "books-memoir",
+   "description": "A frank, funny memoir by Scottish comedian Fern Brady about being diagnosed autistic at thirty-four after years of being told she could not be autistic. Suits adults, especially autistic women.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Fern Brady knew instinctively that she had it—autism explained her sensory issues, her meltdowns, her inability to pick up on social cues",
+    "audiobook": "Read by Fern Brady",
+    "sold_in_canada": "store:https://www.indigo.ca/products/strong-female-character"
+   },
+   "values": {
+    "pages": "288"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the hardcover at $37.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/737422/strong-female-character-by-fern-brady/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/strong-female-character"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/737422/strong-female-character-by-fern-brady/"
+    }
+   ],
+   "community": [],
+   "evidence": "In this frank and surreal memoir, she delivers a sharp and often hilarious portrait of neurodivergence and living unmasked.",
+   "notes": "Published by Harmony (Penguin Random House). For adults: the publisher’s summary mentions a psychiatric stay, stripping and an arrest."
+  },
+  {
+   "slug": "i-overcame-my-autism-sarah-kurchak",
+   "name": "I Overcame My Autism and All I Got Was This Lousy Anxiety Disorder",
+   "brand": "Sarah Kurchak",
+   "category": "books-memoir",
+   "description": "A funny, critical memoir by autistic Canadian writer Sarah Kurchak about growing up undiagnosed in small-town Ontario, masking to avoid bullying, and what would make autistic lives better. For adults.",
+   "qualities": [
+    "own_voices",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Sarah Kurchak is autistic.",
+    "canadian": "Growing up undiagnosed in small-town Ontario in the eighties and nineties",
+    "sold_in_canada": "store:https://www.indigo.ca/products/i-overcame-my-autism-and-all-i-got-was-this-lousy-anxiety-disorder"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Douglas & McIntyre listed the paperback at $24.95 on 18 October 2026.",
+   "maker_url": "https://douglas-mcintyre.com/products/9781771622462",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/i-overcame-my-autism-and-all-i-got-was-this-lousy-anxiety-disorder"
+    },
+    {
+     "label": "Douglas & McIntyre",
+     "url": "https://douglas-mcintyre.com/products/9781771622462"
+    }
+   ],
+   "community": [],
+   "evidence": "Kurchak’s enlightening memoir challenges stereotypes and preconceptions about autism and considers what might really make the lives of autistic people healthier, happier and more fulfilling.",
+   "notes": "Published by Douglas & McIntyre in 2020. The title is tongue-in-cheek: the book questions the idea of an autistic “success story”."
+  },
+  {
+   "slug": "ten-steps-to-nanette-hannah-gadsby",
+   "name": "Ten Steps to Nanette",
+   "brand": "Hannah Gadsby",
+   "category": "books-memoir",
+   "description": "A memoir by the Australian comedian behind the show Nanette, covering growing up queer in Tasmania, their path into comedy, and being diagnosed with autism and ADHD as an adult.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "their struggle with late-in-life diagnoses of autism and ADHD",
+    "audiobook": "Read by Hannah Gadsby",
+    "sold_in_canada": "store:https://www.indigo.ca/products/ten-steps-to-nanette"
+   },
+   "values": {
+    "pages": "400"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $27.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/605183/ten-steps-to-nanette-by-hannah-gadsby/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/ten-steps-to-nanette"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/605183/ten-steps-to-nanette-by-hannah-gadsby/"
+    }
+   ],
+   "community": [],
+   "evidence": "Harrowing and hilarious, Ten Steps to Nanette traces Gadsby’s growth as a queer person, their ever-evolving relationship with comedy, and their struggle with late-in-life diagnoses of autism and ADHD",
+   "notes": "Published by Ballantine Books (Penguin Random House). For adults: the publisher’s summary mentions homophobic and sexual violence."
+  },
+  {
+   "slug": "thinking-in-pictures-temple-grandin",
+   "name": "Thinking in Pictures, Expanded Edition",
+   "brand": "Temple Grandin",
+   "category": "books-memoir",
+   "description": "Temple Grandin’s account of her life as an autistic scientist and of how she thinks in pictures rather than words. This edition adds a new afterword with updated research and tips.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Grandin writes from the dual perspectives of a scientist and an autistic person",
+    "audiobook": "Kobo Audiobook",
+    "sold_in_canada": "store:https://www.indigo.ca/products/thinking-in-pictures-expanded-edition"
+   },
+   "values": {
+    "pages": "320"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $25.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/70427/thinking-in-pictures-expanded-edition-by-temple-grandin-with-a-foreword-by-oliver-sacks/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/thinking-in-pictures-expanded-edition"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/70427/thinking-in-pictures-expanded-edition-by-temple-grandin-with-a-foreword-by-oliver-sacks/"
+    }
+   ],
+   "community": [],
+   "evidence": "Originally published in 1995 as an unprecedented look at autism, Grandin writes from the dual perspectives of a scientist and an autistic person to give a report from “the country of autism.”",
+   "notes": "Published by Vintage (Penguin Random House), with a foreword by Oliver Sacks. First published in 1995, so some of its framing of autism is older."
+  },
+  {
+   "slug": "a-kind-of-spark-elle-mcnicoll",
+   "name": "A Kind of Spark",
+   "brand": "Elle McNicoll",
+   "category": "books-children",
+   "description": "A middle-grade novel about Addie, an autistic girl in a small Scottish town who campaigns for a memorial to the women once burned as witches there. Written by an autistic author; for readers about 9 to 12.",
+   "qualities": [
+    "own_voices",
+    "nd_character",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Award-winning and neurodivergent author Elle McNicoll",
+    "nd_character": "I’m autistic. I see things that others do not.",
+    "for_children": "Appropriate for: Ages 9-12 Years",
+    "family_friendly": "Appropriate for: Ages 9-12 Years",
+    "audiobook": "Read by Katy Townsend",
+    "sold_in_canada": "store:https://www.indigo.ca/products/a-kind-of-spark"
+   },
+   "values": {
+    "pages": "208",
+    "ages": "9-12"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $12.50 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/669051/a-kind-of-spark-by-elle-mcnicoll/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/a-kind-of-spark"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/669051/a-kind-of-spark-by-elle-mcnicoll/"
+    }
+   ],
+   "community": [],
+   "evidence": "a neurodivergent girl campaigns for a memorial when she learns that her small Scottish town used to burn witches simply because they were different.",
+   "notes": "Published in North America by Yearling (Penguin Random House); a Schneider Family Honor title, per the publisher. Grades 3 to 7."
+  },
+  {
+   "slug": "heres-hank-bookmarks-are-people-too",
+   "name": "Bookmarks Are People Too! (Here’s Hank #1)",
+   "brand": "Henry Winkler and Lin Oliver",
+   "category": "books-children",
+   "description": "The first Here’s Hank early-reader chapter book, about a second-grader who struggles with spelling and reading, printed in an easy-to-read font. Co-written by Henry Winkler, who is dyslexic; for ages 6 to 8.",
+   "qualities": [
+    "own_voices",
+    "nd_character",
+    "plain_language",
+    "for_children",
+    "family_friendly",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "whose undiagnosed dyslexia made him a classic childhood underachiever",
+    "nd_character": "a boy with learning differences",
+    "plain_language": "With a unique, easy-to-read font",
+    "for_children": "Appropriate for: Ages 6-8 Years",
+    "family_friendly": "Appropriate for: Ages 6-8 Years",
+    "sold_in_canada": "store:https://www.indigo.ca/products/bookmarks-are-people-too-1"
+   },
+   "values": {
+    "pages": "128",
+    "ages": "6-8"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $10.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/314923/bookmarks-are-people-too-1-by-henry-winkler-illustrated-by-scott-garrett/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/bookmarks-are-people-too-1"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/314923/bookmarks-are-people-too-1-by-henry-winkler-illustrated-by-scott-garrett/"
+    }
+   ],
+   "community": [],
+   "evidence": "In the first book of this bestselling easy-to-read series, Hank tries out for the second-grade class play!",
+   "notes": "Published by Penguin Workshop. Here’s Hank is the early-reader prequel to Hank Zipzer; the page says the series is about a boy with learning differences rather than naming dyslexia in this book."
+  },
+  {
+   "slug": "wonderfully-wired-brains-louise-gooding",
+   "name": "Wonderfully Wired Brains",
+   "brand": "Louise Gooding",
+   "category": "books-children",
+   "description": "An illustrated children’s guide to neurodiversity that explains different kinds of brains, busts myths and introduces neurodivergent advocates. Written by a neurodivergent author, with a font and colours chosen for neurodivergent readers.",
+   "qualities": [
+    "own_voices",
+    "plain_language",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "written by neurodiverse author Louise Gooding",
+    "plain_language": "The font and colors used have been selected to accommodate a range of neurodiverse readers.",
+    "for_children": "teaches children aged 7-9",
+    "family_friendly": "teaches children aged 7-9",
+    "audiobook": "audiobook written and read by neurodiverse author Louise Gooding",
+    "sold_in_canada": "store:https://www.indigo.ca/products/wonderfully-wired-brains"
+   },
+   "values": {
+    "pages": "96",
+    "ages": "7-9"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the hardcover at $24.50 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/724027/wonderfully-wired-brains-by-louise-gooding/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/wonderfully-wired-brains"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/724027/wonderfully-wired-brains-by-louise-gooding/"
+    }
+   ],
+   "community": [],
+   "evidence": "An informative and inclusive children’s guide to neurodiversity for those not in the know and to inspire children who are neurodivergent.",
+   "notes": "Published by DK Children. The publisher says ages 7 to 9 (Grades 2 to 4); Indigo lists it for ages 6 to 8. The audiobook is a separate edition, read by the author."
+  },
+  {
+   "slug": "funny-you-dont-look-autistic-mccreary",
+   "name": "Funny, You Don’t Look Autistic",
+   "brand": "Michael McCreary",
+   "category": "books-children",
+   "description": "A funny memoir for teens by stand-up comic Michael McCreary, who was diagnosed autistic at five, about school, sensory life and comedy. For readers 12 and up, autistic or not.",
+   "qualities": [
+    "own_voices",
+    "canadian",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Diagnosed with ASD at age five, McCreary got hit with the performance bug not much later.",
+    "canadian": "CANADIAN176 PAGES",
+    "for_children": "Interest age: from c 12 years",
+    "family_friendly": "Interest age: from c 12 years",
+    "audiobook": "Audiobook ISBN 9781773213347",
+    "sold_in_canada": "store:https://www.indigo.ca/products/funny-you-dont-look-autistic"
+   },
+   "values": {
+    "pages": "176",
+    "ages": "12+"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Annick Press and Indigo listed the paperback at $14.95 on 18 October 2026.",
+   "maker_url": "https://www.annickpress.com/Books/F/Funny-You-Don-t-Look-Autistic",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/funny-you-dont-look-autistic"
+    },
+    {
+     "label": "Annick Press",
+     "url": "https://www.annickpress.com/Books/F/Funny-You-Don-t-Look-Autistic"
+    }
+   ],
+   "community": [],
+   "evidence": "This unique and hilarious #OwnVoices memoir breaks down what it’s like to live with autism for readers on and off the spectrum.",
+   "notes": "Published by Annick Press; joint winner of the Canadian Children’s Book Centre’s Best Books for Kids & Teens 2019, per Annick. Indigo tags it Canadian. Uses the term ASD."
+  },
+  {
+   "slug": "planet-earth-is-blue-panteleakos",
+   "name": "Planet Earth Is Blue",
+   "brand": "Nicole Panteleakos",
+   "category": "books-children",
+   "description": "A middle-grade novel about Nova, a nonspeaking autistic girl in foster care who loves space and counts down to the Challenger launch and to seeing her sister again. For readers about 9 to 12.",
+   "qualities": [
+    "nd_character",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "the extraordinary mind of a young girl with autism",
+    "for_children": "Appropriate for: Ages 9-12 Years",
+    "family_friendly": "Appropriate for: Ages 9-12 Years",
+    "audiobook": "Read by Dylan Moore",
+    "sold_in_canada": "store:https://www.indigo.ca/products/planet-earth-is-blue"
+   },
+   "values": {
+    "pages": "240",
+    "ages": "9-12"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $12.50 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/586118/planet-earth-is-blue-by-nicole-panteleakos/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/planet-earth-is-blue"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/586118/planet-earth-is-blue-by-nicole-panteleakos/"
+    }
+   ],
+   "community": [],
+   "evidence": "While foster families and teachers dismiss Nova as severely autistic and nonverbal, Bridget understands how intelligent and special Nova is, and all that she can’t express.",
+   "notes": "Published by Yearling (Penguin Random House); Grades 3 to 7. Deals with foster care and family separation."
+  },
+  {
+   "slug": "many-mysteries-of-the-finkel-family-kapit",
+   "name": "The Many Mysteries of the Finkel Family",
+   "brand": "Sarah Kapit",
+   "category": "books-children",
+   "description": "A middle-grade mystery about two autistic sisters, a detective agency and a strained friendship; one sister uses her tablet to talk. For readers about 9 to 12.",
+   "qualities": [
+    "nd_character",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "two autistic sisters",
+    "for_children": "Appropriate for: Ages 9-12 Years",
+    "family_friendly": "Appropriate for: Ages 9-12 Years",
+    "audiobook": "Read by Gabi Epstein",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-many-mysteries-of-the-finkel-family"
+   },
+   "values": {
+    "pages": "288",
+    "ages": "9-12"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the hardcover at $23.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/646264/the-many-mysteries-of-the-finkel-family-by-sarah-kapit/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-many-mysteries-of-the-finkel-family"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/646264/the-many-mysteries-of-the-finkel-family-by-sarah-kapit/"
+    }
+   ],
+   "community": [],
+   "evidence": "meet the Finkel family in this middle grade novel about two autistic sisters, their detective agency, and life’s most consequential mysteries.",
+   "notes": "Published by Dial Books (Penguin Random House). The author is active in the disability rights and neurodiversity movements, per the publisher."
+  },
+  {
+   "slug": "fish-in-a-tree-lynda-mullaly-hunt",
+   "name": "Fish in a Tree",
+   "brand": "Lynda Mullaly Hunt",
+   "category": "books-children",
+   "description": "A middle-grade novel about Ally, a sixth-grader who hides that she cannot read until a new teacher helps her find out she is dyslexic. For readers about 9 to 12.",
+   "qualities": [
+    "nd_character",
+    "for_children",
+    "family_friendly",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "the recognition of her dyslexia",
+    "for_children": "Appropriate for: Ages 9-12 Years",
+    "family_friendly": "Appropriate for: Ages 9-12 Years",
+    "audiobook": "Read by Kathleen McInerney",
+    "sold_in_canada": "store:https://www.indigo.ca/products/fish-in-a-tree"
+   },
+   "values": {
+    "pages": "320",
+    "ages": "9-12"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $13.99 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/312871/fish-in-a-tree-by-lynda-mullaly-hunt/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/fish-in-a-tree"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/312871/fish-in-a-tree-by-lynda-mullaly-hunt/"
+    }
+   ],
+   "community": [],
+   "evidence": "Every time she lands in a new school, she is able to hide her inability to read by creating clever yet disruptive distractions.",
+   "notes": "Published by Nancy Paulsen Books (Penguin Random House). The publisher’s page does not say the author is dyslexic."
+  },
+  {
+   "slug": "the-dyslexic-advantage-eide",
+   "name": "The Dyslexic Advantage (Revised and Updated)",
+   "brand": "Brock L. Eide and Fernette F. Eide",
+   "category": "books-guides",
+   "description": "A strengths-based guide to dyslexia by two physicians who run the nonprofit Dyslexic Advantage. It explains dyslexic thinking, profiles dyslexic people and is written for parents, educators and dyslexic adults.",
+   "qualities": [
+    "for_parents",
+    "for_adults",
+    "plain_language",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_parents": "valuable new insights for educators, employers, parents, dyslexic adults",
+    "for_adults": "valuable new insights for educators, employers, parents, dyslexic adults",
+    "plain_language": "improved dyslexic-friendly font",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-dyslexic-advantage-revised-and-updated"
+   },
+   "values": {
+    "pages": "448"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $28.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/713579/the-dyslexic-advantage-revised-and-updated-by-brock-eide-md-ma-and-fernette-eide-md/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-dyslexic-advantage-revised-and-updated"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/713579/the-dyslexic-advantage-revised-and-updated-by-brock-eide-md-ma-and-fernette-eide-md/"
+    }
+   ],
+   "community": [],
+   "evidence": "debunk the standard deficit-based approach to dyslexia",
+   "notes": "Published by Plume (Penguin Random House). Indigo also sells the 2012 first edition under a similar title; this entry is the revised edition. The authors are not described as dyslexic."
+  },
+  {
+   "slug": "the-kiss-quotient-helen-hoang",
+   "name": "The Kiss Quotient",
+   "brand": "Helen Hoang",
+   "category": "books-fiction",
+   "description": "A romance about Stella Lane, a woman with Asperger’s who is great with data and decides she needs practice with dating. Written by an author who was diagnosed autistic as an adult; for adults.",
+   "qualities": [
+    "own_voices",
+    "nd_character",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "In 2016, she was diagnosed with autism spectrum disorder",
+    "nd_character": "It doesn’t help that Stella has Asperger’s",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-kiss-quotient"
+   },
+   "values": {
+    "pages": "352"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $22.00 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/566902/the-kiss-quotient-by-helen-hoang/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-kiss-quotient"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/566902/the-kiss-quotient-by-helen-hoang/"
+    }
+   ],
+   "community": [],
+   "evidence": "It doesn’t help that Stella has Asperger’s and French kissing reminds her of a shark getting its teeth cleaned by pilot fish. Her conclusion: she needs lots of practice—with a professional.",
+   "notes": "Published by Berkley (Penguin Random House). An open-door romance with sex scenes; not for children."
+  },
+  {
+   "slug": "the-bride-test-helen-hoang",
+   "name": "The Bride Test",
+   "brand": "Helen Hoang",
+   "category": "books-fiction",
+   "description": "A romance about Khai, an autistic man who believes he cannot feel love, and Esme, who comes from Ho Chi Minh City to meet him as a possible bride. By an autistic author; for adults.",
+   "qualities": [
+    "own_voices",
+    "nd_character",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "In 2016, she was diagnosed with autism spectrum disorder",
+    "nd_character": "his autism means he just processes emotions differently",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-bride-test"
+   },
+   "values": {
+    "pages": "320"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $24.95 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/566933/the-bride-test-by-helen-hoang/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-bride-test"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/566933/the-bride-test-by-helen-hoang/"
+    }
+   ],
+   "community": [],
+   "evidence": "His family knows better—that his autism means he just processes emotions differently.",
+   "notes": "Published by Berkley (Penguin Random House). A companion to The Kiss Quotient, with sex scenes; not for children."
+  },
+  {
+   "slug": "the-maid-nita-prose",
+   "name": "The Maid",
+   "brand": "Nita Prose",
+   "category": "books-fiction",
+   "description": "A cozy locked-room mystery narrated by Molly, a young hotel maid who loves order and etiquette and becomes the police’s lead suspect when she finds a wealthy guest dead. Suits adults and older teens who like gentle crime fiction.",
+   "qualities": [
+    "nd_character",
+    "canadian",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "Molly is a likeable, neurodivergent narrator in this outstanding debut.",
+    "canadian": "CANADIAN384 PAGES",
+    "audiobook": "Read by Lauren Ambrose",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-maid"
+   },
+   "values": {
+    "pages": "336"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $24.95 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/670251/the-maid-a-gma-book-club-pick-by-nita-prose/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-maid"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/670251/the-maid-a-gma-book-club-pick-by-nita-prose/"
+    }
+   ],
+   "community": [],
+   "evidence": "Since Gran died a few months ago, twenty-five-year-old Molly has been navigating life’s complexities all by herself.",
+   "notes": "Published by Ballantine Books (Penguin Random House). The book does not name a diagnosis; the publisher’s page quotes a review calling Molly neurodivergent. Indigo tags it Canadian."
+  },
+  {
+   "slug": "an-unkindness-of-ghosts-rivers-solomon",
+   "name": "An Unkindness of Ghosts",
+   "brand": "Rivers Solomon",
+   "category": "books-fiction",
+   "description": "A science-fiction novel about Aster, a neurodivergent healer enslaved on the lower decks of a generation starship, who uncovers secrets about her mother’s death. Dark and violent; for adults.",
+   "qualities": [
+    "nd_character",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "Aster is black, neuroatypical, ambiguously gendered",
+    "sold_in_canada": "store:https://www.indigo.ca/products/an-unkindness-of-ghosts"
+   },
+   "values": {
+    "pages": "340"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $22.95 on 18 October 2026.",
+   "maker_url": "https://www.akashicbooks.com/catalog/an-unkindness-of-ghosts/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/an-unkindness-of-ghosts"
+    },
+    {
+     "label": "Akashic Books",
+     "url": "https://www.akashicbooks.com/catalog/an-unkindness-of-ghosts/"
+    }
+   ],
+   "community": [],
+   "evidence": "Aster was born on the lower decks of the USS Matilda, a space vessel searching for a habitable planet after an ecological disaster on Earth.",
+   "notes": "Published by Akashic Books in 2017. The publisher’s page quotes a reviewer who lists it among stories with autistic protagonists and warns the characters are treated brutally."
+  },
+  {
+   "slug": "motherless-brooklyn-jonathan-lethem",
+   "name": "Motherless Brooklyn",
+   "brand": "Jonathan Lethem",
+   "category": "books-fiction",
+   "description": "A literary detective novel narrated by Lionel Essrog, an amateur detective in Brooklyn who has Tourette’s syndrome. For adults who like crime fiction with a distinctive voice.",
+   "qualities": [
+    "nd_character",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_character": "narrated by an amateur detective with Tourette’s syndrome",
+    "sold_in_canada": "store:https://www.indigo.ca/products/motherless-brooklyn"
+   },
+   "values": {
+    "pages": "336"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $22.95 on 18 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/100350/motherless-brooklyn-by-jonathan-lethem/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/motherless-brooklyn"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/100350/motherless-brooklyn-by-jonathan-lethem/"
+    }
+   ],
+   "community": [],
+   "evidence": "A half-satirical cross between a literary novel and a hard-boiled crime story narrated by an amateur detective with Tourette’s syndrome",
+   "notes": "Published by Vintage (Penguin Random House); National Book Critics Circle Award winner. The author is not described as having Tourette’s; in the publisher’s Q&A he says the Tourette’s community has been kind. Crime novel with violence."
+  },
+  {
+   "slug": "what-your-autistic-child-wants-you-to-know-toudal",
+   "name": "What Your Autistic Child Wants You to Know",
+   "brand": "Maja Toudal",
+   "category": "books-guides",
+   "description": "A guide for parents of autistic children and teens by an autistic psychologist, written with other autistic people. It covers mealtimes, bullying, social media, puberty, meltdowns and safe spaces, with advice from lived experience.",
+   "qualities": [
+    "own_voices",
+    "for_parents",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "Written by autistic psychologist and advocate, Maja Toudal, in collaboration with other autistic voices",
+    "for_parents": "It can be challenging understanding what your autistic child wants and needs",
+    "sold_in_canada": "store:https://www.indigo.ca/products/what-your-autistic-child-wants-you-to-know"
+   },
+   "values": {
+    "pages": "240"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $30.95 on 18 October 2026.",
+   "maker_url": "https://uk.jkp.com/products/what-your-autistic-child-wants-you-to-know",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/what-your-autistic-child-wants-you-to-know"
+    },
+    {
+     "label": "Jessica Kingsley Publishers",
+     "url": "https://uk.jkp.com/products/what-your-autistic-child-wants-you-to-know"
+    }
+   ],
+   "community": [],
+   "evidence": "this candid book explores a range of common situational and social challenges an autistic young person may face and gives lived-experience advice on how to resolve them.",
+   "notes": "Published by Jessica Kingsley Publishers (UK) in 2022; the publisher’s UK shop showed it as awaiting stock, but Indigo sells it in Canada."
+  },
+  {
+   "slug": "autistic-survival-guide-to-therapy-steph-jones",
+   "name": "The Autistic Survival Guide to Therapy",
+   "brand": "Steph Jones",
+   "category": "books-guides",
+   "description": "A guide to finding and using therapy as an autistic person, by a therapist who was diagnosed autistic late. It draws on her own experience, other therapists and the autistic community.",
+   "qualities": [
+    "own_voices",
+    "audiobook",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "own_voices": "uses her professional and lived experiences as a late diagnosed autistic woman and therapist",
+    "audiobook": "Kobo Audiobook",
+    "sold_in_canada": "store:https://www.indigo.ca/products/the-autistic-survival-guide-to-therapy"
+   },
+   "values": {
+    "pages": "256"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the paperback at $27.95 on 18 October 2026.",
+   "maker_url": "https://uk.jkp.com/products/the-autistic-survival-guide-to-therapy",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/the-autistic-survival-guide-to-therapy"
+    },
+    {
+     "label": "Jessica Kingsley Publishers",
+     "url": "https://uk.jkp.com/products/the-autistic-survival-guide-to-therapy"
+    }
+   ],
+   "community": [],
+   "evidence": "Steph Jones uses her professional and lived experiences as a late diagnosed autistic woman and therapist, as well as consulting therapists from across the world and tapping into the autistic community",
+   "notes": "Published by Jessica Kingsley Publishers (UK) in 2024. Useful for autistic adults and for therapists; the publisher’s UK shop showed it as awaiting stock."
+  },
+  {
+   "slug": "tiimo-visual-planner",
+   "name": "Tiimo",
+   "brand": "Tiimo",
+   "category": "apps-planning",
+   "description": "A visual daily planner for ADHD and autistic people: tasks sit on a colour-coded timeline with timers, checklists and an AI helper to break tasks down. Free to start, with a Pro subscription for more features.",
+   "qualities": [
+    "nd_made",
+    "visual_supports",
+    "no_ads",
+    "subscription",
+    "screen_reader",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_made": "Tiimo was built by and for neurodivergent people from the start",
+    "visual_supports": "Visual Schedule Planner: Color-coded daily overview with easy drag-and-drop tasks.",
+    "no_ads": "Tiimo is 100% ad-free",
+    "subscription": "Auto-renewal can be canceled anytime via Apple settings.",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "To-Do List Planner App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/tiimo-visual-daily-planner/id1480220328"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free with in-app purchases: the free version covers basic planning; Tiimo Pro is a subscription (Canadian App Store, 18 October 2026).",
+   "maker_url": "https://www.tiimoapp.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/tiimo-visual-daily-planner/id1480220328"
+    }
+   ],
+   "community": [],
+   "evidence": "Turn your schedule into a visual timeline you can actually follow.",
+   "notes": "Made in Copenhagen by Tiimo ApS. The site says Tiimo has been rebuilt for Android, but I could not confirm a Google Play listing, so only iPhone, iPad and Mac are claimed."
+  },
+  {
+   "slug": "goblin-tools",
+   "name": "Goblin Tools",
+   "brand": "Skyhook",
+   "category": "apps-planning",
+   "description": "A set of small, single-task tools for overwhelm: Magic ToDo breaks a task into steps, and others change the tone of a message, guess how long an activity takes or explain things. Free on the website; the phone apps cost a few dollars once.",
+   "qualities": [
+    "web",
+    "price_free",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "web": "Magic ToDo Break down todo items",
+    "price_free": "goblin.tools kept free by our sponsors",
+    "ios": "Goblin Tools App - App Store",
+    "android": "Goblin Tools - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id6449003064"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free on goblin.tools; the iPhone app is $2.99 and the Android app $1.59, with an optional Goblin Tools Pro subscription (Canadian stores, 18 October 2026).",
+   "maker_url": "https://goblin.tools/",
+   "buy_links": [
+    {
+     "label": "goblin.tools (web)",
+     "url": "https://goblin.tools/"
+    },
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id6449003064"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.goblintools&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "A collection of small, simple tools, for when things feel too big or complicated",
+   "notes": "The App Store page says it was “created with neurodivergent people in mind” and warns about copycat apps; only the Skyhook listing is official."
+  },
+  {
+   "slug": "choiceworks-visual-schedule",
+   "name": "Choiceworks",
+   "brand": "Bee Visual",
+   "category": "apps-planning",
+   "description": "A picture-board app for routines, waiting, choices and feelings, built by families with their own photos, words, video and recorded audio. Mainly for children, but also used by teens and adults who like visual structure.",
+   "qualities": [
+    "visual_supports",
+    "customizable",
+    "for_children",
+    "for_parents",
+    "no_ads",
+    "one_time_price",
+    "screen_reader",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "Visual supports families and schools can trust.",
+    "customizable": "create customized visual boards using pictures, text, video, and recorded audio",
+    "for_children": "Choiceworks helps children complete daily routines, understand and manage their feelings, and practice waiting",
+    "for_parents": "Families, caregivers, educators, and therapists can create customized visual boards",
+    "no_ads": "No ads · No trackers · No account",
+    "one_time_price": "$39.99 · Designed for iPad.",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "Choiceworks App - App Store",
+    "android": "Choiceworks - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id486210964"
+   },
+   "values": {},
+   "price": 39.99,
+   "currency": "CAD",
+   "price_note": "One-time price on the Canadian App Store (iPad) on 18 October 2026; the Android version is $10.99 on Google Play.",
+   "maker_url": "https://www.beevisual.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id486210964"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.beevisual.choiceworks.android&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "We have been making visual supports for children and their families since 2005.",
+   "notes": "The iPad and Android versions have different prices. Bee Visual also makes Choiceworks Calendar, a separate app."
+  },
+  {
+   "slug": "brili-routines",
+   "name": "Brili Routines",
+   "brand": "Brili",
+   "category": "apps-planning",
+   "description": "A visual routine planner and timer for adults with ADHD that turns routines into timed, swipe-through steps. Needs a subscription after the free trial.",
+   "qualities": [
+    "for_adults",
+    "visual_supports",
+    "subscription",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_adults": "ADHD Time Management App For Adults",
+    "visual_supports": "Brili Routines is a visual planner and timekeeper",
+    "subscription": "Brili monthly $10.49",
+    "ios": "Brili Routines – Habit Tracker App - App Store",
+    "android": "Brili Routines – Habit Tracker - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1516036620"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to download with a free trial; subscriptions on the Canadian App Store ran from $6.99 to $10.49 a month or $34.99 to $66.99 a year on 18 October 2026.",
+   "maker_url": "https://brili.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1516036620"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.briliadult&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Built for the Neurodivergent Community",
+   "notes": "Seller is Brili GmbH. The site’s wording (“help manage ADHD symptoms”, CBT practices) is about routines, not treatment."
+  },
+  {
+   "slug": "structured-daily-planner",
+   "name": "Structured",
+   "brand": "unorderly",
+   "category": "apps-planning",
+   "description": "A visual day planner that puts tasks, routines and habits on one clear timeline, to help reduce overwhelm. Free, with an optional Pro upgrade.",
+   "qualities": [
+    "visual_supports",
+    "screen_reader",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "A visual daily planner to organize tasks, routines, and habits.",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "Structured: Daily Planner Todo App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1499198946"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free; Structured Pro is optional, by month, by year or as a one-time lifetime purchase ($99.99) on the Canadian App Store on 18 October 2026.",
+   "maker_url": "https://structured.app/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1499198946"
+    }
+   ],
+   "community": [],
+   "evidence": "Structured combines all your tasks and to-dos into a single visual timeline.",
+   "notes": "Made by unorderly GmbH (Germany). An Android version exists, but I could not load its Google Play page, so Android is not claimed."
+  },
+  {
+   "slug": "proloquo2go-aac",
+   "name": "Proloquo2Go",
+   "brand": "AssistiveWare",
+   "category": "apps-communication",
+   "description": "A symbol-based AAC app for iPhone and iPad: people who cannot speak, or cannot always speak, tap symbols or type to speak with natural voices, including children’s voices. Vocabulary can grow from first words to full sentences.",
+   "qualities": [
+    "visual_supports",
+    "customizable",
+    "for_children",
+    "for_adults",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "With more than 27,000 symbols, Proloquo2Go enables users with varying literacy levels to communicate effectively through easily recognizable images.",
+    "customizable": "The app is fully customizable",
+    "for_children": "enables nonspeaking children and adults to express themselves",
+    "for_adults": "enables nonspeaking children and adults to express themselves",
+    "ios": "Proloquo2Go AAC App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id308368164"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Bought once on the Canadian App Store. It was half price ($179.99) from 14 to 21 October 2026 for AAC Awareness Month; see the App Store for today's price. An extra vocabulary is an optional in-app purchase.",
+   "maker_url": "https://www.assistiveware.com/products/proloquo2go",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id308368164"
+    }
+   ],
+   "community": [],
+   "evidence": "Proloquo2Go is an award-winning AAC app that enables nonspeaking children and adults to express themselves confidently and initiate conversations.",
+   "notes": "iOS only (iPhone, iPad, Mac). Made by AssistiveWare (Netherlands). Check the price after 21 October 2026."
+  },
+  {
+   "slug": "proloquo4text-aac",
+   "name": "Proloquo4Text",
+   "brand": "AssistiveWare",
+   "category": "apps-communication",
+   "description": "A text-to-speech AAC app for people who can read and write but cannot always speak, including autistic people. Everything is on one screen, with word prediction and saved phrases.",
+   "qualities": [
+    "for_adults",
+    "for_children",
+    "customizable",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_adults": "Children, teens and adults who can’t (always) speak can use this Augmentative and Alternative Communication (AAC) app",
+    "for_children": "Children, teens and adults who can’t (always) speak can use this Augmentative and Alternative Communication (AAC) app",
+    "customizable": "Versatile and customizable, you can use this app’s options and accessibility features to make it your own.",
+    "ios": "Proloquo4Text AAC App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id751646884"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Bought once on the Canadian App Store. It was half price ($79.99) from 14 to 21 October 2026 for AAC Awareness Month; see the App Store for today's price.",
+   "maker_url": "https://www.assistiveware.com/products/proloquo4text",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id751646884"
+    }
+   ],
+   "community": [],
+   "evidence": "Proloquo4Text’s intuitive word and sentence prediction uses what you type to anticipate what you might say next",
+   "notes": "iOS only. The maker says it suits people who “can’t (always) speak”, which includes people who lose speech at times. Check the price after 21 October 2026."
+  },
+  {
+   "slug": "touchchat-hd-wordpower",
+   "name": "TouchChat HD - AAC with WordPower",
+   "brand": "Saltillo (PRC-Saltillo)",
+   "category": "apps-communication",
+   "description": "A full AAC app for iPad with ready-made vocabularies such as WordPower, symbol sets and many voices, used by people with autism, apraxia and other conditions that affect speech. A free 30-day trial runs through the TouchChat Discover app.",
+   "qualities": [
+    "customizable",
+    "captions",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "customizable": "Various synthesized and custom voice options are available",
+    "captions": "Captions Display the dialogue and relevant sounds of video or audio-only content with text, usually time-synchronized.",
+    "ios": "TouchChat HD- AAC w/ WordPower App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id412351574"
+   },
+   "values": {},
+   "price": 399.99,
+   "currency": "CAD",
+   "price_note": "Bought once on the Canadian App Store ($399.99 on 18 October 2026); extra vocabularies, symbol libraries and iShare backup subscriptions are in-app purchases.",
+   "maker_url": "https://touchchatapp.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id412351574"
+    }
+   ],
+   "community": [],
+   "evidence": "Using the familiarity of iOS technology, the TouchChat app offers you a dynamic communication",
+   "notes": "The App Store seller is Prentke Romich Company. The “Captions” label is the developer’s accessibility listing on the App Store. iOS only."
+  },
+  {
+   "slug": "spoken-tap-to-talk-aac",
+   "name": "Spoken - Tap to Talk AAC",
+   "brand": "Spoken",
+   "category": "apps-communication",
+   "description": "A typing-and-tapping AAC app for teens and adults who have trouble speaking, including nonspeaking autistic people, with word prediction and natural voices. Free to try, with a paid Premium plan.",
+   "qualities": [
+    "for_adults",
+    "subscription",
+    "screen_reader",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_adults": "designed for teens and adults",
+    "subscription": "Spoken Subscription - Monthly $8.49",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "Spoken - Tap to Talk AAC App - App Store",
+    "android": "Spoken – Tap to Talk AAC - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1034487817"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to try; Premium is a subscription ($8.49 a month and up) or a lifetime purchase on the Canadian App Store on 18 October 2026.",
+   "maker_url": "https://www.spokenaac.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1034487817"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.spoken.app&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Spoken is an app designed for people unable to use their voice due to nonverbal autism, aphasia, stroke, or other speech and language disorders.",
+   "notes": "Uses the term “nonverbal autism”. The site says it uses AI-powered word predictions."
+  },
+  {
+   "slug": "cboard-aac",
+   "name": "Cboard",
+   "brand": "Cboard",
+   "category": "apps-communication",
+   "description": "A free, open-source picture-board AAC app that runs in a web browser and on Android, with symbols, text-to-speech and more than 45 languages. Boards can be edited for each person; it works offline in Chrome.",
+   "qualities": [
+    "price_free",
+    "web",
+    "works_offline",
+    "visual_supports",
+    "customizable",
+    "for_children",
+    "for_adults",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "price_free": "Cboard is a free AAC web application",
+    "web": "Cboard works on modern browsers",
+    "works_offline": "Offline support is available on Google Chrome (desktop & android).",
+    "visual_supports": "aiding communication with symbols and text-to-speech",
+    "customizable": "Cboard can be edited depending on the needs of each user.",
+    "for_children": "for children and adults with speech and language impairments",
+    "for_adults": "for children and adults with speech and language impairments",
+    "android": "Cboard AAC - Apps on Google Play",
+    "sold_in_canada": "store:https://play.google.com/store/apps/details?id=com.unicef.cboard&hl=en_CA&gl=CA"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free; the Google Play listing shows optional in-app purchases.",
+   "maker_url": "https://www.cboard.io/en/",
+   "buy_links": [
+    {
+     "label": "Cboard web app",
+     "url": "https://app.cboard.io/"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.unicef.cboard&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Cboard is an open-source app for children and adults with speech and language impairments, aiding communication with symbols and text-to-speech.",
+   "notes": "Open source; the Google Play package name suggests UNICEF support, but the pages I kept do not say so. No iOS app was checked."
+  },
+  {
+   "slug": "avaz-aac",
+   "name": "Avaz AAC",
+   "brand": "Avaz",
+   "category": "apps-communication",
+   "description": "A picture-and-text AAC app built around core words, for children and adults with autism and other conditions that affect speech. Free two-week trial, then a subscription or lifetime licence.",
+   "qualities": [
+    "visual_supports",
+    "customizable",
+    "for_children",
+    "for_adults",
+    "subscription",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "visual_supports": "robust picture and text-based vocabulary",
+    "customizable": "Offers a variety of built-in options to add or change an icon’s image (or even video) right within the app.",
+    "for_children": "empowers children & adults with Autism",
+    "for_adults": "empowers children & adults with Autism",
+    "subscription": "Avaz Auto Renewing Subscription $13.99",
+    "ios": "Avaz AAC App - App Store",
+    "android": "Avaz AAC - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id909574843"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to download with a two-week trial; then a subscription ($13.99 a month or $134.99 a year) or a lifetime licence ($249.99) on the Canadian App Store on 19 October 2026.",
+   "maker_url": "https://avazapp.com/products/avaz-aac-app/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id909574843"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.avazapp.international.lite&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Avaz AAC is an Augmentative and Alternative Communication App that empowers children & adults with Autism, Cerebral Palsy, Down Syndrome, Aphasia, Apraxia",
+   "notes": "Made by Avaz (with versions for India, Australia and French speakers). The evidence quote is from the maker’s App Store description."
+  },
+  {
+   "slug": "forest-focus-timer",
+   "name": "Forest",
+   "brand": "Seekrtech",
+   "category": "apps-focus-calm",
+   "description": "A focus timer where a virtual tree grows while you stay off your phone and withers if you leave early, for Pomodoro-style work sessions. The App Store listing pitches it for ADHD focus. Free to start.",
+   "qualities": [
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "ios": "Forest: Focus for Productivity App - App Store",
+    "android": "Forest: Stay Focused - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id866450515"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to start, with in-app purchases including a subscription (Canadian App Store, 18 October 2026). The Android version contains ads.",
+   "maker_url": "https://www.forestapp.cc/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id866450515"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=cc.forestapp&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "A mindful focus timer for intentional living — free to start",
+   "notes": "Seller: Seekrtech. Google Play says the Android version contains ads, so “no ads” is not claimed."
+  },
+  {
+   "slug": "finch-self-care-pet",
+   "name": "Finch",
+   "brand": "Finch Care",
+   "category": "apps-focus-calm",
+   "description": "A self-care app where you look after a small virtual pet by doing small self-care steps such as goals, journaling and meditation. The main app is free; Finch Plus adds extras.",
+   "qualities": [
+    "price_free",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "price_free": "a high-quality free version of Finch",
+    "ios": "Finch: Self-Care Pet App - App Store",
+    "android": "Finch: Self-Care Pet - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1528595748"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free; Finch Plus is optional (in-app purchases from $7.49 on the Canadian App Store, 18 October 2026).",
+   "maker_url": "https://finchcare.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1528595748"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.finch.finch&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Daily self-care is finally fun — take care of your pet by taking care of yourself!",
+   "notes": "Made by Finch Care, a public benefit corporation. Not made for neurodivergent people in particular; the free-version quote is from the developer’s reply on the App Store."
+  },
+  {
+   "slug": "mynoise-soundscapes",
+   "name": "myNoise",
+   "brand": "myNoise",
+   "category": "apps-focus-calm",
+   "description": "More than 300 adjustable soundscapes, from café hum to white noise, to mask distracting sounds and help with focus, rest or sleep. Works on the website and in the apps.",
+   "qualities": [
+    "no_ads",
+    "no_subscription",
+    "customizable",
+    "web",
+    "screen_reader",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_ads": "No ads, no subscription, no AI.",
+    "no_subscription": "No ads, no subscription, no AI.",
+    "customizable": "Immerse yourself in 300+ Customizable Soundscapes",
+    "web": "This website is ad-free, and respects user privacy",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "myNoise - The Soundscape App App - App Store",
+    "android": "myNoise - The Soundscape App - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1523675125"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free, with optional one-time in-app purchases (Full Access $24.99 on the Canadian App Store, 18 October 2026); no subscription.",
+   "maker_url": "https://mynoise.net/",
+   "buy_links": [
+    {
+     "label": "myNoise (web)",
+     "url": "https://mynoise.net/"
+    },
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1523675125"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.mynoise.mynoise&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Custom Soundscapes for Focus, Relaxation & Sleep",
+   "notes": "Seller: myNoise BVBA. The website has an ADHD section; it is not a treatment and no medical claim is made here."
+  },
+  {
+   "slug": "smiling-mind-app",
+   "name": "Smiling Mind",
+   "brand": "Smiling Mind",
+   "category": "apps-focus-calm",
+   "description": "A free mindfulness and wellbeing app from an Australian not-for-profit, with practices for adults and programs for kids and families, including sleep and emotional skills.",
+   "qualities": [
+    "price_free",
+    "for_children",
+    "captions",
+    "screen_reader",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "price_free": "Free · Designed for iPad",
+    "for_children": "Programs for kids and families",
+    "captions": "Captions Display the dialogue and relevant sounds of video or audio-only content with text, usually time-synchronized.",
+    "screen_reader": "VoiceOver Navigate and explore the app using gestures, braille and speech output.",
+    "ios": "Smiling Mind: Mental Wellbeing App - App Store",
+    "android": "Smiling Mind: Mental Wellbeing - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id560442518"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free on the Canadian App Store and Google Play on 18 October 2026, with no in-app purchases listed on the App Store.",
+   "maker_url": "https://www.smilingmind.com.au/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id560442518"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.smilingmind.app&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "the refreshed Smiling Mind app supports you to develop your own, personalised approach to building a range of wellbeing skills",
+   "notes": "Smiling Mind describes itself as an Australian not-for-profit. General wellbeing, not made for neurodivergent people in particular."
+  },
+  {
+   "slug": "mindshift-cbt",
+   "name": "MindShift CBT",
+   "brand": "MindShift CBT",
+   "category": "apps-focus-calm",
+   "description": "A free Canadian self-help app for anxiety based on cognitive behavioural therapy, with tools to reframe anxious thoughts, calm the body and face fears step by step. For teens and adults; not specific to neurodivergent people.",
+   "qualities": [
+    "canadian",
+    "price_free",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "canadian": "Developed in Canada by experts in the field.",
+    "price_free": "MindShift CBT is a free mental health app",
+    "ios": "MindShift CBT - Anxiety Relief App - App Store",
+    "android": "MindShift CBT - Anxiety Relief - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id634684825"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free on the Canadian App Store and Google Play on 18 October 2026.",
+   "maker_url": "https://www.mindshiftcbt.com",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id634684825"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.bstro.MindShift&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "MindShift gives you science-backed strategies to shift your anxious thinking, settle your body, and approach your fears one step at a time.",
+   "notes": "App Store seller: 247 Labs Inc. Self-help for anxiety, not a treatment for autism or ADHD; Google Play rates it Teen. A reviewer may want to confirm it is still run by Anxiety Canada."
+  },
+  {
+   "slug": "focusmate-body-doubling",
+   "name": "Focusmate",
+   "brand": "Focusmate",
+   "category": "apps-focus-calm",
+   "description": "A website for virtual body doubling: you book a 25-, 50- or 75-minute video session with another person, and you each work on your own task. Free for three sessions a week.",
+   "qualities": [
+    "web",
+    "price_free"
+   ],
+   "quality_evidence": {
+    "web": "join video calls directly from your browser, on desktop or mobile. No additional downloads required.",
+    "price_free": "3 sessions per week"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free plan: 3 sessions a week. Unlimited sessions cost $8 a month billed yearly, or $12 monthly; the page doesn't say which currency.",
+   "maker_url": "https://www.focusmate.com/",
+   "buy_links": [
+    {
+     "label": "Focusmate",
+     "url": "https://www.focusmate.com/"
+    }
+   ],
+   "community": [],
+   "evidence": "Focusmate—Virtual body doubling for getting anything done",
+   "notes": "Web only; no Canadian store is involved, so “sold in Canada” is not claimed. Sessions are video calls with strangers unless you favourite a partner."
+  },
+  {
+   "slug": "khan-academy-kids",
+   "name": "Khan Academy Kids",
+   "brand": "Khan Academy",
+   "category": "apps-learning",
+   "description": "A free learning app for children aged 2 to 8 with reading and math games, phonics lessons and interactive storybooks. No ads and no subscriptions.",
+   "qualities": [
+    "price_free",
+    "no_ads",
+    "no_subscription",
+    "for_children",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "price_free": "100% free - forever",
+    "no_ads": "Always 100% free, no ads, no subscriptions",
+    "no_subscription": "Always 100% free, no ads, no subscriptions",
+    "for_children": "for kids ages two to eight. 100% free!",
+    "ios": "Khan Academy Kids App - App Store",
+    "android": "Khan Academy Kids - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1378467217"
+   },
+   "values": {
+    "ages": "2-8"
+   },
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free on the Canadian App Store and Google Play on 18 October 2026.",
+   "maker_url": "https://www.khanacademy.org/kids",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1378467217"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=org.khankids.android&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "for kids ages two to eight. 100% free!",
+   "notes": "Not made for neurodivergent children in particular, but free, ad-free and self-paced."
+  },
+  {
+   "slug": "speechify-text-to-speech",
+   "name": "Speechify",
+   "brand": "Speechify",
+   "category": "apps-learning",
+   "description": "A text-to-speech app that reads documents, articles, PDFs, email and web pages aloud, started by a founder who is dyslexic. Free to start; Premium is a subscription.",
+   "qualities": [
+    "nd_made",
+    "subscription",
+    "captions",
+    "web",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nd_made": "Hi, I’m Cliff Weitzman. I am dyslexic.",
+    "subscription": "Premium Monthly $14.99",
+    "captions": "Captions Display the dialogue and relevant sounds of video or audio-only content with text, usually time-synchronized.",
+    "web": "Web App",
+    "ios": "Speechify – Text to Speech App - App Store",
+    "android": "Speechify – Text to Speech - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1209815023"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to start; Premium is $14.99 a month, with $199.99 Premium options also listed, on the Canadian App Store on 18 October 2026.",
+   "maker_url": "https://speechify.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1209815023"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.cliffweitzman.speechify2&hl=en_CA&gl=CA"
+    },
+    {
+     "label": "Speechify web app",
+     "url": "https://speechify.com/"
+    }
+   ],
+   "community": [],
+   "evidence": "Text to speech from Speechify lets you listen to docs, articles, PDFs, email, and various other formats — anything you read.",
+   "notes": "Also has Chrome and Edge extensions. The site now markets an AI voice assistant as well; the evidence quote is from the App Store listing."
+  },
+  {
+   "slug": "teach-your-monster-to-read",
+   "name": "Teach Your Monster to Read",
+   "brand": "Teach Your Monster (Usborne Foundation)",
+   "category": "apps-learning",
+   "description": "A phonics game for children aged about 3 to 6: they design a monster and teach it to read through short games. Free to play on the website; the apps cost once.",
+   "qualities": [
+    "for_children",
+    "web",
+    "price_free",
+    "one_time_price",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "suitable for ages 3-6",
+    "web": "Play now for free",
+    "price_free": "Play now for free",
+    "one_time_price": "$11.99 Buy",
+    "ios": "Teach Your Monster to Read App - App Store",
+    "android": "Teach Your Monster to Read - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id828392046"
+   },
+   "values": {
+    "ages": "3-6"
+   },
+   "price": 11.99,
+   "currency": "CAD",
+   "price_note": "The app is $11.99 once on the Canadian App Store and Google Play on 19 October 2026; the games are free to play on the website.",
+   "maker_url": "https://www.teachyourmonster.org/",
+   "buy_links": [
+    {
+     "label": "Teach Your Monster (web)",
+     "url": "https://www.teachyourmonster.org/"
+    },
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id828392046"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.teachyourmonstertoread.tmapp&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Teach Your Monster: Free Phonics, Reading and Mathematics Games",
+   "notes": "Made by Teach Your Monster Ltd. with The Usborne Foundation (UK). Not made for neurodivergent children in particular."
+  },
+  {
+   "slug": "dyslexia-reader-by-mda",
+   "name": "Dyslexia Reader by MDA (Avaz Reader)",
+   "brand": "Avaz",
+   "category": "apps-learning",
+   "description": "A reading-support app for children with dyslexia: it reads printed or added text with hints and help on each word, and fonts and colours can be changed. Free 14-day trial, then a low-cost subscription.",
+   "qualities": [
+    "for_children",
+    "customizable",
+    "subscription",
+    "ios",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Designed for children with dyslexia",
+    "customizable": "Can adapt to the various needs of the learner – fonts, colors, switch access!",
+    "subscription": "Reader 1 Month Subscription $2.79",
+    "ios": "Dyslexia Reader by MDA App - App Store",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id1443891619"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "14-day free trial, then $2.79 a month, $12.99 for six months or $19.99 a year on the Canadian App Store on 19 October 2026.",
+   "maker_url": "https://avazapp.com/products/mda-avaz-reader/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id1443891619"
+    }
+   ],
+   "community": [],
+   "evidence": "Designed for children with dyslexia and first-generation English speakers, the app provides hints and help every step of the way.",
+   "notes": "Built with the Madras Dyslexia Association (India), per the maker. iPad app; Android not checked."
+  },
+  {
+   "slug": "endless-alphabet",
+   "name": "Endless Alphabet",
+   "brand": "Originator",
+   "category": "apps-learning",
+   "description": "An alphabet and vocabulary app for young children: each word gets talking letters, a puzzle and a short animation of what it means.",
+   "qualities": [
+    "for_children",
+    "one_time_price",
+    "ios",
+    "android",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "learning their ABC",
+    "one_time_price": "$11.99 · Designed for iPad.",
+    "ios": "Endless Alphabet App - App Store",
+    "android": "Endless Alphabet - Apps on Google Play",
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/id591626572"
+   },
+   "values": {},
+   "price": 11.99,
+   "currency": "CAD",
+   "price_note": "One-time price on the Canadian App Store on 18 October 2026; on Google Play it is free to try with in-app purchases.",
+   "maker_url": "https://www.originatorkids.com/",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/id591626572"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.originatorkids.EndlessAlphabet&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Each word features an interactive puzzle game with talking letters and a short animation illustrating the definition.",
+   "notes": "The maker’s site only lists the app by name, so the details come from its App Store listing. Last updated on Google Play in January 2024."
+  },
+  {
+   "slug": "temple-grandin-hbo-film",
+   "name": "Temple Grandin",
+   "brand": "HBO Films",
+   "category": "movies-films",
+   "description": "A 2010 HBO biopic of Temple Grandin, the autistic animal scientist who became a hero to the American cattle industry, with Claire Danes as Grandin. Based on Grandin’s own writing.",
+   "qualities": [
+    "nd_character",
+    "audio_description"
+   ],
+   "quality_evidence": {
+    "nd_character": "An autistic woman becomes an unlikely hero to America's cattle industry -- and to autistic people everywhere",
+    "audio_description": "Biographical Dramas Audio Description"
+   },
+   "values": {
+    "rating": "13+"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Streaming varies; no price on the kept pages; the kept page is HBO Max’s US site (plans from $10.99 a month).",
+   "maker_url": "https://www.hbo.com/movies/temple-grandin",
+   "buy_links": [
+    {
+     "label": "HBO (US page)",
+     "url": "https://www.hbo.com/movies/temple-grandin"
+    }
+   ],
+   "community": [],
+   "evidence": "An autistic woman becomes an unlikely hero to America's cattle industry -- and to autistic people everywhere -- in this fact-based story.",
+   "notes": "The page credits Temple Grandin’s writing as source material; Claire Danes is not autistic. Canadian streaming was not checked (HBO Max’s Canadian availability differs from the US)."
+  },
+  {
+   "slug": "ezra-2024-film",
+   "name": "Ezra",
+   "brand": "Bleecker Street",
+   "category": "movies-films",
+   "description": "A 2024 family road-trip drama about a stand-up comedian who takes his autistic son Ezra across the country when the family faces hard decisions about the boy’s future.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "struggling to co-parent his autistic son Ezra"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Rent or buy on demand; the studio page links to home-viewing options but shows no price.",
+   "maker_url": "https://bleeckerstreetmedia.com/ezra",
+   "buy_links": [
+    {
+     "label": "Bleecker Street (watch at home)",
+     "url": "https://bleeckerstreetmedia.com/ezra"
+    }
+   ],
+   "community": [],
+   "evidence": "EZRA follows Max Bernal (Bobby Cannavale), a stand-up comedian living with his father (Robert De Niro), while struggling to co-parent his autistic son Ezra",
+   "notes": "Directed by Tony Goldwyn, written by Tony Spiridakis. The page “introduces” William Fitzgerald as Ezra but does not say he is autistic, so nd_cast is not claimed; a reviewer may want to add it from a reliable source."
+  },
+  {
+   "slug": "loop-pixar-sparkshort",
+   "name": "Loop",
+   "brand": "Pixar Animation Studios",
+   "category": "movies-films",
+   "description": "A short Pixar film about Renee, a nonspeaking autistic girl, and a chatty boy who must learn how the other experiences the world during a canoe trip. Renee is voiced by an autistic actor, and the team worked with the Autistic Self Advocacy Network.",
+   "qualities": [
+    "nd_character",
+    "nd_cast"
+   ],
+   "quality_evidence": {
+    "nd_character": "A non-verbal, autistic girl and a chatty boy are partnered on a canoeing trip.",
+    "nd_cast": "it was important that our voice talent for “Loop” was someone who’s autistic"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Included with a Disney+ subscription, per Disney; not sold separately on the kept pages.",
+   "maker_url": "https://www.pixar.com/loop",
+   "buy_links": [
+    {
+     "label": "Pixar",
+     "url": "https://www.pixar.com/loop"
+    }
+   ],
+   "community": [],
+   "evidence": "A non-verbal, autistic girl and a chatty boy are partnered on a canoeing trip. To complete their journey across an urban lake, they must both learn how the other experiences the world.",
+   "notes": "Disney’s article says it is “now streaming on Disney+”; Canadian Disney+ availability was not checked."
+  },
+  {
+   "slug": "please-stand-by-film",
+   "name": "Please Stand By",
+   "brand": "Magnolia Pictures",
+   "category": "movies-films",
+   "description": "A 2018 road movie about Wendy, a young autistic woman and Star Trek fan, who sneaks out of her group home and travels hundreds of miles to hand in her screenplay for a contest. Dakota Fanning plays Wendy.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "a fiercely independent and brilliant young woman with autism"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Streaming varies; no price on the kept pages.",
+   "maker_url": "https://www.magpictures.com/pleasestandby/",
+   "buy_links": [
+    {
+     "label": "Magnolia Pictures",
+     "url": "https://www.magpictures.com/pleasestandby/"
+    }
+   ],
+   "community": [],
+   "evidence": "The world is a confusing place for Wendy, a fiercely independent and brilliant young woman with autism.",
+   "notes": "Dakota Fanning is not autistic. The studio page does not list where to watch in Canada."
+  },
+  {
+   "slug": "pablo-cbeebies-series",
+   "name": "Pablo",
+   "brand": "Paper Owl Films",
+   "category": "movies-series",
+   "description": "An animated preschool series about Pablo, an autistic five-year-old whose drawings come to life and help him handle everyday challenges. The stories come from autistic children’s real experiences, and the core cast is autistic.",
+   "qualities": [
+    "nd_character",
+    "nd_cast",
+    "nd_made",
+    "for_children",
+    "family_friendly"
+   ],
+   "quality_evidence": {
+    "nd_character": "a smart and artistic five-year-old boy who is on the autism spectrum",
+    "nd_cast": "PABLO features an all-autistic cast",
+    "nd_made": "devised, co-written and voiced by young autistic talent",
+    "for_children": "CBC Kids today announced the exclusive Canadian premiere of the new animated series PABLO",
+    "family_friendly": "CBC Kids today announced the exclusive Canadian premiere of the new animated series PABLO"
+   },
+   "values": {
+    "runtime_min": "11"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Free-to-air children’s TV; aired on CBC Kids in Canada from 2018, per CBC. Current streaming not checked.",
+   "maker_url": "https://www.bbc.co.uk/cbeebies/shows/pablo",
+   "buy_links": [
+    {
+     "label": "CBeebies (BBC)",
+     "url": "https://www.bbc.co.uk/cbeebies/shows/pablo"
+    },
+    {
+     "label": "CBC Kids announcement",
+     "url": "https://mediacentre.cbc.ca/announcement/3852/new-cbc-kids-series-pablo-celebrates-creativity-and-individuality"
+    }
+   ],
+   "community": [],
+   "evidence": "Pablo uses his magic crayons to turn his life challenges into fantastic adventures and his feelings into colourful characters with a voice",
+   "notes": "Made by Paper Owl Films (Northern Ireland) for CBeebies and RTÉjr. CBC’s announcement is from 2018 and says episodes are 11 minutes; check CBC Gem for current availability."
+  },
+  {
+   "slug": "atypical-netflix-series",
+   "name": "Atypical",
+   "brand": "Netflix",
+   "category": "movies-series",
+   "description": "A comedy-drama about Sam, an autistic 18-year-old looking for love and independence, and how his family changes around him. For teens and adults.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "an 18-year-old on the autistic spectrum searching for love and independence"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "A Netflix original, included with a Netflix subscription.",
+   "maker_url": "https://about.netflix.com/news/atypical-has-been-renewed-by-netflix-with-an-increased-10-episode-second-season",
+   "buy_links": [
+    {
+     "label": "Netflix (news about the show)",
+     "url": "https://about.netflix.com/news/atypical-has-been-renewed-by-netflix-with-an-increased-10-episode-second-season"
+    }
+   ],
+   "community": [],
+   "evidence": "Atypical is a coming of age story from the point-of-view of Sam (played by Keir Gilchrist), an 18-year-old on the autistic spectrum searching for love and independence.",
+   "notes": "Netflix title pages crash the fetch tool, so this rests on Netflix’s own newsroom post about season 2. The newsroom post does not say the lead actor is autistic, so nd_cast is not claimed."
+  },
+  {
+   "slug": "the-good-doctor-series",
+   "name": "The Good Doctor",
+   "brand": "ABC",
+   "category": "movies-series",
+   "description": "A hospital drama about a young autistic surgeon and the doubts he faces from colleagues. For teens and adults.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "A surgeon with autism and savant syndrome"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "The ABC page says all seasons are on Hulu (US); Canadian streaming not checked.",
+   "maker_url": "https://abc.com/shows/the-good-doctor",
+   "buy_links": [
+    {
+     "label": "ABC",
+     "url": "https://abc.com/shows/the-good-doctor"
+    }
+   ],
+   "community": [],
+   "evidence": "A surgeon with autism and savant syndrome uses his extraordinary gifts to save lives and challenge skepticism.",
+   "notes": "Borderline: the lead is played by a non-autistic actor and the “savant” framing is a common stereotype. Included because it is widely watched; drop if the shop prefers autistic-led work."
+  },
+  {
+   "slug": "love-on-the-spectrum-series",
+   "name": "Love on the Spectrum",
+   "brand": "Northern Pictures",
+   "category": "movies-series",
+   "description": "A docu-reality series that follows autistic adults as they date and look for relationships, with support from family and coaches. Warm and gentle; for teens and adults.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "following people on the autism spectrum as they navigate the world of dating and relationships"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Produced for Netflix, per Northern Pictures; included with a Netflix subscription.",
+   "maker_url": "https://www.northernpictures.com.au/love-on-the-spectrum",
+   "buy_links": [
+    {
+     "label": "Northern Pictures",
+     "url": "https://www.northernpictures.com.au/love-on-the-spectrum"
+    }
+   ],
+   "community": [],
+   "evidence": "Love on the Spectrum is an insightful and warm-hearted series following people on the autism spectrum as they navigate the world of dating and relationships.",
+   "notes": "There are Australian seasons and a US version. The participants are autistic people as themselves. The producer’s page uses some deficit wording about autism."
+  },
+  {
+   "slug": "employable-me-canada",
+   "name": "Employable Me (Canada)",
+   "brand": "AMI",
+   "category": "movies-series",
+   "description": "A Canadian documentary series following job seekers with conditions such as autism and Tourette syndrome, or vision loss, as they look for work that suits their strengths.",
+   "qualities": [
+    "canadian",
+    "nd_character",
+    "audio_description",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "canadian": "features Canadian job seekers",
+    "nd_character": "a neurological condition such as Tourette Syndrome or Autism Spectrum Disorder",
+    "audio_description": "Employable Me features Integrated Described Video",
+    "sold_in_canada": "Employable Me to premiere in Canada on AMI-tv"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Aired on AMI-tv in Canada; current streaming not shown on the kept pages.",
+   "maker_url": "https://www.ami.ca/EM-about-show",
+   "buy_links": [
+    {
+     "label": "AMI",
+     "url": "https://www.ami.ca/EM-about-show"
+    }
+   ],
+   "community": [],
+   "evidence": "Employable Me is a moving six-part documentary series on AMI-tv.",
+   "notes": "Produced by Thomas Howe Associates with AMI and TVO, per AMI. AMI says the cast “will focus on their strengths”. Some wording (“overcome their challenges”) is older in tone."
+  },
+  {
+   "slug": "the-reason-i-jump-documentary",
+   "name": "The Reason I Jump",
+   "brand": "Vulcan Productions",
+   "category": "movies-documentaries",
+   "description": "A 2020 documentary, based on Naoki Higashida’s book, about the lives of nonspeaking autistic people in several countries, using sound and image to suggest how they experience the world.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "the experiences of nonspeaking autistic people from around the world"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "The film’s site lists Disney+ in many countries and Netflix in the US; for Canada it says “On release”.",
+   "maker_url": "https://www.thereasonijumpfilm.com/",
+   "buy_links": [
+    {
+     "label": "The Reason I Jump (where to watch)",
+     "url": "https://thereasonijumpfilm.com/watch/"
+    }
+   ],
+   "community": [],
+   "evidence": "THE REASON I JUMP is an immersive cinematic exploration of neurodiversity through the experiences of nonspeaking autistic people from around the world.",
+   "notes": "Reviewer: check how the film presents participants’ communication, since spelling-board methods are debated. Based on Naoki Higashida’s book."
+  },
+  {
+   "slug": "deej-documentary",
+   "name": "Deej",
+   "brand": "Deej (Rooy Media)",
+   "category": "movies-documentaries",
+   "description": "A documentary about DJ Savarese, a nonspeaking autistic poet, from high school to college, told largely in his own words. About inclusion and what the right support makes possible.",
+   "qualities": [
+    "nd_character",
+    "captions",
+    "audio_description"
+   ],
+   "quality_evidence": {
+    "nd_character": "what a nonspeaking student with autism can do",
+    "captions": "All segments contain closed captions and descriptive subtitles for the deaf and hard of hearing",
+    "audio_description": "and audio description for the blind"
+   },
+   "values": {
+    "runtime_min": "72"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Streams on Kanopy and is sold on DVD for home or educational use from the film’s site; no price on the kept pages.",
+   "maker_url": "https://www.deejmovie.com/",
+   "buy_links": [
+    {
+     "label": "Deej (watch)",
+     "url": "https://www.deejmovie.com/watch"
+    }
+   ],
+   "community": [],
+   "evidence": "Now, I seek to help kids much less fortunate than I by showing people what a nonspeaking student with autism can do.",
+   "notes": "The DVD has 53- and 72-minute versions with captions and audio description. First broadcast on America ReFramed (PBS World Channel, US). Kanopy is offered by many Canadian libraries, but the kept pages do not say so."
+  },
+  {
+   "slug": "neurotypical-pov-documentary",
+   "name": "Neurotypical",
+   "brand": "POV (PBS)",
+   "category": "movies-documentaries",
+   "description": "A 2013 documentary that looks at autism through the eyes of three autistic people of different ages, a young child, a teenager and an adult, and how they make sense of a neurotypical world.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "from the point of view of autistic people themselves"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Aired on PBS in 2013; current streaming not shown on the kept page.",
+   "maker_url": "https://archive.pov.org/neurotypical/",
+   "buy_links": [
+    {
+     "label": "PBS POV",
+     "url": "https://archive.pov.org/neurotypical/"
+    }
+   ],
+   "community": [],
+   "evidence": "Neurotypical is an unprecedented exploration of autism from the point of view of autistic people themselves.",
+   "notes": "Directed by Adam Larsen. The POV page also has a neurodiversity lesson plan."
+  },
+  {
+   "slug": "autism-in-love-documentary",
+   "name": "Autism in Love",
+   "brand": "Independent Lens (PBS)",
+   "category": "movies-documentaries",
+   "description": "A 2016 documentary following four autistic adults through dating, long relationships and marriage.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "Four adults with autism find romance and navigate the choppy seas of relationships."
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Aired on PBS Independent Lens; current streaming not shown on the kept page.",
+   "maker_url": "https://www.pbs.org/independentlens/documentaries/autism-in-love/",
+   "buy_links": [
+    {
+     "label": "PBS Independent Lens",
+     "url": "https://www.pbs.org/independentlens/documentaries/autism-in-love/"
+    }
+   ],
+   "community": [],
+   "evidence": "Four adults with autism find romance and navigate the choppy seas of relationships.",
+   "notes": "Directed by Matt Fuller. The PBS page uses older terms such as “high functioning” and “disorder”; borderline on tone."
+  },
+  {
+   "slug": "i-have-tourettes-hbo-documentary",
+   "name": "I Have Tourette’s but Tourette’s Doesn’t Have Me",
+   "brand": "HBO Documentary Films",
+   "category": "movies-documentaries",
+   "description": "A 2005 HBO documentary in which more than a dozen American children with Tourette syndrome talk candidly about their lives.",
+   "qualities": [
+    "nd_character"
+   ],
+   "quality_evidence": {
+    "nd_character": "A candid look at the lives of more than a dozen American children who have Tourette Syndrome."
+   },
+   "values": {
+    "rating": "13+"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Streaming varies; no price on the kept pages; the kept page is HBO Max’s US site.",
+   "maker_url": "https://www.hbo.com/movies/i-have-tourettes-but-tourettes-doesnt-have-me",
+   "buy_links": [
+    {
+     "label": "HBO (US page)",
+     "url": "https://www.hbo.com/movies/i-have-tourettes-but-tourettes-doesnt-have-me"
+    }
+   ],
+   "community": [],
+   "evidence": "A candid look at the lives of more than a dozen American children who have Tourette Syndrome.",
+   "notes": "HBO Max files it under Documentaries and Kids & Family, rated 13+. Canadian streaming was not checked."
+  }
+ ]
+}

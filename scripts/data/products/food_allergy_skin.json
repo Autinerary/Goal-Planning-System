@@ -1,0 +1,1619 @@
+{
+ "topic": "products_food_allergy_skin",
+ "checked": "2026-10-18",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "madegood-chocolate-chip-granola-bites",
+   "name": "Chocolate Chip Granola Bites",
+   "brand": "MadeGood",
+   "category": "food-allergy-friendly",
+   "description": "Small, crunchy oat-and-chocolate-chip granola balls in single pouches, from a brand that makes snacks free from most common allergens. Suits lunch boxes at nut-free schools and anyone who wants a dependable packed snack.",
+   "qualities": [
+    "gluten_free",
+    "dairy_free",
+    "vegan",
+    "nut_free",
+    "single_serve",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gluten_free": "organic, gluten-free, non-GMO, dairy-free, and vegan",
+    "dairy_free": "organic, gluten-free, non-GMO, dairy-free, and vegan",
+    "vegan": "organic, gluten-free, non-GMO, dairy-free, and vegan",
+    "nut_free": "Nut-Free Snacks",
+    "single_serve": "28 Individual Pouches",
+    "sold_in_canada": "store:https://well.ca/products/madegood-organic-granola-bites_201745.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and box size (well.ca listed a box at $3.99 on 18 October 2026)",
+   "maker_url": "https://www.madegoodfoods.ca/products/chocolate-chip-granola-minis",
+   "buy_links": [
+    {
+     "label": "MadeGood Canada",
+     "url": "https://www.madegoodfoods.ca/products/chocolate-chip-granola-minis"
+    },
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/madegood-organic-granola-bites_201745.html"
+    }
+   ],
+   "community": [],
+   "evidence": "allergy-friendly bites are thoughtfully made—organic, gluten-free, non-GMO, dairy-free, and vegan—each one hiding a serving of vegetables",
+   "notes": "Sold as Granola Bites now (the page title and older boxes say Granola Minis). The well.ca listing shows another flavour's ingredient list, so check ingredients on the maker's page or the box."
+  },
+  {
+   "slug": "kinnikinnick-vanilla-wafers",
+   "name": "Vanilla Wafers",
+   "brand": "Kinnikinnick",
+   "category": "food-allergy-friendly",
+   "description": "Crisp, light vanilla cookies from a gluten-free bakery in Edmonton. Free of gluten, dairy, peanuts, tree nuts and soy, so they suit many allergy diets, but they contain egg.",
+   "qualities": [
+    "gluten_free",
+    "dairy_free",
+    "nut_free",
+    "soy_free",
+    "texture_crunchy",
+    "no_artificial_dyes",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gluten_free": "crispy & light gluten-free Vanilla Wafers",
+    "dairy_free": "also free from most major allergens including dairy, nuts, peanuts, soy",
+    "nut_free": "also free from most major allergens including dairy, nuts, peanuts, soy",
+    "soy_free": "also free from most major allergens including dairy, nuts, peanuts, soy",
+    "texture_crunchy": "crispy & light gluten-free Vanilla Wafers",
+    "no_artificial_dyes": "We don't use artificial colours, flavours or preservatives.",
+    "canadian": "new headquarters on 120th St. Edmonton, Alberta",
+    "sold_in_canada": "store:https://well.ca/products/kinnikinnick-vanilla-wafers_97913.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (well.ca listed 180 g at $5.79 on 18 October 2026)",
+   "maker_url": "https://www.kinnikinnick.com/gluten-free-vanilla-wafers",
+   "buy_links": [
+    {
+     "label": "Kinnikinnick",
+     "url": "https://www.kinnikinnick.com/gluten-free-vanilla-wafers"
+    },
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/kinnikinnick-vanilla-wafers_97913.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Our best-selling cookie, these crispy & light gluten-free Vanilla Wafers are simply delightful.",
+   "notes": "Contains egg (well.ca lists \"Has Eggs\"); not egg-free. The no-artificial-colours line is a brand-wide statement on the product line page."
+  },
+  {
+   "slug": "wowbutter-creamy",
+   "name": "WOWBUTTER Creamy",
+   "brand": "WOWBUTTER",
+   "category": "food-allergy-friendly",
+   "description": "A toasted-soy spread that looks, spreads and tastes much like smooth peanut butter, made in Canada in a peanut- and tree-nut-free facility. Suits nut-free schools and homes; it is made from soy.",
+   "qualities": [
+    "nut_free",
+    "dairy_free",
+    "egg_free",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "nut_free": "It is produced in a dedicated peanut free and tree nut free facility.",
+    "dairy_free": "WOWBUTTER is free of all major allergens EXCEPT SOY.",
+    "egg_free": "WOWBUTTER is free of all major allergens EXCEPT SOY.",
+    "canadian": "Proudly Crafted in Canada!",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B00AEBU3UC"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and jar size; the maker's Buy Online page links Walmart.ca and Amazon.ca",
+   "maker_url": "https://wowbutter.com/ecommerce/en-ca/canadian-retail-products/",
+   "buy_links": [
+    {
+     "label": "WOWBUTTER (where to buy online)",
+     "url": "https://wowbutter.com/Buy-Online.htm"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B00AEBU3UC"
+    }
+   ],
+   "community": [],
+   "evidence": "WOWBUTTER is made in a dedicated 100% Peanut Free & Tree Nut Free Facility.",
+   "notes": "Contains soy. The Amazon.ca listing is a 2 x 2 kg pack; 500 g and 1 kg jars (Creamy and Crunchy) are sold in Canadian grocery stores. The maker's page lists wheat and gluten in the same plant (not in the product), so it is not listed here as gluten-free."
+  },
+  {
+   "slug": "daiya-dairy-free-cheddar-mac-cheese",
+   "name": "Dairy-Free Cheddar Mac & Cheese",
+   "brand": "Daiya",
+   "category": "food-allergy-friendly",
+   "description": "Boxed rice-pasta macaroni with a dairy-free cheddar-style powder, made to stand in for the familiar blue-box mac and cheese. Suits people who avoid dairy and gluten.",
+   "qualities": [
+    "dairy_free",
+    "gluten_free",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "dairy_free": "Our Mac & Cheese is packed with dairy-free, gluten-free deliciousness.",
+    "gluten_free": "this product is certified gluten-free",
+    "sold_in_canada": "store:https://well.ca/products/daiya-dairy-free-cheddar-mac_317221.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (well.ca listed a 156 g box at $5.99 on 18 October 2026)",
+   "maker_url": "https://daiyafoods.com/en-ca/products/dairy-free-cheddar-mac-cheese-dry-powdered",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/daiya-dairy-free-cheddar-mac_317221.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Love those blue boxes, but not what's inside? Welcome to the Daiya side. Our Mac & Cheese is packed with dairy-free, gluten-free deliciousness.",
+   "notes": "This is the boxed version with a powder packet; Daiya also sells a Cheddar Deluxe version with a sauce pouch. Contains corn; the directions call for (dairy-free) milk and butter."
+  },
+  {
+   "slug": "yumearth-organic-giggles",
+   "name": "Organic Giggles",
+   "brand": "YumEarth",
+   "category": "food-allergy-friendly",
+   "description": "Small chewy fruit candies in five flavours, made without the common allergens and without artificial dyes. A party or classroom treat for children with food allergies, and for anyone who avoids dyes.",
+   "qualities": [
+    "gluten_free",
+    "dairy_free",
+    "nut_free",
+    "egg_free",
+    "soy_free",
+    "no_artificial_dyes",
+    "vegan",
+    "texture_soft",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "gluten_free": "Free from: peanuts, gluten, tree nuts, milk, eggs, fish, shellfish, soy and sesame.",
+    "dairy_free": "Free from: peanuts, gluten, tree nuts, milk, eggs, fish, shellfish, soy and sesame.",
+    "nut_free": "Free from: peanuts, gluten, tree nuts, milk, eggs, fish, shellfish, soy and sesame.",
+    "egg_free": "Free from: peanuts, gluten, tree nuts, milk, eggs, fish, shellfish, soy and sesame.",
+    "soy_free": "Free from: peanuts, gluten, tree nuts, milk, eggs, fish, shellfish, soy and sesame.",
+    "no_artificial_dyes": "No high fructose corn syrup or artificial dyes.",
+    "vegan": "Organic, non-GMO, gluten free, and vegan.",
+    "texture_soft": "Our fruity chewy candy bites",
+    "sold_in_canada": "store:https://well.ca/products/yumearth-organic-giggles-chewy-candy_280385.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and bag size (well.ca listed a bag at $9.49 on 18 October 2026)",
+   "maker_url": "https://yumearth.com/products/organic-giggles",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/yumearth-organic-giggles-chewy-candy_280385.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Our fruity chewy candy bites come in 5 fruity flavors: Grape, Strawberry, Lemon, Orange and Green Apple!",
+   "notes": "Candy, so a treat rather than a staple. The maker lists the US top-9 allergens; mustard is not mentioned. YumEarth is a US brand; the maker's own shop prices are in USD, so the Canadian store link is well.ca."
+  },
+  {
+   "slug": "enjoy-life-dark-chocolate-morsels",
+   "name": "Dark Chocolate Morsels",
+   "brand": "Enjoy Life",
+   "category": "food-allergy-friendly",
+   "description": "Dark chocolate chips with three ingredients, made without the 14 allergens the maker lists, including dairy, nuts, soy, sesame and mustard. For baking or snacking in homes and schools that avoid many allergens at once.",
+   "qualities": [
+    "top_allergen_free",
+    "gluten_free",
+    "dairy_free",
+    "nut_free",
+    "egg_free",
+    "soy_free",
+    "short_ingredients",
+    "vegan",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "top_allergen_free": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+    "gluten_free": "Always Free From Gluten & 14 Allergens",
+    "dairy_free": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+    "nut_free": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+    "egg_free": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+    "soy_free": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+    "short_ingredients": "Cocoa Mass, Brown Sugar, Cocoa Butter.",
+    "vegan": "Vegan product",
+    "sold_in_canada": "store:https://well.ca/products/enjoy-life-100-real-chocolate-dairy_159185.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (well.ca listed a bag at $11.29 on 18 October 2026)",
+   "maker_url": "https://enjoylifefoods.com/products/dark-chocolate-morsels-3",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/enjoy-life-100-real-chocolate-dairy_159185.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Our chocolate is free from: Wheat, Lupin, Casein, Crustaceans, Mustard, Dairy, Shellfish, Sesame, Tree nuts, Fish, Egg, Peanut, Added sulfites, and Soy.",
+   "notes": "Enjoy Life is a US brand (owned by Mondelez); the maker's site sells in USD, so the Canadian store link is well.ca. The ingredient list and the vegan label come from the well.ca listing."
+  },
+  {
+   "slug": "goldfish-cheddar-crackers",
+   "name": "Goldfish Cheddar",
+   "brand": "Goldfish (Campbell Company of Canada)",
+   "category": "food-snacks",
+   "description": "Small, fish-shaped baked cheddar crackers sold in bags, cartons and snack packs across Canada. A familiar cracker that many picky eaters rely on.",
+   "qualities": [
+    "no_artificial_dyes",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_artificial_dyes": "No Artifical Colours",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=goldfish+cheddar"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and size (Walmart.ca listed the 200 g bag at $2.24 on 18 October 2026)",
+   "maker_url": "https://www.campbellsoup.ca/product/goldfish-cheddar/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=goldfish+cheddar"
+    }
+   ],
+   "community": [
+    {
+     "label": "Named as a common picky-eater food in Autism Parenting Magazine",
+     "url": "https://www.autismparentingmagazine.com/food-ideas-for-picky-autistic-child/"
+    }
+   ],
+   "evidence": "Snack time always calls for a handful of Goldfish® Cheddar crackers. Plus, it’s the perfect pack to have in the pantry.",
+   "notes": "Contains wheat and milk; the maker spells it \"No Artifical Colours\", and the cheese is coloured with annatto. Also sold in 28 g snack packs. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "bear-paws-chocolate-chip-soft-cookies",
+   "name": "Bear Paws Chocolate Chip Cookies",
+   "brand": "Dare Foods",
+   "category": "food-snacks",
+   "description": "Soft, chewy chocolate chip cookies shaped like bear paws, individually wrapped for lunch boxes. Made in Canada and baked in a peanut-free facility.",
+   "qualities": [
+    "texture_soft",
+    "single_serve",
+    "no_artificial_dyes",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_soft": "each soft, yummy cookie",
+    "single_serve": "These delicious cookies are individually wrapped so they stay moist and chewy.",
+    "no_artificial_dyes": "Made better with real chocolate chips and no artificial colours or flavours.",
+    "canadian": "Made in Canada",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=bear+paws+chocolate+chip"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and pack size (210 g 6-pack and 490 g family pack at Walmart.ca)",
+   "maker_url": "https://www.darefoods.com/product/bear-paws-chocolate-chip-cookies/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=bear+paws+chocolate+chip"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B08JHD7T5X"
+    }
+   ],
+   "community": [],
+   "evidence": "Kids and parents love Bear Paws Chocolate Chip cookies! Made better with real chocolate chips and no artificial colours or flavours.",
+   "notes": "Contains wheat, soy, egg and milk; Amazon.ca lists \"Baked In A Peanut Free Facility\" and the brand page says \"Peanut free\" (tree nuts not stated, so not tagged nut-free). The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "gogo-squeez-apple-apple",
+   "name": "GoGo squeeZ Apple Apple",
+   "brand": "GoGo squeeZ (Materne Canada)",
+   "category": "food-snacks",
+   "description": "Plain apple fruit sauce in a 90 g squeeze pouch, made from apple with lemon juice only if needed. A portable fruit snack with a very short ingredient list, for lunch boxes and outings.",
+   "qualities": [
+    "short_ingredients",
+    "single_serve",
+    "gluten_free",
+    "nut_free",
+    "vegan",
+    "no_artificial_dyes",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "short_ingredients": "Apple, Concentrated Lemon Juice (if necessary)",
+    "single_serve": "Per 1 pouch (90 g)",
+    "gluten_free": "Gluten Free",
+    "nut_free": "Nut Free",
+    "vegan": "Vegan",
+    "no_artificial_dyes": "No Artificial Colours, Flavours or Preservatives",
+    "sold_in_canada": "GoGo squeeZ® products are available for purchase at over 30 major retailers across Canada."
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and box size (4-pouch boxes and variety packs at Walmart.ca)",
+   "maker_url": "https://gogosqueez.ca/products/appleapple/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=gogo+squeez"
+    }
+   ],
+   "community": [],
+   "evidence": "Our signature and original fruit sauce, GoGo squeeZ® Apple Apple is made from 100% fruit, and is 100% portable and fun to eat.",
+   "notes": "Also sold in mixed variety packs, so check the box if only the plain apple flavour will do. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "black-diamond-cheestrings-mozzarella",
+   "name": "Cheestrings Mozzarella",
+   "brand": "Black Diamond",
+   "category": "food-snacks",
+   "description": "Sticks of pizza mozzarella that pull apart into strings, sold in packs of 8 to 24. A simple cheese snack that many children like to peel and eat.",
+   "qualities": [
+    "no_artificial_dyes",
+    "single_serve",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_artificial_dyes": "No Artificial Colours or Flavours",
+    "single_serve": "Available in 8 pack (168g), 16 pack (336g), and 24 pack (504g)",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=cheestrings+mozzarella"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and pack size",
+   "maker_url": "https://www.cheestrings.ca/en/products/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=cheestrings+mozzarella"
+    }
+   ],
+   "community": [],
+   "evidence": "Delicious stringable pizza mozzarella made from wholesome milk.",
+   "notes": "Contains milk; also comes in Marble and Cheddar Flavour. The maker's page lists Canadian grocers (Loblaws, Metro, No Frills, Walmart and others). The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "kraft-dinner-original",
+   "name": "Kraft Dinner Original Macaroni & Cheese",
+   "brand": "Kraft Heinz Canada",
+   "category": "food-meals",
+   "description": "Kraft Heinz Canada's familiar boxed macaroni and cheese: dry macaroni with a packet of cheese-sauce mix. A plain, predictable meal many people keep in the cupboard.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=kraft+dinner+original"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and box size (200 g and 1 kg boxes)",
+   "maker_url": "https://www.kraftheinz.com/en-CA/kraft-dinner/products/00068100904826-original-macaroni-and-cheese-dinner",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=kraft+dinner+original"
+    }
+   ],
+   "community": [],
+   "evidence": "Kraft Dinner Original Macaroni & Cheese combines classic KD cheese with yummy noodles for a deliciously creamy snack or a classic meal side!",
+   "notes": "Contains milk and wheat. Walmart.ca also lists a KD Gluten Free Original box. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "cheerios-original",
+   "name": "Cheerios",
+   "brand": "General Mills Canada",
+   "category": "food-meals",
+   "description": "Plain, lightly sweetened whole grain oat O's, eaten dry as a snack or with milk for breakfast. A plain, low-sugar cereal that suits toddlers through adults.",
+   "qualities": [
+    "no_artificial_dyes",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_artificial_dyes": "No Artificial Colours",
+    "for_adults": "perfect for toddlers, adults and everyone in between",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=cheerios+original"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and box size (260 g to 1 kg)",
+   "maker_url": "https://www.cheerios.ca/products/cheerios",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=cheerios+original"
+    }
+   ],
+   "community": [],
+   "evidence": "Made from whole grain oats, and without artificial flavours or colours, they’re low in fat and cholesterol free.",
+   "notes": "The Canadian page lists \"Contains: Oats.\" and does not call it gluten-free. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "mccain-superfries-crinkle-cut",
+   "name": "Superfries Crinkle Cut Fries",
+   "brand": "McCain Foods (Canada)",
+   "category": "food-meals",
+   "description": "Frozen crinkle-cut fries made from potatoes, canola oil and sea salt, cooked in the oven or an air fryer. A plain side that many families keep in the freezer.",
+   "qualities": [
+    "short_ingredients",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "short_ingredients": "Potatoes Canola oil Sea salt",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=mccain+superfries+crinkle+cut"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and bag size (Walmart.ca listed the 650 g bag at $4.48 on 18 October 2026)",
+   "maker_url": "https://mccain.ca/en/products/superfries/crinkle-cut-fries/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=mccain+superfries+crinkle+cut"
+    }
+   ],
+   "community": [],
+   "evidence": "Love crinkle cut fries on their own? Us too. But we think they’re even better dipped! And that’s no surprise since they’re made from specially selected potatoes and a touch of sea salt.",
+   "notes": "Four ingredients (the fourth keeps the colour). Walmart.ca also lists a different McCain Crinkle Cut (non-Superfries) bag, so check the name. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "campbells-condensed-chicken-noodle",
+   "name": "Campbell’s Condensed Chicken Noodle",
+   "brand": "Campbell Company of Canada",
+   "category": "food-meals",
+   "description": "Canned condensed chicken noodle soup with noodles and pieces of chicken in broth. A plain, familiar soup.",
+   "qualities": [
+    "no_artificial_dyes",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_artificial_dyes": "it contains no artificial colours or flavours",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=campbells+condensed+chicken+noodle"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (single cans and 12-can cases)",
+   "maker_url": "https://www.campbellsoup.ca/product/campbells-condensed-chicken-noodle/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=campbells+condensed+chicken+noodle"
+    }
+   ],
+   "community": [],
+   "evidence": "Prepared with fresh noodles and tender pieces of lean chicken simmered in a savoury chicken broth for the comforting soup you love.",
+   "notes": "Contains wheat, egg and soy, and MSG (from the ingredient list). Ready-to-serve and Homestyle versions taste different, so check the label. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "kraft-smooth-peanut-butter",
+   "name": "Kraft Smooth Peanut Butter",
+   "brand": "Kraft Heinz Canada",
+   "category": "food-meals",
+   "description": "Smooth peanut butter made in Canada from dry-roasted peanuts, for toast and sandwiches. A pantry staple with one creamy texture; not for nut-free settings.",
+   "qualities": [
+    "texture_smooth",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_smooth": "creamy texture",
+    "canadian": "Proudly prepared in Canada.",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=kraft+smooth+peanut+butter"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and jar size",
+   "maker_url": "https://www.kraftheinz.com/en-CA/kraft-peanut-butter/products/00068100084245-smooth-peanut-butter",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=kraft+smooth+peanut+butter"
+    }
+   ],
+   "community": [],
+   "evidence": "Try Kraft Peanut Butter on toast, sandwiches and fruits or vegetables. Proudly prepared in Canada.",
+   "notes": "Contains peanuts. For peanut-free schools, see WOWBUTTER in this list. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "oatly-oat-drink-original",
+   "name": "Oatly Oat Drink",
+   "brand": "Oatly",
+   "category": "food-drinks",
+   "description": "The original Oatly oat drink, used like milk in cereal, coffee and cooking. Made with Canadian oats and free of dairy, nuts and gluten, so it suits many people who avoid milk.",
+   "qualities": [
+    "dairy_free",
+    "nut_free",
+    "gluten_free",
+    "vegan",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "dairy_free": "with no dairy, no nuts, no gluten",
+    "nut_free": "with no dairy, no nuts, no gluten",
+    "gluten_free": "with no dairy, no nuts, no gluten",
+    "vegan": "is suitable for vegans",
+    "sold_in_canada": "store:https://well.ca/products/oatly-original-oat-drink_293386.html"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store",
+   "maker_url": "https://www.oatly.com/en-ca/products/oat-drink/oat-drink-1l",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/oatly-original-oat-drink_293386.html"
+    }
+   ],
+   "community": [],
+   "evidence": "The mother of all oat drinks made with oats from Canada is suitable for vegans and (almost) everyone.",
+   "notes": "Oatly is a Swedish company; the Canadian page says it is made with oats from Canada. Shelf-stable before opening, per the maker. Oatly also sells chocolate, barista and extra-creamy versions with different tastes."
+  },
+  {
+   "slug": "tropicana-pure-orange-juice-no-pulp",
+   "name": "Tropicana 100% Pure Orange Juice No Pulp",
+   "brand": "Tropicana Beverages Canada",
+   "category": "food-drinks",
+   "description": "Orange juice with the pulp removed and nothing added. Suits people who like orange juice but not the bits.",
+   "qualities": [
+    "texture_smooth",
+    "short_ingredients",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_smooth": "No Pulp",
+    "short_ingredients": "100 % Pure Orange Juice",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=tropicana+no+pulp"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and bottle size",
+   "maker_url": "https://www.tropicana.ca/products/tropicana%C2%AE%C2%A0100-pure-orange-juice-no-pulp",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=tropicana+no+pulp"
+    }
+   ],
+   "community": [],
+   "evidence": "Tropicana® 100 % Pure Orange Juice - No Pulp",
+   "notes": "The maker's page is short (name, nutrition facts, ingredients). Some Pulp and Lots of Pulp versions look similar, so check the label. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "oasis-apple-juice",
+   "name": "Oasis Apple",
+   "brand": "Oasis (Lassonde)",
+   "category": "food-drinks",
+   "description": "Plain apple juice from a Canadian juice brand, sold in 200 mL boxes, 300 mL bottles and 960 mL cartons. A simple, familiar drink for lunch boxes and home.",
+   "qualities": [
+    "short_ingredients",
+    "single_serve",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "short_ingredients": "Apple juice from concentrate (water, concentrated apple juice), Vitamin C.",
+    "single_serve": "OASIS APPLE Tetra 200mL",
+    "canadian": "Proudly canadian",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=oasis+apple+juice"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and size",
+   "maker_url": "https://oasis.ca/en/products/oasis/apple/prisma-tetra-960ml/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=oasis+apple+juice"
+    }
+   ],
+   "community": [],
+   "evidence": "Apple juice from concentrate (water, concentrated apple juice), Vitamin C.",
+   "notes": "Walmart.ca lists the 960 mL carton and 8 x 200 mL boxes. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "natrel-fine-filtered-1-chocolate-milk",
+   "name": "Fine-Filtered 1% Chocolate Milk",
+   "brand": "Natrel",
+   "category": "food-drinks",
+   "description": "Chocolate milk made from fine-filtered Canadian milk, with less sugar than the leading 1% chocolate milk according to the maker. A familiar drink for people who like chocolate milk.",
+   "qualities": [
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "canadian": "Only quality Canadian milk",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=natrel+chocolate+milk"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (2 L carton)",
+   "maker_url": "https://www.natrel.ca/en/products/fine-filtered-milk-flavoured-milk/fine-filtered-1-chocolate-milk",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=natrel+chocolate+milk"
+    }
+   ],
+   "community": [],
+   "evidence": "Finally, a fine-filtered milk that’s both rich in chocolate and lower in sugar.",
+   "notes": "Contains milk. Natrel also sells a lactose-free 1% chocolate milk and 200 mL single-serve chocolate milks (both on Walmart.ca), which are different products. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "minute-maid-100-apple-juice-boxes",
+   "name": "Minute Maid 100% Apple Juice Boxes",
+   "brand": "Minute Maid (Coca-Cola Canada)",
+   "category": "food-drinks",
+   "description": "Apple juice from concentrate in single juice boxes, with no added sugar or preservatives. Easy to pack for school or outings.",
+   "qualities": [
+    "single_serve",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "single_serve": "in a convenient juice box format",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=minute+maid+apple+juice+boxes"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca lists 8 x 200 mL boxes)",
+   "maker_url": "https://www.coca-cola.com/ca/en/brands/minute-maid/products/juice-boxes",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=minute+maid+apple+juice+boxes"
+    }
+   ],
+   "community": [],
+   "evidence": "Made with high-quality apples, this 100% Apple Juice from concentrate has a crisp flavour in a convenient juice box format.",
+   "notes": "Similar to Oasis Apple in this list; both are plain apple juice. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "breton-original-crackers",
+   "name": "Breton Original Crackers",
+   "brand": "Dare Foods",
+   "category": "food-snacks",
+   "description": "Round, light and crisp wheat crackers, eaten plain or with cheese and spreads. A dependable plain cracker for people who like a dry, crisp snack.",
+   "qualities": [
+    "texture_crunchy",
+    "no_artificial_dyes",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_crunchy": "light, crispy",
+    "no_artificial_dyes": "No Artificial Colours, Flavours or Preservatives",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=breton+original+crackers"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (200 g box)",
+   "maker_url": "https://www.darefoods.com/product/breton-original-crackers/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=breton+original+crackers"
+    }
+   ],
+   "community": [],
+   "evidence": "Breton Original crackers are peanut-free, kosher and certified plant-based",
+   "notes": "Contains wheat. The maker calls them peanut-free; other allergens are not stated on the page. The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "medicalert-sporty-id",
+   "name": "Sporty MedicAlert ID",
+   "brand": "MedicAlert Foundation Canada",
+   "category": "allergy-safety",
+   "description": "A washable nylon sports-band ID from MedicAlert Canada, engraved with the wearer's allergies or other medical information. Made for active children who need their allergy information on them.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "The Sporty MedicAlert ID is perfect for on-the-go kids.",
+    "sold_in_canada": "store:https://www.medicalert.ca/products/I310"
+   },
+   "values": {
+    "material": "nylon, fabric"
+   },
+   "price": 49.99,
+   "currency": "CAD",
+   "price_note": "Price on medicalert.ca on 18 October 2026 (Sporty - Blue Wham!; other colours the same price)",
+   "maker_url": "https://www.medicalert.ca/products/I310",
+   "buy_links": [
+    {
+     "label": "MedicAlert Foundation Canada",
+     "url": "https://www.medicalert.ca/products/I310"
+    }
+   ],
+   "community": [],
+   "evidence": "Rugged, durable and kid-proof! The Sporty MedicAlert ID is perfect for on-the-go kids.",
+   "notes": "Custom-engraved and made to order (2 to 8 weeks, per the page); MedicAlert's terms refer to \"Subscribers\", and its subscriptions (including MedicAlert Kids) are sold separately, so check what a family needs. Sizes Small to Large (wrists 4 to 6.75 in). MedicAlert also has an Autism Collection version."
+  },
+  {
+   "slug": "road-id-kidsafe-id",
+   "name": "Kidsafe ID",
+   "brand": "ROAD iD",
+   "category": "allergy-safety",
+   "description": "A soft silicone wristband with an engraved faceplate that locks onto a child's wrist with a pin, for emergency contacts and allergy information. Suits children who might pull off an ordinary bracelet.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "I made this lock-to-wrist ID for my kids",
+    "sold_in_canada": "Canada (CAD $)"
+   },
+   "values": {
+    "material": "latex-free silicone"
+   },
+   "price": 42.59,
+   "currency": "CAD",
+   "price_note": "Sale price shown on roadid.com in its Canada (CAD $) store on 18 October 2026",
+   "maker_url": "https://www.roadid.com/products/kidsafe-id",
+   "buy_links": [
+    {
+     "label": "ROAD iD",
+     "url": "https://www.roadid.com/products/kidsafe-id"
+    }
+   ],
+   "community": [],
+   "evidence": "Soft, secure ID that locks on the wrist and keeps must-know info at the ready.",
+   "notes": "US company (engraved in Kentucky) with a Canadian-dollar store; the price was a sale price on the day checked. Fits wrists about 4.5 to 6.4 in. An optional online emergency profile costs $19.99 a year."
+  },
+  {
+   "slug": "olivers-labels-allergy-labels",
+   "name": "Allergy Labels",
+   "brand": "Oliver's Labels",
+   "category": "allergy-safety",
+   "description": "Waterproof, dishwasher-safe stickers you personalise with a child's allergies, for lunch boxes, bottles and school things. Made by a Toronto label company.",
+   "qualities": [
+    "for_children",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Labels For Kids",
+    "canadian": "Toronto, Ontario, M4A 2K7, Canada",
+    "sold_in_canada": "CAN Free 3 - 10"
+   },
+   "values": {
+    "material": "high-performance vinyl"
+   },
+   "price": 9.99,
+   "currency": "CAD",
+   "price_note": "Price for a pack of 9 on oliverslabels.com (Canada site) on 18 October 2026",
+   "maker_url": "https://www.oliverslabels.com/labels-for-kids/allergy-labels/7",
+   "buy_links": [
+    {
+     "label": "Oliver's Labels",
+     "url": "https://www.oliverslabels.com/labels-for-kids/allergy-labels/7"
+    }
+   ],
+   "community": [],
+   "evidence": "Allergy Labels boldly announce critical information to teachers, caregivers, fellow parents and anyone that sees it.",
+   "notes": "The sold-in-Canada quote is the shipping chart row (Canada: free regular shipping, 3 to 10 business days). Labels are 67 x 34 mm; the page says to apply them as an adult."
+  },
+  {
+   "slug": "pracmedic-insulated-epipen-carry-case",
+   "name": "Insulated EpiPen Carry Case",
+   "brand": "PracMedic Bags",
+   "category": "allergy-safety",
+   "description": "A small insulated zip case that holds two epinephrine auto-injectors plus an inhaler or antihistamine, with a wrist strap and front pocket. Suits families who send epinephrine to school, on trips or to work.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B079RY4YBQ"
+   },
+   "values": {
+    "material": "water-resistant fabric"
+   },
+   "price": 34.47,
+   "currency": "CAD",
+   "price_note": "Price on Amazon.ca (black) on 18 October 2026",
+   "maker_url": "https://pracmedicbags.com/products/sammie-epipen-carry-case-black",
+   "buy_links": [
+    {
+     "label": "PracMedic Bags",
+     "url": "https://pracmedicbags.com/products/sammie-epipen-carry-case-black"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B079RY4YBQ"
+    }
+   ],
+   "community": [
+    {
+     "label": "Listed in Spokin's guide to epinephrine holders",
+     "url": "https://www.spokin.com/epipen-case-product-guide"
+    }
+   ],
+   "evidence": "PracMedic Bags black epipen case with carry handle, handy slit pocket, tight-grip Velcro, versatile strap, water-resistant fabric, and trusted YKK zipper.",
+   "notes": "US maker; the Canadian store link is Amazon.ca (in stock on 18 October 2026). A kids' version in blue and pink is also sold. Insulation is not cooling; keep auto-injectors at the temperature their own instructions give."
+  },
+  {
+   "slug": "equal-eats-peanut-tree-nut-allergy-card",
+   "name": "Peanut & Tree Nut Allergy Card (printable)",
+   "brand": "Equal Eats",
+   "category": "allergy-safety",
+   "description": "A card that explains a peanut and tree nut allergy to chefs and servers, downloaded as an image to print at credit-card size or keep on a phone. The English version is free; the same site sells versions in other languages.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "Canada (CAD $)"
+   },
+   "values": {},
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "The English printable card was free ($0.00 CAD) on equaleats.com on 18 October 2026",
+   "maker_url": "https://equaleats.com/en-ca/products/digital-peanut-and-tree-nut-allergy-card",
+   "buy_links": [
+    {
+     "label": "Equal Eats",
+     "url": "https://equaleats.com/en-ca/products/digital-peanut-and-tree-nut-allergy-card"
+    }
+   ],
+   "community": [],
+   "evidence": "Receive your card immediately after purchase. Print or save on your phone.",
+   "notes": "Digital download, so it is available in Canada; the site has a Canada (CAD $) store. Cards for other allergens (milk, egg, fish, celiac and more) are on the same site. The translated versions' prices were not shown on the fetched page."
+  },
+  {
+   "slug": "vanicream-moisturizing-cream",
+   "name": "Vanicream Moisturizing Cream",
+   "brand": "Vanicream (Pharmaceutical Specialties)",
+   "category": "skin-care",
+   "description": "A plain, thick moisturizing cream made without fragrance, masking fragrance, dyes, lanolin or botanical extracts. Suits people of any age who react to scented or heavily formulated creams.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "for_sensitive_skin",
+    "light_texture",
+    "short_ingredients",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "our Moisturizing Cream is free of fragrance and masking fragrances",
+    "dye_free": "Dye Free",
+    "for_sensitive_skin": "Formulated for Sensitive Skin",
+    "light_texture": "non-greasy, easy to spread, and quickly absorbed",
+    "short_ingredients": "Our flagship moisturizer contains only 11 ingredients",
+    "for_children": "Suitable for all ages.",
+    "for_adults": "Suitable for all ages.",
+    "sold_in_canada": "store:https://well.ca/products/vanicream-moisturizing-cream_346525.html"
+   },
+   "values": {},
+   "price": 28.99,
+   "currency": "CAD",
+   "price_note": "Regular price for 453 g on well.ca on 18 October 2026 (on sale that day for $26.09)",
+   "maker_url": "https://www.vanicream.com/product/vanicream-moisturizing-cream",
+   "buy_links": [
+    {
+     "label": "Vanicream",
+     "url": "https://www.vanicream.com/product/vanicream-moisturizing-cream"
+    },
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/vanicream-moisturizing-cream_346525.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Vanicream Moisturizing Cream is non-greasy, easy to spread, and quickly absorbed. Non-comedogenic (won’t clog pores). No botanical extracts or essential oils.",
+   "notes": "US maker; \"Dye Free\" is one of the page's product tags. Its seal is from the US National Eczema Association, not the Eczema Society of Canada, so eczema_accepted is not used. The maker's page mentions skin conditions; this entry makes no such claim."
+  },
+  {
+   "slug": "cerave-moisturizing-cream",
+   "name": "CeraVe Moisturizing Cream",
+   "brand": "CeraVe",
+   "category": "skin-care",
+   "description": "A rich but non-greasy fragrance-free cream for face and body. Suits the whole family, from babies 2 months and up, per the maker.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "light_texture",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Non-comedogenic, oil-free, hypoallergenic, fragrance-free and suitable for sensitive skin",
+    "hypoallergenic": "Non-comedogenic, oil-free, hypoallergenic, fragrance-free and suitable for sensitive skin",
+    "for_sensitive_skin": "Non-comedogenic, oil-free, hypoallergenic, fragrance-free and suitable for sensitive skin",
+    "light_texture": "rich, non-greasy, fast-absorbing moisturizing cream",
+    "for_children": "Suitable for family-use, including babies (2 months+).",
+    "sold_in_canada": "store:https://well.ca/products/cerave-moisturizing-cream_357073.html"
+   },
+   "values": {},
+   "price": 21.99,
+   "currency": "CAD",
+   "price_note": "Price for 227 g on well.ca on 18 October 2026",
+   "maker_url": "https://www.cerave.ca/en-ca/skincare/moisturizers/moisturizing-cream",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/cerave-moisturizing-cream_357073.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Developed with dermatologists and ideal for normal and dry skin on the face and body, this rich, non-greasy, fast-absorbing moisturizing cream features three essential Ceramides",
+   "notes": "Also sold in larger tubs. The maker's page talks about the skin barrier and skin conditions; this entry makes no such claim."
+  },
+  {
+   "slug": "aveeno-daily-moisturizing-lotion",
+   "name": "AVEENO Daily Moisturizing Lotion",
+   "brand": "Aveeno (Kenvue Canada)",
+   "category": "skin-care",
+   "description": "A light oat body lotion made without fragrance or dyes, in pump bottles and tubes. Suits people who want an everyday body lotion with no scent.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "light_texture",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Non comedogenic, paraben free, dye free, fragrance free and non-greasy",
+    "dye_free": "Non comedogenic, paraben free, dye free, fragrance free and non-greasy",
+    "light_texture": "Non comedogenic, paraben free, dye free, fragrance free and non-greasy",
+    "sold_in_canada": "store:https://well.ca/products/aveeno-active-naturals-daily_1948.html"
+   },
+   "values": {},
+   "price": 19.49,
+   "currency": "CAD",
+   "price_note": "Regular price for 532 mL on well.ca on 18 October 2026 (on sale that day for $15.59)",
+   "maker_url": "https://www.aveeno.ca/products/daily-moisturizing-lotion",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/aveeno-active-naturals-daily_1948.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Specially formulated with colloidal oatmeal and rich emollients, it leaves your skin soft, smooth and healthy-looking all day long.",
+   "notes": "Contains oat, which matters for people avoiding oats. Sizes: 354 mL and 532 mL bottles, 71 mL and 227 mL tubes. Aveeno also sells scented lotions with similar packaging, so check for \"fragrance free\" on the label."
+  },
+  {
+   "slug": "glaxal-base-moisturizing-lotion",
+   "name": "Glaxal Base Moisturizing Lotion",
+   "brand": "WellSkin (Glaxal Base)",
+   "category": "skin-care",
+   "description": "A light, perfume-free and lanolin-free lotion from a Canadian brand, for dry and sensitive skin. A simple everyday moisturizer.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "light_texture",
+    "for_sensitive_skin",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Perfume-free",
+    "hypoallergenic": "Hype-Allergenic",
+    "light_texture": "Non-Greasy",
+    "for_sensitive_skin": "rehydrates dry, sensitive skin",
+    "canadian": "Canadian Brand product",
+    "sold_in_canada": "store:https://well.ca/products/wellskin-glaxal-base-moisturizing_464.html"
+   },
+   "values": {},
+   "price": 13.49,
+   "currency": "CAD",
+   "price_note": "Regular price for 227 g on well.ca on 18 October 2026 (on sale that day for $12.14)",
+   "maker_url": "https://well.ca/products/wellskin-glaxal-base-moisturizing_464.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/wellskin-glaxal-base-moisturizing_464.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Because of its lighter formulation, this lotion is the ideal daily moisturizing solution to help nourish your skin.",
+   "notes": "The maker's own site (glaxalbase.com) did not load, so every field comes from the well.ca listing; \"Hype-Allergenic\" is the listing's spelling. A thicker Glaxal Base cream is sold too."
+  },
+  {
+   "slug": "vaseline-petroleum-jelly-original",
+   "name": "Vaseline Petroleum Jelly Original",
+   "brand": "Vaseline (Unilever)",
+   "category": "skin-care",
+   "description": "Plain petroleum jelly in a flip-cap jar, without fragrance. A single, familiar texture used as a moisturizer for very dry skin, lips and hands.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "fragrance free, hypoallergenic moisturizer",
+    "hypoallergenic": "fragrance free, hypoallergenic moisturizer",
+    "for_sensitive_skin": "including a moisturizer for sensitive skin",
+    "sold_in_canada": "store:https://well.ca/products/vaseline-petroleum-jelly-original_468.html"
+   },
+   "values": {},
+   "price": 6.49,
+   "currency": "CAD",
+   "price_note": "Price for 375 g on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/vaseline-petroleum-jelly-original_468.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/vaseline-petroleum-jelly-original_468.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Vaseline Petroleum Jelly Original is triple-purified and hypoallergenic, and is the ideal product for a multitude of uses, including a moisturizer for sensitive skin.",
+   "notes": "Vaseline's Canadian site refused the fetcher (403), so the fields come from the well.ca listing. It is a thick jelly; people who dislike a heavy feel may prefer a lotion."
+  },
+  {
+   "slug": "tide-free-and-gentle-liquid",
+   "name": "Tide Free & Gentle Liquid Laundry Detergent",
+   "brand": "Tide (Procter & Gamble Canada)",
+   "category": "skin-laundry",
+   "description": "The dye-free, perfume-free version of Tide liquid detergent. Suits households where scented laundry bothers someone's skin or nose.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "hypoallergenic",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Free of dyes and perfumes",
+    "dye_free": "Free of dyes and perfumes",
+    "hypoallergenic": "Tide Free & Gentle is a powerful, hypoallergenic laundry detergent",
+    "sold_in_canada": "store:https://well.ca/products/tide-liquid-laundry-detergent-free_320920.html"
+   },
+   "values": {},
+   "price": 23.99,
+   "currency": "CAD",
+   "price_note": "Price for the 84 oz bottle on well.ca on 18 October 2026",
+   "maker_url": "https://tide.ca/en-ca/shop/type/liquid/tide-free-and-gentle-liquid",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/tide-liquid-laundry-detergent-free_320920.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Tide Free & Gentle is a powerful, hypoallergenic laundry detergent that is free of dyes and perfumes.",
+   "notes": "Also sold as Free & Gentle Pods and a Coldwater version. The page cites US eczema and psoriasis foundations' recognition, not the Eczema Society of Canada."
+  },
+  {
+   "slug": "attitude-little-ones-laundry-detergent-fragrance-free",
+   "name": "Little Ones Laundry Detergent, Extra Gentle, Fragrance-Free",
+   "brand": "ATTITUDE",
+   "category": "skin-laundry",
+   "description": "A fragrance-free, hypoallergenic laundry liquid from a Canadian company, made for babies' and children's clothes and cloth diapers. Also suits anyone in the house who reacts to scented detergent.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "vegan",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Extra Gentle – Fragrance-Free",
+    "hypoallergenic": "our hypoallergenic and deodorizing detergent is gently formulated",
+    "vegan": "Cruelty Free & Vegan",
+    "canadian": "Made in Canada",
+    "sold_in_canada": "store:https://well.ca/products/attitude-baby-leaves-laundry_172989.html"
+   },
+   "values": {},
+   "price": 18.99,
+   "currency": "CAD",
+   "price_note": "Regular price for 2 L (80 loads) on well.ca on 18 October 2026 (on sale that day for $17.09)",
+   "maker_url": "https://well.ca/products/attitude-baby-leaves-laundry_172989.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/attitude-baby-leaves-laundry_172989.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Keep your baby’s clothes clean, safe and soft with ATTITUDE Nature+ Little Ones Laundry Detergent - Extra Gentle – Fragrance-Free.",
+   "notes": "well.ca still titles it \"Baby Leaves Laundry Detergent Unscented\"; the description uses the newer Little Ones name. ATTITUDE's own site served its US store to the fetcher, so fields come from well.ca. Its regular laundry detergents are scented, so check the label."
+  },
+  {
+   "slug": "nature-clean-laundry-concentrate-fragrance-free",
+   "name": "Laundry Concentrate - Fragrance Free",
+   "brand": "Nature Clean",
+   "category": "skin-laundry",
+   "description": "A concentrated, fragrance-free laundry liquid with no dyes or synthetic perfumes; a 1 L bottle does about 66 loads. Suits people with sensitive skin or a strong sense of smell.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Laundry Concentrate - 1L - Fragrance Free",
+    "dye_free": "No Synthetic Perfumes, No Dyes",
+    "hypoallergenic": "This product is hypoallergenic,",
+    "for_sensitive_skin": "Sensitive skin, Allergy tested, Dermatologist tested",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=nature+clean+laundry+fragrance+free"
+   },
+   "values": {},
+   "price": 11.47,
+   "currency": "CAD",
+   "price_note": "Price for 1 L at Walmart.ca on 18 October 2026",
+   "maker_url": "https://natureclean.ca/collections/laundry-care/products/laundry-concentrate-1l-fragrance-free",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=nature+clean+laundry+fragrance+free"
+    }
+   ],
+   "community": [],
+   "evidence": "Each 1L bottle of Nature Clean 99% natural Laundry Concentrate washes 66 loads!",
+   "notes": "Contains enzymes (the 3 L Laundry Liquid Fragrance Free is enzyme-free, if that matters). The Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "tru-earth-eco-strips-fragrance-free",
+   "name": "Eco-Strips Laundry Detergent, Fragrance Free",
+   "brand": "Tru Earth",
+   "category": "skin-laundry",
+   "description": "Pre-measured laundry detergent strips that dissolve in the wash, with no added fragrance or dyes. Suits people who want unscented laundry and no measuring or liquid spills.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "hypoallergenic",
+    "vegan",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Tru Earth Eco-Strips Laundry Detergent Fragrance Free",
+    "dye_free": "Free of parabens, chlorine, phosphates and added dyes",
+    "hypoallergenic": "Hypoallergenic, certified by independent dermatologists",
+    "vegan": "Vegan: no animal-based ingredients or testing on animals",
+    "canadian": "Canadian Brand product",
+    "sold_in_canada": "store:https://well.ca/products/tru-earth-eco-strips-laundry_182961.html"
+   },
+   "values": {},
+   "price": 15.96,
+   "currency": "CAD",
+   "price_note": "Regular price for 32 strips on well.ca on 18 October 2026 (on sale that day for $14.00)",
+   "maker_url": "https://tru.earth/products/laundry-detergent-fragrance-free",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/tru-earth-eco-strips-laundry_182961.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Tru Earth Laundry Detergent (Fragrance Free) - 64 Strips",
+   "notes": "The maker's page served its US store (USD), so the Canadian price and the claims come from well.ca. Low-sudsing and HE-safe, per the listing."
+  },
+  {
+   "slug": "bounce-free-and-gentle-dryer-sheets",
+   "name": "Bounce Free & Gentle Dryer Sheets",
+   "brand": "Bounce (Procter & Gamble)",
+   "category": "skin-laundry",
+   "description": "Dryer sheets for softness and static without perfumes or dyes. For people who like dryer sheets but not the scent.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "without perfumes or dyes",
+    "dye_free": "without perfumes or dyes",
+    "sold_in_canada": "store:https://well.ca/products/bounce-free-and-gentle-dryer-sheets_11694.html"
+   },
+   "values": {},
+   "price": 7.29,
+   "currency": "CAD",
+   "price_note": "Price for 80 sheets on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/bounce-free-and-gentle-dryer-sheets_11694.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/bounce-free-and-gentle-dryer-sheets_11694.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Enjoy the softness and static protection of regular Bounce® without perfumes or dyes.",
+   "notes": "Bounce's Canadian product page could not be fetched (404), so fields come from the well.ca listing. Wool dryer balls (below) are a sheet-free option."
+  },
+  {
+   "slug": "the-unscented-company-dryer-balls",
+   "name": "Dryer Balls",
+   "brand": "The Unscented Company",
+   "category": "skin-laundry",
+   "description": "A set of three wool dryer balls from a Canadian brand, used instead of dryer sheets or liquid softener. Suits people who want soft laundry with nothing added.",
+   "qualities": [
+    "for_sensitive_skin",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_sensitive_skin": "Safe for cloth diapers and sensitive skins.",
+    "canadian": "Canadian Brand product",
+    "sold_in_canada": "store:https://well.ca/products/the-unscented-company-dryer-balls_167870.html"
+   },
+   "values": {
+    "material": "wool"
+   },
+   "price": 21.99,
+   "currency": "CAD",
+   "price_note": "Regular price for 3 balls on well.ca on 18 October 2026 (on sale that day for $20.89)",
+   "maker_url": "https://well.ca/products/the-unscented-company-dryer-balls_167870.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/the-unscented-company-dryer-balls_167870.html"
+    }
+   ],
+   "community": [],
+   "evidence": "A natural earth-friendly and long-lasting substitute to liquid and sheet fabric softener.",
+   "notes": "The maker's site failed to load (TLS error), so fields come from well.ca. Made from South American wool; up to 500 loads, per the listing. Not tagged fragrance-free because the listing does not say so in words."
+  },
+  {
+   "slug": "tangle-teezer-the-original",
+   "name": "The Original Detangling Hairbrush",
+   "brand": "Tangle Teezer",
+   "category": "skin-hair",
+   "description": "A palm-held detangling brush with two lengths of flexible teeth and no handle, used on wet or dry hair. Suits children and adults who find brushing out tangles painful.",
+   "qualities": [
+    "detangling",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "detangling": "the long teeth detangle, while the shorter teeth smooth the hair cuticle",
+    "for_children": "It’s also the perfect detangler for kids",
+    "sold_in_canada": "store:https://well.ca/products/tangle-teezer-the-original_119461.html"
+   },
+   "values": {},
+   "price": 18.99,
+   "currency": "CAD",
+   "price_note": "Price on well.ca on 18 October 2026 (Black Panther colour; other colours are listed separately)",
+   "maker_url": "https://tangleteezer.com/products/the-original",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/tangle-teezer-the-original_119461.html"
+    }
+   ],
+   "community": [
+    {
+     "label": "Listed in an NHS children's occupational therapy leaflet on hair brushing (East and North Herts)",
+     "url": "https://www.enherts-tr.nhs.uk/wp-content/uploads/2019/10/LeaflethairbrusingJan12-v2.pdf"
+    }
+   ],
+   "evidence": "Gliding through wet and dry hair, the long teeth detangle, while the shorter teeth smooth the hair cuticle.",
+   "notes": "UK maker; its own shop shows UK prices, so the Canadian price is from well.ca. The maker says it is best for straight-to-wavy hair; it has other models for thick and curly hair. Keep away from heat, per the maker."
+  },
+  {
+   "slug": "tangle-teezer-the-original-mini",
+   "name": "The Original Mini",
+   "brand": "Tangle Teezer",
+   "category": "skin-hair",
+   "description": "A smaller version of The Original detangling brush, sized for children's hands and for travel. For children who want to brush their own hair, or who are upset by tugging.",
+   "qualities": [
+    "detangling",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "detangling": "it detangles wet or dry hair with its two-tiered regular-flex teeth",
+    "for_children": "Perfect for little hands",
+    "sold_in_canada": "store:https://well.ca/products/tangle-teezer-the-original-mini_351749.html"
+   },
+   "values": {},
+   "price": 17.99,
+   "currency": "CAD",
+   "price_note": "Price on well.ca on 18 October 2026 (Unicorn Magic design)",
+   "maker_url": "https://tangleteezer.com/products/the-original-mini",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/tangle-teezer-the-original-mini_351749.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Gliding through the hair with no pulling or tugging, it’ll leave you with super smooth and tangle-free locks.",
+   "notes": "Same maker as The Original above; listed separately because it is a different, child-sized brush. Several printed designs are sold."
+  },
+  {
+   "slug": "johnsons-no-more-tangles-detangling-spray",
+   "name": "No More Tangles Detangling Spray",
+   "brand": "Johnson's (Kenvue Canada)",
+   "category": "skin-hair",
+   "description": "A leave-in detangling spray for wet or dry hair, made for children and fine for adults, with no dyes. Sprayed on before combing so brushing pulls less.",
+   "qualities": [
+    "detangling",
+    "dye_free",
+    "hypoallergenic",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "detangling": "works quickly to help unlock stubborn knots and tangles",
+    "dye_free": "free of parabens, phthalates, sulfates, and dyes",
+    "hypoallergenic": "The hair detangling spray is hypoallergenic",
+    "for_children": "helps keep your little one’s hair soft, smooth, and manageable",
+    "for_adults": "This detangler spray is also ideal for adults.",
+    "sold_in_canada": "store:https://well.ca/products/johnsons-no-more-tangles-detangling_157243.html"
+   },
+   "values": {},
+   "price": 8.99,
+   "currency": "CAD",
+   "price_note": "Price for 295 mL on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/johnsons-no-more-tangles-detangling_157243.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/johnsons-no-more-tangles-detangling_157243.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Johnson's No More Tangles Detangling Spray works quickly to help unlock stubborn knots and tangles.",
+   "notes": "Not tagged fragrance-free: the listing does not say it is. Johnson's Canadian site has no page for it that the fetcher could find, so fields come from well.ca."
+  },
+  {
+   "slug": "original-sprout-miracle-detangler",
+   "name": "Miracle Detangler",
+   "brand": "Original Sprout",
+   "category": "skin-hair",
+   "description": "A vegan leave-in detangling spray for babies, children and adults, without colours or dyes. For hair that knots easily.",
+   "qualities": [
+    "detangling",
+    "dye_free",
+    "vegan",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "detangling": "Makes combing effortless.",
+    "dye_free": "free of mineral oils, DEA, colors or dyes",
+    "vegan": "Quick-Release Vegan Spray",
+    "for_children": "For babies, children & adults",
+    "for_adults": "For babies, children & adults",
+    "sold_in_canada": "store:https://well.ca/products/original-sprout-miracle-detangler_107343.html"
+   },
+   "values": {},
+   "price": 40.49,
+   "currency": "CAD",
+   "price_note": "Price for 12 oz on well.ca on 18 October 2026",
+   "maker_url": "https://originalsprout.com/products/miracle-detangler",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/original-sprout-miracle-detangler_107343.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Miracle Detangler | Quick-Release Vegan Spray",
+   "notes": "Contains fragrance (parfum) and rosemary extract. US maker; the maker's page text is mostly images, so the claims come from well.ca. Expensive for its size."
+  },
+  {
+   "slug": "cerave-baby-wash-shampoo",
+   "name": "Baby Wash & Shampoo",
+   "brand": "CeraVe",
+   "category": "skin-hair",
+   "description": "A fragrance-free, soap-free and tear-free wash for hair and body. Suits babies and young children, and older children who cannot stand scented shampoo.",
+   "qualities": [
+    "fragrance_free",
+    "for_sensitive_skin",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Soap-, paraben-, sulfate- and fragrance-free",
+    "for_sensitive_skin": "Suitable for baby's sensitive skin",
+    "for_children": "Paraben-free baby shampoo and bath wash",
+    "sold_in_canada": "store:https://well.ca/products/cerave-baby-wash-shampoo_357064.html"
+   },
+   "values": {},
+   "price": 13.99,
+   "currency": "CAD",
+   "price_note": "Price for 237 mL on well.ca on 18 October 2026 (a 473 mL size is also sold)",
+   "maker_url": "https://www.cerave.ca/en-ca/skincare/baby/baby-wash-shampoo",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/cerave-baby-wash-shampoo_357064.html"
+    }
+   ],
+   "community": [],
+   "evidence": "CeraVe Baby Wash & Shampoo gently cleanses baby's skin and hair with a tear-free, gentle lather that helps make bath time easy and fun.",
+   "notes": "A combined body wash and shampoo, not a detangler. Sulfate-free, though the maker does not call it low-foam."
+  },
+  {
+   "slug": "jack-n-jill-flavour-free-toothpaste",
+   "name": "Natural Certified Toothpaste, Flavour Free",
+   "brand": "Jack N' Jill",
+   "category": "skin-oral",
+   "description": "A children's toothpaste with no added flavour, made without SLS (the foaming agent) or artificial colours. Suits children, from 6 months up per the maker, who refuse mint or fruity toothpaste.",
+   "qualities": [
+    "unflavoured",
+    "low_foam",
+    "dye_free",
+    "short_ingredients",
+    "vegan",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "unflavoured": "Flavour Free - ultra mild",
+    "low_foam": "Vegan, Gluten Free, Fluoride Free, SLS Free, Dairy Free, Sugar- Free, No artificial color",
+    "dye_free": "Vegan, Gluten Free, Fluoride Free, SLS Free, Dairy Free, Sugar- Free, No artificial color",
+    "short_ingredients": "Aqua (Purified Water), Xylitol, Glycerin (Coconut derived), Silica, Xanthan Gum, Potassium Sorbate, Citric Acid.",
+    "vegan": "Vegan, Gluten Free, Fluoride Free, SLS Free",
+    "for_children": "suitable from 6 months",
+    "sold_in_canada": "store:https://well.ca/products/jack-n-jill-kids-toothpaste-flavour_122986.html"
+   },
+   "values": {
+    "ages": "6 months and up"
+   },
+   "price": 9.99,
+   "currency": "CAD",
+   "price_note": "Price for 50 g on well.ca on 18 October 2026 (the maker's US shop lists $7.99 USD)",
+   "maker_url": "https://jackandjillkids.com/collections/toothpaste/products/jack-n-jill-flavor-free-natural-toothpaste-50g",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/jack-n-jill-kids-toothpaste-flavour_122986.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Our mild gel formulation is fluoride free and suitable from 6 months",
+   "notes": "FLUORIDE-FREE: families should ask their dentist whether that suits their child. Made in Australia. For a fluoride, unflavoured option, OraNurse (UK) exists but has no Canadian seller (see unverified)."
+  },
+  {
+   "slug": "toms-of-maine-silly-strawberry-fluoride-toothpaste",
+   "name": "Silly Strawberry Fluoride Toothpaste",
+   "brand": "Tom's of Maine",
+   "category": "skin-oral",
+   "description": "A children's fluoride toothpaste with a fruit flavour instead of mint, and no dyes. A choice for children who find mint too strong.",
+   "qualities": [
+    "dye_free",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "dye_free": "Dye-free",
+    "for_children": "Delicious real fruit flavor appeals to children tastes",
+    "sold_in_canada": "store:https://well.ca/products/toms-of-maine-silly-strawberry_181550.html"
+   },
+   "values": {},
+   "price": 7.49,
+   "currency": "CAD",
+   "price_note": "Price for 90 mL on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/toms-of-maine-silly-strawberry_181550.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/toms-of-maine-silly-strawberry_181550.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Tom's Of Maine Silly Strawberry Fluoride Toothpaste is a natural toothpaste.",
+   "notes": "Fruit-flavoured, not unflavoured, and it contains sodium lauryl sulfate (it foams). Tom's Canadian site refused the fetcher (403), so fields come from well.ca. A fluoride-free children's version is also sold."
+  },
+  {
+   "slug": "davids-kids-adults-toothpaste-strawberry-watermelon",
+   "name": "Kids + Adults Toothpaste, Strawberry + Watermelon",
+   "brand": "Davids",
+   "category": "skin-oral",
+   "description": "A strawberry-and-watermelon flavoured toothpaste for children and adults, without SLS or artificial colours, in a metal tube. An option for older children and adults who still find mint too strong.",
+   "qualities": [
+    "low_foam",
+    "dye_free",
+    "for_children",
+    "for_adults",
+    "vegan",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "low_foam": "SLS free",
+    "dye_free": "free from any artificial colors, flavors, or preservatives",
+    "for_children": "safe for kids + adults",
+    "for_adults": "safe for kids + adults",
+    "vegan": "Vegan product",
+    "sold_in_canada": "store:https://well.ca/products/davids-kids-adults-toothpaste_333180.html"
+   },
+   "values": {},
+   "price": 14.99,
+   "currency": "CAD",
+   "price_note": "Price for 149 g on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/davids-kids-adults-toothpaste_333180.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/davids-kids-adults-toothpaste_333180.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Davids Kids + Adults Strawberry + Watermelon Toothpaste offers a delightful and effective fluoride free oral care solution suitable for the entire family.",
+   "notes": "FLUORIDE-FREE (ask a dentist). Flavoured with natural strawberry and watermelon. The maker's site was \"Under Construction\" when checked, so fields come from well.ca."
+  },
+  {
+   "slug": "weleda-childrens-tooth-gel",
+   "name": "Children's Tooth Gel",
+   "brand": "Weleda",
+   "category": "skin-oral",
+   "description": "A gentle children's tooth gel with mild spearmint and fennel flavours, made without parabens, phthalates or preservatives. For young children who dislike strong toothpaste.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "specifically formulated to give the kindest treatment to your little one’s pearly white baby teeth",
+    "sold_in_canada": "store:https://well.ca/products/weleda-childrens-tooth-gel_80049.html"
+   },
+   "values": {},
+   "price": 11.29,
+   "currency": "CAD",
+   "price_note": "Price for 48 g on well.ca on 18 October 2026",
+   "maker_url": "https://well.ca/products/weleda-childrens-tooth-gel_80049.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/weleda-childrens-tooth-gel_80049.html"
+    }
+   ],
+   "community": [],
+   "evidence": "The mild flavours of spearmint and organic fennel in Weleda Children’s Tooth Gel help encourage your child’s good dental hygiene to last a lifetime.",
+   "notes": "Contains mild spearmint, so it is not tagged unflavoured. FLUORIDE-FREE (ask a dentist). Weleda's Canadian site did not resolve, so fields come from well.ca."
+  },
+  {
+   "slug": "radius-original-big-brush-toothbrush",
+   "name": "Big Brush (Original) Toothbrush",
+   "brand": "RADIUS",
+   "category": "skin-oral",
+   "description": "A toothbrush with a large, wide head of soft bristles and a shaped handle, made in right- and left-handed versions. An option for people who prefer a broad, soft brush head.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://well.ca/products/radius-big-brush-toothbrush-right_20692.html"
+   },
+   "values": {},
+   "price": 20.99,
+   "currency": "CAD",
+   "price_note": "Price on well.ca on 18 October 2026 (right-handed; a left-handed version is listed separately)",
+   "maker_url": "https://well.ca/products/radius-big-brush-toothbrush-right_20692.html",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/radius-big-brush-toothbrush-right_20692.html"
+    },
+    {
+     "label": "Well.ca (left-handed)",
+     "url": "https://well.ca/products/radius-big-brush-toothbrush-left_20691.html"
+    }
+   ],
+   "community": [],
+   "evidence": "The Original has soft, premium bristles that are spread evenly over the large head for even applied pressure.",
+   "notes": "The listing makes gum-health claims that this entry does not repeat. RADIUS's own site did not resolve, so fields come from well.ca."
+  }
+ ]
+}
