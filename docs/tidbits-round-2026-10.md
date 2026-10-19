@@ -417,8 +417,10 @@ From the note, for later rounds:
 | The two apps' sponsored-listing code is the same (`scripts/qa/check-sponsored.mjs`, in CI) | pass |
 | The app's unit tests | pass |
 | Types, lint (no new problems), and production builds of both apps | pass |
-| Browser suite for this round, locally, before STEP 83 (`.qa-local/browser/plan15.mjs`) | 37/37 |
-| Accessibility, locally, signed out and in, phone and desktop, with this round's pages | 98 pages, no serious or critical problems |
+| Browser suite for this round, before STEP 83 (`.qa-local/browser/plan15.mjs`) | 37/37 locally, and **37/37 on production** (4aa08b9) |
+| The products round's suite again, after this round's shop changes (`plan14.mjs`) | **68/68 on production**, nothing left behind |
+| Accessibility, signed out and in, phone and desktop, with this round's pages | 98 page checks, no serious or critical problems, locally and **on production** |
+| STEP 83 on the live database, once pasted (`.qa-local/browser/step83_live.mjs`) | Ready; it stops before the paste and writes nothing |
 | Services import | 86 saved: 41 conditions, 45 parents and social; 3 left out as already listed or not loading |
 | Starter products import | 36 saved |
 | Parent-support tags | 44 existing listings tagged |
