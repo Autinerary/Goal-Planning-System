@@ -362,7 +362,8 @@ the shop.
   three discount events, who can read and write what when signed out and
   signed in, and the two functions only the server may run.
 - **The browser suite** (`.qa-local/browser/plan14.mjs`, 68 checks; it runs
-  before and after STEP 82, taking the matching path; Goals 6 to 11's suite
+  before and after STEP 82, taking the matching path; all 68 pass on
+  production after STEP 82 and the import, 19 October; Goals 6 to 11's suite
   still passes, 52 of 52):
   - the help chat (an answer; 911 and 9-8-8 for someone in crisis);
   - the labelled feedback menus and "Report a problem";
@@ -379,8 +380,9 @@ the shop.
   - Everything it makes is removed at the end.
 - **The accessibility checker** now covers the shop, a group with its
   filters, Suggest a product, the cart, orders and a product page, at phone
-  and desktop widths: 84 pages and widths on production, no serious or
-  critical problems. It found that the filters were links marked
+  and desktop widths: 84 pages and widths, no serious or critical problems,
+  on production before the import and on the local build after it (the
+  phone's folded filters included). It found that the filters were links marked
   `aria-pressed` (for buttons only); they now say "(on)" to screen readers.
 - **Unit tests:** the labelled emails (`frontend/lib/feedback.test.mjs`) and
   the Warm and Cool themes (`frontend/lib/preferences.test.mjs`). CI also
