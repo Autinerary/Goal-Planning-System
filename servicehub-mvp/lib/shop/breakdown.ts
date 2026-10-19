@@ -1,5 +1,5 @@
 import type { ProductReview } from '@/types/shop'
-import type { DiagnosticBreakdown, AreaAverages } from '@/lib/supabase/queries'
+import type { DiagnosticBreakdown, AreaAverages, RelationshipMix } from '@/lib/supabase/queries'
 
 /**
  * Turn raw product reviews into the same breakdown shape the service side
@@ -23,7 +23,15 @@ export interface ProductBreakdown {
   diagnosticBreakdown: DiagnosticBreakdown[]
   /** Weighted by how close the reviewer is to the norm (lived > ally). */
   weightedRating: number
+  /**
+   * The average by how reviewers are connected to a norm (lived experience,
+   * family, professionals, allies): the products round's Goal 7, "overall
+   * rating per connection to norm", the same as services show.
+   */
+  relationshipMix: RelationshipMix[]
 }
+
+const CONNECTION_ORDER = ['lived', 'direct_support', 'indirect_support', 'ally'] as const
 
 // Same tiers as lib/trust/relationship.ts. Duplicated deliberately rather than
 // imported: this runs server-side on plain review rows and must not pull the
@@ -49,8 +57,10 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
     barrierScores: {},
     diagnosticBreakdown: [],
     weightedRating: 0,
+    relationshipMix: [],
   }
   if (!reviews || reviews.length === 0) return empty
+  const relAgg: Record<string, { sum: number; count: number }> = {}
 
   const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
   let sum = 0
@@ -79,6 +89,12 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
       : 1.0
     weightedSum += rating * weight
     weightTotal += weight
+    // The reviewer's strongest tie decides their connection, as on services
+    // (lib/supabase/queries.ts); an undeclared reviewer counts as lived.
+    const best = rels.length ? rels.reduce((a, b) => ((RELATIONSHIP_WEIGHT[b] ?? 1) > (RELATIONSHIP_WEIGHT[a] ?? 1) ? b : a)) : 'lived'
+    const bucket = (relAgg[best] ||= { sum: 0, count: 0 })
+    bucket.sum += rating
+    bucket.count += 1
 
     for (const [norm, score] of Object.entries((r as any).barrier_scores || {})) {
       const n = Number(score)
@@ -152,6 +168,11 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
     barrierScores,
     diagnosticBreakdown,
     weightedRating: weightTotal > 0 ? weightedSum / weightTotal : 0,
+    relationshipMix: CONNECTION_ORDER.filter((r) => relAgg[r]).map((r) => ({
+      relationship: r,
+      count: relAgg[r].count,
+      average: relAgg[r].sum / relAgg[r].count,
+    })),
   }
 }
 

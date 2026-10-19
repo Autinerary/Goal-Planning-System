@@ -34,6 +34,8 @@ const THEMES = [
   { token: '', id: 'earthy', label: 'Earthy', hint: 'Green and watery blue' },
   { token: 'theme-ocean', id: 'ocean', label: 'Ocean', hint: 'Sea blues and aqua' },
   { token: 'theme-sand', id: 'sand', label: 'Sand', hint: 'Warm browns and dusty blue' },
+  { token: 'theme-warm', id: 'warm', label: 'Warm', hint: 'Warm orange' },
+  { token: 'theme-cool', id: 'cool', label: 'Cool', hint: 'Soft lilac' },
   { token: 'theme-classic', id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
 ]
 const STRENGTHS = [

@@ -74,7 +74,7 @@ export interface LayoutPositions {
   theme?: ColourTheme
 }
 
-export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'classic'
+export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'warm' | 'cool' | 'classic'
 /** How strong the colours are; 'soft' is what Soft colours was. */
 export type ColourStrength = 'softest' | 'soft' | 'usual' | 'bright' | 'brightest'
 
@@ -244,6 +244,9 @@ export const COLOUR_THEMES: { id: ColourTheme; label: string; hint: string }[] =
   { id: 'earthy', label: 'Earthy', hint: 'Green and watery blue' },
   { id: 'ocean', label: 'Ocean', hint: 'Sea blues and aqua' },
   { id: 'sand', label: 'Sand', hint: 'Warm browns and dusty blue' },
+  // The products round's planning note: "Warm orange (warm mode) / soft lilac (cool mode)".
+  { id: 'warm', label: 'Warm', hint: 'Warm orange' },
+  { id: 'cool', label: 'Cool', hint: 'Soft lilac' },
   { id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
 ]
 

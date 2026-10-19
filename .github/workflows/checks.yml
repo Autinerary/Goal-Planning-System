@@ -56,6 +56,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: servicehub-mvp/package-lock.json
+      - name: Shop taxonomy (the two apps' copies match)
+        run: node ../scripts/qa/check-taxonomy.mjs
       - run: npm ci
       - name: Type check
         run: npx tsc --noEmit

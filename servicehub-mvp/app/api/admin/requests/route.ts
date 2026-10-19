@@ -51,27 +51,40 @@ async function listingNames(db: Db, rows: { item_kind: string; item_id: string }
 export async function GET() {
   if (!(await admin())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const db = createAdminClient()
-  const [claims, edits, promos, guides, grants, survey] = await Promise.all([
-    db.from('listing_claims').select('id, user_id, item_kind, item_id, method, evidence, created_at').eq('status', 'pending').eq('method', 'review').order('created_at').limit(100),
+  const [claims, edits, promos, guides, grants, survey, products, providerServices] = await Promise.all([
+    db.from('listing_claims').select('id, user_id, item_kind, item_id, method, evidence, created_at').eq('status', 'pending').eq('method', 'review').not('evidence', 'like', 'Added from their Resource Account%').order('created_at').limit(100),
     db.from('listing_edits').select('id, user_id, item_kind, item_id, changes, before, created_at').eq('status', 'pending').order('created_at').limit(100),
     db.from('promotions').select('id, user_id, item_kind, item_id, headline, body, image_url, keywords, provinces, starts_on, ends_on, created_at').eq('status', 'submitted').order('created_at').limit(100),
     db.from('spot_guide_applications').select('user_id, area, why, created_at').eq('status', 'pending').order('created_at').limit(100),
     db.from('access_grants').select('id, user_id, kind, source, case_text, created_at').eq('status', 'pending').order('created_at').limit(200),
     db.from('provider_survey_responses').select('wants, other, image_same, created_at').order('created_at', { ascending: false }).limit(1000),
+    // The products round (STEP 82): suggested products, and products vendors added, waiting to be checked.
+    db.from('products').select('id, name, brand, category, description, price, currency, qualities, buy_links, maker_url, source_type, submitted_by, created_at').eq('status', 'pending').order('created_at').limit(200),
+    // Services providers added from their Resource Account.
+    db.from('listing_claims').select('id, user_id, item_id, evidence, created_at').eq('item_kind', 'resource').eq('status', 'pending').eq('method', 'review').like('evidence', 'Added from their Resource Account%').limit(200),
   ])
   if (claims.error && /does not exist|schema cache/i.test(claims.error.message)) return NextResponse.json({ ready: false, note: 'Apply STEP 81 to see requests.' })
   const listingRows = [...(claims.data || []), ...(edits.data || []), ...(promos.data || [])] as { item_kind: string; item_id: string }[]
   const [names, mail] = await Promise.all([
     listingNames(db, listingRows),
-    emails(db, [...(claims.data || []), ...(edits.data || []), ...(promos.data || []), ...(guides.data || []), ...(grants.data || [])].map((r: any) => r.user_id)),
+    emails(db, [...(claims.data || []), ...(edits.data || []), ...(promos.data || []), ...(guides.data || []), ...(grants.data || []), ...(providerServices.data || [])].map((r: any) => r.user_id).concat((products.data || []).map((p: any) => p.submitted_by))),
   ])
   const { data: accounts } = await db.from('resource_accounts').select('user_id, organization, kind, role_title').in('user_id', Array.from(new Set((claims.data || []).map((c) => c.user_id))))
   const org = new Map((accounts || []).map((a) => [a.user_id, a]))
   const wants: Record<string, number> = {}
   for (const r of survey.data || []) for (const w of r.wants || []) wants[w] = (wants[w] || 0) + 1
   const withName = (r: any) => ({ ...r, listing: names.get(r.item_id) || 'A listing', email: mail.get(r.user_id) || '' })
+  const providerIds = (providerServices.data || []).map((c: any) => c.item_id)
+  const { data: newServices } = providerIds.length
+    ? await db.from('resources').select('id, name, category, description, location, contact_info, status').in('id', providerIds)
+    : { data: [] as any[] }
+  const serviceById = new Map((newServices || []).map((r: any) => [r.id, r]))
   return NextResponse.json({
     ready: true,
+    products: (products.data || []).map((p: any) => ({ ...p, email: mail.get(p.submitted_by) || '' })),
+    services: (providerServices.data || [])
+      .map((c: any) => ({ ...c, email: mail.get(c.user_id) || '', service: serviceById.get(c.item_id) || null }))
+      .filter((c: any) => c.service && c.service.status === 'pending'),
     claims: (claims.data || []).map((c) => ({ ...withName(c), account: org.get(c.user_id) || null })),
     edits: (edits.data || []).map(withName),
     promotions: (promos.data || []).map(withName),
@@ -117,6 +130,7 @@ export async function POST(request: NextRequest) {
           if (table === 'resources') update.image_is_generic = false
         }
         if (typeof c.address === 'string' && table === 'resources') update.location = { ...((row as any)?.location || {}), address: c.address }
+        if (Array.isArray(c.qualities) && table === 'products') update.qualities = c.qualities
         ;({ error } = await db.from(table).update(update).eq('id', edit.item_id))
         if (error) break
       }
@@ -143,6 +157,32 @@ export async function POST(request: NextRequest) {
         .update(approve ? { status: 'active', starts_at: now, ends_at: ends.toISOString(), reviewed_at: now, reviewed_by: me.id } : { status: 'rejected', reviewed_at: now, reviewed_by: me.id })
         .eq('id', id)
         .eq('status', 'pending'))
+      break
+    }
+    case 'products': {
+      const { data: product } = await db.from('products').select('id, source_type, submitted_by, status').eq('id', id).maybeSingle()
+      if (!product || product.status !== 'pending') return NextResponse.json({ error: 'That product was already handled.' }, { status: 404 })
+      ;({ error } = await db
+        .from('products')
+        .update(approve ? { status: 'active', last_verified_at: now, updated_at: now } : { status: 'rejected', updated_at: now })
+        .eq('id', id))
+      // A vendor's own product: once checked, they manage it (STEP 81's claims).
+      if (!error && approve && product.source_type === 'vendor' && product.submitted_by) {
+        await db.from('listing_claims').upsert(
+          { user_id: product.submitted_by, item_kind: 'product', item_id: id, method: 'review', evidence: 'Added from their Resource Account', status: 'verified', verified_at: now, reviewed_by: me.id },
+          { onConflict: 'item_kind,item_id,user_id' }
+        )
+      }
+      break
+    }
+    case 'services': {
+      const { data: claim } = await db.from('listing_claims').select('id, item_id, user_id').eq('id', id).eq('status', 'pending').maybeSingle()
+      if (!claim) return NextResponse.json({ error: 'That service was already handled.' }, { status: 404 })
+      ;({ error } = await db.from('resources').update({ status: approve ? 'approved' : 'rejected', updated_at: now }).eq('id', claim.item_id).eq('status', 'pending'))
+      if (!error) {
+        ;({ error } = await db.from('listing_claims').update({ status: approve ? 'verified' : 'rejected', verified_at: approve ? now : null, reviewed_by: me.id }).eq('id', id))
+      }
+      if (error?.code === '23505') return NextResponse.json({ error: 'Someone else already manages this listing.' }, { status: 409 })
       break
     }
     default:

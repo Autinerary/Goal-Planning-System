@@ -138,6 +138,15 @@ export default function TermsPage() {
             <li>Claim only listings you are allowed to manage, and keep what you change true. Every change is kept, with what it was before, and the team can undo it.</li>
             <li>Ratings and comments come from people who used the service. You can’t change or remove them.</li>
             <li>
+              A vendor can add products they sell, and a provider can add services they offer; the team checks each first. A vendor
+              can offer discounts (for example for Autism Acceptance Month or back to school), and must honour the prices,
+              discounts and codes they give.
+            </li>
+            <li>
+              A vendor who sells through ResourceHub is the seller: they ship what they sell, handle returns and refunds as the law
+              asks, and are responsible for the taxes on their sales. ResourceHub keeps a fee from each sale.
+            </li>
+            <li>
               You can ask for a promotion. A promotion is labelled “Sponsored”, appears only beside searches it matches, and
               only after the team approves it and turns sponsored listings on. We don’t show sponsored listings yet; before
               we do, we will update these terms and the privacy page.
@@ -231,11 +240,20 @@ export default function TermsPage() {
         </Section>
 
         <Section id="shop" title="The shop">
-          <p>
-            ResourceHub’s shop lists products people find useful, and where to get them. It does not sell anything: you buy from
-            the seller, on the seller’s terms. Product details come from the people who add them and can be wrong. If we ever
-            sell something ourselves, we will say how buying, returns and refunds work before you can buy.
-          </p>
+          <List>
+            <li>
+              ResourceHub’s shop lists products people find useful, what each is like, and where to get them. We check each one on
+              its maker’s or seller’s own pages, but details can change or be wrong: check with the seller before you buy.
+            </li>
+            <li>Most products are bought from the seller, on the seller’s terms. Prices and discounts shown are the seller’s.</li>
+            <li id="buying">
+              <strong>Buying through ResourceHub</strong> (not on yet; we will tell you before it starts). For some products, a
+              vendor may let you buy in ResourceHub. The vendor is the seller: you pay them, through Stripe, on their own account;
+              they ship it and handle returns and refunds, under their terms and the law. We pass the vendor your name, email and
+              shipping address so they can deliver. ResourceHub takes a fee from the vendor, not from you. If something goes wrong,
+              tell the vendor first, then us.
+            </li>
+          </List>
         </Section>
 
         <Section id="emails" title="Emails and money">

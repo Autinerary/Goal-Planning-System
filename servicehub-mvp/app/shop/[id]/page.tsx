@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Star } from 'lucide-react'
+import { ArrowLeft, Star, Check } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ClaimListing from '@/components/resources/detail/ClaimListing'
@@ -18,6 +18,14 @@ import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
 import NominateButton from '@/components/communityChoice/NominateButton'
+import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
+import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
+import ReportProblem from '@/components/layout/ReportProblem'
+import { shopCategory } from '@/lib/shop/categories'
+import { qualitiesOf, valueLines } from '@/lib/shop/qualities'
+import { usersChoiceFor } from '@/lib/shop/usersChoice'
+import { activeDiscounts, discountedPrice, longDay } from '@/lib/shop/discounts'
+import { canBuyHere } from '@/lib/shop/selling'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,6 +61,17 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   }
   const profileMatch = matchForProfile(reviews, viewerNorms)
 
+  // STEP 82: what it's like, Users' Choice, a discount running today, and whether it can be bought here.
+  const cat = shopCategory(product.category)
+  const tags = product.tags || []
+  const qualities = qualitiesOf(product.category, product.qualities || [])
+  const values = valueLines(product.quality_values)
+  const community = (product.community_links || []).filter((c) => c?.url && /^https?:\/\//.test(c.url))
+  const [choiceMap, discounts, buyHere] = await Promise.all([usersChoiceFor('product', [product.id]), activeDiscounts([product.id]), canBuyHere(product)])
+  const choice = choiceMap.get(product.id) || []
+  const discount = discounts.get(product.id)
+  const sale = discountedPrice(product.price, discount)
+
   // Pattern insights, derived from the reviews themselves rather than the
   // service-side pattern agent, which only knows about resources/ratings.
   const patterns = buildProductPatterns(reviews, product.name)
@@ -63,7 +82,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-800 hover:text-gray-900 mb-4">
           <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back to Shop
         </Link>
 
@@ -73,8 +92,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             <div className="aspect-square rounded-2xl bg-white border border-gray-200 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageOrPlaceholder(product.image_urls[0], product.name, product.category)}
-                alt={product.name}
+                src={imageOrPlaceholder(product.image_urls[0], product.name, shopCategory(product.category).label)}
+                alt=""
                 className="w-full h-full object-cover"
               />
             </div>
@@ -90,41 +109,119 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
           {/* Info + purchase panel */}
           <div>
-            {product.seller && <div className="text-xs text-gray-500 mb-1">{product.seller}</div>}
-            <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+            <div className="text-sm text-gray-700">
+              <Link href={`/shop?category=${encodeURIComponent(cat.id)}`} className="underline underline-offset-2 hover:text-gray-900">
+                {cat.label}
+              </Link>
+              {product.brand ? ` · ${product.brand}` : product.seller ? ` · ${product.seller}` : ''}
+            </div>
+            <h1 className="mt-1 text-2xl font-bold text-gray-900">{product.name}</h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {tags.includes('community_choice_year') && <CommunityChoiceBadge size="md" month="of the year" />}
+              {choice.map((c) => (
+                <UsersChoiceBadge key={c.userType} size="md" label={c.label} detail={`${c.average.toFixed(1)} out of 5 from ${c.ratings} ratings`} />
+              ))}
+            </div>
             {/* Community's Choice (Goal 5): its badge if it won, and nominating it. */}
             <div className="mt-2">
               <NominateButton itemId={product.id} itemName={product.name} signedIn={signedIn} />
             </div>
             {(product.rating_count ?? 0) > 0 && (
-              <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+              <div className="mt-1 flex items-center gap-1 text-sm text-gray-800">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
                 {product.rating_avg?.toFixed(1)} ({product.rating_count} ratings)
               </div>
             )}
-            <div className="mt-3 flex items-center gap-3">
-              <span className="text-2xl font-bold text-purple-700">{formatPrice(product.price, product.currency)}</span>
-              {product.compare_at_price != null && product.compare_at_price > product.price && (
-                <span className="text-base text-gray-400 line-through">
-                  {formatPrice(product.compare_at_price, product.currency)}
-                </span>
+            <div className="mt-3 flex flex-wrap items-baseline gap-3">
+              {sale != null ? (
+                <>
+                  <span className="text-2xl font-bold text-gray-900">{formatPrice(sale, product.currency)}</span>
+                  <span className="text-base text-gray-700 line-through">{formatPrice(product.price, product.currency)}</span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price, product.currency)}</span>
               )}
+              {product.price != null && product.currency && product.currency !== 'CAD' && <span className="text-sm text-gray-700">({product.currency})</span>}
             </div>
+            {product.price_note && <p className="mt-1 text-xs text-gray-700">{product.price_note}</p>}
+            {discount && (
+              <p className="mt-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+                {discount.percent ? `${discount.percent}% off` : 'On sale'}
+                {discount.event ? ` for ${discount.event}` : ''}, until {longDay(discount.ends)}
+                {discount.code ? (
+                  <>
+                    {' '}with the code <strong className="font-mono">{discount.code}</strong> at the seller&apos;s store
+                  </>
+                ) : null}
+                .
+              </p>
+            )}
 
-            <div className="mt-5">
-              {/* Variations + quantity still matter for deciding WHICH one to
-                  go buy, so the selectors stay; only the cart button is gone. */}
-              <ProductPurchasePanel product={product} />
-            </div>
+            {buyHere && (
+              <div className="mt-5">
+                <ProductPurchasePanel product={product} />
+              </div>
+            )}
+
+            {(qualities.length > 0 || values.length > 0) && (
+              <section aria-labelledby="what-its-like" className="mt-6">
+                <h2 id="what-its-like" className="mb-2 text-sm font-semibold text-gray-900">
+                  What it&apos;s like
+                </h2>
+                {qualities.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {qualities.map((q) => (
+                      <li key={q.id} className="flex items-start gap-2 text-sm text-gray-900">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                        <span>
+                          <span className="font-medium">{q.label}</span>
+                          <span className="block text-xs text-gray-700">{q.help}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {values.length > 0 && (
+                  <dl className="mt-3 divide-y divide-gray-100 rounded-lg border border-gray-200">
+                    {values.map((v) => (
+                      <div key={v.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                        <dt className="text-gray-700">{v.label}</dt>
+                        <dd className="font-medium text-gray-900">{v.text}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                <p className="mt-2 text-xs text-gray-700">
+                  {product.last_verified_at
+                    ? `Checked on the maker's or seller's own pages on ${new Date(product.last_verified_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric' })}. People's reviews below say how it worked for them.`
+                    : "From the seller. People's reviews below say how it worked for them."}
+                </p>
+              </section>
+            )}
 
             <div className="mt-6">
-              <WhereToGetIt product={product} />
+              <WhereToGetIt product={product} soldHere={buyHere} />
             </div>
 
             {product.description && (
               <div className="mt-6">
-                <h2 className="text-sm font-semibold text-gray-900 mb-1">Product Description</h2>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{product.description}</p>
+                <h2 className="text-sm font-semibold text-gray-900 mb-1">About it</h2>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{product.description}</p>
+              </div>
+            )}
+
+            {community.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-sm font-semibold text-gray-900 mb-1">Where people recommend it</h2>
+                <ul className="space-y-1">
+                  {community.map((c) => (
+                    <li key={c.url}>
+                      <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-800 underline underline-offset-2">
+                        {c.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -136,13 +233,17 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 <dl className="divide-y divide-gray-100 rounded-lg border border-gray-200">
                   {sensory.map((s) => (
                     <div key={s.key} className="flex items-center justify-between px-3 py-2 text-sm">
-                      <dt className="text-gray-500">{s.label}</dt>
+                      <dt className="text-gray-700">{s.label}</dt>
                       <dd className="text-gray-900 font-medium">{product.sensory_details[s.key]}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
             )}
+
+            <div className="mt-6">
+              <ReportProblem about="product" name={product.name} />
+            </div>
           </div>
         </div>
 
@@ -163,6 +264,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               ratingDistribution={breakdown.distribution}
               barrierScores={breakdown.barrierScores}
               diagnosticBreakdown={breakdown.diagnosticBreakdown}
+              relationshipMix={breakdown.relationshipMix}
               weightedRating={breakdown.weightedRating}
             />
           )}

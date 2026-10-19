@@ -83,13 +83,24 @@ promise, and the questions we most want answered. Prepared 18 October 2026.
      time already paid for; charged by mistake, tell us within 30 days".
    - Free access for people who "explain their case and help advocate": any
      problem with access in return for advocacy?
-8. **Sponsored listings** (planned, switched off): service providers could
+8. **The shop as a marketplace** (built, switched off; `docs/products-round-2026-10.md`).
+   - Vendors would sell through ResourceHub with Stripe Connect "direct charges": the vendor is the seller (merchant of
+     record), ResourceHub keeps a fee from each sale (8% unless changed).
+   - Who must give the internet-agreement disclosures and the copy of the agreement (Ontario CPA ss. 37–40) for a
+     vendor's sale through our pages: the vendor, us, or both? What should a vendor agreement say (accuracy, shipping,
+     returns and refunds, taxes, recalls, our fee, our right to remove a listing)?
+   - Discounts: during a vendor's discount we show their usual price struck through. Is that within the Competition
+     Act's ordinary-price rules (s. 74.01(2) and (3)) when the usual price is the vendor's own listed price? What should
+     vendors confirm?
+   - We list products we don't sell, with qualities checked on the makers' pages ("tagless", "fragrance-free"). Any risk
+     in describing third parties' products that way, or in linking to Reddit threads where people recommend them?
+9. **Sponsored listings** (planned, switched off): service providers could
    pay to be shown, labelled "Sponsored", chosen by what was searched, never
    by personal data. The privacy page now says "we don't show ads". What must
    change, and how much notice must users get?
-9. **Governing law**: Ontario, with the courts of Ontario unless local law
+10. **Governing law**: Ontario, with the courts of Ontario unless local law
    lets people use their own courts. Users in Jamaica: anything needed?
-10. **Name and address**: the terms say "Autinerary Corp."; emails carry the
+11. **Name and address**: the terms say "Autinerary Corp."; emails carry the
     mailing address. Should the registered address and corporation number be
     on the terms page?
 

@@ -23,7 +23,8 @@ The October 2026 planning note, round by round:
 - [docs/ratings-and-community-choice-2026-10.md](docs/ratings-and-community-choice-2026-10.md): Goal 5: ratings from experience, comments, the monthly rating sweep and Community's Choice.
 - [docs/goals-6-11-2026-10.md](docs/goals-6-11-2026-10.md): Goals 6 to 11: 3D maps, the results page, feedback, accessibility (Listen, UserWay), Resource Accounts, Spot Guides, the Positivity Quota, the provinces, and the V1.5 survey of services.
 - [docs/subscriptions-2026-10.md](docs/subscriptions-2026-10.md): Goal 9: paid plans, the free month, free access, #FundAutinerary, and what consumer law asks for.
-- [docs/terms-lawyer-review-2026-10.md](docs/terms-lawyer-review-2026-10.md): Questions for the lawyer, including paid plans.
+- [docs/products-round-2026-10.md](docs/products-round-2026-10.md): The products round: the Warm and Cool themes, products and their qualities, 40 categories, Users' Choice, buying through ResourceHub (off), the revenue model, Vendor Accounts and discounts, the help chat, taste profiles, and the v2.0 and v3.0 roadmap.
+- [docs/terms-lawyer-review-2026-10.md](docs/terms-lawyer-review-2026-10.md): Questions for the lawyer, including paid plans and the shop.
 - [docs/parent-forms-interview-2026-10.md](docs/parent-forms-interview-2026-10.md): An interview guide about the forms parents find hardest.
 
 How we write, design and run things:

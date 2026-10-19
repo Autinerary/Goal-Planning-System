@@ -1,174 +1,162 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { showToast } from '@/lib/toast'
-import { PRODUCT_CATEGORIES } from '@/types/shop'
+import { SHOP_GROUPS, SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
+import { qualitiesForGroup } from '@/lib/shop/qualities'
 
-export default function NewProductPage() {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [category, setCategory] = useState<string>(PRODUCT_CATEGORIES[0])
-  const [price, setPrice] = useState('')
-  const [compareAt, setCompareAt] = useState('')
-  const [description, setDescription] = useState('')
-  const [seller, setSeller] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
-  const [imageUrls, setImageUrls] = useState<string[]>([])
-  const [sensory, setSensory] = useState({ texture: '', sound: '', visual: '', material: '' })
-  const [variationsText, setVariationsText] = useState('') // "Size: S, M, L\nColor: Black, White"
-  const [submitting, setSubmitting] = useState(false)
+/**
+ * Suggest a product (the products round's planning note, Goal 1: "Have
+ * entire team list all & any products that worked, especially that took
+ * time to find, & rare finds!!!"; anyone signed in can). It waits as
+ * pending: the team checks it on its maker's or seller's pages, then it goes
+ * up (ResourceHub's admin Requests).
+ */
+export default function SuggestProductPage() {
+  const [form, setForm] = useState({ name: '', brand: '', category: 'sensory-sound', buy_url: '', maker_url: '', price: '', currency: 'CAD', description: '' })
+  const [qualities, setQualities] = useState<string[]>([])
+  const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle')
+  const [error, setError] = useState('')
+  const group = shopCategory(form.category).group
+  const options = useMemo(() => qualitiesForGroup(group), [group])
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
-  const addImage = () => {
-    const u = imageUrl.trim()
-    if (/^https?:\/\//i.test(u) && !imageUrls.includes(u)) setImageUrls([...imageUrls, u])
-    setImageUrl('')
-  }
-
-  const parseVariations = () =>
-    variationsText
-      .split('\n')
-      .map((line) => {
-        const [nameP, optsP] = line.split(':')
-        if (!nameP || !optsP) return null
-        return {
-          name: nameP.trim(),
-          options: optsP.split(',').map((o) => o.trim()).filter(Boolean),
-        }
-      })
-      .filter((v): v is { name: string; options: string[] } => !!v && v.options.length > 0)
-
-  const submit = async () => {
-    if (submitting) return
-    if (name.trim().length < 2 || !price) {
-      showToast.error('Name and price are required.')
-      return
-    }
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/shop/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: name.trim(),
-          category,
-          price: Number(price),
-          compare_at_price: compareAt ? Number(compareAt) : undefined,
-          description: description.trim(),
-          seller: seller.trim(),
-          image_urls: imageUrls,
-          sensory_details: sensory,
-          variations: parseVariations(),
-        }),
-      })
-      const json = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(json?.error || 'Failed to create product')
-      showToast.success('Product added!')
-      router.push(`/shop/${json.id}`)
-    } catch (e: any) {
-      showToast.error(e.message || 'Failed to create product')
-    } finally {
-      setSubmitting(false)
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setState('busy')
+    setError('')
+    const res = await fetch('/api/shop/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ ...form, price: form.price === '' ? null : Number(form.price), qualities: qualities.filter((q) => options.some((o) => o.id === q)) }),
+    }).catch(() => null)
+    const json = await res?.json().catch(() => null)
+    if (res?.ok) setState('done')
+    else {
+      setState('idle')
+      setError(json?.error || 'Could not send that just now.')
     }
   }
 
-  const input = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500'
-
+  const input = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500'
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-4">
-          <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back to Shop
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <Link href="/shop" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-800 hover:text-gray-900">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to the shop
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Add a product</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Suggest a product</h1>
+        <p className="mt-2 text-sm text-gray-800">
+          Something that worked for you or someone you support, especially a rare find? Tell us. The team checks it on its maker&apos;s
+          or seller&apos;s own pages before it goes up.
+        </p>
 
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Name</label>
-            <input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="Loop Experience Earplugs" />
+        {state === 'done' ? (
+          <div role="status" className="mt-6 rounded-xl border border-emerald-300 bg-emerald-50 p-5 text-gray-900">
+            <p className="text-lg font-semibold">Thank you!</p>
+            <p className="mt-1">We&apos;ll check it and add it to the shop. You can rate it once it is up.</p>
+            <div className="mt-3 flex gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({ name: '', brand: '', category: form.category, buy_url: '', maker_url: '', price: '', currency: 'CAD', description: '' })
+                  setQualities([])
+                  setState('idle')
+                }}
+                className="font-medium text-blue-800 underline underline-offset-2"
+              >
+                Suggest another
+              </button>
+              <Link href="/shop" className="font-medium text-blue-800 underline underline-offset-2">
+                Back to the shop
+              </Link>
+            </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Category</label>
-              <select className={input} value={category} onChange={(e) => setCategory(e.target.value)}>
-                {PRODUCT_CATEGORIES.map((c) => (
-                  <option key={c} value={c} className="capitalize">{c}</option>
+        ) : (
+          <form onSubmit={submit} className="mt-6 space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-gray-900">
+                Its name
+                <input required minLength={2} maxLength={200} className={`mt-1 ${input}`} value={form.name} onChange={set('name')} placeholder="Loop Engage" />
+              </label>
+              <label className="block text-sm font-medium text-gray-900">
+                Who makes it (optional)
+                <input maxLength={120} className={`mt-1 ${input}`} value={form.brand} onChange={set('brand')} placeholder="Loop" />
+              </label>
+            </div>
+            <label className="block text-sm font-medium text-gray-900">
+              Category
+              <select className={`mt-1 ${input}`} value={form.category} onChange={(e) => {
+                setForm((f) => ({ ...f, category: e.target.value }))
+                setQualities([])
+              }}>
+                {SHOP_GROUPS.map((g) => (
+                  <optgroup key={g.id} label={g.label}>
+                    {SHOP_CATEGORIES.filter((c) => c.group === g.id).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
+            </label>
+            <label className="block text-sm font-medium text-gray-900">
+              Where to get it (a link to the product)
+              <input required type="url" maxLength={500} className={`mt-1 ${input}`} value={form.buy_url} onChange={set('buy_url')} placeholder="https://" />
+            </label>
+            <label className="block text-sm font-medium text-gray-900">
+              The maker&apos;s page, if different (optional)
+              <input type="url" maxLength={500} className={`mt-1 ${input}`} value={form.maker_url} onChange={set('maker_url')} placeholder="https://" />
+            </label>
+            <div className="grid grid-cols-[1fr_8rem] gap-4">
+              <label className="block text-sm font-medium text-gray-900">
+                Price (optional; leave empty if it varies)
+                <input type="number" min="0" step="0.01" className={`mt-1 ${input}`} value={form.price} onChange={set('price')} placeholder="34.00" />
+              </label>
+              <label className="block text-sm font-medium text-gray-900">
+                Currency
+                <select className={`mt-1 ${input}`} value={form.currency} onChange={set('currency')}>
+                  <option value="CAD">CAD</option>
+                  <option value="USD">USD</option>
+                </select>
+              </label>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Seller (optional)</label>
-              <input className={input} value={seller} onChange={(e) => setSeller(e.target.value)} placeholder="Brand / store" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Price</label>
-              <input type="number" min="0" step="0.01" className={input} value={price} onChange={(e) => setPrice(e.target.value)} placeholder="34.00" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Compare-at price (optional)</label>
-              <input type="number" min="0" step="0.01" className={input} value={compareAt} onChange={(e) => setCompareAt(e.target.value)} placeholder="45.00" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Description</label>
-            <textarea className={input} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-
-          {/* Images */}
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Image URLs</label>
-            <div className="flex gap-2">
-              <input className={input} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://…" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())} />
-              <button type="button" onClick={addImage} className="px-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700"><Plus className="w-4 h-4" /></button>
-            </div>
-            {imageUrls.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {imageUrls.map((u) => (
-                  <span key={u} className="inline-flex items-center gap-1 text-xs bg-gray-100 rounded-full pl-2 pr-1 py-1 max-w-[220px]">
-                    <span className="truncate">{u}</span>
-                    <button type="button" onClick={() => setImageUrls(imageUrls.filter((x) => x !== u))}><X className="w-3 h-3" /></button>
-                  </span>
+            <fieldset>
+              <legend className="text-sm font-medium text-gray-900">What it&apos;s like (tick only what you know is true)</legend>
+              <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                {options.map((q) => (
+                  <label key={q.id} className="flex items-start gap-2 text-sm text-gray-900" title={q.help}>
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4"
+                      checked={qualities.includes(q.id)}
+                      onChange={(e) => setQualities((x) => (e.target.checked ? [...x, q.id] : x.filter((y) => y !== q.id)))}
+                    />
+                    {q.label}
+                  </label>
                 ))}
               </div>
+            </fieldset>
+            <label className="block text-sm font-medium text-gray-900">
+              Why it helps (optional)
+              <textarea maxLength={1000} rows={3} className={`mt-1 ${input}`} value={form.description} onChange={set('description')} placeholder="No seams, so my son can wear them all day." />
+            </label>
+            {error && (
+              <p role="alert" className="text-sm text-red-800">
+                {error}
+              </p>
             )}
-          </div>
-
-          {/* Sensory details */}
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Sensory details (optional)</label>
-            <div className="grid grid-cols-2 gap-3">
-              {(['texture', 'sound', 'visual', 'material'] as const).map((k) => (
-                <input key={k} className={input} value={sensory[k]} onChange={(e) => setSensory((s) => ({ ...s, [k]: e.target.value }))} placeholder={k[0].toUpperCase() + k.slice(1)} />
-              ))}
-            </div>
-          </div>
-
-          {/* Variations */}
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Variations (optional)</label>
-            <textarea className={input} rows={2} value={variationsText} onChange={(e) => setVariationsText(e.target.value)} placeholder={'Size: S, M, L\nColor: Black, White'} />
-            <p className="text-xs text-gray-500 mt-1">One per line, e.g. <code>Size: S, M, L</code></p>
-          </div>
-
-          <button
-            onClick={submit}
-            disabled={submitting}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-3 rounded-xl font-medium"
-          >
-            {submitting ? 'Adding…' : 'Add product'}
-          </button>
-        </div>
+            <button type="submit" disabled={state === 'busy'} className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60">
+              <Check className="h-4 w-4" aria-hidden="true" /> {state === 'busy' ? 'Sending…' : 'Suggest it'}
+            </button>
+          </form>
+        )}
       </main>
       <Footer />
     </div>

@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import ProductDiscounts from './ProductDiscounts'
+import { SellToggle } from './Selling'
 
 type Kind = 'resource' | 'product'
 interface Field {
@@ -23,8 +25,9 @@ interface Details {
   name: string
   category: string
   image_url: string | null
-  values: Record<string, string | number | null>
+  values: Record<string, string | number | string[] | null>
   fields: Field[]
+  qualityOptions?: { id: string; label: string }[]
   insights: Record<string, number | string | null> | null
   edits: { id: string; changes: Record<string, unknown>; before: Record<string, unknown> | null; status: string; created_at: string }[]
   promotions: Promotion[]
@@ -75,13 +78,15 @@ export default function ListingManager({ kind, id }: { kind: Kind; id: string })
   const [saved, setSaved] = useState('')
   const [busy, setBusy] = useState('')
   const [promo, setPromo] = useState({ headline: '', body: '', image_url: '', keywords: '', provinces: [] as string[], starts_on: '', ends_on: '' })
+  const [qualities, setQualities] = useState<string[]>([])
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/business/listing?kind=${kind}&id=${id}`, { cache: 'no-store' }).catch(() => null)
     const data = await res?.json().catch(() => ({}))
     if (!res?.ok) return setError(data?.error || 'Could not load this listing.')
     setD(data)
-    setValues(Object.fromEntries(Object.entries(data.values || {}).map(([k, v]) => [k, v == null ? '' : String(v)])))
+    setValues(Object.fromEntries(Object.entries(data.values || {}).filter(([k]) => k !== 'qualities').map(([k, v]) => [k, v == null ? '' : String(v)])))
+    setQualities(Array.isArray(data.values?.qualities) ? data.values.qualities : [])
   }, [kind, id])
   useEffect(() => {
     void load()
@@ -90,7 +95,8 @@ export default function ListingManager({ kind, id }: { kind: Kind; id: string })
   const save = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy('save')
-    const res = await fetch('/api/business/listing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, id, changes: values }) }).catch(() => null)
+    const changes = kind === 'product' ? { ...values, qualities } : values
+    const res = await fetch('/api/business/listing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, id, changes }) }).catch(() => null)
     const data = await res?.json().catch(() => ({}))
     setBusy('')
     if (!res?.ok) return setSaved(data?.error || 'Could not save.')
@@ -151,7 +157,7 @@ export default function ListingManager({ kind, id }: { kind: Kind; id: string })
       <form onSubmit={save} aria-label="Details">
         <h3 className="font-semibold text-slate-900">Details</h3>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
-          {d.fields.map((f) => (
+          {d.fields.filter((f) => f.field !== 'qualities').map((f) => (
             <label key={f.field} className={`block text-sm font-medium text-slate-900 ${f.field === 'description' ? 'sm:col-span-2' : ''}`}>
               {f.label}
               {f.when === 'review' && <span className="font-normal text-slate-700"> (checked by the team)</span>}
@@ -171,6 +177,26 @@ export default function ListingManager({ kind, id }: { kind: Kind; id: string })
             </label>
           ))}
         </div>
+        {kind === 'product' && (d.qualityOptions || []).length > 0 && (
+          <fieldset className="mt-4">
+            <legend className="text-sm font-medium text-slate-900">
+              What it&apos;s like <span className="font-normal text-slate-700">(checked by the team: tick only what is true)</span>
+            </legend>
+            <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+              {(d.qualityOptions || []).map((q) => (
+                <label key={q.id} className="flex items-start gap-2 text-sm text-slate-900">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4"
+                    checked={qualities.includes(q.id)}
+                    onChange={(e) => setQualities((x) => (e.target.checked ? [...x, q.id] : x.filter((y) => y !== q.id)))}
+                  />
+                  {q.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
         {kind === 'resource' && (
           <div className="mt-3 text-sm text-slate-800">
             <p className="font-medium text-slate-900">Is this the right picture?</p>
@@ -187,6 +213,9 @@ export default function ListingManager({ kind, id }: { kind: Kind; id: string })
           {busy === 'save' ? 'Saving…' : 'Save changes'}
         </button>
       </form>
+
+      {kind === 'product' && <SellToggle productId={id} />}
+      {kind === 'product' && <ProductDiscounts productId={id} />}
 
       <section aria-label="Promotions">
         <h3 className="font-semibold text-slate-900">Promotions</h3>

@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isItemKind, OWNER_FIELDS, ownerValues, rowUpdate, splitChanges, type ItemKind } from '@/lib/listings'
+import { qualitiesFor } from '@/lib/shop/taxonomy'
 
 export const dynamic = 'force-dynamic'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const COLUMNS: Record<ItemKind, string> = {
   resource: 'id, name, description, category, location, contact_info, image_url, cost_type, delivery, status',
-  product: 'id, name, description, category, price, seller, status',
+  product: 'id, name, description, category, price, seller, status, brand, stock, price_note, maker_url, qualities',
 }
 
 async function ownerOf(kind: ItemKind, id: string) {
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
     image_url: kind === 'resource' ? r.image_url : null,
     values: ownerValues(kind, r),
     fields: Object.entries(OWNER_FIELDS[kind]).map(([field, f]) => ({ field, label: f.label, when: f.when })),
+    qualityOptions: kind === 'product' ? qualitiesFor(r.category).map((q) => ({ id: q.id, label: q.label })) : [],
     insights: insights || null,
     edits: edits || [],
     promotions: promotions || [],
@@ -75,9 +77,14 @@ export async function POST(req: NextRequest) {
   const r = row as unknown as Record<string, any>
   const current = ownerValues(kind, r)
 
-  // Only what actually changed.
+  // Only what actually changed; qualities only those that fit its category.
   const asked: Record<string, unknown> = {}
-  for (const [field, value] of Object.entries(b.changes as Record<string, unknown>)) {
+  for (const [field, raw] of Object.entries(b.changes as Record<string, unknown>)) {
+    let value = raw
+    if (field === 'qualities' && Array.isArray(raw)) {
+      const allowed = new Set(qualitiesFor(r.category).map((q) => q.id))
+      value = raw.filter((q) => typeof q === 'string' && allowed.has(q))
+    }
     if (String(value ?? '') !== String(current[field] ?? '')) asked[field] = value
   }
   const { now, review, rejected } = splitChanges(kind, asked)

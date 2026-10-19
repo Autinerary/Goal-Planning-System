@@ -14,7 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { searchProducts } from '@/lib/search/products'
-import { SHOP_CATEGORIES } from '@/lib/shop/categories'
+import { isShopFilterId } from '@/lib/shop/categories'
 import { understandByWords, understandWithAI, withoutParts, searchFor, type Understood } from '@/lib/search/understand'
 import { teamStates } from '@/lib/team'
 import { tagGroupsFor, wantsLocalGroups, isTag, SERVICE_AGES } from '@/lib/filters/tags'
@@ -55,8 +55,6 @@ function parseSortParam(raw: string | null): SortOption | SortRule[] {
   return rules.length > 0 ? rules : 'relevance'
 }
 
-// Cheap membership test for "did the user ask for products?".
-const SHOP_CATEGORY_IDS = new Set(SHOP_CATEGORIES.map((c) => c.id))
 
 export async function GET(request: NextRequest) {
   try {
@@ -292,7 +290,7 @@ export async function GET(request: NextRequest) {
       !!startedAfter
     const shopCategorySelected =
       Array.isArray(categories) &&
-      categories.some((c: string) => SHOP_CATEGORY_IDS.has(String(c).toLowerCase()))
+      categories.some((c: string) => isShopFilterId(String(c)))
 
     let products: any[] = []
     if (!normFilterActive || shopCategorySelected) {

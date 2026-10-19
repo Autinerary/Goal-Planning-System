@@ -1,3 +1,5 @@
+import taxonomy from '@/lib/shop/taxonomy.json'
+
 /**
  * Shop types — a real products catalog + commerce flow (Odosa).
  * Backed by the tables in scripts/2026_shop_products.sql.
@@ -18,14 +20,21 @@ export interface SensoryDetails {
   [key: string]: string | undefined
 }
 
-export type ProductStatus = 'draft' | 'active' | 'archived'
+export type ProductStatus = 'draft' | 'pending' | 'active' | 'archived' | 'rejected'
+
+/** Where to get a product (STEP 82): the maker, a Canadian store, an app store, where to watch. */
+export interface BuyLink {
+  label: string
+  url: string
+}
 
 export interface Product {
   id: string
   name: string
   description: string | null
   category: string
-  price: number
+  /** null: the price varies (books, films, food sold in many stores); price_note says why. */
+  price: number | null
   compare_at_price: number | null
   currency: string
   image_urls: string[]
@@ -37,6 +46,17 @@ export interface Product {
   submitted_by: string | null
   created_at: string
   updated_at: string
+  /** STEP 82: the maker, its qualities (lib/shop/qualities.ts) and their values, where to get it, and where people recommend it. */
+  brand?: string | null
+  qualities?: string[]
+  quality_values?: Record<string, string>
+  buy_links?: BuyLink[]
+  community_links?: BuyLink[]
+  maker_url?: string | null
+  price_note?: string | null
+  tags?: string[]
+  vendor_user_id?: string | null
+  last_verified_at?: string | null
   /** Denormalized on read for cards/detail. */
   rating_avg?: number
   rating_count?: number
@@ -100,18 +120,13 @@ export interface ProductReview {
   created_at: string
 }
 
-export const PRODUCT_CATEGORIES = [
-  'food',
-  'toys',
-  'clothing',
-  'self-care',
-  'crafts',
-  'supplies',
-  'books',
-] as const
+/** The 40 categories' ids (lib/shop/taxonomy.json), for checking a submitted product. */
+export const PRODUCT_CATEGORIES: string[] = taxonomy.categories.map((c) => c.id)
 
-/** Format a money amount the way the mockups do, e.g. "CA $34.00". */
-export function formatPrice(amount: number, currency = 'CAD'): string {
+/** Format a money amount the way the mockups do, e.g. "CA $34.00". null is "Price varies". */
+export function formatPrice(amount: number | null | undefined, currency = 'CAD'): string {
+  if (amount == null) return 'Price varies'
+  if (amount === 0) return 'Free'
   try {
     return new Intl.NumberFormat('en-CA', { style: 'currency', currency }).format(amount)
   } catch {

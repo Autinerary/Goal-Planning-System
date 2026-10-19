@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
 import { searchWords, inNameDescriptionOrCategory } from '@/lib/search/words'
+import { expandShopFilter } from '@/lib/shop/categories'
 
 /**
  * Products in general search (Odosa: "the store was added separately; the items
@@ -32,9 +33,21 @@ export async function searchProducts(filters: ProductSearchFilters = {}, limit =
 }
 
 const PRODUCT_COLUMNS = 'id, name, description, category, price, currency, image_urls, created_at'
+// STEP 82's columns, when it is in.
+const PRODUCT_COLUMNS_82 = `${PRODUCT_COLUMNS}, tags, brand, qualities, price_note`
 
 async function findProducts(filters: ProductSearchFilters, limit: number, dontKeep: () => void) {
-  // Tags (Community's Choice) came with STEP 79; before it, without them.
+  // A group (Books) or a category (Memoirs) stands for every category in it,
+  // the older ones too; a search filtered only by kinds of service has no
+  // products.
+  if (filters.categories && filters.categories.length > 0) {
+    const shop = expandShopFilter(filters.categories)
+    if (!shop.length) return []
+    filters = { ...filters, categories: shop }
+  }
+  // STEP 82's columns, then STEP 79's tags, then the oldest.
+  const newest = await queryProducts(filters, limit, PRODUCT_COLUMNS_82)
+  if (!newest.error) return rowsOf(newest, dontKeep)
   const first = await queryProducts(filters, limit, `${PRODUCT_COLUMNS}, tags`)
   return first.error && /tags/.test(first.error.message || '')
     ? rowsOf(await queryProducts(filters, limit, PRODUCT_COLUMNS), dontKeep)

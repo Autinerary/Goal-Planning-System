@@ -22,6 +22,10 @@ import HiddenService from '@/components/resources/detail/HiddenService'
 import ServiceComments from '@/components/resources/detail/ServiceComments'
 import ClaimListing from '@/components/resources/detail/ClaimListing'
 import ServiceSidebarNote from '@/components/resources/detail/ServiceSidebar'
+import ReportProblem from '@/components/layout/ReportProblem'
+import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
+import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
+import { usersChoiceFor } from '@/lib/shop/usersChoice'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import type { Location } from '@/types/database'
 
@@ -186,6 +190,8 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
     )
   }
 
+  const choice = (await usersChoiceFor(resource.category === 'commentary' ? 'article' : 'service', [resourceId])).get(resourceId) || []
+
   return (
     <>
       <Breadcrumbs
@@ -199,6 +205,15 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <ResourceHeader resource={resource} userId={user?.id} />
+        {/* Users' Choice and Community's Choice of the year (the products round, Goal 8: for every kind of item). */}
+        {(choice.length > 0 || ((resource as any).tags || []).includes('community_choice_year')) && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {((resource as any).tags || []).includes('community_choice_year') && <CommunityChoiceBadge size="md" month="of the year" />}
+            {choice.map((c) => (
+              <UsersChoiceBadge key={c.userType} size="md" label={c.label} detail={`${c.average.toFixed(1)} out of 5 from ${c.ratings} ratings`} />
+            ))}
+          </div>
+        )}
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -250,6 +265,7 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
           <div className="lg:col-span-1 space-y-4">
             <ServiceSidebarNote />
             <ClaimListing kind="resource" id={resourceId} />
+            <ReportProblem about={resource.category === 'commentary' ? 'article' : 'service'} name={resource.name} />
           </div>
         </div>
       </div>

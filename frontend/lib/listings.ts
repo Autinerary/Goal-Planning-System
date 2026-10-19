@@ -57,6 +57,13 @@ const url = (v: unknown) => {
 const phone = (v: unknown) => (typeof v === 'string' && /^[0-9+().\-\s x]{0,40}$/i.test(v.trim()) ? v.trim() : undefined)
 const email = (v: unknown) => (v === '' ? '' : usableEmail(v) ?? undefined)
 const oneOf = (...ok: string[]) => (v: unknown) => (v === null || v === '' ? null : typeof v === 'string' && ok.includes(v) ? v : undefined)
+const count = (v: unknown) => {
+  if (v === '' || v === null) return ''
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isInteger(n) && n >= 0 && n < 1_000_000 ? n : undefined
+}
+const list = (v: unknown) =>
+  Array.isArray(v) && v.every((x) => typeof x === 'string' && /^[a-z0-9_]{2,40}$/.test(x)) ? Array.from(new Set(v as string[])).slice(0, 25) : undefined
 const money = (v: unknown) => {
   const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() ? Number(v) : NaN
   return Number.isFinite(n) && n >= 0 && n < 1_000_000 ? Math.round(n * 100) / 100 : undefined
@@ -83,8 +90,14 @@ export const OWNER_FIELDS: Record<ItemKind, Record<string, { label: string; chec
   product: {
     description: { label: 'Description', check: text(2000), when: 'now' },
     price: { label: 'Price', check: money, when: 'now' },
+    price_note: { label: 'About the price', check: text(200), when: 'now' },
+    stock: { label: 'In stock (how many; empty if not tracked)', check: count, when: 'now' },
+    brand: { label: 'Brand', check: text(120), when: 'now' },
     seller: { label: 'Seller', check: text(200), when: 'now' },
+    maker_url: { label: 'Product page', check: url, when: 'now' },
     name: { label: 'Name', check: text(200), when: 'review' },
+    // What it's like: people trust these, so the team checks them first (STEP 82).
+    qualities: { label: 'What it’s like', check: list, when: 'review' },
   },
 }
 

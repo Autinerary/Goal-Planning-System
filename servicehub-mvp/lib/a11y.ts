@@ -28,6 +28,8 @@ const ATTRS: [string, string, string][] = [
   ['theme-ocean', 'theme', 'ocean'],
   ['theme-sand', 'theme', 'sand'],
   ['theme-classic', 'theme', 'classic'],
+  ['theme-warm', 'theme', 'warm'],
+  ['theme-cool', 'theme', 'cool'],
   // Listening, the notes for today, and the speaking speed (the planning
   // note, Goals 10 and 11): the app's Settings, Accessibility.
   ['listen-off', 'listen', 'off'],

@@ -6,6 +6,7 @@ import { CONTACT_EMAIL } from '@/lib/contact'
 import TellUsForm from '../components/TellUsForm'
 import HelpSearch, { type HelpEntry } from './HelpSearch'
 import FeedbackButton from '../components/FeedbackButton'
+import HelpChat from '../components/HelpChat'
 
 export const metadata: Metadata = {
   title: 'What things are called · Autinerary',
@@ -347,6 +348,9 @@ export default function HelpPage() {
             <FeedbackButton icon={false} label="Send feedback to the team" className={linkClass} />
           </p>
         </Section>
+
+        {/* The products round's planning note, Goal 11: "a Chatbot to address concerns". */}
+        <HelpChat />
 
         <Section id="not-yet" title="Not working yet" intro="These are planned, but they don’t work yet, so the app doesn’t offer them:">
           <ul className="mt-3 list-disc space-y-1.5 pl-6 text-slate-800">

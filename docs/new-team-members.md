@@ -94,8 +94,10 @@ auth, storage). Signing in to one signs you in to the other.
   (theme, three clicks, Ontario), [service-directory-2026-10.md](service-directory-2026-10.md)
   (Goal 1), [contracting-2026-10.md](contracting-2026-10.md) (Goal 2),
   [ratings-and-community-choice-2026-10.md](ratings-and-community-choice-2026-10.md)
-  (Goal 5), [goals-6-11-2026-10.md](goals-6-11-2026-10.md) (Goals 6 to 11) and
-  [subscriptions-2026-10.md](subscriptions-2026-10.md) (paid plans).
+  (Goal 5), [goals-6-11-2026-10.md](goals-6-11-2026-10.md) (Goals 6 to 11),
+  [subscriptions-2026-10.md](subscriptions-2026-10.md) (paid plans) and
+  [products-round-2026-10.md](products-round-2026-10.md) (the shop, vendors
+  and the roadmap).
 - Riipen students' feedback, round by round: `groups-*.md`.
 - Operations: [release-checks.md](release-checks.md), [data-residency.md](data-residency.md),
   [admin-role.md](admin-role.md), `setup/RUNBOOK.md`.

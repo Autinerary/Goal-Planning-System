@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ListingManager from './ListingManager'
+import { AddProduct, AddService, Notices } from './AddOffering'
+import Selling from './Selling'
 
 const HUB = (process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001').replace(/\/$/, '')
 
@@ -158,6 +160,8 @@ export default function BusinessDashboard() {
         {!open && <p className="mt-3 rounded-lg border border-slate-300 bg-slate-50 p-3 text-slate-900">Resource Accounts open soon.</p>}
       </header>
 
+      {account && <Notices />}
+
       {msg && (
         <p role={msg.ok ? 'status' : 'alert'} className={`rounded-lg border p-3 ${msg.ok ? 'border-emerald-300 bg-emerald-50 text-slate-900' : 'border-red-300 bg-red-50 text-red-900'}`}>
           {msg.text}
@@ -291,6 +295,10 @@ export default function BusinessDashboard() {
           )}
         </section>
       )}
+
+      {account?.kind === 'product_vendor' && <Selling />}
+      {account?.kind === 'product_vendor' && <AddProduct />}
+      {account?.kind === 'service_provider' && <AddService />}
 
       {claims.length > 0 && (
         <section aria-labelledby="yours" className="rounded-2xl border border-slate-200 bg-white p-6">

@@ -59,13 +59,14 @@ function Chips({ resource, mine }: { resource: Resource; mine: string[] }) {
   const tags: string[] = (Array.isArray(r.tags) ? r.tags : []).filter((t: string) => CARD_TAGS.includes(t))
   tags.sort((a, b) => CARD_TAGS.indexOf(a) - CARD_TAGS.indexOf(b))
   // A month's winner of the community's vote (Goal 5), first.
-  const choice = Array.isArray(r.tags) && r.tags.includes('community_choice')
+  const choiceYear = Array.isArray(r.tags) && r.tags.includes('community_choice_year')
+  const choice = Array.isArray(r.tags) && (r.tags.includes('community_choice') || choiceYear)
   if (!cost && tags.length === 0 && mine.length === 0 && !choice) return null
   return (
     <ul className="mb-3 flex flex-wrap gap-1.5" aria-label="Tags">
       {choice && (
         <li className="inline-flex">
-          <CommunityChoiceBadge />
+          <CommunityChoiceBadge month={choiceYear ? 'of the year' : undefined} />
         </li>
       )}
       {mine.map((m) => (

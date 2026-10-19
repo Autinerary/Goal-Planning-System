@@ -717,3 +717,17 @@ export function providerReviewedEmail(a: { name: string; ratings: number; listin
       <p style="${SMALL}">${esc(sign)}</p></div>`,
   }
 }
+
+/** To a product vendor, before a discount event (the products round, Goal 10; app/api/cron/vendor-notices). */
+export function vendorDiscountEventEmail(a: { name: string; starts: string; ends: string; percent: number | null; link: string; postal: string }) {
+  const sign = `Autinerary Corp., ${a.postal}. You get this because you sell products through a ResourceHub Resource Account.`
+  const lines = [
+    `${a.name} runs from ${a.starts} to ${a.ends}. Many families look for products then.`,
+    `Would you like to offer a discount${a.percent ? `, for example ${a.percent}% off` : ''}? You can opt each product in or out, and choose the percent, a sale price, or a code for your own store. Nothing changes unless you opt in.`,
+  ]
+  return {
+    subject: `${a.name} is coming: a discount for ResourceHub's shop?`,
+    text: `Hello,\n\n${lines.join('\n\n')}\n\nYour Resource Account: ${a.link}\n\n${sign}`,
+    html: `<div style="${BOX}"><p style="font-size:16px">Hello,</p>${lines.map((l) => `<p style="font-size:16px;line-height:1.5">${esc(l)}</p>`).join('')}<p style="margin:24px 0"><a href="${a.link}" style="${BUTTON}">Choose your discounts</a></p><p style="${SMALL}">${esc(sign)}</p></div>`,
+  }
+}

@@ -21,13 +21,13 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
     name: 'Stripe',
-    does: 'Takes payments for paid plans, if you choose one',
-    gets: 'Your email address, your card (we never see its number), your billing address when tax is added, and your plan. Stripe keeps payment records as tax law requires, even after you delete your account',
+    does: 'Takes payments for paid plans, if you choose one, and for anything you buy from a vendor through ResourceHub (on the vendor’s own Stripe account)',
+    gets: 'Your email address, your card (we never see its number), your billing or shipping address when needed, and what you are paying for. Stripe keeps payment records as tax law requires, even after you delete your account',
   },
   { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, and for a meeting with a team member when you choose “Make a free video link”, if you join one', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
   {
@@ -196,6 +196,22 @@ export default function PrivacyPage() {
                 people you asked how many signed, and show them names only of people who chose to show theirs.
               </li>
               <li>We email you about the campaign only if you tick that box.</li>
+            </List>
+          </Sub>
+          <Sub title="If you buy through ResourceHub’s shop">
+            <List>
+              <li>Your order: what you bought, from which vendor, its price, and its status. You and the vendor can see it.</li>
+              <li>Your name, email and shipping address, which the vendor receives to deliver it, and any return you start.</li>
+              <li>Your cart, which only you can see.</li>
+            </List>
+          </Sub>
+          <Sub title="What you like and avoid in products">
+            <List>
+              <li>If you choose to say what you like and avoid (crunchy, tagless, quiet...): only you can see your answers.</li>
+              <li>
+                They sort the shop for you, and group people with similar answers and norms into taste profiles. A taste profile is
+                described only when ten or more people are in it, and nobody is ever shown who is in one.
+              </li>
             </List>
           </Sub>
           <Sub title="If you manage a listing (Resource Accounts)">

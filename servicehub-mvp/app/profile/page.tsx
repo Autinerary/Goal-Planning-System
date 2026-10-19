@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer'
 import NormVerification from '@/components/trust/NormVerification'
 import RoleSelector from '@/components/onboarding/RoleSelector'
 import SetLocationPrompt from '@/components/resources/SetLocationPrompt'
+import SensoryPreferences from '@/components/shop/SensoryPreferences'
 import { saveProfile, useMyProfile, type MyProfileResponse } from '@/lib/useMyProfile'
 import { ALL_NORMS, MORE_ABOUT_YOU, SETUP_NEEDS, findRole, isOtherNorm, normsMatching } from '@/lib/onboarding/setup'
 
@@ -418,6 +419,9 @@ export default function ProfilePage() {
             })}
           </div>
         </section>
+
+        {/* The products round, v1.5: what you like and avoid, for the shop and taste profiles. */}
+        <SensoryPreferences />
 
         <section className={card} aria-labelledby="account-heading">
           <h2 id="account-heading" className="text-lg font-semibold text-gray-900">

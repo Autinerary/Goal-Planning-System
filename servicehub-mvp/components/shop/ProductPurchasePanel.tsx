@@ -6,9 +6,8 @@ import { showToast } from '@/lib/toast'
 import type { Product, SelectedVariation } from '@/types/shop'
 
 /**
- * Variation + quantity selectors for a product. Add-to-cart itself is wired in
- * the cart/checkout phase; for now the button is honest that checkout is coming
- * rather than faking an order.
+ * Variation + quantity selectors, and Add to cart, for a product a vendor
+ * sells through ResourceHub (the products round, Goal 9).
  */
 export default function ProductPurchasePanel({ product }: { product: Product }) {
   const [selected, setSelected] = useState<SelectedVariation>(() => {
@@ -20,10 +19,16 @@ export default function ProductPurchasePanel({ product }: { product: Product }) 
 
   const outOfStock = product.stock != null && product.stock <= 0
 
-  const addToCart = () => {
-    // Phase 2 wires this to POST /api/shop/cart. Until then, be transparent
-    // rather than fake an order.
-    showToast.info('Cart & checkout are coming in the next update.')
+  // Shown only for products a vendor sells through ResourceHub, once
+  // checkout is on (lib/shop/selling.ts); the cart is app/shop/cart.
+  const [busy, setBusy] = useState(false)
+  const addToCart = async () => {
+    setBusy(true)
+    const res = await fetch('/api/shop/cart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ product_id: product.id, variation: selected, quantity: qty }) }).catch(() => null)
+    const d = await res?.json().catch(() => ({}))
+    setBusy(false)
+    if (res?.ok) showToast.success('In your cart.')
+    else showToast.error(d?.error || 'Could not add that.')
   }
 
   return (
@@ -81,12 +86,15 @@ export default function ProductPurchasePanel({ product }: { product: Product }) 
       <button
         type="button"
         onClick={addToCart}
-        disabled={outOfStock}
+        disabled={outOfStock || busy}
         className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-3 rounded-xl font-medium transition-colors"
       >
         <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-        {outOfStock ? 'Out of stock' : 'Add to cart'}
+        {outOfStock ? 'Out of stock' : busy ? 'Adding…' : 'Add to cart'}
       </button>
+      <a href="/shop/cart" className="block text-center text-sm font-medium text-blue-800 underline underline-offset-2">
+        Your cart
+      </a>
     </div>
   )
 }

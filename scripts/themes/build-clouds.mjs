@@ -18,6 +18,8 @@ const THEMES = {
   earthy: { sky: [200, 0.75], clouds: [95, 0.45] }, // watery blue, sage
   ocean: { sky: [208, 0.9], clouds: [178, 0.55] }, // blue, aqua
   sand: { sky: [210, 0.4], clouds: [32, 0.5] }, // dusty blue, sand
+  warm: { sky: [24, 0.55], clouds: [36, 0.5] }, // peach, apricot
+  cool: { sky: [262, 0.45], clouds: [290, 0.4] }, // periwinkle, lilac
 }
 
 function rgbToHsl(r, g, b) {

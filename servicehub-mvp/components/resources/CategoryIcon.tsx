@@ -2,7 +2,7 @@ import {
   Baby, Brain, Briefcase, Building2, Bike, Globe, GraduationCap, HandHelping, HeartHandshake, Home,
   MapPin, Stethoscope, Trees, Users, Utensils, type LucideIcon,
 } from 'lucide-react'
-import { SHOP_CATEGORIES } from '@/lib/shop/categories'
+import { SHOP_CATEGORIES, SHOP_GROUPS } from '@/lib/shop/categories'
 
 /**
  * A recognisable icon for a place with no photo, by its category.
@@ -32,7 +32,7 @@ const PLACE_ICONS: Record<string, LucideIcon> = {
   organization: Users,
 }
 
-const SHOP_ICONS: Record<string, LucideIcon> = Object.fromEntries(SHOP_CATEGORIES.map((c) => [c.id, c.icon]))
+const SHOP_ICONS: Record<string, LucideIcon> = Object.fromEntries([...SHOP_GROUPS, ...SHOP_CATEGORIES].map((c) => [c.id, c.icon]))
 
 export function iconForCategory(category: string | null | undefined, online = false): LucideIcon {
   const key = (category || '').trim().toLowerCase()

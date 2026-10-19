@@ -135,6 +135,10 @@
     {
       "path": "/api/cron/billing-notices",
       "schedule": "45 14 * * *"
+    },
+    {
+      "path": "/api/cron/vendor-notices",
+      "schedule": "20 15 * * *"
     }
   ]
 }

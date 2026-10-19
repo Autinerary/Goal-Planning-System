@@ -11,7 +11,7 @@ import TagFilters from './TagFilters'
 import LifeCategoryFilters from './LifeCategoryFilters'
 import type { CostType } from '@/lib/filters/tags'
 import { FILTER_NORM_GROUPS } from '@/lib/norms/taxonomy'
-import { SHOP_CATEGORIES, shopCategory } from '@/lib/shop/categories'
+import { SHOP_GROUPS } from '@/lib/shop/categories'
 
 interface FilterSidebarProps {
   categories: string[]
@@ -167,8 +167,9 @@ export default function FilterSidebar({
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 px-2">
             Shop
           </p>
-          {SHOP_CATEGORIES.map((c) => {
-            const Icon = shopCategory(c.id).icon
+          {/* The shop's 11 groups (its 40 categories are on the shop page). */}
+          {SHOP_GROUPS.map((c) => {
+            const Icon = c.icon
             return (
               <label
                 key={c.id}

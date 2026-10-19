@@ -24,7 +24,8 @@
     "react-dom": "^18",
     "react-hot-toast": "^2.6.0",
     "react-leaflet": "^4.2.1",
-    "recharts": "^2.15.4"
+    "recharts": "^2.15.4",
+    "stripe": "22.6.2"
   },
   "devDependencies": {
     "@types/node": "^20",

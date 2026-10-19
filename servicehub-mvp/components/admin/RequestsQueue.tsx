@@ -28,6 +28,8 @@ interface Data {
   promotions: any[]
   guides: any[]
   access: any[]
+  products?: any[]
+  services?: any[]
   survey: { answers: number; wants: [string, number][]; imageWrong: number; other: string[] }
 }
 
@@ -101,6 +103,58 @@ export default function RequestsQueue() {
         <p className="mt-4 text-gray-800">{d.note}</p>
       ) : (
         <>
+          {section('Products to check before they go up', (d.products || []).length)}
+          <p className="text-sm text-gray-700">Suggested by people, or added by vendors. Open the link, check it is real and current, and that each quality ticked is true on its page. Approving makes it live; a vendor&apos;s own product then becomes theirs to manage.</p>
+          <ul className="mt-2 space-y-3">
+            {(d.products || []).map((p) => (
+              <li key={p.id} className={card}>
+                <p className="font-semibold text-gray-900">
+                  {p.name}
+                  {p.brand ? <span className="font-normal text-gray-800"> · {p.brand}</span> : null}{' '}
+                  <span className="text-sm font-normal text-gray-700">
+                    · {p.category} · {p.source_type === 'vendor' ? 'from a vendor' : 'suggested'} · {p.email}
+                  </span>
+                </p>
+                {p.description && <p className="mt-1 text-sm text-gray-900">{p.description}</p>}
+                <p className="mt-1 text-xs text-gray-700">
+                  {p.price == null ? 'Price varies' : `${p.price} ${p.currency}`} · Qualities: {(p.qualities || []).join(', ') || 'none ticked'}
+                </p>
+                <p className="mt-1 text-sm">
+                  {(p.buy_links || []).map((l: any) => (
+                    <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="mr-3 text-blue-800 underline">
+                      {l.label}
+                    </a>
+                  ))}
+                  {p.maker_url && (
+                    <a href={p.maker_url} target="_blank" rel="noopener noreferrer" className="text-blue-800 underline">
+                      Maker&apos;s page
+                    </a>
+                  )}
+                </p>
+                <Actions busy={busy === `products:${p.id}`} approve="Put it in the shop" onApprove={() => act('products', p.id, 'approve')} onReject={() => act('products', p.id, 'reject')} />
+              </li>
+            ))}
+          </ul>
+
+          {section('Services providers added', (d.services || []).length)}
+          <p className="text-sm text-gray-700">Added from a Resource Account. Check the service is real (its website, its phone), then approve: it goes into ResourceHub and the provider manages it.</p>
+          <ul className="mt-2 space-y-3">
+            {(d.services || []).map((c) => (
+              <li key={c.id} className={card}>
+                <p className="font-semibold text-gray-900">
+                  {c.service?.name} <span className="text-sm font-normal text-gray-700">· {c.service?.category} · {c.email}</span>
+                </p>
+                {c.service?.description && <p className="mt-1 text-sm text-gray-900">{c.service.description}</p>}
+                <p className="mt-1 text-xs text-gray-700">
+                  {[c.service?.location?.address, c.service?.location?.city, c.service?.location?.province].filter(Boolean).join(', ')}
+                  {c.service?.contact_info?.website ? ` · ${c.service.contact_info.website}` : ''}
+                  {c.service?.contact_info?.phone ? ` · ${c.service.contact_info.phone}` : ''}
+                </p>
+                <Actions busy={busy === `services:${c.id}`} approve="Add it to ResourceHub" onApprove={() => act('services', c.id, 'approve')} onReject={() => act('services', c.id, 'reject')} />
+              </li>
+            ))}
+          </ul>
+
           {section('Listing claims to check', d.claims.length)}
           <p className="text-sm text-gray-700">Someone says they run a listing that shows no email, or asked the team instead of a code. Check what they wrote (call the number on the listing, or look at the web page).</p>
           <ul className="mt-2 space-y-3">

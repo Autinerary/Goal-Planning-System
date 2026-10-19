@@ -1,92 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { PRODUCT_CATEGORIES, type ProductVariation, type SensoryDetails } from '@/types/shop'
+import { PRODUCT_CATEGORIES } from '@/types/shop'
+import { groupOfCategory } from '@/lib/shop/categories'
+import { qualitiesForGroup } from '@/lib/shop/qualities'
+
+const httpsUrl = (v: unknown) => {
+  if (typeof v !== 'string' || !v.trim()) return null
+  try {
+    const u = new URL(v.trim())
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.toString().slice(0, 500) : null
+  } catch {
+    return null
+  }
+}
+const host = (u: string) => {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '')
+  } catch {
+    return 'Store'
+  }
+}
 
 /**
- * POST /api/shop/products — create a product (real catalog, no seeding).
- * The submitter owns the row (RLS: submitted_by = auth.uid()).
+ * POST /api/shop/products: suggest a product (the products round's planning
+ * note, Goal 1). It waits as pending (STEP 82: suggestions no longer go live
+ * at once); the team checks it on its maker's or seller's pages and makes
+ * it live from ResourceHub's admin Requests. The submitter can see their own.
  */
 export async function POST(request: NextRequest) {
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 })
+  if (!user) return NextResponse.json({ error: 'Sign in to suggest a product.' }, { status: 401 })
 
-  let body: any
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
+  const body = await request.json().catch(() => null)
+  if (!body) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
 
   const name = String(body.name ?? '').trim()
   const category = String(body.category ?? '').trim().toLowerCase()
-  const price = Number(body.price)
+  if (name.length < 2 || name.length > 200) return NextResponse.json({ error: 'Give its name (2 to 200 characters).' }, { status: 400 })
+  if (!PRODUCT_CATEGORIES.includes(category)) return NextResponse.json({ error: 'Choose a category.' }, { status: 400 })
+  const buy = httpsUrl(body.buy_url)
+  if (!buy) return NextResponse.json({ error: 'Add a link to where to get it.' }, { status: 400 })
+  const maker = httpsUrl(body.maker_url)
 
-  if (name.length < 2 || name.length > 200) {
-    return NextResponse.json({ error: 'Name must be 2-200 characters' }, { status: 400 })
+  const priceRaw = body.price === null || body.price === '' || body.price === undefined ? null : Number(body.price)
+  if (priceRaw !== null && (!Number.isFinite(priceRaw) || priceRaw < 0 || priceRaw > 100000)) return NextResponse.json({ error: 'The price doesn’t look right.' }, { status: 400 })
+  const currency = body.currency === 'USD' ? 'USD' : 'CAD'
+
+  // Only qualities that fit its category (lib/shop/qualities.ts).
+  const allowed = new Set(qualitiesForGroup(groupOfCategory(category)).map((q) => q.id))
+  const qualities = Array.from(new Set((Array.isArray(body.qualities) ? body.qualities : []).filter((q: unknown) => typeof q === 'string' && allowed.has(q)))).slice(0, 20)
+
+  const row = {
+    name,
+    brand: String(body.brand ?? '').trim().slice(0, 120) || null,
+    description: String(body.description ?? '').trim().slice(0, 1000) || null,
+    category,
+    price: priceRaw,
+    currency,
+    price_note: priceRaw === null ? 'Prices vary by store' : 'The price the person who suggested it saw',
+    qualities,
+    buy_links: [{ label: host(buy), url: buy }],
+    maker_url: maker,
+    source_type: 'community',
+    status: 'pending',
+    submitted_by: user.id,
   }
-  if (!PRODUCT_CATEGORIES.includes(category as any)) {
-    return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
+  let { data, error } = await supabase.from('products').insert(row).select('id').single()
+  // Before STEP 82 there are no qualities, links or pending status: the old shape, waiting as a draft.
+  if (error && /column|status|check/i.test(error.message || '')) {
+    ;({ data, error } = await supabase
+      .from('products')
+      .insert({ name, description: row.description, category, price: priceRaw ?? 0, currency, status: 'draft', submitted_by: user.id, seller: row.brand })
+      .select('id')
+      .single())
   }
-  if (!Number.isFinite(price) || price < 0) {
-    return NextResponse.json({ error: 'Price must be a non-negative number' }, { status: 400 })
-  }
-
-  const compareRaw = Number(body.compare_at_price)
-  const compare_at_price = Number.isFinite(compareRaw) && compareRaw > price ? compareRaw : null
-
-  const image_urls: string[] = Array.isArray(body.image_urls)
-    ? body.image_urls.filter((u: any) => typeof u === 'string' && /^https?:\/\//i.test(u)).slice(0, 8)
-    : []
-
-  const variations: ProductVariation[] = Array.isArray(body.variations)
-    ? body.variations
-        .map((v: any) => ({
-          name: String(v?.name ?? '').trim(),
-          options: Array.isArray(v?.options)
-            ? v.options.map((o: any) => String(o).trim()).filter(Boolean).slice(0, 20)
-            : [],
-        }))
-        .filter((v: ProductVariation) => v.name && v.options.length > 0)
-        .slice(0, 6)
-    : []
-
-  const sensory_details: SensoryDetails = {}
-  if (body.sensory_details && typeof body.sensory_details === 'object') {
-    for (const k of ['texture', 'sound', 'visual', 'material']) {
-      const val = String(body.sensory_details[k] ?? '').trim()
-      if (val) sensory_details[k] = val.slice(0, 80)
-    }
-  }
-
-  const stockRaw = Number(body.stock)
-  const stock = Number.isFinite(stockRaw) && stockRaw >= 0 ? Math.floor(stockRaw) : null
-
-  const { data, error } = await supabase
-    .from('products')
-    .insert({
-      name,
-      description: String(body.description ?? '').trim() || null,
-      category,
-      price,
-      compare_at_price,
-      currency: String(body.currency ?? 'CAD').trim().toUpperCase().slice(0, 3) || 'CAD',
-      image_urls,
-      variations,
-      sensory_details,
-      stock,
-      seller: String(body.seller ?? '').trim() || null,
-      status: 'active',
-      submitted_by: user.id,
-    })
-    .select('id')
-    .single()
-
   if (error || !data) {
-    console.error('[shop] create product failed:', error?.message)
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+    console.error('[shop] suggest product failed:', error?.message)
+    return NextResponse.json({ error: 'Could not send that just now.' }, { status: 500 })
   }
-  return NextResponse.json({ id: data.id })
+  return NextResponse.json({ id: data.id, status: 'pending' }, { status: 201 })
 }

@@ -29,7 +29,13 @@ supporters around them, free during the beta.
   labelled as such, scheduled in a calendar, with check-ins and reflections.
 - **Ratings you can trust**: only people who used a service can rate it; a
   monthly sweep warns, then hides, services rated low; nothing is deleted.
-- **Community's Choice**: the community nominates and votes each month.
+- **Community's Choice**: the community nominates and votes each month, and
+  for the year. **Users' Choice** shows what each type of user rated highest:
+  people who share a norm, families, professionals.
+- **Products checked for what matters**: the shop lists products people
+  recommend, in 40 categories, each with the qualities people with sensory
+  and other needs look for (tagless, fragrance-free, turns down noise, by a
+  neurodivergent author...), each quality checked on the maker's own pages.
 - **Accessible from the start**: plain language, colour themes and colour
   strength, text size, reduced motion, "Listen to this page" everywhere,
   automated WCAG 2.1 AA checks across both apps on phone and desktop, and
@@ -55,5 +61,6 @@ supporters around them, free during the beta.
 
 - What was built, round by round: `docs/planning-note-2026-10.md`,
   `docs/service-directory-2026-10.md`, `docs/contracting-2026-10.md`,
-  `docs/ratings-and-community-choice-2026-10.md`.
+  `docs/ratings-and-community-choice-2026-10.md`, `docs/goals-6-11-2026-10.md`,
+  `docs/products-round-2026-10.md`.
 - The cohort's research: `docs/cohort-report-2026-09.md`, `docs/groups-*.md`.
