@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Type, Eye, Moon, Palette, Zap, BookOpen, Underline, Maximize2 } from 'lucide-react'
+import { ArrowLeft, Type, Eye, Moon, Palette, Zap, BookOpen, Underline, Maximize2, Volume2 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { A11Y_COOKIE, applyA11y, cleanA11y, tokenFor } from '@/lib/a11y'
@@ -36,6 +36,7 @@ const THEMES = [
   { token: 'theme-sand', id: 'sand', label: 'Sand', hint: 'Warm browns and dusty blue' },
   { token: 'theme-warm', id: 'warm', label: 'Warm', hint: 'Warm orange' },
   { token: 'theme-cool', id: 'cool', label: 'Cool', hint: 'Soft lilac' },
+  { token: 'theme-bakery', id: 'bakery', label: 'Bakery', hint: 'Golden, light and dark brown' },
   { token: 'theme-classic', id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
 ]
 const STRENGTHS = [
@@ -51,6 +52,7 @@ const SWITCHES = [
   { token: 'calm', label: 'Reduce motion', desc: 'Minimize animations and movement.', icon: Zap },
   { token: 'dyslexia', label: 'Dyslexia-friendly font', desc: 'Use a more readable typeface with extra spacing.', icon: BookOpen },
   { token: 'underline', label: 'Underline links', desc: 'Always underline links for clarity.', icon: Underline },
+  { token: 'sounds-on', label: 'Sounds in Tidbits', desc: 'A soft sound when you finish a Tidbit (a Bite) or give a Well-Done. Off unless you turn it on.', icon: Volume2 },
 ]
 
 function savedTokens(): string[] {

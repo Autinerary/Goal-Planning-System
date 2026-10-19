@@ -11,7 +11,7 @@
 export const FEEDBACK_EMAIL = 'heydevs@autinerary.ca'
 
 export type FeedbackKind = 'bug' | 'idea' | 'question' | 'recommendation' | 'listing' | 'general'
-export type FeedbackAbout = 'service' | 'product' | 'article' | 'app' | 'resourcehub'
+export type FeedbackAbout = 'service' | 'product' | 'article' | 'app' | 'resourcehub' | 'tidbits'
 
 export const FEEDBACK_KINDS: { id: Exclude<FeedbackKind, 'listing' | 'general'>; label: string }[] = [
   { id: 'bug', label: 'Something isn’t working' },
@@ -21,7 +21,7 @@ export const FEEDBACK_KINDS: { id: Exclude<FeedbackKind, 'listing' | 'general'>;
 ]
 
 const LABEL: Record<FeedbackKind, string> = { bug: 'Bug', idea: 'Idea', question: 'Question', recommendation: 'Recommendation', listing: 'Listing', general: 'Feedback' }
-const ABOUT: Record<FeedbackAbout, string> = { service: 'Service', product: 'Product', article: 'Article', app: 'App', resourcehub: 'ResourceHub' }
+const ABOUT: Record<FeedbackAbout, string> = { service: 'Service', product: 'Product', article: 'Article', app: 'App', resourcehub: 'ResourceHub', tidbits: 'Tidbits' }
 
 const TEMPLATE: Record<FeedbackKind, string> = {
   bug: 'What happened:\n\n\nWhat you expected:\n\n\nYour device and browser (optional):\n',

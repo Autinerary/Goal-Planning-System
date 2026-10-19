@@ -44,7 +44,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
   resourcehub:
-    name: ResourceHub (types, build)
+    name: ResourceHub (types, unit tests, build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,9 +58,13 @@ jobs:
           cache-dependency-path: servicehub-mvp/package-lock.json
       - name: Shop taxonomy (the two apps' copies match)
         run: node ../scripts/qa/check-taxonomy.mjs
+      - name: Sponsored listings (the two apps' copies match)
+        run: node ../scripts/qa/check-sponsored.mjs
       - run: npm ci
       - name: Type check
         run: npx tsc --noEmit
+      - name: Unit tests (lib/**/*.test.mjs)
+        run: for t in $(find lib -name '*.test.mjs'); do node --experimental-strip-types "$t" || exit 1; done
       - name: Build
         run: npx next build
         env:

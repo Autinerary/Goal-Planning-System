@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 import type { Database, Profile, ReviewerProfile, Resource, Rating, UserBarrier, SavedResource, Location, ContactInfo, BarrierScores } from '@/types/database'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
+import { conditionStems } from '@/lib/search/conditions'
+import { SHORT_WAITS } from '@/lib/waits'
 import { sharedCache, cacheKey } from '@/lib/cache/shared'
 import { searchWords, cleanTerm, inNameDescriptionOrCategory } from '@/lib/search/words'
 import { weightFor, RELATIONSHIP_ORDER, type Relationship } from '@/lib/trust/relationship'
@@ -943,6 +945,8 @@ export interface SearchFilters {
   costType?: 'free' | 'paid'
   /** Online or in person; each includes services offered both ways. */
   delivery?: 'online' | 'in_person'
+  /** Only listings with a wait of a month or less (STEP 83). */
+  shortWait?: boolean
   /** Started (or was added) on or after this date, YYYY-MM-DD: "Age of service". */
   startedAfter?: string
   categories?: string[] // Category multi-select
@@ -1189,22 +1193,51 @@ export async function ratingCountsForNorm(ids: string[], norm: string): Promise<
 }
 
 /**
- * The keys a condition filter matches: 'autism:level_2' matches 'autism',
- * 'level_2' and 'autism_level_2'.
+ * Listings with a wait of a month or less, by what people who used them said
+ * or what the service states (STEP 83; the 5Qs report: "Waittime is a
+ * universal bug"). Before STEP 83 there are none.
  */
-function conditionKeys(tokens: string[]): Set<string> {
-  const keys = new Set<string>()
+/** How many services have a short wait on record (0 before STEP 83): the home page shows the "Short waits" link only when some do. */
+export async function countShortWaits(): Promise<number> {
+  const list = SHORT_WAITS.join(',')
+  const { count, error } = await createClient()
+    .from('resources')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'approved')
+    .or(`wait_reported.in.(${list}),wait_stated.in.(${list})`)
+  return error ? 0 : count ?? 0
+}
+
+async function shortWaitIds(): Promise<string[]> {
+  const list = SHORT_WAITS.join(',')
+  const { data, error } = await createClient()
+    .from('resources')
+    .select('id')
+    .eq('status', 'approved')
+    .or(`wait_reported.in.(${list}),wait_stated.in.(${list})`)
+    .limit(5000)
+  return error ? [] : (data || []).map((r: { id: string }) => r.id)
+}
+
+/**
+ * What a condition filter matches. In a place's own text: the words people
+ * use for it (conditionStems: 'learning disab' for Specific Learning
+ * Disabilities). Among the norms its ratings carry: the condition, or with a
+ * level ('autism:level_2') that level. A level used to add its own words, so
+ * "Autism, Level 2" matched every page that said "level 2" (and an
+ * underscore is a wildcard in LIKE): wider than Autism, not narrower.
+ */
+function conditionMatch(tokens: string[]): { text: Set<string>; rated: Set<string> } {
+  const text = new Set<string>()
+  const rated = new Set<string>()
   for (const token of tokens) {
     const colon = token.indexOf(':')
-    const id = colon === -1 ? token : token.slice(0, colon)
-    const sub = colon === -1 ? undefined : token.slice(colon + 1)
-    keys.add(id.toLowerCase())
-    if (sub) {
-      keys.add(sub.toLowerCase())
-      keys.add(`${id}_${sub}`.toLowerCase())
-    }
+    const id = (colon === -1 ? token : token.slice(0, colon)).toLowerCase()
+    const sub = colon === -1 ? undefined : token.slice(colon + 1).toLowerCase()
+    for (const stem of conditionStems(id)) text.add(stem)
+    rated.add(sub ? `${id}_${sub}` : id)
   }
-  return keys
+  return { text, rated }
 }
 
 /** The text a search must match: its groups when set (understood searches), else each word. */
@@ -1262,12 +1295,14 @@ async function searchPage(
     if (filters.barriers && filters.barriers.length > 0) {
       narrow(Array.from(index.normKeys).filter(([, keys]) => filters.barriers!.some((b) => keys.has(b))).map(([id]) => id))
     }
+    if (filters.shortWait) narrow(await shortWaitIds())
     if (filters.connectionTypes && filters.connectionTypes.length > 0) {
       narrow(Array.from(index.raterTypes).filter(([, types]) => filters.connectionTypes!.some((t) => types.has(t))).map(([id]) => id))
     }
-    const condKeys = filters.conditions && filters.conditions.length > 0 ? conditionKeys(filters.conditions) : null
-    const condIds = condKeys
-      ? Array.from(index.normKeys).filter(([, keys]) => Array.from(keys).some((k) => condKeys.has(k.toLowerCase()))).map(([id]) => id)
+    const cond = filters.conditions && filters.conditions.length > 0 ? conditionMatch(filters.conditions) : null
+    const condKeys = cond ? cond.text : null
+    const condIds = cond
+      ? Array.from(index.normKeys).filter(([, keys]) => Array.from(keys).some((k) => cond.rated.has(k.toLowerCase()))).map(([id]) => id)
       : []
     const allowedIds: string[] | null = allowed ? Array.from(allowed as Set<string>) : null
 
@@ -1586,6 +1621,8 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
         .map(([id]) => id)
     )
   }
+  // A short wait: what people who used it said, or what the service states (STEP 83).
+  if (filters.shortWait) narrow(await shortWaitIds())
   // Connection types: at least one rating by someone with a chosen connection
   // (the rater_connection_types snapshot taken when they rated).
   if (filters.connectionTypes && filters.connectionTypes.length > 0) {
@@ -1598,10 +1635,11 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
   if (allowed !== null && (allowed as Set<string>).size === 0) return []
 
   // Conditions match a venue's own text, or the norm keys in its ratings.
-  const condKeys = filters.conditions && filters.conditions.length > 0 ? conditionKeys(filters.conditions) : null
-  const condIds = condKeys
+  const cond = filters.conditions && filters.conditions.length > 0 ? conditionMatch(filters.conditions) : null
+  const condKeys = cond ? cond.text : null
+  const condIds = cond
     ? Array.from(index.normKeys)
-        .filter(([, keys]) => Array.from(keys).some((k) => condKeys.has(k.toLowerCase())))
+        .filter(([, keys]) => Array.from(keys).some((k) => cond.rated.has(k.toLowerCase())))
         .map(([id]) => id)
     : []
 

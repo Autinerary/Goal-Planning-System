@@ -195,7 +195,7 @@ export default function RequestsQueue() {
           </ul>
 
           {section('Promotions sent for approval', d.promotions.length)}
-          <p className="text-sm text-gray-700">Approved promotions show only once sponsored listings are turned on, labelled “Sponsored”. Check the words are true, kind and not medical claims.</p>
+          <p className="text-sm text-gray-700">Approved promotions show only once sponsored listings are turned on, labelled “Sponsored”. Check the words are true, kind and not medical claims. Edited words come back here before they show again.</p>
           <ul className="mt-2 space-y-3">
             {d.promotions.map((p) => (
               <li key={p.id} className={card}>
@@ -206,6 +206,13 @@ export default function RequestsQueue() {
                 <p className="mt-1 text-xs text-gray-700">
                   Searches: {(p.keywords || []).join(', ') || 'any'} · Provinces: {(p.provinces || []).join(', ') || 'any'} · {p.starts_on || '…'} to {p.ends_on || '…'}
                 </p>
+                {p.placements && (
+                  <p className="text-xs text-gray-700">
+                    Shows in: {p.placements.map((x: string) => ({ search: 'searches', tidbits: 'Tidbits', paths: 'plans in the app' } as Record<string, string>)[x] || x).join(', ')}
+                    {p.bid_cents ? ` · $${(p.bid_cents / 100).toFixed(2)} a click` : ' · no click price'}
+                    {p.budget_cents != null ? ` · budget $${(p.budget_cents / 100).toFixed(2)}${p.paid_at ? ', paid' : ''}` : ''}
+                  </p>
+                )}
                 {p.image_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.image_url} alt="The promotion's picture" className="mt-2 h-24 w-auto rounded border border-gray-200" />

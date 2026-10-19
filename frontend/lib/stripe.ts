@@ -22,6 +22,14 @@ export function planForPrice(priceId: string | null | undefined): Plan | null {
 export const paymentsReady = () =>
   Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && priceFor('monthly') && priceFor('yearly') && businessReady())
 
+/**
+ * A listing's owner can pay for a sponsored listing's budget (STEP 83;
+ * app/api/business/promotions/checkout): Stripe, the business details, and
+ * sponsored listings turned on, so nobody pays for clicks that can't happen.
+ */
+export const promotionPaymentsReady = () =>
+  Boolean(process.env.NEXT_PUBLIC_SPONSORED === 'on' && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && businessReady())
+
 let cached: { at: number; prices: Prices | null } | null = null
 
 /**

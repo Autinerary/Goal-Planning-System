@@ -55,6 +55,9 @@ export const formatMoney = (cents: number, currency = 'cad') =>
 
 export const planWords = (plan: Plan) => (plan === 'monthly' ? 'a month' : 'a year')
 
+/** What a listing's owner can add to a sponsored listing's budget at a time, in cents (app/api/business/promotions/checkout). */
+export const PROMOTION_BUDGETS = [2500, 5000, 10000, 25000]
+
 /** Pages that stay open when someone has no access: paying, free access, the rules, and their own account. */
 export const PAYWALL_OPEN = ['/', '/start', '/kits', '/go', '/billing', '/free-access', '/pricing', '/petition', '/terms', '/privacy', '/help', '/profile', '/auth', '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding', '/newsletter', '/community-choice', '/spot-guides', '/emails', '/checkin', '/business', '/providers']
 

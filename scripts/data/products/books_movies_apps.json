@@ -2006,7 +2006,7 @@
    "slug": "deej-documentary",
    "name": "Deej",
    "brand": "Deej (Rooy Media)",
-   "category": "movies-documentaries",
+   "category": "movies-films",
    "description": "A documentary about DJ Savarese, a nonspeaking autistic poet, from high school to college, told largely in his own words. About inclusion and what the right support makes possible.",
    "qualities": [
     "nd_character",
@@ -2039,7 +2039,7 @@
    "slug": "neurotypical-pov-documentary",
    "name": "Neurotypical",
    "brand": "POV (PBS)",
-   "category": "movies-documentaries",
+   "category": "movies-films",
    "description": "A 2013 documentary that looks at autism through the eyes of three autistic people of different ages, a young child, a teenager and an adult, and how they make sense of a neurotypical world.",
    "qualities": [
     "nd_character"
@@ -2066,7 +2066,7 @@
    "slug": "i-have-tourettes-hbo-documentary",
    "name": "I Have Tourette’s but Tourette’s Doesn’t Have Me",
    "brand": "HBO Documentary Films",
-   "category": "movies-documentaries",
+   "category": "movies-films",
    "description": "A 2005 HBO documentary in which more than a dozen American children with Tourette syndrome talk candidly about their lives.",
    "qualities": [
     "nd_character"

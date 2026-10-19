@@ -66,7 +66,8 @@
         "edu_kindergarten_senior",
         "edu_elementary",
         "parent_children",
-        "respite_care"
+        "respite_care",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not state a cost.",
@@ -402,7 +403,8 @@
       "tags": [
         "edu_daycare",
         "parent_babies",
-        "parent_children"
+        "parent_children",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not state a cost.",
@@ -499,7 +501,8 @@
         "edu_kindergarten_senior",
         "edu_elementary",
         "parent_children",
-        "respite_care"
+        "respite_care",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The pages fetched do not say whether services are free.",
@@ -632,7 +635,8 @@
         "edu_elementary",
         "parent_children",
         "respite_care",
-        "recreation"
+        "recreation",
+        "parent_support"
       ],
       "cost": "free",
       "cost_note": "The page says 'There is no cost.'",
@@ -662,7 +666,8 @@
       "tags": [
         "edu_daycare",
         "parent_babies",
-        "provides_diagnosis"
+        "provides_diagnosis",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The pages fetched do not state a cost.",
@@ -863,7 +868,8 @@
         "edu_elementary",
         "parent_children",
         "respite_care",
-        "large_resource_centre"
+        "large_resource_centre",
+        "parent_support"
       ],
       "cost": "free",
       "cost_note": "The page says 'There is no cost.'",
@@ -892,7 +898,8 @@
       "category": "Therapist",
       "tags": [
         "edu_daycare",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not say whether the program is free.",
@@ -919,7 +926,8 @@
       "tags": [
         "edu_daycare",
         "parent_babies",
-        "parent_children"
+        "parent_children",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not state a cost (it links to a general Fees and Payments page).",
@@ -1027,7 +1035,8 @@
       "category": "Therapist",
       "tags": [
         "edu_daycare",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not say whether the service is free.",
@@ -1179,7 +1188,8 @@
       "category": "Therapist",
       "tags": [
         "edu_daycare",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "free",
       "cost_note": "The page says all services are offered at no charge to families.",

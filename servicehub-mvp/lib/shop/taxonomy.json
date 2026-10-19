@@ -11,7 +11,7 @@
     { "id": "movies", "label": "Movies & TV", "description": "Films, series and documentaries with neurodivergent people in them." },
     { "id": "apps", "label": "Apps", "description": "Apps for routines, communication, focus and learning." },
     { "id": "home-safety", "label": "Safety at home", "description": "Wandering, location and home safety." },
-    { "id": "play-school", "label": "Play & school", "description": "Toys, games, crafts, and things that help at school and work." }
+    { "id": "play-school", "label": "Play & school", "description": "Toys, video games, crafts, and things that help at school and work." }
   ],
   "categories": [
     { "id": "food-snacks", "label": "Snacks", "group": "food" },
@@ -43,9 +43,8 @@
     { "id": "books-guides", "label": "Guides", "group": "books" },
     { "id": "books-children", "label": "Children's & teen books", "group": "books" },
     { "id": "books-fiction", "label": "Fiction", "group": "books" },
-    { "id": "movies-films", "label": "Films", "group": "movies" },
+    { "id": "movies-films", "label": "Films & documentaries", "group": "movies" },
     { "id": "movies-series", "label": "TV series", "group": "movies" },
-    { "id": "movies-documentaries", "label": "Documentaries", "group": "movies" },
     { "id": "apps-planning", "label": "Planning & routines", "group": "apps" },
     { "id": "apps-communication", "label": "Communication (AAC)", "group": "apps" },
     { "id": "apps-focus-calm", "label": "Focus & calm", "group": "apps" },
@@ -53,9 +52,11 @@
     { "id": "safety-wandering", "label": "Wandering & location", "group": "home-safety" },
     { "id": "safety-home", "label": "Home safety", "group": "home-safety" },
     { "id": "toys-games", "label": "Toys, games & crafts", "group": "play-school" },
+    { "id": "video-games", "label": "Video games", "group": "play-school" },
     { "id": "school-work", "label": "School & work", "group": "play-school" }
   ],
   "legacy": {
+    "movies-documentaries": "movies-films",
     "books": "books-guides",
     "clothing": "clothing-everyday",
     "crafts": "toys-games",
@@ -133,9 +134,9 @@
 
     { "id": "no_ads", "label": "No ads", "groups": ["apps"], "core": true, "help": "The app shows no advertising." },
     { "id": "price_free", "label": "Free", "groups": ["apps", "movies"], "core": true, "help": "Free to use, or free to watch somewhere." },
-    { "id": "one_time_price", "label": "One-time price", "groups": ["apps"], "core": false, "help": "Bought once, no subscription." },
+    { "id": "one_time_price", "label": "One-time price", "groups": ["apps", "play-school"], "core": false, "help": "Bought once, no subscription." },
     { "id": "subscription", "label": "Subscription", "groups": ["apps", "home-safety"], "core": false, "help": "Needs a monthly or yearly payment." },
-    { "id": "works_offline", "label": "Works offline", "groups": ["apps"], "core": false, "help": "Works without an internet connection." },
+    { "id": "works_offline", "label": "Works offline", "groups": ["apps", "play-school"], "core": false, "help": "Works without an internet connection." },
     { "id": "visual_supports", "label": "Visual supports", "groups": ["apps", "play-school"], "core": true, "help": "Picture symbols, visual schedules or timers." },
     { "id": "customizable", "label": "Customizable", "groups": ["apps"], "core": false, "help": "Words, pictures, sounds or colours can be changed." },
     { "id": "screen_reader", "label": "Works with screen readers", "groups": ["apps"], "core": false, "help": "The maker says it works with VoiceOver or TalkBack." },
@@ -153,7 +154,12 @@
     { "id": "cooperative", "label": "Cooperative", "groups": ["play-school"], "core": false, "help": "Played together, not against each other." },
     { "id": "visual_instructions", "label": "Picture instructions", "groups": ["play-school"], "core": false, "help": "Instructions with pictures or steps." },
     { "id": "non_toxic", "label": "Non-toxic", "groups": ["play-school", "sensory"], "core": false, "help": "The maker says it is non-toxic." },
-    { "id": "fine_motor", "label": "Easy grip", "groups": ["play-school"], "core": false, "help": "Chunky, easy-grip or adapted for hands that find small items hard." }
+    { "id": "fine_motor", "label": "Easy grip", "groups": ["play-school"], "core": false, "help": "Chunky, easy-grip or adapted for hands that find small items hard." },
+
+    { "id": "no_time_pressure", "label": "No time pressure", "groups": ["play-school"], "core": true, "help": "No timers or racing the clock: play at your own pace." },
+    { "id": "chat_off", "label": "No chat with strangers", "groups": ["play-school"], "core": true, "help": "There is no open chat with people you don’t know, or it can be turned off." },
+    { "id": "no_in_app_purchases", "label": "No in-app purchases", "groups": ["play-school", "apps"], "core": false, "help": "Nothing more to buy inside it." },
+    { "id": "chewy", "label": "Chewy", "groups": ["food", "allergies"], "core": false, "help": "A chewy texture, which some people love and others avoid." }
   ],
   "values": [
     { "id": "noise_reduction_db", "label": "Noise reduction", "unit": "dB", "groups": ["sensory", "self-care"] },
@@ -161,8 +167,9 @@
     { "id": "ages", "label": "Ages", "unit": "", "groups": ["*"] },
     { "id": "pages", "label": "Pages", "unit": "", "groups": ["books"] },
     { "id": "runtime_min", "label": "Running time", "unit": "min", "groups": ["movies"] },
-    { "id": "rating", "label": "Rated", "unit": "", "groups": ["movies"] },
+    { "id": "rating", "label": "Rated", "unit": "", "groups": ["movies", "play-school"] },
     { "id": "chew_strength", "label": "Chew strength", "unit": "", "groups": ["sensory"] },
-    { "id": "material", "label": "Material", "unit": "", "groups": ["*"] }
+    { "id": "material", "label": "Material", "unit": "", "groups": ["*"] },
+    { "id": "platforms", "label": "Plays on", "unit": "", "groups": ["play-school"] }
   ]
 }

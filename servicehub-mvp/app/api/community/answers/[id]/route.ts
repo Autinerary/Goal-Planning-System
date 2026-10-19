@@ -3,15 +3,17 @@
  *   PATCH  — edit body_markdown / image_urls (author, or an admin)
  *   DELETE — soft-delete (author or admin)
  *
- * Both run as the signed-in caller, not with the service-role key. PATCH is
- * under RLS: the author under community_answers_update, an admin
- * (public.admin_users) under community_answers_admin_update. DELETE calls
+ * Who may edit is decided as the signed-in caller (their session reads the
+ * answer; is_admin() answers for moderators). The words then go through the
+ * automatic moderation and the server saves them: since STEP 83 people can't
+ * write answers straight into the table. DELETE calls
  * community_delete_answer, which checks author or admin itself (STEP 58).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isCommunityAdmin } from '@/lib/community/client';
+import { getCommunityServiceClient, isCommunityAdmin } from '@/lib/community/client';
+import { moderateText, SLUR_MESSAGE } from '@/lib/community/moderation';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +56,9 @@ export async function PATCH(
     if (m.length < 10 || m.length > 30000) {
       return NextResponse.json({ error: 'Body must be 10-30,000 characters' }, { status: 400 });
     }
-    update.body_markdown = m;
+    const moderated = moderateText(m);
+    if (moderated.slur) return NextResponse.json({ error: SLUR_MESSAGE, code: 'slur' }, { status: 400 });
+    update.body_markdown = moderated.text;
   }
   if (Array.isArray(body.image_urls)) {
     update.image_urls = body.image_urls
@@ -64,7 +68,9 @@ export async function PATCH(
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true });
   }
-  const { data: updated, error } = await supabase
+  const client = getCommunityServiceClient();
+  if (!client) return NextResponse.json({ error: 'Community is not configured' }, { status: 503 });
+  const { data: updated, error } = await client
     .from('community_answers')
     .update(update)
     .eq('id', params.id)

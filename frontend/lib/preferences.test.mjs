@@ -8,15 +8,17 @@ import { COLOUR_THEMES, COLOUR_STRENGTHS, DEFAULT_LAYOUT, colourStrengthOf, them
 // Earthy first, and the default; Warm and Cool (the products round's
 // planning note: "Warm orange (warm mode) / soft lilac (cool mode)"); Classic,
 // the original colours, is still there.
-assert.deepEqual(COLOUR_THEMES.map((t) => t.id), ['earthy', 'ocean', 'sand', 'warm', 'cool', 'classic'])
+assert.deepEqual(COLOUR_THEMES.map((t) => t.id), ['earthy', 'ocean', 'sand', 'warm', 'cool', 'bakery', 'classic'])
 assert.equal(COLOUR_THEMES.find((t) => t.id === 'warm').hint, 'Warm orange')
 assert.equal(COLOUR_THEMES.find((t) => t.id === 'cool').hint, 'Soft lilac')
+assert.equal(COLOUR_THEMES.find((t) => t.id === 'bakery').hint, 'Golden, light and dark brown')
 assert.equal(DEFAULT_LAYOUT.theme, 'earthy')
 assert.equal(themeOf(undefined), 'earthy')
 assert.equal(themeOf({}), 'earthy')
 assert.equal(themeOf({ theme: 'sand' }), 'sand')
 assert.equal(themeOf({ theme: 'warm' }), 'warm')
 assert.equal(themeOf({ theme: 'cool' }), 'cool')
+assert.equal(themeOf({ theme: 'bakery' }), 'bakery')
 // A theme that does not exist (an old or hand-edited value) is Earthy.
 assert.equal(themeOf({ theme: 'neon' }), 'earthy')
 

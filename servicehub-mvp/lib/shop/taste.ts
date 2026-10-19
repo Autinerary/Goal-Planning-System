@@ -10,6 +10,7 @@ export const TASTE_QUALITIES = [
   'texture_crunchy',
   'texture_soft',
   'texture_smooth',
+  'chewy',
   'mild_flavour',
   'consistent',
   'soft_fabric',

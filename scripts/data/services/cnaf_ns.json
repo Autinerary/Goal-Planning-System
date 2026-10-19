@@ -160,7 +160,9 @@
       "website": "https://novascotia.ca/coms/disabilities/index.html",
       "description": "The Government of Nova Scotia's program for children, youth and adults with intellectual disabilities, long-term mental illness or physical disabilities. It funds community living options (such as Flex individualized funding, Independent Living Support and Alternative Family Support), day programs, and family support for children living at home.",
       "category": "Social Services",
-      "tags": [],
+      "tags": [
+        "parent_support"
+      ],
       "cost": "unknown",
       "cost_note": "The page does not mention cost; financial eligibility rules are in the DSP Policy.",
       "delivery": "in_person",
@@ -278,7 +280,8 @@
         "parent_babies",
         "parent_children",
         "parent_preteens",
-        "parent_teens"
+        "parent_teens",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "A funding program with family income guidelines; the page does not mention any cost.",
@@ -377,7 +380,8 @@
       "description": "Bartimaeus, a Canadian company founded in 1988, provides behavioural support services in Nova Scotia. Its Residential Resource offers short-term respite or specialized support stays for children, adolescents and adults with complex behaviours, and it also offers in-home and community family support, mentoring for youth moving into adulthood, and counselling for parents.",
       "category": "Social Services",
       "tags": [
-        "respite_care"
+        "respite_care",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost.",

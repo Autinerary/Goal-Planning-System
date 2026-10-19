@@ -303,7 +303,8 @@
         "parent_babies",
         "parent_children",
         "parent_preteens",
-        "parent_teens"
+        "parent_teens",
+        "parent_support"
       ],
       "cost": "free",
       "cost_note": "Government program; the page describes direct funding for eligible families and free community-based services.",
@@ -581,7 +582,8 @@
       "category": "Organization",
       "tags": [
         "advocacy",
-        "charity"
+        "charity",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention fees; it asks for donations.",

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ratingAccess } from '@/lib/ratings/access'
-import { getResourceDetail, getSimilarResources } from '@/lib/supabase/queries'
+import { getResourceDetail, getSimilarResources, countShortWaits } from '@/lib/supabase/queries'
 import { findSimilarResources } from '@/lib/supabase/vector-queries'
 import { findSimilarUsers } from '@/lib/supabase/vector-queries'
 import { getUserBarriers } from '@/lib/supabase/queries'
@@ -23,6 +23,8 @@ import ServiceComments from '@/components/resources/detail/ServiceComments'
 import ClaimListing from '@/components/resources/detail/ClaimListing'
 import ServiceSidebarNote from '@/components/resources/detail/ServiceSidebar'
 import ReportProblem from '@/components/layout/ReportProblem'
+import WaitTimes from '@/components/resources/detail/WaitTimes'
+import OriginalArticle from '@/components/resources/detail/OriginalArticle'
 import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
 import { usersChoiceFor } from '@/lib/shop/usersChoice'
@@ -226,6 +228,8 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
               />
             )}
 
+            <OriginalArticle resource={resource as any} />
+
             <ResourceContent resource={resource} />
 
             <RatingsBreakdown
@@ -264,6 +268,7 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
               resources on mobile moved to main content. */}
           <div className="lg:col-span-1 space-y-4">
             <ServiceSidebarNote />
+            <WaitTimes resource={resource as any} shortWaits={await countShortWaits()} />
             <ClaimListing kind="resource" id={resourceId} />
             <ReportProblem about={resource.category === 'commentary' ? 'article' : 'service'} name={resource.name} />
           </div>

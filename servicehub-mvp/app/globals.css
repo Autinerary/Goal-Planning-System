@@ -318,3 +318,19 @@ html[data-underline-links="on"] a { text-decoration: underline; }
     margin-block: -0.75rem;
   }
 }
+
+/* Tidbits: the Bite and Well-Done pop-up (components/community/TreatToast.tsx;
+   the Tidbits round, Goal 3). With Reduce motion on it doesn't move: it shows,
+   and goes after a moment. */
+@keyframes treat-pop {
+  0% { transform: translateY(12px) scale(0.85); opacity: 0; }
+  15% { transform: translateY(0) scale(1.06); opacity: 1; }
+  25% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateY(-8px); opacity: 0; }
+}
+.animate-treat { animation: treat-pop 2.2s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-treat { animation: none !important; opacity: 1 !important; }
+}
+html[data-reduce-motion="on"] .animate-treat { animation: none !important; opacity: 1 !important; }

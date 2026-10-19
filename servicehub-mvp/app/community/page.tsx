@@ -14,7 +14,16 @@ import {
   CheckCircle2,
   Lightbulb,
   Plus,
+  Award,
+  ChefHat,
+  Cookie,
+  ExternalLink,
+  PenLine,
+  Users,
+  Boxes,
 } from 'lucide-react'
+import ChefAvatar from '@/components/community/ChefAvatar'
+import RulesDialog, { useCommunityRules } from '@/components/community/RulesDialog'
 import type { CommunityPostSummary, FeedSort } from '@/types/community'
 import BadgeList from '@/components/community/BadgeList'
 import Navbar from '@/components/layout/Navbar'
@@ -26,10 +35,50 @@ interface FeedResponse {
   posts: CommunityPostSummary[]
   page: number
   page_size: number
+  /** False before STEP 83: questions only. */
+  tidbits?: boolean
+  chefs_pick?: CommunityPostSummary | null
+}
+
+// The Tidbits round (STEP 83): what kind of post, and the Tidbits' own filters.
+const KINDS = [
+  { id: 'all', label: 'All' },
+  { id: 'tidbit', label: 'Tidbits' },
+  { id: 'question', label: 'Questions' },
+] as const
+const SOURCES = [
+  { id: '', label: 'From anywhere' },
+  { id: 'internal_rated', label: 'Our own, rated' },
+  { id: 'internal_unrated', label: 'Our own, not rated yet' },
+  { id: 'external', label: 'Reviews of outside articles' },
+]
+
+/** "Tidbit · 320 words", the group, and where it came from. */
+function TidbitBadges({ p }: { p: CommunityPostSummary }) {
+  if (p.kind !== 'tidbit') return null
+  return (
+    <>
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-950">
+        <ChefHat className="h-3 w-3" aria-hidden="true" /> {p.length_type === 'tadbit' ? 'Tadbit' : 'Tidbit'}
+      </span>
+      {p.source === 'external' && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-950">
+          <ExternalLink className="h-3 w-3" aria-hidden="true" /> Review{p.external_platform ? ` · ${p.external_platform}` : ''}
+        </span>
+      )}
+      {(p.item_count ?? 0) > 0 && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-950">
+          <Boxes className="h-3 w-3" aria-hidden="true" /> {p.item_count} {p.item_count === 1 ? 'resource' : 'resources'}
+        </span>
+      )}
+    </>
+  )
 }
 
 const SORTS: ReadonlyArray<{ id: FeedSort; label: string; icon: typeof Clock }> = [
   { id: 'recent', label: 'Recent', icon: Clock },
+  // The best Tidbits first, by their Well-Dones (the Tidbits round, Goal 10).
+  { id: 'best', label: 'Best', icon: Award },
   { id: 'top', label: 'Top', icon: TrendingUp },
   { id: 'unanswered', label: 'Unanswered', icon: MessageCircleQuestion },
   { id: 'solved', label: 'Solved', icon: CheckCircle2 },
@@ -61,6 +110,26 @@ function FeedInner() {
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const kind = (searchParams?.get('kind') as 'all' | 'tidbit' | 'question') || 'all'
+  const length = searchParams?.get('length') ?? ''
+  const source = searchParams?.get('source') ?? ''
+  const integrated = searchParams?.get('integrated') === '1'
+  const group = searchParams?.get('group') ?? ''
+  const [tidbitsOpen, setTidbitsOpen] = useState(true)
+  const [chefsPick, setChefsPick] = useState<CommunityPostSummary | null>(null)
+  const [groups, setGroups] = useState<{ slug: string; name: string }[]>([])
+  const rules = useCommunityRules()
+  const [rulesOpen, setRulesOpen] = useState(false)
+  // The first time someone opens Tidbits: the two pages of rules (Goal 2).
+  useEffect(() => {
+    if (rules.needed) setRulesOpen(true)
+  }, [rules.needed])
+  useEffect(() => {
+    fetch('/api/community/groups', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setGroups((d.groups ?? []).map((g: { slug: string; name: string }) => ({ slug: g.slug, name: g.name }))))
+      .catch(() => {})
+  }, [])
 
   const withOriginContext = useCallback(
     (path: string) => {
@@ -74,8 +143,14 @@ function FeedInner() {
   )
 
   const setQuery = useCallback(
-    (next: Partial<{ sort: FeedSort; q: string; barrier: string }>) => {
+    (next: Partial<{ sort: FeedSort; q: string; barrier: string; kind: string; length: string; source: string; integrated: string; group: string }>) => {
       const params = new URLSearchParams(searchParams?.toString())
+      for (const key of ['kind', 'length', 'source', 'integrated', 'group'] as const) {
+        const v = next[key]
+        if (v === undefined) continue
+        if (v && v !== 'all') params.set(key, v)
+        else params.delete(key)
+      }
       if (next.sort !== undefined) params.set('sort', next.sort)
       if (next.q !== undefined) {
         if (next.q) params.set('q', next.q)
@@ -103,13 +178,23 @@ function FeedInner() {
     const uniqueNorms = Array.from(new Set(normTokens.filter(Boolean)))
     if (uniqueNorms.length) params.set('barrier', uniqueNorms.join(','))
     if (lifeAreas.length) params.set('category', lifeAreas.join(','))
+    if (kind !== 'all') params.set('kind', kind)
+    if (kind !== 'question') {
+      if (length) params.set('length', length)
+      if (source) params.set('source', source)
+      if (integrated) params.set('integrated', '1')
+      if (group) params.set('group', group)
+    }
     fetch(`/api/community/posts?${params.toString()}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`Load failed (${res.status})`)
         return (await res.json()) as FeedResponse
       })
       .then((data) => {
-        if (!cancelled) setPosts(data.posts ?? [])
+        if (cancelled) return
+        setPosts(data.posts ?? [])
+        setTidbitsOpen(data.tidbits !== false)
+        setChefsPick(data.chefs_pick ?? null)
       })
       .catch((err) => {
         if (!cancelled) setError(err.message || 'Failed to load')
@@ -118,7 +203,7 @@ function FeedInner() {
     return () => {
       cancelled = true
     }
-  }, [sort, q, barriers, conditions, lifeAreas])
+  }, [sort, q, barriers, conditions, lifeAreas, kind, length, source, integrated, group])
 
   const activeFilterCount = barriers.length + conditions.length + lifeAreas.length
 
@@ -159,7 +244,7 @@ function FeedInner() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tidbits</h1>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            Ask, share, and learn from people who share your norms. Always pseudonymous.
+            Short, useful Tidbits from people who&apos;ve been there, and questions for the community. Pseudonymous, or anonymous if you like.
           </p>
           {/* Visible safety signals (Riipen Labs, Group 15: "clear moderation
               policy, content warnings, and an easy report path, especially
@@ -179,6 +264,9 @@ function FeedInner() {
               How Tidbits works
             </summary>
             <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>A Tidbit is a short piece, up to 500 words; a Tadbit, up to 1000. You write them in a group you&apos;ve joined, and you can publish one anonymously.</li>
+              <li>Reading a Tidbit to the end is a Bite. Rating one, 1 to 5, is a Well-Done. Best puts the best-rated first, and the best of the week is the Chef&apos;s pick.</li>
+              <li>Slurs aren&apos;t published, and swear words are bleeped, automatically.</li>
               <li>You post under a pseudonym, not your real name.</li>
               <li>You can vote other people&apos;s posts and answers up or down.</li>
               <li>The person who asked can accept one answer as the solution.</li>
@@ -192,13 +280,31 @@ function FeedInner() {
             </ul>
           </details>
         </div>
-        <Link
-          href={withOriginContext('/community/new')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4" />
-          Ask a question
-        </Link>
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          <div className="flex flex-wrap gap-2">
+            {tidbitsOpen && (
+              <Link href="/community/write" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                <PenLine className="w-4 h-4" aria-hidden="true" />
+                Write a Tidbit
+              </Link>
+            )}
+            <Link
+              href={withOriginContext('/community/new')}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium ${tidbitsOpen ? 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            >
+              <Plus className="w-4 h-4" />
+              Ask a question
+            </Link>
+          </div>
+          {tidbitsOpen && (
+            <div className="flex gap-4 text-sm">
+              <Link href="/community/mine" className="font-medium text-blue-800 underline underline-offset-2">My Tidbits</Link>
+              <Link href="/community/groups" className="inline-flex items-center gap-1 font-medium text-blue-800 underline underline-offset-2">
+                <Users className="h-4 w-4" aria-hidden="true" /> Groups
+              </Link>
+            </div>
+          )}
+        </div>
         </div>
 
         <div className="flex gap-8">
@@ -239,6 +345,51 @@ function FeedInner() {
           )}
         </button>
       </div>
+
+      {tidbitsOpen && (
+        <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label="What kind of post">
+          {KINDS.map((k) => (
+            <button
+              key={k.id}
+              type="button"
+              aria-pressed={kind === k.id}
+              onClick={() => setQuery({ kind: k.id })}
+              className={`rounded-full border px-3 py-1 text-sm ${kind === k.id ? 'border-blue-700 bg-blue-700 font-semibold text-white' : 'border-gray-300 bg-white text-gray-800 hover:bg-gray-50'}`}
+            >
+              {k.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {tidbitsOpen && kind !== 'question' && (
+        <div className="mb-4 grid gap-2 rounded-xl border border-gray-200 bg-white p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-gray-900">
+            <span className="block text-xs font-semibold text-gray-700">Length</span>
+            <select value={length} onChange={(e) => setQuery({ length: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+              <option value="">Any length</option>
+              <option value="tidbit">Tidbits (up to 500 words)</option>
+              <option value="tadbit">Tadbits (up to 1000 words)</option>
+            </select>
+          </label>
+          <label className="text-gray-900">
+            <span className="block text-xs font-semibold text-gray-700">Source</span>
+            <select value={source} onChange={(e) => setQuery({ source: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+              {SOURCES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </label>
+          <label className="text-gray-900">
+            <span className="block text-xs font-semibold text-gray-700">Group</span>
+            <select value={group} onChange={(e) => setQuery({ group: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+              <option value="">Every group</option>
+              {groups.map((g) => <option key={g.slug} value={g.slug}>{g.name}</option>)}
+            </select>
+          </label>
+          <label className="flex items-end gap-2 pb-1.5 text-gray-900">
+            <input type="checkbox" checked={integrated} onChange={(e) => setQuery({ integrated: e.target.checked ? '1' : '' })} className="h-4 w-4" />
+            Has Integrated Resources
+          </label>
+        </div>
+      )}
 
       <nav className="flex flex-wrap gap-1 mb-4 border-b border-gray-200">
         {SORTS.map(({ id, label, icon: Icon }) => (
@@ -308,6 +459,19 @@ function FeedInner() {
         </div>
       )}
 
+      {chefsPick && (
+        <Link href={withOriginContext(`/community/post/${chefsPick.id}`)} className="mb-4 block rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 hover:shadow-sm">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-900">
+            <Award className="h-4 w-4" aria-hidden="true" /> Chef&apos;s pick this week
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-gray-900">{chefsPick.title}</h2>
+          {chefsPick.excerpt && <p className="mt-1 line-clamp-2 text-sm text-gray-800">{chefsPick.excerpt}</p>}
+          <p className="mt-2 text-xs text-gray-800">
+            {chefsPick.well_done_avg} out of 5 from {chefsPick.well_done_count} Well-Dones · {chefsPick.author.pseudonym}
+          </p>
+        </Link>
+      )}
+
       <ul className="space-y-3">
         {posts.map((p) => (
           <li key={p.id}>
@@ -316,6 +480,16 @@ function FeedInner() {
               className="block rounded-2xl border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition"
             >
               <div className="flex gap-4">
+                {p.kind === 'tidbit' ? (
+                  <div className="hidden sm:flex flex-col items-center text-xs text-gray-700 w-14 shrink-0">
+                    <ChefHat className="h-4 w-4 text-amber-700" aria-hidden="true" />
+                    <div className="font-semibold tabular-nums text-gray-900">{p.well_done_avg ?? '–'}</div>
+                    <div>{p.well_done_count ?? 0} Well-Done{p.well_done_count === 1 ? '' : 's'}</div>
+                    <Cookie className="mt-2 h-4 w-4 text-amber-700" aria-hidden="true" />
+                    <div className="font-semibold tabular-nums text-gray-900">{p.bite_count ?? 0}</div>
+                    <div>Bites</div>
+                  </div>
+                ) : (
                 <div className="hidden sm:flex flex-col items-center text-xs text-gray-500 w-12 shrink-0">
                   <div className={`font-semibold tabular-nums ${
                     p.score > 0 ? 'text-emerald-700' : p.score < 0 ? 'text-rose-700' : 'text-gray-700'
@@ -328,8 +502,10 @@ function FeedInner() {
                   </div>
                   <div>answers</div>
                 </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <TidbitBadges p={p} />
                     {p.is_solved && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 text-white">
                         <CheckCircle2 className="w-3 h-3" />
@@ -379,7 +555,9 @@ function FeedInner() {
                       </span>
                     ))}
                     <span className="ml-auto flex items-center gap-2">
+                      <ChefAvatar author={p.author} size="sm" />
                       <span className="font-medium text-gray-700">{p.author.pseudonym}</span>
+                      {p.group && <span className="text-gray-600">in {p.group.name}</span>}
                       <RelationshipBadge relationship={p.author_relationship} />
                       <BadgeList badges={p.author.top_badges} max={1} />
                       <span aria-hidden="true">·</span>
@@ -394,6 +572,15 @@ function FeedInner() {
         </ul>
           </div>
         </div>
+        <RulesDialog
+          open={rulesOpen}
+          onClose={() => setRulesOpen(false)}
+          onAgree={async () => {
+            const ok = await rules.accept()
+            if (ok) setRulesOpen(false)
+            return ok
+          }}
+        />
       </main>
       <Footer />
     </div>

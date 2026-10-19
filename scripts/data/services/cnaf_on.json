@@ -184,7 +184,8 @@
       "tags": [
         "requires_diagnosis",
         "provides_diagnosis",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "Foundational family services, early years and entry to school programs are free for OAP-registered families; core clinical services are fee-based (OAP funding, out of pocket, community funding or private insurance).",
@@ -213,7 +214,8 @@
       "category": "Therapist",
       "tags": [
         "provides_diagnosis",
-        "free_first_visit"
+        "free_first_visit",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "The FAQ says all of CHEO's autism services can be purchased with an OAP Childhood Budget; registration starts with a free phone consultation.",
@@ -272,7 +274,8 @@
       "category": "Therapist",
       "tags": [
         "respite_care",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "Foundational family services, Entry to School and community clinic days are free; the page does not list fees for core clinical services.",
@@ -352,7 +355,8 @@
       "category": "Therapist",
       "tags": [
         "charity",
-        "siblings"
+        "siblings",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "Foundational Family Services are free for families registered in the OAP; the site does not list fees for other services.",
@@ -399,7 +403,8 @@
       "description": "A private ABA provider serving Hamilton, Oakville, Etobicoke, London and nearby areas. It offers autism diagnosis and psychoeducational assessments, ABA and IBI for children, social groups, tutoring, parent coaching, and adult and teen programs, in centre, at home or virtually.",
       "category": "Therapist",
       "tags": [
-        "provides_diagnosis"
+        "provides_diagnosis",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "The FAQ says OAP core clinical funding can be used for ABA programs and Passport funds toward the Hub day program's daily fee.",
@@ -430,7 +435,8 @@
       "description": "A Toronto ABA/IBI provider for children with autism and other developmental delays, with therapy at its centre, at home, at daycare or at school, plus parent training and behaviour management. It is OAP approved and serves both private and funded clients.",
       "category": "Therapist",
       "tags": [
-        "free_first_visit"
+        "free_first_visit",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "Serves private and funded (OAP) clients; offers a free first consultation at home.",
@@ -451,7 +457,9 @@
       "website": "https://exlcentre.com/",
       "description": "A centre in Ajax with a small-class private school program, 1:1 ABA therapy, speech-language therapy, parent coaching, social skills groups, ABA-based tutoring and a summer program for children and youth with autism, ADHD, communication disorders, learning disabilities and other neurodevelopmental needs.",
       "category": "Therapist",
-      "tags": [],
+      "tags": [
+        "parent_support"
+      ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost.",
       "delivery": "in_person",
@@ -507,7 +515,8 @@
       "category": "Therapist",
       "tags": [
         "charity",
-        "provides_diagnosis"
+        "provides_diagnosis",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost.",
@@ -1434,7 +1443,8 @@
       "description": "Assessments, treatment, consultation and training for adults with intellectual and/or developmental disabilities in the Hamilton, Niagara, Brant, Haldimand and Norfolk regions. The team includes psychometrists, occupational therapists, speech-language pathologists, social workers and behaviour consultants, offering counselling and therapy groups, caregiver support groups, speech-language services and behaviour support.",
       "category": "Therapist",
       "tags": [
-        "provides_diagnosis"
+        "provides_diagnosis",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost; most services are accessed through Developmental Services Ontario (DSO).",
@@ -1535,7 +1545,8 @@
       "description": "A Canadian-owned company, founded in 1988, that gives one-to-one support to children, adolescents and adults with behavioural, mental health or developmental challenges, in the family home, hospital, school, workplace or community. Its Ontario family services include behaviour programming, in-home respite and short-term Parent Help coaching (including on autism and neurodiversity), arranged through service coordinators across Ontario.",
       "category": "Social Services",
       "tags": [
-        "respite_care"
+        "respite_care",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not list fees.",
@@ -2046,7 +2057,8 @@
         "respite_care",
         "charity",
         "free_first_visit",
-        "parent_children"
+        "parent_children",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The first counselling appointment is free; whether fees apply depends on the program, and some programs are fully subsidized.",

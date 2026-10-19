@@ -84,6 +84,11 @@ export default function BusinessDashboard() {
     void loadClaims()
   }, [loadAccount, loadClaims])
 
+  // Back from paying for a sponsored listing's budget (promotions/checkout).
+  useEffect(() => {
+    if (params.get('promotion') === 'paid') setMsg({ ok: true, text: 'Thank you: your payment went through. The budget shows on the promotion once Stripe confirms it, usually within a minute.' })
+  }, [params])
+
   // From "Claim this listing" in ResourceHub: ?claim=resource:<id>
   useEffect(() => {
     const m = /^(resource|product):([0-9a-f-]{36})$/i.exec(params.get('claim') || '')

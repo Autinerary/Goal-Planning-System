@@ -14,6 +14,7 @@ Start here:
 - [docs/new-team-members.md](docs/new-team-members.md): For anyone joining: what Autinerary is, how the code is laid out, running it, how changes reach users, and where everything is written down.
 - [docs/debugging.md](docs/debugging.md): Problems the team has hit (deploys, cron jobs, database grants, email, search) and how to tell.
 - [docs/pitch-facts.md](docs/pitch-facts.md): Numbers (each with a date) and what makes Autinerary different, for pitches and partners.
+- [docs/product-portfolio.md](docs/product-portfolio.md): Every Autinerary product in one page (the app, ResourceHub, Tidbits, the shop, Hare World, Resource Accounts, emails): what it is, who it's for, what works, what is off.
 
 The October 2026 planning note, round by round:
 
@@ -24,6 +25,7 @@ The October 2026 planning note, round by round:
 - [docs/goals-6-11-2026-10.md](docs/goals-6-11-2026-10.md): Goals 6 to 11: 3D maps, the results page, feedback, accessibility (Listen, UserWay), Resource Accounts, Spot Guides, the Positivity Quota, the provinces, and the V1.5 survey of services.
 - [docs/subscriptions-2026-10.md](docs/subscriptions-2026-10.md): Goal 9: paid plans, the free month, free access, #FundAutinerary, and what consumer law asks for.
 - [docs/products-round-2026-10.md](docs/products-round-2026-10.md): The products round: the Warm and Cool themes, products and their qualities, 40 categories, Users' Choice, buying through ResourceHub (off), the revenue model, Vendor Accounts and discounts, the help chat, taste profiles, and the v2.0 and v3.0 roadmap.
+- [docs/tidbits-round-2026-10.md](docs/tidbits-round-2026-10.md): The Tidbits round: the 31 August feedback (search, learning disabilities, Path Market resources), the 5Qs report (wait times, support for parents, the email tiles, the article series), the starter products, and the Tidbits planning note (Bakery, the rules pop-up, Bites and Well-Dones, drafts, word limits, moderation, sponsored listings (off), the articles, v1.5 and v2.0).
 - [scripts/data/products/BRIEF.md](scripts/data/products/BRIEF.md): The brief the product researchers worked from: what to look for, and how each product, quality and price is checked.
 - [docs/terms-lawyer-review-2026-10.md](docs/terms-lawyer-review-2026-10.md): Questions for the lawyer, including paid plans and the shop.
 - [docs/parent-forms-interview-2026-10.md](docs/parent-forms-interview-2026-10.md): An interview guide about the forms parents find hardest.

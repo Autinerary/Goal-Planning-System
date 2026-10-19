@@ -11,7 +11,18 @@ import {
   CheckCircle2,
   Sparkles,
   Quote,
+  ChefHat,
+  Cookie,
+  ExternalLink,
+  Boxes,
+  PenLine,
 } from 'lucide-react'
+import ChefAvatar from '@/components/community/ChefAvatar'
+import WellDoneRating from '@/components/community/WellDoneRating'
+import BiteTracker from '@/components/community/BiteTracker'
+import TreatToast, { type Treat } from '@/components/community/TreatToast'
+import RulesDialog, { useCommunityRules } from '@/components/community/RulesDialog'
+import { playBite, playWellDone } from '@/lib/community/treats'
 import type { CommunityPostDetail, CommunityAnswerNode } from '@/types/community'
 import VoteButton from '@/components/community/VoteButton'
 import Markdown from '@/components/community/Markdown'
@@ -23,6 +34,9 @@ import ThreadedAnswer from '@/components/community/ThreadedAnswer'
 import AnswerComposer from '@/components/community/AnswerComposer'
 import AcceptSolutionModal from '@/components/community/AcceptSolutionModal'
 import ReportButton from '@/components/community/ReportButton'
+import SponsoredCard from '@/components/search/SponsoredCard'
+import { feedbackMailto } from '@/lib/feedback'
+import ListenButton from '@/components/layout/ListenButton'
 import { contentNoteLabel } from '@/lib/community/contentNotes'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -73,6 +87,16 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   const [lockBusy, setLockBusy] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  // Bites and Well-Dones (the Tidbits round, Goal 3): the pop-up and the sound.
+  const [treat, setTreat] = useState<Treat | null>(null)
+  const rules = useCommunityRules()
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const onBite = useCallback((first: boolean) => {
+    if (!first) return
+    playBite()
+    setTreat({ kind: 'bite', key: Date.now() })
+    setPost((p) => (p ? { ...p, viewer_bitten: true, bite_count: (p.bite_count ?? 0) + 1 } : p))
+  }, [])
 
   const reload = useCallback(async () => {
     setError(null)
@@ -179,8 +203,26 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         <SolvedBanner keyInsight={post.solved_key_insight} tldr={post.solved_tldr} />
       )}
 
+      {post.status === 'draft' && (
+        <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-gray-900">
+          This is a draft: only you can see it.{' '}
+          <Link href={`/community/write?id=${post.id}`} className="font-medium underline underline-offset-2">Keep writing, or publish it</Link>
+        </p>
+      )}
+
       <article className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          {post.kind === 'tidbit' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-950">
+              <ChefHat className="w-3 h-3" aria-hidden="true" /> {post.length_type === 'tadbit' ? 'Tadbit' : 'Tidbit'} · {post.word_count} words
+            </span>
+          )}
+          {post.group && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">{post.group.name}</span>}
+          {post.source === 'external' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-sky-100 text-sky-950">
+              <ExternalLink className="w-3 h-3" aria-hidden="true" /> A review of an article
+            </span>
+          )}
           {post.is_solved && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-emerald-600 text-white">
               <CheckCircle2 className="w-3 h-3" />
@@ -206,21 +248,52 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{post.title}</h1>
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-          <Link
-            href={`/community/profile/${post.author.user_id}${contextQuery}`}
-            className="font-medium text-blue-700 underline underline-offset-2"
-          >
-            {post.author.pseudonym}
-          </Link>
-          <RelationshipBadge relationship={post.author_relationship} />
-          <HelpfulPoints karma={post.author.karma} />
-          <BadgeList badges={post.author.top_badges} max={3} />
-          <span className="ml-auto text-xs text-gray-400">
-            asked {new Date(post.created_at).toLocaleString()}
+          <ChefAvatar author={post.author} />
+          {post.author.team || (post.author.anonymous && !post.viewer_can_edit) ? (
+            <span className="font-medium text-gray-900">
+              {post.author.pseudonym}
+              {post.author.team && <span className="ml-1 text-xs font-normal text-gray-700">(the Autinerary team)</span>}
+            </span>
+          ) : (
+            <Link
+              href={`/community/profile/${post.author.user_id}${contextQuery}`}
+              className="font-medium text-blue-700 underline underline-offset-2"
+            >
+              {post.author.pseudonym}
+            </Link>
+          )}
+          {post.author.anonymous && post.viewer_can_edit && <span className="text-xs text-gray-700">(published anonymously: others see &ldquo;Anonymous&rdquo;)</span>}
+          {!post.author.team && !post.author.anonymous && (
+            <>
+              <RelationshipBadge relationship={post.author_relationship} />
+              <HelpfulPoints karma={post.author.karma} />
+              <BadgeList badges={post.author.top_badges} max={3} />
+            </>
+          )}
+          {post.viewer_can_edit && post.kind === 'tidbit' && (
+            <Link href={`/community/write?id=${post.id}`} className="inline-flex items-center gap-1 text-xs font-medium text-blue-800 underline underline-offset-2">
+              <PenLine className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+            </Link>
+          )}
+          <span className="ml-auto text-xs text-gray-500">
+            {post.kind === 'tidbit' ? (post.published_at ? `published ${new Date(post.published_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric' })}` : 'not published yet') : `asked ${new Date(post.created_at).toLocaleString()}`}
           </span>
         </div>
+        {post.source === 'external' && post.external_url && (
+          <p className="flex flex-wrap gap-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm">
+            <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-800 underline underline-offset-2">
+              Read the article here <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+            {post.external_platform_url && (
+              <a href={post.external_platform_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-800 underline underline-offset-2">
+                See more from {post.external_platform || 'its site'} here <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            )}
+          </p>
+        )}
         <div className="flex gap-4 items-start pt-2">
           {/* viewer_can_edit is set only for the post's author. */}
+          {post.kind !== 'tidbit' && (
           <VoteButton
             score={post.score}
             viewerVote={post.viewer_vote}
@@ -229,6 +302,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             disabled={post.is_locked}
             isOwn={post.viewer_can_edit}
           />
+          )}
           <div className="flex-1 min-w-0">
             {post.content_note && !revealed ? (
               <div className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-4 mb-4">
@@ -274,9 +348,33 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
               <QuickLinks source={post.body_markdown} />
             </div>
 
-            <div ref={bodyRef}>
+            {post.kind === 'tidbit' && (
+              <ListenButton target="#tidbit-body" label="Listen to this Tidbit" className="mb-3" />
+            )}
+            <div ref={bodyRef} id="tidbit-body">
               <Markdown source={post.body_markdown} />
             </div>
+            {/* Integrated Resources: what the Tidbit mentions (Goal 2). */}
+            {(post.items?.length ?? 0) > 0 && (
+              <section aria-labelledby="integrated-heading" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                <h2 id="integrated-heading" className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <Boxes className="h-5 w-5 text-emerald-800" aria-hidden="true" /> Integrated Resources
+                </h2>
+                <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {post.items!.map((i) => (
+                    <li key={`${i.kind}:${i.id}`}>
+                      <Link href={i.href} className="block rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm hover:border-emerald-400">
+                        <span className="text-xs text-gray-700">{i.kind === 'product' ? 'Product' : 'Service'}</span>
+                        <span className="block font-medium text-gray-900">{i.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {post.kind === 'tidbit' && (
+              <BiteTracker postId={post.id} words={post.word_count ?? 0} enabled={!!post.viewer_can_rate && !post.viewer_bitten} onBite={onBite} />
+            )}
             </>)}
 
             {/* Odosa: a "Comment on" button beside the normal Comment action,
@@ -313,6 +411,16 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         </div>
         <div className="flex flex-wrap gap-3 pt-2 text-xs">
           <ReportButton targetType="post" targetId={post.id} />
+          {/* Customer service (Goal 8): an email to the team, labelled [Tidbits] with the post's title. */}
+          <a
+            href={feedbackMailto('', { kind: 'general', about: 'tidbits', item: post.title || 'A Tidbit' })}
+            onClick={(e) => {
+              e.currentTarget.href = feedbackMailto(window.location.href, { kind: 'general', about: 'tidbits', item: post.title || 'A Tidbit' })
+            }}
+            className="text-gray-600 underline underline-offset-2 hover:text-gray-900"
+          >
+            Feedback for the team
+          </a>
           {post.viewer_can_edit && (
             <button
               type="button"
@@ -345,9 +453,45 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         )}
       </article>
 
+      {post.kind === 'tidbit' && post.status === 'published' && (
+        <div className="space-y-3">
+          <p className="flex flex-wrap items-center gap-4 text-sm text-gray-800">
+            <span className="inline-flex items-center gap-1">
+              <ChefHat className="h-4 w-4 text-amber-700" aria-hidden="true" />
+              {post.well_done_count ? `${post.well_done_avg} out of 5 from ${post.well_done_count} Well-Done${post.well_done_count === 1 ? '' : 's'}` : 'No Well-Dones yet'}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Cookie className="h-4 w-4 text-amber-700" aria-hidden="true" /> {post.bite_count ?? 0} Bite{post.bite_count === 1 ? '' : 's'}
+            </span>
+          </p>
+          {post.viewer_can_rate && (
+            <WellDoneRating
+              postId={post.id}
+              initial={post.viewer_well_done ?? null}
+              onDone={(d) => {
+                if (d.first) {
+                  playWellDone()
+                  setTreat({ kind: 'well-done', rating: d.rating, key: Date.now() })
+                }
+                setPost((p) => (p ? { ...p, viewer_well_done: d.rating, well_done_count: d.well_done_count, well_done_avg: d.well_done_avg } : p))
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* A sponsored service on the Tidbit's topic, when they're on (Goal 7). */}
+      {post.kind === 'tidbit' && post.status === 'published' && (
+        <SponsoredCard
+          placement="tidbits"
+          q={[post.title, post.group?.name, ...(post.category_tags || []), ...(post.barrier_tags || [])].filter(Boolean).join(' ')}
+          category={(post.category_tags || []).join(',')}
+        />
+      )}
+
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          {post.answer_count} {post.answer_count === 1 ? 'answer' : 'answers'}
+          {post.answer_count} {post.kind === 'tidbit' ? (post.answer_count === 1 ? 'comment' : 'comments') : post.answer_count === 1 ? 'answer' : 'answers'}
         </h2>
         {post.content_note && !revealed ? (
           <p className="text-sm text-gray-600 mb-3">Hidden with the post, until you choose to show it.</p>
@@ -372,11 +516,19 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         )}
       </section>
 
-      {!post.is_locked && (
+      {!post.is_locked && post.status !== 'draft' && (
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-gray-900" id="answer-composer-anchor">
-            Your answer
+            {post.kind === 'tidbit' ? 'Your comment' : 'Your answer'}
           </h2>
+          {rules.needed && (
+            <p className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-gray-900">
+              Before your first answer or comment, please read the community rules.{' '}
+              <button type="button" onClick={() => setRulesOpen(true)} className="font-medium text-blue-800 underline underline-offset-2">
+                Read them
+              </button>
+            </p>
+          )}
           <AnswerComposer
             postId={post.id}
             onSubmitted={reload}
@@ -386,6 +538,17 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         </section>
       )}
 
+      <TreatToast treat={treat} />
+      <RulesDialog
+        open={rulesOpen}
+        reason="post"
+        onClose={() => setRulesOpen(false)}
+        onAgree={async () => {
+          const ok = await rules.accept()
+          if (ok) setRulesOpen(false)
+          return ok
+        }}
+      />
       <AcceptSolutionModal
         open={!!acceptTarget}
         onClose={() => setAcceptTarget(null)}

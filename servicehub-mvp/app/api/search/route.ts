@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 import { semanticResourceSearch } from '@/lib/supabase/vector-queries'
 import { lifeAreaKeywords } from '@/lib/search/lifeAreas'
 import { searchProducts } from '@/lib/search/products'
+import { conditionStems } from '@/lib/search/conditions'
 import { isShopFilterId } from '@/lib/shop/categories'
 import { understandByWords, understandWithAI, withoutParts, searchFor, type Understood } from '@/lib/search/understand'
 import { teamStates } from '@/lib/team'
@@ -124,6 +125,8 @@ export async function GET(request: NextRequest) {
     const costParam = searchParams.get('cost')
     const costType = costParam === 'free' || costParam === 'paid' ? costParam : undefined
     const delivery = searchParams.get('online') === '1' ? ('online' as const) : undefined
+    // A short wait, by what people said or the service states (STEP 83).
+    const shortWait = searchParams.get('wait') === 'short'
     const age = SERVICE_AGES.find((a) => a.id === searchParams.get('age'))
     const startedAfter = age ? new Date(Date.now() - age.days * 86_400_000).toISOString().slice(0, 10) : undefined
 
@@ -199,6 +202,7 @@ export async function GET(request: NextRequest) {
       tagGroups: tagGroups.length ? tagGroups : undefined,
       costType,
       delivery,
+      shortWait: shortWait || undefined,
       startedAfter,
       groups: asked?.groups.length ? asked.groups : undefined,
       softWords: asked?.softWords.length ? asked.softWords : undefined,
@@ -275,7 +279,7 @@ export async function GET(request: NextRequest) {
     // 3's functional check: those filters used to be ignored, and products
     // still showed under them). And the service directory's (STEP 78): a
     // tag, online, the age of a service, and "Free", which shop items never
-    // are; "Paid" keeps them.
+    // are; "Paid" keeps them. And "Short wait" (STEP 83).
     const normFilterActive =
       (barriers && barriers.length > 0) ||
       (conditions && conditions.length > 0) ||
@@ -287,7 +291,9 @@ export async function GET(request: NextRequest) {
       tagGroups.length > 0 ||
       costType === 'free' ||
       !!delivery ||
-      !!startedAfter
+      !!startedAfter ||
+      // A wait is a service's, never a shop item's (STEP 83).
+      shortWait
     const shopCategorySelected =
       Array.isArray(categories) &&
       categories.some((c: string) => isShopFilterId(String(c)))
@@ -372,6 +378,32 @@ export async function GET(request: NextRequest) {
           })
         }
       }
+
+      // The rest of the filters apply to them too (feedback, 31 August: "The
+      // same results come up for therapists, schools, doctors, parks"): with
+      // words in the search, its semantic matches came first whatever
+      // category, cost or norm was chosen. A filter that only ratings or
+      // distance can answer leaves them out rather than show them unchecked.
+      const wantCategories = (categories || []).map((c) => c.toLowerCase())
+      const conditionWords = (conditions || []).flatMap((token) => conditionStems(token.split(':')[0]))
+      const unchecked = Boolean(barriers?.length || connectionTypes?.length || specialTags?.length || ratingStars?.length || maxKm || shortWait)
+      filteredSemantic = unchecked
+        ? []
+        : filteredSemantic.filter((r: any) => {
+            if (wantCategories.length && !wantCategories.includes(String(r.category || '').toLowerCase())) return false
+            if (costType && r.cost_type !== costType) return false
+            if (delivery === 'online' && !['online', 'both'].includes(r.delivery)) return false
+            if (ageRanges?.length && !(r.age_ranges || []).some((a: string) => ageRanges.includes(a as any))) return false
+            if (sourceTypes?.length && !sourceTypes.includes(r.source_type)) return false
+            if (tagGroups.length && !tagGroups.every((g) => g.some((tag) => (r.tags || []).includes(tag)))) return false
+            if (Number.isFinite(minPrice) && !(Number(r.price) >= (minPrice as number))) return false
+            if (Number.isFinite(maxPrice) && !(Number(r.price) <= (maxPrice as number))) return false
+            if (conditionWords.length) {
+              const hay = ` ${r.name || ''} ${r.description || ''} ${r.category || ''} ${(r.tags || []).join(' ')}`.toLowerCase()
+              if (!conditionWords.some((w) => hay.includes(w))) return false
+            }
+            return true
+          })
 
       // Merge results
       let merged: any[] = [

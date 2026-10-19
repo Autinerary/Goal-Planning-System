@@ -38,7 +38,8 @@
         "parent_babies",
         "parent_children",
         "parent_preteens",
-        "parent_teens"
+        "parent_teens",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "Government program; the pages do not mention fees. The amount of service depends on eligibility, assessed need and the program resources available.",
@@ -190,7 +191,8 @@
       "tags": [
         "requires_diagnosis",
         "charity",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page says it is a provincially funded service; it does not mention fees.",
@@ -327,7 +329,8 @@
       "description": "A private practice in East St. Paul, Manitoba, with psychologists, psychological associates, behaviour analysts and interventionists. It offers assessments and interventions for autism and ADHD, early intensive behavioural intervention (EIBI), support with complex behaviour, parent coaching, and social skills, sleep and toilet training, for infants through adults, in person or virtually.",
       "category": "Therapist",
       "tags": [
-        "provides_diagnosis"
+        "provides_diagnosis",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "The FAQ says rates follow the Manitoba Psychological Society's recommended fees; extended health plans may reimburse most fees, and WBHS does not direct bill.",

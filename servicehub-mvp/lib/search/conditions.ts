@@ -138,6 +138,42 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
 ]
 
 /**
+ * The words a place's own text uses for each condition, for the search's
+ * text match (feedback, 31 August: "No resources after specific learning
+ * disabilities"). A condition's id never appears in text
+ * ("specific_learning_disabilities"), and an underscore is a wildcard in the
+ * database's LIKE, so the ids alone found almost nothing. Lowercase; a
+ * leading space keeps a short word from matching inside another ("ocd").
+ */
+const CONDITION_STEMS: Record<string, string[]> = {
+  autism: ['autis', 'asperger'],
+  adhd: ['adhd', 'attention deficit'],
+  audhd: ['audhd', 'autism and adhd', 'adhd and autism'],
+  specific_learning_disabilities: ['learning disab', 'learning disorder', 'learning difference', 'dyscalculia', 'dysgraphia', 'dyslex'],
+  dyslexia: ['dyslex', 'reading disab', 'reading disorder'],
+  motor_vocal_differences: ['tourette', 'tic disorder', 'stutter', 'stammer', 'dyspraxia', 'developmental coordination', 'apraxia'],
+  tourette: ['tourette', 'tic disorder'],
+  anxiety: ['anxi', 'panic disorder'],
+  ocd: ['obsessive compulsive', 'obsessive-compulsive', ' ocd'],
+  paranoid_pd: ['paranoid personality', 'personality disorder'],
+  schizoid_pd: ['schizoid', 'personality disorder'],
+  schizotypal_pd: ['schizotyp', 'personality disorder'],
+  antisocial_pd: ['antisocial personality', 'personality disorder'],
+  borderline_pd: ['borderline personality', 'dialectical behav', 'personality disorder'],
+  histrionic_pd: ['histrionic', 'personality disorder'],
+  narcissistic_pd: ['narcissis', 'personality disorder'],
+  avoidant_pd: ['avoidant personality', 'personality disorder'],
+  dependent_pd: ['dependent personality', 'personality disorder'],
+  ocpd: ['obsessive compulsive personality', 'ocpd', 'personality disorder'],
+  down_syndrome: ['down syndrome', 'down’s syndrome', "down's syndrome", 'trisomy 21'],
+}
+
+/** The words a condition is found by in a place's text; its label's words when it has none listed. */
+export function conditionStems(id: string): string[] {
+  return CONDITION_STEMS[id] || [String(findCondition(id)?.label || id.replace(/_/g, ' ')).toLowerCase()]
+}
+
+/**
  * Encode a condition + optional sub-option into the URL/state form.
  * Examples: encode('autism') === 'autism'
  *           encode('autism', 'level_2') === 'autism:level_2'

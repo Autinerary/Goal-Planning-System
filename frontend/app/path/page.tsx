@@ -17,6 +17,7 @@ import { listServerPaths, activateServerPath, type ServerPathSummary } from '@/l
 import { canManageMultiplePaths } from '@/lib/entitlements'
 import { selectTodaysAnimal, SPIRIT_ANIMAL_EMOJI } from '@/lib/spiritAnimal'
 import { loadChosenPathModel, type ChosenPathModel } from '@/lib/pathModel'
+import PathResources, { pathResources } from '@/app/components/PathResources'
 import ProfileCompletion from '../components/ProfileCompletion'
 import { DisplayButton, DisplayPanel, useDisplayToggle } from '../components/DisplayToggle'
 import { normalizeGamification } from '@/lib/gamification'
@@ -547,6 +548,17 @@ useEffect(() => {
                   </Link>
                 </div>
                 <PickUpWhereYouLeftOff milestones={pathMilestones} skipId={nextMilestone.id} />
+                {/* The followed path's own resources, one line until opened, so
+                    the simple Path stays simple (feedback, 31 August: "I didn't
+                    see anything specific on my page"). */}
+                {chosenModel && pathResources(chosenModel.key.split(':')[0]).length > 0 && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm font-medium text-cyan-800 underline underline-offset-2">
+                      Resources for your path ({pathResources(chosenModel.key.split(':')[0]).length})
+                    </summary>
+                    <PathResources categoryKey={chosenModel.key.split(':')[0]} heading="Checked links for your path" />
+                  </details>
+                )}
                 {/* AI named once, where it worked (Group 18: "introducing AI
                     transparently only at the specific step where it
                     functions"). */}
@@ -820,6 +832,9 @@ useEffect(() => {
                   </div>
                 </div>
               )}
+
+              {/* The model's key is "<category>:<model>" (path-market's startModel). */}
+              <PathResources categoryKey={chosenModel.key.split(':')[0]} />
             </div>
           ) : (
             // Paths created before the model was recorded have nothing to name,

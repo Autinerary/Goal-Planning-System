@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createOrUpdateRating, getRatingByUserAndResource } from '@/lib/supabase/queries'
+import { isWaitBucket } from '@/lib/waits'
 import { validationAgent } from '@/lib/agents/validation-agent'
 import { getUserHistory } from '@/lib/agents/validation-agent/trust-scorer'
 import { sendNotification } from '@/lib/notifications/service'
@@ -108,6 +109,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const body = await request.json()
     const { overall_score, barrier_scores, comment, image_urls } = body
+    // How long they waited (STEP 83), saved after the rating, so a rating still saves before it.
+    const wait_bucket = isWaitBucket(body?.wait_bucket) ? body.wait_bucket : null
     const previousRating = await getRatingByUserAndResource(params.id, user.id)
 
     if (!overall_score || overall_score < 1 || overall_score > 5) {
@@ -250,6 +253,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (!rating) {
       return NextResponse.json({ error: 'Failed to create rating' }, { status: 500 })
     }
+    if (wait_bucket) {
+      const { error: waitError } = await supabase.from('ratings').update({ wait_bucket }).eq('id', rating.id)
+      if (waitError) console.warn('[ratings] wait time not saved:', waitError.message)
+    }
 
     // Universal-agent learning loop: record this rating as a reward
     // attribution against (resource_id, barriers). Both this product and the
@@ -370,6 +377,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const body = await request.json()
     const { overall_score, barrier_scores, comment, image_urls } = body
+    // How long they waited (STEP 83), saved after the rating, so a rating still saves before it.
+    const wait_bucket = isWaitBucket(body?.wait_bucket) ? body.wait_bucket : null
 
     if (!overall_score || overall_score < 1 || overall_score > 5) {
       return NextResponse.json({ error: 'Invalid overall_score' }, { status: 400 })
@@ -391,6 +400,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     if (!rating) {
       return NextResponse.json({ error: 'Failed to update rating' }, { status: 500 })
+    }
+    if (wait_bucket) {
+      const { error: waitError } = await supabase.from('ratings').update({ wait_bucket }).eq('id', rating.id)
+      if (waitError) console.warn('[ratings] wait time not saved:', waitError.message)
     }
 
     // Universal-agent learning loop (mirrors POST handler). Rating updates

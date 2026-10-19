@@ -83,6 +83,8 @@ export const OWNER_FIELDS: Record<ItemKind, Record<string, { label: string; chec
     website: { label: 'Website', check: url, when: 'now', path: ['contact_info', 'website'] },
     cost_type: { label: 'Free or paid', check: oneOf('free', 'paid'), when: 'now' },
     delivery: { label: 'In person or online', check: oneOf('in_person', 'online', 'both'), when: 'now' },
+    // The 5Qs report: "Waittime is a universal bug" (STEP 83). Shown on the listing with its date.
+    wait_stated: { label: 'Your current wait (from first contact to starting)', check: oneOf('no_wait', 'under_1_month', '1_3_months', '3_6_months', '6_12_months', 'over_1_year'), when: 'now' },
     name: { label: 'Name', check: text(200), when: 'review' },
     image_url: { label: 'Picture (web address)', check: url, when: 'review' },
     address: { label: 'Address', check: text(300), when: 'review', path: ['location', 'address'] },

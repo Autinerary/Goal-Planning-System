@@ -29,10 +29,36 @@ function fields(b: any) {
   return { headline, body, image_url: image, keywords, provinces, starts_on: starts, ends_on: ends }
 }
 
+const PLACES = ['search', 'tidbits', 'paths']
+
 /**
- * POST  /api/business/promotions { kind, id, headline, body, image_url, keywords, provinces, starts_on, ends_on, submit }
+ * Where it may show and what a click is worth (STEP 83): beside searches,
+ * under Tidbits on its topic, among a step's services in Paths; 5 cents to
+ * $20 a click. Undefined when not sent, so an edit keeps what was there.
+ */
+function money(b: any) {
+  const out: { placements?: string[]; bid_cents?: number | null } = {}
+  if (Array.isArray(b?.placements)) {
+    const places = PLACES.filter((x) => b.placements.includes(x))
+    out.placements = places.length ? places : ['search']
+  }
+  if (b?.bid_cents !== undefined) {
+    const bid = Math.round(Number(b.bid_cents))
+    out.bid_cents = b.bid_cents === null || b.bid_cents === '' ? null : Number.isFinite(bid) ? Math.min(2000, Math.max(5, bid)) : null
+  }
+  return out
+}
+
+// Before STEP 83 the promotions table has no places or bids: save without them.
+const noStep83 = (e: { code?: string; message?: string } | null) => !!e && (e.code === 'PGRST204' || e.code === '42703' || /placements|bid_cents/.test(e.message || ''))
+
+/**
+ * POST  /api/business/promotions { kind, id, headline, body, image_url, keywords, provinces, starts_on, ends_on, placements, bid_cents, submit }
  *       a draft, or sent to the team (status submitted)
- * PATCH /api/business/promotions { id, status: 'draft' | 'submitted' | 'paused' | 'ended', ...fields }
+ * PATCH /api/business/promotions { id, status: 'draft' | 'submitted' | 'paused' | 'ended', ...fields, placements?, bid_cents? }
+ *
+ * A budget is paid for separately (promotions/checkout, Stripe); the money
+ * and the counts are the server's (STEP 83's promotions_guard).
  *
  * The team approves promotions, and none shows until sponsored listings are
  * turned on (NEXT_PUBLIC_SPONSORED in ResourceHub), labelled "Sponsored" and
@@ -55,11 +81,9 @@ export async function POST(req: NextRequest) {
     .select('category')
     .eq('id', b.id)
     .maybeSingle()
-  const { data, error } = await supabase
-    .from('promotions')
-    .insert({ user_id: user.id, item_kind: b.kind, item_id: b.id, ...f, categories: item?.category ? [String(item.category)] : [], status: b?.submit ? 'submitted' : 'draft' })
-    .select('id, status')
-    .single()
+  const row = { user_id: user.id, item_kind: b.kind, item_id: b.id, ...f, categories: item?.category ? [String(item.category)] : [], status: b?.submit ? 'submitted' : 'draft' }
+  let { data, error } = await supabase.from('promotions').insert({ ...row, ...money(b) }).select('id, status').single()
+  if (noStep83(error)) ({ data, error } = await supabase.from('promotions').insert(row).select('id, status').single())
   if (error) return NextResponse.json({ error: error.code === '42501' ? 'You don’t manage this listing yet.' : 'Could not save that.' }, { status: error.code === '42501' ? 403 : 500 })
   return NextResponse.json(data)
 }
@@ -79,8 +103,13 @@ export async function PATCH(req: NextRequest) {
     const f = fields(b)
     if (!f.headline) return NextResponse.json({ error: 'Write a headline.' }, { status: 400 })
     Object.assign(update, f)
+    // New words are checked again before they show.
+    if (update.status !== 'draft') update.status = 'submitted'
   }
-  const { data, error } = await supabase.from('promotions').update(update).eq('id', b.id).eq('user_id', user.id).select('id, status').maybeSingle()
+  const extra = money(b)
+  const save = (u: Record<string, unknown>) => supabase.from('promotions').update(u).eq('id', b.id).eq('user_id', user.id).select('id, status').maybeSingle()
+  let { data, error } = await save({ ...update, ...extra })
+  if (Object.keys(extra).length && noStep83(error)) ({ data, error } = await save(update))
   if (error || !data) return NextResponse.json({ error: 'Could not change that promotion.' }, { status: error ? 500 : 404 })
   return NextResponse.json(data)
 }

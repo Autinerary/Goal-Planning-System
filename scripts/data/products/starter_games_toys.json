@@ -1,0 +1,643 @@
+{
+ "topic": "products_starter_games_toys",
+ "checked": "2026-10-19",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "stardew-valley",
+   "name": "Stardew Valley",
+   "brand": "ConcernedApe",
+   "category": "video-games",
+   "description": "A farming and country-life game: you grow crops, raise animals, fish, explore caves and get to know the people of a small town, choosing what to do each day. It can be played alone, or with up to three others on computers and consoles.",
+   "qualities": [
+    "cooperative",
+    "no_in_app_purchases",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "cooperative": "Players can work together to build a thriving farm, share resources, and build relationships with townspeople or each other.",
+    "no_in_app_purchases": "Note: Features new 1.6 update story content, multiplayer functionality not supported. No in-app purchases.",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0H5FW69L7"
+   },
+   "values": {
+    "platforms": "PC, Mac, Linux, Xbox, PlayStation, Nintendo Switch and Switch 2, iPhone and iPad, Android",
+    "rating": "ESRB E10+ (Everyone 10+)"
+   },
+   "price": 16.99,
+   "currency": "CAD",
+   "price_note": "Nintendo Switch digital code on amazon.ca on 19 October 2026. The phone and tablet versions are $6.99 on the Canadian App Store and $6.49 on Google Play.",
+   "maker_url": "https://www.stardewvalley.net/",
+   "buy_links": [
+    {
+     "label": "Nintendo eShop (Canada)",
+     "url": "https://www.nintendo.com/en-ca/store/products/stardew-valley-switch/"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0H5FW69L7"
+    },
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/stardew-valley/id1406710800"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.chucklefish.stardewvalley&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Learn to live off the land: Raise animals, go fishing, tend to crops, craft items, or do it all! The choice is yours...",
+   "notes": "In-game days run on a clock, so we did not mark it \"No time pressure\", although the App Store page calls fishing \"relaxing\". Online co-op is on computers and consoles only: the App Store and Google Play pages say multiplayer is not supported on phones and tablets. No in-app purchases is stated on the mobile listings; the Nintendo page lists no In-Game Purchases either."
+  },
+  {
+   "slug": "minecraft",
+   "name": "Minecraft",
+   "brand": "Mojang Studios",
+   "category": "video-games",
+   "description": "A building and exploring game in a world made of blocks. In Creative mode you build with unlimited materials; in Survival mode you gather resources and keep safe from monsters at night. It can be played alone, with up to four people on one console, or online.",
+   "qualities": [
+    "open_ended",
+    "cooperative",
+    "chat_off",
+    "works_offline",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "open_ended": "There’s no wrong way to play!",
+    "cooperative": "Up to four people can play couch co-op together* on the same system.",
+    "chat_off": "Both Java Edition and Bedrock Edition have multiplayer turned off by default on child accounts.",
+    "works_offline": "Minecraft can be played in both single-player (offline and alone) and multiplayer (online, with the ability to play with other players).",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B08KZ75PSX"
+   },
+   "values": {
+    "platforms": "Windows, Mac, Linux, Xbox, PlayStation, Nintendo Switch, phones and tablets",
+    "rating": "ESRB E10+ (Everyone 10+)"
+   },
+   "price": 29.99,
+   "currency": "CAD",
+   "price_note": "Nintendo Switch digital code on amazon.ca on 19 October 2026; the phone and tablet version is $9.99 on the Canadian App Store and Google Play. Extra worlds and skins are sold inside the game.",
+   "maker_url": "https://www.minecraft.net/en-us/about-minecraft",
+   "buy_links": [
+    {
+     "label": "Nintendo eShop (Canada)",
+     "url": "https://www.nintendo.com/en-ca/store/products/minecraft-switch/"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B08KZ75PSX"
+    },
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/minecraft-dream-it-build-it/id479516143"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.mojang.minecraftpe&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [
+    {
+     "label": "Autcraft, a Minecraft server for autistic players and their families",
+     "url": "https://www.autcraft.com/"
+    }
+   ],
+   "evidence": "Explore your own unique world, survive the night, and create anything you can imagine.",
+   "notes": "Has in-game purchases: the Minecraft Marketplace sells maps, skins and mini-games for Minecoins, and Realms is a subscription. Parents set controls for a child account through Microsoft family settings (account.xbox.com), per the Minecraft Parents’ Guide. Survival mode has monsters at night; Creative mode does not need to be survived."
+  },
+  {
+   "slug": "animal-crossing-new-horizons",
+   "name": "Animal Crossing: New Horizons",
+   "brand": "Nintendo",
+   "category": "video-games",
+   "description": "A gentle life game on an island: you fish, garden, catch bugs, dig up fossils, decorate your home and make friends with animal neighbours, with no set goals. Up to four people can play together on one Nintendo Switch.",
+   "qualities": [
+    "no_time_pressure",
+    "cooperative",
+    "chat_off",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_time_pressure": "Live life at your own pace as you explore your island.",
+    "cooperative": "With one Nintendo Switch system and one game, up to four players can play on the same island at the same time",
+    "chat_off": "The In-Game Communication with Others parental control can be used to restrict in-game communication features",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0812KNJDD"
+   },
+   "values": {
+    "platforms": "Nintendo Switch, Nintendo Switch 2",
+    "rating": "ESRB E (Everyone)"
+   },
+   "price": 84.99,
+   "currency": "CAD",
+   "price_note": "List price on amazon.ca (physical copy, Canadian version) on 19 October 2026; it was selling there for $77.65 that day.",
+   "maker_url": "https://www.nintendo.com/en-ca/store/products/animal-crossing-new-horizons-switch/",
+   "buy_links": [
+    {
+     "label": "Nintendo eShop (Canada)",
+     "url": "https://www.nintendo.com/en-ca/store/products/animal-crossing-new-horizons-switch/"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0812KNJDD"
+    }
+   ],
+   "community": [
+    {
+     "label": "Ambitious about Autism blog: Island living in a pandemic",
+     "url": "https://www.ambitiousaboutautism.org.uk/about-us/media-centre/blog/island-living-pandemic"
+    }
+   ],
+   "evidence": "Spend time gardening, fishing, decorating, hunting for bugs and fossils, and getting to know the animal residents.",
+   "notes": "The game follows the real date and time (different critters by season and time of day). A Nintendo Switch 2 Edition and an upgrade pack are sold separately. Visiting other islands online needs a Nintendo Switch Online membership; the paid Happy Home Paradise add-on is why the rating lists In-Game Purchases. Chat: Nintendo’s parental controls can restrict in-game communication."
+  },
+  {
+   "slug": "roblox",
+   "name": "Roblox",
+   "brand": "Roblox Corporation",
+   "category": "video-games",
+   "description": "A free platform with millions of online games made by other players and studios, from obstacle courses to building and pretend-play games. A parent can link their own account to manage chat, content maturity, screen time and spending.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://apps.apple.com/ca/app/roblox/id431946152"
+   },
+   "values": {
+    "platforms": "Phones, tablets, PC, consoles and VR headsets",
+    "rating": "Teen (Google Play); 13+ (App Store)"
+   },
+   "price": 0,
+   "currency": "CAD",
+   "price_note": "Free to join and play; Robux (the virtual currency) and the Roblox Plus subscription are sold inside it (Canadian App Store and Google Play, 19 October 2026).",
+   "maker_url": "https://about.roblox.com/what-is-roblox",
+   "buy_links": [
+    {
+     "label": "App Store",
+     "url": "https://apps.apple.com/ca/app/roblox/id431946152"
+    },
+    {
+     "label": "Google Play",
+     "url": "https://play.google.com/store/apps/details?id=com.roblox.client&hl=en_CA&gl=CA"
+    }
+   ],
+   "community": [],
+   "evidence": "Roblox is not one game, but a destination where users can find and play many games.",
+   "notes": "Has in-app purchases (Robux, Roblox Plus) and online chat. Every user must complete an age check to use chat; from a linked parent account, parents can turn chat off, block games, set content maturity and set a monthly spending limit. Games are made by other users, so content varies. Rated Teen on Google Play and 13+ on the App Store, although many younger children play it."
+  },
+  {
+   "slug": "super-mario-bros-wonder",
+   "name": "Super Mario Bros. Wonder",
+   "brand": "Nintendo",
+   "category": "video-games",
+   "description": "A side-scrolling Mario game where Wonder Flowers change each course in surprising ways. Up to four people can play together on one Nintendo Switch, and Yoshi and Nabbit take no damage from enemies, which suits beginners.",
+   "qualities": [
+    "cooperative",
+    "chat_off",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "cooperative": "Up to 4 players* can tackle courses together, share power-ups, and revive each other.",
+    "chat_off": "The In-Game Communication with Others parental control can be used to restrict in-game communication features",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0C8VP76Z2"
+   },
+   "values": {
+    "platforms": "Nintendo Switch, Nintendo Switch 2",
+    "rating": "ESRB E (Everyone)"
+   },
+   "price": 84.99,
+   "currency": "CAD",
+   "price_note": "List price on amazon.ca (physical copy, Canadian version) on 19 October 2026; it was selling there for $71.99 that day.",
+   "maker_url": "https://www.nintendo.com/en-ca/store/products/super-mario-bros-wonder-switch/",
+   "buy_links": [
+    {
+     "label": "Nintendo eShop (Canada)",
+     "url": "https://www.nintendo.com/en-ca/store/products/super-mario-bros-wonder-switch/"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0C8VP76Z2"
+    }
+   ],
+   "community": [],
+   "evidence": "Classic Mario gameplay is turned on its head with Wonder Flowers in the Super Mario Bros. Wonder game!",
+   "notes": "Chosen over Mario Kart 8 Deluxe (also on the team’s list) because racing is timed. A Nintendo Switch 2 Edition with an extra area (Meetup in Bellabel Park) is sold separately. Online play needs a Nintendo Switch Online membership; Nintendo’s parental controls can restrict in-game communication."
+  },
+  {
+   "slug": "pokemon-scarlet-and-violet",
+   "name": "Pokémon Scarlet and Pokémon Violet",
+   "brand": "The Pokémon Company",
+   "category": "video-games",
+   "description": "Two versions of the same open-world Pokémon role-playing game: you explore the Paldea region, catch, battle and train Pokémon, and follow three stories in any order. Buy one version; they differ in some of the Pokémon you meet.",
+   "qualities": [
+    "no_time_pressure",
+    "chat_off",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_time_pressure": "Explore a wide-open world at your own pace",
+    "chat_off": "The In-Game Communication with Others parental control can be used to restrict in-game communication features",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0B325QJP4"
+   },
+   "values": {
+    "platforms": "Nintendo Switch, Nintendo Switch 2",
+    "rating": "ESRB E (Everyone)"
+   },
+   "price": 84.99,
+   "currency": "CAD",
+   "price_note": "Each version on the Nintendo eShop (nintendo.com/en-ca) on 19 October 2026; a Double Pack of both is $169.99.",
+   "maker_url": "https://www.pokemon.com/us/pokemon-video-games/pokemon-scarlet-and-pokemon-violet",
+   "buy_links": [
+    {
+     "label": "Nintendo eShop (Canada): Scarlet",
+     "url": "https://www.nintendo.com/en-ca/store/products/pokemon-scarlet-switch/"
+    },
+    {
+     "label": "Nintendo eShop (Canada): Violet",
+     "url": "https://www.nintendo.com/en-ca/store/products/pokemon-violet-switch/"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0B325QJP4"
+    }
+   ],
+   "community": [],
+   "evidence": "In these games, the Pokémon series takes a new evolutionary step, allowing you to explore freely in a richly expressed open world.",
+   "notes": "Has Pokémon battles (one story uses an Auto Battle feature), and the optional Tera Raid battles are timed. The paid add-on The Hidden Treasure of Area Zero is why the rating lists In-Game Purchases; online trading and battles need Nintendo Switch Online. A calmer Pokémon life-simulation game, Pokémon Pokopia (\"Savor the slow life\"), is on Nintendo Switch 2 only, so we did not choose it here."
+  },
+  {
+   "slug": "mastermind-toys-soft-play-triangle",
+   "name": "Soft Play Triangle",
+   "brand": "Mastermind Toys",
+   "category": "sensory-movement",
+   "description": "A low foam climbing triangle with a soft, wipe-clean PVC cover, for climbing, crawling and sliding indoors. It is 61 cm long, 41 cm wide and 21 cm high, for children aged 3 to 8.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Recommended for ages 3–8 years",
+    "sold_in_canada": "store:https://www.mastermindtoys.com/products/mmt-soft-play-triangle"
+   },
+   "values": {
+    "ages": "3-8",
+    "material": "EPE foam core, soft PVC cover"
+   },
+   "price": 39.99,
+   "currency": "CAD",
+   "price_note": "Price on mastermindtoys.com on 19 October 2026; oversized items have a flat-rate shipping fee.",
+   "maker_url": "https://www.mastermindtoys.com/products/mmt-soft-play-triangle",
+   "buy_links": [
+    {
+     "label": "Mastermind Toys",
+     "url": "https://www.mastermindtoys.com/products/mmt-soft-play-triangle"
+    }
+   ],
+   "community": [],
+   "evidence": "Climb, crawl, slide, and explore with this soft play triangle!",
+   "notes": "Mastermind Toys’ own product, sold at its Canadian stores and website. The page says it should always be used under adult supervision. It is low (21 cm), so it suits younger children more than climbers who need height."
+  },
+  {
+   "slug": "gonge-floor-spinner",
+   "name": "Floor Spinner",
+   "brand": "Gonge",
+   "category": "sensory-movement",
+   "description": "A low spinning seat with a slightly tilted top: a child sits on it and spins, changing speed by shifting their weight. It has a non-slip rubber rim and turns on ball bearings, for ages 4 to 12.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Age 4-12",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/floor-spinner"
+   },
+   "values": {
+    "ages": "4-12"
+   },
+   "price": 159.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 19 October 2026.",
+   "maker_url": "https://www.gonge.com/products/floor-spinner",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/floor-spinner"
+    }
+   ],
+   "community": [],
+   "evidence": "The Floor Spinner features a slightly tilted surface, allowing a child to increase rotational speed by adjusting their centre of gravity through body movement.",
+   "notes": "Gonge (Winther A/S) makes play and therapy equipment; its site points to dealers (\"Where to buy\") rather than selling directly. Scholar’s Choice lists a 3-year warranty. Spinning is strong input: some children seek it and others get dizzy, so start slowly with an adult nearby. For toddlers, the classic Sit ‘n Spin (now by Just Play, ages 18 months and up) was $54.01 on Amazon.ca on 19 October 2026; we did not add it as its page there gave little detail."
+  },
+  {
+   "slug": "intex-jump-o-lene-playhouse-bouncer",
+   "name": "Jump-O-Lene Inflatable Bouncer Play House",
+   "brand": "Intex",
+   "category": "sensory-movement",
+   "description": "A small inflatable bouncer with net side walls and a crawl-through door, about 1.7 m square, for one or two children aged 3 to 6. It needs an air pump, which isn’t in the box.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Age grade: 3-6 years",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=intex+jump+o+lene"
+   },
+   "values": {
+    "ages": "3-6"
+   },
+   "price": 131.99,
+   "currency": "CAD",
+   "price_note": "Sale price on walmart.ca on 19 October 2026 (listed as was $189.99); Intex’s own (US) price is US$89.99.",
+   "maker_url": "https://intexcorp.com/products/floats-toys/bouncers-playhouses/playhouse-jump-o-lene/",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=intex+jump+o+lene"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B005QIYUMU"
+    }
+   ],
+   "community": [],
+   "evidence": "This colorful bouncer comes equipped with a crawl-thru door for kids to easily crawl inside.",
+   "notes": "Intex gives a limit of 120 lb (2 children at most). The box contents Intex lists do not include a pump, so an air pump is needed. \"Indoor or outdoor\" comes from the Amazon.ca listing title, not Intex’s page. Amazon.ca showed no price that day; Walmart.ca’s product pages refuse our tool, so the link is its search page."
+  },
+  {
+   "slug": "playshifu-orboot-dinos-globe",
+   "name": "Orboot World of Dinosaurs (AR globe)",
+   "brand": "PlayShifu",
+   "category": "toys-games",
+   "description": "A globe of the prehistoric world that comes alive through an app on a phone or tablet: children point the device at the globe to see 50 dinosaurs in 3D, hear facts and play games. For ages 4 and up.",
+   "qualities": [
+    "no_in_app_purchases",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "no_in_app_purchases": "the perfect dinosaur toy for ages 4 and above (no in-app purchases)",
+    "for_children": "makes for the perfect dinosaur toy for ages 4 and above",
+    "sold_in_canada": "store:https://www.mastermindtoys.com/products/playshifu-orboot-interactive-world-of-dinosaurs-globe-ar"
+   },
+   "values": {
+    "ages": "4+"
+   },
+   "price": 49.99,
+   "currency": "CAD",
+   "price_note": "Price on mastermindtoys.com on 19 October 2026.",
+   "maker_url": "https://www.mastermindtoys.com/products/playshifu-orboot-interactive-world-of-dinosaurs-globe-ar",
+   "buy_links": [
+    {
+     "label": "Mastermind Toys",
+     "url": "https://www.mastermindtoys.com/products/playshifu-orboot-interactive-world-of-dinosaurs-globe-ar"
+    }
+   ],
+   "community": [],
+   "evidence": "Dig 400 incredible facts about 50 realistic looking dinosaurs, all in 3D and their own voices!",
+   "notes": "Needs a compatible phone or tablet (not included) running PlayShifu’s app; PlayShifu’s own pages load by JavaScript and could not be read, so the Canadian seller’s page is the source and device compatibility should be checked on playshifu.com. The dinosaurs have voices, so there is sound (the device volume can be turned down). Not found on Amazon.ca that day."
+  },
+  {
+   "slug": "my-busy-dinosaur-coloring-book",
+   "name": "My Busy Dinosaur Coloring Book",
+   "brand": "Tiger Tales (illustrated by Cathy Hughes)",
+   "category": "toys-games",
+   "description": "A thick colouring book (192 pages) of dinosaurs drawn with bold outlines, with a shiny foil cover, for young children who love dinosaurs.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "This busy coloring book is perfect for young fans of dinosaurs.",
+    "sold_in_canada": "store:https://www.indigo.ca/products/my-busy-dinosaur-coloring-book"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store; Indigo listed the paperback at $11.99 on 19 October 2026 (US$8.99 from the publisher).",
+   "maker_url": "https://www.penguinrandomhouse.com/books/714320/my-busy-dinosaur-coloring-book-by-tiger-tales-illustrated-by-cathy-hughes/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/my-busy-dinosaur-coloring-book"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/714320/my-busy-dinosaur-coloring-book-by-tiger-tales-illustrated-by-cathy-hughes/"
+    }
+   ],
+   "community": [],
+   "evidence": "Children will have hours of coloring fun with this busy book of dinosaurs.",
+   "notes": "For older children, teens and adults, Rachel Ignotofsky’s Dinosaurs Coloring Book (2026: 40 detailed drawings with maps of the prehistoric world, perforated pages; $19.99 at Indigo) is an alternative; its publisher shelves it as an adult colouring book."
+  },
+  {
+   "slug": "jellycat-bashful-bunny-medium",
+   "name": "Bashful Bunny, Medium",
+   "brand": "Jellycat",
+   "category": "sensory-touch",
+   "description": "A soft plush bunny with long floppy ears, about 30 cm (12 in) tall, made from ultra-soft plush. It is hand wash only.",
+   "qualities": [
+    "soft_fabric",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "Made from ultra-soft, plush materials",
+    "sold_in_canada": "store:https://www.indigo.ca/products/bashful-bunny-medium"
+   },
+   "values": {
+    "ages": "All ages"
+   },
+   "price": 45.0,
+   "currency": "CAD",
+   "price_note": "Price on indigo.ca on 19 October 2026 (out of stock online that day).",
+   "maker_url": "https://www.indigo.ca/products/bashful-bunny-medium",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/bashful-bunny-medium"
+    }
+   ],
+   "community": [],
+   "evidence": "Soft and silly, the Jellycat Bashful Bunny will be your little one’s new best friend.",
+   "notes": "Needs checking by hand: out of stock on indigo.ca on 19 October 2026, and jellycat.com refused our tool, so the Canadian seller’s page is the source. Amazon.ca listings that day were $72 to $79, well above Indigo’s price. Comes in several sizes and colours."
+  },
+  {
+   "slug": "squishmallows-12-inch",
+   "name": "Squishmallows (12-inch)",
+   "brand": "Squishmallows (Jazwares)",
+   "category": "sensory-touch",
+   "description": "Round, very soft and squishy plush characters (animals, foods and creatures) made in many sizes; 12 inches (about 30 cm) is a common middle size for hugging.",
+   "qualities": [
+    "soft_fabric",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "a whimsical design, and ultrasoft feel",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=squishmallows+original+12+inch"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by character and seller: 12-inch Squishmallows on walmart.ca ran from $19.96 to $74.74 on 19 October 2026 (limited editions cost more).",
+   "maker_url": "https://shop.jazwares.com/pages/about-squishmallows",
+   "buy_links": [
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=squishmallows+original+12+inch"
+    }
+   ],
+   "community": [],
+   "evidence": "Debuting in 2017, the iconic Squishmallows brand features collectible plush with lovable personalities, a whimsical design, and ultrasoft feel.",
+   "notes": "A line rather than one item: characters change often and are sold as collectibles, so a favourite can be hard to replace (a spare helps someone who relies on one toy). The official Jazwares shop’s free shipping covers only the contiguous US. We could not reach a Canadian product page (Indigo and Toys\"R\"Us Canada links from search were stale), so the link is Walmart.ca’s search page; check the seller."
+  },
+  {
+   "slug": "little-kids-first-big-book-of-space-2nd-edition",
+   "name": "National Geographic Little Kids First Big Book of Space, 2nd Edition",
+   "brand": "Catherine D. Hughes and National Geographic Kids",
+   "category": "books-children",
+   "description": "A large, picture-filled first reference book about the sun, moon, planets, stars, galaxies and black holes, with short, simple facts for young children.",
+   "qualities": [
+    "for_children",
+    "family_friendly",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Age Range: 3-7 years",
+    "family_friendly": "Readers of all ages will appreciate fact-checked, kid-friendly explanations of concepts like space travel and black holes.",
+    "sold_in_canada": "store:https://www.indigo.ca/products/national-geographic-little-kids-first-big-book-of-space-2nd-edition"
+   },
+   "values": {
+    "pages": "128",
+    "ages": "3-7"
+   },
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by format and store; Indigo listed the hardcover at $23.99 on 19 October 2026.",
+   "maker_url": "https://www.penguinrandomhouse.com/books/812339/national-geographic-little-kids-first-big-book-of-space-2nd-edition-by-catherine-d-hughes-and-national-geographic-kids/",
+   "buy_links": [
+    {
+     "label": "Indigo",
+     "url": "https://www.indigo.ca/products/national-geographic-little-kids-first-big-book-of-space-2nd-edition"
+    },
+    {
+     "label": "Penguin Random House",
+     "url": "https://www.penguinrandomhouse.com/books/812339/national-geographic-little-kids-first-big-book-of-space-2nd-edition-by-catherine-d-hughes-and-national-geographic-kids/"
+    }
+   ],
+   "community": [],
+   "evidence": "Blast off on an outer-space adventure with this colorful interactive guide to our universe!",
+   "notes": "The second edition was published on 4 August 2026. For babies and toddlers, Jill McDonald’s board book Hello, World! Solar System ($12.50 at Scholar’s Choice) is simpler."
+  },
+  {
+   "slug": "gazillion-rollin-wave-bubble-machine",
+   "name": "Gazillion Bubbles Rollin’ Wave",
+   "brand": "Gazillion (Funrise)",
+   "category": "toys-games",
+   "description": "A bubble machine: you pour bubble solution into the tray and press one button for a steady stream of bubbles. It comes with a 4 oz bottle of solution and is for ages 3 and up.",
+   "qualities": [
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "for_children": "Appropriate for ages 3 years and up.",
+    "sold_in_canada": "store:https://scholarschoice.ca/products/gazillion-rollin-wave-bubble-machine"
+   },
+   "values": {
+    "ages": "3+"
+   },
+   "price": 24.99,
+   "currency": "CAD",
+   "price_note": "Price on scholarschoice.ca on 19 October 2026.",
+   "maker_url": "https://gazillion.funrise.com/product/gazillion-bubbles-rollin-wave/",
+   "buy_links": [
+    {
+     "label": "Scholar's Choice",
+     "url": "https://scholarschoice.ca/products/gazillion-rollin-wave-bubble-machine"
+    }
+   ],
+   "community": [],
+   "evidence": "Simply pour the Gazillion Bubbles solution into the bottom tray, press the “on” button and watch the bubble fun begin.",
+   "notes": "Neither page says what batteries it takes or how loud it is, so check the box; a machine is easier than blowing for children who find wands hard. Refills: Scholar’s Choice also sells Gazillion solution in 1 L bottles."
+  },
+  {
+   "slug": "mastermind-toys-deluxe-diy-fort",
+   "name": "Deluxe DIY Fort 150 Piece Set",
+   "brand": "Mastermind Toys",
+   "category": "toys-games",
+   "description": "A fort-building kit of rods and connectors, with long flexible rods for arches, that children build into hideouts and cover with a bedsheet. It includes blanket clips, two battery LED lights and a storage bag.",
+   "qualities": [
+    "open_ended",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "open_ended": "includes more kid-tastic pieces for more open-ended play possibilities!",
+    "sold_in_canada": "store:https://www.mastermindtoys.com/products/mastermind-toys-deluxe-diy-fort-150-piece-set"
+   },
+   "values": {},
+   "price": 99.99,
+   "currency": "CAD",
+   "price_note": "Price on mastermindtoys.com on 19 October 2026.",
+   "maker_url": "https://www.mastermindtoys.com/products/mastermind-toys-deluxe-diy-fort-150-piece-set",
+   "buy_links": [
+    {
+     "label": "Mastermind Toys",
+     "url": "https://www.mastermindtoys.com/products/mastermind-toys-deluxe-diy-fort-150-piece-set"
+    }
+   ],
+   "community": [],
+   "evidence": "Add a bedsheet (sold separately), turn on the lights, and your child has created their own space",
+   "notes": "Fabric covers are not included (a bedsheet works) and the lights need 3 AAA batteries. Mastermind Toys’ own product, shipped only within Canada; on 19 October 2026 ship-to-home was unavailable but pickup at select stores was. The page gives no age range."
+  },
+  {
+   "slug": "boogie-board-jot-8-5",
+   "name": "Jot 8.5 LCD Writing Tablet",
+   "brand": "Boogie Board",
+   "category": "school-work",
+   "description": "A thin LCD writing tablet with a stylus for quick notes and drawings, with no paper or ink. The writing feels close to pen on paper, it has built-in magnets for mounting on metal surfaces, and its coin-cell battery can be replaced.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B010HWCEAO"
+   },
+   "values": {},
+   "price": 38.04,
+   "currency": "CAD",
+   "price_note": "Price on amazon.ca on 19 October 2026 (Amazon prices change often).",
+   "maker_url": "https://www.amazon.ca/dp/B010HWCEAO",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B010HWCEAO"
+    }
+   ],
+   "community": [],
+   "evidence": "Writing experience is comparable to pen on paper",
+   "notes": "Needs checking by hand: Boogie Board’s own site (myboogieboard.com) would not connect for our tool (TLS error) and Staples.ca refused it, so Amazon.ca is the only source. Families and autistic people use tablets like this to write or draw instead of speaking at hard moments; the children’s version, Magic Sketch / Scribble n’ Play, was $47.58 on Amazon.ca. Many cheaper look-alikes exist."
+  },
+  {
+   "slug": "apple-ipad-a16",
+   "name": "iPad 11-inch (A16)",
+   "brand": "Apple",
+   "category": "school-work",
+   "description": "Apple’s standard 11-inch iPad, which many families use to run speech (AAC) apps such as Proloquo2Go or TouchChat, visual schedules and learning apps. It is a general-purpose tablet, not a dedicated speech device.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "For Quebec customers, iPad is covered by a three‑year warranty of good working order."
+   },
+   "values": {},
+   "price": 649.0,
+   "currency": "CAD",
+   "price_note": "128 GB Wi-Fi model on apple.com/ca on 19 October 2026; 256 GB is $799.00.",
+   "maker_url": "https://www.apple.com/ca/ipad-11/",
+   "buy_links": [
+    {
+     "label": "Apple Canada",
+     "url": "https://www.apple.com/ca/shop/buy-ipad/ipad"
+    }
+   ],
+   "community": [],
+   "evidence": "Now with the superfast A16 chip and 128GB of starting storage, iPad is more capable than ever.",
+   "notes": "The one tablet entry the team allowed, with honest notes: the iPad (A16) is the 11th-generation standard iPad and the only standard iPad on Apple’s Canadian store now. Speech apps cost extra (TouchChat HD is $399.99 on the Canadian App Store), and a sturdy case is worth adding. It is a general device with the internet, games and video on it, so some families set Screen Time limits or use Guided Access to keep it in the speech app. Ask a speech-language pathologist before buying one for AAC."
+  }
+ ]
+}

@@ -30,12 +30,16 @@ const ATTRS: [string, string, string][] = [
   ['theme-classic', 'theme', 'classic'],
   ['theme-warm', 'theme', 'warm'],
   ['theme-cool', 'theme', 'cool'],
+  ['theme-bakery', 'theme', 'bakery'],
   // Listening, the notes for today, and the speaking speed (the planning
   // note, Goals 10 and 11): the app's Settings, Accessibility.
   ['listen-off', 'listen', 'off'],
   ['notes-off', 'dailyNotes', 'off'],
   ['speak-slow', 'speechRate', 'slow'],
   ['speak-fast', 'speechRate', 'fast'],
+  // Sounds for Bites and Well-Dones in Tidbits (the Tidbits round, Goal 3). Off
+  // unless someone turns them on: a sudden sound can be a lot.
+  ['sounds-on', 'sounds', 'on'],
 ]
 
 /** The cookie value for an ?a11y= value: known tokens only, one per setting, 'none' if none. */

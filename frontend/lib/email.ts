@@ -316,11 +316,67 @@ function voteSection(vote: ChoiceVoteSection | null | undefined): { text: string
   }
 }
 
+// ResourceHub pages, through the app's hand-off, which works signed in or out (app/go/servicehub).
+const hubLink = (path: string) => `https://app.autinerary.ca/go/servicehub?next=${encodeURIComponent(path)}`
+
+/**
+ * What our survey told us (the 5Qs report, October 2026: "Infographic to all
+ * emails"), as four tiles, each with what helps: its biggest themes in our
+ * words, never anyone's answer ("GET CONSENT TO PUBLISH!!!"). In every email
+ * that has a footer, above it. Tables and inline styles, for email apps.
+ */
+export const INSIGHTS: { icon: string; title: string; line: string; link: { label: string; href: string } }[] = [
+  {
+    icon: '\u23F3',
+    title: 'Waiting is the hardest part',
+    line: 'Almost everyone waits for therapy, diagnosis or funding, and waiting costs money, time and hope.',
+    link: { label: 'Free services you can start now', href: hubLink('/search?cost=free') },
+  },
+  {
+    icon: '\uD83E\uDDE9',
+    title: 'Parents build the support system',
+    line: 'School rarely does it, so parents put it together themselves, or find it outside.',
+    link: { label: 'Support for parents', href: hubLink('/search?tags=parent_support') },
+  },
+  {
+    icon: '\uD83D\uDCB8',
+    title: 'Help paying is hard to find',
+    line: 'Funding that fits your situation, and free options, take the most searching.',
+    link: { label: 'Help paying for services', href: hubLink('/search?tags=funding') },
+  },
+  {
+    icon: '\u2601\uFE0F',
+    title: 'The wins mean more',
+    line: 'A child expressing themselves for the first time, breaking the comfort bubble, and growing: the moments people told us about most.',
+    link: { label: 'Read and share Tidbits', href: hubLink('/community') },
+  },
+]
+
+function insights(): { text: string; html: string } {
+  const cell = (i: (typeof INSIGHTS)[number]) =>
+    `<td valign="top" width="50%" style="padding:6px"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px">
+      <p style="font-size:22px;line-height:1;margin:0 0 6px" aria-hidden="true">${i.icon}</p>
+      <p style="font-size:15px;font-weight:700;margin:0 0 4px;color:#0f172a">${esc(i.title)}</p>
+      <p style="font-size:14px;line-height:1.45;margin:0 0 8px;color:#334155">${esc(i.line)}</p>
+      <a href="${i.link.href}" style="font-size:14px;font-weight:600;color:#3730a3">${esc(i.link.label)}</a></div></td>`
+  return {
+    text: `\nWhat families and autistic adults told us:\n${INSIGHTS.map((i) => `- ${i.title}: ${i.line} ${i.link.label}: ${i.link.href}`).join('\n')}\n`,
+    html: `<div style="margin-top:28px;border-top:1px solid #e2e8f0;padding-top:16px">
+      <p style="font-size:16px;font-weight:700;margin:0 0 4px;color:#0f172a">What families and autistic adults told us</p>
+      <p style="${SMALL};margin:0 0 6px">From our survey, and what helps.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+        <tr>${cell(INSIGHTS[0])}${cell(INSIGHTS[1])}</tr>
+        <tr>${cell(INSIGHTS[2])}${cell(INSIGHTS[3])}</tr>
+      </table></div>`,
+  }
+}
+
 function footer(unsubscribe: string, postal: string | null, why: string): { text: string; html: string } {
   const address = postal ? `Autinerary Corp., ${postal}` : 'Autinerary Corp.'
+  const told = insights()
   return {
-    text: `\n${why}\nStop these emails: ${unsubscribe}\n${address} · https://app.autinerary.ca/privacy · https://app.autinerary.ca/terms`,
-    html: `<p style="${SMALL};margin-top:28px">${esc(why)} <a href="${unsubscribe}" style="color:#334155">Stop these emails</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a> · <a href="https://app.autinerary.ca/terms" style="color:#334155">Terms</a></p>`,
+    text: `${told.text}\n${why}\nStop these emails: ${unsubscribe}\n${address} · https://app.autinerary.ca/privacy · https://app.autinerary.ca/terms`,
+    html: `${told.html}<p style="${SMALL};margin-top:28px">${esc(why)} <a href="${unsubscribe}" style="color:#334155">Stop these emails</a>.<br>${esc(address)} · <a href="https://app.autinerary.ca/privacy" style="color:#334155">Privacy</a> · <a href="https://app.autinerary.ca/terms" style="color:#334155">Terms</a></p>`,
   }
 }
 

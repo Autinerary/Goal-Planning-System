@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '18 October 2026'
+const UPDATED = '19 October 2026'
+
+// Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
+const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -21,12 +24,12 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions, and creates Dream Self pictures',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read. OpenAI’s terms for this kind of use say it does not train its models on this data',
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
     name: 'Stripe',
-    does: 'Takes payments for paid plans, if you choose one, and for anything you buy from a vendor through ResourceHub (on the vendor’s own Stripe account)',
+    does: 'Takes payments for paid plans, if you choose one, for anything you buy from a vendor through ResourceHub (on the vendor’s own Stripe account), and for a sponsored listing’s budget, if you manage a listing',
     gets: 'Your email address, your card (we never see its number), your billing or shipping address when needed, and what you are paying for. Stripe keeps payment records as tax law requires, even after you delete your account',
   },
   { name: 'Jitsi Meet (8x8)', does: 'Video rooms for calls booked in Hare World, and for a meeting with a team member when you choose “Make a free video link”, if you join one', gets: 'What any video call needs: your video, sound and the name you type when you join. Not used if you paste your own link' },
@@ -101,7 +104,15 @@ export default function PrivacyPage() {
           <List>
             <li>We collect what you tell us, to build your plan and find services that fit, and a little about how the app is used, to fix what is confusing.</li>
             <li>Some of it can be sensitive, like conditions or norms you share. That is always optional, and only used to personalize Autinerary for you.</li>
-            <li>We don’t sell your information, we don’t show ads, and we don’t use your information to train AI models.</li>
+            {SPONSORED ? (
+              <li>
+                We don’t sell your information, and we don’t use it to train AI models. ResourceHub and the app show sponsored listings, always labelled
+                “Sponsored”: they are chosen by what you are looking at, never by a profile of you, the business learns nothing about you, and a paid plan has
+                none.
+              </li>
+            ) : (
+              <li>We don’t sell your information, we don’t show ads, and we don’t use your information to train AI models.</li>
+            )}
             <li>Your information is stored in the United States.</li>
             <li>You can ask to see, correct or delete your information at any time.</li>
           </List>
@@ -216,7 +227,7 @@ export default function PrivacyPage() {
           </Sub>
           <Sub title="If you manage a listing (Resource Accounts)">
             <List>
-              <li>Your organization, role and contact details, the listings you claim and how they were checked, your changes (kept with what they were before), and promotions you ask for.</li>
+              <li>Your organization, role and contact details, the listings you claim and how they were checked, your changes (kept with what they were before), and promotions you ask for, with how often each was seen and clicked (counts only) and what you paid for it.</li>
               <li>The code to check a claim is sent to the email the listing publishes, and only a scrambled form of it is kept.</li>
               <li>Owners see counts about their listing, such as saves, teams and ratings. Never who.</li>
             </List>
@@ -335,7 +346,17 @@ export default function PrivacyPage() {
               ratings are counted, not who gave them.
             </li>
           </List>
-          <p>We don’t sell, rent or trade your information, and we don’t show ads. We don’t use your information to train AI models.</p>
+          {SPONSORED ? (
+            <p>
+              We don’t sell, rent or trade your information, and we don’t use it to train AI models. We show sponsored listings, labelled “Sponsored”,
+              chosen only by what you are looking at (what you searched, the Tidbit you are reading, or the step of your plan) and, in a search, the province you
+              search in. When one is on your screen or you click it, we count it once a day under a key made from your account (or, signed out, your internet
+              address and browser) that changes every day and can’t be turned back into you. The business sees totals only. If you pay for Autinerary, or have
+              free access through an organization, you see none.
+            </p>
+          ) : (
+            <p>We don’t sell, rent or trade your information, and we don’t show ads. We don’t use your information to train AI models.</p>
+          )}
         </Section>
 
         <Section id="others" title="Who else handles it">

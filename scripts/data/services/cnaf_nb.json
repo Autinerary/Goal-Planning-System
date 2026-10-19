@@ -11,7 +11,8 @@
       "category": "Social Services",
       "tags": [
         "requires_diagnosis",
-        "parent_babies"
+        "parent_babies",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The page does not mention fees; VIVA delivers the services under a contract with the province.",
@@ -40,7 +41,8 @@
         "parent_babies",
         "parent_children",
         "parent_preteens",
-        "parent_teens"
+        "parent_teens",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "Families who have the means make a financial contribution towards services.",
@@ -164,7 +166,8 @@
       "description": "Provincial organisation for people with intellectual and developmental disabilities and their families, known for decades as the New Brunswick Association for Community Living. It supports inclusive education from early learning to post-secondary, including help with transitions and case management for post-secondary students aged 18 to 30, and also works on family support, employment and advocacy.",
       "category": "Social Services",
       "tags": [
-        "advocacy"
+        "advocacy",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost.",
@@ -423,7 +426,8 @@
       "tags": [
         "charity",
         "community_group",
-        "parent_children"
+        "parent_children",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention fees; printing, laminating and binding are offered at cost price.",

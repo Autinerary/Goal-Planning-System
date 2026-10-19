@@ -2511,8 +2511,13 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               
               {!selectedConversation ? (
                 <div className="space-y-4 flex-1 overflow-y-auto">
+                  {/* This said "All messages are reviewed for safety", which
+                      isn't so: nobody reads messages unless one is reported
+                      (api/social/report). Say what does happen. */}
                   <p className="text-slate-600 text-sm">
-                    Safe, moderated communication with your connections. All messages are reviewed for safety.
+                    Only people you&rsquo;re connected to can message you. If a message worries you, report it in{' '}
+                    <Link href="/hare-world/messages" className="font-medium text-slate-800 underline underline-offset-2">Messages</Link>{' '}
+                    and the team will look at it, or block the person from their card.
                   </p>
                   {/* A tester reported this modal "only shows a description".
                       That is what happens with no connections: the list below

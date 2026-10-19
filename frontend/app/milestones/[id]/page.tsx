@@ -10,6 +10,7 @@ import CommonMistakes from '@/app/components/CommonMistakes'
 import BackButton from '../../components/BackButton'
 import MilestoneRating from '@/app/components/MilestoneRating'
 import NormsPrompt from '@/app/components/NormsPrompt'
+import SponsoredService from '@/app/components/SponsoredService'
 
 
 interface Tool {
@@ -288,6 +289,7 @@ export default function MilestoneDetailView() {
               icon={Wrench}
               tools={toolsByType.services} 
               colorClass="bg-blue-50 border-blue-200"
+              third={<SponsoredService text={[milestone.name, milestone.race, milestone.description].filter(Boolean).join(' ')} />}
             />
           )}
 
@@ -360,11 +362,13 @@ export default function MilestoneDetailView() {
     </div>
   )
 }
-function ToolSection({ title, icon: Icon, tools, colorClass }: { 
+function ToolSection({ title, icon: Icon, tools, colorClass, third }: { 
   title: string
   icon: any
   tools: Tool[]
   colorClass: string 
+  // Shown third, only after two of the plan's own (a sponsored service).
+  third?: React.ReactNode
 }) {
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -389,7 +393,9 @@ function ToolSection({ title, icon: Icon, tools, colorClass }: {
         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       </div>
       <div className="space-y-3">
-        {tools.map((tool) => {
+        {/* null marks where `third` goes: after the first two, if there are two. */}
+        {[...tools.slice(0, 2), ...(third && tools.length >= 2 ? [null] : []), ...tools.slice(2)].map((tool) => {
+          if (!tool) return <div key="third">{third}</div>
           const progress = tool.progress || 0
           const status = tool.status || 'not_started'
           

@@ -52,7 +52,9 @@ if (ALL) SIGNED_OUT.push(HUB + '/community', HUB + '/shop')
 const SIGNED_IN = (ALL
   ? ['/onboarding-confirmation', '/path', '/calendar', '/tasks', '/races', '/milestones', '/pit-stop', '/hare-world', '/reflection', '/stats',
      '/tools', '/family', '/path-market', '/ideal-self', '/paths/compare', '/gamification', '/assistant', '/reels', '/profile', '/profile/settings']
-  : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility']).map((p) => APP + p)
+  : ['/onboarding-confirmation', '/path', '/profile', '/profile/settings']).concat(['/billing', '/free-access', '/business', '/profile/accessibility',
+    // The Tidbits round: the resources for each path, before choosing one.
+    '/path-market']).map((p) => APP + p)
 // ResourceHub signed in, through the app's hand-off: its account menu and its
 // profile had problems only a signed-in check could see (found 15 October
 // 2026, Riipen Labs Groups 8 to 14).
@@ -61,7 +63,10 @@ const SIGNED_IN = (ALL
 // signed in, since products come and go).
 const HUB_SIGNED_IN = (ALL
   ? ['/', '/profile', '/settings/accessibility', '/my-resources', '/notifications', '/search?ai=1&q=' + encodeURIComponent('swimming near Toronto')]
-  : ['/profile', '/settings/accessibility']).concat(['/shop', '/shop?group=sensory', '/shop/new', '/shop/cart', '/orders']).map((p) => HUB + p)
+  : ['/profile', '/settings/accessibility']).concat(['/shop', '/shop?group=sensory', '/shop/new', '/shop/cart', '/orders',
+    // The Tidbits round: the home page's "Help that's hard to find", Tidbits,
+    // writing one, My Tidbits, the groups, a search for support for parents.
+    '/', '/community', '/community/write', '/community/mine', '/community/groups', '/search?tags=parent_support']).map((p) => HUB + p)
 const SERIOUS = new Set(['serious', 'critical'])
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 

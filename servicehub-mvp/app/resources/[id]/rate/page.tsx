@@ -17,6 +17,8 @@ import type { Resource, UserBarrier, Rating } from '@/types/database'
 import type { BarrierScores } from '@/types/database'
 import type { RatingAccess } from '@/lib/ratings/access'
 import RatingAccessPanel from '@/components/resources/detail/RatingAccessPanel'
+import RulesDialog, { useCommunityRules } from '@/components/community/RulesDialog'
+import { WAIT_BUCKETS, isWaitBucket } from '@/lib/waits'
 
 const MAX_COMMENT_LENGTH = 500
 
@@ -46,6 +48,12 @@ function RateResourceContent() {
     [key: string]: { enabled: boolean; rating: number }
   }>({})
   const [comment, setComment] = useState('')
+  // How long they waited (the 5Qs report: wait times; STEP 83). Optional.
+  const [waitBucket, setWaitBucket] = useState('')
+  // The community rules, before a first rating (the Tidbits round, Goal 2).
+  const rules = useCommunityRules()
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [rulesSeen, setRulesSeen] = useState(false)
   const [images, setImages] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -96,6 +104,7 @@ function RateResourceContent() {
           setExistingRating(rating)
           setOverallRating(rating.overall_score)
           setComment(rating.comment || '')
+          if (isWaitBucket((rating as any).wait_bucket)) setWaitBucket((rating as any).wait_bucket)
 
           // Load barrier ratings if they exist
           if (rating.barrier_scores && data.barriers) {
@@ -186,6 +195,11 @@ function RateResourceContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // The community rules, before a first rating (the Tidbits round, Goal 2).
+    if (rules.needed && !existingRating) {
+      setRulesOpen(true)
+      return
+    }
 
     if (overallRating === 0) {
       addToast('Please select an overall rating', 'error')
@@ -247,6 +261,7 @@ function RateResourceContent() {
           barrier_scores: Object.keys(barrierScores).length > 0 ? barrierScores : undefined,
           comment: sanitizedComment || undefined,
           image_urls: imageUrls.length > 0 ? imageUrls : undefined,
+          wait_bucket: waitBucket || undefined,
         }),
       })
 
@@ -314,6 +329,22 @@ function RateResourceContent() {
 
       <main className="flex-1">
         <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <RulesDialog
+          open={rulesOpen || (rules.needed && !existingRating && !loading && !rulesSeen)}
+          reason="rating"
+          onClose={() => {
+            setRulesOpen(false)
+            setRulesSeen(true)
+          }}
+          onAgree={async () => {
+            const ok = await rules.accept()
+            if (ok) {
+              setRulesOpen(false)
+              setRulesSeen(true)
+            }
+            return ok
+          }}
+        />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Breadcrumbs
@@ -376,6 +407,29 @@ function RateResourceContent() {
                     values={barrierRatings}
                     onChange={handleBarrierRatingChange}
                   />
+                </div>
+              )}
+
+              {/* How long they waited: for services, not articles. */}
+              {resource.category !== 'commentary' && (
+                <div>
+                  <label htmlFor="wait" className="block text-sm font-medium text-gray-900 mb-1">
+                    How long did you wait? <span className="text-gray-700 text-xs">(Optional)</span>
+                  </label>
+                  <p className="mb-2 text-xs text-gray-700">From first contacting them to the service starting. It helps the next family plan.</p>
+                  <select
+                    id="wait"
+                    value={waitBucket}
+                    onChange={(e) => setWaitBucket(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 sm:w-72"
+                  >
+                    <option value="">I&apos;d rather not say</option>
+                    {WAIT_BUCKETS.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 

@@ -74,7 +74,7 @@ export interface LayoutPositions {
   theme?: ColourTheme
 }
 
-export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'warm' | 'cool' | 'classic'
+export type ColourTheme = 'earthy' | 'ocean' | 'sand' | 'warm' | 'cool' | 'bakery' | 'classic'
 /** How strong the colours are; 'soft' is what Soft colours was. */
 export type ColourStrength = 'softest' | 'soft' | 'usual' | 'bright' | 'brightest'
 
@@ -247,6 +247,8 @@ export const COLOUR_THEMES: { id: ColourTheme; label: string; hint: string }[] =
   // The products round's planning note: "Warm orange (warm mode) / soft lilac (cool mode)".
   { id: 'warm', label: 'Warm', hint: 'Warm orange' },
   { id: 'cool', label: 'Cool', hint: 'Soft lilac' },
+  // The Tidbits round's planning note: "Bakery - Golden, Light & Dark Brown".
+  { id: 'bakery', label: 'Bakery', hint: 'Golden, light and dark brown' },
   { id: 'classic', label: 'Classic', hint: 'The original purple and blue' },
 ]
 

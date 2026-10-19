@@ -57,6 +57,13 @@ export default async function PricingPage() {
             <strong>Your first month is free.</strong> No card is needed, and nothing is charged. After that, choose a plan, or
             use one of the ways to free access below.
           </p>
+          {/* Paying removes sponsored listings (the Tidbits round's planning note, Goal 7; lib/sponsored.ts). */}
+          {process.env.NEXT_PUBLIC_SPONSORED === 'on' && (
+            <p>
+              A plan, or free access through an organization, also means <strong>no sponsored listings</strong>, in the app or in
+              ResourceHub.
+            </p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-5">
               <h3 className="text-lg font-semibold text-slate-900">Monthly</h3>

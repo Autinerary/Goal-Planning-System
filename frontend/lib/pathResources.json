@@ -1,0 +1,506 @@
+{
+ "checked": "2026-10-19",
+ "paths": {
+  "med-sci": [
+   {
+    "title": "Admission requirements for every Canadian medical school (AFMC)",
+    "url": "https://www.afmc.ca/data-holdings/afmc-admission-requirements-of-canadian-faculties-of-medicine/",
+    "what": "A free yearly guide to all 19 Canadian medical schools: MCAT rules, seats, dates, fees and contacts. Use it to compare schools before you apply.",
+    "kind": "applications"
+   },
+   {
+    "title": "Apply to Ontario medical schools through OMSAS",
+    "url": "https://applymd.utoronto.ca/how-apply",
+    "what": "Step-by-step: how an application to Ontario medical schools goes through OMSAS, including transcripts, releasing MCAT scores and checking your file is complete.",
+    "kind": "applications"
+   },
+   {
+    "title": "Take the MCAT with accommodations (AAMC)",
+    "url": "https://students-residents.aamc.org/mcat-exam-accommodations/take-mcat-exam-accommodations",
+    "what": "How to ask for extra time, breaks or other changes on the MCAT if you have a disability or health condition, and how to book once approved.",
+    "kind": "accommodations"
+   },
+   {
+    "title": "Ask for Casper accommodations (Acuity Insights)",
+    "url": "https://intercom.help/acuityinsights/en/articles/4731327-how-do-i-request-accommodations-for-acuity-insights-assessments",
+    "what": "How to request accommodations for the Casper test: the form, supporting documents, where to send them and the deadline.",
+    "kind": "accommodations"
+   },
+   {
+    "title": "What medical school costs: U of T MD tuition 2026-27",
+    "url": "https://applymd.utoronto.ca/tuition-fees",
+    "what": "One school's official fee table for first-year medicine, plus its estimate for books and living costs. A real example to start a budget from.",
+    "kind": "tuition"
+   },
+   {
+    "title": "Paid summer research for undergrads (NSERC USRA)",
+    "url": "https://nserc-crsng.canada.ca/en/funding-opportunity/undergraduate-student-research-awards",
+    "what": "A paid, full-time summer research job in a university lab, for undergraduate science and engineering students. Good first research experience.",
+    "kind": "funding"
+   },
+   {
+    "title": "Canadian Association of Physicians with Disabilities: pre-med resources",
+    "url": "https://www.capd.ca/pre-med-resources",
+    "what": "A Canadian network of doctors and medical learners with disabilities. This page lists programs that help disabled students apply to medical school.",
+    "kind": "community"
+   }
+  ],
+  "public-health": [
+   {
+    "title": "Nursing routes in Ontario: RN degree or RPN diploma (College of Nurses of Ontario)",
+    "url": "https://cno.org/become-a-nurse/approved-nursing-programs/approved-nursing-programs",
+    "what": "Explains which school programs lead to each kind of nursing licence in Ontario, with lists of approved university and college programs.",
+    "kind": "applications",
+    "where": "Ontario"
+   },
+   {
+    "title": "Accommodations on nursing registration exams (College of Nurses of Ontario)",
+    "url": "https://cno.org/become-a-nurse/examinations/requesting-accommodation",
+    "what": "How to ask for changes to exam conditions on the nursing registration exams if a disability or health condition affects how you write tests.",
+    "kind": "accommodations",
+    "where": "Ontario"
+   },
+   {
+    "title": "Free pre-med mentoring for disabled students (U of T Community of Support)",
+    "url": "https://applymd.utoronto.ca/community-support",
+    "what": "A free program with advising, mentors, and help with MCAT, CASPer, applications and interviews for under-represented students, including disabled students.",
+    "kind": "support"
+   },
+   {
+    "title": "MCAT Fee Assistance Program for Canadians (AFMC)",
+    "url": "https://www.afmc.ca/strategic-priorities/education/aspirants-applicants/",
+    "what": "Lower MCAT fees and free official prep material for Canadians who could not afford the test otherwise. Check eligibility online, then apply.",
+    "kind": "funding"
+   },
+   {
+    "title": "Ontario Learn and Stay Grant (nursing, paramedic, lab and family medicine)",
+    "url": "https://www.ontario.ca/page/ontario-learn-and-stay-grant",
+    "what": "Ontario pays tuition and books for some health programs if you agree to work in an underserved region after you graduate.",
+    "kind": "funding",
+    "where": "Ontario"
+   },
+   {
+    "title": "Become a public health inspector (CIPHI certification)",
+    "url": "https://ciphi.ca/certification/",
+    "what": "The steps to become a Certified Public Health Inspector: an accredited degree, a 12-week supervised field practicum, then the certification exams.",
+    "kind": "guide"
+   }
+  ],
+  "education": [
+   {
+    "title": "How to apply to college or university in Ontario",
+    "url": "https://www.ontario.ca/page/learn-about-colleges-universities-and-indigenous-institutes-ontario",
+    "what": "The Ontario government's plain overview: where to apply (ontariocolleges.ca for college, OUAC for university), admission rules, and paying for school.",
+    "kind": "applications",
+    "where": "Ontario"
+   },
+   {
+    "title": "Apply to Ontario colleges (ontariocolleges.ca)",
+    "url": "https://www.ontariocolleges.ca/en/applying/how-to-apply",
+    "what": "The official application for all Ontario public colleges: make one account, pick your programs, pay the fee, then watch for offers.",
+    "kind": "applications",
+    "where": "Ontario"
+   },
+   {
+    "title": "Accommodations after high school: what changes (Transition Resource Guide)",
+    "url": "https://www.transitionresourceguide.ca/post-secondary-education/accessibility-in-post-secondary-education",
+    "what": "Explains how getting accommodations at college or university differs from an IEP in high school, and the steps to register with the accessibility office.",
+    "kind": "accommodations",
+    "where": "Ontario"
+   },
+   {
+    "title": "Your right to accommodation at school (Ontario Human Rights Commission)",
+    "url": "https://www.ohrc.on.ca/en/policy-accessible-education-students-disabilities",
+    "what": "The official policy on what schools, colleges and universities must do to accommodate students with disabilities. Useful if a request is refused.",
+    "kind": "accommodations",
+    "where": "Ontario"
+   },
+   {
+    "title": "OSAP for students with disabilities",
+    "url": "https://www.ontario.ca/page/osap-for-under-represented-learners",
+    "what": "How Ontario student aid works if you have a disability: full-time funding at a lighter course load, plus grants for disability-related services and equipment.",
+    "kind": "funding",
+    "where": "Ontario"
+   },
+   {
+    "title": "Plan your courses and timetable (example: Western University)",
+    "url": "https://registrar.uwo.ca/academics/register_in_courses/new_students.html",
+    "what": "One university's clear guide for new students: choosing courses, building a timetable without clashes, and when you can register.",
+    "kind": "guide"
+   },
+   {
+    "title": "National Educational Association of Disabled Students (NEADS)",
+    "url": "https://www.neads.ca/en/about/",
+    "what": "A national charity run by and for disabled post-secondary students, with a scholarships portal, campus disability services lists and job resources.",
+    "kind": "support"
+   }
+  ],
+  "career": [
+   {
+    "title": "Job Bank: jobs and supports for people with disabilities",
+    "url": "https://www.jobbank.gc.ca/persons-with-disabilities",
+    "what": "The federal job board's page for disabled job seekers: search jobs from employers who say they support people with disabilities, and find employment programs.",
+    "kind": "tool"
+   },
+   {
+    "title": "Free help with resumes, interviews and job search (Employment Ontario)",
+    "url": "https://www.ontario.ca/page/employment-ontario",
+    "what": "Ontario's free employment services: help with your resume, interview practice, finding a job, and programs for youth and students.",
+    "kind": "support",
+    "where": "Ontario"
+   },
+   {
+    "title": "Workplace accommodation: your rights and the steps (Canadian Human Rights Commission)",
+    "url": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide",
+    "what": "A step-by-step guide to asking for and setting up workplace accommodations, including what an employer can and can't ask you.",
+    "kind": "accommodations"
+   },
+   {
+    "title": "Disclosure and accommodations at work (Transition Resource Guide)",
+    "url": "https://www.transitionresourceguide.ca/workplace/accessibility-in-the-workplace",
+    "what": "Plain-language help with deciding whether and how to tell an employer about a disability, your rights in Ontario, and how to ask for accommodations.",
+    "kind": "guide",
+    "where": "Ontario"
+   },
+   {
+    "title": "Specialisterne Canada: jobs for autistic and neurodivergent people",
+    "url": "https://ca.specialisterne.com/job-seekers/",
+    "what": "A Canadian charity that matches autistic and neurodivergent job seekers with employers who want to hire them. Join their talent pool with a form.",
+    "kind": "support"
+   },
+   {
+    "title": "Ready, Willing and Able (autism and intellectual disability employment)",
+    "url": "https://readywillingable.ca/job-seekers/",
+    "what": "A national program that helps employers hire people with intellectual disabilities or autism. Job seekers connect through its local employment agency partners.",
+    "kind": "support"
+   }
+  ],
+  "living": [
+   {
+    "title": "Ontario Disability Support Program (ODSP)",
+    "url": "https://www.ontario.ca/page/ontario-disability-support-program",
+    "what": "Ontario's monthly income support for adults with disabilities who need help with basic needs and rent: who qualifies, how much, and how to apply online.",
+    "kind": "funding",
+    "where": "Ontario"
+   },
+   {
+    "title": "Renting in Ontario: your rights",
+    "url": "https://www.ontario.ca/page/renting-ontario-your-rights",
+    "what": "What a landlord can and can't do in Ontario: rent increase limits, evictions, ending a lease, when a landlord can enter, and where to get help with disputes.",
+    "kind": "guide",
+    "where": "Ontario"
+   },
+   {
+    "title": "Budget Planner (Financial Consumer Agency of Canada)",
+    "url": "https://itools-ioutils.fcac-acfc.gc.ca/BP-PB/budget-planner",
+    "what": "A free government tool that builds a monthly budget from your income and expenses. You can save and finish later.",
+    "kind": "tool"
+   },
+   {
+    "title": "211: find local help with housing, food and bills",
+    "url": "https://211.ca/",
+    "what": "Call, text or chat 2-1-1 to find community services near you, like housing help, food banks and benefits, in many languages.",
+    "kind": "helpline"
+   },
+   {
+    "title": "Life skills checklist for living on your own (Transition Resource Guide)",
+    "url": "https://www.transitionresourceguide.ca/community/build-your-skills",
+    "what": "A checklist to rate everyday skills like routines, cooking, laundry and money, then ideas for building the ones you want to work on.",
+    "kind": "guide",
+    "where": "Ontario"
+   }
+  ],
+  "adulting": [
+   {
+    "title": "Budget Planner (Financial Consumer Agency of Canada)",
+    "url": "https://itools-ioutils.fcac-acfc.gc.ca/BP-PB/budget-planner",
+    "what": "A free government tool that lays out your income, bills and subscriptions in one monthly budget. You can save and finish later.",
+    "kind": "tool"
+   },
+   {
+    "title": "Cancelling contracts, gyms and other deals (Ontario consumer rights)",
+    "url": "https://www.ontario.ca/page/your-rights-under-consumer-protection-act",
+    "what": "When you can cancel a contract without paying a penalty, how to do it in writing, and how fast a business must refund you.",
+    "kind": "guide",
+    "where": "Ontario"
+   },
+   {
+    "title": "Free help with phone, internet and TV bill problems (CCTS)",
+    "url": "https://www.ccts-cprst.ca/",
+    "what": "If your phone, internet or TV company won't fix a billing or contract problem, this independent body handles your complaint for free.",
+    "kind": "support"
+   },
+   {
+    "title": "Renew your health card or licence, or book a ServiceOntario visit",
+    "url": "https://www.ontario.ca/page/serviceontario",
+    "what": "Do ID tasks online, like renewing a health card or driver's licence, or book an appointment so you don't have to wait in line.",
+    "kind": "tool",
+    "where": "Ontario"
+   },
+   {
+    "title": "211 Ontario: one number for community and social services",
+    "url": "https://211ontario.ca/",
+    "what": "Call, text or chat 2-1-1 when you don't know who to ask: help with bills, food, housing, benefits and more, near you.",
+    "kind": "helpline",
+    "where": "Ontario"
+   }
+  ],
+  "health": [
+   {
+    "title": "Find a family doctor or nurse practitioner (Health Care Connect)",
+    "url": "https://www.ontario.ca/page/find-family-doctor-or-nurse-practitioner",
+    "what": "Sign up once and Ontario looks for a family doctor or nurse practitioner near you who is taking new patients.",
+    "kind": "tool",
+    "where": "Ontario"
+   },
+   {
+    "title": "Health811: free health advice, any time",
+    "url": "https://health811.ontario.ca/static/guest/home",
+    "what": "Call 811 or go online for free health advice at any hour, or to find health services near you.",
+    "kind": "helpline",
+    "where": "Ontario"
+   },
+   {
+    "title": "9-8-8: Suicide Crisis Helpline",
+    "url": "https://988.ca/get-help/help-right-now",
+    "what": "Call or text 9-8-8 any time if you are thinking about suicide or worried about someone. This page also has ways to feel safer right now.",
+    "kind": "helpline"
+   },
+   {
+    "title": "Four questions to ask at a medical appointment (Choosing Wisely Canada)",
+    "url": "https://choosingwiselycanada.org/pamphlet/four-questions/",
+    "what": "Four short questions to bring to any appointment so you understand a test or treatment and its options before you agree to it.",
+    "kind": "guide"
+   },
+   {
+    "title": "Healthcare toolkit for autistic adults (AASPIRE)",
+    "url": "https://researchautism.org/healthcaretoolkit",
+    "what": "Worksheets and tips for doctor visits, plus a tool that makes a one-page accommodations report to give your doctor.",
+    "kind": "tool",
+    "where": "From the US"
+   }
+  ],
+  "relationships": [
+   {
+    "title": "Autism Ontario events and meetups",
+    "url": "https://www.autismontario.com/events",
+    "what": "A calendar of local events across Ontario: support groups, meetups, recreation and workshops. Filter by region and look for adult (18+) events.",
+    "kind": "community",
+    "where": "Ontario"
+   },
+   {
+    "title": "Autism Ontario adult supports: help finding social opportunities",
+    "url": "https://www.autismontario.com/programs-services/adults",
+    "what": "Autism Ontario's adult team answers questions and gives referrals, including for relationships and social opportunities near you.",
+    "kind": "support",
+    "where": "Ontario"
+   },
+   {
+    "title": "Empowering Connections: Autism Canada's national support line",
+    "url": "https://www.autismcanada.org/empoweringconnections",
+    "what": "A Canada-wide line where autistic and neurodivergent people can talk with autistic-led staff by phone, chat, Zoom or email.",
+    "kind": "support"
+   },
+   {
+    "title": "Making friends: a guide for autistic adults (National Autistic Society)",
+    "url": "https://www.autism.org.uk/advice-and-guidance/family-life-and-relationships/making-friends/autistic-adults",
+    "what": "Practical ideas for meeting people and keeping friendships going, written for autistic adults: small steps, interest-based groups, and managing social anxiety.",
+    "kind": "guide",
+    "where": "From the UK"
+   },
+   {
+    "title": "PEERS for Young Adults: friendship and dating skills group (Kerry's Place)",
+    "url": "https://kerrysplace.org/product/peers-for-young-adults/",
+    "what": "A 16-week group where autistic adults learn and practise the social skills for making and keeping friends and dating, with a family member as social coach.",
+    "kind": "support",
+    "where": "Ontario"
+   }
+  ],
+  "travel": [
+   {
+    "title": "Toronto Pearson: sunflower lanyards and practice walk-throughs",
+    "url": "https://www.torontopearson.com/en/accessibility",
+    "what": "Toronto Pearson airport's accessibility services: a free sunflower lanyard for hidden disabilities, a practice visit before your trip, and help on the day.",
+    "kind": "accommodations",
+    "where": "Toronto"
+   },
+   {
+    "title": "Airport security screening with a disability (CATSA)",
+    "url": "https://www.catsa-acsta.gc.ca/en/travel-tips/accessibility-and-medical-needs",
+    "what": "What to expect at airport security if you have a disability or medical need, including the Family and Accessible Line and staying with your companion.",
+    "kind": "accommodations"
+   },
+   {
+    "title": "GO Transit accessibility: sunflower pins and step-by-step travel guides",
+    "url": "https://www.gotransit.com/en/travelling-on-go/accessibility",
+    "what": "GO Transit's help for riders with disabilities, including a sunflower pin for hidden disabilities and free visual step-by-step guides for PRESTO, tickets and trip planning.",
+    "kind": "guide",
+    "where": "Ontario"
+   },
+   {
+    "title": "Access 2 Card: for people who need a support person at venues",
+    "url": "https://access2card.ca/eligibility/",
+    "what": "A card from Easter Seals Canada for people who need a support person at movies, attractions and other venues. Check if you qualify, then apply.",
+    "kind": "accommodations"
+   }
+  ],
+  "nutrition": [
+   {
+    "title": "10 tips for planning meals on a budget (Unlock Food)",
+    "url": "https://www.unlockfood.ca/en/Articles/Budget/10-Tips-for-Planning-Meals-on-a-Budget",
+    "what": "Simple steps for planning a few days of meals, writing a grocery list and using leftovers, so eating well costs less and takes fewer decisions.",
+    "kind": "guide"
+   },
+   {
+    "title": "Eating support made by and for autistic and ADHD people (NEDIC NeuroAffirmED)",
+    "url": "https://nedic.ca/neuroaffirmed/",
+    "what": "Tip sheets and tools about eating difficulties that are common for autistic and ADHD people, and how to get care that fits how your brain works.",
+    "kind": "guide"
+   },
+   {
+    "title": "When picky eating is more than picky: ARFID (NEDIC)",
+    "url": "https://nedic.ca/eating-disorders-treatment/avoidant-and-restrictive-food-intake-disorder/",
+    "what": "Explains avoidant/restrictive food intake disorder: very limited eating linked to things like textures, colours or a past bad experience with food, its warning signs, and a short self-screen.",
+    "kind": "guide"
+   },
+   {
+    "title": "How to find a dietitian, including free ones (Unlock Food)",
+    "url": "https://www.unlockfood.ca/en/Articles/About-Dietitians/How-can-I-find-a-dietitian-near-me",
+    "what": "Where to find a registered dietitian: free options through health teams and public health units, and paid ones you can search by postal code.",
+    "kind": "support"
+   },
+   {
+    "title": "Free dietitian advice by phone in BC (HealthLink BC 8-1-1)",
+    "url": "https://www.healthlinkbc.ca/find-care/healthlink-bc-8-1-1-services",
+    "what": "In British Columbia, call 8-1-1 for free health advice, including questions for a registered dietitian.",
+    "kind": "helpline",
+    "where": "BC"
+   }
+  ],
+  "veganism": [
+   {
+    "title": "What you need to know about eating vegan (Unlock Food)",
+    "url": "https://www.unlockfood.ca/en/Articles/Vegetarian-and-Vegan-Diets/What-You-Need-to-Know-About-Following-a-Vegan-Eati.aspx",
+    "what": "A dietitian-written basics page: which nutrients need planning on a vegan diet (like B12, iron, calcium and vitamin D) and which foods supply them.",
+    "kind": "guide"
+   },
+   {
+    "title": "Cooking with beans, peas and lentils (Unlock Food)",
+    "url": "https://www.unlockfood.ca/en/Articles/Cooking-Food-Preparation/Cooking-with-Legumes.aspx",
+    "what": "How to buy, choose and cook beans, peas and lentils (canned or dried), a cheap staple for easy plant-based meals.",
+    "kind": "guide"
+   },
+   {
+    "title": "All about tofu (Unlock Food)",
+    "url": "https://www.unlockfood.ca/en/Articles/Cooking-Food-Preparation/Everything-You-Need-to-Know-About-Tofu!.aspx",
+    "what": "What tofu is, which type to buy for which dish (silken to extra-firm), and simple ways to cook it.",
+    "kind": "guide"
+   },
+   {
+    "title": "VegTO: Toronto's plant-based community",
+    "url": "https://www.veg.ca/",
+    "what": "A Toronto charity with events, resources and volunteering for people who are plant-curious or fully plant-based.",
+    "kind": "community",
+    "where": "Toronto"
+   }
+  ],
+  "recovery": [
+   {
+    "title": "ConnexOntario: find addiction, mental health and gambling services",
+    "url": "https://connexontario.ca/",
+    "what": "Call, text, chat or email to find addiction, mental health or problem gambling programs near you in Ontario. They do the searching for you.",
+    "kind": "helpline",
+    "where": "Ontario"
+   },
+   {
+    "title": "Addiction: signs, treatment and self-referral (CAMH)",
+    "url": "https://www.camh.ca/en/health-info/mental-illness-and-addiction-index/addiction",
+    "what": "A large Toronto mental health and addiction hospital explains what addiction is, how treatment works, and how to get help, including referring yourself.",
+    "kind": "support",
+    "where": "Toronto"
+   },
+   {
+    "title": "SMART Recovery: free peer support meetings",
+    "url": "https://smartrecovery.org/",
+    "what": "Free recovery groups, online or in person, led by trained facilitators. No religious content, no long-term commitment, and groups for family and friends too.",
+    "kind": "community"
+   },
+   {
+    "title": "BounceBack Ontario: free coaching for low mood, stress and worry",
+    "url": "https://bouncebackontario.ca/",
+    "what": "A free program from the Canadian Mental Health Association: phone coaching and online videos to build skills for anxiety, low mood and stress.",
+    "kind": "support",
+    "where": "Ontario"
+   },
+   {
+    "title": "9-8-8: call or text if you're not sure you need help",
+    "url": "https://988.ca/get-help/im-not-sure-if-i-need-help",
+    "what": "The national suicide crisis line, for any time things feel too hard. This page helps you decide when to reach out and what to do right away.",
+    "kind": "helpline"
+   }
+  ],
+  "creative": [
+   {
+    "title": "Canada Council for the Arts: Explore and Create grants",
+    "url": "https://canadacouncil.ca/funding/grants/explore-and-create",
+    "what": "Federal arts grants for Canadian artists and groups to research, create, produce and share new work, or for professional development.",
+    "kind": "funding"
+   },
+   {
+    "title": "Paid help to apply for Canada Council grants (Application Assistance)",
+    "url": "https://canadacouncil.ca/funding/application-assistance",
+    "what": "If you are Deaf, disabled or living with mental illness, the Canada Council can pay someone to help you set up an account and write your application.",
+    "kind": "accommodations"
+   },
+   {
+    "title": "Ontario Arts Council: Deaf and Disability Arts Projects",
+    "url": "https://www.arts.on.ca/grants/deaf-and-disability-arts-projects",
+    "what": "Ontario grants of up to $10,000 for Deaf and disabled artists to create work, produce it, or build their skills through training or mentorship.",
+    "kind": "funding",
+    "where": "Ontario"
+   },
+   {
+    "title": "Tangled Art + Disability (gallery and artist community)",
+    "url": "https://tangledarts.org/",
+    "what": "A Toronto gallery and organisation for disabled artists: exhibitions, calls for proposals and grants, and a community of disability-identified artists.",
+    "kind": "community",
+    "where": "Toronto"
+   },
+   {
+    "title": "Workman Arts: arts community for people with mental health and addiction experience",
+    "url": "https://workmanarts.com/",
+    "what": "A Toronto arts organisation where artists living with mental health or addiction issues take peer-led classes, share work and become members.",
+    "kind": "community",
+    "where": "Toronto"
+   }
+  ],
+  "entrepreneurship": [
+   {
+    "title": "Futurpreneur Startup Program: loans and mentoring for ages 18 to 39",
+    "url": "https://futurpreneur.ca/en/offering/core-startup/",
+    "what": "A Canada-wide program for young founders: a startup loan plus a hand-matched mentor for up to two years, and business planning tools.",
+    "kind": "funding"
+   },
+   {
+    "title": "Futurpreneur Side Hustle Program: start small and keep your job",
+    "url": "https://futurpreneur.ca/en/offering/side-hustle/",
+    "what": "Financing and mentoring to start or grow a side business while you keep working full time. A lower-pressure way to test an idea.",
+    "kind": "funding"
+   },
+   {
+    "title": "Starter Company Plus: training, a mentor and up to $5,000 (Ontario)",
+    "url": "https://www.ontario.ca/page/starter-company-plus",
+    "what": "Ontario's program for people starting, expanding or buying a small business: training, one-on-one advice from a local centre, a mentor, and a possible grant.",
+    "kind": "funding",
+    "where": "Ontario"
+   },
+   {
+    "title": "Entrepreneurs with Disabilities Program (Community Futures, BC)",
+    "url": "https://www2.gov.bc.ca/gov/content/employment-business/economic-development/funding-and-grants/entrepreneurs-with-disabilities-program",
+    "what": "Business planning help, training, coaching and loans for entrepreneurs who have a disability or an ongoing health condition.",
+    "kind": "support",
+    "where": "BC"
+   }
+  ]
+ }
+}

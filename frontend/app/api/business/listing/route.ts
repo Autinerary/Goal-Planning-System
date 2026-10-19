@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isItemKind, OWNER_FIELDS, ownerValues, rowUpdate, splitChanges, type ItemKind } from '@/lib/listings'
 import { qualitiesFor } from '@/lib/shop/taxonomy'
+import { promotionPaymentsReady } from '@/lib/stripe'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,21 @@ const COLUMNS: Record<ItemKind, string> = {
   resource: 'id, name, description, category, location, contact_info, image_url, cost_type, delivery, status',
   product: 'id, name, description, category, price, seller, status, brand, stock, price_note, maker_url, qualities',
 }
+// Since STEP 83: the wait a service states.
+const LATER: Record<ItemKind, string> = { resource: ', wait_stated', product: '' }
+
+/** The listing's row, with STEP 83's columns when they are there. */
+async function loadRow(admin: ReturnType<typeof createAdminClient>, kind: ItemKind, id: string) {
+  const table = kind === 'resource' ? 'resources' : 'products'
+  const first = await admin.from(table).select(COLUMNS[kind] + LATER[kind]).eq('id', id).maybeSingle()
+  if (!first.error) return first.data as unknown as Record<string, any> | null
+  const second = await admin.from(table).select(COLUMNS[kind]).eq('id', id).maybeSingle()
+  return second.data as unknown as Record<string, any> | null
+}
+
+/** The fields an owner may change, leaving out any a column isn't there for yet. */
+const fieldsFor = (kind: ItemKind, r: Record<string, any>) =>
+  Object.entries(OWNER_FIELDS[kind]).filter(([field]) => field !== 'wait_stated' || 'wait_stated' in r)
 
 async function ownerOf(kind: ItemKind, id: string) {
   const supabase = createServerSupabase()
@@ -20,6 +36,15 @@ async function ownerOf(kind: ItemKind, id: string) {
   if (!user) return { supabase, user: null, owns: false }
   const { data } = await supabase.rpc('owns_listing', { p_kind: kind, p_item: id })
   return { supabase, user, owns: data === true }
+}
+
+const PROMO = 'id, headline, body, image_url, keywords, provinces, status, starts_on, ends_on, created_at'
+
+/** Its promotions, with where they show, the bid and the counts since STEP 83. */
+async function loadPromotions(supabase: ReturnType<typeof createServerSupabase>, kind: ItemKind, id: string) {
+  const query = (columns: string) => supabase.from('promotions').select(columns).eq('item_kind', kind).eq('item_id', id).order('created_at', { ascending: false })
+  const first = await query(PROMO + ', placements, bid_cents, budget_cents, spent_cents, impressions, clicks, paid_at')
+  return first.error ? await query(PROMO) : first
 }
 
 /**
@@ -38,11 +63,11 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 })
   if (!owns) return NextResponse.json({ error: 'You don’t manage this listing yet.' }, { status: 403 })
   const admin = createAdminClient()
-  const [{ data: row }, { data: insights }, { data: edits }, { data: promotions }] = await Promise.all([
-    admin.from(kind === 'resource' ? 'resources' : 'products').select(COLUMNS[kind]).eq('id', id).maybeSingle(),
+  const [row, { data: insights }, { data: edits }, { data: promotions }] = await Promise.all([
+    loadRow(admin, kind, id),
     supabase.rpc('listing_insights', { p_kind: kind, p_item: id }),
     supabase.from('listing_edits').select('id, changes, before, status, created_at').eq('item_kind', kind).eq('item_id', id).order('created_at', { ascending: false }).limit(20),
-    supabase.from('promotions').select('id, headline, body, image_url, keywords, provinces, status, starts_on, ends_on, created_at').eq('item_kind', kind).eq('item_id', id).order('created_at', { ascending: false }),
+    loadPromotions(supabase, kind, id),
   ])
   if (!row) return NextResponse.json({ error: 'That listing wasn’t found.' }, { status: 404 })
   const r = row as unknown as Record<string, any>
@@ -54,11 +79,12 @@ export async function GET(req: NextRequest) {
     status: r.status,
     image_url: kind === 'resource' ? r.image_url : null,
     values: ownerValues(kind, r),
-    fields: Object.entries(OWNER_FIELDS[kind]).map(([field, f]) => ({ field, label: f.label, when: f.when })),
+    fields: fieldsFor(kind, r).map(([field, f]) => ({ field, label: f.label, when: f.when })),
     qualityOptions: kind === 'product' ? qualitiesFor(r.category).map((q) => ({ id: q.id, label: q.label })) : [],
     insights: insights || null,
     edits: edits || [],
     promotions: promotions || [],
+    canPay: promotionPaymentsReady(),
   })
 }
 
@@ -72,10 +98,10 @@ export async function POST(req: NextRequest) {
   if (!owns) return NextResponse.json({ error: 'You don’t manage this listing yet.' }, { status: 403 })
   const admin = createAdminClient()
   const table = kind === 'resource' ? 'resources' : 'products'
-  const { data: row } = await admin.from(table).select(COLUMNS[kind]).eq('id', id).maybeSingle()
-  if (!row) return NextResponse.json({ error: 'That listing wasn’t found.' }, { status: 404 })
-  const r = row as unknown as Record<string, any>
+  const r = await loadRow(admin, kind, id)
+  if (!r) return NextResponse.json({ error: 'That listing wasn’t found.' }, { status: 404 })
   const current = ownerValues(kind, r)
+  const allowedFields = new Set(fieldsFor(kind, r).map(([field]) => field))
 
   // Only what actually changed; qualities only those that fit its category.
   const asked: Record<string, unknown> = {}
@@ -85,7 +111,7 @@ export async function POST(req: NextRequest) {
       const allowed = new Set(qualitiesFor(r.category).map((q) => q.id))
       value = raw.filter((q) => typeof q === 'string' && allowed.has(q))
     }
-    if (String(value ?? '') !== String(current[field] ?? '')) asked[field] = value
+    if (allowedFields.has(field) && String(value ?? '') !== String(current[field] ?? '')) asked[field] = value
   }
   const { now, review, rejected } = splitChanges(kind, asked)
   const before = (fields: string[]) => Object.fromEntries(fields.map((f) => [f, current[f] ?? null]))

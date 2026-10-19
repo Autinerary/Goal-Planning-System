@@ -7,7 +7,7 @@ import ResourceCard from '@/components/resources/ResourceCard'
 import { ResourceCardSkeleton } from '@/components/ui/Skeleton'
 import RecommendationResult from '@/components/agents/RecommendationResult'
 import { orchestrator } from '@/lib/agents/orchestrator'
-import { getUserBarriers, getProfile, getResources, getRatingsByResource, getResourceCategories } from '@/lib/supabase/queries'
+import { getUserBarriers, getProfile, getResources, getRatingsByResource, getResourceCategories, countShortWaits } from '@/lib/supabase/queries'
 import type { UserRequest } from '@/lib/agents/orchestrator/types'
 import { CONDITION_GROUPS } from '@/lib/search/conditions'
 import { LIFE_AREAS } from '@/lib/search/lifeAreas'
@@ -50,13 +50,24 @@ const categories = [
   { id: 'school', label: 'Schools', icon: GraduationCap, color: 'bg-blue-500 hover:bg-blue-600' },
   { id: 'doctor', label: 'Doctors', icon: Stethoscope, color: 'bg-blue-500 hover:bg-blue-600' },
   { id: 'park', label: 'Parks', icon: Trees, color: 'bg-green-500 hover:bg-green-600' },
-  { id: 'store', label: 'Stores', icon: ShoppingBag, color: 'bg-blue-500 hover:bg-blue-600' },
+  // The shop (feedback, 31 August: this tile searched a "store" category no
+  // listing has, so it always came back empty).
+  { id: 'shop', label: 'Shop', icon: ShoppingBag, color: 'bg-blue-500 hover:bg-blue-600', href: '/shop' },
   // These two are SHOP categories, and their ids have to match
   // SHOP_CATEGORIES exactly or the filter matches nothing. They were 'app'
   // and 'book'; the shop vocabulary is 'apps' and 'books', so both chips
   // returned an empty page.
   { id: 'apps', label: 'Apps', icon: Smartphone, color: 'bg-purple-500 hover:bg-purple-600' },
   { id: 'books', label: 'Books', icon: BookOpen, color: 'bg-blue-500 hover:bg-blue-600' },
+]
+
+// The "Help that's hard to find" row: the same searches the wait-time box on
+// a listing offers (components/resources/detail/WaitTimes.tsx).
+const HARD_TO_FIND = [
+  { label: 'Support for parents', href: '/search?tags=parent_support' },
+  { label: 'Help paying for services', href: '/search?tags=funding' },
+  { label: 'Short waits', href: '/search?wait=short' },
+  { label: 'Free services', href: '/search?cost=free' },
 ]
 
 async function RecommendedSection() {
@@ -715,6 +726,7 @@ export default async function Home() {
   // No need to check here to avoid redundant database queries
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'
+  const shortWaits = await countShortWaits()
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -779,7 +791,7 @@ export default async function Home() {
                   return (
                     <Link
                       key={category.id}
-                      href={`/search?categories=${encodeURIComponent(category.id)}`}
+                      href={'href' in category && category.href ? category.href : `/search?categories=${encodeURIComponent(category.id)}`}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
                     >
                       <IconComponent className="w-4 h-4" aria-hidden="true" />
@@ -828,6 +840,26 @@ export default async function Home() {
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
                   >
                     {area.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* What parents in the 5Qs report said is hardest to find (October
+                2026): waits ("solution MUST be highlighted in SHub!!!"), help
+                that isn't tied to income, and support for parents. */}
+            <div className="max-w-4xl mx-auto mt-8">
+              <p className="text-center text-white mb-5 text-sm font-medium uppercase tracking-wide">
+                Help that&rsquo;s hard to find
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {HARD_TO_FIND.filter((h) => h.href !== '/search?wait=short' || shortWaits > 0).map((h) => (
+                  <Link
+                    key={h.href}
+                    href={h.href}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/50"
+                  >
+                    {h.label}
                   </Link>
                 ))}
               </div>

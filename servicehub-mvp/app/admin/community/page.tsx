@@ -2,11 +2,119 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShieldAlert, Trash2, Lock, Check, X } from 'lucide-react'
+import { ArrowLeft, ShieldAlert, Trash2, Lock, Check, X, Flag } from 'lucide-react'
 import type {
   CommunityReportEnriched,
   ResolveReportPayload,
 } from '@/types/community'
+
+interface FlaggedItem {
+  kind: 'post' | 'answer'
+  id: string
+  post_id: string
+  title: string | null
+  excerpt: string
+  reason: string | null
+  created_at: string
+}
+
+/**
+ * What the automatic check asked a moderator to look at (STEP 83's auto_flag:
+ * OpenAI's moderation model, never blocking; the Tidbits round's planning
+ * note, Goal 6). Swear words are already bleeped and slurs never get in, so
+ * this is the rest: things a person should read.
+ */
+function FlaggedQueue() {
+  const [items, setItems] = useState<FlaggedItem[] | null>(null)
+  const [open, setOpen] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    const res = await fetch('/api/community/admin/flagged', { cache: 'no-store' }).catch(() => null)
+    const j = await res?.json().catch(() => null)
+    if (!res?.ok) {
+      setError(j?.error || 'The flagged list could not load.')
+      setItems([])
+      return
+    }
+    setOpen(j?.open !== false)
+    setItems(j?.items ?? [])
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const act = async (item: FlaggedItem, action: 'clear' | 'remove') => {
+    setBusyId(item.id)
+    setError(null)
+    const res = await fetch('/api/community/admin/flagged', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: item.kind, id: item.id, action }),
+    }).catch(() => null)
+    setBusyId(null)
+    if (!res?.ok) return setError((await res?.json().catch(() => null))?.error || 'That didn’t work. Please try again.')
+    setItems((list) => list?.filter((x) => x.id !== item.id) ?? null)
+  }
+
+  if (!open) return null
+  return (
+    <section aria-labelledby="flagged-heading" className="space-y-3">
+      <h2 id="flagged-heading" className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <Flag className="h-5 w-5 text-amber-700" aria-hidden="true" /> Flagged automatically
+      </h2>
+      <p className="text-sm text-gray-700">
+        Posts and comments the automatic check thought a person should read. They are still up. Keep them, or remove them (they are hidden, not deleted).
+      </p>
+      {error && (
+        <p role="alert" className="text-sm text-rose-700">
+          {error}
+        </p>
+      )}
+      {items === null ? (
+        <p className="text-sm text-gray-600">Loading…</p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-gray-600">Nothing flagged.</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
+              <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-gray-700">
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-950">{item.kind === 'post' ? 'Post' : 'Comment'}</span>
+                {item.reason && <span>Why: {item.reason}</span>}
+                <span className="ml-auto">{new Date(item.created_at).toLocaleString()}</span>
+              </div>
+              <Link href={`/community/post/${item.post_id}`} className="text-sm font-medium text-blue-700 underline underline-offset-2">
+                {item.title || 'Open the post'}
+              </Link>
+              {item.excerpt && <p className="mt-1 line-clamp-3 text-xs italic text-gray-700">&ldquo;{item.excerpt}&rdquo;</p>}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={busyId === item.id}
+                  onClick={() => act(item, 'clear')}
+                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" /> It&rsquo;s fine
+                </button>
+                <button
+                  type="button"
+                  disabled={busyId === item.id}
+                  onClick={() => act(item, 'remove')}
+                  className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs text-white hover:bg-rose-700 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Remove
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
 
 export default function AdminCommunityPage() {
   const [reports, setReports] = useState<CommunityReportEnriched[]>([])
@@ -73,6 +181,10 @@ export default function AdminCommunityPage() {
         lock posts to stop new replies.
       </p>
 
+      <FlaggedQueue />
+
+      <h2 className="text-lg font-semibold text-gray-900">Reports</h2>
+
       {loading && <p className="text-sm text-gray-500">Loading…</p>}
       {error && <p className="text-sm text-rose-600">{error}</p>}
       {!loading && reports.length === 0 && (
@@ -127,7 +239,7 @@ export default function AdminCommunityPage() {
                 </div>
               )}
               {r.target_excerpt && (
-                <p className="text-xs text-gray-600 line-clamp-3 mb-2 italic">"{r.target_excerpt}"</p>
+                <p className="text-xs text-gray-600 line-clamp-3 mb-2 italic">&ldquo;{r.target_excerpt}&rdquo;</p>
               )}
               {r.target_author_pseudonym && (
                 <p className="text-xs text-gray-500 mb-2">

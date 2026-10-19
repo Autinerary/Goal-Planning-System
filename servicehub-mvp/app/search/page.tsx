@@ -144,6 +144,7 @@ function SearchResults() {
   const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
   const costType = (['free', 'paid'] as const).find((c) => c === searchParams.get('cost'))
   const online = searchParams.get('online') === '1'
+  const shortWait = searchParams.get('wait') === 'short'
   const serviceAge = searchParams.get('age') || undefined
   // Near a given point instead of the profile's place (the campus pages).
   const near = searchParams.get('near') || ''
@@ -209,6 +210,7 @@ function SearchResults() {
           tags: tags.join(','),
           cost: costType || '',
           online: online ? '1' : '',
+          wait: shortWait ? 'short' : '',
           age: serviceAge || '',
         })
         const response = await fetch(`/api/search?${apiParams.toString()}`)
@@ -289,6 +291,7 @@ function SearchResults() {
     tags.join(','),
     costType,
     online,
+    shortWait,
     serviceAge,
   ])
 
@@ -453,6 +456,7 @@ function SearchResults() {
     [sortRules, searchParams, updateSearchParams]
   )
   const handleOnlineChange = useCallback((next: boolean) => updateSearchParams({ online: next ? '1' : undefined }), [updateSearchParams])
+  const handleShortWaitChange = useCallback((next: boolean) => updateSearchParams({ wait: next ? 'short' : undefined }), [updateSearchParams])
   const handleServiceAgeChange = useCallback((next: string | undefined) => updateSearchParams({ age: next }), [updateSearchParams])
 
   const clearFilters = useCallback(() => {
@@ -470,11 +474,32 @@ function SearchResults() {
       tags: undefined,
       cost: undefined,
       online: undefined,
+      wait: undefined,
       age: undefined,
       sort: 'relevance',
     })
   }, [updateSearchParams])
 
+  // How many filters are on, for the phone's "Filters" button: every one
+  // hasActiveFilters counts (it showed 0 with a tag, a cost or a wait on).
+  const activeFilterCount =
+    categories.length +
+    barriers.length +
+    conditions.length +
+    lifeAreas.length +
+    (ratingStars.length > 0 ? 1 : 0) +
+    (minRating !== undefined ? 1 : 0) +
+    (minPrice !== undefined || maxPrice !== undefined ? 1 : 0) +
+    (maxDistance !== undefined ? 1 : 0) +
+    connectionTypes.length +
+    ageRanges.length +
+    specialTags.length +
+    sourceTypes.length +
+    tags.length +
+    (costType !== undefined ? 1 : 0) +
+    (online ? 1 : 0) +
+    (shortWait ? 1 : 0) +
+    (serviceAge !== undefined ? 1 : 0)
   const hasActiveFilters =
     categories.length > 0 ||
     barriers.length > 0 ||
@@ -492,6 +517,7 @@ function SearchResults() {
     tags.length > 0 ||
     costType !== undefined ||
     online ||
+    shortWait ||
     serviceAge !== undefined
 
   // A search for one topic that is not on the profile: offer to add it
@@ -585,6 +611,8 @@ function SearchResults() {
                   onTagToggle={handleTagToggle}
                   onCostTypeChange={handleCostTypeChange}
                   onOnlineChange={handleOnlineChange}
+                  shortWait={shortWait}
+                  onShortWaitChange={handleShortWaitChange}
                   onServiceAgeChange={handleServiceAgeChange}
                 />
               </div>
@@ -624,22 +652,18 @@ function SearchResults() {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
+                    {/* Named by what it shows ("Filters", and how many are on), so
+                        a voice command for the words on screen works. */}
                     <button
                       onClick={() => setShowFilters(true)}
                       className="lg:hidden flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      aria-label="Show filters"
                     >
-                      <Filter className="w-4 h-4" />
+                      <Filter className="w-4 h-4" aria-hidden="true" />
                       Filters
                       {hasActiveFilters && (
                         <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                          {categories.length +
-                            barriers.length +
-                            conditions.length +
-                            (ratingStars.length > 0 ? 1 : 0) +
-                            (minRating ? 1 : 0) +
-                            (minPrice !== undefined || maxPrice !== undefined ? 1 : 0) +
-                            (maxDistance ? 1 : 0)}
+                          {activeFilterCount}
+                          <span className="sr-only"> on</span>
                         </span>
                       )}
                     </button>
@@ -897,7 +921,9 @@ function SearchResults() {
                   <EmptyState
                     type="search"
                     message={
-                      communityFilterActive
+                      shortWait
+                        ? 'Few services have a wait on record yet. People say how long they waited when they rate a service, and services can say their own wait. Try without “Short wait”, or rate a service you used to help others.'
+                        : communityFilterActive
                         ? 'Some of these filters use ratings and saves from the community, and few places have been rated yet. Try fewer filters, or rate a place you know to help others.'
                         : undefined
                     }
@@ -967,6 +993,8 @@ function SearchResults() {
                   onTagToggle={handleTagToggle}
                   onCostTypeChange={handleCostTypeChange}
                   onOnlineChange={handleOnlineChange}
+                  shortWait={shortWait}
+                  onShortWaitChange={handleShortWaitChange}
                   onServiceAgeChange={handleServiceAgeChange}
                 />
               </div>

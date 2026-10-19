@@ -1,0 +1,1155 @@
+{
+ "checked": "2026-10-19",
+ "articles": [
+  {
+   "slug": "what-to-do-while-you-wait",
+   "title": "What to do while you wait",
+   "length_type": "tadbit",
+   "group": "parents",
+   "tags": [
+    "waiting",
+    "parents",
+    "school",
+    "funding",
+    "support-groups"
+   ],
+   "summary": "Waits for assessments and services can be long. Here are practical things families can start now: support at school, parent groups, free workshops, and funding you can apply for early.",
+   "body_markdown": "Waiting for an assessment, or for services after one, can take a long time in many parts of Canada. The Canadian Paediatric Society has noted that a one-size-fits-all team approach to autism assessment \"contributes to long wait times\".\n\nThe wait doesn't have to be empty time. Here are things families can start now. Most of our examples are from Ontario, and we say so each time. Other provinces have their own versions, so ask what exists where you live.\n\n## Ask about support at school now\n\nIn Ontario, a school can write an Individual Education Plan (IEP) for a student who hasn't been formally identified as \"exceptional\", when the student needs special education support to attend school, meet curriculum expectations or show what they've learned. Ontario's special education categories also include conditions \"whether diagnosed or not\".\n\nIf you think your child needs an IEP, Ontario suggests talking with your child's teacher or the school's special education teacher about how to start one. A few examples of what you see at home can help that conversation.\n\n## Find other parents\n\nTalking with parents who've been through the same wait can make it feel less lonely, and they may know which local services are worth a call.\n\n- CADDAC, a national ADHD charity, runs free virtual parent support groups. The facilitators are parents and caregivers of children with ADHD themselves.\n- In Ontario, once your child is registered in the Ontario Autism Program (OAP), foundational family services are free. They include family and peer mentoring, and caregiver workshops with follow-up coaching.\n\n## Learn for free\n\n- Autism Ontario's Signature Series webinars are free, live interviews for autistic adults, parents and professionals. Past episodes can be watched on demand.\n- CADDAC keeps a library of free past webinars about ADHD.\n\nSome people find one short webinar a week is plenty. There's no need to learn everything before the appointment.\n\n## Apply early for funding\n\nSome applications take a while, and some don't need a final diagnosis.\n\n- In Ontario, Special Services at Home (SSAH) asks for documentation of your child's need for extra support from a regulated health professional. For infants and young children, where a diagnosis can be hard to pin down, the professional can describe the \"probability or presence of delay\" instead.\n- Across Canada, the disability tax credit (DTC) form can be sent to the Canada Revenue Agency at any time of year, and a medical practitioner fills in part of it. An approved DTC is what the Child Disability Benefit needs, so it's a useful first step.\n\nOur article \"Help paying for services: what to check first\" goes through these in more detail.\n\n## Ask about lists\n\nIn Ontario, autism can be diagnosed by doctors (including family doctors and pediatricians), psychologists and psychological associates, and nurse practitioners. You can also contact one of Ontario's five diagnostic hubs.\n\nSome families ask whether they can be on more than one waitlist, for example a hub and a private clinic, and whether a clinic keeps a cancellation list. Not every clinic allows this, but it's always fine to ask.\n\nIf your child already has a diagnosis: in Ontario, children are invited into the OAP's core clinical services in the order they registered, so it helps to register as soon as you have the written diagnosis.\n\n## Keep a simple folder\n\nDuring an autism assessment in Ontario, the professional reviews documents and earlier reports, including information from a school or childcare provider. Some parents keep report cards, notes from teachers and a short list of what they notice at home in one folder, so it's ready when the appointment comes.\n\n## Where to start\n\n1. Ask your child's teacher what support is possible at school now.\n2. Join one parent group, online or nearby.\n3. Ask each clinic about cancellation lists and whether you can be on more than one list.\n4. Start one funding application, like the disability tax credit or, in Ontario, SSAH.",
+   "claims": [
+    {
+     "claim": "The Canadian Paediatric Society says a one-size-fits-all team approach to autism assessment contributes to long waits (Canada).",
+     "quote": "multidisciplinary team diagnostic approach is inefficient, and contributes to long wait times",
+     "source": "https://cps.ca/en/documents/position/asd-diagnostic-assessment"
+    },
+    {
+     "claim": "Ontario: an IEP may be developed for a student not formally identified as exceptional who needs special education support.",
+     "quote": "An IEP may be developed for students who have not been formally identified as exceptional by an IPRC, but who require a special education program or services to attend school, achieve curriculum expectations or demonstrate learning.",
+     "source": "https://www.ontario.ca/page/individual-education-plans"
+    },
+    {
+     "claim": "Ontario: the special education categories include conditions whether diagnosed or not.",
+     "quote": "do not exclude any medical condition, whether diagnosed or not, that can lead to particular types of learning difficulties",
+     "source": "https://www.ontario.ca/page/special-education"
+    },
+    {
+     "claim": "Ontario: parents can talk to the child's teacher or the school's special education teacher about creating an IEP.",
+     "quote": "talk to your child's teacher or the school's special education teacher about the process to create an IEP",
+     "source": "https://www.ontario.ca/page/individual-education-plans"
+    },
+    {
+     "claim": "CADDAC is a national ADHD charity.",
+     "quote": "CADDAC is a national charity providing leadership in awareness, education, and advocacy for ADHD across Canada.",
+     "source": "https://caddac.ca/"
+    },
+    {
+     "claim": "CADDAC runs free virtual parent support groups led by trained facilitators who are parents and caregivers of children with ADHD.",
+     "quote": "Join CADDAC's Virtual Parent Support Group, led by CADDAC-trained facilitators, who are all parents and caregivers of children with ADHD.",
+     "source": "https://caddac.ca/programs-and-events/"
+    },
+    {
+     "claim": "CADDAC lists its parent support groups as free.",
+     "quote": "Monday Parent Support Group (FREE!)",
+     "source": "https://caddac.ca/programs-and-events/"
+    },
+    {
+     "claim": "Ontario: foundational family services are free for all families registered in the Ontario Autism Program.",
+     "quote": "Foundational family services are available free of charge to all families registered in the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "claim": "Ontario: foundational family services include family and peer mentoring.",
+     "quote": "Family and peer mentoring – share experiences in a supportive, informative and social atmosphere",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "claim": "Ontario: foundational family services include caregiver workshops and follow-up coaching.",
+     "quote": "Caregiver workshops and follow-up coaching sessions",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "claim": "Autism Ontario's Signature Series webinars are free, live interviews.",
+     "quote": "Our free, live interviews tackle the topics that matter most to the autism community",
+     "source": "https://www.autismontario.com/programs-services/signature-series-webinars"
+    },
+    {
+     "claim": "The Signature Series is for autistic adults, parents and professionals.",
+     "quote": "Autism Ontario's Signature Series offer autistic adults, parents, and professionals the tools, strategies, and resources they need",
+     "source": "https://www.autismontario.com/programs-services/signature-series-webinars"
+    },
+    {
+     "claim": "Past Signature Series episodes can be watched on demand.",
+     "quote": "Watch Episodes On-Demand. Click the titles for more information.",
+     "source": "https://www.autismontario.com/programs-services/signature-series-webinars"
+    },
+    {
+     "claim": "CADDAC offers free past webinars to watch.",
+     "quote": "Past Webinars (Free) Click on one of the webinars to learn more about them and to watch the webinar.",
+     "source": "https://caddac.ca/programs-and-events/"
+    },
+    {
+     "claim": "Ontario: SSAH asks for documentation of the child's need for extra support.",
+     "quote": "When you apply for SSAH, you'll need to provide documentation of the child's need for extra support because of a physical or developmental disability.",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Ontario: a regulated health professional provides the SSAH documentation.",
+     "quote": "A regulated health professional must provide this documentation.",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Ontario: for infants and children where a definitive diagnosis is difficult, SSAH accepts a statement of the probability or presence of delay.",
+     "quote": "With some infants and children, determining a definitive diagnosis of a disability can be difficult. In the medical documentation, a regulated health professional must provide a written statement describing the probability or presence of delay",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Federal: the DTC form (T2201) can be sent to the CRA at any time of year.",
+     "quote": "You can send the form to the CRA at any time during the year.",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: a medical practitioner certifies the DTC form.",
+     "quote": "A child is eligible for the DTC when a medical practitioner certifies, on Form T2201, Disability Tax Credit Certificate",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Child Disability Benefit requires the child to be eligible for the DTC.",
+     "quote": "Your child must be eligible for the disability tax credit (DTC)",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Ontario: professionals who can diagnose autism include doctors, psychologists and psychological associates, and nurse practitioners.",
+     "quote": "doctors, such as family physicians, pediatricians, developmental pediatricians and psychiatrists psychologists and psychological associates nurse practitioners",
+     "source": "https://www.ontario.ca/page/autism-assessment-diagnosis"
+    },
+    {
+     "claim": "Ontario: families can contact one of five diagnostic hubs for an assessment.",
+     "quote": "You can also contact one of Ontario's five diagnostic hubs to schedule an autism assessment for your child.",
+     "source": "https://www.ontario.ca/page/autism-assessment-diagnosis"
+    },
+    {
+     "claim": "Ontario: children enter OAP core clinical services in the order they registered.",
+     "quote": "Children and youth will be invited to enter core clinical services in the order that they registered for the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-core-clinical-services"
+    },
+    {
+     "claim": "Ontario: during an assessment the professional reviews documents and reports, including information from a school or childcare provider.",
+     "quote": "review documents, reports and previous assessments, including information from a school or childcare provider",
+     "source": "https://www.ontario.ca/page/autism-assessment-diagnosis"
+    }
+   ],
+   "sources": [
+    {
+     "label": "Standards of diagnostic assessment for autism spectrum disorder (Canadian Paediatric Society, 2019)",
+     "url": "https://cps.ca/en/documents/position/asd-diagnostic-assessment"
+    },
+    {
+     "label": "Individual education plans (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/individual-education-plans"
+    },
+    {
+     "label": "Special education (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/special-education"
+    },
+    {
+     "label": "CADDAC: Centre for ADHD Awareness, Canada",
+     "url": "https://caddac.ca/"
+    },
+    {
+     "label": "Programs and events (CADDAC)",
+     "url": "https://caddac.ca/programs-and-events/"
+    },
+    {
+     "label": "Ontario Autism Program: foundational family services (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "label": "Signature Series webinars (Autism Ontario)",
+     "url": "https://www.autismontario.com/programs-services/signature-series-webinars"
+    },
+    {
+     "label": "Special Services at Home (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "label": "Child disability benefit (Canada Revenue Agency; Wayback Machine copy of the canada.ca page, 13 Aug 2026)",
+     "url": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "label": "Autism assessment and diagnosis (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/autism-assessment-diagnosis"
+    },
+    {
+     "label": "Ontario Autism Program: core clinical services (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program-core-clinical-services"
+    }
+   ],
+   "integrated": [
+    {
+     "kind": "search",
+     "name": "Support for parents",
+     "url": "/search?tags=parent_support"
+    },
+    {
+     "kind": "search",
+     "name": "Social and support groups",
+     "url": "/search?categories=Support%20Group"
+    },
+    {
+     "kind": "search",
+     "name": "Funding help",
+     "url": "/search?tags=funding"
+    }
+   ],
+   "notes": "Province: IEP, SSAH, the Ontario Autism Program and the diagnostic hubs are Ontario only; the DTC and Child Disability Benefit are federal; CADDAC groups are online and national. canada.ca timed out from our machine, so the CRA page is a Wayback Machine copy (13 Aug 2026): swap in https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html after checking it. The CPS statement dates from October 2019. CADDAC group days and Autism Ontario webinar topics change often. \"More than one list\" and \"cancellation list\" are tips, not rules: clinics differ. The body mentions the companion article \"Help paying for services: what to check first\"; link it if both are published."
+  },
+  {
+   "slug": "help-paying-for-services",
+   "title": "Help paying for services: what to check first",
+   "length_type": "tadbit",
+   "group": "parents",
+   "tags": [
+    "funding",
+    "parents",
+    "disability-tax-credit",
+    "rdsp",
+    "benefits"
+   ],
+   "summary": "The disability tax credit opens the door to the Child Disability Benefit, the RDSP and the Canada Disability Benefit. Here is what each one is, plus Ontario examples, and why it helps to apply early.",
+   "body_markdown": "Therapy, equipment and respite add up. If you're not sure where to begin, here's what we'd check first. The first four are federal and work the same across Canada. For provincial programs we use Ontario as the example; other provinces have their own, so ask your province what exists.\n\n## 1. The disability tax credit (DTC)\n\nThe DTC is a non-refundable tax credit that lowers the income tax a person with a disability, or their supporting family member, may have to pay. You may apply if there is a severe and prolonged impairment. The application has two parts, and a medical practitioner certifies one of them.\n\nThe DTC matters beyond tax time: the Child Disability Benefit, the RDSP and the Canada Disability Benefit all depend on it. That makes it a good first application.\n\n## 2. The Child Disability Benefit\n\nThis is a tax-free monthly payment for families caring for a child under 18 with a severe and prolonged impairment. Your child needs to be eligible for the DTC, and you need to be eligible for the Canada child benefit.\n\nIf you already get the Canada child benefit, you don't apply separately: it comes automatically once the DTC is approved. The first time, the CRA also works out payments for the current and two previous benefit years.\n\nFrom July 2026 to June 2027, it's up to $3,480 a year ($290 a month) for each eligible child. It starts to go down when adjusted family net income is above $82,847.\n\n## 3. The Registered Disability Savings Plan (RDSP)\n\nAn RDSP is a long-term savings plan for people approved for the DTC. You open one at a financial organization and apply for the grants and bonds at the same time.\n\n- **The grant** matches what you put in. It's up to $3,500 a year, with a lifetime limit of $70,000.\n- **The bond** is for people with low and modest incomes, and you don't have to put any money in to get it. It's up to $1,000 a year, with a lifetime limit of $20,000.\n\nIf the DTC was approved for earlier years, you may get extra grant and bond money for up to the past 10 years. This is called a carry-forward.\n\n## 4. For adults: the Canada Disability Benefit\n\nThe Canada Disability Benefit is for people with disabilities aged 18 to 64 who have been approved for the DTC. Payments began in July 2025, and everyone who meets the requirements can now apply online. From July 2026 to June 2027, the most it pays is $204.20 a month.\n\nTeens can apply up to 6 months before their 18th birthday. Filing taxes every year matters here too: payments need a filed tax return.\n\n## 5. Provincial programs: Ontario examples\n\n- **Assistance for Children with Severe Disabilities (ACSD)** pays between $25 and $678 a month toward disability-related costs.\n- **Special Services at Home (SSAH)** funds things like respite and support for your child to join activities at home and in the community.\n- **The Ontario Autism Program (OAP)** is for children and youth with a written autism diagnosis. Foundational family services, like caregiver workshops, are free for every registered family.\n\n## Income and waits, plainly\n\nSome programs look at family income and some don't. The Child Disability Benefit, the RDSP's grants and bonds, the Canada Disability Benefit and ACSD all depend on income in some way. ACSD, for example, is for households with an income of $77,640 or less. Eligibility for the DTC depends on the impairment, and eligibility for the OAP depends on age, living in Ontario and a written diagnosis.\n\nSome programs also have waits. Children enter the OAP's core clinical services in the order they registered, and SSAH funding depends on available resources. So it helps to apply early, and to apply even if you're not sure you'll qualify. If an application is turned down, ask what comes next: ACSD, for example, lets you ask for an internal review within 30 days.\n\n## Where to start\n\n1. Ask your child's doctor or another medical practitioner about the DTC form (T2201).\n2. Once the DTC is approved, check that the Child Disability Benefit has started, and ask a bank or other financial organization about opening an RDSP.\n3. In Ontario, look at ACSD and SSAH, and register with AccessOAP if your child has an autism diagnosis.",
+   "claims": [
+    {
+     "claim": "Federal: the DTC is a non-refundable tax credit that reduces income tax for people with disabilities or their supporting family member.",
+     "quote": "The disability tax credit (DTC) is a non-refundable tax credit that helps people with disabilities, or their supporting family member, reduce the amount of income tax they may have to pay.",
+     "source": "https://web.archive.org/web/2025/https://www.canada.ca/en/revenue-agency/services/tax/individuals/segments/tax-credits-deductions-persons-disabilities/disability-tax-credit.html"
+    },
+    {
+     "claim": "Federal: you may apply for the DTC if there is a severe and prolonged impairment.",
+     "quote": "If you have a severe and prolonged impairment, you may apply for the credit.",
+     "source": "https://web.archive.org/web/2025/https://www.canada.ca/en/revenue-agency/services/tax/individuals/segments/tax-credits-deductions-persons-disabilities/disability-tax-credit.html"
+    },
+    {
+     "claim": "Federal: the DTC application has two parts.",
+     "quote": "How to complete and submit the 2-part application",
+     "source": "https://web.archive.org/web/2025/https://www.canada.ca/en/revenue-agency/services/tax/individuals/segments/tax-credits-deductions-persons-disabilities/disability-tax-credit.html"
+    },
+    {
+     "claim": "Federal: a medical practitioner certifies the DTC form.",
+     "quote": "A child is eligible for the DTC when a medical practitioner certifies, on Form T2201, Disability Tax Credit Certificate",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Child Disability Benefit is a tax-free monthly payment for families caring for a child under 18 with a severe and prolonged impairment.",
+     "quote": "The child disability benefit (CDB) is a tax-free monthly payment made to families who care for a child under age 18 with a severe and prolonged impairment in physical or mental functions.",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Child Disability Benefit requires Canada child benefit eligibility.",
+     "quote": "You must be eligible for the Canada child benefit (CCB)",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Child Disability Benefit requires the child to be DTC-eligible.",
+     "quote": "Your child must be eligible for the disability tax credit (DTC)",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: families already getting the Canada child benefit get the Child Disability Benefit automatically.",
+     "quote": "If you are already getting the CCB for your child who is eligible for the DTC, you do not need to apply for the CDB. You will get it automatically.",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the first time, the CRA calculates payments for the current and two previous benefit years.",
+     "quote": "the CRA will automatically calculate your payments for the current and two previous benefit years",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: July 2026 to June 2027, the Child Disability Benefit is up to $3,480 a year ($290 a month) per eligible child.",
+     "quote": "For the period of July 2026 to June 2027, you could get up to $3,480 ($290.00 per month) for each child who is eligible for the DTC.",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Child Disability Benefit is reduced when adjusted family net income is above $82,847.",
+     "quote": "The benefit starts being reduced when the adjusted family net income is greater than $82,847.",
+     "source": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the RDSP is a long-term savings plan for people approved for the DTC, with grants and bonds.",
+     "quote": "The Registered Disability Savings Plan (RDSP) is a long-term savings plan to help people with disabilities who are approved for the Disability Tax Credit save for the future.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/programs/disability/savings.html"
+    },
+    {
+     "claim": "Federal: an RDSP is opened at a financial organization, and grants and bonds are applied for when opening it.",
+     "quote": "A plan can be opened for an eligible beneficiary directly at a financial organization. You apply for grants and bonds when you open a plan.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/programs/disability/savings.html"
+    },
+    {
+     "claim": "Federal: the Canada Disability Savings Grant matches contributions.",
+     "quote": "That means that, if you contribute to your plan, the government will also put money into your plan.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: the grant is up to $3,500 a year with a $70,000 lifetime limit.",
+     "quote": "The maximum yearly grant amount is $3,500, with a limit of $70,000 over your lifetime.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: the bond goes to low- and modest-income individuals and needs no contributions.",
+     "quote": "The Canada Disability Savings Bond is money the government contributes to the RDSPs of low- and modest-income individuals. You do not need to make any contributions to your plan to receive the bond.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: the bond is up to $1,000 a year with a $20,000 limit.",
+     "quote": "The maximum yearly bond amount is $1,000 until you reach the limit of $20,000.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: carry-forward of grants and bonds for DTC-approved years, up to the past 10 years.",
+     "quote": "You may receive more in a year if you were approved for the Disability Tax Credit (DTC) for any or all of the past 10 years.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: the carry-forward is the name for extra grant and bond amounts from past DTC-approved years.",
+     "quote": "This amount is called a carry-forward.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: RDSP grant and bond amounts depend on family income.",
+     "quote": "The amount of grants and bonds you can receive in a year is based on family income.",
+     "source": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "claim": "Federal: the Canada Disability Benefit is for people with disabilities aged 18 to 64.",
+     "quote": "The Canada Disability Benefit (CDB) provides direct financial support to people with disabilities who are between 18 and 64 years old.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: Canada Disability Benefit payments began in July 2025.",
+     "quote": "The first month of eligibility for the CDB was June 2025. Payments began in July 2025.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: everyone who meets the requirements can now apply online (status, October 2026).",
+     "quote": "All individuals who meet the eligibility requirements can now apply online",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "claim": "Federal: the Canada Disability Benefit requires DTC approval.",
+     "quote": "you must have been approved for the disability tax credit (DTC)",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "claim": "Federal: people under 18 can apply up to 6 months before their 18th birthday.",
+     "quote": "If you are under 18, you can apply up to 6 months before your 18th birthday.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "claim": "Federal: payments need a filed tax return (yours and a spouse or partner, if any).",
+     "quote": "must have filed your 2025 federal income tax return in order to receive payments",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "claim": "Federal: July 2026 to June 2027, the maximum Canada Disability Benefit is $204.20 a month.",
+     "quote": "For the period of July 2026 to June 2027 the maximum monthly benefit you could receive is $204.20",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/amount.html"
+    },
+    {
+     "claim": "Federal: the Canada Disability Benefit is income-tested.",
+     "quote": "The CDB is an income-tested benefit",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/amount.html"
+    },
+    {
+     "claim": "Ontario: ACSD pays between $25 and $678 a month toward disability-related costs.",
+     "quote": "Eligible parents and guardians can receive between $25 and $678 a month to help with disability-related costs.",
+     "source": "https://www.ontario.ca/page/assistance-children-severe-disabilities-program"
+    },
+    {
+     "claim": "Ontario: ACSD is for households with an income of $77,640 or less.",
+     "quote": "You may be eligible if your total household income is $77,640 or less.",
+     "source": "https://www.ontario.ca/page/assistance-children-severe-disabilities-program"
+    },
+    {
+     "claim": "Ontario: ACSD decisions can be reviewed internally if requested within 30 days.",
+     "quote": "If you disagree with the decision, you have the right to ask for an internal review within 30 days of receiving the decision.",
+     "source": "https://www.ontario.ca/page/assistance-children-severe-disabilities-program"
+    },
+    {
+     "claim": "Ontario: SSAH funds services and supports, including respite and help for the child to join activities at home and in the community.",
+     "quote": "It provides funding to buy services and supports that help parents with caring for their child, or that support the child to join activities at home and in the community.",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Ontario: SSAH includes support for parents such as respite.",
+     "quote": "support for parents/main caregivers (such as respite services)",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Ontario: SSAH funding depends on available resources.",
+     "quote": "SSAH is a discretionary program where funding is provided according to available resources.",
+     "source": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "claim": "Ontario: OAP eligibility is under 18, living in Ontario and a written diagnosis of autism.",
+     "quote": "To register for the Ontario Autism Program, your child must: be under age 18 currently live in Ontario have a written diagnosis of autism from a qualified professional",
+     "source": "https://www.ontario.ca/page/ontario-autism-program"
+    },
+    {
+     "claim": "Ontario: foundational family services are free for all registered families.",
+     "quote": "Foundational family services are available free of charge to all families registered in the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "claim": "Ontario: foundational family services include caregiver workshops.",
+     "quote": "Caregiver workshops and follow-up coaching sessions",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "claim": "Ontario: children enter OAP core clinical services in the order they registered.",
+     "quote": "Children and youth will be invited to enter core clinical services in the order that they registered for the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program-core-clinical-services"
+    },
+    {
+     "claim": "Ontario: AccessOAP is where families register for the OAP.",
+     "quote": "Register for the Ontario Autism Program through AccessOAP and provide all supporting documentation that they ask for.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program"
+    }
+   ],
+   "sources": [
+    {
+     "label": "Disability tax credit (Canada Revenue Agency; Wayback Machine copy of the canada.ca page, 30 Dec 2025)",
+     "url": "https://web.archive.org/web/2025/https://www.canada.ca/en/revenue-agency/services/tax/individuals/segments/tax-credits-deductions-persons-disabilities/disability-tax-credit.html"
+    },
+    {
+     "label": "Child disability benefit (Canada Revenue Agency; Wayback Machine copy of the canada.ca page, 13 Aug 2026)",
+     "url": "https://web.archive.org/web/20260815000000/https://www.canada.ca/en/revenue-agency/services/child-family-benefits/child-disability-benefit.html"
+    },
+    {
+     "label": "Registered Disability Savings Plan (Government of Canada; Wayback Machine copy of the canada.ca page, 16 May 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/programs/disability/savings.html"
+    },
+    {
+     "label": "RDSP: how much you could get in grants and bonds (Government of Canada; Wayback Machine copy of the canada.ca page, 14 Sep 2026)",
+     "url": "https://web.archive.org/web/20260914190135/https://www.canada.ca/en/employment-social-development/programs/disability/savings/how-much.html"
+    },
+    {
+     "label": "Canada Disability Benefit (Government of Canada; Wayback Machine copy of the canada.ca page, 11 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "label": "Canada Disability Benefit: do you qualify (Government of Canada; Wayback Machine copy, 12 Sep 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "label": "Canada Disability Benefit: how much you could receive (Government of Canada; Wayback Machine copy, 1 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/amount.html"
+    },
+    {
+     "label": "Assistance for Children with Severe Disabilities (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/assistance-children-severe-disabilities-program"
+    },
+    {
+     "label": "Special Services at Home (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/special-services-home"
+    },
+    {
+     "label": "Ontario Autism Program (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program"
+    },
+    {
+     "label": "Ontario Autism Program: foundational family services (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program-foundational-family-services"
+    },
+    {
+     "label": "Ontario Autism Program: core clinical services (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program-core-clinical-services"
+    }
+   ],
+   "integrated": [
+    {
+     "kind": "search",
+     "name": "Funding help",
+     "url": "/search?tags=funding"
+    },
+    {
+     "kind": "search",
+     "name": "Support for parents",
+     "url": "/search?tags=parent_support"
+    }
+   ],
+   "notes": "Federal: DTC, Child Disability Benefit, RDSP grant and bond, Canada Disability Benefit. Ontario only: ACSD, SSAH, OAP. canada.ca timed out from our machine, so every federal fact was checked on Wayback Machine copies of the canada.ca pages (dates in the source labels). Before publishing, open the live canada.ca pages, check the amounts and swap the links: disability-tax-credit.html (our copy is from Dec 2025), child-disability-benefit.html, programs/disability/savings.html and savings/how-much.html, canada-disability-benefit.html plus /eligibility.html and /amount.html. Amounts that change every July: Child Disability Benefit ($3,480, reduction above $82,847), Canada Disability Benefit ($204.20 a month), ACSD ($25 to $678, income $77,640). Canada Disability Benefit status (October 2026 copy): payments since July 2025, open to everyone eligible online; a $150 supplemental payment for DTC costs started in fall 2026 (left out for length). We did not find an income rule on the SSAH page, so the article does not say whether SSAH looks at income."
+  },
+  {
+   "slug": "starting-college-or-university-accessibility-office",
+   "title": "Starting college or university: your accessibility office",
+   "length_type": "tadbit",
+   "group": "students",
+   "tags": [
+    "students",
+    "accommodations",
+    "college",
+    "university",
+    "accessibility-services"
+   ],
+   "summary": "Your accessibility office sets up accommodations like test arrangements and note-taking. Here is what it does, what documentation schools ask for, why to register before classes start, and a federal grant to know about.",
+   "body_markdown": "Starting college or university means a lot of new systems at once. One worth finding early is the accessibility office. It arranges academic accommodations for students with disabilities and ongoing medical conditions, and its name changes from school to school: Accessibility Services at the University of Toronto, the Centre for Accessibility at UBC, and Student Accessibility & Achievement at McGill. If you're starting college, look for the same kind of office on your college's website.\n\n## What the office does\n\nThe office works with you to explore which accommodations fit, and connects you with other support. At U of T, you and your accessibility advisor develop a Letter of Accommodation, which you use to start the conversation with course staff.\n\nYour information stays private. At UBC, you don't have to share information about your disability with your instructors or any other UBC office, and your transcript won't show that you're registered with the Centre.\n\n## Examples of accommodations\n\nU of T lists examples like these:\n\n- writing quizzes, tests and exams through its Accommodated Testing Services\n- note-taking support, one of the most common accommodations\n- textbooks and readings in other formats, like Word or e-text\n- extensions on assignments, asked for before the original due date\n- a reduced course load\n\n## What they usually ask for\n\nEach school sets its own rules, so read your school's page. Three examples:\n\n- **University of Toronto:** registration has three steps: get documentation, fill in an online intake form, then go to an intake appointment. For most students, the documentation is U of T's Certificate of Disability, completed by a health care practitioner who is licensed to make a diagnosis. A diagnosis is requested but not required. If you're still getting documentation, the office can talk through what you're experiencing and suggest referrals for an assessment.\n- **UBC:** medical documentation from a professional who is qualified to diagnose your condition. If yours is out of date or hard to get, you can explain that when you book. In exceptional circumstances, the Centre can discuss limited accommodations without documentation.\n- **McGill:** book an appointment with an advisor and upload your medical documentation, which needs a clear diagnosis or clinical description. McGill has a referral form your professional can fill in. If you had accommodations before, send proof of those too.\n\nAt U of T and McGill, accommodations are based on how your condition affects your studies, not on a diagnosis alone. The offices don't diagnose, but they can help you find where to ask.\n\n## Start before classes begin\n\nRegistering takes time, so it helps to start early:\n\n- U of T lets you register as soon as you've accepted your offer of admission, and encourages registering before classes begin.\n- McGill encourages new students to book an appointment before their first semester, so supports are in place when classes start.\n- UBC describes registration as a multi-step process that can take some time.\n\nOnce you're registered, check whether you need to confirm your accommodations each term. At McGill, students review and confirm them at the start of every semester.\n\n## Money for school\n\nThe Canada Student Grant for Students with Permanent Disabilities is $2,800 a year until the end of the 2026 to 2027 school year, for students with financial need. You apply at the same time as your provincial or territorial student aid, with a document that shows your disability. There's also a separate federal grant for services and equipment.\n\n## Where to start\n\n1. Find your school's accessibility office page and note what documentation it asks for.\n2. Ask your doctor or other professional for that documentation early, since appointments can take a while.\n3. Register as soon as you accept your offer, before classes begin.\n4. Apply for the disability grant when you apply for student aid.",
+   "claims": [
+    {
+     "claim": "UBC's Centre for Accessibility arranges disability-related accommodations for students with disabilities and ongoing medical conditions.",
+     "quote": "The Centre for Accessibility facilitates disability-related accommodations designed to remove barriers for students with disabilities and ongoing medical conditions in all aspects of university life.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility"
+    },
+    {
+     "claim": "U of T: the office is called Accessibility Services; students register with it for academic accommodations.",
+     "quote": "You can register with Accessibility Services for academic accommodations as soon as you have accepted your offer of admission to the University of Toronto",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "McGill: the office is Student Accessibility and Achievement and provides accommodations for students with documented disabilities.",
+     "quote": "Student Accessibility and Achievement helps students overcome academic barriers, providing learner support for students of all backgrounds, as well as accommodations for students with documented disabilities.",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "UBC: the Centre works with students to explore accommodation needs and connects them with support.",
+     "quote": "The Centre works with students to explore their accommodation needs, and to connect them with appropriate support and resources.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility"
+    },
+    {
+     "claim": "U of T: the Letter of Accommodation is developed with the accessibility advisor and starts the discussion with course staff.",
+     "quote": "Your Letter of Accommodation is developed in collaboration with your accessibility advisor and is used to begin a discussion with course and program staff about your accommodation needs.",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "UBC: students do not have to share disability information with instructors or other UBC offices.",
+     "quote": "You are not required to share information or documentation about your disability or ongoing medical condition with your instructor or any other UBC office.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "UBC: transcripts do not show registration with the Centre.",
+     "quote": "Your transcript and other student records will not show your registration with the Centre for Accessibility.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "U of T: accommodated testing for quizzes, tests and exams.",
+     "quote": "Accessibility Services works with Accommodated Testing Services (ATS) to administer and coordinate quizzes, term tests and exams for students registered with Accessibility Services.",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: note-taking is one of the most common accommodations.",
+     "quote": "Note-taking is one of the most common academic accommodations for students whose disability affects their ability to take notes.",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: course materials in other formats such as Word or e-text.",
+     "quote": "Students who need accessible versions of their course materials can request textbooks and other published works in formats such as Braille, DAISY, Word, or e-text",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: disability-related extensions must be requested before the original due date.",
+     "quote": "All disability-related extension requests require approval from your professors and instructors, and the request must be made before the original due date.",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: a reduced course load is one accommodation.",
+     "quote": "Many students reduce their course load as a way to cope with the demands of their academic programs. This accommodation is frequently recommended by an accessibility advisor.",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: registration has three steps (documentation, online intake form, intake appointment).",
+     "quote": "Obtain required documentation & get your UTORid. Complete our online Student Intake Form & include your required documentation. Attend an intake appointment.",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "U of T: for most students the documentation is the Certificate of Disability.",
+     "quote": "For most cases, the required documentation will be the Certificate of Disability",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "U of T: completed by a health care practitioner licensed to make a diagnosis.",
+     "quote": "This should be completed by a health care practitioner who is familiar with your disability, whose scope of practice includes your disability and who is licensed to make a diagnosis.",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "U of T: a diagnosis is requested but not required.",
+     "quote": "A diagnosis of a disability is requested but not required for students to receive academic accommodations.",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "U of T: students still getting documentation can talk to the office, which may suggest referrals for assessment.",
+     "quote": "If you are uncertain or suspect you have a disability or are in the process of obtaining documentation, we can review any difficulties you are experiencing with you, and if appropriate, suggest referrals for assessment.",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "UBC: documentation must come from a professional qualified to diagnose the condition.",
+     "quote": "You must provide medical documentation prepared by a professional who is qualified to diagnose your specific disability or medical condition.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "UBC: out-of-date or hard-to-get documentation can be explained on the information form.",
+     "quote": "If you have out-of-date documentation, or if you find that getting medical documentation in advance is a major barrier, please explain your circumstances on the Information Form",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "UBC: limited accommodations without documentation in exceptional circumstances.",
+     "quote": "The Centre can meet with you and discuss limited accommodations without documentation in exceptional circumstances.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "McGill: book an appointment with an advisor and upload medical documentation.",
+     "quote": "Book an appointment with one of our advisors. Upload your medical documentation no later than noon the business day before your appointment",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "McGill: documentation needs a clear diagnosis or clinical description.",
+     "quote": "Must include a clear diagnosis or clinical description of the condition, as assessed by the medical professional.",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "McGill: a referral form the professional can fill in.",
+     "quote": "We recommend asking your medical professional to fill out our Referral Form",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "McGill: students who had accommodations before submit proof of them.",
+     "quote": "If you have previously received academic accommodations, please submit official proof of your prior accommodations along with your medical documentation.",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "McGill: a diagnosis alone does not guarantee accommodations; they are based on functional impact.",
+     "quote": "A diagnosis alone does not guarantee academic accommodations. Accommodations are based on the functional impact of the condition",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "U of T: accommodations are based on functional limitations and their impact on academic work.",
+     "quote": "Accommodations are determined based on available information regarding your functional limitations and their impact on your academic work",
+     "source": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "claim": "U of T: Accessibility Services does not diagnose.",
+     "quote": "Accessibility Services does not provide services to diagnose disabilities.",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "UBC: the Centre does not diagnose and points students to Student Health and Wellbeing.",
+     "quote": "The Centre does not provide diagnostic services. We encourage students who are seeking diagnosis to connect with UBC",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "U of T: encourages registering as early as possible before classes begin.",
+     "quote": "we encourage students to register with Accessibility Services as early as possible before the beginning of classes",
+     "source": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "claim": "McGill: new students are encouraged to book before the first semester so supports are in place when classes begin.",
+     "quote": "New students are encouraged to book an appointment before the start of their first semester to help ensure supports are in place when classes begin.",
+     "source": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "claim": "UBC: registration is a multi-step process that can take some time.",
+     "quote": "Registration with the Centre is a multi-step process and can take some time.",
+     "source": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "claim": "McGill: students review and confirm their accommodations at the beginning of each semester.",
+     "quote": "must review and confirm their accommodations at the beginning of each semester",
+     "source": "https://www.mcgill.ca/access-achieve/accommodations"
+    },
+    {
+     "claim": "Federal: the Canada Student Grant for Students with Permanent Disabilities is $2,800 a year until the end of 2026 to 2027.",
+     "quote": "Until the end of the 2026 to 2027 school year, you could receive $2,800 per year.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html"
+    },
+    {
+     "claim": "Federal: the grant requires financial need.",
+     "quote": "have a financial need",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html"
+    },
+    {
+     "claim": "Federal: apply at the same time as provincial or territorial student aid.",
+     "quote": "You can apply at the same time as you apply for student aid with your province or territory.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html"
+    },
+    {
+     "claim": "Federal: the application needs a document showing the disability.",
+     "quote": "provide with your application, a document(s) that shows that you have a disability",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html"
+    },
+    {
+     "claim": "Federal: there is a separate grant for services and equipment.",
+     "quote": "Grant for services and equipment for students with permanent disabilities",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/education/student-aid/grants-loans/disabilities.html"
+    }
+   ],
+   "sources": [
+    {
+     "label": "Accessibility Services registration and documentation requirements (University of Toronto)",
+     "url": "https://www.studentlife.utoronto.ca/service/accessibility-services-registration-and-documentation-requirements/"
+    },
+    {
+     "label": "Types of academic accommodations (University of Toronto)",
+     "url": "https://www.studentlife.utoronto.ca/task/types-of-academic-accommodations/"
+    },
+    {
+     "label": "Centre for Accessibility (University of British Columbia)",
+     "url": "https://students.ubc.ca/about-student-services/centre-for-accessibility"
+    },
+    {
+     "label": "Registering with the Centre for Accessibility (University of British Columbia)",
+     "url": "https://students.ubc.ca/about-student-services/centre-for-accessibility/registering-centre-accessibility/"
+    },
+    {
+     "label": "Register with Student Accessibility and Achievement (McGill University)",
+     "url": "https://www.mcgill.ca/access-achieve/contact-us/register"
+    },
+    {
+     "label": "Accommodations (McGill University, Student Accessibility & Achievement)",
+     "url": "https://www.mcgill.ca/access-achieve/accommodations"
+    },
+    {
+     "label": "Canada Student Grant for Students with Permanent Disabilities (Government of Canada; Wayback Machine copy of the canada.ca page, 25 Aug 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html"
+    },
+    {
+     "label": "Education funding for people with disabilities (Government of Canada; Wayback Machine copy of the canada.ca page, 6 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/education/student-aid/grants-loans/disabilities.html"
+    }
+   ],
+   "integrated": [
+    {
+     "kind": "search",
+     "name": "Campus pages",
+     "url": "/campus"
+    },
+    {
+     "kind": "search",
+     "name": "Accessibility and accommodation services",
+     "url": "/search?tags=prog_accessibility"
+    }
+   ],
+   "notes": "Schools: University of Toronto (St. George campus page; UTM and UTSC have their own offices), UBC (Vancouver), McGill. Their rules and deadlines change each year; we left out dated deadlines on purpose. The grant amount ($2,800 a year) is stated \"until the end of the 2026 to 2027 school year\": check the live canada.ca page before publishing and swap the Wayback Machine links (canada.ca timed out from our machine) for https://www.canada.ca/en/employment-social-development/services/education/grants/disabilities.html and https://www.canada.ca/en/services/benefits/education/student-aid/grants-loans/disabilities.html. No college pages were used, so the college line is a tip, not a fact."
+  },
+  {
+   "slug": "the-autism-timeskip",
+   "title": "The autism timeskip: what changed in 15 years",
+   "length_type": "tadbit",
+   "group": "autistic-adults",
+   "tags": [
+    "autism",
+    "diagnosis",
+    "adult-diagnosis",
+    "language",
+    "canada"
+   ],
+   "summary": "From four diagnoses to one, more adults assessed, autistic people's word choices, and new supports in Canada: a short, sourced look at what's different since around 2011.",
+   "body_markdown": "If you were diagnosed, or first wondered about autism, around 2011, a lot has shifted since. Here's a short tour of what's different now: the diagnosis itself, adult assessments, language, and support in Canada. We've kept to what official sources and autism organizations say.\n\n## The diagnosis: from four names to one\n\n**Then:** the DSM, the manual many clinicians in Canada use, had four separate diagnoses on the spectrum, including Asperger's and PDD-NOS.\n\n**Now:** in 2013, the American Psychiatric Association published the fifth edition, DSM-5. It brought all four under one umbrella, autism spectrum (ASD), and grouped communication and social interaction into a single area. Its severity levels are based on how much support a person needs.\n\nIf you were diagnosed with Asperger's or another older name, Autism Ontario says you should still meet the criteria for ASD in DSM-5. You can keep using whichever word fits you.\n\n## Adult diagnosis: more common now\n\nAutism Ontario says assessments in adulthood are becoming more common, because the criteria have broadened and awareness and understanding have grown. It also notes that a diagnosis can be a validating experience that helps adults understand themselves. Whether to seek one is a personal choice.\n\nIn Ontario, adults are generally diagnosed by a psychiatrist or a psychologist. Psychiatrists are covered by OHIP. Psychologists may be covered when they work in a public setting such as a hospital; private psychologists charge fees, which work benefits or other private insurance may cover. Autism Ontario lists adult assessment providers by region.\n\nNational numbers are still mostly about young people. When it announced its autism framework in 2024, the Government of Canada gave an estimate of 1 in 50 children and youth aged 1 to 17 diagnosed with autism, and said it was exploring ways to measure and report on autism in adults.\n\n## Language: autistic people's preferences count\n\nAutism Ontario's language statement says many in the autistic community prefer identity-first language (\"autistic person\") over person-first language. It recommends identity-first language and uses both, and it notes that language keeps evolving. The federal government's 2024 autism framework announcement talks about supporting \"Autistic people of all ages\".\n\nPeople choose their own words. In Autinerary, you can pick yours in Settings, under Words we use.\n\n## Support in Canada\n\n**Federal, now:**\n\n- The Framework for Autism in Canada and Canada's Autism Strategy were released on September 26, 2024. They were developed with Autistic people, families, caregivers, provinces, territories and Indigenous organizations.\n- In March 2025, the government announced funding for a new National Autism Network, led by the Sinneave Family Foundation in partnership with Autism Alliance of Canada.\n- The Canada Disability Benefit began paying in July 2025. It's for people with disabilities aged 18 to 64 who are approved for the disability tax credit. From July 2026 to June 2027, it's up to $204.20 a month.\n\n**Ontario, then and now:**\n\n- In 2019, Ontario held public consultations on autism services and formed an advisory panel, which included adults on the autism spectrum, to advise on a needs-based program.\n- Today, families register through AccessOAP, the program's independent intake organization, and behaviour plans are no longer offered.\n- The Ontario Autism Program still ends at 18. For adults, Autism Ontario points to options like the Ontario Disability Support Program (ODSP), Passport funding for adults with a developmental disability, the disability tax credit and the Canada Disability Benefit.\n\n## The balanced view\n\nPlenty has moved: one diagnosis instead of four, more adults assessed, more say for autistic people in the words used, and new federal plans and benefits. Some things move more slowly. Adult assessments in Ontario can still mean a private fee, and the provincial program for children stops at 18. Knowing both helps you plan.\n\n## Where to start\n\n1. Curious about an adult assessment? In Ontario, you can ask your doctor or nurse practitioner for a referral to a psychologist in a public health care setting, or to a psychiatrist.\n2. If you have the disability tax credit, look at the Canada Disability Benefit.\n3. Pick the words that fit you in Settings, under Words we use.",
+   "claims": [
+    {
+     "claim": "The DSM is widely used by clinicians in Canada and the United States.",
+     "quote": "In Canada and the United States, the Diagnostic and Statistical Manual of Mental Disorders (DSM) is widely used by clinicians and psychiatrists",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "Earlier DSM editions had four separate diagnoses, including Asperger's and PDD-NOS.",
+     "quote": "Whereas under the previous editions of the manual, patients could be diagnosed with Autistic Disorder, Asperger's Disorder, Childhood Disintegrative Disorder, or Pervasive Developmental Disorder Not Otherwise Specified (PDD-NOS)",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "In 2013 the American Psychiatric Association published DSM-5.",
+     "quote": "In 2013, the American Psychiatric Association published the fifth edition of this manual (DSM-5).",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "DSM-5 brought all four diagnoses under one umbrella, ASD.",
+     "quote": "DSM-5 now encompasses all four diagnoses under the umbrella of Autism Spectrum Disorder.",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "DSM-5 grouped communication and social interaction into a single domain.",
+     "quote": "DSM-5 now groups communication and social interaction under a single domain.",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "Severity levels are based on the support a person needs.",
+     "quote": "Severity ratings are based on level of support required.",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "People diagnosed under the older names should still meet the criteria for ASD in DSM-5.",
+     "quote": "anyone who previously received a diagnosis of Autistic Disorder, Asperger's Disorder, Childhood Disintegrative Disorder, or Pervasive Developmental Disorder Not Otherwise Specified should still meet the criteria for ASD in DSM-5.",
+     "source": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "claim": "Adult assessments are becoming more common, with broader criteria and more awareness.",
+     "quote": "Assessments for autism in adulthood are becoming more common as a result of expanding diagnostic criteria and a significant increase in awareness and understanding.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "A diagnosis can be validating and help adults understand themselves.",
+     "quote": "An autism diagnosis can be a validating experience and can help adults better understand themselves and their experiences.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Ontario: adults are generally diagnosed by a psychiatrist or a psychologist.",
+     "quote": "Generally, adults are diagnosed either by a psychiatrist or a psychologist.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Ontario: psychiatrists are covered by OHIP.",
+     "quote": "Psychiatrists are covered under OHIP.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Ontario: psychologists may be covered by OHIP in public settings such as hospitals.",
+     "quote": "Psychologists may be covered under the Ontario Health Insurance Program (OHIP) if they work in a public healthcare setting such as a hospital or clinic.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Ontario: private psychologists charge fees, which private insurance such as work benefits may cover.",
+     "quote": "These fees would be out of pocket or may be funded by a private insurance plan (e.g., employment benefits).",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Autism Ontario lists adult assessment providers by region.",
+     "quote": "Where to Get an Assessment To find what region in Ontario you live in",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Federal estimate: 1 in 50 children and youth aged 1 to 17 have been diagnosed with autism.",
+     "quote": "It is estimated that 1 in 50 children and youth aged 1 to 17 years have been diagnosed with autism in Canada.",
+     "source": "https://www.newswire.ca/news-releases/government-of-canada-launches-framework-for-autism-in-canada-canada-s-autism-strategy-and-national-autism-network-call-for-applications-807190780.html"
+    },
+    {
+     "claim": "The Government of Canada is exploring ways to measure and report on autism in adults.",
+     "quote": "The Government of Canada is exploring options to measure and report on autism in adults living in Canada.",
+     "source": "https://www.newswire.ca/news-releases/government-of-canada-launches-framework-for-autism-in-canada-canada-s-autism-strategy-and-national-autism-network-call-for-applications-807190780.html"
+    },
+    {
+     "claim": "Many in the autistic community prefer identity-first language.",
+     "quote": "many individuals in the autistic community prefer certain types of referential language",
+     "source": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "claim": "Identity-first (\"autistic person\") over person-first language.",
+     "quote": "such as identity-first language (\"autistic person\" or \"autist\") over person-first language",
+     "source": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "claim": "Autism Ontario recommends identity-first language.",
+     "quote": "Autism Ontario recommends using identity-first language (i.e., autistic person).",
+     "source": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "claim": "Autism Ontario uses both identity-first and person-first language.",
+     "quote": "we will use both identity-first and person-first referential language",
+     "source": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "claim": "Language keeps evolving.",
+     "quote": "We acknowledge that the use of language evolves rapidly and will continue to be an ongoing discussion within the autism community.",
+     "source": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "claim": "The 2024 federal framework announcement talks about supporting Autistic people of all ages.",
+     "quote": "support Autistic people of all ages, their families and caregivers",
+     "source": "https://www.newswire.ca/news-releases/government-of-canada-launches-framework-for-autism-in-canada-canada-s-autism-strategy-and-national-autism-network-call-for-applications-807190780.html"
+    },
+    {
+     "claim": "The Framework for Autism in Canada and Canada's Autism Strategy were released on September 26, 2024.",
+     "quote": "The Framework for Autism in Canada and Canada's Autism Strategy were released on September 26, 2024.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/public-health/services/diseases/autism-spectrum-disorder-asd/what-canada-doing.html"
+    },
+    {
+     "claim": "They were developed with Autistic people, families, caregivers, provinces, territories and Indigenous organizations.",
+     "quote": "these were developed collaboratively with Autistic people, their families, caregivers, provinces, territories, Indigenous organizations and other stakeholders",
+     "source": "https://www.newswire.ca/news-releases/government-of-canada-launches-framework-for-autism-in-canada-canada-s-autism-strategy-and-national-autism-network-call-for-applications-807190780.html"
+    },
+    {
+     "claim": "March 2025: funding announced for a National Autism Network led by the Sinneave Family Foundation with Autism Alliance of Canada.",
+     "quote": "On March 21, 2025, the Government of Canada announced over $6.3 million in funding over five years for the Sinneave Family Foundation to establish and lead the new National Autism Network (the Network), in partnership with Autism Alliance of Canada.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/public-health/services/diseases/autism-spectrum-disorder-asd/what-canada-doing.html"
+    },
+    {
+     "claim": "Canada Disability Benefit payments began in July 2025.",
+     "quote": "The first month of eligibility for the CDB was June 2025. Payments began in July 2025.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "claim": "The Canada Disability Benefit is for people with disabilities aged 18 to 64.",
+     "quote": "The Canada Disability Benefit (CDB) provides direct financial support to people with disabilities who are between 18 and 64 years old.",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "claim": "It requires approval for the disability tax credit.",
+     "quote": "you must have been approved for the disability tax credit (DTC)",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "claim": "July 2026 to June 2027: up to $204.20 a month.",
+     "quote": "For the period of July 2026 to June 2027 the maximum monthly benefit you could receive is $204.20",
+     "source": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/amount.html"
+    },
+    {
+     "claim": "Ontario: in 2019 the province held consultations on autism services.",
+     "quote": "In May 2019 we sent out an online survey and held seven telephone town halls to get public feedback on services for children with Autism Spectrum Disorder (ASD).",
+     "source": "https://www.ontario.ca/page/developing-implementing-needs-based-autism-program"
+    },
+    {
+     "claim": "Ontario: the advisory panel included adults on the autism spectrum.",
+     "quote": "parents with lived experience clinicians autism advocates adults on the autism spectrum",
+     "source": "https://www.ontario.ca/page/developing-implementing-needs-based-autism-program"
+    },
+    {
+     "claim": "Ontario: the panel advised on a needs-based program.",
+     "quote": "The report delivered advice on the design of a needs-based program",
+     "source": "https://www.ontario.ca/page/developing-implementing-needs-based-autism-program"
+    },
+    {
+     "claim": "Ontario: AccessOAP is the program's independent intake organization.",
+     "quote": "AccessOAP is the Ontario Autism Program's Independent Intake Organization that supports everyone registered in the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program"
+    },
+    {
+     "claim": "Ontario: behaviour plans are no longer offered.",
+     "quote": "Behaviour plans are no longer offered as part of the Ontario Autism Program.",
+     "source": "https://www.ontario.ca/page/ontario-autism-program"
+    },
+    {
+     "claim": "Ontario: the OAP does not extend past 18.",
+     "quote": "While the Ontario Autism Program doesn't currently extend past the age of 18, there are some government funding options for autistic and/or disabled adults.",
+     "source": "https://www.autismontario.com/programs-services/adults/awards-and-funding/government-funding-adults"
+    },
+    {
+     "claim": "Ontario: ODSP offers assistance for adults 18 and older with disabilities.",
+     "quote": "The Ontario Disability Support Program provides two different types of assistance for adults 18 and older with disabilities in Ontario.",
+     "source": "https://www.autismontario.com/programs-services/adults/awards-and-funding/government-funding-adults"
+    },
+    {
+     "claim": "Ontario: Passport funding is for adults with a developmental disability.",
+     "quote": "Passport is a funding program that helps adults 18 years or older with a developmental disability to participate in their communities.",
+     "source": "https://www.autismontario.com/programs-services/adults/awards-and-funding/government-funding-adults"
+    },
+    {
+     "claim": "Ontario: a person may ask their GP or nurse practitioner for a referral to a public-setting psychologist.",
+     "quote": "To access a publicly funded psychologist, a person may request a referral from their general practitioner (e.g., physician or nurse practitioner) to a psychologist in a public health care setting.",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "claim": "Ontario: a person may ask their GP for a referral to a psychiatrist.",
+     "quote": "To access a psychiatrist, a person may request a referral from their general practitioner",
+     "source": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    }
+   ],
+   "sources": [
+    {
+     "label": "Diagnostic terminology (Autism Ontario)",
+     "url": "https://www.autismontario.com/about-autism/getting-diagnosis/diagnostic-terminology"
+    },
+    {
+     "label": "Adult assessment (Autism Ontario)",
+     "url": "https://www.autismontario.com/programs-services/adults/adult-diagnosis"
+    },
+    {
+     "label": "About autism, including the language statement (Autism Ontario)",
+     "url": "https://www.autismontario.com/about-autism"
+    },
+    {
+     "label": "Government funding for adults (Autism Ontario)",
+     "url": "https://www.autismontario.com/programs-services/adults/awards-and-funding/government-funding-adults"
+    },
+    {
+     "label": "Government of Canada launches Framework for Autism in Canada (Public Health Agency of Canada news release, September 2024, via Newswire)",
+     "url": "https://www.newswire.ca/news-releases/government-of-canada-launches-framework-for-autism-in-canada-canada-s-autism-strategy-and-national-autism-network-call-for-applications-807190780.html"
+    },
+    {
+     "label": "Autism: What Canada is doing (Public Health Agency of Canada; Wayback Machine copy of the canada.ca page, 6 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/public-health/services/diseases/autism-spectrum-disorder-asd/what-canada-doing.html"
+    },
+    {
+     "label": "Canada Disability Benefit (Government of Canada; Wayback Machine copy of the canada.ca page, 11 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit.html"
+    },
+    {
+     "label": "Canada Disability Benefit: do you qualify (Government of Canada; Wayback Machine copy, 12 Sep 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/eligibility.html"
+    },
+    {
+     "label": "Canada Disability Benefit: how much you could receive (Government of Canada; Wayback Machine copy, 1 Oct 2026)",
+     "url": "https://web.archive.org/web/2026/https://www.canada.ca/en/services/benefits/disability/canada-disability-benefit/amount.html"
+    },
+    {
+     "label": "Ontario Autism Program (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/ontario-autism-program"
+    },
+    {
+     "label": "Developing and implementing a needs-based autism program (Government of Ontario)",
+     "url": "https://www.ontario.ca/page/developing-implementing-needs-based-autism-program"
+    }
+   ],
+   "integrated": [
+    {
+     "kind": "search",
+     "name": "Provides medical diagnosis",
+     "url": "/search?tags=provides_diagnosis"
+    },
+    {
+     "kind": "search",
+     "name": "Social and support groups",
+     "url": "/search?categories=Support%20Group"
+    },
+    {
+     "kind": "search",
+     "name": "Funding help",
+     "url": "/search?tags=funding"
+    }
+   ],
+   "notes": "\"Then\" means around 2011 (15 years before 2026); the only dated \"then\" facts are DSM-5 (2013) and Ontario's 2019 consultations. The body avoids the word \"disorder\" (voice.md rule 2) by saying \"autism spectrum (ASD)\"; the quotes keep the official names. The 1 in 50 figure is the federal estimate quoted in the September 2024 release: check it is still the latest before publishing. canada.ca timed out from our machine, so the PHAC and Canada Disability Benefit pages are Wayback Machine copies (dates in the labels): swap in the canada.ca links. Ontario only: OAP, ODSP, Passport, OHIP coverage of assessments. Federal: framework, strategy, network, Canada Disability Benefit. The \"Words we use\" setting is described from docs/voice.md; check the wording matches the app."
+  },
+  {
+   "slug": "asking-for-accommodations-at-work",
+   "title": "Asking for accommodations at work",
+   "length_type": "tidbit",
+   "group": "work",
+   "tags": [
+    "work",
+    "accommodations",
+    "human-rights",
+    "disclosure"
+   ],
+   "summary": "Employers in Canada have a legal duty to accommodate. Here's what you can ask for, how to start the conversation, and why you usually don't have to share a diagnosis.",
+   "body_markdown": "You can ask for changes at work that help you do your job well. In Canada, human rights law backs this up, and it's called the duty to accommodate.\n\n## Which law covers you\n\n- **Federally regulated employers**, like banks, air and rail transportation, Crown corporations such as Canada Post, and the federal public service, follow the Canadian Human Rights Act. They have a legal duty to accommodate, up to the point of undue hardship.\n- **In Ontario**, the Human Rights Code gives employers a legal duty to accommodate the needs of people with disabilities, also up to undue hardship.\n\nIf your employer isn't federally regulated and you're outside Ontario, your province's or territory's human rights commission is the place to check.\n\n## What you can ask for\n\nThe commissions' own examples include:\n\n- a flexible work schedule\n- more frequent check-ins with your supervisor\n- changes to your workstation, or assistive technology for your computer\n- other ways of communicating with you\n- changes to some duties\n- working from another location, or telework\n\nSome people also ask for a quieter spot to work, headphones, or instructions in writing. Start with what would make the biggest difference.\n\n## Starting the conversation\n\nIt's usually up to you to tell your employer that you need an accommodation. Often it can be a simple conversation, without a formal request. Ontario's commission suggests sharing your needs in writing where you can, which also gives you a record.\n\nYou don't need to explain everything. The federal guide says you only need to tell your employer what gets in the way at work; suggesting what would work can help too. It also says employers should have clear procedures for requesting accommodation, so it's fine to ask HR or your manager how it works.\n\n## You usually don't have to share a diagnosis\n\nUnder the Canadian Human Rights Act, you don't have to disclose a specific diagnosis when you ask for a disability-related accommodation, and employers are very rarely entitled to it. In Ontario, an employer generally doesn't have the right to know your diagnosis either, unless it clearly relates to the accommodation or your needs are complex or unclear.\n\nYour employer may still ask about your needs or limitations, sometimes with information from a health care provider. That's about what you need, not your diagnosis.\n\n## Where to start\n\n1. Write down two or three changes that would help most.\n2. Find out whether your employer is federally regulated, or covered by your province.\n3. Ask HR or your manager how to request accommodation, and follow up by email.",
+   "claims": [
+    {
+     "claim": "Federal: under the Canadian Human Rights Act, federally regulated employers have a legal duty to accommodate.",
+     "quote": "Under the Canadian Human Rights Act (CHRA), federally regulated employers have a legal obligation to adjust the working conditions for an individual or group to ensure that those individuals who are otherwise able to work are not unfairly excluded. It is called the duty to accommodate.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: federally regulated employers include the federal public service, banks, Crown corporations such as Canada Post, and air or rail transportation.",
+     "quote": "federal departments and agencies in the public service First Nations governments banks Crown corporations, such as Canada Post radio and television broadcasting air or rail transportation",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: the duty to accommodate goes up to the point of undue hardship.",
+     "quote": "the employer has a legal duty to accommodate the worker up to the point of undue hardship",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Ontario: under the Code, employers have a legal duty to accommodate the needs of people with disabilities.",
+     "quote": "Under the Code, employers and unions, housing providers and service providers have a legal duty to accommodate the needs of people with disabilities",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Ontario: accommodation is required short of undue hardship.",
+     "quote": "the employer must accommodate the employee in a way that, while not causing the employer undue hardship, will ensure that the employee can work",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Ontario: examples include a flexible work schedule.",
+     "quote": "Depending on a person's individual needs, examples of accommodation may include: Employment allowing a flexible work schedule",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Federal: examples include a flexible schedule or more frequent check-ins by a supervisor.",
+     "quote": "a flexible work schedule or more frequent check-ins by their supervisor to accommodate needs related to a mental health disability",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Ontario: examples include modified workstations and assistive devices or accessible technology for computers.",
+     "quote": "modifying workstations (making ergonomic changes, supplying a specialized chair, back support, etc.) providing specialized adaptation or assistive devices for computers, accessible technology",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Ontario: examples include other ways of communicating with the employee.",
+     "quote": "providing alternative ways of communicating with the employee",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Federal: examples include a modification of duties.",
+     "quote": "adjustments in performance requirements or a modification of duties",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: examples include alternate work locations and telework.",
+     "quote": "alternate work locations and/or telework",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: typically the worker tells the employer they need accommodation.",
+     "quote": "Typically, the onus is on the worker to notify their employer if they need accommodation.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: often a formal accommodation request is not needed.",
+     "quote": "Oftentimes, a formal accommodation request is not needed.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Ontario: the person makes accommodation needs known, preferably in writing.",
+     "quote": "make accommodation needs known to the best of their ability, preferably in writing",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Federal: the worker only needs to tell the employer about what gets in the way at work.",
+     "quote": "They only need to tell their employer about workplace barriers that may prevent their full participation and create the need for accommodation.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: the employer should have clear procedures for requesting accommodation.",
+     "quote": "The employer should have clear procedures available for workers on how to request accommodation.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: a worker does not have to disclose a specific diagnosis.",
+     "quote": "If the need is related to a disability, a worker does not have to disclose a specific medical diagnosis when requesting an accommodation.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Federal: employers are very rarely entitled to the diagnosis.",
+     "quote": "Employers are very rarely entitled to the worker's diagnosis or treatment plan.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "claim": "Ontario: generally no right to know the diagnosis unless it clearly relates to the accommodation or needs are complex or unclear.",
+     "quote": "Generally, the accommodation provider does not have the right to know a person's confidential medical information, such as the cause of the disability, diagnosis, symptoms or treatment",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Ontario: the exceptions (clearly related to the accommodation, or complex, challenging or unclear needs).",
+     "quote": "unless these clearly relate to the accommodation being sought, or the person's needs are complex, challenging or unclear and more information is needed",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Ontario: the person answers questions about restrictions or limitations, including information from health care professionals.",
+     "quote": "answer questions or provide information about relevant restrictions or limitations, including information from health care professionals",
+     "source": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    },
+    {
+     "claim": "Federal: sometimes questions are answered by a health care provider.",
+     "quote": "In other instances, these questions may need to be answered by a health care provider.",
+     "source": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    }
+   ],
+   "sources": [
+    {
+     "label": "Workplace accommodation: a guide for federally regulated workplaces (Canadian Human Rights Commission)",
+     "url": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide"
+    },
+    {
+     "label": "Policy on ableism and discrimination based on disability, section 8: Duty to accommodate (Ontario Human Rights Commission)",
+     "url": "https://www.ohrc.on.ca/en/policy-ableism-and-discrimination-based-disability/8-duty-accommodate"
+    }
+   ],
+   "integrated": [
+    {
+     "kind": "search",
+     "name": "Workplace life",
+     "url": "/search?tags=career_workplace_life"
+    },
+    {
+     "kind": "search",
+     "name": "Advocacy",
+     "url": "/search?tags=advocacy"
+    }
+   ],
+   "notes": "Law: federal (Canadian Human Rights Act, for federally regulated employers) and Ontario (Human Rights Code). Other provinces and territories are not covered; the article sends readers to their own commission. The quieter spot, headphones and written instructions are tips, not from the law pages. This is general information, not legal advice: consider linking the CHRC and OHRC pages prominently. The CHRC guide is written for employers; the employee-side wording is ours."
+  }
+ ]
+}

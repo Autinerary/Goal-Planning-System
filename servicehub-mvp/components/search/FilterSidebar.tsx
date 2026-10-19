@@ -50,6 +50,8 @@ interface FilterSidebarProps {
   tags?: string[]
   costType?: CostType
   online?: boolean
+  shortWait?: boolean
+  onShortWaitChange?: (next: boolean) => void
   serviceAge?: string
   /** The person's country, for the school system in Education. */
   country?: string | null
@@ -91,6 +93,8 @@ export default function FilterSidebar({
   tags: selectedTags = [],
   costType,
   online = false,
+  shortWait = false,
+  onShortWaitChange,
   serviceAge,
   country = null,
   onTagToggle,
@@ -285,6 +289,8 @@ export default function FilterSidebar({
           onTagToggle={onTagToggle}
           onCostChange={onCostTypeChange}
           onOnlineChange={onOnlineChange}
+          shortWait={shortWait}
+          onShortWaitChange={onShortWaitChange}
           onAgeChange={onServiceAgeChange}
         />
       )}

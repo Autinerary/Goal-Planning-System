@@ -25,6 +25,8 @@ export default function FeedbackLink({ className = '', children = 'Send feedback
     }
   }, [open])
   const page = typeof window !== 'undefined' ? window.location.href : ''
+  // From Tidbits, labelled [Tidbits] (the Tidbits round's planning note, Goal 8: "same as Services & Products").
+  const about = typeof window !== 'undefined' && window.location.pathname.startsWith('/community') ? 'tidbits' : 'resourcehub'
   return (
     <span ref={box} className="relative inline-block">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true" className={className}>
@@ -34,7 +36,7 @@ export default function FeedbackLink({ className = '', children = 'Send feedback
         <span className="absolute bottom-full left-0 z-50 mb-1 w-72 rounded-xl border border-gray-200 bg-white p-2 text-left shadow-lg">
           <span className="block px-2 pb-1 pt-1 text-xs font-semibold text-gray-700">An email to the team, about…</span>
           {FEEDBACK_KINDS.map((k) => (
-            <a key={k.id} href={feedbackMailto(page, { kind: k.id, about: 'resourcehub' })} onClick={() => setOpen(false)} className="block rounded-lg px-2 py-1.5 text-sm text-gray-900 hover:bg-gray-100">
+            <a key={k.id} href={feedbackMailto(page, { kind: k.id, about })} onClick={() => setOpen(false)} className="block rounded-lg px-2 py-1.5 text-sm text-gray-900 hover:bg-gray-100">
               {k.label}
             </a>
           ))}

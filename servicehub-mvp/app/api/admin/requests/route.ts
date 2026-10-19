@@ -48,13 +48,22 @@ async function listingNames(db: Db, rows: { item_kind: string; item_id: string }
  * GET  /api/admin/requests
  * POST /api/admin/requests { section, id, action: 'approve' | 'reject' }
  */
+const PROMO = 'id, user_id, item_kind, item_id, headline, body, image_url, keywords, provinces, starts_on, ends_on, created_at'
+
+/** Promotions sent for approval, with where they'd show, the click price and any budget since STEP 83. */
+async function submittedPromotions(db: ReturnType<typeof createAdminClient>) {
+  const query = (columns: string) => db.from('promotions').select(columns).eq('status', 'submitted').order('created_at').limit(100)
+  const first = await query(PROMO + ', placements, bid_cents, budget_cents, paid_at')
+  return first.error ? await query(PROMO) : first
+}
+
 export async function GET() {
   if (!(await admin())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const db = createAdminClient()
   const [claims, edits, promos, guides, grants, survey, products, providerServices] = await Promise.all([
     db.from('listing_claims').select('id, user_id, item_kind, item_id, method, evidence, created_at').eq('status', 'pending').eq('method', 'review').not('evidence', 'like', 'Added from their Resource Account%').order('created_at').limit(100),
     db.from('listing_edits').select('id, user_id, item_kind, item_id, changes, before, created_at').eq('status', 'pending').order('created_at').limit(100),
-    db.from('promotions').select('id, user_id, item_kind, item_id, headline, body, image_url, keywords, provinces, starts_on, ends_on, created_at').eq('status', 'submitted').order('created_at').limit(100),
+    submittedPromotions(db),
     db.from('spot_guide_applications').select('user_id, area, why, created_at').eq('status', 'pending').order('created_at').limit(100),
     db.from('access_grants').select('id, user_id, kind, source, case_text, created_at').eq('status', 'pending').order('created_at').limit(200),
     db.from('provider_survey_responses').select('wants, other, image_same, created_at').order('created_at', { ascending: false }).limit(1000),

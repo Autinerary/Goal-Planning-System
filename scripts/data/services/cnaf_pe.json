@@ -38,7 +38,8 @@
       "category": "Organization",
       "tags": [
         "charity",
-        "advocacy"
+        "advocacy",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "Family membership is $50 per year and gives access to family events, parent training, diagnosis kits, the autism library and subsidized programming.",
@@ -61,7 +62,8 @@
       "category": "Organization",
       "tags": [
         "advocacy",
-        "siblings"
+        "siblings",
+        "parent_support"
       ],
       "cost": "unknown",
       "cost_note": "The site does not mention cost.",
@@ -93,7 +95,8 @@
       "category": "Education Support",
       "tags": [
         "charity",
-        "advocacy"
+        "advocacy",
+        "parent_support"
       ],
       "cost": "paid",
       "cost_note": "Reading tutoring is a registration fee plus $45 per session; the Executive Functioning seminar-workshop series is free.",

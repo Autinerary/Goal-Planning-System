@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { goHubHref } from '@/lib/serviceHub'
+import PathResources from '@/app/components/PathResources'
 
 const REQUESTED_PATHWAYS = [
   ['Model Jet', 'Life organization with ADHD, OCD and Depression; awaiting Odosa\'s model.'],
@@ -436,6 +437,7 @@ export default function PathMarketPage() {
           <div className="flex items-start justify-between gap-3"><h2 className="text-xl font-semibold">{reviewModel.category.title}: {reviewModel.model.name}</h2><button type="button" aria-label="Close pathway review" onClick={() => setReviewModel(null)}><X className="h-5 w-5" /></button></div>
           <p className="my-3 text-sm text-slate-600">{reviewModel.model.description}</p>
           <fieldset className="space-y-3"><legend className="mb-3 font-medium">Optional goals</legend>{reviewModel.model.seedGoals.map(goal => <label key={goal} className="flex items-start gap-3 text-sm"><input type="checkbox" checked={selectedIdeas.includes(goal)} onChange={event => setSelectedIdeas(event.target.checked ? [...selectedIdeas, goal] : selectedIdeas.filter(item => item !== goal))} className="mt-1" />{goal}</label>)}</fieldset>
+          <PathResources categoryKey={reviewModel.category.key} />
           <h3 className="mb-2 mt-6 font-medium">Related Tidbits</h3>
           <div className="flex flex-wrap gap-3">{(reviewModel.category.focusCategory === 'education' ? ['course selection', 'time scheduling'] : ['cold email', 'resume', 'time scheduling']).map(topic => <Link key={topic} href={goHubHref(`/community?${new URLSearchParams({ q: topic, from: 'path-market' })}`)} className="text-sm text-cyan-800 underline">{topic}</Link>)}</div>
           <button type="button" onClick={() => startModel(reviewModel.category, reviewModel.model)} className="mt-6 rounded bg-cyan-700 px-4 py-2 font-medium text-white">Continue with {selectedIdeas.length} selected goals</button>

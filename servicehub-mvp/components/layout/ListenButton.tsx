@@ -33,8 +33,9 @@ function chunks(text: string, max = 220): string[] {
  * the browser. The app's Settings, Accessibility, can turn it off and set the
  * speed; both reach ResourceHub through the hand-off (lib/a11y.ts:
  * data-listen, data-speech-rate). Nothing speaks until it is pressed.
+ * `target` reads one part instead, such as a Tidbit's own words.
  */
-export default function ListenButton({ className = '' }: { className?: string }) {
+export default function ListenButton({ className = '', target = 'main', label = 'Listen to this page' }: { className?: string; target?: string; label?: string }) {
   const pathname = usePathname()
   const [can, setCan] = useState(false)
   const [speaking, setSpeaking] = useState(false)
@@ -60,7 +61,7 @@ export default function ListenButton({ className = '' }: { className?: string })
       return
     }
     const selected = window.getSelection?.()?.toString().trim()
-    const text = selected || (document.querySelector('main') as HTMLElement | null)?.innerText || ''
+    const text = selected || (document.querySelector(target) as HTMLElement | null)?.innerText || ''
     const parts = chunks(text)
     if (!parts.length) return
     const speed = document.documentElement.dataset.speechRate
@@ -92,7 +93,7 @@ export default function ListenButton({ className = '' }: { className?: string })
       className={`inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
     >
       {speaking ? <Square className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
-      {speaking ? 'Stop' : 'Listen to this page'}
+      {speaking ? 'Stop' : label}
     </button>
   )
 }

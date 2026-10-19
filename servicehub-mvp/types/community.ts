@@ -116,6 +116,39 @@ export interface CommunityPostSummary {
   last_activity_at: string;
   created_at: string;
   viewer_vote: -1 | 0 | 1;
+  // The Tidbits round (STEP 83). Absent before it.
+  /** question: asked of the community; tidbit: a short article. */
+  kind?: 'question' | 'tidbit';
+  /** A Tidbit (500 words) or a Tadbit (1000). */
+  length_type?: 'tidbit' | 'tadbit' | null;
+  status?: 'draft' | 'published';
+  is_anonymous?: boolean;
+  group?: { slug: string; name: string } | null;
+  /** internal: written here; external: a review of an article elsewhere. */
+  source?: 'internal' | 'external';
+  external_url?: string | null;
+  external_platform?: string | null;
+  external_platform_url?: string | null;
+  /** 'autinerary': by the Autinerary team. */
+  byline?: 'autinerary' | null;
+  word_count?: number;
+  published_at?: string | null;
+  /** Bites: people who read it to the end. */
+  bite_count?: number;
+  /** Well-Dones: people who rated it, and the average. */
+  well_done_count?: number;
+  well_done_avg?: number | null;
+  /** Integrated Resources: how many services and products it mentions. */
+  item_count?: number;
+}
+
+/** A service or product a Tidbit mentions (Integrated Resources). */
+export interface CommunityPostItem {
+  kind: 'resource' | 'product';
+  id: string;
+  name: string;
+  category: string | null;
+  href: string;
 }
 
 /**
@@ -132,6 +165,14 @@ export interface CommunityPostDetail extends CommunityPostSummary {
   viewer_can_edit: boolean;
   viewer_can_accept: boolean;
   viewer_can_moderate: boolean;
+  // The Tidbits round (STEP 83).
+  items?: CommunityPostItem[];
+  /** The viewer's own Well-Done for it (1-5), if any. */
+  viewer_well_done?: number | null;
+  /** Whether the viewer already took a Bite (read it to the end). */
+  viewer_bitten?: boolean;
+  /** Whether the viewer may rate it: signed in, someone else's published Tidbit. */
+  viewer_can_rate?: boolean;
 }
 
 export interface CommunityAnswerRow {
@@ -202,6 +243,10 @@ export interface CommunityAuthorBadge {
   karma: number;
   is_public: boolean;
   top_badges: BadgeGrantRow[];
+  /** Written by the Autinerary team (STEP 83). */
+  team?: boolean;
+  /** Published anonymously: no pseudonym, no profile link (STEP 83). */
+  anonymous?: boolean;
 }
 
 export interface BadgeRow {
@@ -259,7 +304,8 @@ export interface CommunityFollowRow {
 // accepted; Solutions means the author themselves recorded the key sentence
 // that unlocked it — which is the thing Odosa actually wanted surfaced, and
 // can exist on a post with no answers at all.
-export type FeedSort = 'recent' | 'top' | 'unanswered' | 'solved' | 'solutions';
+// 'best': Tidbits by their Well-Dones (a Bayesian average, STEP 83).
+export type FeedSort = 'recent' | 'best' | 'top' | 'unanswered' | 'solved' | 'solutions';
 
 export interface FeedQuery {
   sort: FeedSort;

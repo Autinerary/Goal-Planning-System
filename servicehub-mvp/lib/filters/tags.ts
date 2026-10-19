@@ -44,6 +44,9 @@ export const SERVICE_TAGS: Tag[] = [
   { id: 'respite_care', label: 'Respite care' },
   { id: 'recreation', label: 'Recreational activities' },
   { id: 'siblings', label: 'For siblings' },
+  // The 5Qs report (October 2026): parents said they build their own support systems, because
+  // "school never does it". Support groups, coaching, respite and advice for parents and caregivers.
+  { id: 'parent_support', label: 'Support for parents', note: 'Support groups, coaching, respite or advice for parents and caregivers.' },
 ]
 
 /** How a community group meets (shown under "Community groups"). */

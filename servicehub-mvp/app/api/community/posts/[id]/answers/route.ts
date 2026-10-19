@@ -14,6 +14,8 @@ import {
   getCommunityViewer,
 } from '@/lib/community/client';
 import { generatePseudonym } from '@/lib/community/pseudonym';
+import { moderateText, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
+import { rulesAccepted } from '@/lib/community/tidbitsServer';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,12 +39,14 @@ export async function POST(
   if (!viewer) return NextResponse.json({ error: 'Sign-in required' }, { status: 401 });
 
   const postId = params.id;
-  const { data: post } = await client
+  let { data: post, error: postError } = (await client
     .from('community_posts')
-    .select('id, is_locked, is_deleted')
+    .select('id, is_locked, is_deleted, status')
     .eq('id', postId)
-    .maybeSingle();
-  if (!post || post.is_deleted) {
+    .maybeSingle()) as { data: any; error: any };
+  // Before STEP 83 there is no status: every post is published.
+  if (postError) ({ data: post } = (await client.from('community_posts').select('id, is_locked, is_deleted').eq('id', postId).maybeSingle()) as { data: any; error: any });
+  if (!post || post.is_deleted || post.status === 'draft') {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 });
   }
   if (post.is_locked) {
@@ -55,10 +59,18 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
-  const markdown = (body.body_markdown ?? '').trim();
-  if (markdown.length < 10 || markdown.length > 30000) {
+  const raw = (body.body_markdown ?? '').trim();
+  if (raw.length < 10 || raw.length > 30000) {
     return NextResponse.json({ error: 'Body must be 10-30,000 characters' }, { status: 400 });
   }
+  // The community rules, once (STEP 83), and the words checked (the Tidbits round, Goal 6).
+  if ((await rulesAccepted(client, viewer.user_id)) === false) {
+    return NextResponse.json({ error: 'Please read and agree to the community rules first.', code: 'rules' }, { status: 403 });
+  }
+  const moderated = moderateText(raw);
+  if (moderated.slur) return NextResponse.json({ error: SLUR_MESSAGE, code: 'slur' }, { status: 400 });
+  const markdown = moderated.text;
+  const review = await reviewFlag(markdown);
   const parentId = body.parent_id || null;
   if (parentId) {
     const { data: parent } = await client
@@ -103,6 +115,7 @@ export async function POST(
       image_urls: imageUrls,
       author_relationships: authorRel.relationships,
       author_weight: authorRel.weight,
+      ...(review.flag ? { auto_flag: review.flag, auto_flag_reason: review.reason } : {}),
       // Odosa's "Comment on": the passage this reply responds to. Trimmed
       // and length-capped here as well as in the DB CHECK, so an
       // over-long selection fails cleanly instead of as a 500.
@@ -117,5 +130,5 @@ export async function POST(
     console.error('[community] POST /answers failed:', error?.message);
     return NextResponse.json({ error: 'Failed to create answer' }, { status: 500 });
   }
-  return NextResponse.json({ id: answer.id }, { status: 201 });
+  return NextResponse.json({ id: answer.id, bleeped: moderated.bleeped }, { status: 201 });
 }

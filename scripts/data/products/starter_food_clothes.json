@@ -1,0 +1,623 @@
+{
+ "topic": "products_starter_food_clothes",
+ "checked": "2026-10-19",
+ "source": "Products neurodivergent people and families recommend; each checked on its maker's or seller's own pages (.qa-local/products/BRIEF.md): every quality has a quote from those pages, in quality_evidence",
+ "entries": [
+  {
+   "slug": "maple-leaf-prime-breaded-dino-chicken-nuggets",
+   "name": "Maple Leaf Prime® Breaded Dino Chicken Nuggets",
+   "brand": "Maple Leaf Foods",
+   "category": "food-meals",
+   "description": "Breaded chicken nuggets shaped like dinosaurs, sold frozen in 700 g bags. A familiar, fun-shaped finger food for children who like their chicken plain and predictable.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=dino+chicken+nuggets"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca listed the 700 g bag at $11.97 on 19 October 2026)",
+   "maker_url": "https://www.mapleleaf.ca/products/maple-leaf-prime-breaded-dino-chicken-nuggets/",
+   "buy_links": [
+    {
+     "label": "Maple Leaf",
+     "url": "https://www.mapleleaf.ca/products/maple-leaf-prime-breaded-dino-chicken-nuggets/"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=dino+chicken+nuggets"
+    }
+   ],
+   "community": [],
+   "evidence": "Maple Leaf Prime® Breaded Dino Chicken Nuggets 700 g",
+   "notes": "Contains wheat and soy (per the maker's ingredient list). The chicken is \"Prime Raised without Antibiotics\" per the maker. Walmart.ca also sells a cheaper Great Value dino nugget; the Walmart link is a search page because its product pages block automated checks."
+  },
+  {
+   "slug": "weetabix-original",
+   "name": "Weetabix Original",
+   "brand": "Post Consumer Brands Canada",
+   "category": "food-meals",
+   "description": "A whole-grain wheat breakfast cereal with a three-part ingredient list: whole grain wheat, sugars (barley malt extract and cane sugar) and salt. A plain cereal for people who want few ingredients.",
+   "qualities": [
+    "short_ingredients",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "short_ingredients": "Whole grain wheat, Sugars (barley malt extract, cane sugar), Salt",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0HKP3LXK8"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca and Amazon.ca listed the 400 g box at $4.47 on 19 October 2026)",
+   "maker_url": "https://www.postconsumerbrands.ca/brand/weetabix/",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0HKP3LXK8"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=weetabix"
+    }
+   ],
+   "community": [],
+   "evidence": "Weetabix Nutrition Facts Panel Ingredients Whole grain wheat, Sugars (barley malt extract, cane sugar), Salt Contains: Wheat, Barley",
+   "notes": "The team's \"Wheat-a-Bix\". Sold in Canada by Post Consumer Brands Canada; its brand link opens the Brands page, where Weetabix Original's ingredients are listed. Contains wheat and barley (not gluten-free)."
+  },
+  {
+   "slug": "honey-maid-graham-wafers",
+   "name": "Honey Maid Graham Wafers",
+   "brand": "Honey Maid (Mondelēz Canada)",
+   "category": "food-snacks",
+   "description": "Honey graham crackers, sold in Canada as Graham Wafers in 400 g boxes. Eaten plain, with a topping, or used for s'mores and pie crusts.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B00EIC7FGS"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Amazon.ca and Walmart.ca listed the 400 g box at $6.28 on 19 October 2026)",
+   "maker_url": "https://www.snackworks.ca/en/brands/honey-maid/",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B00EIC7FGS"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=honey+maid+graham+crackers"
+    }
+   ],
+   "community": [],
+   "evidence": "Enjoy Honey Maid Graham Wafers plain or topped with your favourite toppings.",
+   "notes": "The team named Honey Maid honey graham crackers; this is the Canadian box. Contains wheat and soy, and lists artificial flavour (Amazon.ca ingredient list). The maker's Canadian site has only a brand page, so details come from the Amazon.ca listing."
+  },
+  {
+   "slug": "pop-tarts-frosted-strawberry",
+   "name": "Pop-Tarts® Frosted Strawberry",
+   "brand": "Kellogg's (Kellanova)",
+   "category": "food-snacks",
+   "description": "Toaster pastries with a soft crust, a strawberry-flavoured filling and icing with sprinkles, eaten toasted or straight from the box. Sold in boxes of 8 and family boxes of 16.",
+   "qualities": [
+    "texture_soft",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_soft": "Soft golden crust stuffed with a strawberry-flavoured filling",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B0D3N5Y3FN"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (on 19 October 2026 Walmart.ca listed the 8-pastry 384 g box at $3.47 and Amazon.ca the 16-pastry 768 g box at $5.94)",
+   "maker_url": "https://www.amazon.ca/dp/B0D3N5Y3FN",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0D3N5Y3FN"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=pop-tarts+frosted+strawberry"
+    }
+   ],
+   "community": [],
+   "evidence": "Soft golden crust stuffed with a strawberry-flavoured filling, frosted with yummy icing and topped with coloured sprinkles; Sweet, fully baked, and ready to eat",
+   "notes": "Kellogg's Canadian site refused the fetch tool (HTTP 405), so details come from the Amazon.ca listing, used as the main seller page. Contains wheat and soy; the sprinkles are coloured. Walmart.ca also lists a Frosted Strawberry Milkshake flavour, which is a different product."
+  },
+  {
+   "slug": "nutella-hazelnut-spread",
+   "name": "Nutella®",
+   "brand": "Ferrero Canada",
+   "category": "food-meals",
+   "description": "A smooth, sweet hazelnut and cocoa spread for bread or toast, made in Brantford, Ontario. The same recipe in every jar size, which matters to people who notice small changes.",
+   "qualities": [
+    "texture_smooth",
+    "short_ingredients",
+    "consistent",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_smooth": "contributes to the smoothness of our cream",
+    "short_ingredients": "Each jar of Nutella® contains 7 carefully selected, high-quality ingredients",
+    "consistent": "Same unique recipe, different jar sizes.",
+    "canadian": "Proudly made in Brantford, Ontario",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=nutella"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and jar size (Walmart.ca listed the 375 g jar at $4.37, on sale from $5.47, on 19 October 2026)",
+   "maker_url": "https://www.nutella.com/ca/en/products/nutella",
+   "buy_links": [
+    {
+     "label": "Nutella Canada",
+     "url": "https://www.nutella.com/ca/en/products/nutella"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=nutella"
+    }
+   ],
+   "community": [],
+   "evidence": "Each jar of Nutella® contains 7 carefully selected, high-quality ingredients: sugar, milk, palm oil, cocoa, hazelnuts, lecithin and vanillin.",
+   "notes": "Contains hazelnuts (a tree nut), milk and soy, so it is not for nut-free schools. Sold in 375 g, 725 g and 1 kg jars; Nutella & GO! snack packs are a separate product."
+  },
+  {
+   "slug": "goldfish-flavour-blasted-xtreme-cheddar",
+   "name": "Goldfish® Flavour Blasted® Xtreme Cheddar",
+   "brand": "Goldfish (Campbell Company of Canada)",
+   "category": "food-snacks",
+   "description": "Fish-shaped cheddar crackers with a cheese seasoning: a stronger-tasting version of Goldfish Cheddar. Sold in 180 g bags and packs of 26 g snack bags.",
+   "qualities": [
+    "single_serve",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "single_serve": "Goldfish® Flavour Blasted® Xtreme Cheddar Crackers Snack Packs 6 x 26g",
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=goldfish+cheddar"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and size (Walmart.ca listed the 180 g bag and the 6 x 26 g snack packs at $2.24 each on 19 October 2026)",
+   "maker_url": "https://www.campbellsoup.ca/product/goldfish-flavour-blasted-xtreme-cheddar/",
+   "buy_links": [
+    {
+     "label": "Campbell Company of Canada",
+     "url": "https://www.campbellsoup.ca/product/goldfish-flavour-blasted-xtreme-cheddar/"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=goldfish+cheddar"
+    }
+   ],
+   "community": [],
+   "evidence": "When snack time calls for ultimate cheesiness, Goldfish® Flavour Blasted® Xtreme Cheddar is the answer.",
+   "notes": "The shop already has Goldfish Cheddar; the team asked for Flavour Blasted as a separate product (stronger flavour, different seasoning). Contains wheat and milk; the cheese is coloured with annatto. A 750 g carton is also sold."
+  },
+  {
+   "slug": "simply-cheetos-puffs-white-cheddar",
+   "name": "Simply CHEETOS® Puffs White Cheddar",
+   "brand": "Cheetos (PepsiCo Canada)",
+   "category": "food-snacks",
+   "description": "Puffed cornmeal snacks with a white cheddar seasoning, from Cheetos' \"Simply\" line. Its ingredient list names no colours.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=cheetos+puffs"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca listed the bag at $4.26 on 19 October 2026)",
+   "maker_url": "https://www.tastyrewards.com/en-ca/brands/cheetos/products/simply-cheetosr-puffs-white-cheddar-cheese-flavoured-snacks",
+   "buy_links": [
+    {
+     "label": "Cheetos (Tasty Rewards)",
+     "url": "https://www.tastyrewards.com/en-ca/brands/cheetos/products/simply-cheetosr-puffs-white-cheddar-cheese-flavoured-snacks"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=cheetos+puffs"
+    }
+   ],
+   "community": [],
+   "evidence": "Simply CHEETOS® Puffs White Cheddar Cheese Flavoured Snacks Our SIMPLY Snacks are made with ingredients you can feel good about",
+   "notes": "The team asked for the natural/simply kind of Cheetos Puffs if sold in Canada: this is it. Contains milk. Not tagged \"no artificial colours\" because the maker's page does not say so in words (its ingredient list has no colours). Walmart.ca also lists \"Cheetos Simply NKD Puffs\", but no maker page for it could be found (guessed URLs gave empty placeholder pages)."
+  },
+  {
+   "slug": "farm-boy-colossal-soft-pretzel",
+   "name": "Farm Boy™ Colossal Soft Pretzel (Cinnamon Sugar or Salted)",
+   "brand": "Farm Boy",
+   "category": "food-snacks",
+   "description": "Large frozen soft pretzels that you heat and serve, from the Ontario grocer Farm Boy's own brand. Made in Canada, in Salted or Sugar Cinnamon.",
+   "qualities": [
+    "texture_soft",
+    "canadian",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "texture_soft": "jumbo-sized soft pretzels",
+    "canadian": "Proudly crafted in Canada.",
+    "sold_in_canada": "store:https://www.farmboy.ca/products/farm-boy-cinnamon-sugar-colossal-soft-pretzel-300-g/"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Farm Boy's page shows no price; sold in Farm Boy stores",
+   "maker_url": "https://www.farmboy.ca/products/farm-boy-cinnamon-sugar-colossal-soft-pretzel-300-g/",
+   "buy_links": [
+    {
+     "label": "Farm Boy",
+     "url": "https://www.farmboy.ca/products/farm-boy-cinnamon-sugar-colossal-soft-pretzel-300-g/"
+    }
+   ],
+   "community": [],
+   "evidence": "Savour the taste of our jumbo-sized soft pretzels, made the old-fashioned way with quality ingredients and a classic recipe.",
+   "notes": "BORDERLINE: a store brand sold only in Farm Boy's Ontario stores; no national frozen soft pretzel could be confirmed on a page our tools can read (SuperPretzel and Auntie Anne's showed no Canadian seller; PC Express and Voila pages do not load for the tool). 300 g pack, 150 g per pretzel. The kept page is the Cinnamon Sugar one; it says a Salted version is sold too. Contains wheat, milk and barley."
+  },
+  {
+   "slug": "dr-oetker-giuseppe-easy-pizzi-3-cheese",
+   "name": "Giuseppe Pizzeria Easy Pizzi - 3 Cheese Mini Pizza",
+   "brand": "Dr. Oetker Canada",
+   "category": "food-meals",
+   "description": "Small rectangular frozen snack pizzas with tomato sauce and three cheeses (mozzarella, cheddar and Monterey Jack), sold in 560 g boxes. A plain cheese option for a quick lunch or snack.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=mini+pizza"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca listed the 560 g box at $6.27 on 19 October 2026)",
+   "maker_url": "https://www.oetker.ca/products/p/giuseppe-pizzeria-easy-pizzi-3-cheese-mini-pizza",
+   "buy_links": [
+    {
+     "label": "Dr. Oetker Canada",
+     "url": "https://www.oetker.ca/products/p/giuseppe-pizzeria-easy-pizzi-3-cheese-mini-pizza"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=mini+pizza"
+    }
+   ],
+   "community": [],
+   "evidence": "Dr. Oetker Giuseppe Pizzeria Easy Pizzi 3 Cheese is a rectangle shape snack pizza that's easy to eat!",
+   "notes": "Also sold as Pepperoni and Pepperoni & Bacon. The maker's page lists no allergens, so check the box (wheat and milk are expected). Dr. Oetker's Ristorante Piccolissima is another mini pizza it sells in Canada."
+  },
+  {
+   "slug": "natrel-vanilla-ice-cream-mochi",
+   "name": "Natrel Vanilla Ice Cream Mochi",
+   "brand": "Natrel (Agropur)",
+   "category": "food-snacks",
+   "description": "Small frozen treats: vanilla bean ice cream wrapped in a slightly sweet rice dough, eaten with your fingers. Sold in boxes of six, from a Canadian dairy brand.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=mochi"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store (Walmart.ca listed the box of 6 x 35 ml at $5.48 on 19 October 2026)",
+   "maker_url": "https://www.natrel.ca/en/products/mochis/vanilla-ice-cream-mochi",
+   "buy_links": [
+    {
+     "label": "Natrel",
+     "url": "https://www.natrel.ca/en/products/mochis/vanilla-ice-cream-mochi"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=mochi"
+    }
+   ],
+   "community": [],
+   "evidence": "Taste the new vanilla mochi made with vanilla bean ice cream, wrapped in a slightly sweet rice dough.",
+   "notes": "Contains milk and wheat; may contain peanuts, tree nuts and soy (maker's page). Also triple chocolate, mango and raspberry. Natrel is owned by Agropur, a Canadian dairy co-operative. Not tagged soft or chewy because the maker's page does not use those words; Lotte and Buono ice cream mochi are also sold at Walmart.ca."
+  },
+  {
+   "slug": "pillsbury-pizza-pops-three-cheese",
+   "name": "Pizza Pops Three Cheese",
+   "brand": "Pillsbury (General Mills Canada)",
+   "category": "food-meals",
+   "description": "Frozen pizza snacks: a golden crust filled with mozzarella, white cheddar and tomato sauce. The three-cheese kind has no meat, for people who want a plain filling.",
+   "qualities": [
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "sold_in_canada": "store:https://www.walmart.ca/en/search?q=pizza+pops"
+   },
+   "values": {},
+   "price": null,
+   "currency": null,
+   "price_note": "Prices vary by store and box size (Walmart.ca listed the 30-count 2.85 kg box at $20.37 on 19 October 2026)",
+   "maker_url": "https://www.pizzapops.ca/products/pizza-pops-three-cheese",
+   "buy_links": [
+    {
+     "label": "Pizza Pops",
+     "url": "https://www.pizzapops.ca/products/pizza-pops-three-cheese"
+    },
+    {
+     "label": "Walmart Canada (search)",
+     "url": "https://www.walmart.ca/en/search?q=pizza+pops"
+    }
+   ],
+   "community": [],
+   "evidence": "Loaded with cheesy, lovely goodness. Golden Pillsbury Pizza Pops Crust loaded with awesome stuff!",
+   "notes": "The team's \"pizza rolls / pizza pops\". Sold in 380 g, 760 g, 2.85 kg and 3.42 kg sizes per the maker; Pepperoni is the other common flavour. Contains wheat and milk; the topping lists titanium dioxide (colour)."
+  },
+  {
+   "slug": "ecostinger-girls-full-body-swimsuit-long-sleeves-legs",
+   "name": "Girls Full Body Swimsuit Stinger Suit Long Sleeves & Legs UV Protection UPF50+",
+   "brand": "EcoStinger",
+   "category": "clothing-everyday",
+   "description": "A one-piece swimsuit with long sleeves and long legs, made of a light, stretchy UPF 50+ fabric with flat seams. For children who want full sun cover, or the even feel of one suit over the whole body.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "seamless",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "The soft fabric of this swimsuit is breathable",
+    "breathable": "fabric is light weight and breathable keeping your skin cool even in hot weather conditions",
+    "seamless": "Anti-Chafe due to its Flatlock stitching design",
+    "for_children": "Girls Junior Full Body Swimsuit",
+    "sold_in_canada": "We ship to virtually any address in the world, including our most active destination countries: USA, Canada"
+   },
+   "values": {
+    "ages": "4 to 16",
+    "material": "53% polyester, 47% PBT"
+   },
+   "price": 54.9,
+   "currency": "USD",
+   "price_note": "Price on ecostinger.com on 19 October 2026. The page shows $54.90 without a currency code; the store is US-based (US phone line), so it is taken as USD. Free shipping over $59.",
+   "maker_url": "https://www.ecostinger.com/girls-full-body-swimsuit-stinger-suit-long-sleeves-legs-uv-protection-upf50-navy-blue-chlorine-resistant/",
+   "buy_links": [
+    {
+     "label": "EcoStinger",
+     "url": "https://www.ecostinger.com/girls-full-body-swimsuit-stinger-suit-long-sleeves-legs-uv-protection-upf50-navy-blue-chlorine-resistant/"
+    }
+   ],
+   "community": [],
+   "evidence": "Girls Junior Full Body Swimsuit Stinger Suit Long Sleeves UV Protection UPF50+ Navy Blue; The fabric of this stylish swimwear is durable and extremely flexible",
+   "notes": "PRICE IN USD (see price note). Girls’ sizes 4 to 16; EcoStinger also sells a boys’ full-body range. Ships from outside Canada: free shipping takes 10 to 14 days and duties may apply. A smaller brand: the Canadian options found (Jan & Jul, Calikids, Hatley) have long sleeves but short or ruffled legs, or refused the fetch tool."
+  },
+  {
+   "slug": "comfy-cubs-adult-muslin-blanket-twin",
+   "name": "Adult Muslin Blanket (Twin, 90\" x 66\")",
+   "brand": "Comfy Cubs",
+   "category": "self-care-sleep",
+   "description": "A plain, lightweight blanket of six layers of 100% cotton muslin, sold in Throw, Twin (90 x 66 in), Queen and King sizes. Suits people who find fleece or wool blankets too warm or rough.",
+   "qualities": [
+    "soft_fabric",
+    "breathable",
+    "washable",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "We use 100% Muslin cotton in our soft muslin blankets",
+    "breathable": "Breathable Muslin Cotton",
+    "washable": "Machine Washable Fabric",
+    "for_adults": "All designed just for adults!",
+    "sold_in_canada": "Free shipping on all Canada orders"
+   },
+   "values": {
+    "material": "100% cotton muslin"
+   },
+   "price": 61.99,
+   "currency": "CAD",
+   "price_note": "Price for the Twin size (229 x 168 cm) on Amazon.ca on 19 October 2026; the maker’s own site lists the blanket from $49.99 CAD (Throw size)",
+   "maker_url": "https://comfycubs.com/products/adult-muslin-blanket-in-sand",
+   "buy_links": [
+    {
+     "label": "Comfy Cubs",
+     "url": "https://comfycubs.com/products/adult-muslin-blanket-in-sand"
+    },
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B0B77Z7TS3"
+    }
+   ],
+   "community": [],
+   "evidence": "Breathable Muslin Cotton – We use 100% Muslin cotton in our soft muslin blankets which means they’re gentler on sensitive skin and keep your body cooler throughout the night.",
+   "notes": "The team asked for a twin-size plain muslin blanket. The Sand colour was sold out on the maker’s site on 19 October 2026 (other colours are listed); Amazon.ca had the Twin in Neptune in stock, sold by Comfy Cubs. The maker’s site prices in CAD and ships free in Canada."
+  },
+  {
+   "slug": "roots-kids-organic-original-sweatpant",
+   "name": "Kids Organic Original Sweatpant",
+   "brand": "Roots",
+   "category": "clothing-everyday",
+   "description": "Classic fleece sweatpants for kids aged 6 to 14, in organic cotton and recycled polyester, with a drawstring waist and elastic cuffs. For children who will only wear soft, familiar clothes.",
+   "qualities": [
+    "soft_fabric",
+    "washable",
+    "for_children",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "soft_fabric": "delivers soft fleece comfort",
+    "washable": "Machine wash cold, gentle cycle with like colours",
+    "for_children": "Kids Clothing (6-14 Years)",
+    "sold_in_canada": "store:https://www.roots.com/ca/en/kids-organic-original-sweatpant-29070216.html"
+   },
+   "values": {
+    "ages": "6 to 14",
+    "material": "80% organic cotton, 20% recycled polyester fleece"
+   },
+   "price": 44.0,
+   "currency": "CAD",
+   "price_note": "Price on roots.com (Canada) on 19 October 2026; that day Roots also took 25% off when buying 2 or more sweats",
+   "maker_url": "https://www.roots.com/ca/en/kids-organic-original-sweatpant-29070216.html",
+   "buy_links": [
+    {
+     "label": "Roots",
+     "url": "https://www.roots.com/ca/en/kids-organic-original-sweatpant-29070216.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Built for school days and slow weekends, the Roots Kids Organic Original Sweatpant delivers soft fleece comfort with a classic fit kids can move in.",
+   "notes": "For the team’s \"literally anything not scratchy\". Roots is a Canadian brand, but this page does not say where the sweatpant is made, so it is not tagged Canadian-made. Not tagged tagless (the page does not say); it has a flocked logo on the front. Toddler and adult versions are sold too; Roots customers rate it 3.2 out of 5."
+  },
+  {
+   "slug": "aveeno-eczema-care-moisturizing-cream",
+   "name": "AVEENO Eczema Care™ Moisturizing Cream",
+   "brand": "Aveeno (Kenvue Canada)",
+   "category": "skin-care",
+   "description": "A fragrance-free, steroid-free daily body cream made with oats and ceramides, sold for eczema-prone skin. A plain, non-greasy cream the maker says is gentle enough for the whole family, babies included.",
+   "qualities": [
+    "fragrance_free",
+    "for_sensitive_skin",
+    "light_texture",
+    "eczema_accepted",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Steroid-free, fragrance-free, paraben-free",
+    "for_sensitive_skin": "Formlated for sensitive skin",
+    "light_texture": "Non-greasy",
+    "eczema_accepted": "accepted by the Eczema Society of Canada",
+    "for_children": "gentle enough for the entire family, even babies’ delicate skin",
+    "for_adults": "gentle enough for the entire family, even babies’ delicate skin",
+    "sold_in_canada": "store:https://well.ca/products/aveeno-eczema-care-moisturizing_93070.html"
+   },
+   "values": {},
+   "price": 31.99,
+   "currency": "CAD",
+   "price_note": "Price for 300 mL on well.ca on 19 October 2026 (the listing’s text also says 330 mL; Aveeno’s page shows a 166 mL tube)",
+   "maker_url": "https://www.aveeno.ca/products/eczema-care-moisturizing-cream",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/aveeno-eczema-care-moisturizing_93070.html"
+    }
+   ],
+   "community": [],
+   "evidence": "It’s gentle enough for the entire family, even babies’ delicate skin. Steroid-free, fragrance-free, paraben-free Formulated with non-GMO oats",
+   "notes": "Sold in Canada for eczema symptoms; the maker’s page makes clinical claims that this entry does not repeat. \"Formlated\" is the maker’s spelling. The Eczema Society of Canada acceptance is stated on the well.ca listing. Different from AVEENO Daily Moisturizing Lotion, already in the shop; Aveeno also sells a Baby Eczema Care cream."
+  },
+  {
+   "slug": "eucerin-eczema-relief-body-creme",
+   "name": "Eucerin Eczema Relief Body Creme",
+   "brand": "Eucerin (Beiersdorf Canada)",
+   "category": "skin-care",
+   "description": "A fragrance-free, dye-free body cream with colloidal oatmeal and ceramide, sold for eczema-prone skin. The maker says it suits babies over 3 months, children and adults.",
+   "qualities": [
+    "fragrance_free",
+    "dye_free",
+    "hypoallergenic",
+    "eczema_accepted",
+    "for_children",
+    "for_adults",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Fragrance, dye and steroid free",
+    "dye_free": "Fragrance, dye and steroid free",
+    "hypoallergenic": "Hypoallergenic & non-irritating",
+    "eczema_accepted": "Seal of acceptance of the Eczema Society of Canada",
+    "for_children": "Suitable for use on babies (over 3 months of age), children and adults",
+    "for_adults": "Suitable for use on babies (over 3 months of age), children and adults",
+    "sold_in_canada": "store:https://well.ca/products/eucerin-eczema-relief-body-creme_111511.html"
+   },
+   "values": {},
+   "price": 17.99,
+   "currency": "CAD",
+   "price_note": "Price for 226 g on well.ca on 19 October 2026",
+   "maker_url": "https://www.en.eucerin.ca/products/eczema-relief/eczema-relief-body-creme",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/eucerin-eczema-relief-body-creme_111511.html"
+    }
+   ],
+   "community": [],
+   "evidence": "Eucerin Eczema Relief Body Creme provides long-lasting hydration to help relieve minor skin irritation and itching due to eczema.",
+   "notes": "Eucerin’s Canadian page says babies over 3 months; the well.ca listing says over 6 months, so check the tube. The relief claims are the maker’s; this entry makes none."
+  },
+  {
+   "slug": "cetaphil-restoraderm-eczema-soothing-moisturizer",
+   "name": "RESTORADERM® Eczema Soothing Moisturizer",
+   "brand": "Cetaphil (Galderma Canada)",
+   "category": "skin-care",
+   "description": "A fragrance-free body moisturizer with ceramides and 1% colloidal oatmeal, sold for dry, itchy, eczema-prone skin. It absorbs quickly, per the maker, so it suits people who dislike a heavy cream.",
+   "qualities": [
+    "fragrance_free",
+    "hypoallergenic",
+    "for_sensitive_skin",
+    "light_texture",
+    "eczema_accepted",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Fragrance free",
+    "hypoallergenic": "Hypoallergenic",
+    "for_sensitive_skin": "For dry, itchy, sensitive skin",
+    "light_texture": "Ceramide-infused moisturizer absorbs quickly",
+    "eczema_accepted": "Accepted by the Eczema Society of Canada",
+    "sold_in_canada": "store:https://www.amazon.ca/dp/B003TQU1Q0"
+   },
+   "values": {},
+   "price": 19.47,
+   "currency": "CAD",
+   "price_note": "Price for 295 ml on Amazon.ca (sold by Amazon.ca) on 19 October 2026",
+   "maker_url": "https://www.cetaphil.ca/en/moisturizers/restoraderm%C2%AE-eczema-soothing-moisturizer/772618232950.html",
+   "buy_links": [
+    {
+     "label": "Amazon.ca",
+     "url": "https://www.amazon.ca/dp/B003TQU1Q0"
+    }
+   ],
+   "community": [],
+   "evidence": "After cleansing, follow with RESTORADERM® Eczema Soothing Moisturizer which provides soothing relief to dry, itchy, irritated skin.",
+   "notes": "The team named Cetaphil Eczema Calming; in Canada Cetaphil sells this RESTORADERM moisturizer for the same use (and a separate Baby Eczema Calming lotion). Active ingredient: colloidal oatmeal 1%. The maker’s relief claims are not repeated here."
+  },
+  {
+   "slug": "cerave-itch-relief-moisturizing-cream",
+   "name": "CeraVe Itch Relief Moisturizing Cream",
+   "brand": "CeraVe",
+   "category": "skin-care",
+   "description": "A fragrance-free, steroid-free moisturizing cream with ceramides and 1% pramoxine hydrochloride, an anti-itch ingredient. Sold as a medicated cream for adults and children 2 years and older.",
+   "qualities": [
+    "fragrance_free",
+    "for_sensitive_skin",
+    "sold_in_canada"
+   ],
+   "quality_evidence": {
+    "fragrance_free": "Fragrance-free, sulfate-free and steroid-free",
+    "for_sensitive_skin": "Suitable for all skin types, gentle on sensitive skin",
+    "sold_in_canada": "store:https://well.ca/products/cerave-itch-relief-moisturizing_200194.html"
+   },
+   "values": {},
+   "price": 30.99,
+   "currency": "CAD",
+   "price_note": "Price for 340 g on well.ca on 19 October 2026",
+   "maker_url": "https://www.cerave.ca/en-ca/skincare/moisturizers/itch-relief-moisturizing-cream",
+   "buy_links": [
+    {
+     "label": "Well.ca",
+     "url": "https://well.ca/products/cerave-itch-relief-moisturizing_200194.html"
+    }
+   ],
+   "community": [],
+   "evidence": "1% Pramoxine Hydrochloride: Provides temporary relief associated with minor skin irritations, insect bites, sunburn and scrapes",
+   "notes": "A medicated cream: follow the label (no more than 3 to 4 times a day; ask a doctor if symptoms last more than 7 days). The maker’s page says \"CeraVe does not treat underlying skin conditions.\" Different from CeraVe Moisturizing Cream, already in the shop; a lotion version is also sold."
+  }
+ ]
+}

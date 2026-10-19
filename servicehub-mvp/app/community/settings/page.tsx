@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Save, RefreshCw } from 'lucide-react'
 import type { CommunityProfileRow } from '@/types/community'
 import { validatePseudonym } from '@/lib/community/pseudonym'
+import ImageUploader from '@/components/community/ImageUploader'
+import ChefAvatar from '@/components/community/ChefAvatar'
 
 interface MeResponse {
   profile: CommunityProfileRow | null
@@ -184,15 +186,23 @@ export default function CommunitySettingsPage() {
             placeholder="A few words about what you're working on (optional)."
           />
         </div>
+        {/* A picture to upload, not a web address to type (the Tidbits round:
+            "Editing Profile"); every profile wears the chef's hat. */}
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Avatar URL</label>
-          <input
-            type="text"
-            value={draft.avatar_url ?? ''}
-            onChange={(e) => setDraft({ ...draft, avatar_url: e.target.value })}
-            placeholder="https://…"
-            className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <p className="block text-sm font-medium text-gray-900 mb-1">Your picture (optional)</p>
+          <div className="flex items-start gap-4">
+            <div className="pt-3">
+              <ChefAvatar author={{ pseudonym: draft.pseudonym ?? '', avatar_url: draft.avatar_url ?? null }} size="lg" />
+            </div>
+            <div className="flex-1">
+              <ImageUploader
+                urls={draft.avatar_url ? [draft.avatar_url] : []}
+                onChange={(urls) => setDraft({ ...draft, avatar_url: urls[0] ?? null })}
+                max={1}
+              />
+              <p className="mt-1 text-xs text-gray-700">Without one, your first letter shows, wearing the chef&apos;s hat every Tidbits profile has. Not a photo of anyone else, please.</p>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -16,6 +16,8 @@ export default function TagFilters({
   onTagToggle,
   onCostChange,
   onOnlineChange,
+  shortWait = false,
+  onShortWaitChange,
   onAgeChange,
 }: {
   tags: string[]
@@ -26,6 +28,9 @@ export default function TagFilters({
   onTagToggle: (id: string) => void
   onCostChange: (next: CostType | undefined) => void
   onOnlineChange: (next: boolean) => void
+  /** Waits of a month or less (the 5Qs report: wait times; STEP 83). */
+  shortWait?: boolean
+  onShortWaitChange?: (next: boolean) => void
   onAgeChange: (next: string | undefined) => void
 }) {
   const box = 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
@@ -90,6 +95,17 @@ export default function TagFilters({
           Only services offered online
         </label>
       </fieldset>
+
+      {onShortWaitChange && (
+        <fieldset>
+          <legend className="text-sm font-semibold text-gray-900 mb-2">Wait</legend>
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input type="checkbox" checked={shortWait} onChange={() => onShortWaitChange(!shortWait)} className={box} />
+            A short wait (a month or less)
+          </label>
+          <p className="mt-1 text-xs text-gray-700">From what people who used it said, or what the service says.</p>
+        </fieldset>
+      )}
 
       <div>
         <label htmlFor="service-age" className="text-sm font-semibold text-gray-900">

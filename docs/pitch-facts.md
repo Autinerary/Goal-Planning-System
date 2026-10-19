@@ -2,7 +2,7 @@
 
 For pitches, applications and conversations with partners. Every number has a
 date; check the live figure before quoting it in anything formal. Last
-updated 18 October 2026.
+updated 19 October 2026.
 
 ## One line
 
@@ -10,12 +10,14 @@ Autinerary turns "what do I need?" into a plan and a team: a planning app and
 a service directory built for neurodivergent people and the families and
 supporters around them, free during the beta.
 
-## The numbers (18 October 2026)
+## The numbers (19 October 2026)
 
 | What | How many |
 | --- | --- |
-| Places listed in ResourceHub | 35,938, most in Ontario (25,725 Ontario places published 18 October) |
-| Services checked by hand on their own websites | 649: 364 in nine lists (funding, newcomers, young children, neurodivergent mentoring and tutoring, siblings, 20 universities, 45 colleges), and 285 from the Canadian National Autism Foundation's pages, in every province and territory and nationally |
+| Places listed in ResourceHub | 36,024, most in Ontario (25,725 Ontario places published 18 October) |
+| Services checked by hand on their own websites | 757: 364 in nine lists (funding, newcomers, young children, neurodivergent mentoring and tutoring, siblings, 20 universities, 45 colleges), 285 from the Canadian National Autism Foundation's pages, and 86 added 19 October for learning disabilities, Tourette, stuttering and Down syndrome, parent support, social groups and AAC; in every province and territory and nationally |
+| Services tagged "Support for parents" | 101 |
+| Products in the shop | 243, in 40 categories, each quality checked on the maker's pages |
 | Ratings from the community | 521 |
 | Colleges and universities with campus pages | 47 |
 | Kinds of service and education tags | 95, plus 43 fields of post-secondary study |
@@ -59,8 +61,9 @@ supporters around them, free during the beta.
 
 ## Where to look for more
 
+- Every product in one page: `docs/product-portfolio.md`.
 - What was built, round by round: `docs/planning-note-2026-10.md`,
   `docs/service-directory-2026-10.md`, `docs/contracting-2026-10.md`,
   `docs/ratings-and-community-choice-2026-10.md`, `docs/goals-6-11-2026-10.md`,
-  `docs/products-round-2026-10.md`.
+  `docs/products-round-2026-10.md`, `docs/tidbits-round-2026-10.md`.
 - The cohort's research: `docs/cohort-report-2026-09.md`, `docs/groups-*.md`.

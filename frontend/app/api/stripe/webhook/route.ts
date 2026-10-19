@@ -56,6 +56,32 @@ async function save(admin: SupabaseClient, sub: Stripe.Subscription, userId: str
 }
 
 /**
+ * A sponsored listing's budget, paid (app/api/business/promotions/checkout):
+ * added to what it had, before tax. One that the team approved and that
+ * stopped because its budget ran out shows again. The same payment is never
+ * added twice (stripe_events, and the session kept on the promotion).
+ */
+async function addPromotionBudget(admin: SupabaseClient, s: Stripe.Checkout.Session) {
+  const id = s.metadata?.promotion_id
+  const amount = s.amount_subtotal ?? Number(s.metadata?.amount_cents || 0)
+  if (!id || !amount) return
+  const { data: p } = await admin.from('promotions').select('status, budget_cents, spent_cents, reviewed_at, stripe_checkout_session_id').eq('id', id).maybeSingle()
+  if (!p || p.stripe_checkout_session_id === s.id) return
+  const ranOut = p.status === 'ended' && p.reviewed_at && p.budget_cents != null && p.spent_cents >= p.budget_cents
+  const { error } = await admin
+    .from('promotions')
+    .update({
+      budget_cents: Math.min(1_000_000, (p.budget_cents ?? 0) + amount),
+      paid_at: new Date().toISOString(),
+      stripe_checkout_session_id: s.id,
+      updated_at: new Date().toISOString(),
+      ...(ranOut ? { status: 'active' } : {}),
+    })
+    .eq('id', id)
+  if (error) throw new Error(`promotion budget: ${error.message}`)
+}
+
+/**
  * POST /api/stripe/webhook: Stripe's notices about plans, checked with
  * STRIPE_WEBHOOK_SECRET (docs/subscriptions-2026-10.md):
  *
@@ -65,7 +91,8 @@ async function save(admin: SupabaseClient, sub: Stripe.Subscription, userId: str
  * - three days before a free period becomes paid: the end date and price
  *   (Quebec, s. 187.29: 2 to 10 days before);
  * - a payment that failed, and a cancellation, each by email;
- * - Stripe's cancellation reason, as feedback.
+ * - Stripe's cancellation reason, as feedback;
+ * - a sponsored listing's budget, once it is paid.
  *
  * Each notice is handled once (stripe_events), and each email sent once
  * (billing_notices), however often Stripe repeats itself.
@@ -92,6 +119,10 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const s = event.data.object as Stripe.Checkout.Session
+        if (s.mode === 'payment' && s.metadata?.kind === 'promotion_budget') {
+          if (s.payment_status === 'paid') await addPromotionBudget(admin, s)
+          break
+        }
         const id = subscriptionId(s.subscription as string | Stripe.Subscription | null)
         if (s.mode !== 'subscription' || !id) break
         const sub = await stripe.subscriptions.retrieve(id)
