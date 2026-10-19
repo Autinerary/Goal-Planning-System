@@ -348,5 +348,7 @@ from a norm.
 | The app's unit tests (new: personality, sky, voice commands, Info Mode, spirit animals, vision) and ResourceHub's | pass |
 | The two apps' shared code (sponsored listings, Info Mode) matches | pass |
 | Types, lint, production builds of both apps | pass |
-| This round's browser suite, locally (`.qa-local/browser/plan16.mjs`) | 31/31 |
-| STEP 83 on the live database (`step83_live.mjs`) and the Tidbits suite on production with it (`plan15.mjs`) | 26/26 and 37/37 |
+| This round's browser suite (`.qa-local/browser/plan16.mjs`) | 31/31 locally, and **31/31 on production** (7b0124e) |
+| STEP 83 on the live database (`step83_live.mjs`) and the Tidbits suite on production with it (`plan15.mjs`), again after this round | 26/26, and 37/37 |
+| Accessibility, signed out and in, phone and desktop, with this round's pages (personality, norms, Ideal Self, suggestions, Family) | 108 page checks on production, none serious or critical (the suggestions page's sort menu had no name; fixed) |
+| STEP 84 on the live database, once pasted (`.qa-local/browser/step84_live.mjs`) | Ready; it stops before the paste and writes nothing |
