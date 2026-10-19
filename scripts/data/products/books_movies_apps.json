@@ -1943,60 +1943,6 @@
    "notes": "Made by Paper Owl Films (Northern Ireland) for CBeebies and RTÉjr. CBC’s announcement is from 2018 and says episodes are 11 minutes; check CBC Gem for current availability."
   },
   {
-   "slug": "atypical-netflix-series",
-   "name": "Atypical",
-   "brand": "Netflix",
-   "category": "movies-series",
-   "description": "A comedy-drama about Sam, an autistic 18-year-old looking for love and independence, and how his family changes around him. For teens and adults.",
-   "qualities": [
-    "nd_character"
-   ],
-   "quality_evidence": {
-    "nd_character": "an 18-year-old on the autistic spectrum searching for love and independence"
-   },
-   "values": {},
-   "price": null,
-   "currency": null,
-   "price_note": "A Netflix original, included with a Netflix subscription.",
-   "maker_url": "https://about.netflix.com/news/atypical-has-been-renewed-by-netflix-with-an-increased-10-episode-second-season",
-   "buy_links": [
-    {
-     "label": "Netflix (news about the show)",
-     "url": "https://about.netflix.com/news/atypical-has-been-renewed-by-netflix-with-an-increased-10-episode-second-season"
-    }
-   ],
-   "community": [],
-   "evidence": "Atypical is a coming of age story from the point-of-view of Sam (played by Keir Gilchrist), an 18-year-old on the autistic spectrum searching for love and independence.",
-   "notes": "Netflix title pages crash the fetch tool, so this rests on Netflix’s own newsroom post about season 2. The newsroom post does not say the lead actor is autistic, so nd_cast is not claimed."
-  },
-  {
-   "slug": "the-good-doctor-series",
-   "name": "The Good Doctor",
-   "brand": "ABC",
-   "category": "movies-series",
-   "description": "A hospital drama about a young autistic surgeon and the doubts he faces from colleagues. For teens and adults.",
-   "qualities": [
-    "nd_character"
-   ],
-   "quality_evidence": {
-    "nd_character": "A surgeon with autism and savant syndrome"
-   },
-   "values": {},
-   "price": null,
-   "currency": null,
-   "price_note": "The ABC page says all seasons are on Hulu (US); Canadian streaming not checked.",
-   "maker_url": "https://abc.com/shows/the-good-doctor",
-   "buy_links": [
-    {
-     "label": "ABC",
-     "url": "https://abc.com/shows/the-good-doctor"
-    }
-   ],
-   "community": [],
-   "evidence": "A surgeon with autism and savant syndrome uses his extraordinary gifts to save lives and challenge skepticism.",
-   "notes": "Borderline: the lead is played by a non-autistic actor and the “savant” framing is a common stereotype. Included because it is widely watched; drop if the shop prefers autistic-led work."
-  },
-  {
    "slug": "love-on-the-spectrum-series",
    "name": "Love on the Spectrum",
    "brand": "Northern Pictures",
@@ -2057,33 +2003,6 @@
    "notes": "Produced by Thomas Howe Associates with AMI and TVO, per AMI. AMI says the cast “will focus on their strengths”. Some wording (“overcome their challenges”) is older in tone."
   },
   {
-   "slug": "the-reason-i-jump-documentary",
-   "name": "The Reason I Jump",
-   "brand": "Vulcan Productions",
-   "category": "movies-documentaries",
-   "description": "A 2020 documentary, based on Naoki Higashida’s book, about the lives of nonspeaking autistic people in several countries, using sound and image to suggest how they experience the world.",
-   "qualities": [
-    "nd_character"
-   ],
-   "quality_evidence": {
-    "nd_character": "the experiences of nonspeaking autistic people from around the world"
-   },
-   "values": {},
-   "price": null,
-   "currency": null,
-   "price_note": "The film’s site lists Disney+ in many countries and Netflix in the US; for Canada it says “On release”.",
-   "maker_url": "https://www.thereasonijumpfilm.com/",
-   "buy_links": [
-    {
-     "label": "The Reason I Jump (where to watch)",
-     "url": "https://thereasonijumpfilm.com/watch/"
-    }
-   ],
-   "community": [],
-   "evidence": "THE REASON I JUMP is an immersive cinematic exploration of neurodiversity through the experiences of nonspeaking autistic people from around the world.",
-   "notes": "Reviewer: check how the film presents participants’ communication, since spelling-board methods are debated. Based on Naoki Higashida’s book."
-  },
-  {
    "slug": "deej-documentary",
    "name": "Deej",
    "brand": "Deej (Rooy Media)",
@@ -2142,33 +2061,6 @@
    "community": [],
    "evidence": "Neurotypical is an unprecedented exploration of autism from the point of view of autistic people themselves.",
    "notes": "Directed by Adam Larsen. The POV page also has a neurodiversity lesson plan."
-  },
-  {
-   "slug": "autism-in-love-documentary",
-   "name": "Autism in Love",
-   "brand": "Independent Lens (PBS)",
-   "category": "movies-documentaries",
-   "description": "A 2016 documentary following four autistic adults through dating, long relationships and marriage.",
-   "qualities": [
-    "nd_character"
-   ],
-   "quality_evidence": {
-    "nd_character": "Four adults with autism find romance and navigate the choppy seas of relationships."
-   },
-   "values": {},
-   "price": null,
-   "currency": null,
-   "price_note": "Aired on PBS Independent Lens; current streaming not shown on the kept page.",
-   "maker_url": "https://www.pbs.org/independentlens/documentaries/autism-in-love/",
-   "buy_links": [
-    {
-     "label": "PBS Independent Lens",
-     "url": "https://www.pbs.org/independentlens/documentaries/autism-in-love/"
-    }
-   ],
-   "community": [],
-   "evidence": "Four adults with autism find romance and navigate the choppy seas of relationships.",
-   "notes": "Directed by Matt Fuller. The PBS page uses older terms such as “high functioning” and “disorder”; borderline on tone."
   },
   {
    "slug": "i-have-tourettes-hbo-documentary",

@@ -18,8 +18,9 @@ Written 18 October 2026.
 
 The database change is **STEP 82**
 (`backend/database/migrations/2026_products_round.sql`, at the end of
-`setup/all_migrations.sql`). It was tested locally twice (34 checks). The code
-works before it is pasted.
+`setup/all_migrations.sql`). It was tested locally (34 checks), pasted on
+19 October, and checked live (33 checks, `.qa-local/browser/step82_live.mjs`).
+Before it was pasted, every page worked with the older database.
 
 ## Colours and theme
 
@@ -54,8 +55,9 @@ own pages, preferring products sold in Canada.
 The brief is [scripts/data/products/BRIEF.md](../scripts/data/products/BRIEF.md);
 the checker and the tools are in `.qa-local/products/`, outside git.
 
-**Found (18–19 October): 211 products, in all 40 categories,** in
-`scripts/data/products/`:
+**Found (18–19 October): 206 products, in all 40 categories,** in
+`scripts/data/products/` (211 were found; five were left out on 19 October,
+see below):
 
 | Group | Products |
 | --- | --- |
@@ -66,14 +68,14 @@ the checker and the tools are in `.qa-local/products/`, outside git.
 | Self-care | 20 |
 | Sensory | 33 |
 | Books | 23 |
-| Movies & TV | 14 |
+| Movies & TV | 10 |
 | Apps | 22 |
-| Safety at home | 11 |
+| Safety at home | 10 |
 | Play & school | 11 |
 
-- 196 are sold in Canada (a Canadian store, or a maker that ships here).
+- 195 are sold in Canada (a Canadian store, or a maker that ships here).
 - 16 prices are in US dollars, shown as such.
-- 67 have no price: food, books and films sold in many places, subscriptions,
+- 62 have no price: food, books and films sold in many places, subscriptions,
   and pages that don't say which currency.
 - Every maker page and buy link was loaded again before saving.
 
@@ -90,15 +92,13 @@ the checker and the tools are in `.qa-local/products/`, outside git.
   go, such as "HBO (US page)".
 - **Walmart:** 15 everyday foods link to a Walmart Canada search ("(search)"),
   because Walmart's product pages turn our tools away.
-- **Titles some may question**, kept for now, so the team can decide:
-  - *Atypical* and *The Good Doctor* (the leads aren't played by autistic
-    actors, so neither has "Neurodivergent cast");
-  - *The Reason I Jump* (the way its people communicate is debated);
-  - *Autism in Love* (its page uses older words);
-  - the AngelSense tracker. It can't be taken off without a key, and it can
-    answer calls by itself; its description says so, and that the wearer
-    should be part of the decision.
-- **Few "where people recommend it" links** (12): Reddit and most forums
+- **Left out on 19 October, on the team's decision:** *Atypical* and *The Good
+  Doctor* (the leads aren't autistic), *The Reason I Jump* (the way its people
+  communicate is debated), *Autism in Love* (its page uses older words) and
+  the AngelSense tracker (it can't be taken off without a key, and it can
+  answer calls by itself). They stay in the researchers' drafts, so they can
+  go back.
+- **Few "where people recommend it" links** (11): Reddit and most forums
   can't be read by our tools. Ratings in the shop will fill this in.
 
 **To import** (after STEP 82, which adds the columns):
@@ -355,7 +355,10 @@ the shop.
 ## Checks
 
 - **STEP 82**, on a local copy of the database with Supabase's grants: 34
-  checks, all passing (`.qa-local/pgtest/step82_test.py`).
+  checks, all passing (`.qa-local/pgtest/step82_test.py`); and live, after it
+  was pasted: 33 of 33 (`step82_live.mjs`): the new columns and tables, the
+  three discount events, who can read and write what when signed out and
+  signed in, and the two functions only the server may run.
 - **The browser suite** (`.qa-local/browser/plan14.mjs`, 61 checks, before
   STEP 82; all 61 pass on the local build and on production, 19 October;
   Goals 6 to 11's suite still passes, 52 of 52):
@@ -381,16 +384,22 @@ the shop.
 
 ## Still with the team
 
-1. **Paste STEP 82** into Supabase's SQL editor.
-2. **Import the 211 products** once STEP 82 is in (Goal 1 above), and look at
-   the titles some may question. Send Odosa's starter list.
-3. **Keys and switches, when ready:**
+1. **Send Odosa's starter list**, and the team's own products that worked
+   (Suggest a product).
+2. **Keys and switches, when ready:**
    - `NEXT_PUBLIC_SHOP_DISCOUNTS=on`, with the first vendors;
    - `NEXT_PUBLIC_SHOP_CHECKOUT=on`, with Stripe Connect and
      `STRIPE_SHOP_WEBHOOK_SECRET`;
    - `SHOP_PLATFORM_FEE_PERCENT`;
-   - `OPENAI_HELP_MODEL` (optional).
-4. **Lawyer:** question 8 in the pack (the marketplace, discounts, describing
+   - `OPENAI_HELP_MODEL` (optional);
+   - paid plans have their own list in
+     [subscriptions-2026-10.md](subscriptions-2026-10.md), "Turning it on".
+     The names the app reads are `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+     `STRIPE_PRICE_MONTHLY` and `STRIPE_PRICE_YEARLY`, plus
+     `NEXT_PUBLIC_BUSINESS_ADDRESS` and `NEXT_PUBLIC_BUSINESS_PHONE` (the law
+     asks to show who people pay). Payments stay "not ready" until all six are
+     set.
+3. **Lawyer:** question 8 in the pack (the marketplace, discounts, describing
    others' products).
-5. **Decide:** the vendor fee; whether vendors get a paid tier; more discount
+4. **Decide:** the vendor fee; whether vendors get a paid tier; more discount
    events.

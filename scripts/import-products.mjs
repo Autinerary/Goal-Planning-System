@@ -137,7 +137,8 @@ async function main() {
     saved += (await r.json()).length
   }
   console.log(`\nSaved ${saved} products.`)
-  if (ARCHIVE_DEMO) {
+  if (ARCHIVE_DEMO && (saved !== rows.length || saved === 0)) console.log(`Not archiving the "Demo Seller" placeholders: ${saved} of ${rows.length} saved.`)
+  else if (ARCHIVE_DEMO) {
     // The placeholders from before real products (seller "Demo Seller"): archived, not deleted.
     const r = await fetch(`${url}/rest/v1/products?seller=eq.Demo%20Seller&status=eq.active`, { method: 'PATCH', headers: { ...H, Prefer: 'return=representation' }, body: JSON.stringify({ status: 'archived' }) })
     console.log(r.ok ? `Archived ${(await r.json()).length} "Demo Seller" placeholders.` : `Archiving failed: ${r.status}`)

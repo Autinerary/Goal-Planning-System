@@ -1180,50 +1180,6 @@
    "notes": "The maker says it is made of food-grade HD-PE, free from BPA and phthalates. Colour may vary."
   },
   {
-   "slug": "angelsense-gps-tracker",
-   "name": "AngelSense GPS Tracker",
-   "brand": "AngelSense",
-   "category": "safety-wandering",
-   "description": "A small GPS tracker made for autistic children and others who may wander, with live location in an app and alerts for unexpected places or late departures. It clips into holders on clothing or a belt, and can be worn by children, teens and adults. Its speakerphone can answer calls by itself, and it can't be taken off without a magnetic key, so talk about privacy with the person who wears it.",
-   "qualities": [
-    "gps_tracking",
-    "alerts",
-    "tamper_resistant",
-    "subscription",
-    "for_children",
-    "for_adults",
-    "sold_in_canada"
-   ],
-   "quality_evidence": {
-    "gps_tracking": "Live GPS Tracking – Unlimited, Continuous, Accurate & Reliable",
-    "alerts": "Smart Alerts for Wandering, Unexpected Location, Late Departure, + More",
-    "tamper_resistant": "Durable and Unable to be Removed without a Special Magnetic Key",
-    "subscription": "No contract with month-to-month plan, cancel anytime.",
-    "for_children": "Can Be Worn by Kids, Teens, and Adults of All Ages",
-    "for_adults": "Can Be Worn by Kids, Teens, and Adults of All Ages",
-    "sold_in_canada": "US (AT&T or T-Mobile), CANADA (Rogers), and UK (O2) Service Plans Available"
-   },
-   "values": {},
-   "price": null,
-   "currency": null,
-   "price_note": "Device plus a required service plan (month-to-month or annual); AngelSense's prices load only at checkout, so none is shown",
-   "maker_url": "https://www.angelsense.com/help/device-options/",
-   "buy_links": [
-    {
-     "label": "AngelSense",
-     "url": "https://www.angelsense.com/pricing/"
-    }
-   ],
-   "community": [
-    {
-     "label": "Listed by the National Council on Severe Autism (tracking devices for children who wander)",
-     "url": "https://ncsautism.org/blog//tracking-devices-for-autistic-children-who-wander"
-    }
-   ],
-   "evidence": "Can Be Worn by Kids, Teens, and Adults of All Ages",
-   "notes": "Canadian service runs on Rogers. The magnetic-key holder keeps the device on clothing; it does not hold the person. It also has auto-answer voice, so families should talk about consent and privacy with the wearer."
-  },
-  {
    "slug": "apple-watch-for-your-kids",
    "name": "Apple Watch (GPS + Cellular) with Apple Watch For Your Kids",
    "brand": "Apple",
