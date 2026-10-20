@@ -6,6 +6,12 @@ import { A11Y_COOKIE, cleanA11y } from '@/lib/a11y'
 // second trip within the minute goes to ResourceHub's own sign-in instead.
 const SENT_TO_APP = 'autinerary_sent_to_app'
 
+// A page load (an address typed, a link from elsewhere, a refresh), not one
+// of the router's own fetches (Next.js prefetching a linked page before anyone
+// clicks it). Next.js removes its router headers before middleware runs, so
+// the browser's Sec-Fetch-Mode tells them apart; without it, a page load.
+const isPageLoad = (request: NextRequest) => (request.headers.get('sec-fetch-mode') || 'navigate') === 'navigate'
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -148,6 +154,14 @@ export async function middleware(request: NextRequest) {
 
   // If user is not authenticated and trying to access a protected route, redirect to Goal Planning login
   if (!user) {
+    // Only a page load counts for the one-minute guard below. A prefetch used
+    // to start it, so the click that followed went to ResourceHub's own
+    // sign-in instead of the app's (found 20 October 2026: the home page
+    // prefetches /shop).
+    if (!isPageLoad(request)) {
+      const goalPlanningUrl = process.env.NEXT_PUBLIC_GOAL_PLANNING_URL || 'http://localhost:3000'
+      return NextResponse.redirect(`${goalPlanningUrl}/login?returnTo=${encodeURIComponent(request.nextUrl.href)}`)
+    }
     // Sent there less than a minute ago and still signed out here: the
     // hand-off isn't working (no session left in the app, say), and going
     // again would loop. ResourceHub's own sign-in instead.
