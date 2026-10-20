@@ -9,7 +9,7 @@ The team's notes for this round covered four things:
 
 This page says what was built for each note, how it was tested, and what needs someone on the team. It also gives the choices made where a note left room. Written 20 October 2026.
 
-The database change is **STEP 87**: `backend/database/migrations/2026_hare_world_social.sql`, also at the end of `setup/all_migrations.sql`. It was tested on a local copy of the whole schema: 64 checks in `.qa-local/pgtest/step87_test.py`, run twice. **It isn't pasted yet.** Until it is, the new parts say they open soon (Hare World Social, Memories, Relationships, Quick Note to Self) or don't show at all ("Capture this moment", "Stop for now", Share / Restrict / Private on a card). Everything else in this round works now.
+The database change is **STEP 87**: `backend/database/migrations/2026_hare_world_social.sql`, also at the end of `setup/all_migrations.sql`. It was tested on a local copy of the whole schema: 64 checks in `.qa-local/pgtest/step87_test.py`, run twice. **It was pasted on 20 October and checked on the live database:** 44 checks in `.qa-local/browser/step87_live.mjs`, as the two QA accounts, removing their own rows and files. Before the paste, the new parts said they opened soon, or didn't show; the app checks for STEP 87 by itself (`/api/moments?scope=check`).
 
 STEP 87 adds five things:
 
@@ -33,7 +33,6 @@ Nothing is deleted. Safe to re-run.
 
 | What | Where | Why it waits |
 | --- | --- | --- |
-| Paste STEP 87 | Supabase, SQL editor | Until then the parts above say they open soon. After it: `node .qa-local/browser/step87_live.mjs` (live checks that remove their own rows), then `plan20.mjs` again for its STEP 87 half |
 | Review moments shared with everyone, and reported ones | The app, `/admin/moments`. It needs an admin, and nobody is one yet (see the All Apps round) | A moment for everyone shows only after a person has looked at it. The team gets an email when one is waiting or reported |
 | Decide what Quick Note to Self is | Below, under the Journal | On 30 July the team's "Remove entirely" was taken to mean Memory and Quick Note to Self, and they were removed (`41ed42d`). This round's notes ask for Quick Note to Self again, so it is back. That chat may have been about Liam's animations instead |
 | Decide the motivation styles before testing the report | Below, under the Journal | The report on All Entries and the profile use different sets of six |
@@ -206,4 +205,8 @@ The notes said "Relationships don't work for now" and "Relationships/Matching (a
   | plan19 (ResourceHub, after the sign-in fix) | 51/51 |
   | plan14 | 65/68. The 3 are the help chat, which needs `OPENAI_API_KEY`; the local app doesn't have one, and production does |
 - **Code checks:** typecheck, lint (three older warnings, none new), the production build, and the library tests (`lib/*.test.mjs`).
-- **After the paste:** `step87_live.mjs` (about 40 checks, as the two QA accounts, removing its own rows and files), then `plan20.mjs` again. It finds STEP 87 by itself and tries capture, Stop for now, Memories, Trending, Relationships and sharing for real.
+- **After the paste:** `step87_live.mjs`, 44/44. Then `plan20.mjs` on production found STEP 87 by itself and tried capture, Stop for now, Memories, Trending, Relationships and sharing for real: 115 of 120 at first. The 5 had two causes:
+  - **A photo could be dropped without a word.** It happened when chosen before the dialog knew who was signed in, which takes longer on a slow connection. The dialog now looks that up itself (`MomentCapture.tsx`).
+  - **The test chose a note kind wrongly.** The kinds are radio buttons, and it looked for buttons.
+
+  Both are fixed, and the suite was run again (see the Calendar round's doc).

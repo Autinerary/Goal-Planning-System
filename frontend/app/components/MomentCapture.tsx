@@ -72,12 +72,16 @@ export default function MomentCapture({
   }
 
   const pick = async (file: File | undefined) => {
-    if (!file || !user) return
+    if (!file) return
     setError('')
     setUploading(true)
     try {
+      // Who is signed in may still be on its way (a slow connection): ask
+      // now rather than dropping the photo without a word.
+      const id = user?.id || (await createClient().auth.getUser()).data.user?.id
+      if (!id) throw new Error('Please sign in again to add a photo.')
       if (media) await discardMomentMedia(media.path)
-      const up = await uploadMomentMedia(file, user.id)
+      const up = await uploadMomentMedia(file, id)
       setMedia({ ...up, preview: URL.createObjectURL(file) })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That upload didn’t work.')
