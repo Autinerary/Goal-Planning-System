@@ -11,6 +11,13 @@ export interface GamificationPreferences {
   monthlyThemes: string[]
   weeklyThemes: string[]
   dailyThemes: string[]
+  /**
+   * Match each day's energy level to its weather (Odosa, October 2026): a
+   * sunny day high energy, a grey one balanced, rain or snow low, with the
+   * fast and slow day animals to match. Needs the Calendar's forecast; a
+   * level chosen for the day always wins.
+   */
+  energyFromWeather?: boolean
 }
 
 const strings = (value: unknown, limit: number): string[] => Array.isArray(value) ? value.slice(0, limit).map(item => typeof item === 'string' ? item.slice(0, 100) : '') : []
@@ -23,6 +30,7 @@ export function normalizeGamification(value?: Partial<GamificationPreferences> |
     monthlyThemes: strings(value?.monthlyThemes, 12),
     weeklyThemes: strings(value?.weeklyThemes, 7),
     dailyThemes: strings(value?.dailyThemes, 31),
+    energyFromWeather: value?.energyFromWeather === true,
   }
 }
 

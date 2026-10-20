@@ -67,11 +67,12 @@ const GUIDES: [RegExp, PageGuide][] = [
     name: 'Your Calendar',
     purpose: 'Your week, at your energy. It spreads your plan’s tasks over the days, and fits each day to how much energy you have.',
     steps: [
-      'Pick today’s energy: low, balanced or high. The day changes to fit it.',
+      'Pick today’s energy: low, balanced or high. The day changes to fit it. Then, if you like, a Sunny Day or a Grey Day.',
       'Add your own task with “+ Add task”. If you don’t know how long it takes, choose “Not sure”.',
-      'Switch between Day, Week and Month to see more or less at once.',
+      'Choose Day, Week or Month, in List View or Time Blocks, and move back and forward through the dates.',
+      'Analysis shows your daily, weekly and monthly patterns, and your best days.',
     ],
-    connects: 'Ticks here count on your Path and in Life Stats.',
+    connects: 'Ticks here count on your Path and in Life Stats. The local forecast is there if you turn it on.',
     tourPart: 3,
   }],
   [/^\/races\/?$/, {

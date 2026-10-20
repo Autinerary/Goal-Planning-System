@@ -1,7 +1,8 @@
 'use client'
 
 import { usePreferences } from '../context/usePreferences'
-import { isDefaultSky, normalizeSky, skyLayers } from '@/lib/sky'
+import { isDefaultSky, needsDark, normalizeSky, skyLayers } from '@/lib/sky'
+import { dateKey, skyForTheme } from '@/lib/dayTheme'
 
 // Small stars, tiled; drawn only on a night or dusk sky.
 const STARS = [
@@ -23,7 +24,11 @@ const STARS = [
  */
 export default function SkyBackdrop() {
   const { prefs } = usePreferences()
-  const sky = normalizeSky(prefs.layout?.sky)
+  let sky = normalizeSky(prefs.layout?.sky)
+  // A Sunny Day or Grey Day chosen for today in the Calendar (lib/dayTheme.ts)
+  // brightens or greys the sky today, unless it is a night or dusk sky.
+  const theme = prefs.dayThemes?.[dateKey()]
+  if ((theme === 'sunny' || theme === 'grey') && !needsDark(sky.light)) sky = { ...sky, ...skyForTheme(theme) }
   if (isDefaultSky(sky)) return null
   const l = skyLayers(sky, Boolean(prefs.accessibility?.darkMode))
   const layer = 'absolute inset-0'

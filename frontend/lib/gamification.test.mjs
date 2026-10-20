@@ -18,3 +18,9 @@ assert.equal(animalForDay(prefs, new Date(2026, 9, 19), 'slow')?.type, 'turtle')
 assert.equal(animalForDay(prefs, new Date(2026, 9, 19), 'fast')?.type, 'fox')
 assert.equal(animalForDay({ ...prefs, mode: 'general' }, new Date(2026, 9, 19), 'unknown')?.type, 'fox')
 console.log('gamification: ok')
+
+// Energy from the weather: off unless asked for, and only a real true.
+assert.equal(normalizeGamification({}).energyFromWeather, false)
+assert.equal(normalizeGamification({ energyFromWeather: 'yes' }).energyFromWeather, false)
+assert.equal(normalizeGamification({ energyFromWeather: true }).energyFromWeather, true)
+console.log('gamification (weather): ok')

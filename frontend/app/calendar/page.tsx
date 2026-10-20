@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft, Download, Upload } from 'lucide-react'
+import { Zap, Battery, BatteryLow, X, Check, Calendar, ArrowLeft, Download, Upload } from 'lucide-react'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import ScheduleFeedback from '../components/ScheduleFeedback'
 import { useAgentPath } from '../context/AgentPathContext'
@@ -11,21 +11,25 @@ import { useAuth } from '../context/AuthContext'
 import { buildIcs, downloadIcs, parseIcs } from '../../lib/ics'
 import { fetchCompletedMilestoneIds, type ProgressMilestone } from '../../lib/raceProgress'
 import { playTaskCompleteSound } from '../../lib/taskSound'
-import RainDayBanner from '../components/RainDayBanner'
+import WeatherLayer from '../components/calendar/WeatherLayer'
+import DayCards from '../components/calendar/DayCards'
+import Analysis from '../components/calendar/Analysis'
+import { forecastOn, useForecast } from '../components/calendar/useForecast'
+import { ENERGY_LABEL, dateKey, energyForKind, paceForKind, recordEnergy, setDayTheme, themeOfKind, type DayTheme } from '@/lib/dayTheme'
 import PhotoScheduleImport from '../components/PhotoScheduleImport'
 import WeekTimeGrid from '../components/calendar/WeekTimeGrid'
 import MonthGrid from '../components/calendar/MonthGrid'
 import GamificationSettings, { useGamification } from '../components/GamificationSettings'
 import { animalForDay, themeForDate, ANIMAL_COLORS, WEEKDAYS, type GamificationPreferences } from '@/lib/gamification'
-import { parseDurationString, showsThisWeek, toISODate, type CalendarTask as DatedTask } from '@/lib/calendarModel'
-import { addDays, addMonths, format as fmtDate, startOfWeek } from 'date-fns'
+import { parseDurationString, weekDays, type CalendarTask as DatedTask } from '@/lib/calendarModel'
+import { addDays, addMonths, format as fmtDate } from 'date-fns'
 import { useCalendarHistory } from '@/lib/calendarHistory'
 import { Undo2, Redo2 } from 'lucide-react'
 import { toast } from '../components/Toaster'
 import { LOW_ENERGY_TRIED_KEY } from '../components/StarterChecklist'
 import { usePreferences } from '../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
-import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { doneThisWeek, tickPlanTask, weekKey } from '@/lib/planTaskDone'
 import { calendarIdeas } from '@/lib/calendarIdeas'
 // Scenario-specific task data
 const scenarioData = {
@@ -233,7 +237,11 @@ const PERIOD_KEY = 'autinerary_calendar_period'
 function CalendarContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const viewType = searchParams.get('view') || 'list'
+  // List View, Time Blocks or Analysis. The Week and Month buttons that sat
+  // beside them are gone (Odosa, October 2026): Day, Week and Month under the
+  // energy options choose the dates now, for both views. Old links still work.
+  const rawView = searchParams.get('view') || 'list'
+  const viewType: 'list' | 'timeblock' | 'analysis' = rawView === 'timeblock' || rawView === 'analysis' ? rawView : 'list'
   const comparisonType = searchParams.get('comparison') || 'day' // 'day' or 'week'
   const suggestionParam = searchParams.get('suggestion')
   const fromParam = searchParams.get('from')
@@ -241,6 +249,8 @@ function CalendarContent() {
   // Day / Week / Month period (Odosa). 'day' shows one day; 'week'/'month' show
   // the full pattern (month adds a note that it repeats weekly).
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('week')
+  // An energy level chosen today wins over one matched to the weather.
+  const [energyChosenToday, setEnergyChosenToday] = useState(false)
   // Ticks on the plan's own tasks, saved with the account (lib/planTaskDone.ts).
   // They were kept in memory only, so coming back to the calendar undid them,
   // and so did the energy level and the period below (Riipen Labs, Group 34:
@@ -251,14 +261,20 @@ function CalendarContent() {
   useEffect(() => {
     try {
       const energy = JSON.parse(localStorage.getItem(ENERGY_KEY) || 'null')
-      if (energy?.day === new Date().toDateString() && ['worst', 'average', 'best'].includes(energy.scenario)) setScenario(energy.scenario)
+      if (energy?.day === new Date().toDateString() && ['worst', 'average', 'best'].includes(energy.scenario)) {
+        setScenario(energy.scenario)
+        setEnergyChosenToday(true)
+      }
       const savedPeriod = localStorage.getItem(PERIOD_KEY)
       if (savedPeriod === 'day' || savedPeriod === 'week' || savedPeriod === 'month') setPeriod(savedPeriod)
     } catch {}
   }, [])
   const chooseScenario = (next: 'worst' | 'average' | 'best') => {
     setScenario(next)
+    setEnergyChosenToday(true)
     try { localStorage.setItem(ENERGY_KEY, JSON.stringify({ scenario: next, day: new Date().toDateString() })) } catch {}
+    // Kept with the account, a day at a time, for Analysis.
+    updatePreferences({ energyByDay: recordEnergy(loadPreferences().energyByDay, next) })
   }
   const choosePeriod = (next: 'day' | 'week' | 'month') => {
     setPeriod(next)
@@ -275,6 +291,20 @@ function CalendarContent() {
   // weekday name, so it cannot answer "what is on the 14th".
   const history = useCalendarHistory(supabaseUser?.id, authLoading)
   const { value: gamification } = useGamification()
+  // The local forecast (once turned on, on this device), today's Sunny Day or
+  // Grey Day, and the energy level matched to the weather for people who ask
+  // for that (Customize animals and themes).
+  const weather = useForecast()
+  const todayKey = dateKey(new Date())
+  const todayForecast = forecastOn(weather.forecast, todayKey)
+  const themes: Record<string, DayTheme> = prefs.dayThemes || {}
+  const todayTheme: DayTheme | null = themes[todayKey] || null
+  const chooseTheme = (date: string, theme: DayTheme | null) => updatePreferences({ dayThemes: setDayTheme(loadPreferences().dayThemes, date, theme) })
+  const energyFromWeather = Boolean(gamification.energyFromWeather && todayForecast && !energyChosenToday)
+  const todayKind = todayForecast?.kind
+  useEffect(() => {
+    if (energyFromWeather && todayKind) setScenario(energyForKind(todayKind))
+  }, [energyFromWeather, todayKind])
   const addedTasks = history.tasks
   const completedTasks = new Set([...agentCompletedTasks, ...addedTasks.filter(task => task.completed).map(task => task.id)])
   const serverTasks = addedTasks.map(task => ({ ...task, client_id: task.id, scheduled_date: task.scheduledDate, duration_minutes: task.durationMinutes, source: task.from }))
@@ -322,7 +352,7 @@ function CalendarContent() {
   const currentMilestoneName = currentMilestone?.name || currentMilestone?.title || payload?.races?.[0]?.name || 'Getting started'
   // Ideas for a free slot (lib/calendarIdeas.ts), from the milestone you're on.
   const currentTool = currentMilestone?.id ? ((toolRecommendation?.recommendations || {})[currentMilestone.id] || [])[0]?.name : null
-  const ideas = calendarIdeas({ milestoneName: currentMilestone ? currentMilestoneName : null, toolName: currentTool, energy: scenario })
+  const ideas = calendarIdeas({ milestoneName: currentMilestone ? currentMilestoneName : null, toolName: currentTool, energy: scenario, dayTheme: todayTheme || (todayForecast ? themeOfKind(todayForecast.kind) : null) })
 
   const scenarioKeyMap = { worst: 'worst_case', average: 'average_case', best: 'best_case' } as const
   const agentScenario = agentScenarios?.[scenarioKeyMap[scenario]]
@@ -393,19 +423,32 @@ function CalendarContent() {
   const currentData: any = { ...(agentData || scenarioData[scenario]), days: [...(agentData?.days || []), ...extraDays] }
   const ScenarioIcon = currentData.icon
 
-  // Day period anchors to TODAY's weekday (Odosa: "doesn't update to current
-  // day"). Fall back to the first day if today's weekday isn't in the pattern.
-  const _todayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()]
+  // The plan's weekly pattern, by weekday: each date shows its weekday's day
+  // type and motivation, and its tasks.
   const _allDays: any[] = currentData.days || []
-  const _dayModeDays = (() => {
-    const today = _allDays.find((d: any) => d.name === _todayName)
-    return today ? [today] : _allDays.slice(0, 1)
-  })()
-  const displayDays = period === 'day' ? _dayModeDays : _allDays
+
+  // Old links (?view=week, ?view=month) open that period instead.
+  useEffect(() => {
+    if (rawView !== 'week' && rawView !== 'month') return
+    choosePeriod(rawView)
+    router.replace(`/calendar?view=${rawView === 'week' ? 'timeblock' : 'list'}&comparison=${comparisonType}`, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawView])
+
+  // Back and forward a day, a week or a month, and the dates on screen.
+  const step = (dir: 1 | -1) => setAnchorDate(period === 'month' ? addMonths(anchorDate, dir) : addDays(anchorDate, dir * (period === 'day' ? 1 : 7)))
+  const shownDates = period === 'day' ? [anchorDate] : weekDays(anchorDate)
+  const periodLabel = period === 'month'
+    ? fmtDate(anchorDate, 'MMMM yyyy')
+    : period === 'day'
+    ? fmtDate(anchorDate, 'EEEE d MMMM yyyy')
+    : `${fmtDate(shownDates[0], 'd MMM')} to ${fmtDate(shownDates[6], 'd MMM yyyy')}`
   const renderDayIdentity = (date: Date) => {
     const weekday = WEEKDAYS[(date.getDay() + 6) % 7]
     const day = _allDays.find((entry: any) => entry.name === weekday)
-    return <CalendarDayIdentity value={gamification} date={date} weekday={weekday} fallbackTheme={day?.theme || ''} dayType={day?.typeOfDay || ''} />
+    // Fast and slow day animals follow the weather, for people who asked.
+    const f = gamification.energyFromWeather ? forecastOn(weather.forecast, dateKey(date)) : null
+    return <CalendarDayIdentity value={gamification} date={date} weekday={weekday} fallbackTheme={day?.theme || ''} dayType={day?.typeOfDay || ''} pace={f ? paceForKind(f.kind) : undefined} />
   }
 
   // Check for pending suggestion on mount or when params change
@@ -443,10 +486,11 @@ function CalendarContent() {
       return
     }
     // Read fresh, not from this render: two quick ticks must both be kept.
-    const done = loadPreferences().planTaskDone
-    updatePreferences({ planTaskDone: togglePlanTaskDone(done, taskId) })
+    // Its week, and when it was done (for Analysis).
+    const { done, ...patch } = tickPlanTask(loadPreferences(), taskId)
+    updatePreferences(patch)
     // Liam: satisfying "bubble wrap pop" feedback when a task is checked off.
-    if (!doneThisWeek(done).has(taskId)) playTaskCompleteSound()
+    if (done) playTaskCompleteSound()
   }
 
   /**
@@ -641,24 +685,15 @@ function CalendarContent() {
     }
   }
 
-  // Merge added tasks with scenario data
-  const getTasksForDay = (dayName: string) => {
-    const dayData = currentData.days.find((d: any) => d.name === dayName)
-    const addedForDay = addedTasks.filter((t: any) => t.day === dayName && showsThisWeek(t, dayName))
-    
-    if (!dayData) return []
-    
-    // Merge and sort by time
-    const allTasks = [...dayData.tasks, ...addedForDay]
-    return allTasks.sort((a, b) => {
-      const timeA = a.time.replace(':', '')
-      const timeB = b.time.replace(':', '')
-      return parseInt(timeA) - parseInt(timeB)
-    })
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/50 to-sky-50 p-4 sm:p-8 relative overflow-hidden">
+    // A Sunny Day or a Grey Day chosen for today colours the Calendar too.
+    <div
+      data-today-theme={todayTheme || 'none'}
+      className={`min-h-screen bg-gradient-to-b p-4 sm:p-8 relative overflow-hidden ${
+        todayTheme === 'sunny' ? 'from-amber-100 via-yellow-50 to-sky-100' : todayTheme === 'grey' ? 'from-slate-200 via-slate-100 to-slate-200' : 'from-amber-50 via-orange-50/50 to-sky-50'
+      }`}
+    >
       <style>{`@keyframes turtlePeek{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}} @keyframes scrollUnfurl{from{max-height:0;opacity:0}to{max-height:2000px;opacity:1}} .turtle-peek{animation:turtlePeek 3s ease-in-out infinite}`}</style>
       <div className="relative z-10">
         {showPhotoImport && (
@@ -710,7 +745,7 @@ function CalendarContent() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label htmlFor="add-task-day" className="block text-sm font-medium text-slate-700 mb-1">Day</label>
-                    <select id="add-task-day" name="day" defaultValue={displayDays[0]?.name || 'Monday'} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
+                    <select id="add-task-day" name="day" defaultValue={fmtDate(anchorDate, 'EEEE')} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-cyan-500 text-slate-800">
                       {WEEKDAYS.map(day => (
                         <option key={day} value={day}>{day}</option>
                       ))}
@@ -887,49 +922,27 @@ function CalendarContent() {
 
         {/* View Toggle + Compare + Google Cal */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
-          <div className="flex gap-2" data-tour="calendar-view">
-            <button
-              onClick={() => router.replace(`/calendar?view=list&comparison=${comparisonType}`)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                viewType === 'list' 
-                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
-                  : 'surface text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              📋 List View
-            </button>
-            <button
-              onClick={() => router.replace(`/calendar?view=timeblock&comparison=${comparisonType}`)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                viewType === 'timeblock' 
-                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg' 
-                  : 'surface text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              ⏰ Time Blocks
-            </button>
-            {/* Real-date views. The two above run on the weekly template the
-                agents generate; these run on actual dates. */}
-            <button
-              onClick={() => router.replace(`/calendar?view=week&comparison=${comparisonType}`)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                viewType === 'week'
-                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
-                  : 'surface text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              🗓️ Week
-            </button>
-            <button
-              onClick={() => router.replace(`/calendar?view=month&comparison=${comparisonType}`)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                viewType === 'month'
-                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
-                  : 'surface text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              📆 Month
-            </button>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="View" data-tour="calendar-view">
+            {([
+              { id: 'list', label: '📋 List View' },
+              { id: 'timeblock', label: '⏰ Time Blocks' },
+              // The team's notes, October 2026: "Add an 'Analysis' tab".
+              { id: 'analysis', label: '📊 Analysis' },
+            ] as const).map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                aria-pressed={viewType === v.id}
+                onClick={() => router.replace(`/calendar?view=${v.id}&comparison=${comparisonType}`)}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  viewType === v.id
+                    ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-lg'
+                    : 'surface text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
           </div>
 
           <div className="h-6 w-px bg-slate-300" />
@@ -1003,8 +1016,10 @@ function CalendarContent() {
         </div>
 
         {/* Scenario Selector */}
-        <div className="flex flex-wrap gap-3 mb-8" data-tour="calendar-energy">
+        <div className="flex flex-wrap gap-3 mb-3" role="group" aria-label="Energy today" data-tour="calendar-energy">
           <button
+            type="button"
+            aria-pressed={scenario === 'worst'}
             onClick={() => {
               chooseScenario('worst')
               // Ticks "Try a low-energy day" in the Path's getting-started list.
@@ -1012,57 +1027,87 @@ function CalendarContent() {
             }}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'worst' 
-                ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg' 
+                ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <BatteryLow className="w-5 h-5" />
+            <BatteryLow className="w-5 h-5" aria-hidden="true" />
             Low Energy
           </button>
           <button
+            type="button"
+            aria-pressed={scenario === 'average'}
             onClick={() => chooseScenario('average')}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'average' 
-                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg' 
+                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <Battery className="w-5 h-5" />
+            <Battery className="w-5 h-5" aria-hidden="true" />
             Balanced
           </button>
           <button
+            type="button"
+            aria-pressed={scenario === 'best'}
             onClick={() => chooseScenario('best')}
             className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
               scenario === 'best' 
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' 
+                ? 'bg-gradient-to-r from-green-700 to-emerald-700 text-white shadow-lg' 
                 : 'surface text-slate-800 hover:bg-slate-50'
             }`}
           >
-            <Zap className="w-5 h-5" />
+            <Zap className="w-5 h-5" aria-hidden="true" />
             High Energy
           </button>
         </div>
+        {energyFromWeather && todayForecast && (
+          <p className="mb-3 text-sm text-slate-800" data-energy-from-weather-note>
+            {ENERGY_LABEL[energyForKind(todayForecast.kind)]}, matched to today’s weather ({todayForecast.label.toLowerCase()}). Choose another any time.
+          </p>
+        )}
 
-        {/* Period toggle — Day / Week / Month (Odosa: under the energy options) */}
+        {/* The last layer of the energy options: Sunny Day or Grey Day, with
+            the local forecast and rain days coming (Odosa, October 2026). */}
+        <WeatherLayer
+          today={todayKey}
+          themes={themes}
+          onChoose={chooseTheme}
+          forecast={weather.forecast}
+          status={weather.status}
+          prefs={weather.prefs}
+          save={weather.save}
+          hasOwnTasksOn={(weekday) => addedTasks.some((task) => task.day === weekday && !task.scheduledDate)}
+          onMoveOwnTasks={history.busy ? undefined : (from, to) => { void moveDayTasks(from, to) }}
+        />
+
+        {/* Period toggle — Day / Week / Month (Odosa: under the energy
+            options). It chooses the dates for List View and Time Blocks. */}
         <div className="flex flex-wrap items-center gap-2 mb-8">
-          <span className="text-sm font-medium text-slate-600 mr-1">Show:</span>
-          {([
-            { id: 'day', label: 'Day' },
-            { id: 'week', label: 'Week' },
-            { id: 'month', label: 'Month' },
-          ] as const).map((p) => (
-            <button
-              key={p.id}
-              onClick={() => choosePeriod(p.id)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                period === p.id
-                  ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
-                  : 'surface text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+          {viewType !== 'analysis' && (
+            <div role="group" aria-labelledby="period-label" className="flex flex-wrap items-center gap-2">
+              <span id="period-label" className="text-sm font-medium text-slate-700 mr-1">Show:</span>
+              {([
+                { id: 'day', label: 'Day' },
+                { id: 'week', label: 'Week' },
+                { id: 'month', label: 'Month' },
+              ] as const).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={period === p.id}
+                  onClick={() => choosePeriod(p.id)}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                    period === p.id
+                      ? 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow'
+                      : 'surface text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
           {/* Add your own task (Chi) */}
           <button
             onClick={() => setShowPhotoImport(true)}
@@ -1100,11 +1145,10 @@ function CalendarContent() {
         )}
 
         <div className="rounded-2xl p-3 sm:p-6 md:p-8 surface">
-          {period === 'month' && (
-            <div className="mb-6 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-              Showing your weekly pattern. It repeats through the month. Day-by-date scheduling is coming soon.
-            </div>
-          )}
+          {viewType === 'analysis' ? (
+            <Analysis doneHours={prefs.doneHours} energyByDay={prefs.energyByDay} ownTasks={addedTasks} signedIn={isSignedIn} />
+          ) : (
+          <>
           {/* Scenario Info Banner */}
           <div className={`mb-8 p-6 rounded-xl border-2 backdrop-blur-sm ${
             scenario === 'worst' ? 'bg-red-500/20 border-red-400/30' :
@@ -1118,10 +1162,10 @@ function CalendarContent() {
                 'bg-green-500/30'
               }`}>
                 <ScenarioIcon className={`w-6 h-6 ${
-                  scenario === 'worst' ? 'text-red-600' :
-                  scenario === 'average' ? 'text-amber-600' :
-                  'text-green-600'
-                }`} />
+                  scenario === 'worst' ? 'text-red-700' :
+                  scenario === 'average' ? 'text-amber-700' :
+                  'text-green-700'
+                }`} aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-bold text-lg text-slate-800 capitalize">{scenario} Case Schedule</h3>
@@ -1130,97 +1174,72 @@ function CalendarContent() {
             </div>
           </div>
 
-          {/* YOUR CALENDAR — always shown. Day period shows the first day only;
-              Week/Month show the full pattern. */}
           {!hasAgentSchedule && addedTasks.length === 0 && (
             <div className="mb-4 text-center py-8 px-4 border-2 border-dashed border-slate-200 rounded-xl">
               <p className="text-sm text-slate-700 mb-3">No activities yet. Add a task, import a calendar, or make your plan: two questions, about two minutes.</p>
               <Link href="/onboarding" className="text-sm font-semibold text-cyan-800 underline underline-offset-2">Make my plan →</Link>
             </div>
           )}
-          <div>
-            {viewType === 'week' || viewType === 'month' ? (
-              <div className="space-y-3">
-                {/* Real-date navigation. The template views have no concept of
-                    "next week", so this only exists here. */}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <button
-                    onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, -1) : addDays(anchorDate, -7))}
-                    className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
-                  >
-                    ← {viewType === 'month' ? 'Previous month' : 'Previous week'}
-                  </button>
-                  <div className="text-sm font-bold text-slate-700">
-                    {viewType === 'month'
-                      ? fmtDate(anchorDate, 'MMMM yyyy')
-                      : `Week of ${fmtDate(startOfWeek(anchorDate), 'MMM d, yyyy')}`}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setAnchorDate(new Date())}
-                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
-                    >
-                      Today
-                    </button>
-                    <button
-                      onClick={() => setAnchorDate(viewType === 'month' ? addMonths(anchorDate, 1) : addDays(anchorDate, 7))}
-                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm hover:bg-slate-50"
-                    >
-                      {viewType === 'month' ? 'Next month' : 'Next week'} →
-                    </button>
-                  </div>
-                </div>
 
-                {viewType === 'week' ? (
-                  <WeekTimeGrid
-                    tasks={datedTasks}
-                    anchorDate={anchorDate}
-                    onMove={history.busy ? undefined : rescheduleTask}
-                    renderDayIdentity={renderDayIdentity}
-                    // Same destination the List and Time Block views already
-                    // use — this prop existed but was never passed, so blocks
-                    // were unclickable.
-                    onSelect={(task) =>
-                      router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
-                    }
-                  />
-                ) : (
-                  <MonthGrid
-                    tasks={datedTasks}
-                    month={anchorDate}
-                    renderDayIdentity={renderDayIdentity}
-                    onSelectDay={(d) => { setAnchorDate(d); router.replace(`/calendar?view=week&comparison=${comparisonType}`) }}
-                    onSelectTask={(task) =>
-                      router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
-                    }
-                  />
-                )}
-
-                <p className="text-[0.6875rem] text-slate-400">
-                  Purple blocks repeat every week. That&apos;s the plan your agents built.
-                  Blue blocks are on a specific date. Drag any block to move it.
-                </p>
+          {/* Real dates for the Day, the Week and the Month, in both views. */}
+          <div className="space-y-3" data-period={period}>
+            <nav aria-label={`Change the ${period}`} className="flex flex-wrap items-center justify-between gap-2">
+              <button type="button" onClick={() => step(-1)} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 hover:bg-slate-50">
+                ← Previous {period}
+              </button>
+              <h2 className="text-sm font-bold text-slate-900" aria-live="polite" data-period-label>{periodLabel}</h2>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setAnchorDate(new Date())} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 hover:bg-slate-50">
+                  Today
+                </button>
+                <button type="button" onClick={() => step(1)} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 hover:bg-slate-50">
+                  Next {period} →
+                </button>
               </div>
-            ) : viewType === 'list' ? (
-              <ListView
-                gamification={gamification}
-                days={displayDays}
-                completedTasks={completedTasks}
-                toggleTask={toggleTask}
-                addedTasks={addedTasks}
-                onSwitchDay={history.busy ? undefined : moveDayTasks}
+            </nav>
+
+            {period === 'month' ? (
+              <MonthGrid
+                tasks={datedTasks}
+                month={anchorDate}
+                renderDayIdentity={renderDayIdentity}
+                onSelectDay={(d) => { setAnchorDate(d); choosePeriod('day') }}
+                onSelectTask={(task) =>
+                  router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
+                }
+              />
+            ) : viewType === 'timeblock' ? (
+              <WeekTimeGrid
+                tasks={datedTasks}
+                anchorDate={anchorDate}
+                dayCount={period === 'day' ? 1 : 7}
+                onMove={history.busy ? undefined : rescheduleTask}
+                renderDayIdentity={renderDayIdentity}
+                onSelect={(task) =>
+                  router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)
+                }
               />
             ) : (
-              <TimeBlockView
-                gamification={gamification}
-                days={displayDays}
-                completedTasks={completedTasks}
+              <DayCards
+                dates={shownDates}
+                tasks={datedTasks}
+                templateDays={_allDays}
+                ownTaskIds={new Set(addedTasks.map((task) => task.id))}
+                planDone={prefs.planTaskDone}
                 toggleTask={toggleTask}
-                addedTasks={addedTasks}
-                onSwitchDay={history.busy ? undefined : moveDayTasks}
+                onOpen={(task) => router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)}
+                renderIdentity={renderDayIdentity}
+                forecastFor={(date) => forecastOn(weather.forecast, date)}
+                themes={themes}
               />
             )}
+
+            <p className="text-xs text-slate-700">
+              Purple: your plan, every week. Blue: on that date only. {viewType === 'timeblock' && period !== 'month' ? 'Drag a block to move it; ' : ''}Open a task to start it.
+            </p>
           </div>
+          </>
+          )}
 
           {/* "Did this schedule work for you?": once per generated schedule, off
               unless NEXT_PUBLIC_SCHEDULE_FEEDBACK_ENABLED (Calendar Optimization, STEP 72). */}
@@ -1283,225 +1302,19 @@ function CalendarContent() {
   )
 }
 
-function CalendarDayIdentity({ value, date: selectedDate, weekday, fallbackTheme, dayType }: { value: GamificationPreferences; date?: Date; weekday: string; fallbackTheme: string; dayType: string }) {
+function CalendarDayIdentity({ value, date: selectedDate, weekday, fallbackTheme, dayType, pace: weatherPace }: { value: GamificationPreferences; date?: Date; weekday: string; fallbackTheme: string; dayType: string; pace?: 'fast' | 'slow' | 'unknown' }) {
   const date = selectedDate ? new Date(selectedDate) : new Date()
   if (!selectedDate) {
     const offset = (WEEKDAYS.indexOf(weekday) - (date.getDay() + 6) % 7 + 7) % 7
     date.setDate(date.getDate() + offset)
   }
-  const pace = /slow|low|rest|recovery|gentle/i.test(dayType) ? 'slow' : /fast|high|focus|work|busy/i.test(dayType) ? 'fast' : 'unknown'
+  const pace = weatherPace && weatherPace !== 'unknown' ? weatherPace : /slow|low|rest|recovery|gentle/i.test(dayType) ? 'slow' : /fast|high|focus|work|busy/i.test(dayType) ? 'fast' : 'unknown'
   const animal = animalForDay(value, date, pace)
   const theme = themeForDate(value, date) || fallbackTheme
   return <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs font-normal text-blue-700">
     {animal && <img src={`/spirit-animals/${animal.type}.png`} alt={`${weekday}: ${animal.color} ${animal.type}`} width={32} height={32} style={{ maxWidth: '100%', filter: `hue-rotate(${ANIMAL_COLORS[animal.color]}deg)` }} />}
     {theme && <span className="min-w-0 max-w-full [overflow-wrap:anywhere]">{theme}</span>}
   </div>
-}
-
-function ListView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, gamification }: {
-  gamification: GamificationPreferences,
-  days: typeof scenarioData.average.days, 
-  completedTasks: Set<string>,
-  toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string, scheduledDate?: string | null}>,
-  onSwitchDay?: (fromDay: string, toDay: string) => Promise<boolean>
-}) {
-  const router = useRouter()
-  const [currentDayIndex, setCurrentDayIndex] = useState(0)
-  // Clamp so switching period (e.g. Week → Day) can't leave a stale index that
-  // slices past the end and renders a blank view.
-  const safeIndex = Math.min(currentDayIndex, Math.max(0, days.length - 1))
-  const visibleDays = days.slice(safeIndex, safeIndex + 2)
-
-  const getTasksForDay = (dayName: string) => {
-    const dayData = days.find(d => d.name === dayName)
-    const addedForDay = (addedTasks || []).filter(t => t.day === dayName && showsThisWeek(t, dayName))
-    
-    if (!dayData) return []
-    
-    const allTasks = [...dayData.tasks, ...addedForDay]
-    return allTasks.sort((a, b) => {
-      const timeA = a.time.replace(':', '')
-      const timeB = b.time.replace(':', '')
-      return parseInt(timeA) - parseInt(timeB)
-    })
-  }
-
-  return (
-    <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {visibleDays.map((day, idx) => (
-          <div key={idx} className="rounded-xl p-6 border border-slate-300 surface">
-            <div className="mb-4 pb-3 border-b border-slate-300 space-y-2">
-              <h3 className="font-bold text-xl text-slate-800 mb-1">{day.name}</h3>
-              <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
-              {day.typeOfDay && <div className="text-sm italic text-purple-700">{day.typeOfDay}</div>}
-              {day.motivation && <div className="text-sm italic text-pink-700 mt-1">&ldquo;{day.motivation}&rdquo;</div>}
-              <RainDayBanner weekday={day.name} onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} />
-            </div>
-
-            <div className="space-y-2">
-              {getTasksForDay(day.name).map((task) => (
-                <div 
-                  key={task.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border backdrop-blur-sm transition-all ${
-                    task.priority === 'high' ? 'bg-red-500/20 border-red-400/30' :
-                    task.priority === 'medium' ? 'bg-yellow-500/20 border-yellow-400/30' :
-                    task.priority === 'essential' ? 'bg-orange-500/20 border-orange-400/30' :
-                    'bg-cyan-500/20 border-cyan-400/30'
-                  } ${completedTasks.has(task.id) ? 'opacity-50' : 'hover:bg-white/40'}`}
-                >
-                  <input 
-                    type="checkbox" 
-                    className="w-5 h-5 cursor-pointer flex-shrink-0"
-                    aria-label={`Done: ${task.name}`}
-                    checked={completedTasks.has(task.id)}
-                    onChange={() => toggleTask(task.id)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)}
-                    className={`flex-1 text-left text-sm text-slate-800 hover:underline ${
-                      completedTasks.has(task.id) ? 'line-through' : ''
-                    }`}
-                    title="Open task view"
-                  >
-                    {task.name}
-                    {(task as any).from && (
-                      <span className="text-xs text-purple-600 ml-2">(from {(task as any).from})</span>
-                    )}
-                  </button>
-                  <span className="text-xs text-slate-600 bg-white/60 px-2 py-1 rounded flex-shrink-0">{task.duration}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Navigation — only meaningful when paginating multiple days (Week/Month).
-          Hidden for Day view and empty schedules so it can't show "Days 1-0 of 0". */}
-      {days.length > 2 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            onClick={() => setCurrentDayIndex(Math.max(0, safeIndex - 1))}
-            disabled={safeIndex === 0}
-            aria-label="Earlier days"
-            className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="py-2 text-sm text-slate-700 font-medium">
-            Days {safeIndex + 1}-{Math.min(safeIndex + 2, days.length)} of {days.length}
-          </span>
-          <button
-            onClick={() => setCurrentDayIndex(Math.min(days.length - 2, safeIndex + 1))}
-            disabled={safeIndex >= days.length - 2}
-            aria-label="Later days"
-            className="p-2 rounded-lg text-slate-800 hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed surface"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function TimeBlockView({ days, completedTasks, toggleTask, addedTasks, onSwitchDay, gamification }: {
-  gamification: GamificationPreferences,
-  days: typeof scenarioData.average.days,
-  completedTasks: Set<string>,
-  toggleTask: (id: string) => void,
-  addedTasks?: Array<{id: string, day: string, time: string, name: string, duration: string, priority: string, from?: string, scheduledDate?: string | null}>,
-  onSwitchDay?: (fromDay: string, toDay: string) => Promise<boolean>
-}) {
-  const router = useRouter()
-  // Get all unique time slots (including added tasks)
-  const allTimes = [...new Set([
-    ...days.flatMap(d => d.tasks.map(t => t.time)),
-    ...(addedTasks || []).map(t => t.time)
-  ])].sort()
-  
-  const getTasksForDay = (dayName: string) => {
-    const dayData = days.find(d => d.name === dayName)
-    const addedForDay = (addedTasks || []).filter(t => t.day === dayName && showsThisWeek(t, dayName))
-    
-    if (!dayData) return []
-    
-    const allTasks = [...dayData.tasks, ...addedForDay]
-    return allTasks.sort((a, b) => {
-      const timeA = a.time.replace(':', '')
-      const timeB = b.time.replace(':', '')
-      return parseInt(timeA) - parseInt(timeB)
-    })
-  }
-
-  return (
-    <div className="overflow-x-auto rounded-xl border border-slate-300">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="bg-gradient-to-r from-cyan-500/30 to-purple-500/30 backdrop-blur-sm p-3 text-slate-800 font-bold w-24 border-b-2 border-slate-300">Time</th>
-            {days.map((day, idx) => (
-              <th key={idx} className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm p-4 text-left border-b-2 border-slate-300">
-                <div className="font-bold text-slate-800 text-lg">{day.name}</div>
-                <CalendarDayIdentity value={gamification} weekday={day.name} fallbackTheme={day.theme} dayType={day.typeOfDay} />
-                {day.typeOfDay && <div className="text-xs italic font-normal text-purple-700">{day.typeOfDay}</div>}
-                {day.motivation && <div className="text-xs italic font-normal text-pink-700 mt-1">&ldquo;{day.motivation}&rdquo;</div>}
-                <div className="mt-2"><RainDayBanner weekday={day.name} compact onSwitchDay={onSwitchDay && addedTasks?.some(task => task.day === day.name && !task.scheduledDate) ? (toWeekday) => onSwitchDay(day.name, toWeekday) : undefined} /></div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {allTimes.map((time, timeIdx) => (
-            <tr key={timeIdx} className="border-b border-slate-300 hover:bg-white/40 transition-colors">
-              <td className="p-3 font-bold text-center bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm text-blue-600 border-r border-slate-300">{time}</td>
-              {days.map((day, dayIdx) => {
-                const tasksForDay = getTasksForDay(day.name)
-                const task = tasksForDay.find(t => t.time === time)
-                return (
-                  <td key={dayIdx} className={`p-3 border-r border-slate-300 ${
-                    task 
-                      ? task.priority === 'high' ? 'bg-red-500/10' :
-                        task.priority === 'medium' ? 'bg-yellow-500/10' :
-                        task.priority === 'essential' ? 'bg-orange-500/10' :
-                        'bg-cyan-500/10'
-                      : ''
-                  }`}>
-                    {task && (
-                      <div className={`flex items-start gap-2 ${completedTasks.has(task.id) ? 'opacity-50' : ''}`}>
-                        <input 
-                          type="checkbox" 
-                          className="w-5 h-5 mt-0.5 cursor-pointer"
-                          checked={completedTasks.has(task.id)}
-                          onChange={() => toggleTask(task.id)}
-                        />
-                        <div className="flex-1">
-                          <button
-                            type="button"
-                            onClick={() => router.push(`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`)}
-                            className={`text-slate-800 block text-left hover:underline ${completedTasks.has(task.id) ? 'line-through' : ''}`}
-                            title="Open task view"
-                          >
-                            {task.name}
-                            {(task as any).from && (
-                              <span className="text-xs text-purple-600 ml-1">(from {(task as any).from})</span>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
 }
 
 export default function CalendarView() {

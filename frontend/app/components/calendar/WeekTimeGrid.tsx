@@ -9,6 +9,8 @@ import {
 
 const PX_PER_MINUTE = 0.9
 const SNAP_MINUTES = 15
+/** A block is at least 24 px tall (WCAG 2.5.8), so lanes are worked out at that length too. */
+const MIN_BLOCK_MINUTES = Math.ceil(24 / PX_PER_MINUTE)
 
 interface WeekTimeGridProps {
   tasks: CalendarTask[]
@@ -19,6 +21,8 @@ interface WeekTimeGridProps {
   onMove?: (taskId: string, newDateISO: string, newTime: string) => void
   onSelect?: (task: CalendarTask) => void
   renderDayIdentity?: (date: Date) => ReactNode
+  /** 7 for the week of anchorDate, 1 for anchorDate alone (the Day view). */
+  dayCount?: 1 | 7
 }
 
 /**
@@ -42,14 +46,19 @@ export default function WeekTimeGrid({
   onMove,
   onSelect,
   renderDayIdentity,
+  dayCount = 7,
 }: WeekTimeGridProps) {
-  const days = useMemo(() => weekDays(anchorDate), [anchorDate])
+  const days = useMemo(
+    () => (dayCount === 1 ? [new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate())] : weekDays(anchorDate)),
+    [anchorDate, dayCount],
+  )
+  const n = days.length
   const gridStartMin = startHour * 60
   const gridEndMin = endHour * 60
   const gridHeight = (gridEndMin - gridStartMin) * PX_PER_MINUTE
 
   const occurrences = useMemo(
-    () => occurrencesInRange(tasks, days[0], days[6]),
+    () => occurrencesInRange(tasks, days[0], days[days.length - 1]),
     [tasks, days]
   )
 
@@ -90,10 +99,10 @@ export default function WeekTimeGrid({
     if (!press.moved || !drag || !bodyRef.current) return
 
     const rect = bodyRef.current.getBoundingClientRect()
-    const colWidth = rect.width / 7
+    const colWidth = rect.width / n
 
     const rawDay = Math.floor((e.clientX - rect.left) / colWidth)
-    const dayIndex = Math.max(0, Math.min(6, rawDay))
+    const dayIndex = Math.max(0, Math.min(n - 1, rawDay))
 
     const rawMin = gridStartMin + (e.clientY - rect.top) / PX_PER_MINUTE
     const snapped = Math.round(rawMin / SNAP_MINUTES) * SNAP_MINUTES
@@ -120,10 +129,10 @@ export default function WeekTimeGrid({
   }
 
   return (
-    <div className="max-w-full overflow-x-auto" tabIndex={0} aria-label="Weekly calendar">
-    <div className="min-w-[640px] rounded-lg border border-slate-200 bg-white overflow-hidden">
+    <div className="max-w-full overflow-x-auto" tabIndex={0} aria-label={n === 1 ? 'Day calendar' : 'Weekly calendar'}>
+    <div className={`${n === 1 ? '' : 'min-w-[640px] '}rounded-lg border border-slate-200 bg-white overflow-hidden`}>
       {/* Day headers — real dates, not just weekday names. */}
-      <div className="grid border-b border-slate-200" style={{ gridTemplateColumns: '56px repeat(7, 1fr)' }}>
+      <div className="grid border-b border-slate-200" style={{ gridTemplateColumns: `56px repeat(${n}, 1fr)` }}>
         <div className="border-r border-slate-200" />
         {days.map((d) => (
           <div
@@ -132,7 +141,7 @@ export default function WeekTimeGrid({
               isToday(d) ? 'bg-cyan-50' : ''
             }`}
           >
-            <div className="text-[0.6875rem] font-semibold text-slate-500 uppercase">{format(d, 'EEE')}</div>
+            <div className="text-[0.6875rem] font-semibold text-slate-600 uppercase">{format(d, n === 1 ? 'EEEE' : 'EEE')}</div>
             <div className={`text-lg font-bold ${isToday(d) ? 'text-cyan-700' : 'text-slate-800'}`}>
               {format(d, 'd')}
             </div>
@@ -142,13 +151,13 @@ export default function WeekTimeGrid({
       </div>
 
       <div className="relative overflow-y-auto" style={{ maxHeight: '60vh' }}>
-        <div className="grid" style={{ gridTemplateColumns: '56px repeat(7, 1fr)' }}>
+        <div className="grid" style={{ gridTemplateColumns: `56px repeat(${n}, 1fr)` }}>
           {/* Hour gutter */}
           <div className="border-r border-slate-200">
             {hours.map((h) => (
               <div
                 key={h}
-                className="text-[0.625rem] text-slate-400 text-right pr-2 -translate-y-1.5"
+                className="text-[0.625rem] text-slate-600 text-right pr-2 -translate-y-1.5"
                 style={{ height: 60 * PX_PER_MINUTE }}
               >
                 {format(new Date(2000, 0, 1, h), 'h a')}
@@ -156,11 +165,11 @@ export default function WeekTimeGrid({
             ))}
           </div>
 
-          {/* The 7 day columns, drawn as one surface so a drag can cross them */}
+          {/* The day columns, drawn as one surface so a drag can cross them */}
           <div
             ref={bodyRef}
-            className="col-span-7 relative"
-            style={{ height: gridHeight, touchAction: 'none' }}
+            className="relative"
+            style={{ height: gridHeight, touchAction: 'none', gridColumn: `span ${n} / span ${n}` }}
             onPointerMove={moveDrag}
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
@@ -174,17 +183,19 @@ export default function WeekTimeGrid({
               />
             ))}
             {/* Column separators */}
-            {Array.from({ length: 6 }, (_, i) => (
+            {Array.from({ length: n - 1 }, (_, i) => (
               <div
                 key={i}
                 className="absolute top-0 bottom-0 border-r border-slate-100"
-                style={{ left: `${((i + 1) / 7) * 100}%` }}
+                style={{ left: `${((i + 1) / n) * 100}%` }}
               />
             ))}
 
             {days.map((day, dayIndex) => {
               const dayOccs = occurrences.filter((o) => isSameDay(o.date, day))
-              const laid = layoutDayColumn(dayOccs)
+              // Laid out at the length drawn, so short tasks sit side by side
+              // instead of covering each other.
+              const laid = layoutDayColumn(dayOccs.map((o) => ({ ...o, durationMinutes: Math.max(o.durationMinutes, MIN_BLOCK_MINUTES) })))
 
               return laid.map((occ) => {
                 const dragging = drag?.taskId === occ.task.id
@@ -192,8 +203,8 @@ export default function WeekTimeGrid({
                 const effStart = dragging ? drag!.startMinutes : occ.startMinutes
 
                 const top = (effStart - gridStartMin) * PX_PER_MINUTE
-                const height = Math.max(18, occ.durationMinutes * PX_PER_MINUTE)
-                const colPct = 100 / 7
+                const height = occ.durationMinutes * PX_PER_MINUTE
+                const colPct = 100 / n
                 const left = effDay * colPct + (occ.lane / occ.lanes) * colPct
                 const width = colPct / occ.lanes
 
@@ -207,7 +218,7 @@ export default function WeekTimeGrid({
                       dragging ? 'shadow-lg z-20 opacity-90' : 'z-10 hover:shadow-md'
                     } ${
                       occ.task.completed
-                        ? 'bg-slate-100 border-slate-300 text-slate-400 line-through'
+                        ? 'bg-slate-100 border-slate-300 text-slate-600 line-through'
                         : occ.task.priority === 'high' || occ.task.priority === 'essential'
                         ? 'bg-rose-100 border-rose-300 text-rose-900'
                         : occ.recurring
@@ -225,7 +236,7 @@ export default function WeekTimeGrid({
                       {occ.task.name}
                     </span>
                     {height > 34 && (
-                      <span className="block text-[0.5625rem] opacity-70">
+                      <span className="block text-[0.5625rem]">
                         {minutesToTime(effStart)}{occ.recurring ? ' · weekly' : ''}
                       </span>
                     )}

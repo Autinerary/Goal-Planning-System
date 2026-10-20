@@ -116,6 +116,14 @@ export interface UserPreferences {
   checkin?: { optIn: boolean; updatedAt: string }
   /** Plan tasks ticked off, as task id -> the Monday of the week (lib/planTaskDone.ts). */
   planTaskDone?: Record<string, string>
+  /** When plan tasks were ticked: date -> hour -> how many, for the Calendar's Analysis (lib/planTaskDone.ts). */
+  doneHours?: Record<string, Record<string, number>>
+  /** Each ticked plan task's date and hour, so unticking takes back the right one. */
+  planTaskAt?: Record<string, string>
+  /** The energy level chosen each day in the Calendar, for Analysis (lib/dayTheme.ts). */
+  energyByDay?: Record<string, 'worst' | 'average' | 'best'>
+  /** Sunny Day or Grey Day, chosen for a date in the Calendar (lib/dayTheme.ts). */
+  dayThemes?: Record<string, 'sunny' | 'grey'>
   /** The weekly email: what they saved, plus new picks (lib/weeklyPicks.ts; default off). */
   weeklyPicks?: { enabled: boolean; consent?: string; updatedAt: string }
   /** What motivates them and their life stage, from the "Complete your profile" card (lib/motivationChoices.ts). */

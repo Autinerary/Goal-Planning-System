@@ -133,16 +133,23 @@ export function showsThisWeek(task: { scheduledDate?: string | null }, dayName: 
   return format(addDays(startOfWeek(today), index), 'yyyy-MM-dd') === task.scheduledDate
 }
 
-/** The 6-week grid a month view draws, including leading/trailing days. */
+/**
+ * Weeks run Monday to Sunday, as everywhere else in the app (the weekday
+ * lists, and plan-task ticks, which count for the week from its Monday). They
+ * started on Sunday here, so a week's Sunday belonged to the week before.
+ */
+const MONDAY = { weekStartsOn: 1 } as const
+
+/** The grid a month view draws, whole weeks, including leading/trailing days. */
 export function monthGridDays(month: Date): Date[] {
   return eachDayOfInterval({
-    start: startOfWeek(startOfMonth(month)),
-    end: endOfWeek(endOfMonth(month)),
+    start: startOfWeek(startOfMonth(month), MONDAY),
+    end: endOfWeek(endOfMonth(month), MONDAY),
   })
 }
 
 export function weekDays(anyDayInWeek: Date): Date[] {
-  const start = startOfWeek(anyDayInWeek)
+  const start = startOfWeek(anyDayInWeek, MONDAY)
   return Array.from({ length: 7 }, (_, i) => addDays(start, i))
 }
 

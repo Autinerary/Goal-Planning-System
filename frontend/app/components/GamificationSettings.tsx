@@ -59,6 +59,18 @@ export default function GamificationSettings() {
         </fieldset>
       })}
     </div>
+    {/* The team's notes, October 2026: "an option in the customization of
+        animals & themes to automatically match the energy level to weather". */}
+    <fieldset className="mt-5 rounded-lg border border-slate-300 p-3" data-energy-from-weather>
+      <legend className="px-1 text-sm font-medium text-slate-900">Weather</legend>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" className="mt-0.5 h-4 w-4" checked={value.energyFromWeather === true} onChange={(event) => patch({ energyFromWeather: event.target.checked })} />
+        <span>
+          <span className="block font-medium text-slate-900">Match each day’s energy to the weather</span>
+          <span className="block text-slate-700">A sunny day is a high-energy day, a grey one balanced, and rain or snow low. With two spirit animals, the fast one shows on sunny days and the slow one on rainy days. It uses the Calendar’s local forecast, and an energy level you choose for the day always wins.</span>
+        </span>
+      </label>
+    </fieldset>
     <label className="mt-6 block text-sm">Yearly theme<input maxLength={100} value={value.yearlyTheme} onChange={event => patch({ yearlyTheme: event.target.value })} className="mt-1 block w-full rounded border p-2" /></label>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Monthly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-3">{Array.from({ length: 12 }, (_, index) => <label key={index} className="text-sm">{new Date(2026, index, 1).toLocaleString('en', { month: 'long' })}<input maxLength={100} value={value.monthlyThemes[index] || ''} onChange={event => setTheme('monthlyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>
     <details className="mt-4"><summary className="cursor-pointer font-medium">Weekly themes</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">{WEEKDAYS.map((day, index) => <label key={day} className="text-sm">{day}<input maxLength={100} value={value.weeklyThemes[index] || ''} onChange={event => setTheme('weeklyThemes', index, event.target.value)} className="mt-1 block w-full rounded border p-2" /></label>)}</div></details>

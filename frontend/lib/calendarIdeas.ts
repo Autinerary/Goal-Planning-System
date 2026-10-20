@@ -11,10 +11,12 @@ export interface CalendarIdea {
   why: string
 }
 
-export function calendarIdeas({ milestoneName, toolName, energy }: {
+export function calendarIdeas({ milestoneName, toolName, energy, dayTheme }: {
   milestoneName?: string | null
   toolName?: string | null
   energy: EnergyLevel
+  /** Today's Sunny Day or Grey Day (chosen, or the forecast's). */
+  dayTheme?: 'sunny' | 'grey' | null
 }): CalendarIdea[] {
   const ideas: CalendarIdea[] = []
   const milestone = (milestoneName || '').trim()
@@ -29,6 +31,8 @@ export function calendarIdeas({ milestoneName, toolName, energy }: {
   if (energy === 'worst') ideas.push({ text: 'Take a 10-minute break: a short walk, a stretch, or somewhere quiet', why: 'For a low-energy day' })
   else if (energy === 'best') ideas.push({ text: 'Do the hardest task of the day first, while you have the energy', why: 'For a high-energy day' })
   else ideas.push({ text: 'Take a 5-minute break between two tasks', why: 'For a balanced day' })
+  if (dayTheme === 'sunny') ideas.push({ text: 'Take one task outside, or walk between two tasks', why: 'For a sunny day' })
+  else if (dayTheme === 'grey') ideas.push({ text: 'Make a cosy spot for one task: good light and a warm drink', why: 'For a grey day' })
   ideas.push({ text: 'Write in your journal for 5 minutes: what helped this week?', why: 'To notice what works for you' })
   return ideas
 }

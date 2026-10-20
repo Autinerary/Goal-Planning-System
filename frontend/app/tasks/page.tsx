@@ -10,7 +10,7 @@ import TaskCompanions from '../components/TaskCompanions'
 import { playTaskCompleteSound } from '../../lib/taskSound'
 import { usePreferences } from '../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
-import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { doneThisWeek, tickPlanTask } from '@/lib/planTaskDone'
 import { selectTodaysAnimal } from '@/lib/spiritAnimal'
 import { todayIn, trickForToday } from '@/lib/taskDay'
 import CompanionSwitch from '../components/CompanionSwitch'
@@ -78,9 +78,10 @@ export default function TasksPage() {
   const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
 
   const toggleTask = (id: string) => {
-    const done = loadPreferences().planTaskDone
-    updatePreferences({ planTaskDone: togglePlanTaskDone(done, id) })
-    if (!doneThisWeek(done).has(id)) playTaskCompleteSound()
+    // Its week, and when it was done (for the Calendar's Analysis).
+    const { done, ...patch } = tickPlanTask(loadPreferences(), id)
+    updatePreferences(patch)
+    if (done) playTaskCompleteSound()
   }
 
   const toggleGoal = (id: string) => {

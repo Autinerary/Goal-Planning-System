@@ -144,6 +144,10 @@ export default function PrivacyPage() {
               </li>
               <li>Your plan and progress: milestones, races, calendar tasks, Life Stats check-ins and reflections.</li>
               <li>
+                For the Calendar’s Analysis: the day and hour you tick each plan task, the energy level you choose each day, and
+                any Sunny Day or Grey Day you choose. Only you see them; the hours and energy levels are kept for six months.
+              </li>
+              <li>
                 If you turn on daily reminders: the time you chose, your time zone, and how to reach you. For texts, your mobile
                 number, which you confirm with a code we text to it.
               </li>
@@ -164,7 +168,7 @@ export default function PrivacyPage() {
           <Sub title="Location">
             <List>
               <li>The city, province and country you enter. We look up its approximate map position to show services near you.</li>
-              <li>If you turn on weather, your browser shares your location so we can get a forecast. You can turn this off at any time.</li>
+              <li>If you turn on the forecast in the Calendar, your browser shares your location, rounded to about 10 km before it is sent to Open-Meteo for a forecast. It is kept on your device, not with us. You can turn it off at any time.</li>
             </List>
           </Sub>
           <Sub title="In ResourceHub">

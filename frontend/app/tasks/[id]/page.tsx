@@ -16,7 +16,7 @@ import { useAgentPath } from '../../context/AgentPathContext'
 import { isTaskSoundEnabled, playTaskCompleteSound } from '../../../lib/taskSound'
 import { usePreferences } from '../../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
-import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { doneThisWeek, tickPlanTask } from '@/lib/planTaskDone'
 import { guidanceFor } from '@/lib/guidanceData'
 import { selectTodaysAnimal } from '@/lib/spiritAnimal'
 import { socialAvailable } from '@/lib/moments'
@@ -100,9 +100,10 @@ function TaskViewContent() {
   const todaysAnimal = selectTodaysAnimal(prefs.gamification?.animals, prefs.gamification?.mode, schedule as any)
 
   const toggleTask = (id: string) => {
-    const done = loadPreferences().planTaskDone
-    updatePreferences({ planTaskDone: togglePlanTaskDone(done, id) })
-    if (!doneThisWeek(done).has(id)) playTaskCompleteSound()
+    // Its week, and when it was done (for the Calendar's Analysis).
+    const { done, ...patch } = tickPlanTask(loadPreferences(), id)
+    updatePreferences(patch)
+    if (done) playTaskCompleteSound()
   }
   const isDone = completed || completedTasks.has(taskId)
 
@@ -127,8 +128,11 @@ function TaskViewContent() {
 
   const handleDone = () => {
     setCompleted(true)
-    const done = loadPreferences().planTaskDone
-    if (!doneThisWeek(done).has(taskId)) updatePreferences({ planTaskDone: togglePlanTaskDone(done, taskId) })
+    const current = loadPreferences()
+    if (!doneThisWeek(current.planTaskDone).has(taskId)) {
+      const { planTaskDone, doneHours, planTaskAt } = tickPlanTask(current, taskId)
+      updatePreferences({ planTaskDone, doneHours, planTaskAt })
+    }
     setIsDoneDancing(true)
     playCelebrationMusic()
     // Streak: completing a task marks today active.
