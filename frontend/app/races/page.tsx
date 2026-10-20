@@ -24,6 +24,7 @@ import HelpOthersPrompt, { helpPromptOff } from './HelpOthersPrompt'
 import MomentCapture from '../components/MomentCapture'
 import { socialAvailable } from '@/lib/moments'
 import { PeopleOnGoal } from '../hare-world/SameGoals'
+import { raceRoads as buildRaceRoads } from '@/lib/raceRoads'
 import CharacterCar from './CharacterCar'
 import { playCarBeep } from '@/lib/taskSound'
 import { useMilestoneGuidance } from '@/lib/useMilestoneGuidance'
@@ -662,15 +663,9 @@ function RacesContent() {
   // "separate shows combined", the parallel lanes showed every area at once).
   // A race is one of your goals; its road runs through each area it has steps
   // in. Areas not open yet (one life area first) count as steps to come.
-  const raceRoads = rawRaces
-    .map((r: any) => {
-      const goal = String(r.name || '').trim().toLowerCase()
-      const own = (m: any) => (m.raceId ? m.raceId === r.id : String(m.goal || '').trim().toLowerCase() === goal)
-      const steps = milestones.filter(own)
-      return { id: r.id as string, name: r.name as string, steps, later: Math.max(0, allAgentMilestones.filter(own).length - steps.length) }
-    })
-    // A race whose areas aren't open yet is still listed, and says so.
-    .filter((r) => r.steps.length + r.later > 0)
+  // Grouped by the goal each step was made for (lib/raceRoads.ts), so it
+  // can't come up empty while there are steps.
+  const raceRoads = buildRaceRoads<any>(allAgentMilestones.length ? allAgentMilestones : (milestones as any[]), milestones as any[], { goals: userGoalNames, races: (payload?.races || []) as any[] })
   const shownRace = raceRoads.find((r) => r.id === separateRaceId) || raceRoads.find((r) => r.steps.length > 0) || raceRoads[0] || null
   const activeStopY = 40 + 70 + (stepsAhead > 0 ? 24 : 0) + (trackStops.length - 1 - currentStopIdx) * (stepNotes ? 270 : 160)
 

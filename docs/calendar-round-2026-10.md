@@ -110,6 +110,7 @@ Asked why the combined Track View couldn't be found, 20 October:
   - The side-by-side lanes (`LaneWorld`) were removed; they're in git history.
   - **List View's Individual and Combined are unchanged.** They switch between one area and all four areas, which look different even with one race.
   - Checked with two races (QA A's plan given a second goal for the test, then put back): `.qa-local/browser/races_separate.mjs` 17/17, including axe and 320 px.
+  - **Fixed the same day.** For a real account with 2 goals and 32 steps, Separate said "No races yet". That plan's race list had one race matching neither goal, and its steps' race ids weren't in the list. The races now come from the steps themselves, grouped by the goal each was made for (`lib/raceRoads.ts`, tested in `lib/raceRoads.test.mjs`), so it can't come up empty while there are steps. That account now gets its 2 races, 16 steps each. The two-race check now uses a plan shaped like that one.
 
 ## How it was tested
 
