@@ -9,9 +9,12 @@ and the choices made where a note left room. Written 20 October 2026.
 The database change is **STEP 86**
 (`backend/database/migrations/2026_resourcehub_round.sql`, at the end of
 `setup/all_migrations.sql`). It was tested locally on the whole schema: 33
-checks, `.qa-local/pgtest/step86_test.py`. **It isn't pasted yet.** Until it
-is, the parts that need it say they open soon (or stay hidden), and
-everything else works. STEP 86 adds:
+checks, `.qa-local/pgtest/step86_test.py`. **It was pasted on 20 October and
+checked on the live database**: 16 checks, `.qa-local/browser/step86_live.mjs`
+(guides only for the team, Facebook videos, each person's own saved items,
+the two statements and review for Visuals, the email check), which removes
+its own rows. Then the five Learning pages were published as guides, and 175
+shop items got their maker's email. STEP 86 adds:
 
 1. **Guides**: a third Tidbit length, up to 3000 words, only for posts with
    the Autinerary byline (which only the server sets). For the Learning pages.
@@ -30,8 +33,6 @@ Nothing is deleted. Safe to re-run.
 
 | What | Where | Why it waits |
 | --- | --- | --- |
-| Paste STEP 86 | `backend/database/migrations/2026_resourcehub_round.sql` in the Supabase SQL editor | Saving shop items and Tidbits, Visuals, the guides and the makers' emails need it |
-| Then, after the paste | `node scripts/import-learning-guides.mjs --apply` and `node scripts/set-product-contacts.mjs --apply` | The five Learning pages as guides; 112 makers' emails onto 175 shop items |
 | Review shared art | ResourceHub → Admin → Visuals (an admin; nobody is one yet, see the All Apps round) | Each piece waits for a person to look at it |
 | Use the contact list | ResourceHub → Admin → Contact list (CSV) | Nothing is sent from it: it's a list to work from |
 
