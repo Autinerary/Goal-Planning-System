@@ -8,6 +8,7 @@ import type { BarrierScores } from '@/types/database'
 import { TRUST_META, VERIFICATION_META, type RaterTrust, type VerificationMethod } from '@/lib/trust'
 import type { RatingAccess } from '@/lib/ratings/access'
 import RatingAccessPanel from './RatingAccessPanel'
+import { areaName } from '@/lib/ratings/areaNames'
 
 interface AddRatingModalProps {
   resourceId: string
@@ -17,13 +18,8 @@ interface AddRatingModalProps {
   onRatingAdded: () => void
 }
 
-const barrierTypes = [
-  { key: 'sensory', label: 'Sensory' },
-  { key: 'mobility', label: 'Mobility' },
-  { key: 'communication', label: 'Communication' },
-  { key: 'cognitive', label: 'Cognitive' },
-  { key: 'social', label: 'Social' },
-]
+// Named as the Rating Breakdown shows them ("Sensory-Friendliness").
+const barrierTypes = ['sensory', 'mobility', 'communication', 'cognitive', 'social'].map((key) => ({ key, label: areaName(key) }))
 
 export default function AddRatingModal({ resourceId, resourceName, onClose, onRatingAdded }: AddRatingModalProps) {
   const [overallRating, setOverallRating] = useState(0)

@@ -8,6 +8,7 @@ import { MapPin, Star, Users } from 'lucide-react'
 import CategoryIcon from './CategoryIcon'
 import { tagLabel } from '@/lib/filters/tags'
 import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
+import { SPECIAL_TAGS, TRENDING_TIERS } from '@/lib/filters/taxonomy'
 
 /** "Under 1 km", "4.2 km", "31 km", "3,675 km". */
 export function formatDistance(km: number): string {
@@ -33,6 +34,8 @@ interface ResourceCardProps {
   mine?: string[]
   /** Whether the person's place is known, for "location not shared". */
   locationShared?: boolean
+  /** Its Trending tier (get_resource_badges), when the page looked it up. */
+  trendingTier?: string | null
 }
 
 // The tags worth showing on a card, in this order (lib/filters/tags.ts).
@@ -53,17 +56,29 @@ export function costLabel(r: { cost_type?: string | null; price?: number | null;
   return 'Paid'
 }
 
-function Chips({ resource, mine }: { resource: Resource; mine: string[] }) {
+// The Special Tags a card shows (lib/filters/taxonomy.ts): "Autinerary's
+// Own" and "Surprising Finds" in their gradients, Trending in its tier's
+// metal, shining (the team's notes, October 2026).
+const special = (id: string) => SPECIAL_TAGS.find((t) => t.id === id)!
+
+function Chips({ resource, mine, trendingTier }: { resource: Resource; mine: string[]; trendingTier?: string | null }) {
   const r = resource as any
   const cost = costLabel(r)
+  const own = r.is_first_party === true
+  const surprising = Array.isArray(r.tags) && r.tags.includes('surprising_find')
+  const tier = TRENDING_TIERS.find((t) => t.id === trendingTier)
   const tags: string[] = (Array.isArray(r.tags) ? r.tags : []).filter((t: string) => CARD_TAGS.includes(t))
   tags.sort((a, b) => CARD_TAGS.indexOf(a) - CARD_TAGS.indexOf(b))
   // A month's winner of the community's vote (Goal 5), first.
   const choiceYear = Array.isArray(r.tags) && r.tags.includes('community_choice_year')
   const choice = Array.isArray(r.tags) && (r.tags.includes('community_choice') || choiceYear)
-  if (!cost && tags.length === 0 && mine.length === 0 && !choice) return null
+  if (!cost && tags.length === 0 && mine.length === 0 && !choice && !own && !surprising && !tier) return null
+  const pill = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs'
   return (
     <ul className="mb-3 flex flex-wrap gap-1.5" aria-label="Tags">
+      {own && <li className={`${pill} ${special('first_party').className}`}>{special('first_party').label}</li>}
+      {surprising && <li className={`${pill} ${special('surprising_find').className}`}>{special('surprising_find').label}</li>}
+      {tier && <li className={`${pill} shine font-semibold ${tier.className}`}>{tier.label}</li>}
       {choice && (
         <li className="inline-flex">
           <CommunityChoiceBadge month={choiceYear ? 'of the year' : undefined} />
@@ -97,6 +112,7 @@ export default function ResourceCard({
   footer,
   mine = [],
   locationShared,
+  trendingTier,
 }: ResourceCardProps) {
   // With actions, the frame moves from the link to a box around both.
   const FRAME = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow'
@@ -158,7 +174,7 @@ export default function ResourceCard({
                     {resource.category}
                   </span>
                 </div>
-                <Chips resource={resource} mine={mine} />
+                <Chips resource={resource} mine={mine} trendingTier={trendingTier} />
               </div>
             </div>
 
@@ -258,7 +274,7 @@ export default function ResourceCard({
           {resource.name}
         </h3>
 
-        <Chips resource={resource} mine={mine} />
+        <Chips resource={resource} mine={mine} trendingTier={trendingTier} />
 
         {/* Description */}
         {resource.description && (

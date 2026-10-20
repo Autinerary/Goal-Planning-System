@@ -1,0 +1,747 @@
+{
+ "slug": "signs-and-characteristics",
+ "title": "Signs & Characteristics",
+ "section": "About Diagnosis",
+ "url": "https://www.autinerary.ca/learning/signs-and-characteristics",
+ "blocks": [
+  {
+   "tag": "H4",
+   "text": "Anxious about",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "SIGNS & CHARACTERISTICS?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H4",
+   "text": "We can help you with that",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "DISCLAIMER: Please note that we are not medical professionals, nor is any of our advice official medical advice. This is simply a summary of what we found to be the most helpful on our own individual journeys. No matter what you read online, always verify with recommendations from certified medical professionals!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "(Quick Links)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "General Info",
+   "bold": [],
+   "links": [
+    {
+     "text": "General Info",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#about"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Possible Indicators - under 3",
+   "bold": [],
+   "links": [
+    {
+     "text": "Possible Indicators - under 3",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#possibleIndicators3"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Developmental Indicators - under 3",
+   "bold": [],
+   "links": [
+    {
+     "text": "Developmental Indicators - under 3",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#devIndicators3"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Possible Indicators - Any Age",
+   "bold": [],
+   "links": [
+    {
+     "text": "Possible Indicators - Any Age",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#possibleIndicators"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Associated Conditions",
+   "bold": [],
+   "links": [
+    {
+     "text": "Associated Conditions",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#associations"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Recommended Actions",
+   "bold": [],
+   "links": [
+    {
+     "text": "Recommended Actions",
+     "href": "https://www.autinerary.ca/learning/signs-and-characteristics#actions"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "It's important you know...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Start Paying Attention Early!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autism signs usually emerge gradually, and are noticeable before age three. Knowing this,parents are the ones uniquely positioned to observe, interact, and recognize signs of autism far earlier than diagnosed with their children (Ozonoff et al., 2009). So, parents should investigate and monitor the development of their child if they are not hitting key milestones (Hutman et al., 2019). Early concerns should be checked out and not dismissed as “just delays”.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "In fact, the Canadian Pediatric Society recommends screening for all children before the age of three.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Here are some...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Possible “Indicators”",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Recognizing early Autistic characteristics can help families and caregivers provide support that fosters growth and well-being. It’s essential to remember that each child is unique, and their expressions of being Autistic may vary greatly. According to the Centers for Disease Control and Prevention (CDC, 2020), early signs of Autism include:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Name Responding",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Not responding to his/her name by 12 months of age.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Objects of Interest",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Not pointing at objects to show interest by 14 months",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Playing Pretend",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Not playing \"pretend\" games by 18 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Eye Contact",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Avoiding eye contact or preferring to be alone.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Sound Response",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Seems not to respond to sound and may appear deaf.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Developmental Regressions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "May regress in development such as losing language and/or proficiency skills.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Minor Changes",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Getting upset by minor changes.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Certain Behaviours",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Flapping their hands, rocking their body, or spinning in circles.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Unusual Reactions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Having unusual and sometimes intense reactions to the way things smell, taste, feel and/or look",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "There are also...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "More Developmental “Indicators” (first 3 years of life)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "During the first three years of life, look for these developmental indicators, which may suggest the need for timely screening and assessment by a qualified healthcare professional:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Warm Expressions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "No big smiles or other warm, joyful expressions by 6 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Sharing Facial Expressions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "No back-and-forth sharing of sounds, smiles, or other facial expressions by 9 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Communications",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "No babbling, lack of response to name and no back-and-forth gestures by 12 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Speaking",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "No spoken words by 16 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Repeating Phrases",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "No imitation or repeating of meaningful two-word phrase by 24 months.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Developmental Regressions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Regressions in development such as losing language and/or proficiency skills.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Don't forget about...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Possible Signs of Autism at Any Age",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "This is where it's crucial to note that each person develops at their own pace. However, if someone you know demonstrates differences in meeting developmental milestones for their age, or you identify a potential need for support, no matter the age, it is important to discuss your observations with a healthcare professional to better understand your situation in full (Hutman et al., 2019). Possible Autistic characteristics at any age include:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Eye-Contact",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Avoiding eye contact or preferring to be alone.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Understanding Feelings",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Struggles with understanding other people's feelings.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Language Deficiencies",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Remains nonverbal or has delayed language development.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Echolalia",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Repeats words or phrases over and over.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Minor Changes",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Gets upset by minor changes in routine or surroundings.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Limited Interests",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Has highly restricted interests",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Certain Behaviours",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Performs repetitive behaviors such as flapping, rocking or spinning.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Unusual Reactions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Has unusual and often intense reactions to sounds, smells, tastes, textures, lights and/or colors.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "One thing to know...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Associated Conditions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Finally, it's crucial to know that Autistic individuals more commonly experience some health conditions compared to non-autistic individuals. These include but are not limited to:\n- asthma\n- ezcema\n- allergies\n- reflux\n- gastritis\n- seizure disorders\n- autoimmune conditions\n- ear infections\n- respiratory infections\n- migraine headaches",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "If you notice a common occurence of any of the following, make sure to book an assessment with the right professional, and, if noticed, bring these up with them: noticeable ups and downs in behaviour, aggression, covering their ears with their hands, grinding teeth, tantrums, tiptoe walking, self-harming behaviour, sore throats, headaches, ear aches, diarrhea, and/or consitpations.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Make sure you remember...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Recommended Actions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Initial Steps",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Missing developmental milestones might cause you to worry; however, missing milestones don't translate to an increased likelihood of being Autistic. Of course, it's always helpful to seek information and guidance if you have questions, and to explore further with a trusted expert.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "If you would like to try a quick, online screening, please click the link below to Autism Canada's online screening form:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Online Screening Assessment Form",
+   "bold": [],
+   "links": [
+    {
+     "text": "Online Screening Assessment Form",
+     "href": "https://autismcanada.org/autism-explained/screening-tools/"
+    }
+   ]
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Assessment & Diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "It's important to know which actions to take once certain indicators are recognized.Trust your instincts, monitor the child’s development, and consult a trusted healthcare provider to discuss your observations. Consider requesting an assessment and, if appropriate, a formal diagnosis from a developmental specialist. Don’t hesitate to seek a second opinion if you feel it would be helpful.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "See how to Get Assessment and Diagnosis",
+   "bold": [],
+   "links": [
+    {
+     "text": "See how to Get Assessment and Diagnosis",
+     "href": "https://www.autinerary.ca/learning/assessment-and-diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Our Favorite Autism Resources",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Study Up!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Screening & Developmental Milestones",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "CDC's Developmental Milestones",
+   "bold": [],
+   "links": [
+    {
+     "text": "CDC's Developmental Milestones",
+     "href": "https://www.cdc.gov/ncbddd/actearly/milestones/index.html"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Modified Checklist for Autism in Toddlers (M–CHAT): screening tool",
+   "bold": [],
+   "links": [
+    {
+     "text": "Modified Checklist for Autism in Toddlers (M–CHAT): screening tool",
+     "href": "https://www.mchatscreen.com/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "M-CHAT-R autism test (other languages)",
+   "bold": [],
+   "links": [
+    {
+     "text": "M-CHAT-R autism test (other languages)",
+     "href": "hhttps://www.mchatscreen.com/mchat-rf/translations/"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Assessment and Diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Diagnostic hubs in Ontario",
+   "bold": [],
+   "links": [
+    {
+     "text": "Diagnostic hubs in Ontario",
+     "href": "https://www.ontario.ca/page/autism-assessment-diagnosis#section-3"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Diagnosis & DSM-5 by Autism Canada",
+   "bold": [],
+   "links": [
+    {
+     "text": "Diagnosis & DSM-5 by Autism Canada",
+     "href": "https://www.autismcanada.ca/diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Research Paper on Screening, Assessment, and Diagnosis of Autism Spectrum Disorders in Young Children",
+   "bold": [],
+   "links": [
+    {
+     "text": "Research Paper on Screening, Assessment, and Diagnosis of Autism Spectrum Disorders in Young Children",
+     "href": "https://www.researchgate.net/publication/274960728_Screening_Assessment_and_Diagnosis_of_Autism_Spectrum_Disorders_in_Young_Children_Canadian_Best_Practice_Guidelines"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Video on Potential Signs of Early Autism",
+   "bold": [],
+   "links": [
+    {
+     "text": "Video on Potential Signs of Early Autism",
+     "href": "https://commons.wikimedia.org/wiki/File:Observation-_Nathan_and_Ben-_1_year_7_months.webm"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Family Support after Autism Diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "The Autism Parent Resource Kit",
+   "bold": [],
+   "links": [
+    {
+     "text": "The Autism Parent Resource Kit",
+     "href": "https://hollandbloorview.ca/sites/default/files/migrate/files/2015%20Government%20of%20Ontario%20Autism%20Parent%20Resource%20Kit.pdf"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "This page was adapted from these great resources!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- HelpGuide - Signs and Characteristics of Autism: https://www.helpguide.org/articles/autism-learning-disabilities/does-my-child-have-autism.htm",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC - Developmental Milestone checklist: https://www.cdc.gov/ncbddd/actearly/pdf/checklists/Checklists-with-Tips_Reader_508.pdf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Autism Canada - Early signs of Autism - Signs and Characteristics of Autism: https://autismcanada.org/about-autism/early-signs/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC - Developmental Milestone checklist: https://www.cdc.gov/ncbddd/actearly/pdf/checklists/Checklists-with-Tips_Reader_508.pdf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- FirstSigns - Signs and Characteristics of Autism: https://firstsigns.org/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- M-CHAT - Modified Checklist for Autism in Toddlers (M-CHAT): https://www.mchatscreen.com/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "References:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC. (2020, March). Screening and Diagnosis of Autism Spectrum Disorder. Cdc.Gov. https://www.cdc.gov/ncbddd/autism/screening.html",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Hutman Ted, S. J. S. M. (2019). Does My Child Have Autism? . Https://Www.Helpguide.Org.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Miller, L. E., Perkins, K. A., Dai, Y. G., & Fein, D. A. (2017). Comparison of parent report and direct assessment of child skills in toddlers. Research in Autism Spectrum Disorders, 41–42, 57–65. https://doi.org/10.1016/j.rasd.2017.08.002",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Ozonoff, S., Young, G. S., Steinfeld, M. B., Hill, M. M., Cook, I., Hutman, T., MacAri, S., Rogers, S. J., & Sigman, M. (2009). How early do parent concerns predict later autism diagnosis? Journal of Developmental and Behavioral Pediatrics, 30(5), 367–375. https://doi.org/10.1097/DBP.0b013e3181ba0fcf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Support our Research!",
+   "bold": [],
+   "links": [
+    {
+     "text": "Support our Research!",
+     "href": "https://survey.typeform.com/to/roB36c6r"
+    }
+   ]
+  }
+ ]
+}

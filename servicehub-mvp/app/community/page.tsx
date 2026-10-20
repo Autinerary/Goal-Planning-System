@@ -30,6 +30,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import TidbitsFilterSidebar from '@/components/community/TidbitsFilterSidebar'
+import { lengthOf } from '@/lib/community/tidbits'
 
 interface FeedResponse {
   posts: CommunityPostSummary[]
@@ -59,7 +60,7 @@ function TidbitBadges({ p }: { p: CommunityPostSummary }) {
   return (
     <>
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-950">
-        <ChefHat className="h-3 w-3" aria-hidden="true" /> {p.length_type === 'tadbit' ? 'Tadbit' : 'Tidbit'}
+        <ChefHat className="h-3 w-3" aria-hidden="true" /> {lengthOf(p.length_type).label}
       </span>
       {p.source === 'external' && (
         <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-950">
@@ -369,6 +370,7 @@ function FeedInner() {
               <option value="">Any length</option>
               <option value="tidbit">Tidbits (up to 500 words)</option>
               <option value="tadbit">Tadbits (up to 1000 words)</option>
+              <option value="guide">Guides by Autinerary (longer)</option>
             </select>
           </label>
           <label className="text-gray-900">

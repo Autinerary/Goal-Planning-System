@@ -37,10 +37,13 @@ import ReportButton from '@/components/community/ReportButton'
 import SponsoredCard from '@/components/search/SponsoredCard'
 import { feedbackMailto } from '@/lib/feedback'
 import ListenButton from '@/components/layout/ListenButton'
+import KeepButton from '@/components/myResources/KeepButton'
+import { useMyProfile } from '@/lib/useMyProfile'
 import { contentNoteLabel } from '@/lib/community/contentNotes'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
+import { lengthOf } from '@/lib/community/tidbits'
 
 export default function PostDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -57,6 +60,8 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   // Odosa's "Comment on": the passage a reader highlighted in the post
   // body, carried into the composer below.
   const [quotedText, setQuotedText] = useState<string | null>(null)
+  // Who is reading, for "Save to My Resources".
+  const { profile: me } = useMyProfile()
   const bodyRef = useRef<HTMLDivElement>(null)
   // A post with a content note opens only when the reader chooses (Riipen
   // Labs, Group 15: "content warnings"; lib/community/contentNotes.ts).
@@ -214,7 +219,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {post.kind === 'tidbit' && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-950">
-              <ChefHat className="w-3 h-3" aria-hidden="true" /> {post.length_type === 'tadbit' ? 'Tadbit' : 'Tidbit'} · {post.word_count} words
+              <ChefHat className="w-3 h-3" aria-hidden="true" /> {lengthOf(post.length_type).label} · {post.word_count} words
             </span>
           )}
           {post.group && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">{post.group.name}</span>}
@@ -279,6 +284,12 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             {post.kind === 'tidbit' ? (post.published_at ? `published ${new Date(post.published_at).toLocaleDateString('en-CA', { day: 'numeric', month: 'long', year: 'numeric' })}` : 'not published yet') : `asked ${new Date(post.created_at).toLocaleString()}`}
           </span>
         </div>
+        {/* Keep a published Tidbit in My Resources, as a Post (STEP 86). */}
+        {post.kind === 'tidbit' && post.published_at && me && (
+          <div>
+            <KeepButton kind="post" id={post.id} signedIn={me.signedIn} />
+          </div>
+        )}
         {post.source === 'external' && post.external_url && (
           <p className="flex flex-wrap gap-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm">
             <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-800 underline underline-offset-2">

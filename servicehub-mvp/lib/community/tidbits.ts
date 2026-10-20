@@ -16,6 +16,18 @@ export const LENGTHS: Record<LengthType, { label: string; words: number; hint: s
 
 export const isLengthType = (v: unknown): v is LengthType => v === 'tidbit' || v === 'tadbit'
 
+/** The team's own long pages as Tidbits (STEP 86: "taken right from our own
+ *  Learning info ... each page a separate Tidbit"): up to 3000 words, and
+ *  only with the Autinerary byline, which only the server sets. Not offered
+ *  in the composer. */
+export const GUIDE = { label: 'Guide', words: 3000 } as const
+
+/** A post's length name and word limit, guides included. */
+export function lengthOf(lengthType: string | null | undefined): { label: string; words: number } {
+  if (lengthType === 'guide') return GUIDE
+  return LENGTHS[lengthType === 'tadbit' ? 'tadbit' : 'tidbit']
+}
+
 /** Words as the database counts them: runs of characters between spaces. */
 export function wordCount(text: string): number {
   const t = (text || '').trim()

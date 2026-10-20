@@ -13,14 +13,27 @@ import RatedTab from '@/components/myResources/RatedTab'
 import SubmittedTab from '@/components/myResources/SubmittedTab'
 import BuildTeamTab from '@/components/myResources/BuildTeamTab'
 import MoreLikeThesePrompt from '@/components/prompts/MoreLikeThesePrompt'
-import { Bookmark, Star, FileText, Calendar, History, Plus, Users } from 'lucide-react'
+import KeptItems from '@/components/myResources/KeptItems'
+import { Bookmark, Star, FileText, Calendar, History, Plus, Users, Building2, ChefHat, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 
 type TabType = 'build-team' | 'saved' | 'current' | 'past' | 'rated' | 'submitted'
+// Layer 1 (the team's notes, October 2026: "Categories in My Resources should
+// be 2 layered; Layer 1 as Service, Post or Store Item, Layer 2 as layers in
+// each"): services, Tidbits and shop items, each with its own categories.
+type Kind = 'service' | 'post' | 'product'
+const KIND_TABS: { id: Kind; label: string; icon: React.ReactNode }[] = [
+  { id: 'service', label: 'Services', icon: <Building2 className="h-4 w-4" aria-hidden="true" /> },
+  { id: 'post', label: 'Posts', icon: <ChefHat className="h-4 w-4" aria-hidden="true" /> },
+  { id: 'product', label: 'Store Items', icon: <ShoppingBag className="h-4 w-4" aria-hidden="true" /> },
+]
+const STATUS_OF: Partial<Record<TabType, 'wishlist' | 'current' | 'past'>> = { saved: 'wishlist', current: 'current', past: 'past' }
 
 export default function MyResourcesPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('build-team')
+  const [kind, setKind] = useState<Kind>('service')
+  const [counts, setCounts] = useState<Record<string, Record<string, number>>>({})
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -42,6 +55,15 @@ export default function MyResourcesPage() {
 
     checkAuth()
   }, [router])
+
+  // How many Posts and Store Items each tab holds, for Layer 1.
+  useEffect(() => {
+    if (!userId) return
+    fetch('/api/my-resources/items?counts=1', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setCounts(d?.counts || {}))
+      .catch(() => {})
+  }, [userId, activeTab, kind])
 
   if (loading || !userId) {
     return (
@@ -121,12 +143,37 @@ export default function MyResourcesPage() {
             </nav>
           </div>
 
+          {/* Layer 1: Services, Posts or Store Items. */}
+          {STATUS_OF[activeTab] && (
+            <div role="group" aria-label="Kind" className="mt-6 flex flex-wrap gap-2">
+              {KIND_TABS.map((k) => {
+                const n = k.id === 'service' ? 0 : counts[k.id]?.[STATUS_OF[activeTab]!] || 0
+                return (
+                  <button
+                    key={k.id}
+                    type="button"
+                    aria-pressed={kind === k.id}
+                    onClick={() => setKind(k.id)}
+                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold ${
+                      kind === k.id ? 'bg-blue-700 text-white' : 'border border-gray-300 bg-white text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    {k.icon}
+                    {k.label}
+                    {n > 0 && <span className={`rounded-full px-1.5 text-xs ${kind === k.id ? 'bg-white/20' : 'bg-gray-100'}`}>{n}</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
           {/* Tab Content */}
           <div className="mt-8">
             {activeTab === 'build-team' && <BuildTeamTab userId={userId} />}
-            {activeTab === 'saved' && <SavedTab userId={userId} />}
-            {activeTab === 'current' && <CurrentTab userId={userId} />}
-            {activeTab === 'past' && <PastTab userId={userId} />}
+            {STATUS_OF[activeTab] && kind !== 'service' && <KeptItems kind={kind} status={STATUS_OF[activeTab]!} />}
+            {activeTab === 'saved' && kind === 'service' && <SavedTab userId={userId} />}
+            {activeTab === 'current' && kind === 'service' && <CurrentTab userId={userId} />}
+            {activeTab === 'past' && kind === 'service' && <PastTab userId={userId} />}
             {activeTab === 'rated' && <RatedTab userId={userId} />}
             {activeTab === 'submitted' && <SubmittedTab userId={userId} />}
           </div>

@@ -1,17 +1,14 @@
 'use client'
 
 /**
- * Two-layer category filter (Odosa: "Categories in My Resources should be
- * 2 layered; Layer 1 as Service Post or Store Item, Layer 2 as layers in each
- * individual place").
+ * The services' categories in My Resources: Layer 2 of the two (the team's
+ * notes, October 2026: "Categories in My Resources should be 2 layered;
+ * Layer 1 as Service, Post or Store Item, Layer 2 as layers in each"). Layer
+ * 1 is on the page (app/my-resources/page.tsx); shop items and Tidbits have
+ * their own categories there (KeptItems).
  *
- * Layer 1 answers "is this something I engage with, or something I buy?" —
- * the distinction that actually changes what you do next. Layer 2 then shows
- * ONLY the categories that exist inside that group, so picking "Store Items"
- * cannot leave you looking at a Therapist filter that now matches nothing.
- *
- * Groups are derived from the categories actually present in the user's saved
- * items, so an empty group never renders a button that returns zero results.
+ * Categories are derived from the user's saved items, so a chip never
+ * returns zero results.
  */
 
 export type ResourceGroup = 'all' | 'service' | 'store'
@@ -33,11 +30,6 @@ interface CategoryFilterProps {
   onCategoryChange: (category: string | null) => void
 }
 
-const GROUP_LABEL: Record<Exclude<ResourceGroup, 'all'>, string> = {
-  service: 'Service Posts',
-  store: 'Store Items',
-}
-
 export default function CategoryFilter({
   categories,
   group,
@@ -46,10 +38,6 @@ export default function CategoryFilter({
   onCategoryChange,
 }: CategoryFilterProps) {
   if (categories.length === 0) return null
-
-  const present = new Set(categories.map(groupForCategory))
-  // Only offer a layer-1 button for a group the user actually has something in.
-  const groups = (['service', 'store'] as const).filter((g) => present.has(g))
 
   const layerTwo =
     group === 'all' ? categories : categories.filter((c) => groupForCategory(c) === group)
@@ -61,36 +49,11 @@ export default function CategoryFilter({
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Layer 1 — what kind of thing */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => {
-            onGroupChange('all')
-            onCategoryChange(null)
-          }}
-          className={pill(group === 'all')}
-        >
-          All
-        </button>
-        {groups.map((g) => (
-          <button
-            key={g}
-            onClick={() => {
-              onGroupChange(g)
-              // Clear a layer-2 choice that does not belong to the new group,
-              // otherwise the list silently shows nothing.
-              if (category && groupForCategory(category) !== g) onCategoryChange(null)
-            }}
-            className={pill(group === g)}
-          >
-            {GROUP_LABEL[g]}
-          </button>
-        ))}
-      </div>
-
+      {/* Layer 1 (Services, Posts or Store Items) is above the tab, on
+          the page; this is Layer 2, the services' own categories. */}
       {/* Layer 2 — which category within that kind */}
       {layerTwo.length > 0 && (
-        <div className="flex flex-wrap gap-2 pl-1 border-l-2 border-gray-200 ml-1">
+        <div role="group" aria-label="Category" className="flex flex-wrap gap-2 pl-1 border-l-2 border-gray-200 ml-1">
           <button
             onClick={() => onCategoryChange(null)}
             className={`ml-2 ${pill(category === null)}`}

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, ChefHat, EyeOff, Link2, Save, Send } from 'lucide-react'
+import { ArrowLeft, ChefHat, EyeOff, Lightbulb, Link2, Save, Send } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
@@ -42,6 +42,11 @@ function WriteInner() {
   const [lengthType, setLengthType] = useState<LengthType>('tidbit')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  // The key sentence (the team's notes, October 2026: "add an option when
+  // writing a Tidbit to highlight the key sentence"; Tidbits' Solutions).
+  const [keySentence, setKeySentence] = useState('')
+  const [keyHint, setKeyHint] = useState('')
+  const bodyBox = useRef<HTMLTextAreaElement>(null)
   const [preview, setPreview] = useState(false)
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [groupsOpen, setGroupsOpen] = useState(true)
@@ -83,8 +88,11 @@ function WriteInner() {
         const p = d.post
         if (!p) return setError(d.error || 'That Tidbit wasn’t found.')
         if (!p.viewer_can_edit || p.kind !== 'tidbit') return setError('You can only edit your own Tidbits here.')
+        // The team's guides are longer than a Tadbit, and kept up to date from their Learning pages.
+        if (p.length_type === 'guide') return setError('This is one of the team’s guides: it’s updated from the Learning page it comes from.')
         setTitle(p.title || '')
         setBody(p.body_markdown || '')
+        setKeySentence(p.unlocking_moment || '')
         setLengthType(p.length_type === 'tadbit' ? 'tadbit' : 'tidbit')
         setStatus(p.status === 'published' ? 'published' : 'draft')
         setGroup(p.group?.slug || '')
@@ -139,6 +147,7 @@ function WriteInner() {
         items: items.map((i) => ({ kind: i.kind, id: i.id })),
         is_anonymous: anonymous,
         content_note: contentNote || null,
+        unlocking_moment: keySentence.trim() || null,
       }
       const res = await fetch(id ? `/api/community/posts/${id}` : '/api/community/posts', {
         method: id ? 'PATCH' : 'POST',
@@ -243,6 +252,7 @@ function WriteInner() {
               ) : (
                 <textarea
                   id="tidbit-body"
+                  ref={bodyBox}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={12}
@@ -255,6 +265,50 @@ function WriteInner() {
               <p id="tidbit-words" className={`mt-1 text-right text-xs ${words > limit ? 'font-semibold text-red-800' : 'text-gray-700'}`} aria-live="polite">
                 {words} of {limit} words
               </p>
+            </div>
+
+            {/* The key sentence: shown highlighted at the top of the Tidbit,
+                and under Solutions in Tidbits. */}
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+              <label htmlFor="key-sentence" className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                <Lightbulb className="h-4 w-4 text-amber-700" aria-hidden="true" /> Key sentence (optional)
+              </label>
+              <p id="key-sentence-hint" className="mt-0.5 text-xs text-gray-800">
+                The one sentence that helped most. It&apos;s highlighted at the top of your Tidbit, and your Tidbit shows under
+                Solutions.
+              </p>
+              <textarea
+                id="key-sentence"
+                value={keySentence}
+                onChange={(e) => setKeySentence(e.target.value.slice(0, 280))}
+                rows={2}
+                maxLength={280}
+                aria-describedby="key-sentence-hint"
+                placeholder="What finally worked was…"
+                className={`mt-2 ${input}`}
+              />
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  disabled={preview}
+                  onClick={() => {
+                    const el = bodyBox.current
+                    const picked = el ? el.value.slice(el.selectionStart, el.selectionEnd).trim() : ''
+                    if (!picked) return setKeyHint('Select a sentence in your Tidbit above first, then press this.')
+                    setKeySentence(picked.replace(/\s+/g, ' ').slice(0, 280))
+                    setKeyHint('')
+                  }}
+                  className="text-xs font-semibold text-blue-800 underline underline-offset-2 disabled:opacity-60"
+                >
+                  Use the sentence I selected above
+                </button>
+                <span className="text-xs text-gray-700">{keySentence.length} / 280</span>
+              </div>
+              {keyHint && (
+                <p role="status" className="mt-1 text-xs text-gray-900">
+                  {keyHint}
+                </p>
+              )}
             </div>
 
             <label className="block text-sm font-semibold text-gray-900">

@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import AuthButton from '@/components/auth/AuthButton'
 import MobileNav from './MobileNav'
-import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle, Star } from 'lucide-react'
+import { Search, Home, User, Shield, Menu, ArrowLeft, Sparkles, ShoppingBag, Handshake, FolderKanban, PlusCircle, Star, Palette } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import InfoModeButton from './InfoModeButton'
 
@@ -107,6 +107,16 @@ function NavbarInner() {
             >
               <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
               Tidbits
+            </Link>
+            {/* Visuals (the team's notes, October 2026): real art by the
+                people who made it; never AI-generated. */}
+            <Link
+              href="/visuals"
+              data-info="Visuals: real art by people in the community. No AI-generated art."
+              className="text-gray-700 hover:text-rose-700 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 flex items-center"
+            >
+              <Palette className="w-4 h-4 mr-2" aria-hidden="true" />
+              Visuals
             </Link>
             {user && (
               <Link

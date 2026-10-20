@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles, Handshake, FolderKanban, ShoppingBag, MessageSquareHeart } from 'lucide-react'
+import { X, Home, Search, Star, Plus, User, Shield, Bell, ArrowLeft, Sparkles, Handshake, FolderKanban, ShoppingBag, MessageSquareHeart, Palette } from 'lucide-react'
 import FeedbackLink from './FeedbackLink'
 import { useAuth } from '@/lib/auth/AuthContext'
 import NotificationBell from '@/components/notifications/NotificationBell'
@@ -256,6 +256,17 @@ export default function MobileNav({ isOpen, onClose, isAdmin, backHref, backLabe
               >
                 <Sparkles className="w-5 h-5" aria-hidden="true" />
                 Tidbits Community
+              </Link>
+
+              <Link
+                href="/visuals"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 ${
+                  pathname?.startsWith('/visuals') ? 'bg-rose-50 text-rose-800' : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={onClose}
+              >
+                <Palette className="w-5 h-5" aria-hidden="true" />
+                Visuals
               </Link>
 
               {user && (

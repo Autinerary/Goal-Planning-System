@@ -26,6 +26,7 @@ export default function LifeCategoryFilters({
   country,
   onLifeAreaToggle,
   onTagToggle,
+  headless = false,
 }: {
   lifeAreas: string[]
   tags: string[]
@@ -33,6 +34,8 @@ export default function LifeCategoryFilters({
   country?: string | null
   onLifeAreaToggle: (id: string) => void
   onTagToggle: (id: string) => void
+  /** Without its own heading, inside a section that has one (FilterSection). */
+  headless?: boolean
 }) {
   // Canada's school system unless the person lives in the United States and keeps this on.
   const [local, setLocal] = useState(true)
@@ -55,8 +58,12 @@ export default function LifeCategoryFilters({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-900 mb-1">Life Category</h3>
-      <p className="text-xs text-gray-600 mb-3">Choose one to see its own choices.</p>
+      {!headless && (
+        <>
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">Life Category</h3>
+          <p className="text-xs text-gray-600 mb-3">Choose one to see its own choices.</p>
+        </>
+      )}
       <div className="space-y-2">
         {LIFE_AREAS.map((area) => {
           const on = lifeAreas.includes(area.id)

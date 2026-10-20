@@ -25,12 +25,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ badges: {} })
   }
 
-  const badges: Record<string, { trending: boolean; highlyRequested: boolean; rare: boolean }> = {}
+  // The Trending tier (today bronze, this week silver, this month gold, this
+  // year platinum) and "Autinerary's Own" too (the team's notes, October 2026).
+  const TIERS = ['bronze', 'silver', 'gold', 'platinum']
+  const badges: Record<string, { trending: boolean; trendingTier: string | null; highlyRequested: boolean; rare: boolean; firstParty: boolean }> = {}
   for (const row of data || []) {
     badges[row.resource_id] = {
       trending: Boolean(row.trending),
+      trendingTier: TIERS.includes(row.trending_tier) ? row.trending_tier : null,
       highlyRequested: Boolean(row.highly_requested),
       rare: Boolean(row.rare),
+      firstParty: Boolean(row.first_party),
     }
   }
   return NextResponse.json({ badges })

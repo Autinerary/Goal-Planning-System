@@ -27,7 +27,7 @@ export default function ItemPicker({ items, onChange }: { items: PickedItem[]; o
     }
     const t = setTimeout(async () => {
       setBusy(true)
-      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&pageSize=8`, { credentials: 'include' }).catch(() => null)
+      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&pageSize=8&include=products`, { credentials: 'include' }).catch(() => null)
       const d = await res?.json().catch(() => null)
       setBusy(false)
       setResults(

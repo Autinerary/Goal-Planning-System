@@ -18,6 +18,7 @@ import { getProduct, getProductReviews } from '@/lib/shop/queries'
 import { formatPrice } from '@/types/shop'
 import { imageOrPlaceholder } from '@/lib/images/placeholder'
 import NominateButton from '@/components/communityChoice/NominateButton'
+import KeepButton from '@/components/myResources/KeepButton'
 import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
 import ReportProblem from '@/components/layout/ReportProblem'
@@ -125,6 +126,10 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             {/* Community's Choice (Goal 5): its badge if it won, and nominating it. */}
             <div className="mt-2">
               <NominateButton itemId={product.id} itemName={product.name} signedIn={signedIn} />
+            </div>
+            {/* Keep it in My Resources, as a Store Item (STEP 86). */}
+            <div className="mt-3">
+              <KeepButton kind="product" id={product.id} signedIn={signedIn} />
             </div>
             {(product.rating_count ?? 0) > 0 && (
               <div className="mt-1 flex items-center gap-1 text-sm text-gray-800">
@@ -248,68 +253,61 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
         {/* Ratings, insights and reviews — the same treatment services get */}
         <div className="mt-10 space-y-8">
-          {profileMatch && (
-            <DiagnosticsMatchBanner
-              profileLabels={profileMatch.labels}
-              similarUserCount={profileMatch.count}
-              averageRating={profileMatch.avg}
-            />
-          )}
+          {/* The same sections a service shows, with or without reviews yet
+              (the team's notes, October 2026: "Add rating breakdown,
+              community reviews, pattern insights and 'Based on those who
+              matched your Diagnostics profile' ... still missing ... most
+              important part!"). Each says what it will show and what it
+              needs, rather than an empty chart or a made-up number. */}
+          <DiagnosticsMatchBanner
+            profileLabels={profileMatch?.labels ?? viewerNorms.map((n) => n.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))}
+            similarUserCount={profileMatch?.count ?? 0}
+            averageRating={profileMatch?.avg ?? 0}
+            note={
+              profileMatch ? undefined : !signedIn ? (
+                <>
+                  <Link href={`/login?next=/shop/${product.id}`} className="font-medium underline">Sign in</Link> and add your Diagnostics
+                  profile to see how people like you rated it.
+                </>
+              ) : viewerNorms.length === 0 ? (
+                <>
+                  Add your Diagnostics profile in <Link href="/profile" className="font-medium underline">your profile</Link> to see how
+                  people like you rated it.
+                </>
+              ) : (
+                <>Once two or more people with a profile like yours review it, how they rated it shows here.</>
+              )
+            }
+          />
 
-          {breakdown.ratingCount > 0 && (
-            <RatingsBreakdown
-              averageRating={breakdown.averageRating}
-              ratingCount={breakdown.ratingCount}
-              ratingDistribution={breakdown.distribution}
-              barrierScores={breakdown.barrierScores}
-              diagnosticBreakdown={breakdown.diagnosticBreakdown}
-              relationshipMix={breakdown.relationshipMix}
-              weightedRating={breakdown.weightedRating}
-            />
-          )}
+          <RatingsBreakdown
+            averageRating={breakdown.averageRating}
+            ratingCount={breakdown.ratingCount}
+            ratingDistribution={breakdown.distribution}
+            barrierScores={breakdown.barrierScores}
+            diagnosticBreakdown={breakdown.diagnosticBreakdown}
+            relationshipMix={breakdown.relationshipMix}
+            weightedRating={breakdown.weightedRating}
+          />
 
-          {patterns.length > 0 && (
-            <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-blue-600" aria-hidden="true" />
-                <h3 className="text-lg font-semibold text-gray-900">Pattern Insights</h3>
-              </div>
+          <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-blue-600" aria-hidden="true" />
+              <h3 className="text-lg font-semibold text-gray-900">Pattern Insights</h3>
+            </div>
+            {patterns.length > 0 ? (
               <div className="space-y-3">
                 {patterns.map((p, i) => (
                   <PatternInsight key={p.id || `${p.type}-${i}`} pattern={p} variant="default" />
                 ))}
               </div>
-            </section>
-          )}
-
-          {/*
-            With no reviews there is no breakdown, no insight and no profile
-            match, so all three sections above render nothing and the page
-            looks as though the feature was never built. It was -- it just has
-            nothing to describe yet.
-
-            The honest fix is to say what WILL appear and what it needs, not to
-            show an empty chart or a placeholder number. A zero-state that
-            explains itself is the difference between "this product has no
-            reviews" and "this app has no breakdown", which is exactly the
-            confusion a tester hit here.
-          */}
-          {breakdown.ratingCount === 0 && (
-            <section className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-gray-400" aria-hidden="true" />
-                <h3 className="text-base font-semibold text-gray-700">
-                  Rating breakdown and insights
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Once people review this product you&apos;ll see the score broken down by norm and
-                by how strongly each reviewer relates to it, patterns across reviews, and how it
-                rated for people whose Diagnostics profile matches yours. None of that is shown
-                until there are real reviews behind it.
+            ) : (
+              <p className="text-sm text-gray-700">
+                Patterns show once a few people have reviewed it: what most of them found, and where people with
+                different norms disagreed.
               </p>
-            </section>
-          )}
+            )}
+          </section>
 
           <section className="rounded-xl border border-gray-200 bg-white p-4">
             <h2 className="text-lg font-bold text-gray-900 mb-3">

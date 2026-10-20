@@ -42,6 +42,15 @@ function sanitizeUrl(url: string): string | null {
   return trimmed.replace(/["'<>\s]/g, '');
 }
 
+/** Bold (** … **) and italic (* … * or _ … _), line-local. */
+function emphasis(text: string): string {
+  let out = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  // Avoid eating ** that we already consumed by requiring a non-* on each side.
+  out = out.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+  out = out.replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1<em>$2</em>');
+  return out;
+}
+
 /**
  * Apply inline transforms (bold/italic/code/links) to a single escaped line.
  */
@@ -54,17 +63,18 @@ function renderInline(escaped: string): string {
     return `\u0000CODE${codeSlots.length - 1}\u0000`;
   });
   // Links — [text](url). URL is sanitized; otherwise treated as plain text.
+  // Each finished link waits in a slot, like code, so the emphasis below
+  // can't reach into its address: "…/274960728_Screening_Assessment" would
+  // otherwise get an <em> inside the href and stop working.
+  const linkSlots: string[] = [];
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text, url) => {
     const safe = sanitizeUrl(url);
     if (!safe) return text;
-    return `<a href="${safe}" target="_blank" rel="noopener noreferrer nofollow">${text}</a>`;
+    linkSlots.push(`<a href="${safe}" target="_blank" rel="noopener noreferrer nofollow">${emphasis(text)}</a>`);
+    return `\u0000LINK${linkSlots.length - 1}\u0000`;
   });
-  // Bold (** … **) — greedy-but-line-local.
-  out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-  // Italic (* … * or _ … _). Avoid eating ** that we already consumed by
-  // requiring a non-* on each side.
-  out = out.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-  out = out.replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1<em>$2</em>');
+  out = emphasis(out);
+  out = out.replace(/\u0000LINK(\d+)\u0000/g, (_m, idx) => linkSlots[Number(idx)]);
   // Restore code slots.
   out = out.replace(/\u0000CODE(\d+)\u0000/g, (_m, idx) => codeSlots[Number(idx)]);
   return out;

@@ -297,8 +297,9 @@ export type AreaAverages = { [area: string]: { average: number; count: number } 
 export interface DiagnosticBreakdown {
   feature: string // rater diagnostic (barrier_type), e.g. 'autism'
   count: number // ratings from raters with this feature
+  average: number // their overall stars
   areas: AreaAverages // area averages across all levels of this feature
-  levels: Array<{ level: number; count: number; areas: AreaAverages }> // severity 1-5
+  levels: Array<{ level: number; count: number; average: number; areas: AreaAverages }> // severity 1-5
 }
 
 /** How a resource's ratings break down by the rater's relationship to the norm.
@@ -403,8 +404,9 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
   // and in the general barrierAverages above.
   const featureAgg: Record<string, {
     count: number
+    stars: number
     areas: Record<string, { sum: number; count: number }>
-    levels: Record<number, { count: number; areas: Record<string, { sum: number; count: number }> }>
+    levels: Record<number, { count: number; stars: number; areas: Record<string, { sum: number; count: number }> }>
   }> = {}
   if (ratings) {
     for (const rating of ratings) {
@@ -413,10 +415,12 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
       const dims = Object.entries(scores).filter(([, s]) => typeof s === 'number') as [string, number][]
       for (const [feature, rawSev] of Object.entries(diags)) {
         const sev = typeof rawSev === 'number' ? Math.max(1, Math.min(5, Math.round(rawSev))) : 0
-        const f = (featureAgg[feature] ||= { count: 0, areas: {}, levels: {} })
+        const f = (featureAgg[feature] ||= { count: 0, stars: 0, areas: {}, levels: {} })
         f.count += 1
-        const lvl = (f.levels[sev] ||= { count: 0, areas: {} })
+        f.stars += rating.overall_score
+        const lvl = (f.levels[sev] ||= { count: 0, stars: 0, areas: {} })
         lvl.count += 1
+        lvl.stars += rating.overall_score
         for (const [dim, score] of dims) {
           ;(f.areas[dim] ||= { sum: 0, count: 0 })
           f.areas[dim].sum += score
@@ -437,9 +441,10 @@ export async function getResourceDetail(resourceId: string, userId?: string): Pr
     .map(([feature, f]) => ({
       feature,
       count: f.count,
+      average: f.count ? f.stars / f.count : 0,
       areas: toAvg(f.areas),
       levels: Object.entries(f.levels)
-        .map(([lvl, l]) => ({ level: Number(lvl), count: l.count, areas: toAvg(l.areas) }))
+        .map(([lvl, l]) => ({ level: Number(lvl), count: l.count, average: l.count ? l.stars / l.count : 0, areas: toAvg(l.areas) }))
         .sort((a, b) => a.level - b.level),
     }))
     .sort((a, b) => b.count - a.count)
@@ -934,6 +939,12 @@ export interface SearchFilters {
    * instead of the query's words when set.
    */
   groups?: string[][]
+  /**
+   * More groups every listing must match, alongside the text: Activities
+   * (Swimming, Horseback Riding, Animal Therapy) and therapy kinds
+   * (lib/search/keywordFilters.ts).
+   */
+  keywordGroups?: string[][]
   /** Words that only count towards relevance (understood searches). */
   softWords?: string[]
   /**
@@ -1241,12 +1252,23 @@ function conditionMatch(tokens: string[]): { text: Set<string>; rated: Set<strin
 }
 
 /** The text a search must match: its groups when set (understood searches), else each word. */
-function textGroups(filters: Pick<SearchFilters, 'groups'>, words: string[]): string[][] {
-  if (filters.groups && filters.groups.length > 0) {
-    return filters.groups.map((g) => g.map(cleanTerm).filter(Boolean)).filter((g) => g.length > 0)
-  }
-  return words.map((w) => [w])
+function textGroups(filters: Pick<SearchFilters, 'groups' | 'keywordGroups'>, words: string[]): string[][] {
+  const base = filters.groups && filters.groups.length > 0
+    ? filters.groups.map((g) => g.map(cleanTerm).filter(Boolean)).filter((g) => g.length > 0)
+    : words.map((w) => [w])
+  return [...base, ...extraGroups(filters)]
 }
+
+/** Activities and therapy kinds: more groups every listing must match (lib/search/keywordFilters.ts). */
+function extraGroups(filters: Pick<SearchFilters, 'keywordGroups'>): string[][] {
+  return (filters.keywordGroups || []).map((g) => g.map(cleanTerm).filter(Boolean)).filter((g) => g.length > 0)
+}
+
+/** The badge filters checked on the matches (get_resource_badges): Rare, Highly
+ *  requested, and the Trending tiers. */
+const BADGE_TAG = /^(rare|highly_requested|trending_(bronze|silver|gold|platinum))$/
+const badgeFilters = (filters: Pick<SearchFilters, 'specialTags'>) => (filters.specialTags || []).filter((t) => BADGE_TAG.test(t))
+const meetsBadge = (b: Record<string, any>, tag: string) => (tag.startsWith('trending_') ? b.trending_tier === tag.slice('trending_'.length) : Boolean(b[tag]))
 
 function softWords(filters: Pick<SearchFilters, 'softWords'>): string[] {
   return (filters.softWords || []).map(cleanTerm).filter(Boolean)
@@ -1271,7 +1293,7 @@ async function searchPage(
   pageSize: number
 ): Promise<SearchOutcome | null> {
   if (Date.now() < pageFunctionMissingUntil) return null
-  if ((filters.specialTags || []).some((t) => t === 'rare' || t === 'highly_requested')) return null
+  if (badgeFilters(filters).length > 0) return null
 
   const { userLocation, maxDistance } = filters
   const words = searchWords(filters.query)
@@ -1376,7 +1398,7 @@ async function searchPage(
     let outcome = await run(textGroups(filters, words))
     // Nothing has every word: places with any of them, as below.
     if (outcome && outcome !== 'missing' && outcome.total === 0 && !filters.groups?.length && words.length > 1) {
-      outcome = await run([words])
+      outcome = await run([words, ...extraGroups(filters)])
     }
     if (outcome === 'missing') {
       pageFunctionMissingUntil = Date.now() + 5 * 60_000
@@ -1646,13 +1668,13 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
   let rows = await queryMatches(filters, groups, allowed, condKeys, condIds)
   // Nothing has every word: show venues with any of them, most words first.
   if (rows.length === 0 && !filters.groups?.length && words.length > 1) {
-    rows = await queryMatches(filters, [words], allowed, condKeys, condIds)
+    rows = await queryMatches(filters, [words, ...extraGroups(filters)], allowed, condKeys, condIds)
   }
 
-  // "Rare" and "Highly requested" come from real save counts
-  // (get_resource_badges), so they are checked on the matches. Either one
+  // "Rare", "Highly requested" and the Trending tiers come from real save
+  // counts (get_resource_badges), so they are checked on the matches. Any one
   // keeps a venue; "Autinerary's Own" is a column, filtered in the query.
-  const badgeTags = (filters.specialTags || []).filter((t) => t === 'rare' || t === 'highly_requested')
+  const badgeTags = badgeFilters(filters)
   if (badgeTags.length > 0 && rows.length > 0) {
     const supabase = createClient()
     const keep = new Set<string>()
@@ -1661,7 +1683,7 @@ async function matchResources(filters: SharedSearchFilters): Promise<SearchResul
       const { data, error } = await supabase.rpc('get_resource_badges', { p_resource_ids: ids.slice(i, i + 1000) })
       if (error) throw error
       for (const b of (data || []) as Record<string, any>[]) {
-        if (badgeTags.some((t) => b[t])) keep.add(b.resource_id)
+        if (badgeTags.some((t) => meetsBadge(b, t))) keep.add(b.resource_id)
       }
     }
     rows = rows.filter((r) => keep.has(r.id))

@@ -1,6 +1,7 @@
 'use client'
 
 import { COMMUNITY_GROUP_TAGS, SERVICE_AGES, SERVICE_TAGS, type CostType } from '@/lib/filters/tags'
+import { FilterSection } from './FilterSection'
 
 /**
  * Free or paid, the kind of service, online, and the age of a service (the
@@ -36,8 +37,9 @@ export default function TagFilters({
   const box = 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
   return (
     <>
+      <FilterSection title="Free or paid" active={costType ? 1 : 0}>
       <fieldset>
-        <legend className="text-sm font-semibold text-gray-900 mb-2">Free or paid</legend>
+        <legend className="sr-only">Free or paid</legend>
         <div className="flex flex-wrap gap-2">
           {[
             { id: undefined, label: 'Either' },
@@ -52,9 +54,11 @@ export default function TagFilters({
         </div>
         {costType === 'paid' && <p className="mt-2 text-xs text-gray-600">You can now sort by cost, above the results.</p>}
       </fieldset>
+      </FilterSection>
 
+      <FilterSection title="Kind of service" active={SERVICE_TAGS.filter((t) => tags.includes(t.id)).length}>
       <fieldset>
-        <legend className="text-sm font-semibold text-gray-900 mb-2">Kind of service</legend>
+        <legend className="sr-only">Kind of service</legend>
         <div className="space-y-1">
           {SERVICE_TAGS.map((t) => (
             <div key={t.id}>
@@ -87,35 +91,40 @@ export default function TagFilters({
           ))}
         </div>
       </fieldset>
+      </FilterSection>
 
+      <FilterSection title="Online" active={online ? 1 : 0}>
       <fieldset>
-        <legend className="text-sm font-semibold text-gray-900 mb-2">Online</legend>
+        <legend className="sr-only">Online</legend>
         <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
           <input type="checkbox" checked={online} onChange={() => onOnlineChange(!online)} className={box} />
           Only services offered online
         </label>
       </fieldset>
+      </FilterSection>
 
       {onShortWaitChange && (
+        <FilterSection title="Wait" active={shortWait ? 1 : 0}>
         <fieldset>
-          <legend className="text-sm font-semibold text-gray-900 mb-2">Wait</legend>
+          <legend className="sr-only">Wait</legend>
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input type="checkbox" checked={shortWait} onChange={() => onShortWaitChange(!shortWait)} className={box} />
             A short wait (a month or less)
           </label>
           <p className="mt-1 text-xs text-gray-700">From what people who used it said, or what the service says.</p>
         </fieldset>
+        </FilterSection>
       )}
 
-      <div>
-        <label htmlFor="service-age" className="text-sm font-semibold text-gray-900">
+      <FilterSection title="Age of service" active={age ? 1 : 0}>
+        <label htmlFor="service-age" className="sr-only">
           Age of service
         </label>
         <select
           id="service-age"
           value={age || ''}
           onChange={(e) => onAgeChange(e.target.value || undefined)}
-          className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"
+          className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"
         >
           <option value="">Any age</option>
           {SERVICE_AGES.map((a) => (
@@ -125,7 +134,7 @@ export default function TagFilters({
           ))}
         </select>
         <p className="mt-1 text-xs text-gray-600">How long ago it started, or was added here.</p>
-      </div>
+      </FilterSection>
     </>
   )
 }

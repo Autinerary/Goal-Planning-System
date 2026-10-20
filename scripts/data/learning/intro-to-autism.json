@@ -1,0 +1,498 @@
+{
+ "slug": "intro-to-autism",
+ "title": "Intro to Autism",
+ "section": "About Autism",
+ "url": "https://www.autinerary.ca/learning/intro-to-autism",
+ "blocks": [
+  {
+   "tag": "H4",
+   "text": "Are you",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "NEW TO AUTISM?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H4",
+   "text": "If so, this is a good place to start",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "DISCLAIMER: Please note that we are not medical professionals, nor is any of our advice official medical advice. This is simply a summary of what we found to be the most helpful on our own individual journeys. No matter what you read online, always verify with recommendations from certified medical professionals!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Let's start at the beginning.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "First, we must answer three important questions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "What Autism Really Is (and isn't)",
+   "bold": [],
+   "links": [
+    {
+     "text": "What Autism Really Is (and isn't)",
+     "href": "https://www.autinerary.ca/learning/intro-to-autism#what"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "How Autism Actually Develops",
+   "bold": [],
+   "links": [
+    {
+     "text": "How Autism Actually Develops",
+     "href": "https://www.autinerary.ca/learning/intro-to-autism#how"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Some Next Steps You Can Take",
+   "bold": [],
+   "links": [
+    {
+     "text": "Some Next Steps You Can Take",
+     "href": "https://www.autinerary.ca/learning/intro-to-autism#do"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Question 1:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "What really is Autism? (and what it isn't)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "General Definition",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autism is a lifelong neurodevelopmental difference that influences communication, social interactions, and behavior patterns, which may include repetitive or focused actions. (WHO, 2019), (Copeland, 2018).\nIt affects each person differently and autistic individuals have wide ranging abilities, characteristics and challenges.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "How Often It Occurs",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autism is more common than most might think, occuring approximately once in every 66 Canadian Children and Youth. Trust us; you're not alone in this.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Difference In Cases",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "What's important to remember is that every autism case is different. Each Autistic individual experiences autism differently; some may display a variety of characteristics associated with autism, while others may have traits that are less visible to those around them.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Similarity to Other Conditions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Additionally, not all traits or characteristics that overlap with autism indicate that an individual is Autistic.\nFor example: developmental delays such as speech or hearing problems, extremely specific and restricted interests, high intelligence, high sensitivity to light, sound, touch, etc, difficulties processing certain emotions or feelings, and other psychological conditions such as (but not limited to) ADHD, OCD, schizophrenia, depression, or anxiety.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Once again, if you would like further clarity, consider exploring trusted resources or consulting with a professional specializing in autism.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "What Autism Isn't",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "If you're interested in exploring common misconceptions about Autism, we recommend reading the following article, “10 Things Autism Isn't”, by Research Autism. We've attached a link to it below so you can read it!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "10 Things Autism Isn't",
+   "bold": [],
+   "links": [
+    {
+     "text": "10 Things Autism Isn't",
+     "href": "https://researchautism.org/ten-things-autism-isnt/"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Question 2:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "How does Autism develop?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "First Pattern",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The onset of autism often follows two patterns. The first, sometimes called ‘early onset,’ involves children showing gradual differences in social interaction and communication beginning in the first year of life, with these characteristics becoming more apparent by the second year (Palomo et al., 2006).",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Second Pattern",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "In another observed pattern, some children develop skills typically during their first year and experience changes or shifts in skill development during their second year, with characteristics of autism becoming more apparent (Ozonoff et al., 2008). These shifts might involve differences in communication or other developmental areas.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Question 3:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "What should I do about potential Autism Diagnosis & Services?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "1. Take Proactive Steps",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Delaying action may limit access to valuable resources and support.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Contact your family doctor or primary care provider (PCP) to discuss your observations and concerns.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "2. Get a Formal Diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Begin tracking and documenting behaviors, noting specific concerns, patterns, and how often they occur:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Use a screening tool such as the M-CHAT or another recommended option, and bring the results to discuss with your family doctor if you have concerns.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- For parents, if your child is nearing school age and may require additional support, schedule a meeting with your local school principal to explore access to special education services.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Diagnosis 101 & Online Screening Tools",
+   "bold": [],
+   "links": [
+    {
+     "text": "Diagnosis 101 & Online Screening Tools",
+     "href": "https://www.autinerary.ca/learning/assessment-and-diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "3. Access Services & Funding",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "If a parent in Ontario, call the central intake to register your child in the Ontario Autism Program (OAP). While the wait times are long, it's still ideal to take this step.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The services received will depend on their unique needs and may evolve as they grow and progress. It’s important to remember that autism is highly individualized, and there is no one-size-fits-all approach to support. You may work with a team of professionals, including a family doctor, pediatrician, psychologist, behavior consultant, and other therapists. Together with your family’s input, these professionals will create a tailored plan to meet the needs seen.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Services 101",
+   "bold": [],
+   "links": [
+    {
+     "text": "Services 101",
+     "href": "https://www.autinerary.ca/learning/general-service-info"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "4. Stay Organized",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "There are lots of ways you can stay organized. Keeping records of all the documents you'll be gathering, collaborating with your team to create a system everyone can use and access, using a calendar to schedule appointments & activities, etc., can make things much easier and less stressful in the long run. This can include records of all the healthcare professionals and organizations involved, the date, topic of discussion, results or follow-up details of meetings, and important reports such as documentation of strengths, needs, progress, and key support plans (such as medical or therapy-related reports). Additionally, this can include service, developmental and other therapy plans, education, school communication records & samples of schoolwork, and video logs of milestones.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Most importantly, schedule a time to regularly update and maintain your records!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "5. Self-Education",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Learn more about autism! A great place to start is our 'Learning' guide and other resources on this site; the next page after this one is linked to the button below! We also encourage you to check out the other great Autism organizations and local groups listed in the next section on the page, to find support, build connections, and access valuable resources.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Next Page in This Series",
+   "bold": [],
+   "links": [
+    {
+     "text": "Next Page in This Series",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "6. Connect With Family & Friends",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Caring for an Autistic child may come with unique challenges, so it’s important to prioritize self-care and quality time as a family. Find activities your family enjoys, considering sensory-friendly and calming options that work for everyone. Reach out to other parents, caregivers, and Autism groups to share experiences, build connections, and find support.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Our Favorite Autism Resources",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Study Up!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Ontario Autism Program",
+   "bold": [],
+   "links": [
+    {
+     "text": "Ontario Autism Program",
+     "href": "https://www.ontario.ca/page/ontario-autism-program"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Autism Ontario",
+   "bold": [],
+   "links": [
+    {
+     "text": "Autism Ontario",
+     "href": "https://www.autismontario.com/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Autism Canada",
+   "bold": [],
+   "links": [
+    {
+     "text": "Autism Canada",
+     "href": "https://autismcanada.org/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Kerry Place",
+   "bold": [],
+   "links": [
+    {
+     "text": "Kerry Place",
+     "href": "https://www.kerrysplace.org/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Holland Bloorview Kids Rehabilitation Center",
+   "bold": [],
+   "links": [
+    {
+     "text": "Holland Bloorview Kids Rehabilitation Center",
+     "href": "https://www.hollandbloorview.ca/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Kinark Child and Family Services",
+   "bold": [],
+   "links": [
+    {
+     "text": "Kinark Child and Family Services",
+     "href": "https://www.kinark.on.ca/autism-services"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "This page was adapted from these great resources!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Ohio's Parent Guide to Autism Spectrum Disorder: https://www.ocali.org/up_doc/Ohio_Parent_Guide_to_ASD_Introduction_2015.pdf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Autism resource kit: http://www.children.gov.on.ca/htdocs/English/documents/specialneeds/autism/aprk/Autism_Parenting_Kit_English.pdf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "References:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Copeland, J., (2018, August). What Is Autism Spectrum Disorder? https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Ozonoff, S., Heung, K., Byrd, R., Hansen, R., & Hertz-Picciotto, I. (2008). The onset of autism: Patterns of symptom emergence in the first years of life. In Autism Research (Vol. 1, Issue 6, pp. 320–328). NIH Public Access. https://doi.org/10.1002/aur.53",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Palomo, R., Belinchón, M., & Ozonoff, S. (2006). Autism and family home movies: A comprehensive review. In Journal of Developmental and Behavioral Pediatrics. https://doi.org/10.1097/00004703-200604002-00003",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- PHAC (Public Health Agency of Canada). (2019, August). Government of Canada Announces New Support for Canadians Living with Autism Spectrum Disorder and Those Who Care for Them. Canada.Ca. https://www.canada.ca/en/public-health/news/2019/08/government-of-canada-announces-new-support-for-canadians-living-with-autism-spectrum-disorder-and-those-who-care-for-them.html",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Sinclair, J. (1993). Don’t Mourn For Us. Autism Network International Newsletter, Our Voice. https://www.autreat.com/dont_mourn.html",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "​- WHO. (2019, November 7). Autism spectrum disorders. World Health Organization. https://www.who.int/news-room/fact-sheets/detail/autism-spectrum-disorders",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Support our Research!",
+   "bold": [],
+   "links": [
+    {
+     "text": "Support our Research!",
+     "href": "https://survey.typeform.com/to/roB36c6r"
+    }
+   ]
+  }
+ ]
+}

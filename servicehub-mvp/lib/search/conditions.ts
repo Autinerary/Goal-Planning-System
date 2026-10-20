@@ -63,14 +63,6 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
           { id: 'combined', label: 'Combined' },
         ],
       },
-      // Odosa: "we have to pick up famous combined categories (ex. AuDHD)".
-      // A real, widely-used identity in its own right — people search for it
-      // by name, and selecting Autism + ADHD separately does not surface
-      // resources written specifically about the combination.
-      {
-        id: 'audhd',
-        label: 'AuDHD (Autism + ADHD)',
-      },
       {
         id: 'specific_learning_disabilities',
         label: 'Specific Learning Disabilities',
@@ -81,6 +73,26 @@ export const CONDITION_GROUPS: ConditionGroup[] = [
         label: 'Motor & Vocal Differences',
       },
       { id: 'tourette', label: 'Tourette' },
+    ],
+  },
+  {
+    // Odosa: "we have to pick up famous combined categories (ex. AuDHD)", and
+    // the team's notes, October 2026: "Search for other famous combined
+    // categories like AuDHD". Names people use for two conditions together,
+    // and search for by name: selecting the parts separately does not find
+    // what is written about the combination. Each is checked against at
+    // least two health, education or national organisations' pages
+    // (.qa-local/services3/drafts/combined_norms.json, 20 October 2026).
+    id: 'combined',
+    label: 'Combined',
+    hint: 'Names for two or more together',
+    conditions: [
+      { id: 'audhd', label: 'AuDHD (Autism + ADHD)' },
+      { id: 'twice_exceptional', label: 'Twice-exceptional, 2e (Gifted + a learning disability, ADHD or autism)' },
+      { id: 'dual_diagnosis', label: 'Dual diagnosis (Developmental disability + mental health condition)' },
+      { id: 'ds_asd', label: 'DS-ASD (Down syndrome + autism)' },
+      { id: 'deafblindness', label: 'Deafblindness (Hearing loss + vision loss)' },
+      { id: 'concurrent_disorders', label: 'Concurrent disorders (Mental health + substance use)' },
     ],
   },
   {
@@ -149,6 +161,14 @@ const CONDITION_STEMS: Record<string, string[]> = {
   autism: ['autis', 'asperger'],
   adhd: ['adhd', 'attention deficit'],
   audhd: ['audhd', 'autism and adhd', 'adhd and autism'],
+  // The combined names (above), as the organisations that use them write them.
+  twice_exceptional: ['twice-exceptional', 'twice exceptional', '2e learner', '2e student', '2e child', '2e kid', 'dual exceptional', 'gifted students with learning disab', 'gifted with learning disab', 'gifted and learning disab'],
+  // In the United States "dual diagnosis" also means mental illness with
+  // substance use, so this finds some addiction services too.
+  dual_diagnosis: ['dual diagnosis', 'dual diagnoses', 'dually diagnosed', 'dually-diagnosed', 'developmental disability and mental health', 'developmental disabilities and mental health', 'intellectual disability and mental health', 'intellectual disabilities and mental health'],
+  ds_asd: ['ds-asd', 'ds+asd', 'ds/asd', 'down syndrome and autism', 'down syndrome with autism', 'down syndrome and asd', 'autism and down syndrome'],
+  deafblindness: ['deafblind', 'deaf-blind', 'deaf blind', 'dual sensory', 'combined hearing and vision', 'combined vision and hearing', 'intervenor service'],
+  concurrent_disorders: ['concurrent disorder', 'concurrent mental health and substance', 'concurrent mental health and addiction', 'co-occurring mental health and substance', 'co-occurring substance use and mental', 'dual disorder'],
   specific_learning_disabilities: ['learning disab', 'learning disorder', 'learning difference', 'dyscalculia', 'dysgraphia', 'dyslex'],
   dyslexia: ['dyslex', 'reading disab', 'reading disorder'],
   motor_vocal_differences: ['tourette', 'tic disorder', 'stutter', 'stammer', 'dyspraxia', 'developmental coordination', 'apraxia'],

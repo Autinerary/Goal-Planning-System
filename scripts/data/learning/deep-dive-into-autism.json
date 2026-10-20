@@ -1,0 +1,611 @@
+{
+ "slug": "deep-dive-into-autism",
+ "title": "Deep Dive into Autism",
+ "section": "About Autism",
+ "url": "https://www.autinerary.ca/learning/deep-dive-into-autism",
+ "blocks": [
+  {
+   "tag": "H4",
+   "text": "Do you want to take",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "A DEEP DIVE INTO AUTISM?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H4",
+   "text": "If so, we'll try to help you with that.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "DISCLAIMER: Please note that we are not medical professionals, nor is any of our advice official medical advice. This is simply a summary of what we found to be the most helpful on our own individual journeys. No matter what you read online, always verify with recommendations from certified medical professionals!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "By the way...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Did you miss the intro?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Click the button below to catch-up first before diving deep into an Autism 101!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "The Intro (if you need it)",
+   "bold": [],
+   "links": [
+    {
+     "text": "The Intro (if you need it)",
+     "href": "https://www.autinerary.ca/learning/intro-to-autism"
+    }
+   ]
+  },
+  {
+   "tag": "H1",
+   "text": "(Quick Links)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Evolution",
+   "bold": [],
+   "links": [
+    {
+     "text": "Evolution",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#evolution"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Prevalence",
+   "bold": [],
+   "links": [
+    {
+     "text": "Prevalence",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#prevalence"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Characteristics",
+   "bold": [],
+   "links": [
+    {
+     "text": "Characteristics",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#xteristics"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Cause",
+   "bold": [],
+   "links": [
+    {
+     "text": "Cause",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#cause"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Co-Occurences",
+   "bold": [],
+   "links": [
+    {
+     "text": "Co-Occurences",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#cooccurences"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Diagnosis",
+   "bold": [],
+   "links": [
+    {
+     "text": "Diagnosis",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Lifestyle",
+   "bold": [],
+   "links": [
+    {
+     "text": "Lifestyle",
+     "href": "https://www.autinerary.ca/learning/deep-dive-into-autism#impacts"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "Let's start with...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "The Evolution of Autism",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The definition of autism has evolved from Leo Kanner's description of a distinct syndrome of early infantile autism in 1940s to the current Diagnostic and Statistical Manual of the American Psychiatric Association (DSM-5) as, in our words, a broad neurodevelopmental condition characterized by diverse social communication styles and behaviors (Harris, 2018) (American Psychiatric Association, 2013).",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Prior to 2013, the five autism diagnostic subcategories were labelled as: autistic disorder, Asperger disorder, Rett disorder, childhood disintegrative disorder, and pervasive developmental disorder (PDD) not otherwise specified. Currently, the DSM-5 autism diagnostic sub-categories are based on two criteria - persisting differences in social communication and interaction and restricted and repetitive behaviors, interests, activities. Encompassing all of this are the three levels of support needs used to describe to diagnose autism (shown in the diagram above): level 1 - requiring support, level 2 - requiring substantial support, and level 3 - requiring very substantial support. (Posar et al., 2015)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "You should know...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "The Prevalence of Autism",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "According to the Public Health Agency of Canada (PHAC), the prevalence rate of Autism in Canada is around 1 in 66 children and youth, aged 5 to 17 years (PHAC, 2019). Boys are four times more likely to receive an autism diagnosis than girls. The globally reported prevalence varies substantially across studies, according to World Health Organization, although autism appears to be increasing (WHO, 2019). Possible explanations for the apparent increase include improved awareness, expansion of diagnostic criteria, better diagnostic tools, and improved reporting.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "It's important to know",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "The Characteristics of Autism",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The characteristics and range of abilities of autistic individuals differ. Additionally, no two autistic people appear or behave alike. Alas, these characteristics are often grouped into three categories, as shown in the diagram below (Copeland, 2018), (MCCSS, 2020):",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "1. Social Communication",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The first is social communication: this includes differences in understanding or responding to social cues (such as facial expressions), and challenges in developing reciprocal communication styles with others.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "2. Social Interactions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The next is social interaction: this includes differences in relating to people and events, such as in forming friendships or engaging in social behaviors like eye contact.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "3. Repetitive Behaviour",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Finally, restricted or repetitive patterns of behaviors, interests or activities: including speaking in unique way (echolalia and high pitches); toe-walking, hand-flapping, playing with toys in unusual way such as lining up cars; unusual or extreme sensory issues such as fascination with light, movements, indifference to pain, sensitive to loud noises; insistence and need of predictable routine or structure these may include unique behaviour patterns, such as echolalia (repeating words or phrases), toe-walking, hand-flapping, or engaging with toys in specific ways, like lining up objects. Sensory differences include fascination with lights or movement, incresed pain tolerance, heightened sensitivity to sounds, or a preference for predictable routines and structures.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The level of support an autistic individual may require varies based on the number and type of characteristics, age at first signs of autism, age at diagnosis, and individual needs in social situations.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Does anyone know...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "What Causes Autism",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Unfortunately, the answer to this is no; the specific factors contributing to autism are currently not fully understood. Scientific evidence suggests that genetics, environmental factors, and parental age may play a role. (WHO, 2019). There is a higher likelihood of autism occurring in families where a member is autistic, but note that autism is NOT caused or influenced by parental styles or vaccines (Copeland, 2018). Future research may shed more light on how genes and environmental factors interact to shape autism.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Are there any...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Co-Occuring Conditions (a.k.a Autism + other disorders)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autistic individuals often present other co-occurring sensory, physical, and mental health conditions such as epilepsy, depression, anxiety and attention deficit hyperactivity disorder (ADHD). (CASDA, 2019) Children on the autism spectrum are four times more likely to experience gastrointestinal conditions and twice likely to have a psychiatric diagnosis than the general population. The intellectual functioning ability of autistic individuals, according to the World Health Organizaion (2019), varies from “profound impairment” to “superior levels” in comparison to those considered \"neurotypical\". In our view, this variation reflects the diversity of cognitive strengths and needs of autism.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "What about...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Diagnosis & Early Prevention",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "There are no medical tests for autism such as blood tests or brain scans (Garcin et al., 2015). Autism is diagnosed based on observation of a child's communication and behaviour, focusing on their unique developmental profile.Autism diagnosis is conducted by trained health professionals such as psychologists, developmental-behavioral pediatricians, child psychiatrists or other qualified providers. Diagnosis often involves collaborative meeting(s) with the parents or caregivers, and play-based assessments (Copeland, 2018). Early diagnosis and access to appropriate support help individuals thrive and improve their quality of life.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Learn More About Diagnosis!",
+   "bold": [],
+   "links": [
+    {
+     "text": "Learn More About Diagnosis!",
+     "href": "https://www.autinerary.ca/learning/assessment-and-diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "How About",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Autism & Lifelong Support",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Impacts on Lifestyle",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autism may present challenges in daily activities, education, and employment (Elsabbagh et al., 2012), but with the right supports, autistic individuals can find meaningful roles in their communities - to the community and themselves - and achieve fulfilling lives.\nProviding lifelong support for autistic individuals can require significant resources. Families often face financial challenges, but access to adequate supports and services can alleviate these burdens.\nHowever, for most families, the cost is more than financial and include the emotional and mental well-being of parents, siblings and extended family (CASDA, 2019). Thus, the empowerment of caregivers is a critical component of care for children with the severe form of ASD to improve their quality of life (WHO, 2019).\nRather importantly, research suggests that autistic individuals may face health disparities, including an increased risk of injury and mental health challenges, without adequate support and intervention. They may also encounter difficulties during interactions with law enforcement, highlighting theimportance of training and awareness for police to handle such interactions appropriately.Finally, it's also important to remember that early intervention can help autistic individuals access appropriate supports and thrive in their own unique ways.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "More information and resources below!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Leo Kanner's 1943 Paper on Autism, from The Transmitter",
+   "bold": [],
+   "links": [
+    {
+     "text": "Leo Kanner's 1943 Paper on Autism, from The Transmitter",
+     "href": "https://www.thetransmitter.org/spectrum/leo-kanners-1943-paper-on-autism/?fspec=1"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Another Leo Kanner Paper on Autism, from Simons Foundation",
+   "bold": [],
+   "links": [
+    {
+     "text": "Another Leo Kanner Paper on Autism, from Simons Foundation",
+     "href": "https://simonsfoundation.s3.amazonaws.com/share/071207-leo-kanner-autistic-affective-contact.pdf"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "On the Canadian National Autism Strategy, from The Autism Alliance of Canada",
+   "bold": [],
+   "links": [
+    {
+     "text": "On the Canadian National Autism Strategy, from The Autism Alliance of Canada",
+     "href": "https://autismalliance.ca/topics/national-autism-strategy/"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Senate Report on Canada's Situation with Autism Families",
+   "bold": [],
+   "links": [
+    {
+     "text": "Senate Report on Canada's Situation with Autism Families",
+     "href": "https://publications.gc.ca/collections/collection_2007/sen/YC17-391-1-01E.pdf"
+    }
+   ]
+  },
+  {
+   "tag": "H2",
+   "text": "This page referenced & was adapted from these great resources!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- American Psychiatric Association. (2013). Diagnostic and Statistical Manual of Mental Disorders (DSM–5) - 5th Edition. American Psychiatric Association. https://www.psychiatry.org/psychiatrists/practice/dsm",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.psychiatry.org/psychiatrists/practice/dsm",
+     "href": "https://www.psychiatry.org/psychiatrists/practice/dsm"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- American Psychiatric Association. (2018, August). What Is Autism Spectrum Disorder? Psychiatry.Org. https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder",
+     "href": "https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- CASDA. (2019). Blueprint for a National Autism Spectrum Disorder Strategy. https://www.casda.ca/wp-content/uploads/2019/03/Blueprint-for-a-National-ASD-Strategy-1.pdf",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.casda.ca/wp-content/uploads/2019/03/Blueprint-for-a-National-ASD-Strategy-1.pdf",
+     "href": "https://www.casda.ca/wp-content/uploads/2019/03/Blueprint-for-a-National-ASD-Strategy-1.pdf"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Copeland Nathan J. (2018, August). What Is Autism Spectrum Disorder? https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder",
+     "href": "https://www.psychiatry.org/patients-families/autism/what-is-autism-spectrum-disorder"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Dudley, C., & Emery, J. C. H. (n.d.). THE VALUE OF CAREGIVER TIME: COSTS OF SUPPORT AND CARE FOR INDIVIDUALS LIVING WITH AUTISM SPECTRUM DISORDER. Retrieved May 8, 2020, from www.policyschool.ca",
+   "bold": [],
+   "links": [
+    {
+     "text": "www.policyschool.ca",
+     "href": "http://www.policyschool.ca/"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Elsabbagh, M., Divan, G., Koh, Y. J., Kim, Y. S., Kauchali, S., Marcín, C., Montiel-Nava, C., Patel, V., Paula, C. S., Wang, C., Yasamy, M. T., & Fombonne, E. (2012). Global Prevalence of Autism and Other Pervasive Developmental Disorders. Autism Research, 5(3), 160–179. https://doi.org/10.1002/aur.239",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1002/aur.239",
+     "href": "https://doi.org/10.1002/aur.239"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Garcin Nathalie, Nachshen Jennifer, Zwaiggenbaum Ionie, & Brian Jessica. (2015, April). Screening, Assessment, and Diagnosis of Autism Spectrum Disorders in Young Children: Canadian Best Practice Guidelines. Researchgate.Net. https://www.researchgate.net/publication/274960728_Screening_Assessment_and_Diagnosis_of_Autism_Spectrum_Disorders_in_Young_Children_Canadian_Best_Practice_Guidelines",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.researchgate.net/publication/274960728_Screening_Assessment_and_Diagnosis_of_Autism_Spectrum_Disorders_in_Young_Children_Canadian_Best_Practice_Guidelines",
+     "href": "https://www.researchgate.net/publication/274960728_Screening_Assessment_and_Diagnosis_of_Autism_Spectrum_Disorders_in_Young_Children_Canadian_Best_Practice_Guidelines"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Guan, J., & Li, G. (2017). Injury mortality in individuals with autism. American Journal of Public Health, 107(5), 791–793. https://doi.org/10.2105/AJPH.2017.303696",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.2105/AJPH.2017.303696",
+     "href": "https://doi.org/10.2105/AJPH.2017.303696"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Harris, J. (2018). Leo Kanner and autism. 75-year perspective. In International Review of Psychiatry (Vol. 30, Issue 1, pp. 3–17). Taylor and Francis Ltd. https://doi.org/10.1080/09540261.2018.1455646",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1080/09540261.2018.1455646",
+     "href": "https://doi.org/10.1080/09540261.2018.1455646"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Lai, J. K. Y., Rhee, E., & Nicholas, D. (2017). Suicidality in Autism Spectrum Disorder: a Commentary. Advances in Neurodevelopmental Disorders, 1(3), 190–195. https://doi.org/10.1007/s41252-017-0018-4",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1007/s41252-017-0018-4",
+     "href": "https://doi.org/10.1007/s41252-017-0018-4"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- MCCSS (Ministry of Children, C. and S. S.) (2020, May). Autism in Ontario. Ontario.Ca. https://www.ontario.ca/page/autism-ontario#monthly-numbers",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.ontario.ca/page/autism-ontario#monthly-numbers",
+     "href": "https://www.ontario.ca/page/autism-ontario#monthly-numbers"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Ozonoff, S., Heung, K., Byrd, R., Hansen, R., & Hertz-Picciotto, I. (2008). The onset of autism: Patterns of symptom emergence in the first years of life. In Autism Research (Vol. 1, Issue 6, pp. 320–328). NIH Public Access. https://doi.org/10.1002/aur.53",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1002/aur.53",
+     "href": "https://doi.org/10.1002/aur.53"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Palomo, R., Belinchón, M., & Ozonoff, S. (2006). Autism and family home movies: A comprehensive review. In Journal of Developmental and Behavioral Pediatrics. https://doi.org/10.1097/00004703-200604002-00003",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1097/00004703-200604002-00003",
+     "href": "https://doi.org/10.1097/00004703-200604002-00003"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Paquette-Smith, M., Weiss, J., & Lunsky, Y. (2014). History of suicide attempts in adults with asperger syndrome. Crisis, 35(4), 273–277. https://doi.org/10.1027/0227-5910/a000263",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1027/0227-5910/a000263",
+     "href": "https://doi.org/10.1027/0227-5910/a000263"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- PHAC (Public Health Agency of Canada). (2019, August). Government of Canada Announces New Support for Canadians Living with Autism Spectrum Disorder and Those Who Care for Them. Canada.Ca. https://www.canada.ca/en/public-health/news/2019/08/government-of-canada-announces-new-support-for-canadians-living-with-autism-spectrum-disorder-and-those-who-care-for-them.html",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.canada.ca/en/public-health/news/2019/08/government-of-canada-announces-new-support-for-canadians-living-with-autism-spectrum-disorder-and-those-who-care-for-them.html",
+     "href": "https://www.canada.ca/en/public-health/news/2019/08/government-of-canada-announces-new-support-for-canadians-living-with-autism-spectrum-disorder-and-those-who-care-for-them.html"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Posar, A., Resca, F., & Visconti, P. (2015). Autism according to diagnostic and statistical manual of mental disorders 5 th edition: The need for further improvements. Journal of Pediatric Neurosciences, 10(2), 146–148. https://doi.org/10.4103/1817-1745.159195",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.4103/1817-1745.159195",
+     "href": "https://doi.org/10.4103/1817-1745.159195"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Salerno, A. C., & Schuller, R. A. (2019). A mixed-methods study of police experiences of adults with autism spectrum disorder in Canada. International Journal of Law and Psychiatry, 64, 18–25. https://doi.org/10.1016/j.ijlp.2019.01.002",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://doi.org/10.1016/j.ijlp.2019.01.002",
+     "href": "https://doi.org/10.1016/j.ijlp.2019.01.002"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- Senate of Canada. (2007, March). PAY NOW OR PAY LATER: Autism Families in Crisis. Http://Publications.Gc.Ca/. http://publications.gc.ca/collections/collection_2007/sen/YC17-391-1-01E.pdf",
+   "bold": [],
+   "links": [
+    {
+     "text": "http://publications.gc.ca/collections/collection_2007/sen/YC17-391-1-01E.pdf",
+     "href": "http://publications.gc.ca/collections/collection_2007/sen/YC17-391-1-01E.pdf"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "- WHO. (2019, November 7). Autism spectrum disorders. World Health Organization. https://www.who.int/news-room/fact-sheets/detail/autism-spectrum-disorder",
+   "bold": [],
+   "links": [
+    {
+     "text": "https://www.who.int/news-room/fact-sheets/detail/autism-spectrum-disorder",
+     "href": "https://www.who.int/news-room/fact-sheets/detail/autism-spectrum-disorder"
+    }
+   ]
+  },
+  {
+   "tag": "A",
+   "text": "Support our Research!",
+   "bold": [],
+   "links": [
+    {
+     "text": "Support our Research!",
+     "href": "https://survey.typeform.com/to/roB36c6r"
+    }
+   ]
+  }
+ ]
+}

@@ -28,6 +28,10 @@ import { track } from '@/lib/track'
 import CommunityChoiceBanner from '@/components/communityChoice/CommunityChoiceBanner'
 import FoundSummary from '@/components/search/FoundSummary'
 import SponsoredCard from '@/components/search/SponsoredCard'
+import TidbitCommentaries from '@/components/search/TidbitCommentaries'
+import type { TidbitCommentary } from '@/lib/search/tidbitCommentaries'
+import { ACTIVITIES } from '@/lib/search/keywordFilters'
+import { SPECIAL_TAGS, SOURCE_TYPES, THERAPY_SUBTYPES, THERAPY_TYPES, TRENDING_FILTERS } from '@/lib/filters/taxonomy'
 
 /** Where "near" is, as the search API reports it (Riipen Labs, Group 8). */
 interface NearInfo {
@@ -104,6 +108,10 @@ function SearchResults() {
   // The person's own tags on the page (in their support team, owned, read),
   // and their country, for Education's school system.
   const [mine, setMine] = useState<Record<string, string[]>>({})
+  // Tidbits as commentaries (lib/search/tidbitCommentaries.ts), and each
+  // listing's Trending tier, for the shining badge on its card.
+  const [tidbits, setTidbits] = useState<TidbitCommentary[]>([])
+  const [tiers, setTiers] = useState<Record<string, string>>({})
   const [country, setCountry] = useState<string | null>(null)
   const { profile, setProfile } = useMyProfile()
   // One rh_search event per search, not per render.
@@ -121,6 +129,9 @@ function SearchResults() {
   const ageRanges = searchParams.get('ageRanges')?.split(',').filter(Boolean) || []
   const specialTags = searchParams.get('specialTags')?.split(',').filter(Boolean) || []
   const sourceTypes = searchParams.get('sourceTypes')?.split(',').filter(Boolean) || []
+  // Activities and therapy kinds (the team's notes, October 2026).
+  const activities = searchParams.get('activities')?.split(',').filter(Boolean) || []
+  const therapy = searchParams.get('therapy')?.split(',').filter(Boolean) || []
   const ratingStarsRaw = searchParams.get('ratingStars')?.split(',').filter(Boolean) || []
   const ratingStars = ratingStarsRaw.map((s) => Number(s)).filter((n) => !Number.isNaN(n))
   const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined
@@ -194,6 +205,8 @@ function SearchResults() {
           ageRanges: ageRanges.join(','),
           specialTags: specialTags.join(','),
           sourceTypes: sourceTypes.join(','),
+          activities: activities.join(','),
+          therapy: therapy.join(','),
           ratingStars: ratingStars.join(','),
           minRating: minRating?.toString() || '',
           minPrice: minPrice?.toString() || '',
@@ -226,6 +239,20 @@ function SearchResults() {
         setMine(data.mine || {})
         setCountry(data.you?.country || null)
         setResults(data.results || [])
+        setTidbits(Array.isArray(data.tidbits) ? data.tidbits : [])
+        // The page's Trending tiers, in one request (get_resource_badges).
+        const ids = (data.results || []).filter((r: any) => r.kind !== 'product').map((r: any) => r.id)
+        setTiers({})
+        if (ids.length) {
+          fetch('/api/resources/badges', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resourceIds: ids }) })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => {
+              const next: Record<string, string> = {}
+              for (const [id, b] of Object.entries((j?.badges || {}) as Record<string, { trendingTier?: string | null }>)) if (b.trendingTier) next[id] = b.trendingTier
+              setTiers(next)
+            })
+            .catch(() => {})
+        }
         setTotal(data.total || 0)
         setProductCount(data.productCount || 0)
         const info: NearInfo = {
@@ -258,6 +285,7 @@ function SearchResults() {
           type: isNetworkError ? 'network' : 'server',
         })
         setResults([])
+        setTidbits([])
         setTotal(0)
         setProductCount(0)
       } finally {
@@ -276,6 +304,8 @@ function SearchResults() {
     ageRanges.join(','),
     specialTags.join(','),
     sourceTypes.join(','),
+    activities.join(','),
+    therapy.join(','),
     ratingStars.join(','),
     minRating,
     minPrice,
@@ -356,6 +386,20 @@ function SearchResults() {
       })
     },
     [sourceTypes, updateSearchParams]
+  )
+
+  const handleActivityToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({ activities: activities.includes(id) ? activities.filter((a) => a !== id) : [...activities, id] })
+    },
+    [activities, updateSearchParams]
+  )
+
+  const handleTherapyToggle = useCallback(
+    (id: string) => {
+      updateSearchParams({ therapy: therapy.includes(id) ? therapy.filter((t) => t !== id) : [...therapy, id] })
+    },
+    [therapy, updateSearchParams]
   )
 
   const handleCategoryToggle = useCallback(
@@ -466,6 +510,12 @@ function SearchResults() {
       barriers: undefined,
       conditions: undefined,
       lifeAreas: undefined,
+      connectionTypes: undefined,
+      ageRanges: undefined,
+      specialTags: undefined,
+      sourceTypes: undefined,
+      activities: undefined,
+      therapy: undefined,
       ratingStars: undefined,
       minRating: undefined,
       minPrice: undefined,
@@ -495,6 +545,8 @@ function SearchResults() {
     ageRanges.length +
     specialTags.length +
     sourceTypes.length +
+    activities.length +
+    therapy.length +
     tags.length +
     (costType !== undefined ? 1 : 0) +
     (online ? 1 : 0) +
@@ -514,6 +566,8 @@ function SearchResults() {
     ageRanges.length > 0 ||
     specialTags.length > 0 ||
     sourceTypes.length > 0 ||
+    activities.length > 0 ||
+    therapy.length > 0 ||
     tags.length > 0 ||
     costType !== undefined ||
     online ||
@@ -543,7 +597,7 @@ function SearchResults() {
     connectionTypes.length > 0 ||
     ratingStars.length > 0 ||
     minRating !== undefined ||
-    specialTags.some((t) => t === 'rare' || t === 'highly_requested')
+    specialTags.some((t) => t === 'rare' || t === 'highly_requested' || t.startsWith('trending_'))
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -592,6 +646,10 @@ function SearchResults() {
                   onAgeRangeToggle={handleAgeRangeToggle}
                   onSpecialTagToggle={handleSpecialTagToggle}
                   onSourceTypeToggle={handleSourceTypeToggle}
+                  activities={activities}
+                  therapy={therapy}
+                  onActivityToggle={handleActivityToggle}
+                  onTherapyToggle={handleTherapyToggle}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
                   onLifeAreaToggle={handleLifeAreaToggle}
@@ -742,6 +800,30 @@ function SearchResults() {
                         </button>
                       )
                     })}
+                    {[
+                      ...activities.map((id) => ({ key: `act-${id}`, label: ACTIVITIES.find((a) => a.id === id)?.label || id, off: () => handleActivityToggle(id) })),
+                      ...therapy.map((id) => ({
+                        key: `th-${id}`,
+                        label: `Therapy: ${THERAPY_TYPES.find((t) => t.id === id)?.label || Object.values(THERAPY_SUBTYPES).flat().find((t) => t.id === id)?.label || id}`,
+                        off: () => handleTherapyToggle(id),
+                      })),
+                      ...specialTags.map((id) => ({
+                        key: `sp-${id}`,
+                        label: SPECIAL_TAGS.find((t) => t.id === id)?.label || (TRENDING_FILTERS.find((t) => t.id === id) ? `Trending ${TRENDING_FILTERS.find((t) => t.id === id)!.label.toLowerCase()}` : id),
+                        off: () => handleSpecialTagToggle(id),
+                      })),
+                      ...sourceTypes.map((id) => ({ key: `src-${id}`, label: `Source: ${SOURCE_TYPES.find((t) => t.id === id)?.label || id}`, off: () => handleSourceTypeToggle(id) })),
+                    ].map((chip) => (
+                      <button
+                        key={chip.key}
+                        onClick={chip.off}
+                        className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {chip.label}
+                        <X className="w-3 h-3" aria-hidden="true" />
+                        <span className="sr-only">(remove)</span>
+                      </button>
+                    ))}
                     {(minPrice !== undefined || maxPrice !== undefined) && (
                       <button
                         onClick={() => handlePriceChange({ min: undefined, max: undefined })}
@@ -847,6 +929,9 @@ function SearchResults() {
                 </div>
               )}
 
+              {/* Tidbits as commentaries, when Commentaries or the Tidbits source is chosen. */}
+              {!error && !loading && page === 1 && <TidbitCommentaries tidbits={tidbits} query={query} />}
+
               {/* Results */}
               {!error && loading ? (
                 <div
@@ -892,6 +977,7 @@ function SearchResults() {
                               variant={viewMode}
                               mine={mine[resource.id] || []}
                               locationShared={Boolean(nearInfo?.place)}
+                              trendingTier={tiers[resource.id]}
                               footer={
                                 (resource as any).kind === 'product' ? undefined : (
                                   <TeamAction
@@ -916,7 +1002,7 @@ function SearchResults() {
                     onPageChange={handlePageChange}
                   />
                 </>
-              ) : (
+              ) : !error && tidbits.length > 0 ? null : (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
                   <EmptyState
                     type="search"
@@ -974,6 +1060,10 @@ function SearchResults() {
                   onAgeRangeToggle={handleAgeRangeToggle}
                   onSpecialTagToggle={handleSpecialTagToggle}
                   onSourceTypeToggle={handleSourceTypeToggle}
+                  activities={activities}
+                  therapy={therapy}
+                  onActivityToggle={handleActivityToggle}
+                  onTherapyToggle={handleTherapyToggle}
                   onCategoryToggle={handleCategoryToggle}
                   onBarrierToggle={handleBarrierToggle}
                   onLifeAreaToggle={handleLifeAreaToggle}

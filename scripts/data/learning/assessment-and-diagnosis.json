@@ -1,0 +1,294 @@
+{
+ "slug": "assessment-and-diagnosis",
+ "title": "Assessment & Diagnosis",
+ "section": "About Diagnosis",
+ "url": "https://www.autinerary.ca/learning/assessment-and-diagnosis",
+ "blocks": [
+  {
+   "tag": "H4",
+   "text": "Curious about",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "ASSESSMENT & DIAGNOSIS?",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H4",
+   "text": "Confidently navigate each step with a complete overview of the screening, assessment and diagnosis process.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "DISCLAIMER: Please note that we are not medical professionals, nor is any of our advice official medical advice. This is simply a summary of what we found to be the most helpful on our own individual journeys. No matter what you read online, always verify with recommendations from certified medical professionals!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "All About...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "ASD Diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Diagnosing autism can be challenging since there is no single medical test, such as a blood test, for autism. However, specially trained physicians and psychologists use professional assessment tools, review developmental history, and collaborate with caregivers to understand each individual’s unique traits. They rely on insights and behavioral observations to form a comprehensive evaluation. Today, medical professionals use the DSM-5, a widely recognized diagnostic guide, to evaluate autism and ensure consistent and informed diagnoses.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "A great summary of DSM-5 can be found on Autism Canada's website, with a link provided below:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "DSM-5 & Diagnosis, from Autism Canada",
+   "bold": [],
+   "links": [
+    {
+     "text": "DSM-5 & Diagnosis, from Autism Canada",
+     "href": "https://www.autismcanada.ca/diagnosis"
+    }
+   ]
+  },
+  {
+   "tag": "P",
+   "text": "Essentially, the DSM-5 based diagnosis is made by evaluating three behavioral groups:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "1. Social Interactions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The level of social interaction with peers and parents.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "2. Verbal Interactions",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The quality, frequency, and effectiveness of verbal interactions, including how they express thoughts and needs through speech or alternative communication methods.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "3. Repetitive Behaviour",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The presence, frequency, and nature of repetitive behaviors, as well as an intense focus on specific areas of interest that may differ from those of peers (Carmosino, 2020).",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "The most important thing is...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Early Diagnosis and Intervention",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Autism can often be recognized reliably by age two, yet many Autistic individuals are not identified until much later. Delays in recognition may result in missed opportunities to provide early supportive environments that embrace and nurture their unique strengths and challenges. According to Carmosino (2020), early behavioral support can help people better understand and respond to behaviors that may be expressions of sensory or emotional needs.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Starting individualized support equips Autistic individuals with tools to navigate their world while empowering others with strategies to foster understanding, acceptance, and collaboration. Such support focuses on enhancing quality of life and respecting the autonomy and individuality of Autistic people, rather than requiring them to conform to non-autistic norms.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "Here is an...",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H1",
+   "text": "Overview of the Diagnostic Assessment",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The Canadian Academy of Paediatricians recommends developmental screenings at 9, 18, and 24- or 30-month well-child visits, specifically recognizing autism characteristics at the 18- and 24-month visits.\nThese screenings aim to understand each child's developmental needs better and provide caregivers with insights to create supportive environments. Additional screenings may be helpful for children more likely to be Autistic, such as those with a family history of autism or those born with specific medical or developmental factors.\nThese assessments should also empower families with knowledge and resources to celebrate and support the child’s unique neurodivergent traits.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "(Hover over the images below for specific steps before, during and after the diagnostic assement)",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "A. Before the Assessment",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "1. Prepare for the doctor's appointment: Prepare a copy of detailed notes about developmental milestones and characteristics. Use checklists to track progress and document patterns, preferences, and challenging situations. Examples include the starting day of observered behaviours, frequency of occurences, triggers, and time of the day it happens most. Consider completing a screening tool like the M-CHAT to share with your doctor. Finally, schedule an appointment with your doctor as soon as possible.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "2. Visit your family doctor: As part of a wellness check, the doctor may ask about milestones, family medical history, and observations. Be prepared to share when you first noticed traits and any situations where they might need additional support. This helps create a holistic view of their needs.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "3. Get a referral to a specialist/diagnostic assessment: If needed, the physician may refer the individual to qualified professionals for an autism assessment, such as pediatricians, developmental pediatricians, psychiatrists, psychologists, or nurse practitioners. In Ontario, you can access assessments through diagnostic hubs funded by the Ministry of Children, Community, and Social Services (MCCSS). These hubs provide multi-disciplinary assessments, connect families with local resources, and offer training for professionals to expedite the diagnostic process. While a diagnosis is not required to register for the Ontario Autism Program (OAP), it can provide valuable insights into how to support best.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "B. During the Assessment",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Be prepared and ready for your family member's assessment. The specialist will gain a comprehensive understanding of the individual's characteristics and developmental history by asking questions and reviewing previous reports, school or childcare provider input, and any additional documentation you provide. They will also:\n- Observe and interact with the individual in a supportive manner.\n- Use standardized professional tools and criteria, including those outlined in the fifth edition of the Diagnostic and Statistical Manual of Mental Disorders (DSM-5).\n- Collaborate with a team of specialists experienced in working with Autistic individuals, such as developmental pediatricians, child psychologists, neuropsychologists, and speech pathologists.\nThe assessment process is designed to identify strengths, areas for support, and ways to create an environment that best suits their needs. In some cases, additional assessments may be needed to provide a fuller picture or address specific developmental questions. Above all, the process aims to foster understanding and enable meaningful support for your loved one's unique journey.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "C. After the Assessment",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "The specialist will meet with you to discuss the results and provide a detailed written report. This report will outline the individual’s strengths and support needs and recommended strategies for fostering their development and well-being. Key information in the formal report may include a statement referencing the diagnostic criteria, and the report may also include additional information such as:\n- Tools and methods used during the assessment.\n- Any co-occurring conditions, if applicable.\n- Insights into the individual’s strengths, challenges, and areas where they may benefit from support.\n- Recommendations for accommodations, resources, and potential next steps to create a supportive environment.\nThis report is designed to be a valuable resource for understanding and advocating, helping to ensure the individual receives the support necessary to thrive. The focus should remain on celebrating their individuality and equipping their support network with actionable insights.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "D. Further Assessments and Referrals",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "Someone you know might benefit from additional assessments or further testing to better understand their unique needs. These may include:\n- Hearing Assessment: An audiologist may evaluate hearing to rule out potential communication or sensory processing challenges.\n- Developmental or Cognitive Assessment: A psychologist might use standardized tools to assess verbal and nonverbal skills and gain insight into learning preferences and strengths.\n- Speech and Language Evaluation: A speech-language pathologist or psychologist may explore communication traits to identify ways to support practical and comfortable expression.\n- Sensorimotor Skills Evaluation: An occupational therapist might assess sensory processing and motor skills to help identify strategies that align with sensory needs.\nThese assessments are designed to provide a fuller understanding of how to support someone’s development best and empower them to thrive in their unique way.",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "This page was adapted from these great resources!",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- OAP - Autism assessment and diagnosis: https://www.ontario.ca/page/autism-assessment-diagnosis#section-1",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- PsychCentral - How Autism is Diagnosed: https://psychcentral.com/autism/how-autism-is-diagnosed/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC - Screening and Diagnosis of ASD: https://www.cdc.gov/autism/diagnosis/?CDC_AAref_Val=https://www.cdc.gov/ncbddd/autism/screening.html",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC - Developmental Milestone checklist: https://www.cdc.gov/ncbddd/actearly/pdf/checklists/Checklists-with-Tips_Reader_508.pdf",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- FirstSigns - Signs and Characteristics of Autism: https://firstsigns.org/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- M-CHAT - Modified Checklist for Autism in Toddlers (M-CHAT): https://www.mchatscreen.com/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "H2",
+   "text": "References:",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- CDC. (2020, March). Screening and Diagnosis of Autism Spectrum Disorder. Cdc.Gov. https://www.cdc.gov/ncbddd/autism/screening.html",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- Carmosino Amy. (2020, January 17). How Autism is Diagnosed. Psychcentral.Com/. https://psychcentral.com/autism/how-autism-is-diagnosed/",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "P",
+   "text": "- MCCSS (Ministry of Children, C. and S. S. (2019, October 22)). Autism assessment and diagnosis. Ontario.Ca. https://www.ontario.ca/page/autism-assessment-diagnosis",
+   "bold": [],
+   "links": []
+  },
+  {
+   "tag": "A",
+   "text": "Support our Research!",
+   "bold": [],
+   "links": [
+    {
+     "text": "Support our Research!",
+     "href": "https://survey.typeform.com/to/roB36c6r"
+    }
+   ]
+  }
+ ]
+}

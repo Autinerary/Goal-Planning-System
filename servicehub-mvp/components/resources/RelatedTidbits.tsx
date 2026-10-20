@@ -57,7 +57,7 @@ export default function RelatedTidbits({ resourceName }: { resourceName: string 
                 {p.solved && p.solvedSummary && (
                   <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{p.solvedSummary}</p>
                 )}
-                <p className="text-[0.6875rem] text-gray-400 mt-1">
+                <p className="text-[0.6875rem] text-gray-600 mt-1">
                   {p.answerCount} {p.answerCount === 1 ? 'answer' : 'answers'} · {p.score} points
                 </p>
               </div>

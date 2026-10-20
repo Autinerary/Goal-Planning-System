@@ -8,6 +8,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Breadcrumbs from '@/components/layout/Breadcrumbs'
 import type { CommunityPostSummary } from '@/types/community'
+import { lengthOf } from '@/lib/community/tidbits'
 
 const TABS = [
   { id: 'published', label: 'Published' },
@@ -86,7 +87,7 @@ function MineInner() {
               <li key={p.id} className="rounded-2xl border border-gray-200 bg-white p-4">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-700">
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-950">
-                    <FileText className="h-3 w-3" aria-hidden="true" /> {p.kind === 'tidbit' ? (p.length_type === 'tadbit' ? 'Tadbit' : 'Tidbit') : 'Question'}
+                    <FileText className="h-3 w-3" aria-hidden="true" /> {p.kind === 'tidbit' ? lengthOf(p.length_type).label : 'Question'}
                   </span>
                   {p.is_anonymous && <span className="rounded-full bg-gray-200 px-2 py-0.5 font-semibold text-gray-800">Anonymous</span>}
                   {p.group && <span>{p.group.name}</span>}

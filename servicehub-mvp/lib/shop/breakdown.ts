@@ -71,8 +71,9 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
   // RatingsBreakdown shows area averages per severity level.
   const diagAgg = new Map<string, {
     count: number
+    stars: number
     areas: Map<string, { sum: number; count: number }>
-    levels: Map<number, { count: number; areas: Map<string, { sum: number; count: number }> }>
+    levels: Map<number, { count: number; stars: number; areas: Map<string, { sum: number; count: number }> }>
   }>()
 
   for (const r of reviews) {
@@ -116,8 +117,9 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
     for (const [norm, level] of Object.entries((r as any).rater_diagnostics || {})) {
       const lvl = Number(level)
       if (!Number.isFinite(lvl)) continue
-      const feat = diagAgg.get(norm) || { count: 0, areas: new Map(), levels: new Map() }
+      const feat = diagAgg.get(norm) || { count: 0, stars: 0, areas: new Map(), levels: new Map() }
       feat.count += 1
+      feat.stars += rating
       for (const [area, score] of effectiveAreas) {
         const n = Number(score)
         if (!Number.isFinite(n)) continue
@@ -125,8 +127,9 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
         a.sum += n; a.count += 1
         feat.areas.set(area, a)
       }
-      const lv = feat.levels.get(lvl) || { count: 0, areas: new Map() }
+      const lv = feat.levels.get(lvl) || { count: 0, stars: 0, areas: new Map() }
       lv.count += 1
+      lv.stars += rating
       for (const [area, score] of effectiveAreas) {
         const n = Number(score)
         if (!Number.isFinite(n)) continue
@@ -154,9 +157,10 @@ export function buildProductBreakdown(reviews: ProductReview[]): ProductBreakdow
     .map(([feature, f]) => ({
       feature,
       count: f.count,
+      average: f.count ? f.stars / f.count : 0,
       areas: toAreas(f.areas),
       levels: Array.from(f.levels.entries())
-        .map(([level, lv]) => ({ level, count: lv.count, areas: toAreas(lv.areas) }))
+        .map(([level, lv]) => ({ level, count: lv.count, average: lv.count ? lv.stars / lv.count : 0, areas: toAreas(lv.areas) }))
         .sort((a, b) => a.level - b.level),
     }))
     .sort((a, b) => b.count - a.count || a.feature.localeCompare(b.feature))

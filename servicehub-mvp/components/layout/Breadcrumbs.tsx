@@ -68,7 +68,13 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
                   <Link
                     href={item.href}
                     aria-label={isHome ? 'Home' : undefined}
-                    className="inline-flex items-center justify-center gap-1.5 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                    // The house alone is 16px wide, and every link's 44px
+                    // minimum left it floating in a wide box with a gap before
+                    // the arrow (the team's notes, October 2026: "gap here?").
+                    // It keeps a 44px tap area, drawn around it instead.
+                    className={`inline-flex items-center justify-center gap-1.5 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded ${
+                      isHome ? "relative min-w-0 before:absolute before:-inset-x-3.5 before:inset-y-0 before:content-['']" : ''
+                    }`}
                   >
                     {isFirst && <Home className="w-4 h-4 shrink-0 text-gray-400" aria-hidden="true" />}
                     {!isHome && item.label}

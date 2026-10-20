@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Brain, Users } from 'lucide-react'
 
 interface DiagnosticsMatchBannerProps {
@@ -7,6 +8,8 @@ interface DiagnosticsMatchBannerProps {
   similarUserCount: number
   /** Average rating those similar users gave (0 when unknown). */
   averageRating?: number
+  /** Said instead when nobody with a matching profile has rated it yet (the shop's items show the section either way). */
+  note?: ReactNode
 }
 
 /**
@@ -18,6 +21,7 @@ export default function DiagnosticsMatchBanner({
   profileLabels,
   similarUserCount,
   averageRating = 0,
+  note,
 }: DiagnosticsMatchBannerProps) {
   const profile = profileLabels.length ? profileLabels.slice(0, 3).join(', ') : 'your profile'
 
@@ -40,6 +44,8 @@ export default function DiagnosticsMatchBanner({
               with a profile like yours ({profile}) rated this highly
               {averageRating >= 4 ? ` — ${averageRating.toFixed(1)}★ average.` : '.'}
             </>
+          ) : note ? (
+            note
           ) : (
             <>Relevant to your Diagnostics profile ({profile}).</>
           )}

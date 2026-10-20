@@ -25,7 +25,7 @@ import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
 import { markdownExcerpt } from '@/lib/community/markdown';
 import { buildAnswerTree } from '@/lib/community/threading';
 import { moderateFields, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
-import { LENGTHS, isLengthType, platformOf, shownAuthor, step83Missing, wordCount } from '@/lib/community/tidbits';
+import { LENGTHS, isLengthType, platformOf, shownAuthor, step83Missing, wordCount, lengthOf } from '@/lib/community/tidbits';
 import { checkedItems, dbErrorMessage, loadGroups } from '@/lib/community/tidbitsServer';
 import type { CommunityAuthorBadge, CommunityPostDetail, CommunityPostItem } from '@/types/community';
 
@@ -216,6 +216,8 @@ interface PatchBody {
   source?: string;
   external_url?: string | null;
   items?: { kind?: string; id?: string }[];
+  /** The key sentence (the team's notes, October 2026: "Solutions"). */
+  unlocking_moment?: string | null;
 }
 
 export async function PATCH(
@@ -293,6 +295,8 @@ export async function PATCH(
       .slice(0, 6);
   }
   if (body.content_note !== undefined) update.content_note = isContentNote(body.content_note) ? body.content_note : null;
+  // The key sentence its writer highlights, shown under Solutions.
+  if (body.unlocking_moment !== undefined) update.unlocking_moment = typeof body.unlocking_moment === 'string' ? body.unlocking_moment.trim().slice(0, 280) || null : null;
 
   // A Tidbit's own fields.
   const client = getCommunityServiceClient();
@@ -319,19 +323,21 @@ export async function PATCH(
     }
     if (!draft) {
       const words = wordCount(String(update.body_markdown ?? post.body_markdown ?? ''));
-      const lt = (update.length_type ?? post.length_type ?? 'tidbit') as 'tidbit' | 'tadbit';
-      if (words > LENGTHS[lt].words) {
-        return NextResponse.json({ error: `Keep it short and sweet! Please keep your ${LENGTHS[lt].label} under ${LENGTHS[lt].words} words.`, code: 'too_long' }, { status: 400 });
+      // A guide (the team's, STEP 86) keeps its own, longer limit.
+      const lt = lengthOf((update.length_type as string | undefined) ?? post.length_type);
+      if (words > lt.words) {
+        return NextResponse.json({ error: `Keep it short and sweet! Please keep your ${lt.label} under ${lt.words} words.`, code: 'too_long' }, { status: 400 });
       }
     }
   }
 
   // Moderation: no slurs; swear words bleeped; on publishing, the rest checked for a moderator.
-  const words = { title: update.title as string | undefined, body: update.body_markdown as string | undefined }
+  const words = { title: update.title as string | undefined, body: update.body_markdown as string | undefined, key: (update.unlocking_moment ?? undefined) as string | undefined }
   const moderated = moderateFields(words);
   if (moderated.slur) return NextResponse.json({ error: SLUR_MESSAGE, code: 'slur' }, { status: 400 });
   if (moderated.fields.title !== undefined) update.title = moderated.fields.title;
   if (moderated.fields.body !== undefined) update.body_markdown = moderated.fields.body;
+  if (moderated.fields.key !== undefined) update.unlocking_moment = moderated.fields.key;
   const publishing = tidbits && post.kind === 'tidbit' && !draft && (post.status === 'draft' || update.title !== undefined || update.body_markdown !== undefined);
   if (publishing) {
     const review = await reviewFlag(`${update.title ?? post.title}\n\n${update.body_markdown ?? post.body_markdown}`);

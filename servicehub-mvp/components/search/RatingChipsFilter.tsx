@@ -9,6 +9,8 @@ interface RatingChipsFilterProps {
   // The bucket options shown as chips. 0 = "Select All".
   options?: number[]
   onChange: (next: number[]) => void
+  /** Without its own heading, inside a section that has one (FilterSection). */
+  headless?: boolean
 }
 
 const DEFAULT_OPTIONS = [4, 5]
@@ -17,6 +19,7 @@ export default function RatingChipsFilter({
   selectedStars,
   options = DEFAULT_OPTIONS,
   onChange,
+  headless = false,
 }: RatingChipsFilterProps) {
   const allSelected =
     selectedStars.length === options.length &&
@@ -37,7 +40,7 @@ export default function RatingChipsFilter({
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Community Star Rating</h3>
+      {!headless && <h3 className="text-sm font-semibold text-gray-900 mb-3">Community Star Rating</h3>}
       <div className="flex flex-wrap gap-2">
         {options.map((value) => {
           const active = selectedStars.includes(value)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import ResourceBadges from './ResourceBadges'
+import ResourceBadges, { type ResourceBadgeFlags } from './ResourceBadges'
 
 /**
  * Self-contained: fetches its own resource's badges rather than requiring
@@ -9,8 +9,8 @@ import ResourceBadges from './ResourceBadges'
  * Renders nothing while loading and nothing if no badge applies — never a
  * skeleton implying a badge is coming.
  */
-export default function ResourceBadgesLoader({ resourceId }: { resourceId: string }) {
-  const [flags, setFlags] = useState<{ trending: boolean; highlyRequested: boolean; rare: boolean } | null>(null)
+export default function ResourceBadgesLoader({ resourceId, surprisingFind = false }: { resourceId: string; surprisingFind?: boolean }) {
+  const [flags, setFlags] = useState<ResourceBadgeFlags | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -25,6 +25,6 @@ export default function ResourceBadgesLoader({ resourceId }: { resourceId: strin
     return () => { cancelled = true }
   }, [resourceId])
 
-  if (!flags) return null
-  return <ResourceBadges trending={flags.trending} highlyRequested={flags.highlyRequested} rare={flags.rare} />
+  if (!flags && !surprisingFind) return null
+  return <ResourceBadges {...(flags || {})} surprisingFind={surprisingFind} />
 }

@@ -8,6 +8,8 @@ interface CostFilterProps {
   // Hard bounds for the slider; matches Figma at $0-$50,000
   bounds?: { min: number; max: number }
   onChange: (next: { min?: number; max?: number }) => void
+  /** Without its own heading, inside a section that has one (FilterSection). */
+  headless?: boolean
 }
 
 const DEFAULT_BOUNDS = { min: 0, max: 50_000 }
@@ -21,6 +23,7 @@ export default function CostFilter({
   max,
   bounds = DEFAULT_BOUNDS,
   onChange,
+  headless = false,
 }: CostFilterProps) {
   // Local controlled state so the inputs feel snappy; sync up on blur / slider release.
   const [localMin, setLocalMin] = useState<string>(min !== undefined ? String(min) : '')
@@ -60,7 +63,7 @@ export default function CostFilter({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      {!headless && <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-900">Cost Per Service</h3>
         {(min !== undefined || max !== undefined) && (
           <button
@@ -71,7 +74,7 @@ export default function CostFilter({
             Clear
           </button>
         )}
-      </div>
+      </div>}
 
       <div className="flex items-center gap-2">
         <div className="flex-1">

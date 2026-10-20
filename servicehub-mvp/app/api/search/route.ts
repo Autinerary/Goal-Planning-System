@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAgeRange, isSpecialTag, isConnectionType, isSourceType } from '@/lib/filters/taxonomy'
+import { isAgeRange, isSpecialTag, isConnectionType, isSourceType, isTherapyChoice } from '@/lib/filters/taxonomy'
+import { isActivity, keywordGroupsFor } from '@/lib/search/keywordFilters'
+import { tidbitCommentaries, wantsTidbitCommentaries, type TidbitCommentary } from '@/lib/search/tidbitCommentaries'
 import {
   searchResources,
   calculateDistance,
@@ -117,11 +119,18 @@ export async function GET(request: NextRequest) {
     const specialTags = csv('specialTags')?.filter(isSpecialTag)
     const connectionTypes = csv('connectionTypes')?.filter(isConnectionType)
     const sourceTypes = csv('sourceTypes')?.filter(isSourceType)
+    // Activities (Swimming, Horseback Riding, Animal Therapy) and therapy
+    // kinds, matched on what listings say (lib/search/keywordFilters.ts).
+    const activities = csv('activities')?.filter(isActivity) || []
+    const therapy = csv('therapy')?.filter(isTherapyChoice) || []
+    const keywordGroups = keywordGroupsFor(activities, therapy)
 
     // Tags, free or paid, online, and the age of a service (lib/filters/tags.ts;
     // the team's planning note, October 2026, Goal 1).
     const tagIds = csv('tags')?.filter(isTag) || []
     const tagGroups = tagGroupsFor(tagIds)
+    // "Surprising Finds" is a tag a listing carries (the team's notes).
+    if (specialTags?.includes('surprising_find')) tagGroups.push(['surprising_find'])
     const costParam = searchParams.get('cost')
     const costType = costParam === 'free' || costParam === 'paid' ? costParam : undefined
     const delivery = searchParams.get('online') === '1' ? ('online' as const) : undefined
@@ -205,6 +214,7 @@ export async function GET(request: NextRequest) {
       shortWait: shortWait || undefined,
       startedAfter,
       groups: asked?.groups.length ? asked.groups : undefined,
+      keywordGroups: keywordGroups.length ? keywordGroups : undefined,
       softWords: asked?.softWords.length ? asked.softWords : undefined,
       categories,
       barriers,
@@ -289,6 +299,7 @@ export async function GET(request: NextRequest) {
       (ageRanges && ageRanges.length > 0) ||
       (sourceTypes && sourceTypes.length > 0) ||
       tagGroups.length > 0 ||
+      keywordGroups.length > 0 ||
       costType === 'free' ||
       !!delivery ||
       !!startedAfter ||
@@ -298,9 +309,26 @@ export async function GET(request: NextRequest) {
       Array.isArray(categories) &&
       categories.some((c: string) => isShopFilterId(String(c)))
 
+    // Services is services (the team's notes, October 2026: "it seems all the
+    // products were added to services; only services should show up when I
+    // click services"). Shop items come only when a Shop type is ticked, or
+    // when a caller asks for both (Tidbits' "services and products you
+    // mention" picker: include=products).
+    const wantsProducts = searchParams.get('include') === 'products'
     let products: any[] = []
-    if (!normFilterActive || shopCategorySelected) {
+    if (shopCategorySelected || (wantsProducts && !normFilterActive)) {
       products = await searchProducts({ query: typed, categories, minPrice, maxPrice })
+    }
+
+    // Tidbits as commentaries (lib/search/tidbitCommentaries.ts), on the
+    // first page, beside the listings.
+    let tidbits: TidbitCommentary[] = []
+    if (page === 1 && wantsTidbitCommentaries(categories, sourceTypes)) {
+      try {
+        tidbits = await tidbitCommentaries(typed)
+      } catch {
+        tidbits = []
+      }
     }
 
     // Where each place on the page is on the person's team, for "Add to my
@@ -396,6 +424,10 @@ export async function GET(request: NextRequest) {
             if (ageRanges?.length && !(r.age_ranges || []).some((a: string) => ageRanges.includes(a as any))) return false
             if (sourceTypes?.length && !sourceTypes.includes(r.source_type)) return false
             if (tagGroups.length && !tagGroups.every((g) => g.some((tag) => (r.tags || []).includes(tag)))) return false
+            if (keywordGroups.length) {
+              const text = `${r.name || ''} ${r.description || ''} ${r.category || ''}`.toLowerCase()
+              if (!keywordGroups.every((g) => g.some((w) => text.includes(w)))) return false
+            }
             if (Number.isFinite(minPrice) && !(Number(r.price) >= (minPrice as number))) return false
             if (Number.isFinite(maxPrice) && !(Number(r.price) <= (maxPrice as number))) return false
             if (conditionWords.length) {
@@ -448,6 +480,7 @@ export async function GET(request: NextRequest) {
           : undefined,
         you: { signedIn, place, country },
         understood,
+        tidbits,
         ...(await (async () => {
           const team = await teamFor(combinedResults)
           return { team, mine: await mineFor([...combinedResults, ...products], team) }
@@ -463,6 +496,7 @@ export async function GET(request: NextRequest) {
       productCount: products.length,
       you: { signedIn, place, country },
       understood,
+      tidbits,
       ...(await (async () => {
         const team = await teamFor(keywordResult.results)
         return { team, mine: await mineFor([...keywordResult.results, ...products], team) }

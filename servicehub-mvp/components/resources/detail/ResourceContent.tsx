@@ -23,7 +23,7 @@ export default function ResourceContent({ resource }: ResourceContentProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-8">
-      <ResourceBadgesLoader resourceId={resource.id} />
+      <ResourceBadgesLoader resourceId={resource.id} surprisingFind={Array.isArray((resource as any).tags) && (resource as any).tags.includes('surprising_find')} />
 
       {/* Description */}
       {resource.description && (

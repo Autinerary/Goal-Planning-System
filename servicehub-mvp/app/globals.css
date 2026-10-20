@@ -334,3 +334,35 @@ html[data-underline-links="on"] a { text-decoration: underline; }
   .animate-treat { animation: none !important; opacity: 1 !important; }
 }
 html[data-reduce-motion="on"] .animate-treat { animation: none !important; opacity: 1 !important; }
+
+/* Special Tags that shine (the team's notes, October 2026: "Autinerary's Own
+   ... make it shiny!"; the Trending tiers "bronze shiny", "silver", "gold",
+   "platinum"; lib/filters/taxonomy.ts). A band of light crosses the badge
+   every few seconds. With Reduce motion on it stays still. */
+.shine { position: relative; overflow: hidden; isolation: isolate; }
+.shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: shine-sweep 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shine-sweep {
+  0%, 55% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shine::after { animation: none; display: none; }
+}
+html[data-reduce-motion="on"] .shine::after { animation: none; display: none; }
+
+/* Map controls at the touch size above keep one whole icon, centred (the 3D
+   view's attribution button showed its "i" twice on phones). */
+.maplibregl-ctrl-attrib-button,
+.maplibregl-ctrl button .maplibregl-ctrl-icon {
+  background-repeat: no-repeat;
+  background-position: center;
+}

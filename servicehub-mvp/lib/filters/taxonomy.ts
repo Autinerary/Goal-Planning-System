@@ -49,7 +49,7 @@ export type AgeRangeId = (typeof AGE_RANGES)[number]['id']
 /** Trending tiers. Sustained interest is the rarer achievement, so the
  *  year-long tier is platinum rather than the daily one. */
 export const TRENDING_TIERS = [
-  { id: 'bronze',   label: 'Trending today',      className: 'bg-gradient-to-r from-amber-700 via-orange-400 to-amber-700 text-white' },
+  { id: 'bronze',   label: 'Trending today',      className: 'bg-gradient-to-r from-amber-900 via-amber-700 to-amber-900 text-white' },
   { id: 'silver',   label: 'Trending this week',  className: 'bg-gradient-to-r from-slate-400 via-slate-100 to-slate-400 text-slate-900' },
   { id: 'gold',     label: 'Trending this month', className: 'bg-gradient-to-r from-yellow-600 via-yellow-200 to-yellow-600 text-yellow-950' },
   { id: 'platinum', label: 'Trending this year',  className: 'bg-gradient-to-r from-cyan-200 via-white to-cyan-200 text-slate-900' },
@@ -58,24 +58,41 @@ export const TRENDING_TIERS = [
 export type TrendingTierId = (typeof TRENDING_TIERS)[number]['id']
 
 /** Special Tags. `first_party` is the gradient "Autinerary's Own" badge and is
- *  admin-set only — a self-applied official badge is worth nothing. */
+ *  admin-set only — a self-applied official badge is worth nothing. `shine`
+ *  (globals.css) is the sweep of light the team asked for ("make it shiny!").
+ *  "Surprising Finds" (the team's notes, October 2026) is for everyday things
+ *  that turn out to suit norms well (a food, a clothing texture, a style of
+ *  TV show many autistic people like): the listing's tag `surprising_find`. */
 export const SPECIAL_TAGS = [
   {
     id: 'first_party',
     label: "Autinerary's Own",
-    className: 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-bold',
+    className: 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shine',
   },
+  { id: 'surprising_find',  label: 'Surprising Finds', className: 'bg-gradient-to-r from-teal-700 to-emerald-700 text-white font-bold' },
   { id: 'rare',             label: 'Rare',             className: 'bg-indigo-100 text-indigo-800' },
   { id: 'highly_requested', label: 'Highly requested', className: 'bg-rose-100 text-rose-800' },
 ] as const
 
-export type SpecialTagId = (typeof SPECIAL_TAGS)[number]['id']
+/** Trending, by how long the interest has lasted (TRENDING_TIERS above), as
+ *  filters: today bronze, this week silver, this month gold, this year
+ *  platinum, each shiny. A listing is in its highest tier only. */
+export const TRENDING_FILTERS = [
+  { id: 'trending_bronze',   tier: 'bronze',   label: 'Today' },
+  { id: 'trending_silver',   tier: 'silver',   label: 'This week' },
+  { id: 'trending_gold',     tier: 'gold',     label: 'This month' },
+  { id: 'trending_platinum', tier: 'platinum', label: 'This year' },
+] as const
 
-/** Commentary provenance, grouped the way Odosa listed them. */
+export type SpecialTagId = (typeof SPECIAL_TAGS)[number]['id'] | (typeof TRENDING_FILTERS)[number]['id']
+
+/** Commentary provenance, grouped the way Odosa listed them: News; Social
+ *  Media Posts (Reddit, Twitter, Facebook); Videos (YouTube, TikTok,
+ *  Instagram, Facebook); and Tidbits, Autinerary's own. */
 export const SOURCE_TYPE_GROUPS = [
   { label: 'News', options: [{ id: 'news', label: 'News' }] },
   {
-    label: 'Social media',
+    label: 'Social Media Posts',
     options: [
       { id: 'reddit',   label: 'Reddit' },
       { id: 'twitter',  label: 'Twitter / X' },
@@ -85,9 +102,10 @@ export const SOURCE_TYPE_GROUPS = [
   {
     label: 'Videos',
     options: [
-      { id: 'youtube',   label: 'YouTube' },
-      { id: 'tiktok',    label: 'TikTok' },
-      { id: 'instagram', label: 'Instagram' },
+      { id: 'youtube',        label: 'YouTube' },
+      { id: 'tiktok',         label: 'TikTok' },
+      { id: 'instagram',      label: 'Instagram' },
+      { id: 'facebook_video', label: 'Facebook' },
     ],
   },
   { label: 'Autinerary', options: [{ id: 'tidbits', label: 'Tidbits' }] },
@@ -100,21 +118,18 @@ export type SourceTypeId = string
  *  these so a crafted request cannot smuggle an arbitrary string into a query. */
 export const isConnectionType = (v: string) => CONNECTION_TYPES.some((c) => c.id === v)
 export const isAgeRange = (v: string) => AGE_RANGES.some((a) => a.id === v)
-export const isSpecialTag = (v: string) => SPECIAL_TAGS.some((t) => t.id === v)
+export const isSpecialTag = (v: string) => SPECIAL_TAGS.some((t) => t.id === v) || TRENDING_FILTERS.some((t) => t.id === v)
 export const isSourceType = (v: string) => SOURCE_TYPES.some((s) => s.id === v)
 
 
-/** Therapy sub-types (Odosa: "change Therapist to Therapy, and add dropdowns
+/** Therapy types (Odosa: "change Therapist to Therapy, and add dropdowns
  *  for types of Therapy ... take from the Autism Services dropdowns on our
- *  site").
+ *  site ... and add the bolded text under each dropdown as a further layer").
  *
- *  These eight are the categories actually published on
- *  autinerary.ca/learning/general-service-info. Odosa also asked for the
- *  bolded items *under* each one as a third layer — those are rendered
- *  client-side on that page and were not retrievable, so they are
- *  deliberately absent rather than invented. Adding a made-up list of
- *  specific therapies under "Behavioural" would be exactly the kind of
- *  confident-looking clinical misinformation we agreed not to ship. */
+ *  The eight types published on autinerary.ca/learning/general-service-info,
+ *  and under each (THERAPY_SUBTYPES) the kinds that page names in it. Read
+ *  from the page itself on 19 October 2026, with every dropdown opened; none
+ *  is added that the page doesn't name. */
 export const THERAPY_TYPES = [
   { id: 'behavioural',      label: 'Behavioural' },
   { id: 'developmental',    label: 'Developmental' },
@@ -138,4 +153,30 @@ export const THERAPY_PROVIDERS = [
   { id: 'non_autism_specific', label: 'Non autism-specific professional' },
 ] as const
 
+/** The kinds the Learning page names under each therapy type (its bold
+ *  text, and the kinds it spells out where nothing is in bold). */
+export const THERAPY_SUBTYPES: Record<string, readonly { id: string; label: string }[]> = {
+  behavioural: [
+    { id: 'aba', label: 'ABA (Applied Behaviour Analysis)' },
+    { id: 'ibi', label: 'IBI (Intensive Behavioural Intervention)' },
+  ],
+  developmental: [
+    { id: 'speech_language', label: 'SLT (Speech Language Therapy)' },
+    { id: 'occupational', label: 'OT (Occupational Therapy)' },
+    { id: 'play', label: 'PT (Play Therapy)' },
+    { id: 'sensory_therapy', label: 'Sensory therapy' },
+  ],
+  educational: [{ id: 'educational_therapy', label: 'Educational therapy' }],
+  nutritional: [{ id: 'dietitian', label: 'Nutrition specialists (registered dietitians)' }],
+  pharmacological: [{ id: 'medication', label: 'Medication for associated conditions' }],
+  psychological: [{ id: 'cbt', label: 'CBT (Cognitive Behaviour Therapy)' }],
+  social_relational: [{ id: 'rdi', label: 'RDI (Relationship Development Intervention)' }],
+  therapy_other: [
+    { id: 'animal_assisted', label: 'Animal-assisted therapy' },
+    { id: 'art_therapy', label: 'Art therapy' },
+    { id: 'relaxation', label: 'Relaxation therapy' },
+  ],
+}
+
 export const isTherapyType = (v: string) => THERAPY_TYPES.some((t) => t.id === v)
+export const isTherapyChoice = (v: string) => isTherapyType(v) || Object.values(THERAPY_SUBTYPES).some((list) => list.some((t) => t.id === v))

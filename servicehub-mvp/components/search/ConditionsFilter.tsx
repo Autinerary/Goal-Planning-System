@@ -66,38 +66,75 @@ export default function ConditionsFilter({ selected, onChange, embedded = false,
     })
   }
 
+  // A condition's own kinds (Autism's levels, ADHD's presentations) open and
+  // close under it (the team's notes, October 2026: "a dropdown at every
+  // level ... very small titles like Level 1-3 under Autism").
+  const [openLeaves, setOpenLeaves] = useState<Set<string>>(new Set())
+  const toggleLeaf = (id: string) =>
+    setOpenLeaves((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
   const renderConditionLeaf = (condition: ConditionLeaf) => {
     const checked = isSelected(condition.id)
     const sub = subOptionFor(condition.id)
+    const subs = condition.subOptions || []
+    const open = openLeaves.has(condition.id)
+    const listId = `condition-${condition.id}-kinds`
     return (
       <div key={condition.id} className="py-1">
-        <label className="flex items-center cursor-pointer hover:bg-white p-2 rounded">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => toggleCondition(condition)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <span className="ml-2 text-sm text-gray-700">{condition.label}</span>
-        </label>
-        {checked && condition.subOptions && condition.subOptions.length > 0 && (
-          <select
-            value={sub ?? ''}
-            onChange={(e) => setSubOption(condition, e.target.value || null)}
-            className="ml-6 mt-1 mb-1 block w-[calc(100%-1.5rem)] text-xs px-2 py-1 bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label={`${condition.label} sub-option`}
-          >
-            <option value="">Any {condition.label.toLowerCase()}</option>
-            {condition.subOptions.map((opt) => (
-              <option key={opt.id} value={opt.id}>
+        <div className="flex items-center gap-1">
+          <label className="flex flex-1 items-center cursor-pointer hover:bg-white p-2 rounded">
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => toggleCondition(condition)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="ml-2 text-sm text-gray-700">
+              {condition.label}
+              {sub && <span className="ml-1 text-xs text-gray-600">· {subs.find((o) => o.id === sub)?.label}</span>}
+            </span>
+          </label>
+          {subs.length > 0 && (
+            <button
+              type="button"
+              onClick={() => toggleLeaf(condition.id)}
+              aria-expanded={open}
+              aria-controls={listId}
+              aria-label={`${condition.label}: ${subs.map((o) => o.label).join(', ')}`}
+              className="rounded p-1.5 text-gray-600 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              {open ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
+            </button>
+          )}
+        </div>
+        {subs.length > 0 && (
+          <fieldset id={listId} hidden={!open} className="ml-8 mb-1 space-y-0.5">
+            <legend className="sr-only">Which {condition.label}</legend>
+            {[{ id: '', label: `Any ${condition.label}` }, ...subs].map((opt) => (
+              <label key={opt.id || 'any'} className="flex items-center gap-2 p-1 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name={listId}
+                  checked={checked && (sub ?? '') === opt.id}
+                  onChange={() => setSubOption(condition, opt.id || null)}
+                  className="h-4 w-4 text-blue-600"
+                />
                 {opt.label}
-              </option>
+              </label>
             ))}
-          </select>
+          </fieldset>
         )}
       </div>
     )
   }
+
+  const chosenIn = (group: ConditionGroup): number =>
+    (group.conditions || []).filter((c) => isSelected(c.id)).length + (group.groups || []).reduce((n, g) => n + chosenIn(g), 0)
 
   const renderGroup = (group: ConditionGroup, depth = 0) => {
     const expanded = depth === 0 ? expandedTop === group.id : expandedNested.has(group.id)
@@ -125,6 +162,9 @@ export default function ConditionsFilter({ selected, onChange, embedded = false,
             }`}
           >
             {group.label}
+            {chosenIn(group) > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-xs font-semibold text-white">{chosenIn(group)}</span>
+            )}
             {group.hint && <span className="mt-0.5 block text-xs font-normal text-gray-700">{group.hint}</span>}
           </span>
           {expanded ? (

@@ -7,6 +7,7 @@ import type { ReviewerProfile } from '@/types/database'
 import AddRatingButton from './AddRatingButton'
 import EmptyState from '@/components/feedback/EmptyState'
 import { showToast } from '@/lib/toast'
+import { areaName } from '@/lib/ratings/areaNames'
 
 interface CommunityReviewsProps {
   resourceId: string
@@ -223,7 +224,7 @@ export default function CommunityReviews({ resourceId, userId }: CommunityReview
                             key={barrier}
                             className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded"
                           >
-                            {barrier.replace(/_/g, ' ')}: {score as number}/5
+                            {areaName(barrier)}: {score as number}/5
                           </div>
                         ))}
                       </div>

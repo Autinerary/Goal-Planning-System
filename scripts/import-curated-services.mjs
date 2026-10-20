@@ -29,6 +29,12 @@
  * Safe to re-run: rows are matched on source_ref, and a service ResourceHub
  * already has from elsewhere with the same website is left out.
  *
+ * An entry with existing_id (the ResourceHub research round, October 2026)
+ * is a place ResourceHub already lists, usually from OpenStreetMap without a
+ * description: its checked description goes first (the open data's own line
+ * stays after it), and its tags, age ranges and missing contact details are
+ * added. Nothing already there is removed or replaced.
+ *
  *   node scripts/import-curated-services.mjs [topic ...]           # check only
  *   node scripts/import-curated-services.mjs --apply [topic ...]
  */
@@ -50,7 +56,10 @@ const tagsSrc = fs.readFileSync(path.join(ROOT, 'servicehub-mvp/lib/filters/tags
 const TAGS = new Set([
   ...[...tagsSrc.matchAll(/id: '([a-z0-9_]+)'/g)].map((m) => m[1]),
   ...[...tagsSrc.matchAll(/\['([a-z0-9_]+)', '[^']+'\]/g)].map((m) => `domain_${m[1]}`),
+  // "Surprising Finds", a Special Tag (lib/filters/taxonomy.ts).
+  'surprising_find',
 ])
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const AGES = new Set(['babies_0_4', 'children_5_8', 'preteens_9_12', 'teens_13_17', 'young_adults_18_30', 'adults_30_45', 'adults_45_65', 'seniors_65_plus'])
 // What each kind of service usually costs when the page does not say.
 const USUALLY_FREE = new Set(['Funding & Benefits', 'Newcomer Services', 'Education Support', 'Support Group', 'Legal & Future Planning', 'Social Services', 'Employment'])
@@ -135,7 +144,9 @@ async function main() {
       if (!site) { console.log(`  ${topic}: site did not load, left out: ${e.name}`); dropped++; continue }
       if (site !== 'yes') console.log(`  ${topic}: kept, the site ${site} (it loaded for the check on ${data.checked}): ${e.name}`)
       const country = e.country || 'Canada'
-      const point = e.address ? await geocode(e.address, e.city, e.province, country) : null
+      const existingId = UUID.test(e.existing_id || '') ? e.existing_id : null
+      // A listing ResourceHub already has keeps its own map point.
+      const point = e.address && !existingId ? await geocode(e.address, e.city, e.province, country) : null
       const known = e.cost === 'free' || e.cost === 'paid'
       const usual = e.usual_cost === 'free' || e.usual_cost === 'paid' ? e.usual_cost : USUALLY_FREE.has(e.category) ? 'free' : 'paid'
       rows.push({
@@ -159,6 +170,7 @@ async function main() {
         last_verified_at: new Date(data.checked || Date.now()).toISOString(),
         is_first_party: false,
         import_batch: `curated-${topic.replace(/_/g, '-')}-2026-10`,
+        ...(existingId ? { existing_id: existingId } : {}),
       })
       kept++
     }
@@ -169,6 +181,31 @@ async function main() {
     return
   }
   const supabase = await supabaseClient()
+  // Listings ResourceHub already has: add what was checked, keep what's there.
+  const enrich = rows.filter((r) => r.existing_id)
+  let enriched = 0
+  for (const r of enrich) {
+    const { data: old, error } = await supabase.from('resources').select('id, name, description, tags, age_ranges, contact_info, status').eq('id', r.existing_id).maybeSingle()
+    if (error || !old) { console.log(`  not found, left out: ${r.name} (${r.existing_id})`); continue }
+    const was = String(old.description || '').trim()
+    const description = was.includes(r.description) ? was : /Imported from OpenStreetMap/.test(was) || !was ? [r.description, was].filter(Boolean).join('\n\n') : was
+    const ci = old.contact_info || {}
+    const patch = {
+      description,
+      tags: [...new Set([...(old.tags || []), ...r.tags])],
+      age_ranges: [...new Set([...(old.age_ranges || []), ...r.age_ranges])],
+      contact_info: { ...ci, phone: ci.phone || r.contact_info.phone, email: ci.email || r.contact_info.email, website: ci.website || r.contact_info.website },
+      last_verified_at: r.last_verified_at,
+    }
+    const { error: upErr } = await supabase.from('resources').update(patch).eq('id', old.id)
+    if (upErr) { console.log(`  failed: ${r.name}: ${upErr.message}`); continue }
+    enriched++
+    console.log(`  added to the listing already there: ${old.name}${old.status !== 'approved' ? ` (it is ${old.status})` : ''}`)
+  }
+  const fresh0 = rows.filter((r) => !r.existing_id)
+  rows.length = 0
+  rows.push(...fresh0)
+  if (enrich.length) console.log(`Added checked details to ${enriched} of ${enrich.length} listings already in ResourceHub.`)
   // A service already in ResourceHub from somewhere else (another list, or
   // OpenStreetMap) with the same website is left out, so nobody sees it twice.
   const norm = (u) => {

@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       // Tidbit never shows on its author's public list.
       query = query.eq('status', 'published');
       if (kind === 'tidbit' || kind === 'question') query = query.eq('kind', kind);
-      if (length === 'tidbit' || length === 'tadbit') query = query.eq('length_type', length);
+      if (length === 'tidbit' || length === 'tadbit' || length === 'guide') query = query.eq('length_type', length);
       if (source === 'external') query = query.eq('source', 'external');
       if (source === 'internal') query = query.eq('source', 'internal');
       if (source === 'internal_rated') query = query.eq('source', 'internal').gt('well_done_count', 0);

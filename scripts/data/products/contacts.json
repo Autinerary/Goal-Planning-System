@@ -1,0 +1,921 @@
+{
+  "checked": "2026-10-20",
+  "note": "Each maker's published contact email, read on the page given (python3 -I .qa-local/services3/bin/check_contacts.py). For the team's contact list (STEP 86 products.contact_email).",
+  "contacts": [
+    {
+      "host": "about.roblox.com",
+      "email": "press@roblox.com",
+      "source_url": "https://about.roblox.com/press-kit",
+      "kind": "press",
+      "notes": "Press inquiries only."
+    },
+    {
+      "host": "akashicbooks.com",
+      "email": "info@akashicbooks.com",
+      "source_url": "https://www.akashicbooks.com/contact/",
+      "kind": "general",
+      "notes": "Akashic Books, publisher of An Unkindness of Ghosts (Rivers Solomon)."
+    },
+    {
+      "host": "allbirds.ca",
+      "email": "care@allbirds.ca",
+      "source_url": "https://allbirds.ca/policies/contact-information",
+      "kind": "support",
+      "notes": "Customer care; no press or general address found."
+    },
+    {
+      "host": "alpinehearingprotection.com",
+      "email": "support@alpinehearingprotection.com",
+      "source_url": "https://www.alpinehearingprotection.com/en-ca/pages/customer-support",
+      "kind": "support",
+      "notes": "Customer service; the contact-information page lists consument@alpine.nl (Alpine, Netherlands)."
+    },
+    {
+      "host": "amazon.ca",
+      "email": "press@buffalogames.com",
+      "source_url": "https://www.buffalogames.com/pages/faq",
+      "kind": "press",
+      "notes": "Amazon listing. Covers Boogie Board only: myboogieboard.com now redirects to Buffalo Games, whose contact page handles Boogie Board support (customerservice@buffalogames.com also on the FAQ). The other maker, Kellogg's (Pop-Tarts), could not be reached: kelloggs.ca refused the fetch (HTTP 405)."
+    },
+    {
+      "host": "ami.ca",
+      "email": "info@ami.ca",
+      "source_url": "https://www.ami.ca/who-we-are-cp",
+      "kind": "general",
+      "notes": "'for all other inquiries'; feedback@ami.ca for programming (Employable Me)."
+    },
+    {
+      "host": "annickpress.com",
+      "email": "orders@annickpress.com",
+      "source_url": "https://www.annickpress.com/Contact-Us",
+      "kind": "wholesale",
+      "notes": "Orders address linked on every Annick page; otherwise an online form (submissions@ is for manuscripts only). Michael McCreary's own site has a bookings form only."
+    },
+    {
+      "host": "archive.pov.org",
+      "email": "feedback@pov.org",
+      "source_url": "https://www.pbs.org/pov/about/",
+      "kind": "general",
+      "notes": "POV (American Documentary), which aired Neurotypical; listed under Contact."
+    },
+    {
+      "host": "arktherapeutic.com",
+      "email": "support@arktherapeutic.com",
+      "source_url": "https://arktherapeutic.helpscoutdocs.com/article/68-whats-your-fax-number",
+      "kind": "support",
+      "notes": "ARK's own help centre (its FAQ link); the contact page is a form."
+    },
+    {
+      "host": "assistiveware.com",
+      "email": "press@assistiveware.com",
+      "source_url": "https://www.assistiveware.com/press-room",
+      "kind": "press",
+      "notes": "support@assistiveware.com for app support."
+    },
+    {
+      "host": "attitudeliving.com",
+      "email": "marketing@attitudeliving.com",
+      "source_url": "https://attitudeliving.com/en-ca/pages/contact-us",
+      "kind": "wholesale",
+      "notes": "Labelled 'Marketing & Partnerships'; sales@attitudeliving.com for wholesale; press goes to an agency (attitude@behrmancesa.com)."
+    },
+    {
+      "host": "avazapp.com",
+      "email": "hello@avazapp.com",
+      "source_url": "https://avazapp.com/contact-us/",
+      "kind": "general",
+      "notes": "Avaz Inc.; support@avazapp.com is listed for support."
+    },
+    {
+      "host": "barefootdreams.com",
+      "email": "info@barefootdreams.com",
+      "source_url": "https://www.barefootdreams.com/policies/contact-information",
+      "kind": "general",
+      "notes": "'All email inquiries'; sales@barefootdreams.com for wholesale."
+    },
+    {
+      "host": "bbc.co.uk",
+      "email": "info@paperowlfilms.com",
+      "source_url": "https://www.paperowlfilms.com/",
+      "kind": "general",
+      "notes": "Paper Owl Films, the producer of Pablo (the shop links to the BBC CBeebies page)."
+    },
+    {
+      "host": "beevisual.com",
+      "email": "info@beevisual.com",
+      "source_url": "https://www.beevisual.com/faqs",
+      "kind": "general",
+      "notes": "Given on the FAQ page for app problems."
+    },
+    {
+      "host": "billyfootwear.com",
+      "email": "info@billyfootwear.com",
+      "source_url": "https://billyfootwear.com/products/charcoal-billy-limitless-sensory-friendly-shoes",
+      "kind": "general",
+      "notes": "Listed for customer service."
+    },
+    {
+      "host": "blusss.com",
+      "email": "hello@blusss.com",
+      "source_url": "https://blusss.com/pages/customer-service",
+      "kind": "general",
+      "notes": "Listed for customer service."
+    },
+    {
+      "host": "bogsfootwear.ca",
+      "email": "pr@bogsfootwear.com",
+      "source_url": "https://www.bogsfootwear.ca/shop/contactUs.html",
+      "kind": "press",
+      "notes": "Media Relations; info@bogsfootwear.ca is under Wholesale Inquiries, customercare@bogsfootwear.ca for customers."
+    },
+    {
+      "host": "brili.com",
+      "email": "feedback@brili.com",
+      "source_url": "https://brili.com/contact",
+      "kind": "general",
+      "notes": "The only address on the contact page."
+    },
+    {
+      "host": "ca.boodywear.com",
+      "email": "customercare.us@boody.com",
+      "source_url": "https://ca.boodywear.com/policies/privacy-policy",
+      "kind": "support",
+      "notes": "Boody's customer care address in the Canadian store's privacy policy (contact section); the contact page is a help-centre widget."
+    },
+    {
+      "host": "campbellsoup.ca",
+      "email": "media@campbellsoup.com",
+      "source_url": "https://www.campbellsoup.ca/news/media-contact/",
+      "kind": "press",
+      "notes": "Corporate Communications (Campbell Company of Canada, incl. Goldfish); consumer contact is a form."
+    },
+    {
+      "host": "cboard.io",
+      "email": "support@cboard.io",
+      "source_url": "https://github.com/cboard-org",
+      "kind": "support",
+      "notes": "Listed on Cboard's own GitHub organisation page; the cboard.io pages are script-driven and show no address."
+    },
+    {
+      "host": "coca-cola.com",
+      "email": "mediacentre@coca-cola.com",
+      "source_url": "https://www.coca-cola.com/ca/en/about-us/contact-us",
+      "kind": "press",
+      "notes": "Coca-Cola Canada (Minute Maid) media centre."
+    },
+    {
+      "host": "comfycubs.com",
+      "email": "cs@comfycubs.com",
+      "source_url": "https://comfycubs.com/pages/contact-us",
+      "kind": "support"
+    },
+    {
+      "host": "crazyaarons.com",
+      "email": "customercare@crazyaarons.com",
+      "source_url": "https://www.crazyaarons.com/pages/contact",
+      "kind": "general",
+      "notes": "Labelled 'Corporate / General Help'; orders@crazyaarons.com for wholesale."
+    },
+    {
+      "host": "daiyafoods.com",
+      "email": "daiya@manifest.group",
+      "source_url": "https://daiyafoods.com/en-ca/blogs/news",
+      "kind": "press",
+      "notes": "'Contact Us' link on Daiya's press room; the address is its PR agency's (Manifest). Consumer contact is a form."
+    },
+    {
+      "host": "darefoods.com",
+      "email": "media@darefoods.com",
+      "source_url": "https://www.darefoods.com/newsroom/",
+      "kind": "press",
+      "notes": "consumercare@darefoods.com for consumers."
+    },
+    {
+      "host": "decibeldefense.com",
+      "email": "contact@decibeldefense.com",
+      "source_url": "https://www.decibeldefense.com/pages/contact",
+      "kind": "general",
+      "notes": "'For all inquiries'."
+    },
+    {
+      "host": "deejmovie.com",
+      "email": "info@deejmovie.com",
+      "source_url": "https://www.deejmovie.com/contact",
+      "kind": "general",
+      "notes": "'email us' link on the film's contact / get-involved page (Rooy Media)."
+    },
+    {
+      "host": "douglas-mcintyre.com",
+      "email": "info@hpdm.ca",
+      "source_url": "https://douglas-mcintyre.com/pages/contact",
+      "kind": "general",
+      "notes": "Harbour Publishing / Douglas & McIntyre, publisher of Sarah Kurchak's book."
+    },
+    {
+      "host": "ecostinger.com",
+      "email": "info@ecostinger.com",
+      "source_url": "https://www.ecostinger.com/girls-full-body-swimsuit-stinger-suit-long-sleeves-legs-uv-protection-upf50-navy-blue-chlorine-resistant/",
+      "kind": "general"
+    },
+    {
+      "host": "equaleats.com",
+      "email": "support@equaleats.com",
+      "source_url": "https://equaleats.com/en-ca/pages/faq",
+      "kind": "support"
+    },
+    {
+      "host": "farmboy.ca",
+      "email": "media@farmboy.ca",
+      "source_url": "https://www.farmboy.ca/media-kit/",
+      "kind": "press",
+      "notes": "customercare@farmboy.ca for customers."
+    },
+    {
+      "host": "fdmt.ca",
+      "email": "service@fdmt.ca",
+      "source_url": "https://www.fdmt.ca/en/pages/contact-us",
+      "kind": "support",
+      "notes": "fdmt (Quebec) makes some listed items and resells Bouncyband, Kore, Learning Resources, Time Timer and Whisper Phone."
+    },
+    {
+      "host": "finchcare.com",
+      "email": "support@befinch.com",
+      "source_url": "https://apps.apple.com/app/id1528595748",
+      "kind": "support",
+      "notes": "In the developer's App Store description; finchcare.com's contact page is a Notion page that shows no text when fetched."
+    },
+    {
+      "host": "focusmate.com",
+      "email": "hi@focusmate.com",
+      "source_url": "https://www.focusmate.com/contact/",
+      "kind": "general",
+      "notes": "press@focusmate.com for press."
+    },
+    {
+      "host": "forestapp.cc",
+      "email": "support@forestapp.cc",
+      "source_url": "https://www.forestapp.cc/",
+      "kind": "support",
+      "notes": "'Contact Us' link (Seekrtech)."
+    },
+    {
+      "host": "funandfunction.com",
+      "email": "customercare@funandfunction.com",
+      "source_url": "https://funandfunction.com/pages/contact",
+      "kind": "support"
+    },
+    {
+      "host": "gamewright.com",
+      "email": "shop@ceaco.com",
+      "source_url": "https://www.ceaco.com/",
+      "kind": "general",
+      "notes": "Footer contact of Ceaco, Inc.; Gamewright's about page says it is a division of Ceaco. Gamewright's own pages show cs@gamewright.com and pr@ceaco.com only behind Cloudflare email protection."
+    },
+    {
+      "host": "gazillion.funrise.com",
+      "email": "customerservice@funrise.com",
+      "source_url": "https://www.funrise.com/support/",
+      "kind": "support",
+      "notes": "Funrise asks not to use it for wholesale or business inquiries."
+    },
+    {
+      "host": "getono.com",
+      "email": "wholesale@getono.com",
+      "source_url": "https://getono.com/pages/wholesale",
+      "kind": "wholesale",
+      "notes": "Page says 'All general inquiries are welcome at' this address."
+    },
+    {
+      "host": "girlfriend.com",
+      "email": "hello@girlfriend.com",
+      "source_url": "https://girlfriend.com/products/black-compressive-high-rise-legging",
+      "kind": "general"
+    },
+    {
+      "host": "goblin.tools",
+      "email": "support@goblin.tools",
+      "source_url": "https://goblin.tools/Privacy",
+      "kind": "support",
+      "notes": "Given in the privacy policy for questions."
+    },
+    {
+      "host": "gonge.com",
+      "email": "gonge@gonge.com",
+      "source_url": "https://www.gonge.com/contact-where-to-buy",
+      "kind": "general",
+      "notes": "Gonge (Denmark)."
+    },
+    {
+      "host": "gymnic.com",
+      "email": "info@gymnic.com",
+      "source_url": "https://www.gymnic.com/en/product/discosit/",
+      "kind": "general",
+      "notes": "Gymnic (Italy)."
+    },
+    {
+      "host": "harkla.co",
+      "email": "support@harkla.co",
+      "source_url": "https://harkla.co/pages/contact-us",
+      "kind": "support"
+    },
+    {
+      "host": "hatch.co",
+      "email": "press@hatchbaby.com",
+      "source_url": "https://www.hatch.co/about-us",
+      "kind": "press",
+      "notes": "Customer support is a web form."
+    },
+    {
+      "host": "ikea.com",
+      "email": "mediacanada@ikea.com",
+      "source_url": "https://www.ikea.com/ca/en/newsroom/",
+      "kind": "press",
+      "notes": "IKEA Canada newsroom."
+    },
+    {
+      "host": "izadaptive.com",
+      "email": "info@izadaptive.com",
+      "source_url": "https://izadaptive.com/products/long-sleeve-adaptive-t-shirt-for-women",
+      "kind": "general"
+    },
+    {
+      "host": "jackandjillkids.com",
+      "email": "customerserviceusa@jackandjillkids.com",
+      "source_url": "https://jackandjillkids.com/pages/contact",
+      "kind": "support",
+      "notes": "US customer service; wholesale is through Faire."
+    },
+    {
+      "host": "jefferiessocks.com",
+      "email": "wholesale@jefferiessocks.com",
+      "source_url": "https://www.wholesale.jefferiessocks.com/help-center",
+      "kind": "wholesale",
+      "notes": "On Jefferies' wholesale help centre, with socks@jefferiessocks.com for order questions; the main site's contact address is hidden by Cloudflare."
+    },
+    {
+      "host": "khanacademy.org",
+      "email": "contact@khanacademy.org",
+      "source_url": "https://play.google.com/store/apps/details?id=org.khankids.android",
+      "kind": "general",
+      "notes": "Khan Academy, Inc. developer contact on the Khan Academy Kids Google Play listing; the app's support email there is khankids@khanacademy.org."
+    },
+    {
+      "host": "kinnikinnick.com",
+      "email": "info@kinnikinnick.com",
+      "source_url": "https://www.kinnikinnick.com/contact",
+      "kind": "general",
+      "notes": "wholesale@kinnikinnick.com also listed."
+    },
+    {
+      "host": "kizik.com",
+      "email": "press@kizik.com",
+      "source_url": "https://kizik.com/pages/press",
+      "kind": "press",
+      "notes": "customerservice@kizik.com for customers."
+    },
+    {
+      "host": "knix.ca",
+      "email": "info@knix.com",
+      "source_url": "https://knix.ca/pages/contact-us",
+      "kind": "general",
+      "notes": "Labelled customer service support; press@knix.com for press."
+    },
+    {
+      "host": "kraftheinz.com",
+      "email": "media@kraftheinz.com",
+      "source_url": "https://www.stocktitan.net/news/KHC/kraft-heinz-canada-and-maple-leaf-sports-entertainment-announce-new-8f71bw5yvshf.html",
+      "kind": "press",
+      "notes": "'Media Contact' in Kraft Heinz Canada's Oct 2025 press release, cited from a republished copy (Business Wire and the Kraft Heinz newsroom refused the fetch, HTTP 403). Consumer contact is a form."
+    },
+    {
+      "host": "kytebaby.com",
+      "email": "info@kytebaby.com",
+      "source_url": "https://kytebaby.com/en-ca/products/printed-toddler-pajama-set-in-vintage-hockey",
+      "kind": "general",
+      "notes": "Given in the product page's returns and defects text; contact page is a help-desk form."
+    },
+    {
+      "host": "macksearplugs.com",
+      "email": "info@macksearplugs.com",
+      "source_url": "https://www.macksearplugs.com/privacy-policy",
+      "kind": "general",
+      "notes": "McKeon Products' contact block in the privacy policy (printed in capitals); the contact page is phone and form."
+    },
+    {
+      "host": "madegoodfoods.ca",
+      "email": "info@riversidenaturalfoods.com",
+      "source_url": "https://www.madegoodfoods.ca/policies/privacy-policy",
+      "kind": "general",
+      "notes": "Riverside Natural Foods Ltd., maker of MadeGood; given in the privacy policy. 'Contact us' is a Zendesk form."
+    },
+    {
+      "host": "magnaready.com",
+      "email": "hello@magnaready.com",
+      "source_url": "https://magnaready.com/policies/privacy-policy",
+      "kind": "general",
+      "notes": "In the privacy policy's Contact Us section; the contact page is a form."
+    },
+    {
+      "host": "magpictures.com",
+      "email": "mail@magnoliapictures.com",
+      "source_url": "https://www.magnoliapictures.com/contact",
+      "kind": "general",
+      "notes": "Magnolia Pictures; publicity@magpictures.com for press."
+    },
+    {
+      "host": "mantasleep.com",
+      "email": "support@mantasleep.com",
+      "source_url": "https://mantasleep.com/pages/contact",
+      "kind": "support"
+    },
+    {
+      "host": "mapleleaf.ca",
+      "email": "Media.Hotline@mapleleaf.com",
+      "source_url": "https://www.mapleleaffoods.com/contact-us/",
+      "kind": "press",
+      "notes": "Maple Leaf Foods Media Hotline; consumer contact on mapleleaf.ca is a form."
+    },
+    {
+      "host": "mastermindtoys.com",
+      "email": "customerservice@mastermindtoys.com",
+      "source_url": "https://www.mastermindtoys.com/pages/general-faq",
+      "kind": "support",
+      "notes": "Retailer (Mastermind Toys); MAGNA-TILES and PlayShifu items are made by others."
+    },
+    {
+      "host": "medicalert.ca",
+      "email": "firstresponders@medicalert.ca",
+      "source_url": "https://www.medicalert.ca/connect-protect",
+      "kind": "general",
+      "notes": "For questions about Connect Protect (the listed service plan); the contact page gives phone and mail only."
+    },
+    {
+      "host": "mightly.com",
+      "email": "hello@mightly.com",
+      "source_url": "https://www.mightly.com/pages/contact",
+      "kind": "general"
+    },
+    {
+      "host": "mindshiftcbt.com",
+      "email": "support@mindshiftcbt.com",
+      "source_url": "https://www.mindshiftcbt.com",
+      "kind": "support",
+      "notes": "MindShift CBT (Anxiety Canada)."
+    },
+    {
+      "host": "minecraft.net",
+      "email": "contactmojang@minecraft.net",
+      "source_url": "https://play.google.com/store/apps/details?id=com.mojang.minecraftpe",
+      "kind": "general",
+      "notes": "Developer contact on the Minecraft Google Play listing; help@minecraft.net is its support email. minecraft.net itself shows no address."
+    },
+    {
+      "host": "moluk.com",
+      "email": "hello@moluk.com",
+      "source_url": "https://www.moluk.com/pages/contact",
+      "kind": "general",
+      "notes": "press@moluk.com on the press page."
+    },
+    {
+      "host": "mynoise.net",
+      "email": "android@mynoise.net",
+      "source_url": "https://play.google.com/store/apps/details?id=com.mynoise.mynoise",
+      "kind": "support",
+      "notes": "'You can email us at' on the myNoise Google Play listing; the website's FAQ hides its address behind a script."
+    },
+    {
+      "host": "natracare.com",
+      "email": "info@natracare.com",
+      "source_url": "https://www.natracare.com/contact-us/press-centre/",
+      "kind": "general",
+      "notes": "Shown on the press centre page."
+    },
+    {
+      "host": "natureclean.ca",
+      "email": "hello@natureclean.ca",
+      "source_url": "https://natureclean.ca/pages/contact-us",
+      "kind": "general"
+    },
+    {
+      "host": "nestdesigns.com",
+      "email": "hello@nestdesigns.com",
+      "source_url": "https://www.nestdesigns.com/en-CA/contact-us",
+      "kind": "general"
+    },
+    {
+      "host": "northernpictures.com.au",
+      "email": "info@northernpictures.com.au",
+      "source_url": "https://www.northernpictures.com.au/contact",
+      "kind": "general",
+      "notes": "Production company of Love on the Spectrum."
+    },
+    {
+      "host": "nutella.com",
+      "email": "northamericamediainquiries@ferrero.com",
+      "source_url": "https://www.ferrero.com/us/en/news-stories/media-contacts",
+      "kind": "press",
+      "notes": "Ferrero North America media relations; consumer contact is a form."
+    },
+    {
+      "host": "oliverslabels.com",
+      "email": "info@oliverslabels.com",
+      "source_url": "https://www.oliverslabels.com/aboutus/contact",
+      "kind": "general"
+    },
+    {
+      "host": "originalsprout.com",
+      "email": "info@originalsprout.com",
+      "source_url": "https://originalsprout.com/pages/contact",
+      "kind": "general",
+      "notes": "sales@originalsprout.com for wholesale."
+    },
+    {
+      "host": "originatorkids.com",
+      "email": "support@originatorkids.com",
+      "source_url": "https://www.originatorkids.com/",
+      "kind": "support"
+    },
+    {
+      "host": "penguinrandomhouse.com",
+      "email": "crownpublicity@randomhouse.com",
+      "source_url": "https://www.penguinrandomhouse.com/media-queries/",
+      "kind": "press",
+      "notes": "Crown Publishing Group publicity; Unmasking Autism is published by Harmony (a Crown imprint). The other listed books come from other imprints with their own publicity addresses on the same page."
+    },
+    {
+      "host": "periodaisle.com",
+      "email": "hello@periodaisle.com",
+      "source_url": "https://periodaisle.com/policies/contact-information",
+      "kind": "general",
+      "notes": "sales@periodaisle.com for wholesale."
+    },
+    {
+      "host": "philips-hue.com",
+      "email": "press.lighting@signify.com",
+      "source_url": "https://www.signify.com/global/our-company/news",
+      "kind": "press",
+      "notes": "Signify (maker of Philips Hue) Global Press Office; consumer contact is through Philips support pages."
+    },
+    {
+      "host": "pracmedicbags.com",
+      "email": "cs@pracmedicbags.com",
+      "source_url": "https://pracmedicbags.com/pages/contact",
+      "kind": "support"
+    },
+    {
+      "host": "primary.com",
+      "email": "press@primary.com",
+      "source_url": "https://www.primary.com/en-ca/pages/press?ref=footer_7",
+      "kind": "press",
+      "notes": "help@primary.com for customers."
+    },
+    {
+      "host": "roadid.com",
+      "email": "help@roadid.com",
+      "source_url": "https://www.roadid.com/pages/contact-us",
+      "kind": "support",
+      "notes": "Customer Service; the other address on the page is the CEO's own."
+    },
+    {
+      "host": "roots.com",
+      "email": "b2bsales@roots.com",
+      "source_url": "https://www.roots.com/ca/en/business-to-business.html",
+      "kind": "wholesale",
+      "notes": "Business-to-business sales; customer help is a web form."
+    },
+    {
+      "host": "safety1st.ca",
+      "email": "support@djgusa.com",
+      "source_url": "https://safety1st.ca/pages/contact",
+      "kind": "support",
+      "notes": "Dorel Juvenile consumer care."
+    },
+    {
+      "host": "scholarschoice.ca",
+      "email": "customerservice@scholarschoice.ca",
+      "source_url": "https://scholarschoice.ca/pages/contact",
+      "kind": "support",
+      "notes": "Retailer (Scholar's Choice); the listed items are made by Califone, Bouncyband and others. web@scholarschoice.ca also on the page."
+    },
+    {
+      "host": "shopdiva.ca",
+      "email": "press@divacup.com",
+      "source_url": "https://shopdiva.ca/pages/contact",
+      "kind": "press",
+      "notes": "No general address; sales@divacup.com (Canada sales) and support@divacup.com also listed."
+    },
+    {
+      "host": "silkberrybaby.com",
+      "email": "info@silkberrybaby.com",
+      "source_url": "https://silkberrybaby.com/pages/contact-us",
+      "kind": "general"
+    },
+    {
+      "host": "silverts.ca",
+      "email": "customercare@silverts.com",
+      "source_url": "https://www.silverts.ca/pages/customer-care",
+      "kind": "support"
+    },
+    {
+      "host": "sleepphones.com",
+      "email": "wholesale@acousticsheep.com",
+      "source_url": "https://www.sleepphones.com/retailers",
+      "kind": "wholesale",
+      "notes": "Distributors and resellers; service@acousticsheep.com for customer support."
+    },
+    {
+      "host": "smilingmind.com.au",
+      "email": "info@smilingmind.com.au",
+      "source_url": "https://www.smilingmind.com.au/",
+      "kind": "general",
+      "notes": "Smiling Mind (Australian not-for-profit)."
+    },
+    {
+      "host": "snackworks.ca",
+      "email": "news@mdlz.com",
+      "source_url": "https://www.mondelezinternational.com/media/media-contacts",
+      "kind": "press",
+      "notes": "Mondelez International media address (snackworks.ca is a Mondelez site); the page says only news-media emails get a reply. Consumer contact is a form."
+    },
+    {
+      "host": "speechify.com",
+      "email": "info@speechify.com",
+      "source_url": "https://apps.apple.com/app/id1209815023",
+      "kind": "general",
+      "notes": "'Have a question? Write to us at' in the App Store description; the website's addresses are hidden by Cloudflare."
+    },
+    {
+      "host": "spokenaac.com",
+      "email": "help@spokenaac.com",
+      "source_url": "https://spokenaac.com/press-room/",
+      "kind": "support",
+      "notes": "The press room points to this address."
+    },
+    {
+      "host": "stardewvalley.net",
+      "email": "contact@stardewvalley.net",
+      "source_url": "https://play.google.com/store/apps/details?id=com.chucklefish.stardewvalley",
+      "kind": "general",
+      "notes": "Support email on the Google Play listing (ConcernedApe LLC); stardewvalley.net shows it only behind Cloudflare."
+    },
+    {
+      "host": "structured.app",
+      "email": "support@structured.app",
+      "source_url": "https://play.google.com/store/apps/details?id=io.unorderly.structured",
+      "kind": "support",
+      "notes": "Developer contact (unorderly GmbH) on the Google Play listing; help@unorderly.io is listed as support email. The website has a form only."
+    },
+    {
+      "host": "tanglecreations.com",
+      "email": "info@tanglecreations.com",
+      "source_url": "https://www.tanglecreations.com/pages/contact",
+      "kind": "general"
+    },
+    {
+      "host": "tangleteezer.com",
+      "email": "sales@tangleteezer.com",
+      "source_url": "https://tangleteezer.com/products/the-original",
+      "kind": "wholesale",
+      "notes": "Sales team for stockists (UK); contact page is a form."
+    },
+    {
+      "host": "teachyourmonster.org",
+      "email": "support@teachyourmonster.org",
+      "source_url": "https://play.google.com/store/apps/details?id=com.teachyourmonstertoread.tmapp",
+      "kind": "support",
+      "notes": "Developer contact (Teach Your Monster Limited) on the Google Play listing; the website shows the same address behind Cloudflare."
+    },
+    {
+      "host": "theraspecs.com",
+      "email": "contact@theraspecs.com",
+      "source_url": "https://www.theraspecs.com/contact-us/",
+      "kind": "general",
+      "notes": "Labelled 'General'."
+    },
+    {
+      "host": "tiimoapp.com",
+      "email": "support@tiimoapp.com",
+      "source_url": "https://www.tiimoapp.com/faq",
+      "kind": "support",
+      "notes": "The newsroom's press address (hln@tiimo.dk) looks like a named person's, so not used."
+    },
+    {
+      "host": "timetimer.com",
+      "email": "support@timetimer.com",
+      "source_url": "https://www.timetimer.com/pages/distributors",
+      "kind": "support",
+      "notes": "Contact page is a form; orders@timetimer.com is for distributors' purchase orders."
+    },
+    {
+      "host": "touchchatapp.com",
+      "email": "info@aacapps.com",
+      "source_url": "https://touchchatapp.com/contact",
+      "kind": "general",
+      "notes": "Listed 'for general inquiries' (PRC-Saltillo's AAC apps); touchchat@aacapps.com for technical support."
+    },
+    {
+      "host": "tru.earth",
+      "email": "wholesale@tru.earth",
+      "source_url": "https://tru.earth/pages/we-care",
+      "kind": "wholesale",
+      "notes": "For retail customers; care@tru.earth for consumers."
+    },
+    {
+      "host": "uk.jkp.com",
+      "email": "hello@jkp.com",
+      "source_url": "https://uk.jkp.com/pages/contact-us",
+      "kind": "general",
+      "notes": "Jessica Kingsley Publishers, publisher of the Maja Toudal and Steph Jones books."
+    },
+    {
+      "host": "us.loopearplugs.com",
+      "email": "hello@loopearplugs.com",
+      "source_url": "https://us.loopearplugs.com/pages/contact",
+      "kind": "general",
+      "notes": "Same page lists press@, partnerships@ and business@loopearplugs.com."
+    },
+    {
+      "host": "us.specialkids.company",
+      "email": "help@skc.store",
+      "source_url": "https://us.specialkids.company/pages/contact",
+      "kind": "support",
+      "notes": "The Special Kids Company (also sells Seenin)."
+    },
+    {
+      "host": "well.ca",
+      "email": "info@well.ca",
+      "source_url": "https://well.ca/contactus",
+      "kind": "general",
+      "notes": "Retailer (Well.ca), not the maker: the listed products are WaterWipes, Aveeno, Baby Dove and 11 other brands. newbrands@well.ca is for brands."
+    },
+    {
+      "host": "yogajeans.ca",
+      "email": "info@yogajeans.ca",
+      "source_url": "https://yogajeans.ca/products/malia-relaxed-blissful",
+      "kind": "general"
+    },
+    {
+      "host": "yogasleep.com",
+      "email": "hello@yogasleep.com",
+      "source_url": "https://yogasleep.com/policies/contact-information",
+      "kind": "general"
+    },
+    {
+      "host": "yumearth.com",
+      "email": "support@yumearth.com",
+      "source_url": "https://yumearth.com/policies/privacy-policy",
+      "kind": "support",
+      "notes": "In the privacy policy; the contact page is a Zendesk form."
+    }
+  ],
+  "not_found": [
+    {
+      "host": "apple.com",
+      "reason": "Huge platform: the Canadian contact page lists phone numbers and web forms; no public email."
+    },
+    {
+      "host": "aveeno.ca",
+      "reason": "'Email us' opens a Kenvue consumer-care web form; no address published."
+    },
+    {
+      "host": "bleeckerstreetmedia.com",
+      "reason": "Press page lists only two named publicists' addresses and a tech-support Gmail; no general address."
+    },
+    {
+      "host": "bose.ca",
+      "reason": "Customer support pages are script-driven and show no address; the press room's only address is a named person's."
+    },
+    {
+      "host": "cerave.ca",
+      "reason": "Contact page (L'Oréal Canada) has no email; contact is by form."
+    },
+    {
+      "host": "cetaphil.ca",
+      "reason": "Contact redirects to Galderma's web form; Galderma's newsroom lists no address."
+    },
+    {
+      "host": "cheerios.ca",
+      "reason": "Contact goes to General Mills' script-driven contact page (contactus.generalmills.com); no address on the brand pages."
+    },
+    {
+      "host": "cheestrings.ca",
+      "reason": "Contact goes to a Parmalat (Lactalis Canada) web form."
+    },
+    {
+      "host": "en.eucerin.ca",
+      "reason": "Contact page (Beiersdorf Canada) gives a phone number and form, no email."
+    },
+    {
+      "host": "enjoylifefoods.com",
+      "reason": "Contact page is a form and a phone number (888-50-ENJOY); no email on contact, FAQ or story pages."
+    },
+    {
+      "host": "gogosqueez.ca",
+      "reason": "Contact goes to Groupe Bel's script-driven contact portal; no address on the brand's pages."
+    },
+    {
+      "host": "hbo.com",
+      "reason": "Huge platform: the link now goes to HBO Max; the Warner Bros. Discovery press site lists no public address."
+    },
+    {
+      "host": "indigo.ca",
+      "reason": "Retailer listing for Jellycat. BLOCKED: https://www.jellycat.com/ and https://us.jellycat.com/contact-us/ (HTTP 403); Indigo's help centre needs sign-in (HTTP 401)."
+    },
+    {
+      "host": "intexcorp.com",
+      "reason": "Contact page gives phone numbers and mailing addresses only."
+    },
+    {
+      "host": "kineticsand.com",
+      "reason": "Contact links go to Spin Master's contact page, which is script-driven and returned no text; no other address found."
+    },
+    {
+      "host": "masdelinc.com",
+      "reason": "Contact pages (English and French) and FAQ show no address (the only mail link is empty); the privacy policy's address is a named person's."
+    },
+    {
+      "host": "mccain.ca",
+      "reason": "Consumer contact is a form; the contact page's only address (for corporate giving) is hidden by Cloudflare email protection."
+    },
+    {
+      "host": "munchables.ca",
+      "reason": "Contact and retailer pages link to a form only; nothing on about, FAQ or privacy pages. A third-party directory (Closing the Gap) lists sales@munchables.ca, not confirmed on munchables.ca."
+    },
+    {
+      "host": "natrel.ca",
+      "reason": "Natrel's contact goes to Agropur, whose media address is hidden by Cloudflare email protection (in a browser it reads media@agropur.com), so it can't be checked on the kept page."
+    },
+    {
+      "host": "nike.com",
+      "reason": "Huge retailer: help pages, chat and company details page give no email."
+    },
+    {
+      "host": "nintendo.com",
+      "reason": "Game company: the support contact page lists phone numbers and forms only."
+    },
+    {
+      "host": "oasis.ca",
+      "reason": "Contact page is a web form (Lassonde)."
+    },
+    {
+      "host": "oatly.com",
+      "reason": "Contact page is script-driven with no address. Search results point to info@oatly.com on Oatly's investor media-contacts page, but that site timed out on every fetch, so it is unverified."
+    },
+    {
+      "host": "oetker.ca",
+      "reason": "Contact page gives a phone number, mailing address and form; no email."
+    },
+    {
+      "host": "pixar.com",
+      "reason": "Studio site: company FAQ and story pages give no contact address."
+    },
+    {
+      "host": "pizzapops.ca",
+      "reason": "Contact goes to General Mills' script-driven contact page (contactus.generalmills.com); no address on the brand pages."
+    },
+    {
+      "host": "pokemon.com",
+      "reason": "Game company: no contact address on the product or home pages; its support site refused the fetch (HTTP 403)."
+    },
+    {
+      "host": "postconsumerbrands.ca",
+      "reason": "Contact page gives a phone number, mailing address and form; no email."
+    },
+    {
+      "host": "ring.com",
+      "reason": "Amazon-owned; press page and support contact page give no email."
+    },
+    {
+      "host": "shop.jazwares.com",
+      "reason": "Contact is a Zendesk form; Jazwares' pages show only a legal-department address."
+    },
+    {
+      "host": "shopthuasne.com",
+      "reason": "Contact page gives a phone number only; the privacy policy shows cs@knitrite.com only behind Cloudflare email protection."
+    },
+    {
+      "host": "skechers.ca",
+      "reason": "Large retailer; its help-centre contact page refused fetches (HTTP 429)."
+    },
+    {
+      "host": "tastyrewards.com",
+      "reason": "PepsiCo contact is a script-driven web form (contact.pepsico.com)."
+    },
+    {
+      "host": "tide.ca",
+      "reason": "Contact page (Procter & Gamble) is script-driven and shows no address."
+    },
+    {
+      "host": "tropicana.ca",
+      "reason": "Contact goes to a chat page (Tropicana Brands Group)."
+    },
+    {
+      "host": "vanicream.com",
+      "reason": "Contact page is a form; the only address on the site is privacy@vanicream.com, for privacy requests."
+    },
+    {
+      "host": "wowbutter.com",
+      "reason": "Contact pages are forms; the retail-contact and privacy pages show info@wowbutter.com only behind Cloudflare email protection, so it can't be checked on the kept pages."
+    }
+  ]
+}

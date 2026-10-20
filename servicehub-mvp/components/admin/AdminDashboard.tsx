@@ -127,6 +127,18 @@ export default function AdminDashboard({ userId }: AdminDashboardProps) {
                   Tidbits
                 </Link>
                 <Link
+                  href="/admin/visuals"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
+                >
+                  Visuals
+                </Link>
+                <Link
+                  href="/admin/contacts"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
+                >
+                  Contact list
+                </Link>
+                <Link
                   href="/admin/proof-of-use"
                   className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
                 >
