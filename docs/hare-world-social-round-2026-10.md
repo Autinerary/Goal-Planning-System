@@ -180,7 +180,7 @@ The notes said "Relationships don't work for now" and "Relationships/Matching (a
 ## How it was tested
 
 - **STEP 87 on a local copy of the whole schema:** 64 checks (`.qa-local/pgtest/step87_test.py`), run twice. They cover the sharing levels (each side only its own), who sees which moment, the team's review, cheers and reports, the bucket's folders, Family accounts, notes, matching, and group members without recursion.
-- **`.qa-local/browser/plan20.mjs`:** two QA accounts on the local app with the live database, before STEP 87. Result: **108 of 108 checks passed**. The first runs found the faults fixed above: the companion's small buttons, the same person twice in Remove, and the icons missing from Races. It covers:
+- **`.qa-local/browser/plan20.mjs`:** two QA accounts, before STEP 87. Result: **108 of 108 checks passed, locally and then on production** (app.autinerary.ca, after the deploy on 20 October). The first runs found the faults fixed above: the companion's small buttons, the same person twice in Remove, and the icons missing from Races. It covers:
   - every Function and Additional Feature above, between the two accounts;
   - the Collab Groups;
   - Relationships, Hare World Social and Memories ("opens soon");
@@ -190,7 +190,8 @@ The notes said "Relationships don't work for now" and "Relationships/Matching (a
   - the admin page as a non-admin;
   - axe on each changed page and dialog, and phone width (375 px) on ten pages.
 
-  It removes everything it made, and puts back names, preferences, plans and progress. Nothing was left over.
+  It removes everything it made, and puts back names, preferences, plans and progress. Nothing was left over, either time.
+- **ResourceHub's sign-in on production:** after the home page, a page that needs sign-in goes to the app's sign-in and comes back.
 - **The earlier suites** (`run_all_local.sh`, 17 suites and the accessibility checker on every page) all pass after a rerun. The checker found no serious or critical problems. On the full run:
   - **g8 (1 failure):** the ResourceHub sign-in fault above. 57/57 after the fix.
   - **g34b (1 failure):** a note saved a moment late. 75/75 alone.
