@@ -1,0 +1,1309 @@
+{
+  "topic": "independent_living",
+  "checked": "2026-10-20",
+  "entries": [
+    {
+      "slug": "kerrys-place-supported-independent-living",
+      "name": "Supported Independent Living (SIL) (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/supported-independent-living-sil/",
+      "description": "Kerry's Place supports autistic adults who live on their own, with help planned around each person's goals: daily living skills such as keeping up a home and preparing meals, and finding accessible, affordable housing. Support can be a few hours a week or daily.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE; funded by the Ministry of Children, Community and Social Services",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Supports range from daily living skills, such as maintaining a home and meal preparation, to help with accessible, appropriate and affordable housing options.",
+      "notes": "Referral only through Developmental Services Ontario (DSO); an autism diagnosis and DSO eligibility are required. Offered in Dufferin, Hastings, Peel and Toronto. Kerry's Place also runs group supported living at over 90 Ontario locations, Home Share (host families, Peel) and SAIL (supportive housing in Brampton for autistic people 16+ with a dual diagnosis)."
+    },
+    {
+      "slug": "kerrys-place-foundations",
+      "name": "Foundations (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/foundations/",
+      "description": "A time-limited community participation program for autistic adults that builds life skills, healthy living habits, relationships and social skills, and helps teens moving into adulthood. Supports are goal-based and happen in the community, in person or online.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "This program supports teens and adults needing help with independence and building life skills. It can also support teens transitioning into adulthood.",
+      "notes": "For autistic adults 18+ registered with Developmental Services Ontario (DSO); referral through the DSO. Regions: Dufferin, Durham, Halton, Peel, Wellington and York. 1 to 3 hours a week."
+    },
+    {
+      "slug": "kerrys-place-day-supports",
+      "name": "Day Supports (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/day-supports/",
+      "description": "An ongoing weekly day program for autistic adults in the community, planned around each person's goals: life and social skills, work, volunteering or recreation.",
+      "category": "Social Services",
+      "tags": [
+        "requires_diagnosis",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "User fees may apply",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "The supports offered are planned around each person's goals, which can include developing life and social skills, gaining employment, finding volunteer opportunities, or participating in more recreational activities.",
+      "notes": "A Community Participation Support program for autistic adults 18+ registered with Developmental Services Ontario; referral through the DSO. Durham, Peel and York; 2 to 6 hours weekly, group format."
+    },
+    {
+      "slug": "kerrys-place-peer-connect-adult-group",
+      "name": "Peer Connect – Adult Group (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/peer-connect-adult-group/",
+      "description": "A free monthly online group where autistic adults across Ontario meet peers, share experiences and talk through topics such as emotional regulation, online safety, work and life skills.",
+      "category": "Support Group",
+      "tags": [
+        "community_online",
+        "community_group",
+        "adult_friends",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "discover a supportive and welcoming space for Autistic adults to connect, share experiences, and build a sense of belonging. The monthly group provides an opportunity to discuss challenges, exchange insights, and form new connections.",
+      "notes": "Province-wide (Ontario), 1.5 hours a month; an autism diagnosis is required. Register with Kerry's Place intake, then find sessions on MyCommunityHub."
+    },
+    {
+      "slug": "kerrys-place-tay-pathway-to-independence",
+      "name": "Transitional Aged Youth Socials: Pathway to Independence (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/transitional-aged-youth-socials-pathway-to-independence/",
+      "description": "A free 10-week group for autistic teens aged 14 to 18 that practises the daily living skills needed for adult life: routines, healthy eating, money (financial literacy), job and interview readiness, online safety and planning for post-secondary, through hands-on activities and games.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_finances",
+        "career_training",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "This 10-week group program is for Autistic youth ages 14-18 who want to improve their daily living skills to achieve greater independence.",
+      "notes": "Province-wide (Ontario), 2 hours a week for 10 weeks, in person and virtual; autism diagnosis required. Sessions are listed on MyCommunityHub."
+    },
+    {
+      "slug": "kerrys-place-tay-roundtables",
+      "name": "Transitional Aged Youth Roundtables (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/transitional-aged-youth-roundtables/",
+      "description": "A free monthly online drop-in where autistic teens aged 14 to 18 meet peers and talk through growing up: community life, self-care and daily living skills.",
+      "category": "Support Group",
+      "tags": [
+        "community_online",
+        "community_group",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "This monthly drop-in group is for Autistic youth ages 14-18 who want to connect with others navigating the transition from the teen years to adulthood.",
+      "notes": "Virtual, 1.5 hours; for youth in Dufferin, Durham, Halton, Peel, Simcoe, Toronto, Wellington and York. Autism diagnosis required."
+    },
+    {
+      "slug": "kerrys-place-going-places",
+      "name": "Going Places (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/going-places/",
+      "description": "A social group for autistic adults that goes on monthly community outings chosen with the group, such as bowling, laser tag, mini golf, restaurants and local sporting events, to make friends and practise social skills.",
+      "category": "Recreation",
+      "tags": [
+        "prog_social_clubs",
+        "adult_friends",
+        "community_in_person",
+        "recreation"
+      ],
+      "cost": "paid",
+      "cost_note": "$60",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Going Places is a social group for Autistic Adults, 18 years old and over, who are interested in participating in a variety of fun and engaging activities such as bowling, laser tag, restaurant outings, mini golf, local sporting events",
+      "notes": "Peel Region; 2 hours a month for 3 months. Kerry's Place also runs Games Night in Peel (board, card and video games; $60). Sessions are listed on MyCommunityHub."
+    },
+    {
+      "slug": "kerrys-place-dungeons-and-dragons",
+      "name": "Dungeons & Dragons (Kerry's Place)",
+      "website": "https://kerrysplace.org/product/dungeons-dragons/",
+      "description": "A free online Dungeons & Dragons group for autistic teens and adults, led by a staff dungeon master, where players meet weekly to share a story and make friends around a common interest.",
+      "category": "Recreation",
+      "tags": [
+        "prog_social_clubs",
+        "community_online",
+        "adult_friends",
+        "recreation",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "Listed as FREE",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "This virtual group activity is for Autistic adults ages 18+ and teens 14 to 17 who want to play in the storytelling world of Dungeons & Dragons.",
+      "notes": "Province-wide (Ontario), 2 hours a week for 10 weeks; autism diagnosis required."
+    },
+    {
+      "slug": "geneva-centre-adult-day-support",
+      "name": "Adult Day Support (Geneva Centre for Autism)",
+      "website": "https://www.genevacentre.ca/programs_/t24573/s98769-adult-day-support",
+      "description": "A day program in Toronto where autistic adults build social, home, safety and work skills, with 1:1 or small-group staff support and practice rooms set up like a bedroom, laundry room and waiting area.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Enrollment through the local DSO; Passport funding accepted for adult services",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "164 Merton St. Toronto, ON, M4S 3A8",
+      "phone": "(416) 322-7877",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Inclusive of mock teaching environments such as bedrooms, laundry rooms, and waiting areas to support community inclusion",
+      "notes": "Two to three sessions a week at 164 Merton; participants arrange their own transportation. Uses ABA-based teaching under a Registered Behaviour Analyst."
+    },
+    {
+      "slug": "able2-matching-program-ottawa",
+      "name": "Matching Program (ABLE2)",
+      "website": "https://www.able2.org/programs/matching-program/",
+      "description": "Matches a person with a disability, including developmental and neurodevelopmental disabilities, with a trained volunteer friend in Ottawa for regular one-to-one time together, in person or by phone and video (Matching Connect), to ease loneliness and build a social network.",
+      "category": "Social Services",
+      "tags": [
+        "adult_friends",
+        "community_in_person",
+        "community_online"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": null,
+      "phone": "613-761-9522",
+      "email": "info@able2.org",
+      "age_ranges": [],
+      "evidence": "The Matching Program is unique in that it welcomes people of any age or disability – physical, developmental, neurodevelopmental, intellectual, mental health, age-related and multiple diagnoses challenges.",
+      "notes": "ABLE2 grew out of Citizen Advocacy Ottawa (its old citizenadvocacy.org domain no longer works). The page says over 170 people were waiting for a volunteer in the past year. ABLE2 has moved to remote operations, so no street address is listed."
+    },
+    {
+      "slug": "able2-housing-support-apsw-ottawa",
+      "name": "Housing Support Program: Adult Protective Services Worker (ABLE2)",
+      "website": "https://www.able2.org/programs/pdpf-adult-protective-services-investment-apsw/",
+      "description": "A worker helps adults with a developmental disability in the Ottawa area who want to move to a home of their own: setting housing goals, making a plan, and connecting to resources until the move.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated; delivered with DSO Eastern Region and MCCSS",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": null,
+      "phone": "613-761-9522",
+      "email": "info@able2.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "offers a program to support adults with a developmental disability who would like to move to a home of their own.",
+      "notes": "Eligibility is decided by Developmental Services Ontario Eastern Region (DSO-ER); contact DSO-ER or your DSO-ER case worker first."
+    },
+    {
+      "slug": "able2-funding-brokerage-ottawa",
+      "name": "Funding Brokerage (ABLE2)",
+      "website": "https://www.able2.org/programs/funding-brokerage/",
+      "description": "ABLE2 manages individualized disability funding such as Passport and Special Services at Home for people with disabilities and their families in Ottawa: it tracks receipts and claims, checks what the funder covers, pays on the person's behalf and keeps the paperwork for audits.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "adult_finances",
+        "funding"
+      ],
+      "cost": "paid",
+      "cost_note": "A 10% administrative fee",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": null,
+      "phone": "613-761-9522",
+      "email": "info@able2.org",
+      "age_ranges": [],
+      "evidence": "Our Funding Brokerage program can help you manage your finances whether you have money from Passport funding, Special Services at Home, or family funds.",
+      "notes": "Covers Passport, SSAH and autism grant contracts and family funds. The page does not say whether the service is limited to Ottawa residents."
+    },
+    {
+      "slug": "larche-toronto",
+      "name": "L'Arche Toronto",
+      "website": "https://larche.ca/community/larche-toronto/",
+      "description": "A Toronto community with five homes and a day program where people with intellectual disabilities share daily life with assistants. It also runs the Sol Express arts program and Trying It on For Size (TIFS), an advanced life skills program for living more independently.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "186 Floyd Avenue Toronto, ON M4J 2J1",
+      "phone": "416-406-2869",
+      "email": "office@larchetoronto.org",
+      "age_ranges": [],
+      "evidence": "L’Arche Toronto has five homes and a day program where persons with disabilities share life with the assistants who provide supports for daily life and social inclusion.",
+      "notes": "Source is L'Arche Canada's page for the Toronto community; L'Arche Toronto's own site (larchetoronto.org) refused our connection (old TLS). How to apply for a home or the day program is not stated on the page."
+    },
+    {
+      "slug": "community-living-toronto-tifs",
+      "name": "Trying-It-On-For-Size (TIFS) (Community Living Toronto)",
+      "website": "https://cltoronto.ca/programs-and-services/supported-living/",
+      "description": "A fee-for-service program where people with an intellectual disability try out independent living through a series of short supported stays in an apartment, building everyday living, confidence and decision-making skills.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone"
+      ],
+      "cost": "paid",
+      "cost_note": "Fee-for-service; an eligible Passport expense",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "20 Spadina Road Toronto, ON M5R 2S7",
+      "phone": "647.426.3220",
+      "email": "contactus@cltoronto.ca",
+      "age_ranges": [],
+      "evidence": "Participants complete a series of short-term stays in an apartment where they are supported to develop independent living, confidence and decision-making skills.",
+      "notes": "A one-year commitment; no DSO referral is mentioned for TIFS. L'Arche Toronto's community page also lists TIFS as its advanced life skills program."
+    },
+    {
+      "slug": "lights-toronto",
+      "name": "LIGHTS (Community Living Toronto)",
+      "website": "https://www.lights.to/",
+      "description": "LIGHTS helps adults with intellectual disabilities in Toronto and their families plan and set up a home of their own outside the family home: a facilitator helps with a life plan, a budget, finding roommates among other families, and interim start-up funding.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "adult_finances",
+        "funding",
+        "parent_adult_children"
+      ],
+      "cost": "unknown",
+      "cost_note": "Interim funding of up to $25,000 a year for up to 5 years for families who need it; fees for facilitation not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "20 Spadina Road, Toronto, ON M5R 2S7",
+      "phone": "647.725.1326",
+      "email": "LIGHTS@cltoronto.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "LIGHTS supports people with intellectual disabilities as they work toward their goals of independence and having a home of their own.",
+      "notes": "Eligibility: at least 18, eligible for developmental services through DSO Toronto Region, and prepared to self-manage the living arrangement (Community Living Toronto says DSO funding is not needed). Run in partnership with Community Living Toronto since 2011."
+    },
+    {
+      "slug": "mycommunityhub-ontario",
+      "name": "MyCommunityHub",
+      "website": "https://mycommunityhub.ca/",
+      "description": "An Ontario website where people with developmental disabilities or autism and their families can search for and sign up for programs and services from many agencies in one place, and keep their registrations, receipts and calendar in one account.",
+      "category": "Social Services",
+      "tags": [
+        "prog_social_clubs",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Free to search; each program sets its own fee",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": "support@mycommunityhub.ca",
+      "age_ranges": [],
+      "evidence": "MyCommunityHub is a registration service created to help people with developmental disabilities or Autism, their families, and caregivers, discover and register for programs and services in their community.",
+      "notes": "A product of Community Living Toronto, funded by Ontario. Providers include Kerry's Place, Reena, L'Arche Toronto, Grandview Kids and many Community Living agencies. 'Free to search' is our reading of the site; it does not state a fee for accounts."
+    },
+    {
+      "slug": "karis-community-participation-supports",
+      "name": "Community Participation Supports (Karis Disability Services)",
+      "website": "https://karis.org/find-services/community",
+      "description": "Fee-for-service day and community activities for adults with a developmental disability in many Ontario communities, chosen from areas such as money management, food and nutrition, homemaking, transit, recreation and volunteering.",
+      "category": "Social Services",
+      "tags": [
+        "adult_finances",
+        "adult_cooking",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "Purchased on a fee-for-service basis",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Community Participation Supports are available for adults aged 18 and older with a developmental disability. You can purchase supports on a fee-for-service basis in various communities.",
+      "notes": "Karis Disability Services is the new name of Christian Horizons (christian-horizons.org redirects to karis.org). Offered in Almaguin, Blind River, Cobourg, Elliot Lake, Halton, Hamilton, Niagara, Ottawa, Peel, Peterborough, Sudbury, Toronto and Windsor, plus Prince Albert and Waldheim in Saskatchewan; each district has its own office and phone. Registration through MyCommunityHub."
+    },
+    {
+      "slug": "ocapdd-community-support-services-sil",
+      "name": "Community Support Services and Supported Independent Living (OCAPDD)",
+      "website": "https://www.ocapdd.on.ca/?ID=32&Language=ENG",
+      "description": "Support for adults with developmental disabilities in Ottawa and Cornwall who live in their own homes or other community settings, planned around each person's needs: shopping, meal planning and cooking, running a home safely, using public transit, budgeting and applying for funding such as ODSP and Passport, and building relationships.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": "229 Colonnade Road South Ottawa ON K2E 7K3",
+      "phone": "(613) 569-8993",
+      "email": "ocapdd@ocapdd.on.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Personal budgeting and linking to funding sources, such as ODSP and Passport funding",
+      "notes": "CSS is based in Ottawa and SIL in Cornwall. How to get a place is not stated on the page (most developmental services in Ontario need a DSO referral)."
+    },
+    {
+      "slug": "abilities-centre-thrive-day-program",
+      "name": "Thrive (Abilities Centre)",
+      "website": "https://abilitiescentre.org/programs/thrive/",
+      "description": "An adult day program in Whitby for people 18 and older with developmental disabilities that mixes group programming, one-to-one support and outings in the community to build independent living skills and help young adults move into community life.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Whitby",
+      "address": "1 Jim Flaherty Street Whitby, Ontario Canada L1N 0J2",
+      "phone": "905-665-8500",
+      "email": "services@abilitiescentre.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Thrive is a flexible, goal-oriented adult day program that combines group programming, individual support, and community-based experiences to help participants develop the skills and confidence they need to live as independently and fully as possible.",
+      "notes": "All participants must be registered with Developmental Services Ontario (DSO)."
+    },
+    {
+      "slug": "abilities-centre-community-connections",
+      "name": "Community Connections (Abilities Centre)",
+      "website": "https://abilitiescentre.org/activities/community-connections/",
+      "description": "A 10-week program in Durham Region where teens and adults with disabilities learn by doing: weekly trips by public transit to grocery stores, restaurants and the library to practise getting around, handling money and everyday skills, with staff support as needed.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_finances",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "$1,000 + tax and fees",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Whitby",
+      "address": "1 Jim Flaherty Street Whitby, Ontario Canada L1N 0J2",
+      "phone": "905-665-8500",
+      "email": "services@abilitiescentre.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Participants develop practical skills such as community navigation, money management, public transit awareness, and functions skills while taking part in weekly experiential learning opportunities (trips).",
+      "notes": "For people 14 and up in Durham Region who identify as having a disability; register or join the waitlist on the page."
+    },
+    {
+      "slug": "abilities-centre-transit-awareness-training",
+      "name": "Transit Awareness Training (T.A.T.) (Abilities Centre)",
+      "website": "https://abilitiescentre.org/activities/transit-awareness-training/",
+      "description": "A one-week hands-on course in Durham Region where people 15 and older with disabilities ride transit in small groups to learn to read schedules, plan routes, find stops, transfer between buses and travel safely on their own.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "$400 for the one-week program",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Whitby",
+      "address": "1 Jim Flaherty Street Whitby, Ontario Canada L1N 0J2",
+      "phone": "905-665-8500",
+      "email": "services@abilitiescentre.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Transit Awareness Training (T.A.T) is a one-week intensive transit program for individuals aged 15+ designed to build confidence in community and transit navigation.",
+      "notes": "For people who identify as having a disability in Durham Region; register or join the waitlist on the page."
+    },
+    {
+      "slug": "reach-toronto-independent-living-program",
+      "name": "Independent Living Program at the Greenwin Independent Living Centre (Reach Toronto)",
+      "website": "https://reachtoronto.ca/neuro-diverse-life-skills",
+      "description": "Neurodivergent teens (16+) and adults practise living on their own in a real Toronto apartment: cooking budget-friendly meals, grocery shopping, cleaning, laundry, chore schedules, fire safety and sharing a living space with others.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking"
+      ],
+      "cost": "paid",
+      "cost_note": "$585.00/week for students 16+ (one-week camps); $80.00/day for adults 21+; eligible for Passport Funding",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "88 Erskine Avenue",
+      "phone": "(416) 929-1670",
+      "email": null,
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "This program is designed for neurodiverse students aged 16+ who are exploring the possibility of independent or supported independent living.",
+      "notes": "Day program only (no overnight stays). Camps for students run in March, July and December; adults 21+ can book 3-hour sessions on weekdays. A mobile version is offered to remote communities. The only contact email shown is a named person's, so it is left out."
+    },
+    {
+      "slug": "full-spectrum-social-toronto",
+      "name": "Full Spectrum Social",
+      "website": "https://www.fullspectrumsocial.org/",
+      "description": "A Toronto social group run by and for autistic adults that hosts several drop-in events a week, such as board game nights, colouring evenings, movie nights, restaurant outings and walks, where quiet members can take part only as much as they are comfortable.",
+      "category": "Support Group",
+      "tags": [
+        "adult_friends",
+        "prog_social_clubs",
+        "community_group",
+        "community_in_person",
+        "community_local"
+      ],
+      "cost": "paid",
+      "cost_note": "$10 per person per six-month period; the group says cost should not be a barrier",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": null,
+      "email": "info@fullspectrumsocial.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "If you’re someone who’s quiet or has had a hard time meeting people, that’s perfectly OK. Only participate and talk to others to the extent that you’re comfortable.",
+      "notes": "Events are posted on Meetup (group of about 1,149 members) with upcoming events listed for October 2026; locations are shown to members only. Also has a Discord."
+    },
+    {
+      "slug": "integrated-autism-consulting-prepare-for-life",
+      "name": "Prepare for Life (Integrated Autism Consulting)",
+      "website": "https://www.integratedautismconsulting.com/prepare-for-life/",
+      "description": "A 12-week course of weekly two-hour classes where autistic young adults learn and practise everyday adult skills such as grocery and clothes shopping, cleaning and household jobs, getting around, making friends and managing money, with individual coaching on next steps.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_finances",
+        "adult_friends"
+      ],
+      "cost": "paid",
+      "cost_note": "Set fee that varies by program",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "address": "134 Collier St. Barrie, ON L4M 1H4",
+      "phone": "(705) 252-3114",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Prepare for Life is a 12 week course for autistic young adults looking to move forward into independence and adulthood.",
+      "notes": "Integrated Autism Consulting is a Barrie practice that says it offers virtual programs across Ontario; the course page does not say whether Prepare for Life runs online or in person, or list dates or the fee. The North Simcoe Muskoka healthline listing (which calls it 'Prepare a Life') says fees are a set fee that varies by program. The same practice runs Transition to Life (job readiness) and Imagine a Life (a planning workshop for parents)."
+    },
+    {
+      "slug": "integrated-autism-consulting-social-club",
+      "name": "The Social Club (Integrated Autism Consulting)",
+      "website": "https://www.integratedautismconsulting.com/the-social-club/",
+      "description": "An online social club for autistic young adults 18 and older from across Ontario, with coordinators who run regular Tuesday evening game nights, theme nights and creative evenings over video.",
+      "category": "Support Group",
+      "tags": [
+        "adult_friends",
+        "prog_social_clubs",
+        "community_online",
+        "community_group"
+      ],
+      "cost": "paid",
+      "cost_note": "Monthly membership fee (amount not listed)",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Barrie",
+      "address": null,
+      "phone": "(705) 252-3114",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "The Social Club is a virtual group for autistic young adults aged 18+ who meet to connect socially.",
+      "notes": "Started in 2010 for the Barrie area and now virtual. The practice also runs Spectrum Connection, a monthly in-person outing group for autistic adults 18+ in Barrie. Registration by online intake form; payment by e-transfer."
+    },
+    {
+      "slug": "guelph-adhd-autism-video-support-group",
+      "name": "ADHD & Autism Video Support & Skills Group for Adults (Guelph ADHD & Autism Meetup Group)",
+      "website": "https://www.meetup.com/guelphadhdautismmeetupgroup/",
+      "description": "A free weekly Zoom drop-in for adults in Ontario with ADHD or autism (diagnosed or self-identified), led by a neurodivergent therapist, to meet peers and talk through things like relationships, money worries, work and decision paralysis in a calm, flexible group.",
+      "category": "Support Group",
+      "tags": [
+        "community_online",
+        "community_group",
+        "adult_friends"
+      ],
+      "cost": "free",
+      "cost_note": "FREE; sign up through Eventbrite",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Guelph",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "This ADHD & Autism Lvl 1 FREE group aims to be a friendly, inclusive, and nonjudgmental space for neurodivergent adults (18+).",
+      "notes": "Run by ADHD Interrupted (Guelph); open to people located in Ontario; no diagnosis needed. Weekly Wednesday 6 p.m. sessions were listed for October and November 2026."
+    },
+    {
+      "slug": "reena-residential-programs",
+      "name": "Residential Programs (Reena)",
+      "website": "https://reena.org/programs-housing/residential-programs/",
+      "description": "Housing with staff support for adults with developmental disabilities in Toronto and York Region, from supported independent living apartments to group homes and intentional community residences, with support ranging from supervised independent living to 24-hour care.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Vaughan",
+      "address": "927 Clark Ave West, Thornhill ON, L4J 8G6",
+      "phone": "905.889.6484",
+      "email": "info@reena.org",
+      "age_ranges": [],
+      "evidence": "Reena provides specialized care to meet the unique abilities of each individual, in several Intentional Community Residences, 32 homes and over 60 Supported Independent Living Apartments.",
+      "notes": "The same page also says 140 supported independent living units, so the apartment count is unclear. Includes specialized homes for vulnerable women, seniors and people with complex behavioural needs. How to apply is not stated (most Ontario developmental housing is through Developmental Services Ontario). Address is Reena's main office in Thornhill."
+    },
+    {
+      "slug": "reena-outreach-social-programs",
+      "name": "Outreach Social Programs (Reena)",
+      "website": "https://reena.org/programs-housing/social-programs/",
+      "description": "Recreation-based clubs in Toronto and York Region for people with developmental disabilities that build life and social skills, such as a Cooking Club, Athletic Club, Best Buddies Club, Café Lundi and Sunday Friends Club, plus summer and school-break camps for ages 7 to 21.",
+      "category": "Recreation",
+      "tags": [
+        "prog_social_clubs",
+        "adult_cooking",
+        "adult_friends",
+        "recreation",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Vaughan",
+      "address": "927 Clark Ave West, Thornhill ON, L4J 8G6",
+      "phone": "905.889.6484",
+      "email": "info@reena.org",
+      "age_ranges": [],
+      "evidence": "Reena’s Outreach programs are designed to build life and social skills through recreational programming, facilitating the integration of individuals with diverse abilities into the community.",
+      "notes": "Clubs run through the school year and during breaks; the camps (Summer Camp, Winter Retreat) are for participants aged 7 to 21 who are in a school program and run at the Toby and Henry Battle Developmental Centre. Ages for the clubs are not stated. Contact the Outreach Coordinator through Reena."
+    },
+    {
+      "slug": "saaac-living-n-learning-adult-day-program",
+      "name": "Living'N'Learning Adult Day Program (SAAAC Autism Centre)",
+      "website": "https://saaac.org/program/living-n-learning-adult-day-program/",
+      "description": "A weekday day program in Scarborough for autistic young adults who have finished high school, in small classes of up to 8, teaching everyday routines and independent living skills along with recreation, fitness and health habits.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "$120/day; Passport funding applicable",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416-289-0100",
+      "email": "info@saaac.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45"
+      ],
+      "evidence": "The Living'N'Learning program supports young adults living with autism by helping them learn new and meaningful skills that encourage independent living.",
+      "notes": "Monday to Friday, 9 a.m. to 3 p.m.; for people 21+ or who have finished high school, who can eat and use the washroom independently and manage a 1:4 or 1:2 staff ratio. Waitlist; intake at ext. 107. SAAAC has two Scarborough sites (705 Progress Ave and 1870 Birchmount Road); the page does not say which hosts the program."
+    },
+    {
+      "slug": "woodview-life-adult-autism-day-program-hamilton",
+      "name": "L.I.F.E. Adult Autism Day Program (Woodview Mental Health and Autism Services)",
+      "website": "https://woodview.ca/hamilton-autism-services/life/",
+      "description": "A weekday day program in Hamilton for autistic and other neurodivergent adults with low to moderate support needs, with one staff member for every four participants, teaching money skills (handling cash, making change, budgeting), telling time, cooking, laundry, street safety and other life skills, with community-based activities.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances",
+        "community_in_person"
+      ],
+      "cost": "paid",
+      "cost_note": "Fee-for-service; set fees (amount not listed)",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "address": "1353 Barton Street East, Hamilton",
+      "phone": null,
+      "email": "hamiltonintake@woodview.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "It is a fee-for-service daily group designed to support adult individuals with Autism Spectrum Disorder (ASD) and / or other neurodivergencies. No referral is needed.",
+      "notes": "Monday to Friday 9:00 a.m. to 3:30 p.m., with breaks in December and July. Participants must be 18+, able to toilet and move independently, and safe in a group and community setting. ResourceHub already lists Woodview's Hamilton Autism Services and Manor Residential Program; this is a separate program."
+    },
+    {
+      "slug": "woodview-young-adult-social-group-hamilton",
+      "name": "Young Adult Social Group (Woodview Mental Health and Autism Services)",
+      "website": "https://woodview.ca/hamilton-autism-services/young-adult-social-group/",
+      "description": "A Hamilton social group for autistic and other neurodivergent young adults moving into adulthood that meets twice a month for recreation, with a focus on building a social network, independence and life skills.",
+      "category": "Support Group",
+      "tags": [
+        "adult_friends",
+        "prog_social_clubs",
+        "community_in_person",
+        "recreation"
+      ],
+      "cost": "paid",
+      "cost_note": "$135 monthly fee (healthline listing updated June 29, 2026)",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Hamilton",
+      "address": "1353 Barton Street East, Hamilton, L8H 2W2",
+      "phone": "(905) 527-9771",
+      "email": "hamiltonintake@woodview.ca",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Our Young Adult Social Group is right for you if: you have autism spectrum disorder (ASD) and / or other neurodivergencies; you have moderate to low support needs;",
+      "notes": "Meets twice a month, 4:00 to 8:00 p.m.; register with Hamilton intake (ext. 182). Counsellors keep in regular contact with parents. Fee taken from the Hamilton Niagara Haldimand Brant healthline listing (updated June 29, 2026); Woodview's page only mentions a registration fee."
+    },
+    {
+      "slug": "best-buddies-canada",
+      "name": "Best Buddies Canada",
+      "website": "https://bestbuddies.ca/",
+      "description": "A national charity that builds one-to-one friendships between people with and without intellectual and developmental disabilities, including autism, through clubs in schools, colleges and universities, online activities over Zoom and Instagram, and an adult Citizens Program.",
+      "category": "Organization",
+      "tags": [
+        "adult_friends",
+        "prog_social_clubs",
+        "community_in_person",
+        "community_online",
+        "charity"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "416-531-0003",
+      "email": "info@bestbuddies.ca",
+      "age_ranges": [],
+      "evidence": "creating lasting one-to-one friendships between individuals living with and without intellectual and developmental disabilities (IDD and Autism Spectrum Disorder)",
+      "notes": "School chapters run across Canada; college and university chapters pair students with adults through partners such as L'Arche or Community Living. The adult Citizens Program is being launched in Calgary and Winnipeg, with a waitlist for other cities. Head office: 2 Sheppard Avenue East, North York."
+    },
+    {
+      "slug": "larche-canada",
+      "name": "L'Arche Canada",
+      "website": "https://larche.ca/about-larche/about-us/",
+      "description": "A national network of 30 L'Arche communities in nine provinces where people with and without intellectual disabilities share homes, day programs, arts, work and friendship, with about 110 homes and apartments across Canada.",
+      "category": "Supported Housing",
+      "tags": [
+        "community_in_person",
+        "adult_friends"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": "office@larche.ca",
+      "age_ranges": [],
+      "evidence": "110 homes and apartments providing accessible and inclusive housing for over 500 people with intellectual disabilities",
+      "notes": "Each local community (for example L'Arche Toronto, Daybreak in Richmond Hill, Ottawa, Hamilton, London) has its own contacts and intake; the larche.ca community pages list them."
+    },
+    {
+      "slug": "autism-canada-community-assistance-program",
+      "name": "Community Assistance Program (CAP) (Autism Canada)",
+      "website": "https://www.autismcanada.org/cap",
+      "description": "Autism Canada gives subsidized funding toward services not covered by public programs or insurance for autistic children, youth and adults anywhere in Canada, including life skills and transition coaches, respite, therapy and up to $2,000 a year toward a psychological assessment.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "funding",
+        "adult_finances"
+      ],
+      "cost": "unknown",
+      "cost_note": "A funding program: up to $2,000 a year toward assessments and up to $1,000 toward other eligible supports",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-800-983-1795",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "provides subsidized financial support to reduce barriers to care for Autistic people across their lifespan, including children, youth, and adults, as well as the families and caregivers who support them.",
+      "notes": "Applications must be submitted by a provider on Autism Canada's CAP Service Provider Roster; families and autistic adults cannot apply directly. The fall 2026 cycle runs August 24 to October 30, 2026; funding is not guaranteed and reviews are slow."
+    },
+    {
+      "slug": "autism-canada-empowering-connections",
+      "name": "Empowering Connections National Support Line (Autism Canada)",
+      "website": "https://www.autismcanada.org/empoweringconnections",
+      "description": "A national support line where autistic and neurodivergent people can book a phone, chat, Zoom or email conversation with autistic-led staff with lived experience, for connection and a listening ear during stressful or lonely times, in English, French or Spanish.",
+      "category": "Support Group",
+      "tags": [
+        "community_online",
+        "adult_friends"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-800-983-1795",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Connection will be provided by Autistic-led staff with lived experience, ensuring compassionate, peer-informed care.",
+      "notes": "Launched October 2025 with CN as founding partner. Sessions are booked online (first visit and returning-client links); it is a peer connection line, not a crisis line. The toll-free number is Autism Canada's general line."
+    },
+    {
+      "slug": "aafs-calgary-adult-programs",
+      "name": "Adult Programs (Autism Aspergers Friendship Society of Calgary)",
+      "website": "https://aafscalgary.com/Adult-Programs",
+      "description": "Social and recreation programs in Calgary for autistic and neurodivergent adults, including VAULT on weekdays, Fellowship, the weekly Go Group outings for adults without PDD funding, and PRISM for women and LGBTQ+ members, where members choose activities, make friends and practise life skills.",
+      "category": "Recreation",
+      "tags": [
+        "adult_friends",
+        "prog_social_clubs",
+        "community_in_person",
+        "recreation",
+        "charity"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated on the program pages; membership and intake required",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "address": "220 – 8228 Macleod Trail SE Calgary, AB T2H 2B8",
+      "phone": "403.246.7383",
+      "email": "info@aafscalgary.com",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Not only will you get to try your hand at a range of exciting activities, but you'll also get to make new friends and develop essential life skills that will help you achieve greater independence.",
+      "notes": "Go Group meets Tuesdays and is for unfunded adults (no PDD funding); it has an intake process through the adult program coordinator. AAFS is a registered charity (862472230RR0001) that also offers respite, so some programs may be funded through PDD."
+    },
+    {
+      "slug": "aila-edmonton-autism-independent-living-association",
+      "name": "Autism Independent Living Association (AiLA)",
+      "website": "https://www.ailaedmonton.org/",
+      "description": "An Edmonton charity run by autistic adults that is working toward an intentional supportive housing community for autistic adults and runs cooking classes and nutrition workshops where members learn simple recipes, food substitutions, saving money on groceries and adapting meals to sensory needs.",
+      "category": "Organization",
+      "tags": [
+        "adult_cooking",
+        "adult_living_alone",
+        "community_in_person",
+        "charity"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; membership by intake form",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "address": null,
+      "phone": "780.719.4620",
+      "email": "info@ailaedmonton.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Students also learn how to adjust meals to accommodate allergies, preferences and food aversions, as some autistic adults have sensory concerns that can make them sensitive to food textures, sensations and spices.",
+      "notes": "Cooking classes are held at The Kitchen in the Stanley A. Milner Library (Edmonton Community Foundation article, May 2026); AiLA's site lists Nutritional Workshops for fall and winter 2026. The housing development is not built yet (the site says it is moving toward a potential build stage). 100% volunteer-led."
+    },
+    {
+      "slug": "dabc-tax-aid",
+      "name": "Tax AID DABC (Disability Alliance BC)",
+      "website": "https://disabilityalliancebc.org/direct-service/file-income-taxes/",
+      "description": "Free year-round help with simple income tax returns for British Columbians with disabilities on low incomes: an advocate helps gather documents, files current or past returns one-on-one, and refers more complex returns, remotely or in person.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "adult_taxes",
+        "adult_finances"
+      ],
+      "cost": "free",
+      "cost_note": "FREE, for yearly income under $35,000",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": "#1450-605 Robson Street, Vancouver, BC, V6B 5J3",
+      "phone": "236-477-1717",
+      "email": "taxaid@dabc.ca",
+      "age_ranges": [],
+      "evidence": "We provide FREE year-round income tax assistance for people with disabilities whose yearly income is UNDER $35,000.",
+      "notes": "Appointment needed (online booking or phone; toll-free 1-877-940-7797). Remote service across BC; in person in Metro Vancouver, Fraser Valley, Victoria, Kelowna and Prince George with partner agencies. Address is DABC's mailing address."
+    },
+    {
+      "slug": "dabc-advocacy-access",
+      "name": "Advocacy Access (Disability Alliance BC)",
+      "website": "https://disabilityalliancebc.org/direct-service/apply-for-disability-benefits/",
+      "description": "Advocates help people with any disability in BC apply for, or appeal a refusal of, provincial disability assistance (PWD) and CPP Disability, in one-to-one appointments by phone or in person, with interpreters on request.",
+      "category": "Funding & Benefits",
+      "tags": [
+        "adult_finances",
+        "advocacy"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": "#1450-605 Robson Street, Vancouver, BC, V6B 5J3",
+      "phone": "604-872-1278",
+      "email": "advocacy@dabc.ca",
+      "age_ranges": [],
+      "evidence": "Each year, our advocates assist hundreds of people in-house to apply for and appeal the denial of provincial (known as PWD) and federal (Canada Pension Plan – Disability) disability benefits.",
+      "notes": "Waitlist; for PWD help you must first apply for income assistance online and have a blank PWD application booklet. Toll-free 1-800-663-1278. DABC also runs Access DTC (help with the Disability Tax Credit and RDSP)."
+    },
+    {
+      "slug": "spectrum-society-apartment-support",
+      "name": "Apartment Support (Spectrum Society for Community Living)",
+      "website": "https://www.spectrumsociety.org/our-services/apartment-support/",
+      "description": "Support for adults eligible for Community Living BC (CLBC) who want to live on their own in affordable BC Housing apartments in Vancouver, Burnaby, Richmond and Surrey, with staff help matched to what each tenant needs to keep their home.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; arranged through Community Living BC",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": "3231 Kingsway, Vancouver, BC V5R 5K3",
+      "phone": "604-323-1433",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "For the past 15 years, we’ve been working closely with CLBC and BC Housing to assist up to 25 tenants at a time in living independently in their own apartments.",
+      "notes": "A partnership with BC Housing and Community Living BC (CLBC); CLBC helps people find the apartment and arranges the support. Up to 25 tenants at a time."
+    },
+    {
+      "slug": "posabilities-supported-living-network",
+      "name": "Supported Living Network (posAbilities)",
+      "website": "https://posabilities.ca/services/home-living-supports/",
+      "description": "Community support workers help adults with intellectual or developmental disabilities in Metro Vancouver live on their own: meal planning, budgeting, medical appointments and housing requirements, plus cooking classes, coffee groups and social events.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances",
+        "adult_friends"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; referral through Community Living BC",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Burnaby",
+      "address": "#240-4664 Lougheed Hwy Burnaby, BC V5C 5T5",
+      "phone": "(604) 299-4001",
+      "email": "info@posAbilities.ca",
+      "age_ranges": [],
+      "evidence": "Supported Living Network supports individuals to live independently with staff assistance in areas such as self-care, home maintenance, and social integration.",
+      "notes": "Referrals must come through Community Living BC (CLBC); people need basic skills in personal safety, health care and home management. posAbilities also offers Shared Living (host homes) and staffed homes."
+    },
+    {
+      "slug": "autism-services-saskatoon-chap",
+      "name": "Community Homes and Programs (CHAP) (Autism Services of Saskatoon)",
+      "website": "https://autismservices.ca/services/chap/",
+      "description": "Group homes and a day program in Saskatoon for autistic adults (and some children), where staff trained in Gentle Teaching help each person learn skills to live as independently as possible and take part in work, recreation and learning in the community.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Funded through Community Living Service Delivery",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Saskatoon",
+      "address": "209 Fairmont Drive Saskatoon, SK, S7M 5B8",
+      "phone": "306.665.7013",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Our Community Homes are home to people in any stage of life. We support each person to meet their personal goals and help learn and develop skills to live as independently as possible.",
+      "notes": "9 homes serving 37 adults and 8 children; 23 people in the day program. Applications are usually forwarded by Ministry of Social Services community service workers and reviewed by an admissions committee."
+    },
+    {
+      "slug": "autism-resource-centre-regina-life-skills",
+      "name": "Life Skills Programs (Autism Resource Centre, Regina)",
+      "website": "https://www.autismresourcecentre.com/programs-lifeskills",
+      "description": "Neuro-affirming life skills programs for autistic members in Regina: a one-to-one Independent Living Program (budgeting, time management, meal planning, cooking), a Cooking Program, PEERS social skills, and weekly social drop-ins such as Social Drop-In and Chill & Connect.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances",
+        "adult_friends",
+        "prog_social_clubs"
+      ],
+      "cost": "paid",
+      "cost_note": "Membership required; Social Drop-In $5 a week; Cooking Program has a small grocery fee",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Regina",
+      "address": "199 Leonard Street Regina, SK S4N 5X5",
+      "phone": "306-569-0858",
+      "email": "info@autismsk.com",
+      "age_ranges": [],
+      "evidence": "Independent Living Program (ILP) is a person-centered, goal-based program developed to help individuals obtain greater independence at home or in the community.",
+      "notes": "The Independent Living Program is 1 hour a week one-to-one for up to 8 weeks; the Cooking Program runs 10-week sessions in fall and winter and an 8-week spring session. Ages are not stated for each program."
+    },
+    {
+      "slug": "autism-nova-scotia-independent-living-support",
+      "name": "Independent Living Support (Autism Nova Scotia)",
+      "website": "https://www.autismnovascotia.ca/programs/independent-living-support/",
+      "description": "A Community Living Coach works one-on-one with autistic adults who want to live on their own, on goals they choose: making meals, grocery shopping, laundry, paying bills, budgeting and banking, safety at home, getting around and building a social circle.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances",
+        "requires_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "Referral-based through the Disability Support Program; no fee stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "address": null,
+      "phone": "902-446-4995",
+      "email": "info@autismns.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Independent Living Support (ILS), offered through Autism Nova Scotia is a community-based living support program that is available for Autistic adults to access one-on-one support from a Community Living Coach to live on their own.",
+      "notes": "Currently only for people living in the Halifax Regional Municipality. Referral through the Department of Community Services Disability Support Program; must be 19 or older with an autism diagnosis (or completing the diagnosis process)."
+    },
+    {
+      "slug": "autism-nova-scotia-bridges-to-success",
+      "name": "Bridges to Success (Autism Nova Scotia)",
+      "website": "https://www.autismnovascotia.ca/programs/bridges-to-success/",
+      "description": "A free weekly program in Halifax for autistic youth and young adults aged 16 to 24 who need higher support, attended with their support worker, building life, recreation and social skills toward personal goals, with many sessions out in the community.",
+      "category": "Social Services",
+      "tags": [
+        "adult_living_alone",
+        "community_in_person"
+      ],
+      "cost": "free",
+      "cost_note": "FREE",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "address": "2737 Joseph Howe Drive, Halifax",
+      "phone": "902-446-4995",
+      "email": "info@autismns.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30"
+      ],
+      "evidence": "Bridges to Success is a weekly social skill building and goal based program for young adults with autism ages 16-24 who require higher levels of support.",
+      "notes": "Each participant must attend with a support or respite worker; 8-week program with a waitlist when full; registration and intake required (not drop-in). Supported by a Department of Community Services Youth Day Programming Grant."
+    },
+    {
+      "slug": "maison-vero-louis-varennes",
+      "name": "Maison Véro & Louis de Varennes (Fondation Véro & Louis)",
+      "website": "https://fondationverolouis.com/la-fondation/maison-vero-louis-varennes",
+      "description": "A long-term home in Varennes for 16 autistic adults aged 21 and older, with specialized educators present all day, private rooms, common areas where residents choose how much to socialize, and lighting, soundproofing and plain décor designed to keep sensory stimulation low; daily educational activities include cooking, gardening and household tasks.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "community_in_person"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Varennes",
+      "address": null,
+      "phone": "1 844 385-3667",
+      "email": "info@fondationverolouis.com",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "L’éclairage, l’insonorisation et le décor sobre ont été pensés pour réduire au minimum la stimulation sensorielle.",
+      "notes": "Pages are in French. Open since May 2021; staff present 24/7 with an educator ratio of 1 to 4 during the day; its activity centre (CAESP) was set up with the CISSS de la Montérégie-Est. Admission process not described. The foundation says new houses are coming in Victoriaville and the Laurentides. Phone and email are the foundation's (Longueuil office)."
+    },
+    {
+      "slug": "asnl-life-skills-cooking-workshops",
+      "name": "Life Skills and Cooking Workshops (Autism Society of Newfoundland and Labrador)",
+      "website": "https://www.asnl.ca/skill-building-programs",
+      "description": "A 10-week Life Skills program on the Avalon Peninsula that moves from communication and routines to self-care, household skills, meal preparation and money skills, using small groups, visual tools, plain language and hands-on practice, plus hands-on cooking workshops led by the chef of ASNL's Pantry Café.",
+      "category": "Education Support",
+      "tags": [
+        "adult_living_alone",
+        "adult_cooking",
+        "adult_finances"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "NL",
+      "city": "St. John's",
+      "address": null,
+      "phone": "709-722-2803",
+      "email": "info@asnl.ca",
+      "age_ranges": [],
+      "evidence": "The program uses a low participant-to-staff ratio and neuro-affirming practices to provide individualized, flexible supports. Visual tools, plain language, and hands-on learning accommodate diverse communication, sensory, and cognitive needs",
+      "notes": "Life Skills runs 4 hours a week for 10 weeks, each quarter in St. John's and less often in regional offices; registration opens about three weeks before the start. Cooking workshops register twice a year (fall and winter). Ages are not stated. ASNL posts current dates on Facebook and Instagram."
+    },
+    {
+      "slug": "st-amant-supported-independent-living",
+      "name": "Supported Independent Living (St.Amant)",
+      "website": "https://stamant.ca/services/adult-seniors/residential/supported-independent-living/",
+      "description": "Staff support for adults in Manitoba with developmental disabilities or autism who want to live independently or semi-independently, with support hours chosen together with each person and help toward their own goals and relationships.",
+      "category": "Supported Housing",
+      "tags": [
+        "adult_living_alone"
+      ],
+      "cost": "free",
+      "cost_note": "Once accepted, shelter, food and staffing costs are funded (CLDS funding)",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "address": null,
+      "phone": "204-258-7041",
+      "email": "inquiries@stamant.ca",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "promote independence and quality of life for Manitobans with developmental disabilities or autism",
+      "notes": "For adults who qualify for Community Living disABILITY Services (CLDS) funding; self-referral or referral by a Community Support Worker. Phone is St.Amant Central Intake. St.Amant also runs a 24-hour staffed Community Residential Program and Home Share."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Relationship Group (Montage Support Services, Toronto)",
+      "reason": "Program ended for now: the page (montagesupport.ca/our-services/relationship-group/) says the group lost a critical source of funding and its activities are on hold for the foreseeable future."
+    },
+    {
+      "name": "Citizen Advocacy Ottawa",
+      "reason": "citizenadvocacy.org no longer exists (redirects to an unrelated page); its friendship matching now runs as ABLE2's Matching Program, which is included."
+    },
+    {
+      "name": "Cook, Connect, Thrive (Autism Ontario North, Sault Ste. Marie)",
+      "reason": "Free monthly cooking and budgeting class for autistic adults, but the only session found ran May 26 to July 28, 2026 and registration is closed; no newer session listed (autismontario.com/civicrm/event/info?id=12361)."
+    },
+    {
+      "name": "Transition to Adulthood (Bethesda, Niagara)",
+      "reason": "A one-off 5-day session for teens 14-17 at Niagara College, July 27-31, 2026, now closed (portal.bethesdaservices.com/event-6686289); no sign it repeats, and the page does not mention autism."
+    },
+    {
+      "name": "Autism Career Connections: Personal Finance Course (Autism Ontario)",
+      "reason": "The sign-up form says it is closed to new submissions; no course description or dates found."
+    },
+    {
+      "name": "Autism Ottawa Social (Meetup group)",
+      "reason": "A new informal group whose first meet-and-greet (August 2026) was in the organizer's private home; not confirmable as an ongoing service."
+    },
+    {
+      "name": "G.R.O.W. in Winnipeg (transitional day program for young adults with special needs)",
+      "reason": "Only an undated listing in the Jewish Federation of Winnipeg directory; growourway.ca returned no readable text, so we could not confirm it still runs."
+    },
+    {
+      "name": "Autism Youth Transition Program (Children's Centre Thunder Bay)",
+      "reason": "Helps ages 11-17 move into the teen years and high school (not adulthood), and the only page found is an old Rehabilitative Care Alliance directory entry."
+    },
+    {
+      "name": "Families for a Secure Future (Toronto)",
+      "reason": "Not confirmable: familiesforasecurefuture.com and .ca do not resolve."
+    },
+    {
+      "name": "Fondation Autiste & majeur (Québec) and L'Archipel de l'avenir (Montréal)",
+      "reason": "Found in search results as day centres and housing for autistic adults, but autisteetmajeur.com refused the connection (old TLS) and archipeldelavenir.org/.com do not resolve."
+    }
+  ]
+}

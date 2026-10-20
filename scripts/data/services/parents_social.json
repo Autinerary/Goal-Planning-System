@@ -1044,26 +1044,6 @@
       "notes": "Eligible: adults who are past or present West Park patients, or outpatients from anywhere in Ontario with a congenital physical disability affecting communication, so many autistic adults would not qualify. Online referral form or Intake Inquiry Line ext. 34679."
     },
     {
-      "slug": "sarang-kitchen",
-      "name": "Sarang Kitchen",
-      "website": "https://www.sarangkitchen.ca/our-story",
-      "description": "A halal Korean fried chicken restaurant and bar in Toronto whose founders set out to welcome neurodivergent guests. Its own pages describe sensory-friendly hours daily before 9 pm with calming music and reduced lighting, sensory boxes with fidgets, weighted blankets and noise-cancelling headphones, and a multi-sensory room for guests who feel overstimulated or anxious.",
-      "category": "Recreation",
-      "tags": [],
-      "cost": "paid",
-      "cost_note": "A restaurant; guests pay menu prices.",
-      "delivery": "in_person",
-      "country": "Canada",
-      "province": "ON",
-      "city": "Toronto",
-      "address": null,
-      "phone": "(416) 769-8878",
-      "email": null,
-      "age_ranges": [],
-      "evidence": "Our sensory boxes and multi-sensory room allow guests to dine in our restaurant at ease knowing that there are fidgets, weighted blankets, and noise-cancelling headphones they can use",
-      "notes": "Two Toronto locations, but the site gives conflicting addresses (footer: 1056 Bloor St W and 774 Danforth Ave; catering page: 2450 Bloor St W and 703 Danforth Ave) and doesn't say which location has the sensory room. The phone is the one listed for Bloor."
-    },
-    {
       "slug": "sashbear-family-connections",
       "name": "Family Connections (The Sashbear Foundation)",
       "website": "https://sashbear.org/family-connections/",
@@ -1206,6 +1186,14 @@
     {
       "name": "Social Skills South Surrey (PEERS for young adults, BC)",
       "reason": "left out on judgement: a one-person program run from the instructor's home with only a personal email; real, but not an established clinic (https://socialskillssouthsurrey.com/)"
+    }
+  ],
+  "merged": [
+    {
+      "name": "Sarang Kitchen",
+      "slug": "sarang-kitchen",
+      "into": "157a8267-80f8-4d99-ac2f-8af345ad9087",
+      "reason": "The same restaurant as ResourceHub's Sarang Kitchen at 1056 Bloor St W (from OpenStreetMap), which now carries this checked description (the ResourceHub round, 20 October 2026). Its own listing (df308601) was archived."
     }
   ]
 }

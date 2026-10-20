@@ -84,7 +84,7 @@ const ROW = 'flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded'
 
 // The categories Activities covers: it finds them, and every other listing
 // that offers the activity, so they aren't listed twice.
-const UNDER_ACTIVITIES = new Set(['swimming', 'horseback riding'])
+const UNDER_ACTIVITIES = new Set(['swimming', 'horseback riding', 'animal therapy'])
 // "Therapist" is shown as "Therapy" (the team's notes, October 2026); the
 // listings keep their category.
 const THERAPY_CATEGORY = 'therapist'

@@ -15,6 +15,10 @@ assert.deepEqual(g[1], ['applied behaviour analysis', 'applied behavior analysis
 for (const words of [ ...ACTIVITIES.map((a) => a.words), ...['behavioural', 'aba', 'ibi', 'developmental', 'cbt', 'rdi', 'occupational', 'therapy_other'].map(therapyWords)]) {
   for (const w of words) assert.ok(w.length >= 4, w)
 }
+// Each activity finds the category of the same name too.
+for (const [id, category] of [['swimming', 'swimming'], ['horseback', 'horseback riding'], ['animal_therapy', 'animal therapy']]) {
+  assert.ok(ACTIVITIES.find((a) => a.id === id).words.some((w) => category.includes(w)), category)
+}
 // "pool" alone would find Liverpool; it's always "swimming pool".
 assert.ok(!ACTIVITIES[0].words.includes('pool'))
 console.log('keywordFilters: ok')

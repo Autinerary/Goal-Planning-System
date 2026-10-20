@@ -1,0 +1,1241 @@
+{
+  "topic": "workplace",
+  "checked": "2026-10-20",
+  "entries": [
+    {
+      "slug": "kerrys-place-employment-services",
+      "name": "Employment Services (Kerry's Place)",
+      "website": "https://kerrysplace.org/autism-services-ontario/employment-services/",
+      "description": "Kerry's Place runs employment programs for autistic teens and adults in Ontario. EmploymentWorks gives free one-to-one job planning, job sampling with local employers, funded work experience and on-site job coaching once you are hired; Employment Essentials is a 12-week in-person group in Peel that practises job tasks and workplace social skills. It is also a Ready, Willing and Able partner agency in the GTA.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "EmploymentWorks and Ready, Willing and Able are listed as free; Employment Essentials (Peel) costs $1,500 and is DSO eligible.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "1-833-775-3779",
+      "email": "info@kerrysplace.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "We offer several employment services to help Autistic adults and teens build the skills they need to find and keep a job they love.",
+      "notes": "EmploymentWorks is a Sinneave Family Foundation program (see the national entry); Kerry's Place delivers it in Ontario with 1 year of support ending March 31, 2027, and in-person help guaranteed only in Durham, Peel, Toronto and York. Registration is through the Kerry's Place intake team. Employment Essentials requires an ASD diagnosis."
+    },
+    {
+      "slug": "jvs-toronto-asd-job-readiness-project",
+      "name": "Autism Spectrum Disorder (ASD) Job Readiness Project (JVS Toronto)",
+      "website": "https://www.jvstoronto.org/find-a-job/disability-employment-services/",
+      "description": "A six-month JVS Toronto program for autistic adults aged 18 to 30 who are struggling to find or keep a job. It starts with an 8-week workshop series on workplace communication, dealing with employers, workplace behaviour and self-advocacy, adds weekly one-to-one goal sessions, then a paid work placement of up to 14 weeks with on-the-job coaching.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_internships",
+        "career_workplace_life",
+        "requires_diagnosis"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated for this project; JVS's ODSP employment services on the same page are listed as free.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416-787-1151",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "For individuals, age 18 to 30, who have been diagnosed on the Autism Spectrum, including Asperger’s, and are struggling to find or maintain employment.",
+      "notes": "The page gives no start dates or fee for this project; ask JVS about the next intake. JVS Toronto itself appears in ResourceHub without details (3611d2b9-0d5e-4eed-a811-d5f7d0d6c27b); this entry is its autism program. The same page lists other JVS programs for people with disabilities in Toronto and York Region (pre-employment support, ODSP job search, RiseAbility, Al Green Resource Centre with a DSO referral)."
+    },
+    {
+      "slug": "community-living-toronto-employment-services",
+      "name": "Employment Services (Community Living Toronto)",
+      "website": "https://cltoronto.ca/programs-and-services/employment-services/",
+      "description": "Community Living Toronto's Employment Ontario service helps people with intellectual disabilities find and keep work: job matching based on each person's skills and interests, one-to-one career coaching, mock interviews, and on-the-job training and support from job coaches. It runs free workshops for job seekers on workplace rights and job search, and helps employers build inclusive workplaces.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "Workshops for job seekers are listed as free; it is an Employment Ontario provider.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": null,
+      "phone": "416-750-0666",
+      "email": "contactus@cltoronto.ca",
+      "age_ranges": [],
+      "evidence": "Providing on-the-job training and support to ensure a smooth transition into the workplace.",
+      "notes": "Toronto only. 416-750-0666 is the Employment Services team line given on the page. The page also mentions Project SEARCH graduates and The Social Brew Café social enterprise for work experience."
+    },
+    {
+      "slug": "ldao-ld-at-work",
+      "name": "LD@work (Learning Disabilities Association of Ontario)",
+      "website": "https://www.ldao.ca/ldao-at-work/",
+      "description": "LDAO's workplace program for adults with learning disabilities and ADHD. The Job-Fit workbook series helps you work out how you process information, your strengths and your workplace needs, and the SOAR workbooks build self-advocacy for the move from school to work. Employers can book consultations on accommodations, disclosure and inclusive hiring for staff with learning disabilities and ADHD.",
+      "category": "Employment",
+      "tags": [
+        "career_workplace_life",
+        "career_training"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "365 Evans Avenue Suite 202 Toronto, ON M8Z 1K2",
+      "phone": "(416) 929-4311",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Job-Fit is a practical workbook series that helps adults with LDs and ADHD explore how they process information, identify strengths, and understand workplace needs.",
+      "notes": "Province-wide association based in Toronto; LDAO itself is already listed (15c3b5b9-650e-44e4-ac47-a2a3c081ea63) and this entry is its workplace program. The page says LD@work is expanding (planned modules on financial literacy, assistive technology and disclosure)."
+    },
+    {
+      "slug": "liveworkplay-employment-supports-ottawa",
+      "name": "Employment Supports (LiveWorkPlay)",
+      "website": "https://liveworkplay.ca/how-we-can-help-you/",
+      "description": "An Ottawa charity whose employment team matches people with intellectual disabilities, including autistic people, with employers and supports both sides before and after the job starts. Employment discovery specialists get to know each job seeker and the kind of workplace that suits them, and workplace inclusion specialists help the employer put accommodations in place so supervisors and co-workers are ready.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "job_opportunities",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; its Employment Ontario services are government funded.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": "7 Bayview Station Road, Ottawa, ON, K1Y 2C5",
+      "phone": "343-644-9998",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The LiveWorkPlay employment supports team are labour market specialists trained to bring employers and employees with intellectual disabilities (including autistic persons) together to create mutually beneficial employment relationships.",
+      "notes": "343-644-9998 is the job seeker intake line; the main automated line is 613-235-9550. Visits to the Bayview Yards office are by appointment. It has a hiring partnership with the federal public service (more than 100 hires, per its page)."
+    },
+    {
+      "slug": "abilities-centre-pathways-2-employment-whitby",
+      "name": "Pathways 2 Employment (Abilities Centre)",
+      "website": "https://abilitiescentre.org/activities/pathways-2-employment-p2e/",
+      "description": "A supported employment and skills program at Abilities Centre in Whitby for Durham Region residents who face barriers to work, including people with disabilities. Workshops cover disclosure and accommodations, your rights, resumes and interviews, then participants do an externship at a local host site with a mentor or job coach; groups are capped at 10.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_internships",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated for P2E; Abilities Centre's separate employment workshops are free.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Whitby",
+      "address": "1 Jim Flaherty Street Whitby, Ontario Canada L1N 0J2",
+      "phone": "905-665-8500 ext. 224",
+      "email": "services@abilitiescentre.org",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Participants build workplace readiness, knowledge of disclosure and accommodations, and practical skills for workplace success.",
+      "notes": "For Durham Region residents not in school or training and not employed; register or join the waitlist through Employment Services (empservices@abilitiescentre.org). Abilities Centre also offers one-to-one Employment Coaching for people with disabilities in Durham Region. The page does not mention autism or ADHD specifically."
+    },
+    {
+      "slug": "autism-ontario-career-connections-employers",
+      "name": "Autism Career Connections for Employers & Hiring Managers (Autism Ontario)",
+      "website": "https://www.autismontario.com/employers",
+      "description": "A free, self-guided online course from Autism Ontario for employers, HR staff and hiring managers about autism and neurodiversity at work: what autism can look like in the workplace, inclusive hiring, healthier physical and attitudinal environments, and employers' legal obligations. It is open any time, so teams can come back to it.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "Free online module.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Unlike many other inclusivity workshops that focus on physical abilities, Autism Career Connections addresses the autism community and their needs exclusively.",
+      "notes": "Employer module (Module 3) of Autism Career Connections; the Job Seekers course is already in ResourceHub. Usable from anywhere, though made by the Ontario organization."
+    },
+    {
+      "slug": "human-rights-legal-support-centre-ontario",
+      "name": "Human Rights Legal Support Centre (HRLSC)",
+      "website": "https://hrlsc.on.ca/faq/work/",
+      "description": "Ontario's free legal help for people facing discrimination under the Human Rights Code, including at work. Its guides explain how to ask an employer for a disability-related accommodation, how much medical information an employer can ask for, and how to file an application with the Human Rights Tribunal of Ontario, and it gives free legal advice and support.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "advocacy",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "Free legal advice and support services.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "180 Dundas Street West, 8th Floor Toronto (Ontario) M7A 0A1",
+      "phone": "1-866-625-5179",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The Code may also require an employer to adjust your job duties to accommodate your special needs, if those needs are tied to a right covered by the Code.",
+      "notes": "Serves all of Ontario from Toronto (local 416-597-4900). People who cannot use the phone because of a disability can ask for accommodation by email (accommodation@hrlsc.on.ca). The duty-to-accommodate guide is dated January 2021. Federally regulated workplaces fall under the Canadian Human Rights Commission instead."
+    },
+    {
+      "slug": "navigating-work-dori-zener-toronto",
+      "name": "Navigating Work (Dori Zener & Associates)",
+      "website": "https://www.dorizener.com/product/navigating-work",
+      "description": "An 8-week evening support group and workshop series on Zoom for neurodivergent adults who are job hunting or building a career, run by a Toronto neuroaffirming therapy practice. Sessions cover resumes, interviews and networking, knowing your rights at work, and disclosure and accommodations; the practice also offers one-to-one job coaching and executive functioning coaching, and you can reach it by live text.",
+      "category": "Support Group",
+      "tags": [
+        "career_workplace_life",
+        "career_jobs",
+        "community_online",
+        "free_first_visit"
+      ],
+      "cost": "paid",
+      "cost_note": "$225 per person for 8 two-hour sessions (2025 group); coaching starts with a free consultation.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "TS Medical Centre, 692 Euclid Ave, Toronto, ON M6G 2T9",
+      "phone": "(647) 560-3300",
+      "email": "info@dorizener.com",
+      "age_ranges": [],
+      "evidence": "Navigating Work is a support group and workshop series for Neurodivergent adults who are interested in building their careers or seeking support with their job search.",
+      "notes": "Private practice. The newest posted group ran June 26 to August 14, 2025 (Thursdays 6:30-8:30 pm ET); check the page for the next start. Live texting line 647-247-9039 (Monday-Thursday mornings)."
+    },
+    {
+      "slug": "project-search-ottawa",
+      "name": "Project SEARCH Ottawa",
+      "website": "https://www.ocdsb.ca/programs-learning/special-education/special-education-secondary/transition-planning/project-search-ottawa",
+      "description": "A one-year school-to-work internship program at The Ottawa Hospital's Civic Campus for students with an intellectual or developmental disability who have finished their high school experience. Interns rotate through hospital internships, with classroom sessions from an OCDSB teacher, hands-on skills training from a LiveWorkPlay trainer and mentoring from hospital staff.",
+      "category": "Employment",
+      "tags": [
+        "career_internships",
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Ottawa",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Project SEARCH is an intensive, one-year transition program for students with an intellectual or developmental disability who have completed their high school experience and are ready to move into the workforce.",
+      "notes": "Partnership of the Ottawa-Carleton District School Board, The Ottawa Hospital, LiveWorkPlay and Project SEARCH; the first cohort started September 1, 2026. The OCDSB page text did not load for us (dynamic page), so details come from LiveWorkPlay's September 8, 2026 post; ask the OCDSB about eligibility and the next intake."
+    },
+    {
+      "slug": "springboard-clinic-adhd-coaching-workplaces",
+      "name": "ADHD coaching and workplace workshops (Springboard Clinic)",
+      "website": "https://springboardclinic.com/support-for-schools-workplaces/",
+      "description": "A Toronto ADHD clinic that offers one-to-one ADHD and executive function coaching online or in person, including help with doing well at work, plus workshops for workplace leaders and teams on supporting employees with ADHD and attention differences, covering communication, collaboration and accommodations. It starts with a free 30-minute call.",
+      "category": "Therapist",
+      "tags": [
+        "career_workplace_life",
+        "career_training",
+        "free_first_visit"
+      ],
+      "cost": "paid",
+      "cost_note": "Private clinic (see its Pricing & Insurance page); free 30-minute introductory call.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "40 Holly Street, Suite 701 Toronto, ON M4S 3C3",
+      "phone": "416.901.3077",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Build confidence supporting employees with ADHD and attention differences",
+      "notes": "Also has an Oakville location. Workplace sessions are led by psychologists, psychotherapists or coaches and are tailored to each team; fees are not listed on these pages."
+    },
+    {
+      "slug": "corbrook-employment-services",
+      "name": "Employment Services (Corbrook)",
+      "website": "https://corbrook.com/employment-services/",
+      "description": "A Toronto Employment Ontario provider for youth and adults with developmental disabilities. Employment Specialists give personalized coaching, job development and retention support after you start, and the Striving for Success pre-employment program builds workplace confidence and skills such as resumes and interview practice; employers get candidate matching and help with onboarding and training.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "Free Employment Ontario programs and no-cost options for those who qualify; fee-for-service options also exist.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "300 Supertest Road, Unit 4 Toronto, ON M3J 2M2",
+      "phone": "416-245-5565",
+      "email": "info@corbrook.com",
+      "age_ranges": [],
+      "evidence": "Corbrook’s Employment Services support youth and adults with developmental disabilities in building skills, finding a job, and thriving at work.",
+      "notes": "Locations in North York (Supertest Road, Trethewey Drive) and Scarborough (Progress Avenue). For people with developmental disabilities; the pages do not mention autism specifically."
+    },
+    {
+      "slug": "reena-supported-employment",
+      "name": "Supported Employment Programs (Reena)",
+      "website": "https://reena.org/programs-housing/employment-programs/",
+      "description": "Reena's supported employment program helps people with developmental or intellectual disabilities in Toronto, Markham and Vaughan find and keep paid work. Job coaches run job readiness workshops and help with career exploration, resumes and interview preparation, then give on-site job coaching and ongoing retention support; employers get help with recruitment plus workshops and training.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "905.889.6484",
+      "email": "info@reena.org",
+      "age_ranges": [],
+      "evidence": "Our team of expert job coaches work together with each participant to facilitate job readiness skills training workshops as well as individual support with securing meaningful and sustainable paid employment in the competitive labour market.",
+      "notes": "The employment supervisors' inbox is employment@reena.org. Serves Toronto, Markham and Vaughan (per the page title). Not autism-specific."
+    },
+    {
+      "slug": "hutton-house-employment-services-london",
+      "name": "Employment Services (Hutton House)",
+      "website": "https://www.huttonhouse.com/employmentservices",
+      "description": "Free employment services in London, Ontario for people who identify as having a physical or mental disability. A case manager builds a step-by-step work plan around your strengths and the supports you need, workshops build confidence (including for people who get anxious about interviews), and job coaches can meet you at work to help you learn the job and sort out problems.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life",
+        "career_internships"
+      ],
+      "cost": "free",
+      "cost_note": "Free services for eligible job seekers; workshops have no fee.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "London",
+      "address": "654 Wonderland Road North",
+      "phone": "519-472-6381",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Job Coaches are available to meet with you at work to help you learn your job. They will assist you off site to resolve any work related challenges.",
+      "notes": "For London/Middlesex residents who are Canadian citizens or permanent residents, unemployed or working under 10 hours a week, with English at about level 6/7. Runs the HIRE UP program under London Regional Employment Services. Not autism-specific."
+    },
+    {
+      "slug": "ontario-accessibility-employment-rights",
+      "name": "Accessibility in Ontario: employment and workplace accommodation (Government of Ontario)",
+      "website": "https://www.ontario.ca/page/accessibility-ontario-what-you-need-to-know",
+      "description": "The Ontario government's plain-language guide to accessibility rights has a section on work: when applying you can ask for forms in another format and for accommodations in interviews and tests, employers have a legal duty to accommodate, and you can ask for accommodation without describing your disability in detail. It also lists Ontario employment programs for people with disabilities.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Government information page.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "You can tell your employer about your need for accommodation, but you do not have to discuss your disability in detail.",
+      "notes": "Page updated June 16, 2026. General disability guidance, not specific to autism or ADHD; it points to the AODA employment standard and the Human Rights Code."
+    },
+    {
+      "slug": "good-foot-forward-toronto",
+      "name": "Good Foot Forward Employment & Training Program (Good Foot Delivery)",
+      "website": "https://www.goodfootdelivery.com/goodfootforward/",
+      "description": "A Toronto charity's employment program for neurodivergent adults aged 18 to 30 (autism, ADHD, learning disabilities and more): small-group classes with one-to-one coaching, a paid internship alongside Good Foot's own neurodivergent couriers as peer trainers, then a paid work placement with a partner employer, which also gets coaching. You do not have to disclose confidential health information to apply.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_internships",
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated; the internship and placement are paid.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "40 Eglinton Ave E, Unit 201 Toronto, ON M4P 3A2",
+      "phone": "416-572-3771",
+      "email": "programs@goodfootdelivery.com",
+      "age_ranges": [
+        "young_adults_18_30"
+      ],
+      "evidence": "Paid internship with a Good Foot peer Training Facilitator (neurodivergent Courier team members)",
+      "notes": "Needs a SIN, Monday-Friday 9-5 availability and in-person attendance; job-shadowing shifts can involve carrying up to 20 lbs, walking and stairs. Completing the program does not guarantee a job. Good Foot Delivery itself is a courier service staffed by neurodivergent couriers."
+    },
+    {
+      "slug": "geneva-centre-community-employment-options",
+      "name": "Community & Employment Options Program (Geneva Centre for Autism)",
+      "website": "https://www.genevacentre.ca/programs_/t24573/s98809-community-and-employment-options-program",
+      "description": "A free program for autistic adults in Toronto who want to explore work, volunteering and community life. It starts with 6 to 12 weeks of one-to-one sessions to find your strengths, interests and support needs and make an action plan, then offers skill-building workshops, vocational exploration and group and community-based activities for up to a year.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_workplace_life",
+        "requires_diagnosis"
+      ],
+      "cost": "free",
+      "cost_note": "No cost to participants (funded by the Ministry of Children, Community and Social Services).",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "112 Merton St. Toronto, ON, M4S 2Z8",
+      "phone": "(416) 322-7877",
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Vocational Exploration and Skill-Building: Develop employment-related skills while exploring career, employment, and volunteer opportunities that align with your interests.",
+      "notes": "Enrolment is through Developmental Services Ontario (DSO); for adults 18+ with an autism diagnosis living in Toronto (M postal code). Program coordinator inbox: adultservices@autism.net."
+    },
+    {
+      "slug": "geneva-centre-organizational-training",
+      "name": "Organizational Training & Consultation (Geneva Centre for Autism)",
+      "website": "https://www.genevacentre.ca/programs-and-services/organizational-training-and-consultation",
+      "description": "Customized training and consultation from Toronto's Geneva Centre for Autism for employers and other organizations that want autistic and neurodivergent staff and customers to feel welcome and supported: awareness sessions, in-depth workshops and leadership coaching, plus reviews of hiring practices and help creating neuroinclusive spaces. Offered on site or virtually.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; customized quotes.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "ON",
+      "city": "Toronto",
+      "address": "112 Merton St. Toronto, ON, M4S 2Z8",
+      "phone": "(416) 322-7877",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Our team will work with you to develop customized training and consultation that meets your organization's needs and helps create welcoming environments where autistic and neurodivergent people can thrive.",
+      "notes": "Employer-facing; the page says it replies within 2 business days and works across Canada. Training inbox: training@autism.net."
+    },
+    {
+      "slug": "the-low-achiever-adhd-neurodivergent-coaching",
+      "name": "The Low Achiever (ADHD and neurodivergent coaching)",
+      "website": "https://www.thelowachiever.com/what-is-coaching",
+      "description": "An Ontario coaching practice run by a neurodivergent ICF-certified coach for adults with ADHD or autism, including help navigating work: executive functioning support for planning and starting tasks, avoiding burnout, setting boundaries, and understanding how ADHD shows up at work. It also gives neuroinclusive workplace training and consulting to employers and teams.",
+      "category": "Education Support",
+      "tags": [
+        "career_workplace_life",
+        "career_training"
+      ],
+      "cost": "paid",
+      "cost_note": "Private coaching; prices are in its downloadable service menu.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "ON",
+      "city": null,
+      "address": null,
+      "phone": "416-523-2815",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Understanding how ADHD shows up in your relationships, work, creativity, and daily life",
+      "notes": "Sole practitioner (Gill Forth) based on the Haldimand Tract (Grand River area); clients book sessions online. She also presented the Sinneave NEUROinclusive Workforce Solutions disclosure webinar (October 22, 2026). Phone is call or text."
+    },
+    {
+      "slug": "specialisterne-canada",
+      "name": "Specialisterne Canada",
+      "website": "https://ca.specialisterne.com/job-seekers/",
+      "description": "A charitable non-profit that connects autistic and other neurodivergent job seekers with employers and helps those employers change hiring and management practices. Job seekers who identify as autistic, ADHD, learning disabled, intellectually disabled, OCD or Tourette and have faced barriers at work can join its talent community for job openings and resources.",
+      "category": "Employment",
+      "tags": [
+        "job_opportunities",
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated for job seekers.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Specialisterne works with businesses to tap into the talents of autistic or neurodivergent job seekers.",
+      "notes": "Works in Canada and the United States; contact is by web form. Employer partners include TD, which says it has hired 85 neurodivergent colleagues in Canada and the US through Specialisterne since 2016, using skills exercises instead of a standard interview.",
+      "existing_id": "55b0150e-a21a-4421-acb9-bbcdb0d44b85"
+    },
+    {
+      "slug": "auticon-canada",
+      "name": "auticon Canada",
+      "website": "https://auticon.com/ca-en/careers/",
+      "description": "An IT consultancy whose technology consultants are all autistic; they work remotely, on site or hybrid on client projects in data, software and testing, backed by employment coordinators. Hiring uses a low-stress, four-step process with an informal interview before the technical one, and auticon also sells neurodiversity training and one-to-one coaching for neurodivergent staff at other employers.",
+      "category": "Employment",
+      "tags": [
+        "job_opportunities",
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "An employer; apply through its careers page.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "+1 888-286-4826",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "auticon provides an inclusive work environment, supportive employment coordinators, and a low stress job interview process.",
+      "notes": "Canadian office in Calgary; roles across Canada, many remote. The careers page shows a standing talent-pool posting rather than dated openings. Its Coaching-as-a-Service (for neurodivergent employees and their managers) is a paid employer service.",
+      "existing_id": "d00e8d6d-81b5-4d38-860d-eed0b74ca345"
+    },
+    {
+      "slug": "ready-willing-and-able",
+      "name": "Ready, Willing and Able (RWA)",
+      "website": "https://readywillingable.ca/about/",
+      "description": "A free national program of Inclusion Canada and Autism Alliance of Canada that helps employers hire people with an intellectual disability or on the autism spectrum, active in about 30 communities in every province and territory. Job seekers connect through local employment agency partners, which share RWA job openings, offer training and arrange on-the-job support and accommodations.",
+      "category": "Employment",
+      "tags": [
+        "job_opportunities",
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "RWA is a free program.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Individual on-the-job support for the employee to do their job effectively, including disability related accommodations if and as necessary",
+      "notes": "Funded by the Government of Canada's Opportunities Fund for Persons with Disabilities. RWA does not send jobs to job seekers directly; go through an employment agency partner (for example Kerry's Place in the GTA). Canucks Autism Network's RWA career navigation in BC is on hiatus."
+    },
+    {
+      "slug": "employmentworks-sinneave",
+      "name": "EmploymentWorks (The Sinneave Family Foundation)",
+      "website": "https://employment-works.ca/for-job-seekers/online-services/",
+      "description": "Free one-to-one employment support for people aged 15 and older who identify as autistic, neurodivergent or disabled: an employment action plan, job search help and work experience, then job coaching and help with workplace accommodations once you are hired, for up to 12 months. It runs online anywhere in Canada in English or French, and in person at partner sites in five provinces.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life",
+        "career_training",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "No cost to eligible participants.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-888-733-7976",
+      "email": null,
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "These may include job coaching support, help with workplace accommodations, funded work experience, and access to 24/7 mental health resources through a Family Assistance Program.",
+      "notes": "Funding for the current project ends March 31, 2027. In-person providers: Kerry's Place (Newmarket, Oshawa, Brampton, Toronto), Sinneave (Calgary), Centre for Autism Services Alberta (Edmonton), SaskAbilities (Saskatoon), Pacific Autism Family Network (Richmond, Prince George, Chilliwack) and ITP Solutions (Laval). Needs a SIN and the right to work in Canada."
+    },
+    {
+      "slug": "neuroinclusive-workforce-solutions",
+      "name": "NEUROinclusive Workforce Solutions (The Sinneave Family Foundation)",
+      "website": "https://neuroinclusive-solutions.ca/",
+      "description": "Free consultation, eLearning and resources for Canadian employers who want their workplaces to work for neurodivergent staff, from recruitment and onboarding to accommodations. Its free Solutions Hub has on-demand courses and webinars, such as a session on how disclosure works and how to make accommodation requests easier for employees.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_workplace_life",
+        "prog_events"
+      ],
+      "cost": "free",
+      "cost_note": "No-cost consultation and eLearning; free Solutions Hub account.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-888-733-7976",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "NEUROinclusive Workforce Solutions provides no-cost consultation, eLearning, and resources to help Canadian employers build neuroinclusive workplaces.",
+      "notes": "Funded in part by the Opportunities Fund for Persons with Disabilities. Upcoming webinar: Disclosure and Accommodations at Work, Thursday October 22 (2026) at noon. The related Sinneave site Worktopia (worktopia.ca) collects toolkits on neuroinclusive workplaces."
+    },
+    {
+      "slug": "canadian-human-rights-commission-workplace-accommodation",
+      "name": "Workplace accommodation guide (Canadian Human Rights Commission)",
+      "website": "https://www.chrc-ccdp.gc.ca/resources/publications/workplace-accommodation-guide",
+      "description": "The Canadian Human Rights Commission takes discrimination complaints about federally regulated employers such as federal departments, banks, Crown corporations and air or rail companies. Its step-by-step workplace accommodation guide explains the duty to accommodate, including for invisible disabilities, and how workers and managers should talk through and assess accommodation needs.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "advocacy",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-888-214-1090",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Many disabilities that require accommodation are not immediately apparent to other people. Invisible disabilities — also known as hidden disabilities or non-visible disabilities — are often misunderstood.",
+      "notes": "Covers only federally regulated workplaces; provincially regulated workers use their provincial human rights system (in Ontario, the HRLSC entry). TTY 1-888-643-3304. Office: 344 Slater Street, 8th Floor, Ottawa."
+    },
+    {
+      "slug": "spectrum-works-career-fair",
+      "name": "Spectrum Works career fair",
+      "website": "https://spectrumworks.ca/",
+      "description": "A yearly career fair for autistic job seekers, with a national virtual fair and in-person fairs in Ottawa and Toronto, where job seekers meet inclusive employers and service providers. It is free for job seekers, has HR and resume-building booths, and sends a guide to the participating employers ahead of time so people can plan their day.",
+      "category": "Employment",
+      "tags": [
+        "job_opportunities",
+        "career_jobs",
+        "prog_events"
+      ],
+      "cost": "free",
+      "cost_note": "Registration is free for job seekers.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Before the event, you will receive a PDF guide with a list of participating employers and service providers.",
+      "notes": "The site still shows the 9th annual fair (virtual September 26, 2025; Ottawa October 7; Toronto October 17 at Metro Hall) with registration closed; 2026 dates were not posted when checked.",
+      "existing_id": "dab653b9-ace4-4eb1-9508-d618f560c4e2"
+    },
+    {
+      "slug": "infinity-network-neurodivergent-public-servants",
+      "name": "Infinity – The Network for Neurodivergent Public Servants",
+      "website": "https://wiki.gccollab.ca/Public_Service_Neurodiversity_Week",
+      "description": "A peer network for neurodivergent federal public servants (autistic, ADHD, dyslexic and others) that runs the yearly Public Service Neurodiversity Week and a help hub with peer-based advice and templates for accommodation requests, workplace culture and career development. Its resource page also explains the GC Workplace Accessibility Passport and federal hiring programs for persons with disabilities.",
+      "category": "Support Group",
+      "tags": [
+        "community_group",
+        "community_online",
+        "career_workplace_life",
+        "prog_events"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated; for federal public servants.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "It includes practical advice, templates and tools based on peer experience to support accommodation requests, navigating organizational culture and career development.",
+      "notes": "For federal public servants; the Infinity Help Hub is on the internal Government of Canada network (GCexchange). Public Service Neurodiversity Week 2026 runs October 19-23 with a hybrid flagship event. GCwiki pages last edited 1-2 October 2026; the network's email is on the page as a link (infinite-infinity@pch.gc.ca)."
+    },
+    {
+      "slug": "ccrw-employment-services",
+      "name": "Employment Services (Canadian Council on Rehabilitation and Work)",
+      "website": "https://ccrw.org/employment-services/",
+      "description": "A national charity that helps job seekers with any type of disability find work through personalized employment planning, one-to-one coaching, resume help, and guidance on disclosing a disability and asking for accommodations, with follow-up support after hiring. It also runs the Untapped Talent job board, where disability-confident employers post jobs, and offers employers resources such as its Disability Confidence Toolkit.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "CCRW helps job seekers with disabilities move toward meaningful work through personalized employment planning, one-on-one coaching, resume and cover letter support, disclosure and accommodation guidance, follow-up support, and more.",
+      "notes": "11 offices across Atlantic Canada, Central Canada, the Prairies and the West Coast; the contact and locations pages refused our fetcher (HTTP 403), so no phone is given here. CCRW is also a partner in Autism@Work in Atlantic Canada."
+    },
+    {
+      "slug": "caddac-adhd-in-the-workplace",
+      "name": "ADHD in the Workplace (CADDAC)",
+      "website": "https://caddac.ca/programs-events/adhd-in-the-workplace/",
+      "description": "A recorded presentation from the Centre for ADHD Awareness, Canada about ADHD at work: the strengths and difficulties ADHD can bring on the job, how to assess them, whether and how to talk to your employer about it, and practical strategies and accommodations for specific problems and settings.",
+      "category": "Education Support",
+      "tags": [
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Recording linked from the page; no fee stated.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": "1-800-807-0090",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "The focus will be on potential strategies and accommodations that can be implemented for specific impairments and settings.",
+      "notes": "Presented by CADDAC founder Heidi Bernhardt; the recording date is not shown. CADDAC's free adult ADHD peer support groups and group coaching are already in ResourceHub."
+    },
+    {
+      "slug": "ey-canada-neurodiversity-centres-of-excellence",
+      "name": "Neurodiversity Centres of Excellence (EY Canada)",
+      "website": "https://www.ey.com/en_ca/insights/consulting/neurodiversity-centres-of-excellence-ey-canada",
+      "description": "EY Canada's employment program for neurodivergent professionals, started in Toronto in 2020 with a team of people with autism, ADHD, sensory and other cognitive differences working in a supportive setting. EY says it is building accessible processes and environments for neurodivergent employees and offers careers on short- and long-term consulting projects with mentoring and formal learning; it also advises other employers on recruiting and supporting neurodivergent staff.",
+      "category": "Employment",
+      "tags": [
+        "job_opportunities",
+        "career_jobs",
+        "prog_mentorship",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "An employer; apply through its opportunities page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": null,
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "EY is building a neurodiverse workforce and developing accessible processes and environments where neurodivergent employees can thrive.",
+      "notes": "The program page links to current opportunities; locations beyond Toronto are not listed on the pages we kept. The launch press release is from November 2020."
+    },
+    {
+      "slug": "autism-nova-scotia-employment-support-group",
+      "name": "Employment Support Group (Autism Nova Scotia)",
+      "website": "https://www.autismnovascotia.ca/programs/employment-support-group/",
+      "description": "A free online peer group for autistic people of working age in Nova Scotia, led by an autistic facilitator, to talk about work: workplace challenges, accommodations, disclosure and work-life balance. It meets on Zoom, cameras and microphones are optional and people can take part by typing in the chat, and no formal diagnosis is needed.",
+      "category": "Support Group",
+      "tags": [
+        "community_group",
+        "community_online",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "No cost.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "NS",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "It’s not mandatory that you have your camera on or use your microphone and there is a chat (typed text) that can be used.",
+      "notes": "Province-wide; meets every 2nd Friday 7:00-8:00 p.m., with a separate women's group. Register by emailing the facilitator named on the page."
+    },
+    {
+      "slug": "autism-nova-scotia-individualized-employment-supports",
+      "name": "Individualized Employment Supports (Autism Nova Scotia)",
+      "website": "https://www.autismnovascotia.ca/programs/individualized-employment-supports/",
+      "description": "Free one-to-one employment support for autistic adults 16 and older that starts with a PATH planning session and continues with job coaching on or off the job, referrals and community navigation, with the place, communication method and pace chosen with each person. Short-term Employment Navigation Support with Autism Outreach Coordinators is also offered in Truro, Cape Breton and the South Shore.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "No cost to participate.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "NS",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Location, communication methods, and pace of support are chosen together with the individual.",
+      "notes": "The page was taking expressions of interest and aiming to launch the full service in June 2026 in Central Nova Scotia, Cape Breton and the Annapolis Valley, with pre-employment and employment coaching requests accepted meanwhile. No formal diagnosis required. Program inboxes on the page: individualizedemployment@autismns.ca and NavigateEmployment@autismns.ca."
+    },
+    {
+      "slug": "autism-resource-centre-regina-employment",
+      "name": "Employment Programs (Autism Resource Centre, Regina)",
+      "website": "https://www.autismresourcecentre.com/programs-employment",
+      "description": "Year-round, neuro-affirming employment programs for members of Regina's Autism Resource Centre: a one-to-one Career Kickstart session, skill-building workshops, a six-session employment readiness program, a job search group with interview prep and short-term job coaching, monthly volunteering to build job skills, and some short-term jobs with job coaching. ARC also gives workplace presentations on autism and neurodiversity to employers.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_jobs",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "unknown",
+      "cost_note": "ARC membership required; fees not stated on the page.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Regina",
+      "address": "199 Leonard Street Regina, SK S4N 5X5",
+      "phone": "306-569-0858",
+      "email": "info@autismsk.com",
+      "age_ranges": [],
+      "evidence": "Our programs are designed using a person-centered and neuro-affirming approach.",
+      "notes": "Programs are for ARC members (see its membership page). The Autism Resource Centre itself is already listed (12a2675b-16ca-4180-89dd-98ccad72735a); this entry is its employment program."
+    },
+    {
+      "slug": "canucks-autism-network-can-step",
+      "name": "Skills Training Employment Program (CAN-STEP) (Canucks Autism Network)",
+      "website": "https://canucksautism.ca/program/skills-training-employment-program/",
+      "description": "A pre-employment program for autistic job seekers in the Lower Mainland (16 and older) and Kelowna (15 to 30): up to five weeks of small-group classroom training in resumes, interviews, workplace communication and time management, then a paid 120-hour work placement with onsite support from CAN staff. Participants self-identify as autistic; no formal diagnosis is needed.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_internships",
+        "career_jobs"
+      ],
+      "cost": "unknown",
+      "cost_note": "No fee stated; participants are paid for work-placement hours and get a lunch stipend during classroom training.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": null,
+      "phone": "1.604.685.4049",
+      "email": "info@canucksautism.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "CAN-STEP is an unique program designed specifically for youth and adults on the autism spectrum working towards independence in their career journey.",
+      "notes": "Seasonal intakes (fall, winter, spring, summer) in Vancouver and Kelowna. Must be out of school, unemployed or precariously employed, and legally entitled to work in Canada. Program inboxes: step@canucksautism.ca (Vancouver), stepkelowna@canucksautism.ca (Kelowna)."
+    },
+    {
+      "slug": "accessible-employers-bc",
+      "name": "Accessible Employers (Open Door Group)",
+      "website": "https://accessibleemployers.ca/",
+      "description": "A BC network, operated by Open Door Group, that helps employers hire and keep disabled staff. Its online workplace accommodation guide lists low-cost changes such as flexible schedules, a job coach, job carving and fewer distractions (a quiet space, earplugs, adjustable lighting and sound, noise-cancelling headphones), naming autism as an example of a non-visible disability.",
+      "category": "Organization",
+      "tags": [
+        "career_workplace_life",
+        "career_training"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "BC",
+      "city": null,
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Minimizing distractions in the workplace (ex. provide a quiet space to work, earplugs, ability to customize work space lighting/sounds, noise-cancelling headphones.)",
+      "notes": "Employer-facing. Its online employer courses (including Support Self Disclosure) are paused until fall 2026, with a waitlist. The site also shares stories from disabled employees, including an autistic ICBC employee on disclosing at work."
+    },
+    {
+      "slug": "autism-at-work-atlantic-canada",
+      "name": "Autism@Work (Avalon Employment and CCRW)",
+      "website": "https://www.autismatwork.ca/",
+      "description": "A free employment program for Atlantic Canadians on the autism spectrum who have finished high school, aimed at skilled people and those at risk of losing a job: one-to-one guidance, a strengths-based toolkit to share with employers, and support that continues after you are hired. Employers get free training and hands-on help to hire, onboard and communicate with autistic staff.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "Free for job seekers; no cost to employers.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NS",
+      "city": "Halifax",
+      "address": "7071 - 244 Bayers Rd Halifax, NS, B3L 2C2",
+      "phone": "+1 (709) 579-4866",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "You’ll receive personalized, one-on-one guidance, along with a strengths-based toolkit to share with employers. Our ongoing support continues after you’re hired, ensuring you feel confident and understood in the workplace.",
+      "notes": "Accepting job seekers and employer partners from across Atlantic Canada (NL, NS, NB, PE). Run by Avalon Employment Inc. of St. John's, NL (the phone is Avalon's) with CCRW; the program site lists a Halifax address. An employer workshop on hiring autistic talent is set for November 19, 2026."
+    },
+    {
+      "slug": "giant-steps-employment-services-montreal",
+      "name": "Employment Services (Giant Steps Montreal)",
+      "website": "https://giantstepsmontreal.com/employment-services/",
+      "description": "Giant Steps, a Montreal autism centre, helps autistic adults get and keep jobs through employer partnerships that offer structured training and paid placements, hands-on skills training inside its Adult Education Program, and workplace consultation and job matching for employers. It has been Quebec's delivery partner for Ready, Willing and Able since 2019.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "job_opportunities",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montréal",
+      "address": "4400, rue Molson Montréal, Québec H1Y 0A3",
+      "phone": "514-935-1911",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "As a provincial delivery partner for Ready, Willing & Able (RWA) in Quebec since 2019, Giant Steps plays a pivotal role in helping autistic job seekers connect with inclusive employers.",
+      "notes": "Adult Education Program admission is 21+. Employer partnerships named on the page include the Xenia initiative (training and paid placements for autistic youth and young adults across 8 properties) and Polaris (retail). The Giant Steps School is already listed separately."
+    },
+    {
+      "slug": "studios-asl-autisme-sans-limites-montreal",
+      "name": "Les Studios d'ASL (Autisme sans limites)",
+      "website": "https://autismesanslimites.org/les-studios-asl/",
+      "description": "A Montreal program for autistic young adults aged 18 to 35 that gives ongoing support and job training and lets participants try different workplaces and trades in real settings while they learn about their own interests and skills; it also teaches employers about neurodiversity. The website is in French.",
+      "category": "Employment",
+      "tags": [
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Montréal",
+      "address": null,
+      "phone": "(514) 966-5685",
+      "email": "info@autismesanslimites.org",
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45"
+      ],
+      "evidence": "Les Studios d’ASL permettent aux participants d’explorer différents milieux de travail et d’expérimenter divers métiers dans un cadre réel, tout en développant une meilleure connaissance d’eux-mêmes, de leurs intérêts, compétences et talents.",
+      "notes": "For autistic young adults with social and cognitive autonomy (criteria on the eligibility page) who apply voluntarily; references from school, work, health or community contacts are required. Quebec announced SPHERE funding to scale up the Studios on May 29, 2023."
+    },
+    {
+      "slug": "cdpdj-service-conseil-accommodement-raisonnable",
+      "name": "Service-conseil en accommodement raisonnable (Commission des droits de la personne et des droits de la jeunesse)",
+      "website": "https://www.cdpdj.qc.ca/fr/nos-services/activites-et-services/service-conseil-en-accommodement-raisonnable",
+      "description": "A free, confidential advisory service from Quebec's human rights commission for managers, business owners, HR staff and union representatives working out whether and how to accommodate someone, such as an employee with a disability. The commission's English pages explain how an employee can ask for reasonable accommodation: make the request to your supervisor, give the information needed and work together on a solution.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "career_workplace_life",
+        "advocacy"
+      ],
+      "cost": "free",
+      "cost_note": "Free and confidential.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "QC",
+      "city": null,
+      "address": null,
+      "phone": "514 873-5146",
+      "email": "information_speciale@cdpdj.qc.ca",
+      "age_ranges": [],
+      "evidence": "La Commission offre un service-conseil gratuit et confidentiel pour vous aider à:",
+      "notes": "The advisory page is in French only; the toll-free line is 1 800 361-6477 (extension 4 for this service). Employees can also file discrimination complaints with the Commission. Not specific to autism or ADHD."
+    },
+    {
+      "slug": "roseph-autisme-et-emploi",
+      "name": "Autisme et emploi (ROSEPH)",
+      "website": "https://roseph.ca/autisme-et-emploi/",
+      "description": "ROSEPH, a network of 24 Quebec employment agencies for people with disabilities funded by Services Québec, has an autism-and-work page with a practical guide for employers on hiring an autistic person (rethought interview questions, tips before the interview and once the person is hired, large-print version) and advice such as sending documents ahead of time and respecting the person's pace. Job seekers can find a member agency near them through its member directory.",
+      "category": "Organization",
+      "tags": [
+        "career_workplace_life",
+        "career_training"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "online",
+      "country": "Canada",
+      "province": "QC",
+      "city": "Sainte-Thérèse",
+      "address": "83 rue Turgeon, bureau 302-B Sainte-Thérèse (QC), J7E 3H7",
+      "phone": "(438) 798-0788",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Respectez le rythme de la personne que vous recevez : une entrevue ou une première journée, c’est stressant pour tout le monde.",
+      "notes": "Site in French. Member agencies are independent organizations working with local employment centres (Centres locaux d'emploi). ROSEPH also runs DuoEmploi job-shadowing days (2026 edition)."
+    },
+    {
+      "slug": "bc-human-rights-clinic",
+      "name": "BC Human Rights Clinic (Community Legal Assistance Society)",
+      "website": "https://bchrc.net/",
+      "description": "Free legal help for people in BC with human rights complaints, including disability discrimination at work. Its template letter for asking an employer for a disability accommodation helps you make a clear written request, and a May 2026 article explains when an employer can ask for medical information and how much you have to share.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "advocacy",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "Free legal assistance, but demand exceeds resources and help is not guaranteed.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "BC",
+      "city": "Vancouver",
+      "address": null,
+      "phone": "1-855-685-6222",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "I need an accommodation for my disability at work",
+      "notes": "A program of the Community Legal Assistance Society; apply online for legal services. Local line 604-622-1100. Not specific to autism or ADHD."
+    },
+    {
+      "slug": "nwt-human-rights-commission-accommodation",
+      "name": "Northwest Territories Human Rights Commission",
+      "website": "https://nwthumanrights.ca/your-rights/accommodation/",
+      "description": "The NWT Human Rights Commission explains the duty to accommodate at work and elsewhere, offers a fillable request-for-accommodation form, and gives workshops on accommodation and employment issues on request. Its advice is to ask for what you need and explain why it matters, since an employer cannot be expected to just know.",
+      "category": "Legal & Future Planning",
+      "tags": [
+        "advocacy",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NT",
+      "city": null,
+      "address": null,
+      "phone": "1-888-669-5575",
+      "email": "info@nwthumanrights.ca",
+      "age_ranges": [],
+      "evidence": "If you require an accommodation, ask for it. It is unreasonable to expect that a person or business should “just know” what you need.",
+      "notes": "Office in the Laing Building, 5003-49th Street; local line 867-669-5575. Not specific to autism or ADHD."
+    },
+    {
+      "slug": "gateway-association-job-seeker-support",
+      "name": "Job Seeker Support (Gateway Association)",
+      "website": "https://gatewayassociation.ca/job-seeker-support/",
+      "description": "Free employment support in Edmonton and Calgary for people living with a disability: a Career Inclusion Consultant helps you look for work that fits your strengths and interests, practises interviews with you until they feel manageable, can match you with a mentor in your field and helps with accommodations, then stays in touch after you start. Edmonton has a walk-in centre with no appointment or diagnosis needed.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "prog_mentorship",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "free",
+      "cost_note": "All of Gateway's employment support is free.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Edmonton",
+      "address": null,
+      "phone": "780-454-0701",
+      "email": "info@gatewayassociation.ca",
+      "age_ranges": [
+        "teens_13_17",
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Interviews and resumes can feel like the hardest part. We practise with you until it feels manageable, so you walk in ready.",
+      "notes": "Calgary office 587-779-7888. Edmonton: 18+; Calgary: 15+ and unemployed or underemployed; you must identify as having a disability and be legally entitled to work in Canada."
+    },
+    {
+      "slug": "saskabilities-partners-in-employment",
+      "name": "Partners in Employment (SaskAbilities)",
+      "website": "https://www.saskabilities.ca/services/supported-employment/individuals-seeking-supported-employment/",
+      "description": "SaskAbilities' supported employment service for people experiencing disability in Saskatchewan: vocational assessments, pre-employment classes in a group or one-to-one, job search help, and on-the-job coaches who work alongside you while you learn the job. It also offers virtual-reality career exploration and a VR program for practising soft skills and job interviews.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "in_person",
+      "country": "Canada",
+      "province": "SK",
+      "city": "Regina",
+      "address": "2122 Broad Street Regina, SK S4P 1Y5",
+      "phone": "306.522.2555",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Our on-the-job coaches work right along with you to assist in work training and navigating any obstacles that may arise.",
+      "notes": "Partners in Employment offices in Swift Current, Regina, Moose Jaw, Saskatoon and Yorkton (Regina details given). SaskAbilities is also the Saskatoon in-person provider of EmploymentWorks. Not autism-specific."
+    },
+    {
+      "slug": "level-it-up-winnipeg",
+      "name": "Level It Up",
+      "website": "https://levelitupmb.ca/candidates/",
+      "description": "A Winnipeg social enterprise that helps autistic adults aged 21 and older with post-secondary training in science, technology, engineering, the arts or math find work in their field. Its training and assessment process (partly self-paced online) covers communication and learning styles, disclosure strategies and your right to accommodation, and mock interviews, with ongoing support for both you and your employer once you are hired.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_training",
+        "career_workplace_life",
+        "job_opportunities"
+      ],
+      "cost": "unknown",
+      "cost_note": "Not stated.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "MB",
+      "city": "Winnipeg",
+      "address": null,
+      "phone": null,
+      "email": null,
+      "age_ranges": [
+        "young_adults_18_30",
+        "adults_30_45",
+        "adults_45_65"
+      ],
+      "evidence": "Accommodation may be as simple as wearing noise cancelling headphones, being seated in a quieter area, adjusting local lighting to be less bright/glaring, and using direct and clear communication processes.",
+      "notes": "Founded 2018. Looks for applicants on the autism spectrum (level 1) or self-identifying, fluent in English. Contact is by web form; ACT's directory lists 825 Sherbrook St #204, Winnipeg (not confirmed on its own site)."
+    },
+    {
+      "slug": "prospect-the-worx-calgary",
+      "name": "The WORX (Prospect Human Services)",
+      "website": "https://www.prospectnow.ca/programs/the-worx/",
+      "description": "Free employment support in Calgary for people with disabilities, including people on AISH or Income Support: one-to-one help with resumes, interviews and job matching, workshops and short bootcamps, mental health professionals and peer mentors, and help asking for workplace accommodations and adjustments, with job coaching after you are hired. Prospect also runs an online disclosure and accommodation workshop.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life",
+        "career_training",
+        "prog_mentorship"
+      ],
+      "cost": "free",
+      "cost_note": "All at no cost.",
+      "delivery": "both",
+      "country": "Canada",
+      "province": "AB",
+      "city": "Calgary",
+      "address": null,
+      "phone": "1.877.483.2562",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Get help finding the right job and requesting accommodations that make your work environment accessible and comfortable.",
+      "notes": "A Disclosure & Accommodation Workshop runs on Zoom on October 22, 2026 (1-3 pm). Prospect runs a similar Employment Support for People with Disabilities program in Edmonton. Not specific to autism or ADHD."
+    },
+    {
+      "slug": "neil-squire-job-focus-new-brunswick",
+      "name": "Job Focus (Neil Squire Society)",
+      "website": "https://www.neilsquire.ca/individual-programs-services/job-focus/",
+      "description": "A free employment service in New Brunswick for people with a self-declared disability or a workplace injury: one-to-one planning and job search, access to assistive technology and disability supports, staff who know workplace accommodations, and follow-up support for up to a year after you start a job.",
+      "category": "Employment",
+      "tags": [
+        "career_jobs",
+        "career_workplace_life"
+      ],
+      "cost": "free",
+      "cost_note": "Offered at no cost.",
+      "delivery": "unknown",
+      "country": "Canada",
+      "province": "NB",
+      "city": null,
+      "address": null,
+      "phone": "1 866 446 7999",
+      "email": null,
+      "age_ranges": [],
+      "evidence": "Knowledge of a variety of supports, accommodations, and assistive technologies designed to facilitate your successful transition to the workplace",
+      "notes": "Offered only from Neil Squire's Atlantic Regional Office; you must be legally entitled to work in Canada and not receiving EI. The phone is the toll-free line given with the regional manager's contact. Not specific to autism or ADHD."
+    }
+  ],
+  "unverified": [
+    {
+      "name": "Discover Ability Network (Ontario Chamber of Commerce)",
+      "reason": "BLOCKED: https://discoverability.network/ (also http://) refuses our fetcher at the TLS step. The Ontario government's accessibility page (updated June 16, 2026) still lists it, but the newest report we could fetch is from May 2022 (ptbocanada.com) and the OCC home page no longer links it."
+    },
+    {
+      "name": "Magnet (Toronto Metropolitan University job-matching platform)",
+      "reason": "BLOCKED: https://www.magnet.today/ and https://magnetnetwork.ca/ refuse our fetcher at the TLS step."
+    },
+    {
+      "name": "Federal Internship Program for Canadians with Disabilities (Public Service Commission)",
+      "reason": "BLOCKED: canada.ca pages time out for our fetcher. The GCwiki neurodiversity resources page (edited October 2026) describes it as a two-year paid internship with training and mentoring."
+    },
+    {
+      "name": "GC Workplace Accessibility Passport (Government of Canada)",
+      "reason": "BLOCKED: canada.ca times out. It is described on the GCwiki page used for the Infinity entry (for federal public servants)."
+    },
+    {
+      "name": "Employment Opportunity for Students with Disabilities (Public Service Commission)",
+      "reason": "BLOCKED: canada.ca times out; the GCwiki resource page is aimed at public servants and hiring managers."
+    },
+    {
+      "name": "Opportunities Fund for Persons with Disabilities (ESDC)",
+      "reason": "BLOCKED: canada.ca times out. It funds several programs in this file (RWA, EmploymentWorks, NEUROinclusive Workforce Solutions)."
+    },
+    {
+      "name": "PEI Human Rights Commission",
+      "reason": "BLOCKED: https://www.peihumanrights.ca/ returns a bot-check (captcha) page."
+    },
+    {
+      "name": "National Bank of Canada neurodivergent data-team recruitment (with EY)",
+      "reason": "Newest mention is an April 2022 press release; no current program page found."
+    },
+    {
+      "name": "E3 Employment Program (Autism Edmonton)",
+      "reason": "Not on Autism Edmonton's current programs page; newest mention is a CIBC partner spotlight dated May 8, 2023."
+    },
+    {
+      "name": "Employment programs (Autism Society of Newfoundland and Labrador)",
+      "reason": "Not confirmable: no working website found (autism.nf.net does not resolve); newest reports are from November 2020 (ACOA) and January 2021 (VOCM). Atlantic autistic job seekers are covered by the Autism@Work entry."
+    },
+    {
+      "name": "ADD Canada (Winnipeg)",
+      "reason": "Only found as a named coach's listing in the US ADDA directory (add.org); no own website to check."
+    },
+    {
+      "name": "Minds@Work (ADHD workplace intervention)",
+      "reason": "A research study (Mental Health Research Canada impact profile), not an ongoing service people can join."
+    },
+    {
+      "name": "Neurodivergent Workplace Collective (Meetup group)",
+      "reason": "Meetup page did not load (HTTP 308) and the group's location is not confirmed as Canadian."
+    },
+    {
+      "name": "Canadian Business SenseAbility",
+      "reason": "Not confirmable: businesssenseability.ca does not resolve."
+    },
+    {
+      "name": "Project SEARCH at Norfolk General Hospital (Simcoe)",
+      "reason": "Newest mention is the hospital's 2024-2025 intern announcement (about two years old); not added."
+    }
+  ]
+}

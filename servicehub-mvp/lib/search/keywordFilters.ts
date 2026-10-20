@@ -12,7 +12,7 @@
 export const ACTIVITIES = [
   { id: 'swimming', label: 'Swimming', words: ['swim', 'aquatic', 'swimming pool'] },
   { id: 'horseback', label: 'Horseback Riding', words: ['horseback', 'horse riding', 'equestrian', 'therapeutic riding', 'hippotherapy', 'equine'] },
-  { id: 'animal_therapy', label: 'Animal Therapy', words: ['animal-assisted', 'animal assisted', 'therapy dog', 'pet therapy', 'equine therapy', 'equine-assisted', 'dog guide', 'service dog'] },
+  { id: 'animal_therapy', label: 'Animal Therapy', words: ['animal therapy', 'animal-assisted', 'animal assisted', 'therapy dog', 'therapy animal', 'pet therapy', 'equine therapy', 'equine-assisted', 'dog guide', 'service dog', 'assistance dog'] },
 ] as const
 
 export const isActivity = (v: string) => ACTIVITIES.some((a) => a.id === v)
@@ -37,8 +37,8 @@ const THERAPY_WORDS: Record<string, string[]> = {
   cbt: ['cognitive behav'],
   social_relational: ['social skills', 'relationship development', 'social group', 'peer group'],
   rdi: ['relationship development intervention'],
-  therapy_other: ['animal-assisted', 'animal assisted', 'art therap', 'music therap', 'relaxation'],
-  animal_assisted: ['animal-assisted', 'animal assisted', 'therapy dog', 'equine therap', 'equine-assisted'],
+  therapy_other: ['animal therapy', 'animal-assisted', 'animal assisted', 'art therap', 'music therap', 'relaxation'],
+  animal_assisted: ['animal therapy', 'animal-assisted', 'animal assisted', 'therapy dog', 'therapy animal', 'equine therap', 'equine-assisted'],
   art_therapy: ['art therap'],
   relaxation: ['relaxation', 'mindfulness'],
 }
