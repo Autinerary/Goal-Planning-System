@@ -103,6 +103,13 @@ Asked why the combined Track View couldn't be found, 20 October:
   - The shop's up and down arrows had no name. They now say "Show fewer shop items" and "Show more shop items".
   - Each step's spoken name didn't contain the words on screen, which voice control relies on (WCAG 2.5.3). Steps are now named by what they show, with the area and state for screen readers, e.g. "Education, step 1 Choose a language to learn (you are here)".
 - **Checked:** in Simple mode at 1280, 375 and 320 px, all four shapes draw with no sideways scroll and no serious axe issues (`.qa-local/browser/races_as_one.mjs`, 30/30). The Races suites pass (races_default, plan15, plan18, g34).
+- **Separate is one race at a time.** Asked next: "separate shows combined". It drew a lane per area side by side, every area at once, with "Getting started" in areas that had no steps yet, and a fifth lane cut off on the right.
+  - Now Separate has a button for each race (each goal, with its progress) and shows that race's own road. A race whose area isn't open yet (one life area first) says so, and offers "Show all areas now". With one goal, it says another goal would get its own road.
+  - **As One** stays the combined road.
+  - Each shape now has a line saying what it shows: "Your next steps, area by area" (Trail Map), "Every step, to do in any order" (Any order), "All your races together, on one road" (As One), "One race at a time: choose a race" (Separate).
+  - The side-by-side lanes (`LaneWorld`) were removed; they're in git history.
+  - **List View's Individual and Combined are unchanged.** They switch between one area and all four areas, which look different even with one race.
+  - Checked with two races (QA A's plan given a second goal for the test, then put back): `.qa-local/browser/races_separate.mjs` 17/17, including axe and 320 px.
 
 ## How it was tested
 

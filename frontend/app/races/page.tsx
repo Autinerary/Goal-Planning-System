@@ -15,7 +15,6 @@ import { computeRaceProgress } from '@/lib/raceProgress'
 import { goHubHref } from '@/lib/serviceHub'
 import { usePreferences } from '../context/usePreferences'
 import MilestoneTrail from '../components/MilestoneTrail'
-import LaneWorld from '../components/LaneWorld'
 import DefaultAvatar from '../components/DefaultAvatar'
 import UserAvatar from '../components/UserAvatar'
 import AnyOrderPond from './AnyOrderPond'
@@ -119,6 +118,8 @@ function RacesContent() {
   const [activeDimension, setActiveDimension] = useState('education')
   const [activeDimRace, setActiveDimRace] = useState<string | null>(null)
   const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
+  // Track View, Separate: which race is shown (one race at a time).
+  const [separateRaceId, setSeparateRaceId] = useState<string | null>(null)
   // "Choose your next path" prompts the user has dismissed (by completed step id).
   const [dismissedBranches, setDismissedBranches] = useState<Set<string>>(new Set())
   const [layoutMode, setLayoutModeState] = useState<'track' | 'list'>('list')
@@ -656,6 +657,21 @@ function RacesContent() {
   // the panels beside it (MilestoneTrail: PAD_TOP 70, a step every 160px, or
   // 270px with notes), and how many steps come after the last one shown.
   const stepsAhead = Math.max(0, milestones.length - (trackStart + trackStops.length))
+
+  // Track View, Separate: one race at a time (the team, 20 October 2026:
+  // "separate shows combined", the parallel lanes showed every area at once).
+  // A race is one of your goals; its road runs through each area it has steps
+  // in. Areas not open yet (one life area first) count as steps to come.
+  const raceRoads = rawRaces
+    .map((r: any) => {
+      const goal = String(r.name || '').trim().toLowerCase()
+      const own = (m: any) => (m.raceId ? m.raceId === r.id : String(m.goal || '').trim().toLowerCase() === goal)
+      const steps = milestones.filter(own)
+      return { id: r.id as string, name: r.name as string, steps, later: Math.max(0, allAgentMilestones.filter(own).length - steps.length) }
+    })
+    // A race whose areas aren't open yet is still listed, and says so.
+    .filter((r) => r.steps.length + r.later > 0)
+  const shownRace = raceRoads.find((r) => r.id === separateRaceId) || raceRoads.find((r) => r.steps.length > 0) || raceRoads[0] || null
   const activeStopY = 40 + 70 + (stepsAhead > 0 ? 24 : 0) + (trackStops.length - 1 - currentStopIdx) * (stepNotes ? 270 : 160)
 
   const css = `
@@ -731,60 +747,6 @@ function RacesContent() {
       </div>
     </div>
   )
-
-  /* Fan-out: one point at top splits into N paths at bottom — race track style */
-  const FanOut = ({ count = 5 }: { count?: number }) => {
-    const w = 400, h = 120
-    const cx = w / 2
-    const spacing = w / (count + 1)
-    return (
-      <div className="flex justify-center" style={{ margin: '-2px 0' }}>
-        <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: '500px' }} preserveAspectRatio="xMidYMid meet">
-          {Array.from({ length: count }, (_, i) => {
-            const ex = spacing * (i + 1)
-            const sw = i === Math.floor(count / 2) ? 20 : 14
-            const op = i === Math.floor(count / 2) ? 0.6 : 0.4
-            return (
-              <g key={i}>
-                {/* Track surface */}
-                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={op} />
-                {/* Edge lines (amber) */}
-                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth={sw + 2} fill="none" strokeLinecap="round" opacity={op * 0.4} />
-                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw - 2} fill="none" strokeLinecap="round" opacity={op + 0.1} />
-                {/* Center lane dash */}
-                <path d={`M${cx},0 Q${cx},${h * 0.5} ${ex},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
-              </g>
-            )
-          })}
-        </svg>
-      </div>
-    )
-  }
-
-  /* Fan-in: N points at top converge to one at bottom — race track style */
-  const FanIn = ({ count = 5 }: { count?: number }) => {
-    const w = 400, h = 140
-    const cx = w / 2
-    const spacing = w / (count + 1)
-    return (
-      <div className="flex justify-center" style={{ margin: '-2px 0' }}>
-        <svg width="100%" viewBox={`0 0 ${w} ${h}`} style={{ maxWidth: '500px' }} preserveAspectRatio="xMidYMid meet">
-          {Array.from({ length: count }, (_, i) => {
-            const sx = spacing * (i + 1)
-            const sw = i === Math.floor(count / 2) ? 20 : 14
-            const op = i === Math.floor(count / 2) ? 0.6 : 0.4
-            return (
-              <g key={i}>
-                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? '#fbbf24' : '#b45309'} strokeWidth={sw + 2} fill="none" strokeLinecap="round" opacity={op * 0.4} />
-                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? '#cbd5e1' : '#1e1b4b'} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={op} />
-                <path d={`M${sx},0 Q${sx},${h * 0.5} ${cx},${h}`} stroke={day ? 'white' : '#818cf8'} strokeWidth="2" fill="none" strokeDasharray="6 8" opacity=".5" />
-              </g>
-            )
-          })}
-        </svg>
-      </div>
-    )
-  }
 
   /* Fork: one road splits into two — race track style */
   const Fork = () => {
@@ -1155,6 +1117,18 @@ function RacesContent() {
                 ]}
               />
             </div>
+          )}
+          {/* What the chosen shape shows, so As One and Separate can't be mistaken. */}
+          {layoutMode === 'track' && (
+            <p className={`mt-2 text-center text-xs font-medium ${txt}`} aria-live="polite" data-track-shape-caption>
+              {trackShape === 'trail'
+                ? 'Your next steps, area by area.'
+                : trackShape === 'pads'
+                ? 'Every step, to do in any order.'
+                : trackShape === 'one'
+                ? 'All your races together, on one road.'
+                : 'One race at a time: choose a race.'}
+            </p>
           )}
 
           {layoutMode === 'track' && milestones.length > 0 && (() => {
@@ -1841,49 +1815,82 @@ function RacesContent() {
           )}
 
           {showSeparateTrack && (
-            <div className="w-full pt-6">
-              {/* Dream Self renders once in the shared top block above. */}
-              <FanOut count={5} />
-              <div className={`text-center mb-3 text-[0.625rem] ${sub}`}>Each life dimension runs as its own parallel track</div>
+            <div className="w-full px-2 pt-4 pb-2" data-separate-races>
+              {!shownRace ? (
+                <div className={`max-w-md mx-auto text-center rounded-2xl border-2 border-dashed p-6 ${day ? 'border-slate-300 bg-white/60' : 'border-indigo-700 bg-indigo-950/40'}`}>
+                  <div className="text-3xl mb-2">🏁</div>
+                  <div className={`text-sm font-bold ${txt}`}>No races yet</div>
+                  <p className={`text-xs mt-1 ${sub}`}>Finish onboarding and each of your goals becomes a race.</p>
+                </div>
+              ) : (
+                <>
+                  {/* One button per race; the road below is that race only. */}
+                  <div role="group" aria-label="Your races" className="mb-3 flex flex-wrap justify-center gap-2">
+                    {raceRoads.map((r) => {
+                      const done = r.steps.filter((m: any) => completedMilestoneIds.has(m.id)).length
+                      const chosen = r.id === shownRace.id
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          aria-pressed={chosen}
+                          onClick={() => setSeparateRaceId(r.id)}
+                          className={`max-w-full rounded-full border-2 px-4 py-2 text-sm font-bold transition-all ${
+                            chosen
+                              ? 'border-amber-600 bg-amber-100 text-amber-950 shadow'
+                              : day ? 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50' : 'border-indigo-600 bg-indigo-950 text-indigo-100 hover:bg-indigo-900'
+                          }`}
+                        >
+                          <span className="break-words">{r.name}</span>{' '}
+                          <span className="font-medium tabular-nums">{done}/{r.steps.length + r.later}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {raceRoads.length === 1 && (
+                    <p className={`mb-3 text-center text-xs ${sub}`}>
+                      You have one race. Add another goal in “Your Goals, Dreams &amp; Obstacles” above, and each will have its own road here.
+                    </p>
+                  )}
+                  {shownRace.steps.length === 0 ? (
+                    <div className={`max-w-md mx-auto text-center rounded-2xl border-2 border-dashed p-6 ${day ? 'border-slate-300 bg-white/70' : 'border-indigo-700 bg-indigo-950/40'}`} data-race-later>
+                      <p className={`text-sm font-bold ${txt}`}>“{shownRace.name}” starts in an area that opens after your first step.</p>
+                      <button type="button" onClick={revealAreas} className="mt-3 rounded-xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800">
+                        Show all areas now
+                      </button>
+                    </div>
+                  ) : (
+                  <div className="w-full max-w-[440px] mx-auto">
+                    <MilestoneTrail
+                      milestones={shownRace.steps.map((m: any) => ({
+                        id: m.id,
+                        name: m.name,
+                        status: m.status,
+                        dimension: m.dimension,
+                        dimensionLabel: m.dimensionLabel,
+                      }))}
+                      completedIds={completedMilestoneIds}
+                      currentIndex={0 /* the trail derives it from completedIds */}
+                      bottomUp
+                      notes={stepNotes}
+                      ahead={shownRace.later}
+                      day={day}
+                      character={trailCharacter}
+                      onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
+                    />
+                  </div>
+                  )}
+                </>
+              )}
 
-              {/* One painted world, five territories. Previously a grid of
-                  white cards with headers and progress bars — which kept it a
-                  dashboard with round buttons in it. A level map has no cards:
-                  the world is the background and the tracks run through it. */}
-              <LaneWorld
-                completedIds={completedMilestoneIds}
-                day={day}
-                onSelect={(_k, st) => router.push(`/milestones/${st.id}`)}
-                lanes={dimMeta.map(dim => {
-                  const dimMs = milestones.filter((m: any) => _normDim(m.dimension) === dim.key)
-                  const steps = dimMs.length
-                    ? dimMs.map((m: any) => ({ id: m.id, name: m.name }))
-                    : dim.key === 'barrier'
-                      ? recommendedChoices.filter(c => c.id !== 'see').map(c => ({ id: c.id, name: c.name }))
-                      : [{ id: `${dim.key}-ph`, name: 'Getting started' }]
-                  return {
-                    key: dim.key,
-                    label: dim.label,
-                    emoji: dim.emoji,
-                    accent: dim.accent,
-                    node: dim.node,
-                    nodeDark: dim.nodeDark,
-                    band: dim.band,
-                    ground: dim.ground,
-                    steps,
-                  }
-                })}
-              />
-
-              <FanIn count={5} />
               {/* Shared finish line */}
-              <div className="flex flex-col items-center my-2">
+              <div className="flex flex-col items-center my-4">
                 <div className="flex mb-2">
                   {Array.from({ length: 10 }, (_, i) => (
                     <div key={i} className={`w-4 h-4 ${(Math.floor(i / 1) + (i % 2)) % 2 === 0 ? (day ? 'bg-slate-800' : 'bg-white') : (day ? 'bg-white' : 'bg-slate-800')} ${i === 0 ? 'rounded-l' : ''} ${i === 9 ? 'rounded-r' : ''}`} />
                   ))}
                 </div>
-                <span className={`px-4 py-1 text-[0.625rem] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
+                <span className={`px-4 py-1 text-[0.625rem] font-bold uppercase tracking-widest rounded-full shadow-md ${day ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-amber-900/70 text-amber-200 border border-amber-700'}`}>🏁 Start Line. Landing Spot</span>
               </div>
 
               {/* Storefronts */}
@@ -1892,7 +1899,7 @@ function RacesContent() {
               {/* Journal */}
               <div className="flex justify-center pb-8">
                 <Link href="/reflection?contextType=race" className={`inline-flex items-center gap-2 px-4 py-2 border-2 rounded-xl font-medium hover:shadow-lg transition-all ${pill} ${txt} text-sm`}>
-                  <Sparkles className="w-4 h-4" /> Journal / Reflection
+                  <Sparkles className="w-4 h-4" aria-hidden="true" /> Journal / Reflection
                 </Link>
               </div>
             </div>
