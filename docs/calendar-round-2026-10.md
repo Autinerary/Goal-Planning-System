@@ -94,6 +94,16 @@ With fewer than five things done, Analysis says there isn't enough yet and what 
   - The month and time grids' faint text is darker.
   - Blocks are at least 24 px.
 
+## Races: As One for everyone (added after the round)
+
+Asked why the combined Track View couldn't be found, 20 October:
+
+- **As One for everyone.** **As One** (all your races on one road) and **Separate** only showed after **Show more**. Show more is saved per browser, so on another browser or device it was back to Simple, and the combined view was hard to find. Track View now always offers Trail Map, Any order, As One and Separate.
+- **Accessibility on the road views.** Opening them to everyone turned up two problems axe hadn't seen, since its usual pages never open Track View:
+  - The shop's up and down arrows had no name. They now say "Show fewer shop items" and "Show more shop items".
+  - Each step's spoken name didn't contain the words on screen, which voice control relies on (WCAG 2.5.3). Steps are now named by what they show, with the area and state for screen readers, e.g. "Education, step 1 Choose a language to learn (you are here)".
+- **Checked:** in Simple mode at 1280, 375 and 320 px, all four shapes draw with no sideways scroll and no serious axe issues (`.qa-local/browser/races_as_one.mjs`, 30/30). The Races suites pass (races_default, plan15, plan18, g34).
+
 ## How it was tested
 
 - **Library tests:** `lib/weather.test.mjs` (the kinds of day, from Open-Meteo's real answer, and the rounding), `lib/dayTheme.test.mjs`, `lib/patterns.test.mjs` (the patterns, ties, and ticking hours), `lib/gamification.test.mjs`, and the existing ones (page guides, glossary).

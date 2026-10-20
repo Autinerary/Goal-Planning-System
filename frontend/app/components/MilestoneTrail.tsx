@@ -304,12 +304,15 @@ export default function MilestoneTrail({
               aria-current={current ? 'step' : undefined}
               aria-disabled={locked}
               title={locked ? 'Finish your current area to unlock this' : m.name}
-              aria-label={`Step ${startIndex + i + 1}: ${m.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked, finish your current area first)' : ''}`}
+              // Named by what it shows (WCAG 2.5.3, label in name), with the
+              // rest for screen readers.
+              data-step={startIndex + i + 1}
               className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 group rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-white ${
                 locked ? 'cursor-not-allowed' : 'cursor-pointer'
               }`}
               style={{ left: `${x}%`, top: y }}
             >
+              <span className="sr-only">{locked ? `Step ${startIndex + i + 1}, locked until you finish your current area: ` : 'Step '}</span>
               <span
                 className={`relative grid place-items-center w-[56px] h-[56px] rounded-full transition-transform ${
                   locked ? 'opacity-90' : 'group-hover:scale-110 group-active:scale-95'
@@ -371,6 +374,7 @@ export default function MilestoneTrail({
                 ) : null}
                 <span className="mt-1 block text-sky-700">{locked ? 'Locked' : 'Tap to view'}</span>
               </span>
+              {done && <span className="sr-only">(completed)</span>}
             </button>
           )
         })}

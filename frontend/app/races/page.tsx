@@ -1138,8 +1138,10 @@ function RacesContent() {
               it look more smooth"). Still for anyone who asked for less motion. */}
           <div key={layoutMode} className={`w-full flex flex-col items-center ${slideFrom === 'right' ? 'race-slide-right' : 'race-slide-left'}`} data-race-view={layoutMode}>
 
-          {/* Track shape sub-toggle. Trail Map and Any order for everyone;
-              As One and Separate once the app shows more (useDisclosure). */}
+          {/* Track shape sub-toggle, all four for everyone. As One (every race
+              on one road) and Separate were kept for after "Show more", which
+              is saved per browser, so the combined view was hard to find
+              (20 October 2026). */}
           {layoutMode === 'track' && (
             <div className="pt-2 w-full flex justify-center">
               <GameTabs
@@ -1148,10 +1150,8 @@ function RacesContent() {
                 options={[
                   { id: 'trail' as const, label: 'Trail Map', icon: '🗺️' },
                   { id: 'pads' as const, label: 'Any order', icon: '🪷' },
-                  ...(isSimple ? [] : [
-                    { id: 'one' as const, label: 'As One', icon: '🛣️' },
-                    { id: 'separate' as const, label: 'Separate', icon: '🏁' },
-                  ]),
+                  { id: 'one' as const, label: 'As One', icon: '🛣️' },
+                  { id: 'separate' as const, label: 'Separate', icon: '🏁' },
                 ]}
               />
             </div>
@@ -1976,11 +1976,11 @@ function RacesContent() {
                     </div>
                     {/* Up/Down scroll arrows */}
                     <div className="flex justify-center gap-2 mt-1.5">
-                      <button onClick={() => setExpandShop(false)} className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
-                        <ChevronUp className="w-4 h-4" />
+                      <button type="button" onClick={() => setExpandShop(false)} aria-label="Show fewer shop items" className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
+                        <ChevronUp className="w-4 h-4" aria-hidden="true" />
                       </button>
-                      <button onClick={() => setExpandShop(true)} className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
-                        <ChevronDown className="w-4 h-4" />
+                      <button type="button" onClick={() => setExpandShop(true)} aria-label="Show more shop items" className={`w-6 h-6 flex items-center justify-center rounded-lg border-2 ${day ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-indigo-500 bg-indigo-800 text-indigo-300'} hover:bg-black/10 transition-all`}>
+                        <ChevronDown className="w-4 h-4" aria-hidden="true" />
                       </button>
                     </div>
                     <a href={goHubHref('/')} target="_blank" rel="noopener noreferrer" className={`block text-center text-[0.625rem] font-bold mt-2 px-3 py-1.5 rounded-lg shadow transition-all hover:scale-105 ${day ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'}`}>🏪 Open Full Shop →</a>

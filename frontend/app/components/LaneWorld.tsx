@@ -244,13 +244,18 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   disabled={locked}
                   onClick={() => !locked && onSelect(lane.key, s)}
                   aria-current={current ? 'step' : undefined}
-                  aria-label={`${lane.label} step ${i + 1}: ${s.name}${done ? ' (completed)' : current ? ' (you are here)' : locked ? ' (locked)' : ''}`}
+                  // Named by what it shows (the number and the step's name),
+                  // with the area and its state for screen readers: an
+                  // aria-label that didn't contain the visible words failed
+                  // WCAG 2.5.3 (label in name) for people using voice control.
+                  data-step={i + 1}
                   title={locked ? 'Finish the step before this one first' : s.name}
                   className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 group rounded-full pointer-events-auto focus:outline-none focus-visible:ring-4 focus-visible:ring-white ${
                     locked ? 'cursor-not-allowed' : 'cursor-pointer'
                   }`}
                   style={{ left: `${x}%`, top: y }}
                 >
+                  <span className="sr-only">{done || locked ? `${lane.label}, step ${i + 1}: ` : `${lane.label}, step `}</span>
                   <span
                     className={`relative grid place-items-center w-[52px] h-[52px] rounded-full transition-transform ${
                       locked ? '' : 'group-hover:scale-110 group-active:scale-95'
@@ -299,6 +304,7 @@ export default function LaneWorld({ lanes, completedIds, onSelect, day = true }:
                   >
                     {s.name}
                   </span>
+                  <span className="sr-only">{done ? '(completed)' : current ? '(you are here)' : locked ? '(locked)' : ''}</span>
                 </button>
               )
             })}
