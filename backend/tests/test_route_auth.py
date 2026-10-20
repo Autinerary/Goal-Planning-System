@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GUARDED = {
     "api/routes/reflections.py": {"get_user_reflections"},
     "api/routes/onboarding.py": {"update_onboarding", "get_generated_path", "get_latest_job", "get_job"},
-    "api/routes/paths.py": {"get_path", "adapt_path"},
+    "api/routes/paths.py": {"get_path", "adapt_path", "my_guidance", "edit_my_profile", "build_my_goal_steps"},
     "api/routes/memory.py": {"get_user_memory"},
     "api/routes/messaging.py": {"get_conversations"},
 }
@@ -64,8 +64,8 @@ class RouteAuthTests(unittest.TestCase):
                             if isinstance(d, ast.Call) and getattr(d.func, "id", "") == "Depends"]
                     dependency_names = {getattr(d.args[0], "id", "") for d in deps if d.args}
                     self.assertTrue(dependency_names & SESSION_DEPENDENCIES, f"{rel}:{fn.name} has no session dependency")
-                    if fn.name == "update_onboarding":
-                        # It can run a whole generation: same age and approval gate.
+                    if fn.name in ("update_onboarding", "edit_my_profile", "build_my_goal_steps"):
+                        # They change a plan or run generation: same age and approval gate as setup.
                         self.assertIn("onboarding_user_id", dependency_names)
                     found.add(fn.name)
             self.assertEqual(found, names, rel)
@@ -76,6 +76,9 @@ class RouteAuthTests(unittest.TestCase):
         self.assertEqual(anon.get("/api/onboarding/path/path_owned").status_code, 401)
         self.assertEqual(anon.patch("/api/onboarding/owner", json={}).status_code, 401)
         self.assertEqual(anon.get("/api/paths/path_owned").status_code, 401)
+        self.assertEqual(anon.post("/api/paths/me/guidance", json={}).status_code, 401)
+        self.assertEqual(anon.put("/api/paths/me/profile", json={"goals": [{"text": "x"}]}).status_code, 401)
+        self.assertEqual(anon.post("/api/paths/me/goal-steps", json={"goal": "x"}).status_code, 401)
 
     def test_memory_and_latest_job_are_only_for_the_person(self):
         with patch.object(onboarding.jobs, "latest_for_user", lambda user_id: None):

@@ -464,6 +464,9 @@ export default function OnboardingPage() {
   const [chosenModel, setChosenModel] = useState<
     { key: string; title: string; name: string | null; categoryTitle: string | null; description: string | null } | null
   >(null)
+  // Steps picked in the Path Market's "Start this Path", per goal: sent with
+  // the plan for the planner to use (backend clean_step_ideas).
+  const [seedStepIdeas, setSeedStepIdeas] = useState<Record<string, string[]>>({})
   // True when we prefilled stable answers (barriers/location/etc.) from a prior
   // completed onboarding so a returning user doesn't re-enter everything.
   // What was kept from an earlier plan, to say exactly that (it said "your
@@ -574,16 +577,25 @@ export default function OnboardingPage() {
         // general examples already use, instead of a second, separate
         // mechanism that silently pre-fills real entries.
         if (seed?.key) {
-          if (Array.isArray(seed.selectedGoals) && seed.selectedGoals.length > 0) {
+          // The races chosen in "Start this Path", each in its own area (the
+          // Path Market, October 2026); older seeds put every goal in one.
+          const chosen: { goal: string; area: string }[] = Array.isArray(seed.selectedRaces) && seed.selectedRaces.length
+            ? seed.selectedRaces.filter((r: any) => typeof r?.goal === 'string' && r.goal.trim())
+            : (Array.isArray(seed.selectedGoals) ? seed.selectedGoals : []).filter((g: unknown) => typeof g === 'string' && g.trim()).map((goal: string) => ({ goal, area: focusCategory }))
+          if (chosen.length > 0) {
             setFormData(previous => {
-              const entries = [...(previous.goalsByCategory[focusCategory] || [])]
-              for (const goal of seed.selectedGoals) {
-                if (typeof goal === 'string' && goal.trim() && !entries.some(entry => entry.goal === goal)) entries.push({ goal, dreams: '', obstacles: '' })
+              const byArea = { ...previous.goalsByCategory }
+              for (const { goal, area } of chosen) {
+                const key = isGoalArea(area) ? area : focusCategory
+                const entries = [...(byArea[key] || [])]
+                if (!entries.some(entry => entry.goal === goal)) entries.push({ goal, dreams: '', obstacles: '' })
+                byArea[key] = entries
               }
-              return { ...previous, goalsByCategory: { ...previous.goalsByCategory, [focusCategory]: entries } }
+              return { ...previous, goalsByCategory: byArea }
             })
-            localStorage.setItem('autinerary_path_seed', JSON.stringify({ ...seed, selectedGoals: [] }))
+            localStorage.setItem('autinerary_path_seed', JSON.stringify({ ...seed, selectedGoals: [], selectedRaces: [] }))
           }
+          if (seed.stepIdeas && typeof seed.stepIdeas === 'object') setSeedStepIdeas(seed.stepIdeas)
           const modelGoals: string[] = Array.isArray(seed.goals) ? seed.goals : []
           const generalSuggestions: string[] = Array.isArray(seed.suggestions) ? seed.suggestions : []
           const merged = [...modelGoals, ...generalSuggestions.filter((s) => !modelGoals.includes(s))]
@@ -1028,6 +1040,15 @@ export default function OnboardingPage() {
         userId: user.id, // Supabase auth UUID, shared with ServiceHub via public.user_barriers
         barrierTypes: selectedBarrierTypes,
         goals: allGoals.length > 0 ? allGoals : formData.goals.filter(g => g.trim()),
+        // Steps picked in the Path Market, for their goals (only goals still here count).
+        stepIdeas: seedStepIdeas,
+        // The area each goal was written under, so the Race view shows a goal
+        // under its own area only (lib/goalCategories.ts).
+        goalCategories: Object.fromEntries(
+          Object.entries(formData.goalsByCategory).flatMap(([area, entries]) =>
+            entries.filter(entry => entry.goal.trim()).map(entry => [entry.goal.trim(), area])
+          )
+        ),
         dreams: allDreams.length > 0 ? allDreams : formData.dreams.filter(d => d.trim()),
         currentChallenges: allObstacles.length > 0 ? allObstacles : formData.currentChallenges.filter(c => c.trim()),
         // Asked on the "Complete your profile" card now; the first one, as setup sent it.

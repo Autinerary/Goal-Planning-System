@@ -277,12 +277,18 @@ class PathPlanningAgent(BaseAgent):
         # Fewer milestones per life area when many goals would pass the cap
         # (MAX_MILESTONES_PER_PATH). Decided before generating, so no names,
         # descriptions or tasks are made only to be thrown away.
-        per_area = milestones_per_area(len(goals))
+        # A goal added to an existing plan (core/goal_steps.py) is planned on
+        # its own but sized for the whole plan's goals.
+        per_area = int(kwargs.get('per_area') or 0) or milestones_per_area(len(goals))
         if per_area < MILESTONES_PER_AREA:
             uncapped = len(goals) * LIFE_AREAS * MILESTONES_PER_AREA
             print(f"[path_planning] WARNING: {len(goals)} goals would make {uncapped} milestones, "
                   f"over the cap of {MAX_MILESTONES_PER_PATH}; using {per_area} per life area "
                   f"({len(goals) * LIFE_AREAS * per_area} in total)")
+
+        # Steps picked from a Path Market model, per goal (api/routes/onboarding.py
+        # clean_step_ideas): used as milestones where they fit.
+        step_ideas = user_profile.get('stepIdeas') if isinstance(user_profile.get('stepIdeas'), dict) else {}
 
         # Generate milestones for all goals in parallel.
         goal_milestone_lists = await asyncio.gather(*[
@@ -296,6 +302,7 @@ class PathPlanningAgent(BaseAgent):
                 support_summary=support_summary,
                 per_area=per_area,
                 for_person=for_person,
+                step_ideas=step_ideas.get(goal) or [],
             )
             for goal_idx, goal in enumerate(goals)
         ])
@@ -420,6 +427,7 @@ class PathPlanningAgent(BaseAgent):
         support_summary: str = "",
         per_area: int = MILESTONES_PER_AREA,
         for_person: Optional[str] = None,
+        step_ideas: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Generate milestones for a specific goal across four life dimensions.
 
@@ -464,6 +472,9 @@ class PathPlanningAgent(BaseAgent):
                     f"Barriers: {llm.user_list(barriers)}\n"
                     + (f"Functional support needs and successful accommodations: {llm.user_text(support_summary, 5000)}\n" if support_summary else "")
                     + (f"Prior history:\n{llm.user_text(memory_hint, 1500)}\n" if memory_hint else "")
+                    + (f"Steps the user picked from a path model for this goal (use each one as a "
+                       f"milestone, in the area where it fits best, keeping their words): "
+                       f"{llm.user_list(step_ideas, 120, 8)}\n" if step_ideas else "")
                     + "Return JSON: {"
                     + ", ".join(f'"{area}": [' + ", ".join(['"..."'] * per_area) + "]"
                                 for area in ("education", "workplace", "relationships", "health"))

@@ -305,6 +305,50 @@ class OnboardingRequest(BaseModel):
     # profile's personality statements. Pattern Recognition matches on them
     # with the norms; the planner gets them as supportContext.workingStyle.
     personality: Optional[dict] = None
+    # The life area each goal was written under in setup ({goal: area}), so
+    # the Race view shows a goal under its own area only (the team's notes,
+    # October 2026). Kept as userProfile.goalCategories.
+    goalCategories: Optional[Dict[str, str]] = None
+    # Steps picked from a Path Market model, per goal ({goal: [step, ...]}):
+    # the planner uses them as milestones where they fit (the team's notes,
+    # October 2026: "smaller suggestions for milestones").
+    stepIdeas: Optional[Dict[str, List[str]]] = None
+
+
+GOAL_AREAS = ("education", "career", "relationships", "health", "barrier", "other")
+
+
+def clean_step_ideas(value: Any, goals: List[str]) -> Dict[str, List[str]]:
+    """Up to 8 short step ideas for each of the plan's goals; anything else is dropped."""
+    if not isinstance(value, dict):
+        return {}
+    wanted = {str(g).strip().lower(): g for g in goals if isinstance(g, str)}
+    out: Dict[str, List[str]] = {}
+    for goal, steps in value.items():
+        g = wanted.get(str(goal).strip().lower())
+        if g is None or not isinstance(steps, list):
+            continue
+        kept: List[str] = []
+        for step in steps:
+            text = " ".join(str(step or "").split())[:120]
+            if text and text.lower() not in {k.lower() for k in kept}:
+                kept.append(text)
+        if kept:
+            out[g] = kept[:8]
+    return out
+
+
+def clean_goal_categories(value: Any, goals: List[str]) -> Dict[str, str]:
+    """Each of the plan's goals with a known area; anything else is dropped."""
+    if not isinstance(value, dict):
+        return {}
+    wanted = {str(g).strip().lower(): g for g in goals if isinstance(g, str)}
+    out: Dict[str, str] = {}
+    for goal, area in value.items():
+        g = wanted.get(str(goal).strip().lower())
+        if g is not None and area in GOAL_AREAS:
+            out[g] = area
+    return out
 
 
 NO_ANSWER = "prefer not to share"
@@ -467,6 +511,8 @@ async def _generate_path_for(
         "barrierTypes": request.barrierTypes,
         "motivationType": request.motivationType,
         "goals": request.goals,
+        "goalCategories": clean_goal_categories(request.goalCategories, request.goals),
+        "stepIdeas": clean_step_ideas(request.stepIdeas, request.goals),
         "dreams": request.dreams,
         "currentChallenges": request.currentChallenges,
         "supportContext": request.supportContext.model_dump() if request.supportContext else {},

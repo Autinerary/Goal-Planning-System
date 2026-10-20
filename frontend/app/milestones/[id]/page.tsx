@@ -3,42 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ExternalLink, BookOpen, Star, ChevronRight, Wrench, MessageSquare, Package, Lightbulb } from 'lucide-react'
+import { BookOpen, ChevronRight, Wrench } from 'lucide-react'
 import { useAgentPath } from '../../context/AgentPathContext'
-import { resolveToolLink } from '@/lib/toolLink'
-import CommonMistakes from '@/app/components/CommonMistakes'
 import BackButton from '../../components/BackButton'
 import MilestoneRating from '@/app/components/MilestoneRating'
 import NormsPrompt from '@/app/components/NormsPrompt'
 import SponsoredService from '@/app/components/SponsoredService'
+import MilestoneTools from '@/app/components/MilestoneTools'
+import TopMistakes from '@/app/components/TopMistakes'
+import { toolsFromRecs } from '@/lib/milestoneTools'
+import { guidanceFor } from '@/lib/guidanceData'
+import { useMilestoneGuidance } from '@/lib/useMilestoneGuidance'
 
-
-interface Tool {
-  id: string
-  type: 'service' | 'commentary' | 'product' | 'other'
-  name: string
-  description: string
-  url?: string
-  rating?: number | null
-  /** 0 for free, a price, or null when the listing doesn't say. */
-  cost?: number | null
-  progress?: number // Progress percentage for this service (0-100)
-  status?: 'not_started' | 'in_progress' | 'completed'
-}
-
-const toolIcons = {
-  service: Wrench,
-  commentary: MessageSquare,
-  product: Package,
-  other: Lightbulb
-}
-
-const toolColors = {
-  service: 'bg-blue-50 border-blue-200 text-blue-700',
-  commentary: 'bg-purple-50 border-purple-200 text-purple-700',
-  product: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-  other: 'bg-amber-50 border-amber-200 text-amber-700'
-}
 
 export default function MilestoneDetailView() {
   const params = useParams()
@@ -47,6 +23,12 @@ export default function MilestoneDetailView() {
   const { payload, pathPlanning, toolRecommendation } = useAgentPath()
   const [milestone, setMilestone] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  // What to avoid here: the same five the Race view's Avoidance shows (lib/guidanceData.ts).
+  const planName = (pathPlanning?.milestones || []).find((m: any) => m.id === milestoneId)?.name || ''
+  const { guidance, loading: guidanceLoading, failed: guidanceFailed } = useMilestoneGuidance(
+    payload as any,
+    planName ? [{ id: milestoneId, name: planName }] : [],
+  )
 
   // Saved completion lives in race_progress (localStorage is only a cache).
   // Without this the page reported "in progress / 0%" for a milestone the user
@@ -78,19 +60,9 @@ export default function MilestoneDetailView() {
       (m: any) => m.id === milestoneId
     )
     if (agentMilestone) {
-      const recs: any[] = (toolRecommendation?.recommendations || {})[milestoneId] || []
-      const agentTools = recs.map((t: any, idx: number) => ({
-        id: t.id || `t${idx}`,
-        type: (t.type === 'service' || t.type === 'commentary' || t.type === 'product') ? t.type : 'other',
-        name: t.name || 'Recommended tool',
-        description: t.description || '',
-        url: t.url,
-        rating: typeof t.rating === 'number' ? t.rating : null,
-        cost: t.costType === 'free' || t.price === 0 ? 0 : Number(t.price) > 0 ? Number(t.price) : null,
-      }))
-        // Free first, then the cheapest; plans made before the agent ordered
-        // them that way get the same order here. Ties keep the agent's order.
-        .sort((a, b) => (a.cost ?? Infinity) - (b.cost ?? Infinity))
+      // Free first, then the cheapest (lib/milestoneTools.ts toolsFromRecs);
+      // the same list, edits and limit of 5 as the Milestone view.
+      const agentTools = toolsFromRecs((toolRecommendation?.recommendations || {})[milestoneId])
       // A milestone's own tasks (stored with it since this change); older
       // paths have them only in path planning's flat list.
       const raceMilestone = ((payload?.races || []) as any[])
@@ -146,13 +118,6 @@ export default function MilestoneDetailView() {
         </div>
       </div>
     )
-  }
-
-  const toolsByType = {
-    services: milestone.tools?.filter((t: Tool) => t.type === 'service') || [],
-    commentaries: milestone.tools?.filter((t: Tool) => t.type === 'commentary') || [],
-    products: milestone.tools?.filter((t: Tool) => t.type === 'product') || [],
-    other: milestone.tools?.filter((t: Tool) => t.type === 'other') || []
   }
 
   return (
@@ -235,7 +200,13 @@ export default function MilestoneDetailView() {
             </div>
           )}
 
-          <CommonMistakes milestoneId={milestone.id} />
+          <TopMistakes
+            className="mt-6"
+            milestoneId={milestone.id}
+            guidance={guidanceFor(guidance, milestone.id, milestone.name)}
+            loading={guidanceLoading}
+            failed={guidanceFailed}
+          />
 
           {/* A rating per milestone: the first real signal about plans (B6). */}
           <MilestoneRating pathId={payload?.id} milestoneId={milestone.id} />
@@ -243,100 +214,14 @@ export default function MilestoneDetailView() {
 
         {/* Tools Section (the tour points at it: data-tour) */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm" data-tour="milestone-tools">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Recommended Tools</h2>
           <NormsPrompt />
-
-          {/* Barriers Unlocked */}
-          {(milestone.tools?.length > 0) && (
-            <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">🛡️</span>
-                <h3 className="text-lg font-semibold text-violet-900">Norms Unlocked</h3>
-              </div>
-              <p className="text-sm text-violet-700 mb-3">Each tool below helps with specific norms. Complete them to unlock progress.</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-violet-200">
-                      <th className="text-left py-2 pr-4 text-violet-800 font-bold">Tool</th>
-                      <th className="text-left py-2 pr-4 text-violet-800 font-bold">Type</th>
-                      <th className="text-left py-2 text-violet-800 font-bold">Norms Unlocked</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {milestone.tools.map((tool: Tool) => (
-                      <tr key={tool.id} className="border-b border-violet-100 last:border-0">
-                        <td className="py-2 pr-4">
-                          <div className="flex items-center gap-2">
-                            {(() => { const TI = toolIcons[tool.type] || Lightbulb; return <TI className="w-4 h-4 text-violet-500 flex-shrink-0" /> })()}
-                            <span className="font-medium text-slate-800">{tool.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-2 pr-4 capitalize text-slate-500">{tool.type}</td>
-                        <td className="py-2">
-                          <div className="flex flex-wrap gap-1">
-                            {(tool.type === 'service' ? ['Access', 'Support'] : tool.type === 'product' ? ['Focus', 'Routine'] : tool.type === 'commentary' ? ['Knowledge', 'Confidence'] : ['Community', 'Connection']).map(b => (
-                              <span key={b} className="text-[0.625rem] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">{b}</span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Services */}
-          {toolsByType.services.length > 0 && (
-            <ToolSection 
-              title="Services" 
-              icon={Wrench}
-              tools={toolsByType.services} 
-              colorClass="bg-blue-50 border-blue-200"
-              third={<SponsoredService text={[milestone.name, milestone.race, milestone.description].filter(Boolean).join(' ')} />}
-            />
-          )}
-
-          {/* Commentaries */}
-          {toolsByType.commentaries.length > 0 && (
-            <ToolSection 
-              title="Commentaries / Reviews / Videos / Articles" 
-              icon={MessageSquare}
-              tools={toolsByType.commentaries} 
-              colorClass="bg-purple-50 border-purple-200"
-            />
-          )}
-
-          {/* Products */}
-          {toolsByType.products.length > 0 && (
-            <ToolSection 
-              title="Products" 
-              icon={Package}
-              tools={toolsByType.products} 
-              colorClass="bg-emerald-50 border-emerald-200"
-            />
-          )}
-
-          {/* Other Tools */}
-          {toolsByType.other.length > 0 && (
-            <ToolSection 
-              title="Other Helpful Tools" 
-              icon={Lightbulb}
-              tools={toolsByType.other} 
-              colorClass="bg-amber-50 border-amber-200"
-            />
-          )}
-
-          {milestone.tools?.length === 0 && (
-            <div className="text-center py-8 text-slate-500">
-              <p>No tools recommended for this milestone yet.</p>
-              <Link href="/pit-stop" className="text-cyan-600 underline underline-offset-2 mt-2 inline-block">
-                Browse all tools in Pit Stop →
-              </Link>
-            </div>
-          )}
+          <MilestoneTools
+            milestoneId={milestone.id}
+            milestoneName={milestone.name}
+            baseTools={milestone.tools || []}
+            initialEdits={(payload as any)?.toolEdits?.[milestone.id]}
+            third={<SponsoredService text={[milestone.name, milestone.race, milestone.description].filter(Boolean).join(' ')} />}
+          />
 
           {/* Actions */}
           <div className="mt-8 pt-6 border-t border-slate-200 flex flex-wrap gap-4">
@@ -368,110 +253,3 @@ export default function MilestoneDetailView() {
     </div>
   )
 }
-function ToolSection({ title, icon: Icon, tools, colorClass, third }: { 
-  title: string
-  icon: any
-  tools: Tool[]
-  colorClass: string 
-  // Shown third, only after two of the plan's own (a sponsored service).
-  third?: React.ReactNode
-}) {
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-500'
-      case 'in_progress': return 'bg-blue-500'
-      default: return 'bg-gray-300'
-    }
-  }
-
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'completed': return 'Completed'
-      case 'in_progress': return 'In Progress'
-      default: return 'Not Started'
-    }
-  }
-
-  return (
-    <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-5 h-5 text-slate-600" />
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-      </div>
-      <div className="space-y-3">
-        {/* null marks where `third` goes: after the first two, if there are two. */}
-        {[...tools.slice(0, 2), ...(third && tools.length >= 2 ? [null] : []), ...tools.slice(2)].map((tool) => {
-          if (!tool) return <div key="third">{third}</div>
-          const progress = tool.progress || 0
-          const status = tool.status || 'not_started'
-          
-          return (
-            <div 
-              key={tool.id} 
-              className={`border-2 rounded-xl p-4 hover:shadow-md transition-all ${colorClass}`}
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-slate-900">{tool.name}</h4>
-                    {status !== 'not_started' && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        status === 'completed' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {getStatusText(status)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-slate-600 mb-2">{tool.description}</p>
-                  {tool.cost !== undefined && tool.cost !== null && (
-                    <span className={`mb-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${tool.cost === 0 ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-100 text-slate-800'}`}>
-                      {tool.cost === 0 ? 'Free' : `$${tool.cost.toFixed(2)}`}
-                    </span>
-                  )}
-                  {tool.rating && (
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                      <span className="text-sm font-medium text-slate-700">{tool.rating}/5</span>
-                    </div>
-                  )}
-                </div>
-                <a
-                  href={resolveToolLink(tool.url, tool.name).href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-4 p-2 text-slate-600 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                </a>
-              </div>
-              
-              {/* Progress Bar for Services */}
-              {tool.type === 'service' && (
-                <div className="mt-3 pt-3 border-t border-slate-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-slate-600">Progress</span>
-                    <span className="text-xs font-bold text-slate-700">{progress}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-300 ${getStatusColor(status)}`}
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  {progress > 0 && progress < 100 && (
-                    <p className="text-xs text-slate-500 mt-1">
-                      {progress < 50 ? 'Getting started...' : progress < 90 ? 'Making good progress!' : 'Almost there!'}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-

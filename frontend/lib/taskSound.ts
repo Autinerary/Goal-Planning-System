@@ -111,3 +111,46 @@ export function playPageTurnSound() {
     // Ignore playback errors (e.g. autoplay policy before first interaction).
   }
 }
+
+/**
+ * A friendly car horn, "beep beep", when a step is done on the Race view
+ * (Liam, October 2026: "a car with the person inside of it? And when there
+ * is a task done it beeps?"). Two short soft square-wave notes, quieter
+ * than a real horn. Respects the same sound preference as the task pop.
+ */
+export function playCarBeep() {
+  if (!isTaskSoundEnabled()) return
+  const ctx = getContext()
+  if (!ctx) return
+  try {
+    if (ctx.state === 'suspended') ctx.resume()
+    const now = ctx.currentTime
+    for (const [start, length] of [[0, 0.12], [0.18, 0.16]] as const) {
+      const osc = ctx.createOscillator()
+      const tone = ctx.createOscillator()
+      const filter = ctx.createBiquadFilter()
+      const gain = ctx.createGain()
+      osc.type = 'square'
+      tone.type = 'square'
+      osc.frequency.setValueAtTime(440, now + start)
+      // A second voice a little higher gives the two-tone of a car horn.
+      tone.frequency.setValueAtTime(554, now + start)
+      filter.type = 'lowpass'
+      filter.frequency.value = 1800
+      gain.gain.setValueAtTime(0.0001, now + start)
+      gain.gain.exponentialRampToValueAtTime(0.06, now + start + 0.015)
+      gain.gain.setValueAtTime(0.06, now + start + length - 0.03)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + length)
+      osc.connect(filter)
+      tone.connect(filter)
+      filter.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + start)
+      tone.start(now + start)
+      osc.stop(now + start + length + 0.02)
+      tone.stop(now + start + length + 0.02)
+    }
+  } catch {
+    // Ignore playback errors (e.g. autoplay policy before first interaction).
+  }
+}

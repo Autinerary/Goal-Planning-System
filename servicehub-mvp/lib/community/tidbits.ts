@@ -28,6 +28,30 @@ export function wordCount(text: string): number {
  * for the first time"). Change the words, and raise the version so everyone
  * sees them again.
  */
+// Words a search can skip: they say nothing about what a Tidbit is about.
+const SEARCH_SKIP = new Set([
+  'the', 'and', 'for', 'with', 'your', 'you', 'from', 'into', 'that', 'this', 'about', 'how', 'what', 'when', 'who',
+  'set', 'get', 'got', 'make', 'find', 'build', 'start', 'try', 'take', 'use', 'plan', 'learn', 'help', 'step', 'steps',
+  'up', 'out', 'new', 'one', 'own', 'more', 'some', 'can', 'are', 'was', 'have', 'has', 'will',
+])
+
+/**
+ * The words a Tidbits search looks for (each must appear, in any order, in
+ * the title or the text). A search used to match its whole text as one
+ * phrase, so "Set up a structured study schedule" (a milestone, from the
+ * Race view's "help someone" prompt) matched nothing unless a Tidbit said
+ * exactly that. At most four words; one word or a short phrase as typed.
+ */
+export function searchWords(q: string | null | undefined): string[] {
+  const words = String(q || '')
+    .toLowerCase()
+    .replace(/[%,()_*\\]/g, ' ')
+    .split(/[^\p{L}\p{N}'-]+/u)
+    .map((w) => w.replace(/^['-]+|['-]+$/g, ''))
+    .filter((w) => w.length >= 3 && !SEARCH_SKIP.has(w))
+  return Array.from(new Set(words)).slice(0, 4)
+}
+
 export const RULES_VERSION = 1
 
 export const RULES_INTRO = {

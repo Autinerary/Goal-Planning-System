@@ -2,516 +2,234 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
-import {
-  ArrowLeft,
-  Search,
-  Stethoscope,
-  Home,
-  Briefcase,
-  GraduationCap,
-  HeartPulse,
-  Users,
-  Palette,
-  Plane,
-  Sparkles,
-  Clock,
-  User,
-  Plus,
-  X,
-  Loader2,
-  Send,
-} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, Loader2, Plus, Search, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { goHubHref } from '@/lib/serviceHub'
-import PathResources from '@/app/components/PathResources'
-
-const REQUESTED_PATHWAYS = [
-  ['Model Jet', 'Life organization with ADHD, OCD and Depression; awaiting Odosa\'s model.'],
-  ['Adulting for Neurodivs', 'Awaiting contributor milestones and resources.'],
-  ['Addictions', 'Awaiting qualified clinical review; no recovery curriculum supplied.'],
-  ['Healthy Options / Eating Healthy', 'Awaiting reviewed resources.'],
-  ['Veganism', 'Awaiting reviewed resources, including the proposed cultural version.'],
-  ['Undergraduate study', 'A separate stream from medical-school admission.'],
-  ['Getting into Med School', 'Awaiting institution-specific admission resources.'],
-  ['Nursing', 'A separate stream from becoming a doctor.'],
-  ['Doctor', 'Awaiting jurisdiction-specific training resources.'],
-  ['Public Health', 'Awaiting reviewed curriculum; no program supplied.'],
-  ['Entrepreneurship x ADHD / Neurodiv', 'Awaiting Odosa and Aayush\'s reviewed material.'],
-  ['Parents', 'Awaiting contributor models and resources.'],
-  ['Siblings', 'Awaiting contributor models and resources.'],
-  ['Young Leaders', 'Awaiting contributor models and resources.'],
-  ['Neurodiv', 'Awaiting contributor models and resources.'],
-  ['Visible Minorities', 'Awaiting contributor models and resources.'],
-]
+import {
+  NO_FILTERS, awaitingFor, communityModel, facetCounts, foundationsModel, isFiltered, matches, sortModels, startSeed, userNormIds,
+  type MarketCategory, type MarketFilters, type MarketModel,
+} from '@/lib/pathMarket'
+import PathFilters from './PathFilters'
+import ModelCard from './ModelCard'
+import StartPathDialog from './StartPathDialog'
+import ShareModelForm from './ShareModelForm'
 
 /**
- * Path Market — 3 layers (Odosa):
- *   1. Your Norms      — the systemic realities you navigate (top context).
- *   2. Life Categories — a domain of life (e.g. Medicine & Science).
- *   3. Models          — specific, named path models within a category. Each
- *                        model is what you actually "Start this Path" from, and
- *                        can carry a contributor + a short description.
+ * Path Market (the team's notes, October 2026).
  *
- * Seed models are the general starter path per category; community-contributed,
- * named models (e.g. a "Model Madhu") get appended to each category's `models`.
+ * Every entry is a Life Path Model: a whole path with a name of its own, its
+ * categories, norms and connection type to norm, its races (each with its
+ * milestones) and people, its contributors and a short description, and
+ * "Start this Path". The filters work like ResourceHub's, with "Path
+ * Categories" first: Education, Career, Relationships, Health & Wellness and
+ * Norms, each opening onto its specialised categories (one can be under
+ * several). Categories come from the database (Odosa: not hardcoded);
+ * community models from path_models. Pathways asked for without content are
+ * listed as waiting, never filled in by us ("No invented curricula").
  */
 
-type Status = 'live' | 'coming'
-
-type ModelStatus = Status | 'pending'
-
-interface PathModel {
-  key: string
-  /** Unique model name (e.g. "Foundations" or "Model Madhu"). */
-  name: string
-  /** Who contributed this model (a real person), when applicable. */
-  contributor?: string | null
-  /** Short description of how this path model differs from others. */
-  description: string
-  seedGoals: string[]
-  status: ModelStatus
-  /** Set for user-submitted community models. */
-  community?: boolean
-  isOwn?: boolean
-  id?: string
-}
-
-interface LifeCategory {
-  key: string
-  title: string
-  blurb: string
-  icon: typeof Stethoscope
-  tint: string
-  iconTint: string
-  /** Onboarding goal category this steers into. */
-  focusCategory: string
-  examples: string[]
-  models: PathModel[]
-}
-
-/** Lucide icon NAME (stored in the DB) -> component. Fallback: Sparkles. */
-const ICON_MAP: Record<string, typeof Stethoscope> = {
-  Stethoscope, Home, Briefcase, GraduationCap, HeartPulse, Users, Palette, Plane, Sparkles,
-}
-
-/** Shape of a category row from GET /api/path-categories (DB-backed, Odosa). */
 interface CategoryDTO {
   key: string
   title: string
   blurb: string
-  icon: string
-  tint: string
-  iconTint: string
   focusCategory: string
   examples: string[]
-  foundations: { description: string; seedGoals: string[]; status: Status }
-}
-
-/** Build a renderable LifeCategory from a DB row: resolve the icon name to a
- *  component and turn `foundations` into the general starter model. */
-function toLifeCategory(dto: CategoryDTO): LifeCategory {
-  return {
-    key: dto.key,
-    title: dto.title,
-    blurb: dto.blurb,
-    icon: ICON_MAP[dto.icon] || Sparkles,
-    tint: dto.tint,
-    iconTint: dto.iconTint,
-    focusCategory: dto.focusCategory,
-    examples: dto.examples,
-    models: [
-      {
-        key: `${dto.key}-foundations`,
-        name: 'Foundations',
-        description: dto.foundations.description,
-        seedGoals: dto.foundations.seedGoals,
-        status: dto.foundations.status,
-      },
-    ],
-  }
-}
-
-const STATUS_META: Record<ModelStatus, { label: string; cls: string }> = {
-  live: { label: 'Available', cls: 'bg-emerald-100 text-emerald-700' },
-  coming: { label: 'Coming soon', cls: 'bg-slate-100 text-slate-600' },
-  pending: { label: 'Pending review', cls: 'bg-amber-100 text-amber-700' },
+  lifeAreas: MarketCategory['lifeAreas']
+  foundations: MarketCategory['foundations']
 }
 
 export default function PathMarketPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [query, setQuery] = useState('')
-  const [norms, setNorms] = useState<string[]>([])
-  const [reviewModel, setReviewModel] = useState<{ category: LifeCategory; model: PathModel } | null>(null)
-  const [selectedIdeas, setSelectedIdeas] = useState<string[]>([])
-  const reviewDialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    if (reviewModel && !reviewDialog.current?.open) reviewDialog.current?.showModal()
-  }, [reviewModel])
-
-  // Layer 3: community-submitted models, grouped by category_key.
-  const [community, setCommunity] = useState<Record<string, PathModel[]>>({})
-  const loadCommunity = () => {
-    fetch('/api/path-models', { cache: 'no-store', credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (j?.byCategory) setCommunity(j.byCategory) })
-      .catch(() => {})
-  }
-  useEffect(() => { loadCommunity() }, [])
-
-  // Life categories — DB-backed (Odosa: not hardcoded). Fetched from
-  // /api/path-categories and mapped to renderable LifeCategory objects.
-  const [categories, setCategories] = useState<LifeCategory[]>([])
+  const [categories, setCategories] = useState<MarketCategory[]>([])
   const [catsLoading, setCatsLoading] = useState(true)
+  const [rows, setRows] = useState<any[]>([])
+  const [filters, setFilters] = useState<MarketFilters>(NO_FILTERS)
+  const [starting, setStarting] = useState<MarketModel | null>(null)
+  const [sharing, setSharing] = useState(false)
+  const [myNormLabels, setMyNormLabels] = useState<string[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
   useEffect(() => {
     fetch('/api/path-categories', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
-        if (Array.isArray(j?.categories)) setCategories(j.categories.map(toLifeCategory))
+        if (Array.isArray(j?.categories)) {
+          setCategories(
+            (j.categories as CategoryDTO[]).map((c) => ({
+              key: c.key,
+              title: c.title,
+              blurb: c.blurb,
+              focusCategory: c.focusCategory,
+              examples: Array.isArray(c.examples) ? c.examples : [],
+              lifeAreas: Array.isArray(c.lifeAreas) ? c.lifeAreas : [],
+              foundations: c.foundations,
+            })),
+          )
+        }
       })
       .catch(() => {})
       .finally(() => setCatsLoading(false))
   }, [])
 
-  // Submit-a-model modal.
-  const [showSubmit, setShowSubmit] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
-  const [submitDone, setSubmitDone] = useState(false)
-  const [form, setForm] = useState({ categoryKey: '', name: '', contributor: '', description: '', goalsText: '' })
-  // Default the submit-modal category to the first one once categories load.
-  useEffect(() => {
-    if (!form.categoryKey && categories.length > 0) {
-      setForm((f) => ({ ...f, categoryKey: categories[0].key }))
-    }
-  }, [categories, form.categoryKey])
-
-  const submitModel = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitError('')
-    const seedGoals = form.goalsText.split(/\n|,/).map((g) => g.trim()).filter(Boolean)
-    if (!form.name.trim() || form.description.trim().length < 10 || seedGoals.length === 0) {
-      setSubmitError('Add a name, a short description (10+ chars), and at least one goal.')
-      return
-    }
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/path-models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          categoryKey: form.categoryKey,
-          name: form.name.trim(),
-          contributor: form.contributor.trim() || (user?.name || null),
-          description: form.description.trim(),
-          seedGoals,
-        }),
-      })
-      const j = await res.json()
-      if (!res.ok) { setSubmitError(j.error || 'Could not submit.'); return }
-      setSubmitDone(true)
-      setForm({ categoryKey: form.categoryKey, name: '', contributor: '', description: '', goalsText: '' })
-      loadCommunity()
-    } finally {
-      setSubmitting(false)
-    }
+  const loadModels = () => {
+    fetch('/api/path-models', { cache: 'no-store', credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (Array.isArray(j?.models)) setRows(j.models) })
+      .catch(() => {})
   }
+  useEffect(() => { loadModels() }, [])
 
-  // Layer 1: the user's Norms (their systemic realities), if onboarding captured
-  // them. Read from the locally cached profile; empty pre-onboarding.
+  // Your norms (from setup, in this browser), for "Match my norms".
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('autinerary_profile')
-      const parsed = raw ? JSON.parse(raw) : null
-      const b = parsed?.barrierTypes
-      if (Array.isArray(b)) setNorms(b.filter((x: any) => typeof x === 'string'))
-    } catch {
-      /* ignore */
-    }
+      const b = JSON.parse(localStorage.getItem('autinerary_profile') || 'null')?.barrierTypes
+      if (Array.isArray(b)) setMyNormLabels(b.filter((x: unknown) => typeof x === 'string'))
+    } catch { /* ignore */ }
   }, [])
 
-  const q = query.trim().toLowerCase()
-  // Merge seed models with approved (+ own pending) community models per category.
-  const merged = categories.map((c) => ({ ...c, models: [...c.models, ...(community[c.key] || [])] }))
-  const filtered = merged.map((c) => {
-    if (!q) return c
-    const catMatch =
-      c.title.toLowerCase().includes(q) ||
-      c.blurb.toLowerCase().includes(q) ||
-      c.examples.some((e) => e.toLowerCase().includes(q))
-    const models = catMatch
-      ? c.models
-      : c.models.filter(
-          (m) =>
-            m.name.toLowerCase().includes(q) ||
-            m.description.toLowerCase().includes(q) ||
-            (m.contributor || '').toLowerCase().includes(q)
-        )
-    return catMatch ? c : { ...c, models }
-  }).filter((c) => c.models.length > 0)
+  const byKey = useMemo(() => Object.fromEntries(categories.map((c) => [c.key, c])), [categories])
+  const models = useMemo(
+    () => sortModels([...categories.map(foundationsModel), ...rows.map((r) => communityModel(r, byKey))], categories.map((c) => c.key)),
+    [categories, rows, byKey],
+  )
+  const shown = models.filter((m) => matches(m, filters, byKey))
+  const counts = facetCounts(models, filters, byKey)
+  const awaiting = awaitingFor(filters, byKey)
+  const myNorms = userNormIds(myNormLabels)
+  const filterCount = filters.areas.length + filters.categories.length + filters.norms.length + filters.connections.length + filters.status.length
 
-  const startModel = (c: LifeCategory, m: PathModel) => {
+  const start = (m: MarketModel, races: string[], steps: Record<string, string[]>) => {
     try {
-      localStorage.setItem(
-        'autinerary_path_seed',
-        JSON.stringify({
-          key: `${c.key}:${m.key}`,
-          title: `${c.title}${m.name && m.name !== 'Foundations' ? ` · ${m.name}` : ''}`,
-          goals: m.seedGoals,
-          selectedGoals: selectedIdeas,
-          focusCategory: c.focusCategory,
-          suggestions: c.examples,
-          // Carried so the Path view can name the model the user actually
-          // started, rather than inferring one after the fact.
-          modelName: m.name,
-          categoryTitle: c.title,
-          description: m.description,
-        })
-      )
-    } catch {
-      /* ignore */
-    }
+      localStorage.setItem('autinerary_path_seed', JSON.stringify(startSeed(m, byKey[m.categoryKeys[0]], races, steps)))
+    } catch { /* ignore */ }
     router.push('/onboarding')
   }
 
+  const sidebar = <PathFilters filters={filters} setFilters={setFilters} categories={categories} counts={counts} myNorms={myNorms} />
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <button
-            onClick={() => router.push('/path')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <button onClick={() => router.push('/path')} className="mb-4 inline-flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
         </button>
 
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-6 h-6 text-cyan-500" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Path Market</h1>
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-cyan-600" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Path Market</h1>
           </div>
-          <p className="text-slate-600 max-w-2xl">
-            Pick a <strong>life category</strong>, then a <strong>path model</strong> to start from. Starting a model
-            offers goal ideas for you to choose during onboarding. Nothing is selected for you.
+          <p className="max-w-3xl text-slate-700">
+            Each <strong>Life Path Model</strong> is a whole path someone took: its races, their steps, and the people on it.
+            Filter by life category, norms and more, then <strong>Start this Path</strong> and take the races and steps you want.
+            Nothing is selected for you.
           </p>
-          <button
-            onClick={() => { setShowSubmit(true); setSubmitDone(false); setSubmitError('') }}
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-cyan-200 text-cyan-700 text-sm font-semibold hover:border-cyan-400 transition-all"
-          >
-            <Plus className="w-4 h-4" /> Share your path model
-          </button>
-          {/* Bulk route, for someone who already has a list rather than a
-              single model to describe. */}
-          <Link
-            href="/bulk-import"
-            className="mt-3 ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-purple-200 text-purple-700 text-sm font-semibold hover:border-purple-400 transition-all"
-          >
-            <Sparkles className="w-4 h-4" /> Recommend a batch
-          </Link>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSharing(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-300 bg-white px-4 py-2 text-sm font-semibold text-cyan-900 transition-all hover:border-cyan-500"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" /> Share your path model
+            </button>
+            <Link href="/bulk-import" className="inline-flex items-center gap-2 rounded-xl border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-900 transition-all hover:border-purple-500">
+              <Sparkles className="h-4 w-4" aria-hidden="true" /> Recommend a batch
+            </Link>
+          </div>
         </div>
 
-        {/* Layer 1: Your Norms */}
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-1">Your Norms</div>
-          <p className="text-sm text-slate-600">
-            Every path here is shaped around your norms: the systemic realities you navigate.
-          </p>
-          {norms.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {norms.map((n) => (
-                <span key={n} className="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
-                  {n}
-                </span>
+        <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
+          <aside aria-label="Filters">
+            {/* On a phone the filters fold away, as on ResourceHub. One set of
+                filters either way, so every control has one id. */}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((o) => !o)}
+              aria-expanded={filtersOpen}
+              aria-controls="path-filters"
+              className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-900 lg:hidden"
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> Filters{filterCount ? ` (${filterCount})` : ''}
+            </button>
+            <div id="path-filters" className={`${filtersOpen ? 'mt-4 block' : 'hidden'} lg:mt-0 lg:block`}>{sidebar}</div>
+            {isFiltered(filters) && (
+              <button type="button" onClick={() => setFilters(NO_FILTERS)} className="mt-4 text-sm font-semibold text-blue-800 underline underline-offset-2">
+                Clear filters
+              </button>
+            )}
+          </aside>
+
+          <main>
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" aria-hidden="true" />
+              <input
+                type="search"
+                value={filters.q}
+                onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+                placeholder="Search models, races and steps (e.g. medicine, budgeting, resume)…"
+                aria-label="Search path models"
+                className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-sm focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+            <p className="mb-3 text-sm text-slate-700" role="status">
+              {catsLoading ? 'Loading path models…' : `${shown.length} ${shown.length === 1 ? 'path model' : 'path models'}`}
+            </p>
+
+            {catsLoading && (
+              <div className="flex justify-center py-12 text-slate-500"><Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" /></div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2" data-model-list>
+              {shown.map((m) => (
+                <ModelCard
+                  key={m.key}
+                  model={m}
+                  categories={byKey}
+                  onStart={setStarting}
+                  onComingSoon={(x) => router.push(`/under-construction?feature=${encodeURIComponent(x.name)}`)}
+                />
               ))}
             </div>
-          )}
-        </div>
 
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search categories or models (e.g. medicine, living, career)…"
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-cyan-400"
-          />
-        </div>
-
-        {catsLoading && (
-          <div className="flex justify-center py-12 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
-        )}
-
-        {/* Layer 2: Life Categories, each containing Layer 3: Models */}
-        <div className="space-y-4">
-          {filtered.map((c) => {
-            const Icon = c.icon
-            return (
-              <div key={c.key} className="grid gap-4 border-t border-slate-300 py-6 md:grid-cols-[220px_minmax(0,1fr)]">
-                {/* Category header */}
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 ${c.iconTint}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="font-bold text-slate-900">{c.title}</h2>
-                    <p className="text-sm text-slate-600">{c.blurb}</p>
-                  </div>
-                </div>
-
-                {/* Models */}
-                <div className="space-y-2">
-                  {c.models.map((m) => {
-                    const status = STATUS_META[m.status]
-                    return (
-                      <div key={m.key} className="rounded-lg bg-white/70 border border-slate-200 p-3">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-slate-900 text-sm">{m.name}</span>
-                              <span className={`text-[0.625rem] font-semibold px-1.5 py-0.5 rounded-full ${status.cls}`}>
-                                {m.status === 'coming' && <Clock className="inline w-2.5 h-2.5 mr-0.5" aria-hidden="true" />}
-                                {status.label}
-                              </span>
-                            </div>
-                            {m.contributor && (
-                              <div className="text-[0.6875rem] text-slate-500 flex items-center gap-1 mt-0.5">
-                                <User className="w-3 h-3" /> by {m.contributor}
-                              </div>
-                            )}
-                            <p className="text-xs text-slate-600 mt-1">{m.description}</p>
-                          </div>
-                          <button
-                            disabled={m.status === 'pending'}
-                            onClick={() =>
-                              m.status === 'coming'
-                                ? router.push(`/under-construction?feature=${encodeURIComponent(`${c.title} · ${m.name}`)}`)
-                                : (() => { setReviewModel({ category: c, model: m }); setSelectedIdeas([]) })()
-                            }
-                            className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                              m.status === 'coming'
-                                ? 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
-                                : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white hover:shadow-lg'
-                            }`}
-                          >
-                            {m.status === 'coming' ? 'Coming soon →' : m.status === 'pending' ? 'Awaiting review' : 'Review ideas'}
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {/* Invitation for community models */}
-                  <p className="text-[0.6875rem] text-slate-400 italic px-1">
-                    More models from the community appear here as people share their path.
-                  </p>
-                </div>
+            {!catsLoading && shown.length === 0 && (
+              <div className="py-10 text-center text-sm text-slate-700">
+                {categories.length === 0 ? 'No path categories yet.' : (
+                  <>
+                    No path models match. Try fewer filters, or{' '}
+                    <Link href="/onboarding" className="text-cyan-800 underline underline-offset-2">start from scratch</Link>.
+                  </>
+                )}
               </div>
-            )
-          })}
-        </div>
-
-        {!catsLoading && filtered.length === 0 && (
-          <div className="text-center py-12 text-slate-500 text-sm">
-            {categories.length === 0 ? (
-              <>No path categories yet.</>
-            ) : (
-              <>
-                No categories or models match “{query}”. Try a different search, or{' '}
-                <Link href="/onboarding" className="text-cyan-600 underline underline-offset-2">start from scratch</Link>.
-              </>
             )}
-          </div>
-        )}
+
+            {awaiting.length > 0 && (
+              <section className="mt-10 border-t pt-6" aria-labelledby="awaiting-heading">
+                <h2 id="awaiting-heading" className="mb-1 text-xl font-semibold text-slate-900">Pathways awaiting content</h2>
+                <p className="mb-3 text-sm text-slate-700">Asked for, and waiting for people who have walked them (or qualified reviewers). We don’t write these ourselves.</p>
+                <div className="grid gap-x-8 sm:grid-cols-2">
+                  {awaiting.map((p) => (
+                    <div key={p.name} className="border-b py-3">
+                      <h3 className="font-medium text-slate-900">{p.name}</h3>
+                      <p className="mt-1 text-sm text-slate-700">{p.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </main>
+        </div>
       </div>
 
-      <section className="mx-auto max-w-4xl border-t px-4 py-6">
-        <h2 className="mb-4 text-xl font-semibold">Pathways awaiting content</h2>
-        <div className="grid gap-x-8 sm:grid-cols-2">{REQUESTED_PATHWAYS.filter(([name]) => !q || name.toLowerCase().includes(q)).map(([name, note]) => <div key={name} className="border-b py-3"><h3 className="font-medium">{name}</h3><p className="mt-1 text-sm text-slate-600">{note}</p></div>)}</div>
-      </section>
-
-      {reviewModel && <dialog ref={reviewDialog} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setReviewModel(null) } }} onCancel={() => setReviewModel(null)} onClose={() => setReviewModel(null)} className="max-h-[90vh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg bg-white p-0 backdrop:bg-black/50" aria-label="Review pathway ideas">
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-3"><h2 className="text-xl font-semibold">{reviewModel.category.title}: {reviewModel.model.name}</h2><button type="button" aria-label="Close pathway review" onClick={() => setReviewModel(null)}><X className="h-5 w-5" /></button></div>
-          <p className="my-3 text-sm text-slate-600">{reviewModel.model.description}</p>
-          <fieldset className="space-y-3"><legend className="mb-3 font-medium">Optional goals</legend>{reviewModel.model.seedGoals.map(goal => <label key={goal} className="flex items-start gap-3 text-sm"><input type="checkbox" checked={selectedIdeas.includes(goal)} onChange={event => setSelectedIdeas(event.target.checked ? [...selectedIdeas, goal] : selectedIdeas.filter(item => item !== goal))} className="mt-1" />{goal}</label>)}</fieldset>
-          <PathResources categoryKey={reviewModel.category.key} />
-          <h3 className="mb-2 mt-6 font-medium">Related Tidbits</h3>
-          <div className="flex flex-wrap gap-3">{(reviewModel.category.focusCategory === 'education' ? ['course selection', 'time scheduling'] : ['cold email', 'resume', 'time scheduling']).map(topic => <Link key={topic} href={goHubHref(`/community?${new URLSearchParams({ q: topic, from: 'path-market' })}`)} className="text-sm text-cyan-800 underline">{topic}</Link>)}</div>
-          <button type="button" onClick={() => startModel(reviewModel.category, reviewModel.model)} className="mt-6 rounded bg-cyan-700 px-4 py-2 font-medium text-white">Continue with {selectedIdeas.length} selected goals</button>
-        </div>
-      </dialog>}
-
-      {/* Share-a-model modal */}
-      {showSubmit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overlay-scroll" onClick={() => setShowSubmit(false)}>
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-bold text-lg text-slate-900 flex items-center gap-2"><Plus className="w-5 h-5 text-cyan-500" /> Share your path model</h2>
-              <button onClick={() => setShowSubmit(false)} className="text-slate-400 hover:text-slate-600" aria-label="Close"><X className="w-5 h-5" /></button>
-            </div>
-
-            {submitDone ? (
-              <div className="text-center py-6">
-                <div className="text-4xl mb-2">🎉</div>
-                <p className="font-semibold text-slate-800">Thanks for sharing!</p>
-                <p className="text-sm text-slate-500 mt-1">Your model is <strong>pending review</strong>. You’ll see it in its category with a “Pending review” badge until it’s approved for everyone.</p>
-                <button onClick={() => setShowSubmit(false)} className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold">Done</button>
-              </div>
-            ) : (
-              <form onSubmit={submitModel} className="space-y-3">
-                <p className="text-xs text-slate-500">Share how you navigated a life area so others can start from your path. {!user && <span className="text-amber-600 font-medium">You’ll need to sign in.</span>}</p>
-                {submitError && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{submitError}</p>}
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Life category</label>
-                  <select
-                    value={form.categoryKey}
-                    onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  >
-                    {categories.map((c) => <option key={c.key} value={c.key}>{c.title}</option>)}
-                  </select>
-                </div>
-                <input
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  placeholder="Model name (e.g. Model Madhu)"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-                <input
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  placeholder="Your name / credit (optional)"
-                  value={form.contributor}
-                  onChange={(e) => setForm({ ...form, contributor: e.target.value })}
-                />
-                <textarea
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  rows={2}
-                  placeholder="Short description. How does this path differ? (10–280 chars)"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-                <textarea
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  rows={2}
-                  placeholder="Starting goals: one per line (e.g. Get into a research program)"
-                  value={form.goalsText}
-                  onChange={(e) => setForm({ ...form, goalsText: e.target.value })}
-                />
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
-                >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Submit model
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      <StartPathDialog model={starting} categories={byKey} onClose={() => setStarting(null)} onStart={start} />
+      <ShareModelForm
+        open={sharing}
+        onClose={() => setSharing(false)}
+        onShared={loadModels}
+        categories={categories}
+        signedIn={!!user}
+        defaultContributor={user?.name || ''}
+      />
     </div>
   )
 }

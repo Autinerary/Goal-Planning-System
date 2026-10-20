@@ -21,7 +21,7 @@ import { isContentNote, missingContentNote } from '@/lib/community/contentNotes'
 import { loadAuthorMap, loadViewerVotes } from '@/lib/community/hydrate';
 import { generatePseudonym } from '@/lib/community/pseudonym';
 import { moderateFields, reviewFlag, SLUR_MESSAGE } from '@/lib/community/moderation';
-import { LENGTHS, isLengthType, platformOf, step83Missing, wordCount } from '@/lib/community/tidbits';
+import { LENGTHS, isLengthType, platformOf, searchWords, step83Missing, wordCount } from '@/lib/community/tidbits';
 import { checkedItems, dbErrorMessage, loadGroups, rulesAccepted, summarize } from '@/lib/community/tidbitsServer';
 import type { CommunityPostSummary, FeedSort } from '@/types/community';
 
@@ -97,7 +97,11 @@ export async function GET(request: NextRequest) {
     if (barriers.length) query = query.overlaps('barrier_tags', barriers);
     if (categories.length) query = query.overlaps('category_tags', categories);
     if (author) query = query.eq('author_id', author);
-    if (q) query = query.or(`title.ilike.%${q}%,body_markdown.ilike.%${q}%`);
+    // Every word, in any order (lib/community/tidbits.ts searchWords); the
+    // text as typed when it has no word worth searching for.
+    const words = searchWords(q);
+    if (words.length) for (const w of words) query = query.or(`title.ilike.%${w}%,body_markdown.ilike.%${w}%`);
+    else if (q) query = query.or(`title.ilike.%${q}%,body_markdown.ilike.%${q}%`);
     if (sort === 'unanswered') query = query.eq('answer_count', 0);
     if (sort === 'solved') query = query.not('accepted_answer_id', 'is', null);
     // Solutions: the author highlighted what unlocked it. Independent of

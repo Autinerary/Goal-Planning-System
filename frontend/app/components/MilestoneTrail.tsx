@@ -36,8 +36,15 @@ interface MilestoneTrailProps {
   day?: boolean
   startIndex?: number
   previewAll?: boolean
-  /** The person's own character, drawn in the "You are here" marker. */
+  /** The person's own character (in their car, on Races), beside the step they are on. */
   character?: ReactNode
+  /** Step 1 at the bottom and the last at the top (the team's notes, October 2026). */
+  bottomUp?: boolean
+  /** Per step: what to avoid (red) or what helps (green), for the Race view's
+   *  Avoidance and Suggestions views. */
+  notes?: Record<string, { tone: 'avoid' | 'tip'; items: string[] }>
+  /** Steps after the last one shown, counted at the top ("3 more to the finish"). */
+  ahead?: number
 }
 
 const ZONE: Record<
@@ -54,8 +61,9 @@ const ZONE: Record<
 const zoneFor = (d?: string) => ZONE[(d || '').toLowerCase()] || ZONE.default
 
 // Vertical space per milestone. Enough that a node plus its label never
-// collides with the one above.
-const STEP = 160
+// collides with the one above; more when each step carries notes.
+const STEP_PLAIN = 160
+const STEP_NOTES = 270
 const PAD_TOP = 70
 const PAD_BOTTOM = 90
 
@@ -68,9 +76,15 @@ export default function MilestoneTrail({
   startIndex = 0,
   previewAll = false,
   character,
+  bottomUp = false,
+  notes,
+  ahead = 0,
 }: MilestoneTrailProps) {
   const n = milestones.length
+  const STEP = notes ? STEP_NOTES : STEP_PLAIN
   const height = PAD_TOP + Math.max(1, n) * STEP + PAD_BOTTOM
+  // Down the page (1 at the top), or up it (1 at the bottom, the finish at the top).
+  const dir = bottomUp ? -1 : 1
 
   // One coordinate space for the whole map. x is a percentage of the width so
   // it stays responsive; y is absolute pixels so spacing never compresses.
@@ -86,10 +100,10 @@ export default function MilestoneTrail({
           m,
           i,
           x: 50 + wave * 24 + nudge,
-          y: PAD_TOP + i * STEP,
+          y: PAD_TOP + (bottomUp ? n - 1 - i : i) * STEP,
         }
       }),
-    [milestones]
+    [milestones, bottomUp, n, STEP]
   )
 
   // Where each zone starts, so bands and labels line up with the real change
@@ -107,11 +121,13 @@ export default function MilestoneTrail({
           endY: y + STEP / 2,
         })
       } else {
-        last.endY = y + STEP / 2
+        last.startY = Math.min(last.startY, y - STEP / 2)
+        last.endY = Math.max(last.endY, y + STEP / 2)
       }
     })
-    return runs
-  }, [nodes])
+    // Top to bottom on the page, whichever way the steps run.
+    return runs.sort((a, b) => a.startY - b.startY)
+  }, [nodes, STEP])
 
   const doneCount = milestones.filter((m) => completedIds.has(m.id)).length
 
@@ -140,12 +156,12 @@ export default function MilestoneTrail({
 
   if (n === 0) return null
 
-  // The trail: a single smooth path through every node, top to bottom.
+  // The trail: a single smooth path through every node, in step order.
   const trail = nodes
     .map((p, i) =>
       i === 0
         ? `M ${p.x} ${p.y}`
-        : ` C ${nodes[i - 1].x} ${nodes[i - 1].y + STEP * 0.5}, ${p.x} ${p.y - STEP * 0.5}, ${p.x} ${p.y}`
+        : ` C ${nodes[i - 1].x} ${nodes[i - 1].y + dir * STEP * 0.5}, ${p.x} ${p.y - dir * STEP * 0.5}, ${p.x} ${p.y}`
     )
     .join('')
 
@@ -162,6 +178,13 @@ export default function MilestoneTrail({
           <span className="text-xs font-bold text-slate-600">{zoneRuns.length} zones</span>
         </div>
       </div>
+
+      {/* What lies past the last step shown, at the top when the finish is up there. */}
+      {bottomUp && ahead > 0 && (
+        <p className="mb-2 text-center text-xs font-semibold text-slate-800">
+          <span aria-hidden="true">🏁 </span>{ahead} more {ahead === 1 ? 'step' : 'steps'} to the finish
+        </p>
+      )}
 
       {/* ONE canvas for the whole world */}
       <div
@@ -326,13 +349,26 @@ export default function MilestoneTrail({
               </span>
 
               {current && (
-                <span className={`absolute ${character ? '-top-11 flex items-center gap-1 py-0.5' : '-top-8 py-1'} left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 text-xs font-bold text-slate-900`}>
-                  {character && <span aria-hidden="true">{character}</span>}
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-1 text-xs font-bold text-slate-900">
                   You are here
                 </span>
               )}
-              <span className="absolute top-[62px] left-1/2 w-32 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-[0.6875rem] font-semibold leading-tight text-slate-800">
+              {/* The character, parked beside the step they are on. */}
+              {current && character && (
+                <span className={`absolute top-1/2 -translate-y-1/2 ${x > 50 ? 'right-[66px]' : 'left-[66px]'}`} aria-hidden="true">
+                  {character}
+                </span>
+              )}
+              <span className={`absolute top-[62px] left-1/2 -translate-x-1/2 rounded bg-white/95 px-2 py-1 text-left text-[0.6875rem] font-semibold leading-tight text-slate-800 ${notes ? 'w-52' : 'w-32 text-center'}`}>
                 <span className="line-clamp-2">{m.name}</span>
+                {notes?.[m.id]?.items.length ? (
+                  <span className={`mt-1 block space-y-0.5 font-medium ${notes[m.id].tone === 'avoid' ? 'text-red-700' : 'text-green-800'}`} data-step-notes={notes[m.id].tone}>
+                    <span className="block font-bold">{notes[m.id].tone === 'avoid' ? 'Avoid:' : 'Try:'}</span>
+                    {notes[m.id].items.slice(0, 3).map((item) => (
+                      <span key={item} className="block">• {item}</span>
+                    ))}
+                  </span>
+                ) : null}
                 <span className="mt-1 block text-sky-700">{locked ? 'Locked' : 'Tap to view'}</span>
               </span>
             </button>

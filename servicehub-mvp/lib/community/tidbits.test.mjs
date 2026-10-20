@@ -1,6 +1,6 @@
 // Run from servicehub-mvp/: node --experimental-strip-types lib/community/tidbits.test.mjs
 import assert from 'node:assert/strict'
-import { LENGTHS, isLengthType, platformOf, shownAuthor, step83Missing, wordCount } from './tidbits.ts'
+import { LENGTHS, isLengthType, platformOf, searchWords, shownAuthor, step83Missing, wordCount } from './tidbits.ts'
 
 // The word limits, as STEP 83 keeps them in the database.
 assert.equal(LENGTHS.tidbit.words, 500)
@@ -42,4 +42,13 @@ assert.ok(step83Missing({ code: 'PGRST205', message: "Could not find the table '
 assert.ok(!step83Missing({ code: '23505', message: 'duplicate key value' }))
 assert.ok(!step83Missing(null))
 
+// Searching: each word that says something, at most four, in any order.
+assert.deepEqual(searchWords('Set up a structured study schedule'), ['structured', 'study', 'schedule'])
+assert.deepEqual(searchWords('Request accommodations at school'), ['request', 'accommodations', 'school'])
+assert.deepEqual(searchWords('ADHD'), ['adhd'])
+assert.deepEqual(searchWords('100% (sure), a_b'), ['100', 'sure'])
+assert.deepEqual(searchWords('a an to'), [])
+assert.deepEqual(searchWords(null), [])
+assert.equal(searchWords('one two three four five six seven eight nine').length, 4)
+assert.deepEqual(searchWords("don't stop"), ["don't", 'stop'])
 console.log('tidbits: ok')

@@ -57,7 +57,10 @@ const SIGNED_IN = (ALL
     '/path-market',
     // The All Apps round: personality (optional), norms with how
     // communication works, the Dream Self, suggestions free first, Family.
-    '/profile/personality', '/profile/diagnostic', '/ideal-self', '/recommend-choices', '/family']).map((p) => APP + p)
+    '/profile/personality', '/profile/diagnostic', '/ideal-self', '/recommend-choices', '/family',
+    // The Race, Milestone and Path Market round: Races and its Avoidance
+    // view, the Milestone view, and one milestone with its tools and Top 5.
+    '/races', '/races?newview=avoidance', '/milestones', '/milestones/milestone_g0_education_0']).map((p) => APP + p)
 // ResourceHub signed in, through the app's hand-off: its account menu and its
 // profile had problems only a signed-in check could see (found 15 October
 // 2026, Riipen Labs Groups 8 to 14).

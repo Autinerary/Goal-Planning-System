@@ -15,6 +15,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { backendAuthHeaders } from '@/lib/backendAuth'
+import { withoutHiddenGoals } from '@/lib/hiddenGoals'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -87,7 +88,9 @@ export function AgentPathProvider({ children }: { children: ReactNode }) {
         if (meRes.ok) {
           const json = await meRes.json()
           if (json?.payload) {
-            setPayload(json.payload as AgentPathPayload)
+            // Goals taken out in "Your Goals, Dreams & Obstacles" stay in the
+            // plan but no page shows them (lib/hiddenGoals.ts).
+            setPayload(withoutHiddenGoals(json.payload as AgentPathPayload))
             return
           }
         }
@@ -108,7 +111,7 @@ export function AgentPathProvider({ children }: { children: ReactNode }) {
         res = await fetch(`${API_URL}/api/onboarding/user/${userId}/path`, { headers: authHeaders })
       }
       if (res && res.ok) {
-        setPayload(await res.json())
+        setPayload(withoutHiddenGoals(await res.json()))
       } else {
         setPayload(null)
         if (res) setError(`Path fetch returned ${res.status}`)

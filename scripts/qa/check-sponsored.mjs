@@ -11,9 +11,12 @@ const body = (s) =>
     .replace(/\/\*\*[\s\S]*?\*\/\n/, '')
     .replace(/\/\*\* Shown under a sponsored listing when paying[^\n]*\nexport const PAYMENTS_ON[^\n]*\n/, '')
     .trim()
-// Info Mode (lib/infoMode.ts) is kept the same in both apps too.
+// Info Mode (lib/infoMode.ts) is kept the same in both apps too, and so are
+// ResourceHub's tags (lib/filters/tags.ts), which the app uses to label a
+// milestone's tools, and its norms and filter lists (lib/norms/taxonomy.ts,
+// lib/filters/taxonomy.ts), which the Path Market's filters use.
 let failed = false
-for (const file of ['sponsored.ts', 'infoMode.ts']) {
+for (const file of ['sponsored.ts', 'infoMode.ts', 'filters/tags.ts', 'filters/taxonomy.ts', 'norms/taxonomy.ts']) {
   const a = body(read(`servicehub-mvp/lib/${file}`))
   const b = body(read(`frontend/lib/${file}`))
   if (a !== b) {

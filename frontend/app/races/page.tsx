@@ -19,9 +19,14 @@ import LaneWorld from '../components/LaneWorld'
 import DefaultAvatar from '../components/DefaultAvatar'
 import UserAvatar from '../components/UserAvatar'
 import AnyOrderPond from './AnyOrderPond'
-import GoalsTogether from './GoalsTogether'
-import { Car } from 'lucide-react'
-import { playTaskCompleteSound } from '@/lib/taskSound'
+import GoalsTogether, { SharedBadge, sharedFor, useSharedChallenges } from './GoalsTogether'
+import GoalsEditor from './GoalsEditor'
+import HelpOthersPrompt, { helpPromptOff } from './HelpOthersPrompt'
+import CharacterCar from './CharacterCar'
+import { playCarBeep } from '@/lib/taskSound'
+import { useMilestoneGuidance } from '@/lib/useMilestoneGuidance'
+import { guidanceFor, guidanceSource } from '@/lib/guidanceData'
+import { goalAreas, goalsForDimension } from '@/lib/goalCategories'
 import { useDisclosure } from '@/lib/disclosure'
 import { useCssHeightVar } from '@/lib/useCssHeightVar'
 import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../components/GameUI'
@@ -34,19 +39,29 @@ import { GamePanel, GameBanner, GameButton, GameTabs, GameMeter } from '../compo
 */
 
 const STATS_SHOWN_KEY = 'autinerary_races_stats_shown'
+// How many steps were done when Races last saw them, so a step finished on
+// another page still gets its "beep beep" here.
+const DONE_SEEN_KEY = 'autinerary_races_done_seen'
 
 function RacesContent() {
-  const { payload, pathPlanning, toolRecommendation, loading } = useAgentPath()
+  const { payload, pathPlanning, toolRecommendation, loading, refresh } = useAgentPath()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { prefs, updateLayout } = usePreferences()
+  const { prefs, update: updatePrefs, updateLayout } = usePreferences()
   const { isSimple } = useDisclosure()
   // The race track's progress badge sticks below this header (MilestoneTrail).
   const headerRef = useRef<HTMLElement>(null)
   useCssHeightVar(headerRef, '--page-header-h')
   const [characterAppearance, setCharacterAppearance] = useState<{ hairStyle?: string; hairColor?: string; skinColor?: string; accessory?: string; facialHair?: string; clothing?: string }>({})
+  // The areas setup's goals were written under, in this browser (plans made
+  // before they were saved with the plan; lib/goalCategories.ts).
+  const [setupGoalsByArea, setSetupGoalsByArea] = useState<unknown>(null)
   useEffect(() => {
-    try { setCharacterAppearance(JSON.parse(localStorage.getItem('autinerary_profile') || '{}').avatar || {}) } catch {}
+    try {
+      const local = JSON.parse(localStorage.getItem('autinerary_profile') || '{}')
+      setCharacterAppearance(local.avatar || {})
+      setSetupGoalsByArea(local.goalsByCategory || null)
+    } catch {}
   }, [])
   // The character from setup (saved with the account since Group 34; this
   // browser's copy for people who set up before), shown at "You are here".
@@ -54,13 +69,28 @@ function RacesContent() {
   const myCharacter = prefs.character || (characterAppearance.hairStyle ? characterAppearance : null)
   // No character yet: a plain placeholder, not nobody (Riipen Labs, Group 29:
   // "default avatar settings ... if skipped"; components/DefaultAvatar.tsx).
-  const trailCharacter = myCharacter ? <UserAvatar {...myCharacter} size={28} /> : <DefaultAvatar size={28} />
+  // On the track they drive a car, which beeps when a step is done (Liam,
+  // October 2026); `honk` counts the steps done here.
+  const [honk, setHonk] = useState(0)
+  const driver = myCharacter ? <UserAvatar {...myCharacter} size={30} /> : <DefaultAvatar size={30} />
+  const trailCharacter = <CharacterCar character={driver} honk={honk} />
+  // After a milestone is done: two ways to help someone else (HelpOthersPrompt).
+  const [helpFor, setHelpFor] = useState<{ id: string; name: string } | null>(null)
+  // "Your Goals, Dreams & Obstacles", opened from "Add one" under an area.
+  const [goalsOpen, setGoalsOpen] = useState(false)
+  const goalsPanelRef = useRef<HTMLDivElement>(null)
+  const openGoalsPanel = () => {
+    setGoalsOpen(true)
+    setTimeout(() => goalsPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
 
   const [isDayTheme, setIsDayTheme] = useState(true)
   const [showRocketEntry, setShowRocketEntry] = useState(false)
   const [rocketPhase, setRocketPhase] = useState<'flying' | 'landing' | 'landed'>('landed')
   const comparisonView = searchParams.get('compare') || null
-  const newView = searchParams.get('newview') || null
+  // Avoidance and Suggestions; "Compete" ("Learn from others") is gone (the
+  // team's notes, October 2026), so an old link to it shows nothing.
+  const newView = (['avoidance', 'suggestions'] as const).find((v) => v === searchParams.get('newview')) || null
   const [showPreviousSteps, setShowPreviousSteps] = useState(false)
   const [isWheelSpinning, setIsWheelSpinning] = useState(false)
   const [wheelRotation, setWheelRotation] = useState(0)
@@ -86,7 +116,14 @@ function RacesContent() {
   const [dimViewMode, setDimViewMode] = useState<'individual' | 'combined'>('individual')
   // "Choose your next path" prompts the user has dismissed (by completed step id).
   const [dismissedBranches, setDismissedBranches] = useState<Set<string>>(new Set())
-  const [layoutMode, setLayoutMode] = useState<'track' | 'list'>('list')
+  const [layoutMode, setLayoutModeState] = useState<'track' | 'list'>('list')
+  // Which way the switch slides (Liam: "a transition animation to make it look more smooth").
+  const [slideFrom, setSlideFrom] = useState<'left' | 'right'>('right')
+  const setLayoutMode = (v: 'track' | 'list') => {
+    if (v === layoutMode) return
+    setSlideFrom(v === 'list' ? 'right' : 'left')
+    setLayoutModeState(v)
+  }
   // 'trail' is the level-map view — the whole path as a set of zones you
   // move through, rather than the five-stop road. Default, because seeing
   // progress spatially is the point of the race framing in the first place.
@@ -161,6 +198,11 @@ function RacesContent() {
         }
         setCompletedMilestoneIds(completed)
         setHeartedGoals(hearted)
+        try {
+          const seen = Number(localStorage.getItem(DONE_SEEN_KEY) ?? -1)
+          if (seen >= 0 && completed.size > seen) { setHonk((h) => h + 1); playCarBeep() }
+          localStorage.setItem(DONE_SEEN_KEY, String(completed.size))
+        } catch {}
       } catch {
         /* keep local state */
       }
@@ -199,7 +241,12 @@ function RacesContent() {
 
   // Persist hearted goals + completed milestones to localStorage
   useEffect(() => { try { localStorage.setItem('heartedGoals', JSON.stringify([...heartedGoals])) } catch {} }, [heartedGoals])
-  useEffect(() => { try { localStorage.setItem('completedMilestoneIds', JSON.stringify([...completedMilestoneIds])) } catch {} }, [completedMilestoneIds])
+  useEffect(() => {
+    try {
+      localStorage.setItem('completedMilestoneIds', JSON.stringify([...completedMilestoneIds]))
+      if (isSignedIn) localStorage.setItem(DONE_SEEN_KEY, String(completedMilestoneIds.size))
+    } catch {}
+  }, [completedMilestoneIds, isSignedIn])
   useEffect(() => { try { localStorage.setItem('raceExtraBarriers', JSON.stringify(extraBarriers)) } catch {} }, [extraBarriers])
 
   const toggleHeart = (id: string) => {
@@ -222,8 +269,14 @@ function RacesContent() {
       return next
     })
   }
-  const toggleMilestoneComplete = (id: string) => {
-    if (!completedMilestoneIds.has(id)) playTaskCompleteSound()
+  const toggleMilestoneComplete = (id: string, name?: string) => {
+    if (!completedMilestoneIds.has(id)) {
+      // Beep beep, and the car bounces (CharacterCar).
+      playCarBeep()
+      setHonk((h) => h + 1)
+      // Then, unless they asked not to: help someone at the same step.
+      if (name && !helpPromptOff()) setHelpFor({ id, name })
+    }
     setCompletedMilestoneIds(prev => {
       const next = new Set(prev)
       const wasCompleted = next.has(id)
@@ -427,6 +480,51 @@ function RacesContent() {
     if (p !== null) r.progress = p
   })
 
+  // The biggest dream (the Dream Self page asks it; setup's answer is kept
+  // with the plan too): at the top of the race, above every area's goal.
+  const ultimateDream: string = (prefs.biggestDream || payload?.userProfile?.ultimateDream || '').trim()
+  // Each goal under its own area only (the team's notes, October 2026:
+  // "Graduate university for education ONLY, Get a job for workplace ONLY").
+  const goalArea = goalAreas(userGoalNames, payload?.userProfile?.goalCategories, setupGoalsByArea)
+  const goalsInDim = (dimKey: string): string[] => goalsForDimension(userGoalNames, goalArea, dimKey)
+  const _goalKey = (g: unknown) => String(g ?? '').trim().toLowerCase()
+  // Goals added in "Your Goals, Dreams & Obstacles" that have no steps yet.
+  const goalsWithoutSteps = userGoalNames.filter((g) => !allAgentMilestones.some((m: any) => _goalKey(m.goal) === _goalKey(g)))
+  // Shared challenges (goals with someone): their own colour, and a badge.
+  const collabs = useSharedChallenges(isSignedIn)
+  const sharedGoal = (goal: string) => sharedFor(goal, collabs)
+  // The Avoidance (red) and Suggestions (green) views: at each step, what to
+  // avoid or what helps (the team's notes), the same words as the Milestone
+  // view's "Top 5 mistakes made at this stage" (lib/guidanceData.ts).
+  const notesOn = newView === 'avoidance' || newView === 'suggestions'
+  const { guidance, loading: guidanceLoading, failed: guidanceFailed } = useMilestoneGuidance(
+    payload as any,
+    milestones.map((m: any) => ({ id: m.id, name: m.name })),
+    notesOn,
+  )
+  const stepNotes: Record<string, { tone: 'avoid' | 'tip'; items: string[] }> | undefined = notesOn
+    ? Object.fromEntries(
+        milestones.flatMap((m: any) => {
+          const g = guidanceFor(guidance, m.id, m.name)
+          if (!g) return []
+          const items = newView === 'avoidance' ? g.avoid : g.tips
+          return items.length ? [[m.id, { tone: newView === 'avoidance' ? 'avoid' : 'tip', items }]] : []
+        }),
+      )
+    : undefined
+  const notesSource = notesOn ? guidanceFor(guidance, milestones[0]?.id || '', milestones[0]?.name) : null
+  // Each list opens at the step you're on: centred in its box, or the finish
+  // at the top when all are done. Only the boxes scroll, never the page.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      document.querySelectorAll<HTMLElement>('[data-steps-box]').forEach((box) => {
+        const here = box.querySelector<HTMLElement>('[data-current-step]')
+        box.scrollTop = here ? Math.max(0, here.offsetTop - box.clientHeight / 2 + here.clientHeight / 2) : 0
+      })
+    }, 60)
+    return () => clearTimeout(t)
+  }, [layoutMode, activeDimension, activeDimRace, dimViewMode, completedMilestoneIds.size, milestones.length, notesOn, !!stepNotes])
+
   // Steps the user has ACTUALLY ticked off. This used to be three fixed
   // literals ("Completed: Research accommodations", …) with no guard at all, so
   // every account — brand new ones included — was shown the same invented
@@ -449,13 +547,6 @@ function RacesContent() {
   // dimension. Fall back to the user's onboarding goals, then to a
   // per-dimension placeholder.
   const _normDim = (d: string) => { const k = (d || '').toLowerCase(); return k === 'career' ? 'workplace' : k }
-  const goalForDim = (dimKey: string, fallback: string): string => {
-    const fromMs = Array.from(new Set(
-      milestones.filter((m: any) => _normDim(m.dimension) === dimKey).map((m: any) => m.goal).filter(Boolean)
-    )) as string[]
-    const list = fromMs.length ? fromMs : userGoalNames
-    return list.filter(Boolean).join(' · ') || fallback
-  }
   // Shared dimension metadata — single source of truth for the checklist
   // tabs and the "Separate" parallel-tracks view.
   const dimMeta = [
@@ -553,6 +644,11 @@ function RacesContent() {
   // a completed stop further along still rendered as pending.
   const _firstUnfinishedStop = trackStops.findIndex((m: any) => !completedMilestoneIds.has(m.id))
   const currentStopIdx = _firstUnfinishedStop === -1 ? Math.max(trackStops.length - 1, 0) : _firstUnfinishedStop
+  // Step 1 at the bottom now: where the current stop sits down the trail, for
+  // the panels beside it (MilestoneTrail: PAD_TOP 70, a step every 160px, or
+  // 270px with notes), and how many steps come after the last one shown.
+  const stepsAhead = Math.max(0, milestones.length - (trackStart + trackStops.length))
+  const activeStopY = 40 + 70 + (stepsAhead > 0 ? 24 : 0) + (trackStops.length - 1 - currentStopIdx) * (stepNotes ? 270 : 160)
 
   const css = `
     @keyframes rocketFly{0%{transform:translateY(100vh) rotate(-15deg) scale(.5);opacity:0}30%{opacity:1;transform:translateY(30vh) rotate(-5deg) scale(1)}60%{transform:translateY(-10vh) rotate(5deg) scale(1.1)}100%{transform:translateY(-120vh) rotate(0) scale(.3);opacity:0}}
@@ -570,10 +666,12 @@ function RacesContent() {
     .st{animation:starTwinkle 2s ease-in-out infinite}
     .sw{animation:signSwing 3s ease-in-out infinite}
     .aw{animation:awningWave 4s ease-in-out infinite}
-    @keyframes raceViewEnter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .race-view-enter{animation:raceViewEnter .22s ease-out}
-    @media(prefers-reduced-motion:reduce){.race-view-enter,.bn,.dg,.cf,.st,.sw,.aw{animation:none}}
-    html[data-reduce-motion="on"] .race-view-enter{animation:none}
+    @keyframes raceSlideRight{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes raceSlideLeft{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:translateX(0)}}
+    .race-slide-right{animation:raceSlideRight .38s cubic-bezier(.22,.8,.3,1)}
+    .race-slide-left{animation:raceSlideLeft .38s cubic-bezier(.22,.8,.3,1)}
+    @media(prefers-reduced-motion:reduce){.race-slide-right,.race-slide-left,.bn,.dg,.cf,.st,.sw,.aw{animation:none}}
+    html[data-reduce-motion="on"] .race-slide-right,html[data-reduce-motion="on"] .race-slide-left{animation:none}
   `
 
   /* Storefront navigation row — Toolbox · ResourceHub · Hare World · Tidbits */
@@ -864,7 +962,7 @@ function RacesContent() {
               </div>
               <div className="relative">
                 <button onClick={() => { setShowNewViewsMenu(!showNewViewsMenu); setShowCompareMenu(false) }} className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-semibold"><Filter className="w-3 h-3 inline mr-1" />Views</button>
-                {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }, { k: 'compete', l: '③ Learn from others' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
+                {showNewViewsMenu && <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border z-50 min-w-[160px] p-1.5">{[{ k: 'avoidance', l: '① Avoidance' }, { k: 'suggestions', l: '② Suggestions' }].map(v => (<button key={v.k} onClick={() => { router.push(`/races?newview=${v.k}`); setShowNewViewsMenu(false) }} className="w-full text-left px-3 py-2 hover:bg-slate-100 rounded text-sm text-slate-700">{v.l}</button>))}</div>}
               </div>
             </div>
           </div>
@@ -942,47 +1040,32 @@ function RacesContent() {
           )
         })()}
 
-        {/* ═══ OVERLAY PANELS (non-compare views) ═══ */}
+        {/* ═══ AVOIDANCE / SUGGESTIONS ═══ At each step, in red what to avoid
+            or in green what helps (the team's notes, October 2026), rather
+            than one general list at the top. This says where to look. */}
         {newView && (
           <div className="relative z-30 max-w-3xl mx-auto px-4 pt-3">
-            <div className={`${day ? ' border-slate-200' : 'bg-indigo-950/80 border-indigo-700'} border rounded-2xl p-4 surface`}>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className={`text-base font-bold ${txt}`}>{newView === 'avoidance' ? 'Avoidance' : newView === 'suggestions' ? 'Suggestions' : 'Learn from others'}</h2>
+            <div
+              className={`border-2 rounded-2xl p-4 ${newView === 'avoidance'
+                ? (day ? 'border-red-300 bg-red-50' : 'border-red-700 bg-red-950/70')
+                : (day ? 'border-green-300 bg-green-50' : 'border-green-700 bg-green-950/70')}`}
+              data-notes-view={newView}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h2 className={`text-base font-bold ${newView === 'avoidance' ? (day ? 'text-red-900' : 'text-red-100') : (day ? 'text-green-900' : 'text-green-100')}`}>
+                  {newView === 'avoidance' ? 'Avoidance: what to avoid at each step' : 'Suggestions: what helps at each step'}
+                </h2>
                 <button onClick={() => router.push('/races')} aria-label="Close" className={`${sub} rounded-lg p-1 hover:bg-black/10`}><X className="w-5 h-5" aria-hidden="true" /></button>
               </div>
-              {newView === 'avoidance' && (
-                <div className="space-y-1.5">
-                  <p className={`text-[0.6875rem] ${sub} mb-1`}>Habits and traps to steer clear of. Based on your obstacles and common pitfalls.</p>
-                  {(() => {
-                    const obstacles = (payload?.userProfile?.currentChallenges || []) as string[]
-                    const fromObstacles = obstacles.map((o) => ({ t: `Avoid: ${o}`, r: 'You flagged this as an obstacle' }))
-                    const generic = [
-                      { t: 'All-night study', r: 'Triggers burnout' },
-                      { t: 'Cramming', r: 'Increases anxiety' },
-                      { t: 'Skipping meals', r: 'Affects focus' },
-                      { t: 'Overcommitting', r: 'Overwhelm' },
-                    ]
-                    return [...fromObstacles, ...generic]
-                  })().map((x, i) => (
-                    <div key={i} className={`flex items-start gap-2 p-2 ${day ? 'bg-red-50 border-red-200' : 'bg-red-900/30 border-red-800'} border rounded-lg`}>
-                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className={`font-medium text-xs ${day ? 'text-red-900' : 'text-red-300'}`}>{x.t}</div>
-                        <div className={`text-[0.625rem] ${day ? 'text-red-700' : 'text-red-400'}`}>{x.r}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {(newView === 'suggestions' || newView === 'compete') && <div className="space-y-3 text-sm">
-                {/* Was "Compete". Group 34 asked for less competition, so this
-                    view is about learning from your people, not beating them. */}
-                <p>{newView === 'suggestions'
-                  ? 'No shared suggestions are available here yet.'
-                  : 'Open someone\'s page to see how they are getting on and pick up ideas. It isn\'t a contest.'}</p>
-                {Object.values(realConnections).flat().filter(person => person.target_user_id).map(person => <Link key={person.id} href={`/friend/${person.target_user_id}`} className="block underline">{person.name}</Link>)}
-                <Link href="/hare-world" className="inline-block underline">Manage my people</Link>
-              </div>}
+              <p className={`mt-1 text-sm ${day ? 'text-slate-800' : 'text-slate-100'}`}>
+                {guidanceLoading
+                  ? 'Writing it for each of your steps now…'
+                  : guidanceFailed
+                    ? 'This couldn’t load right now. Try again later.'
+                    : `Each step below shows it in ${newView === 'avoidance' ? 'red' : 'green'}.`}
+                {layoutMode === 'track' && (trackShape === 'pads' || trackShape === 'separate') && ' Switch to Trail Map, As One or List View to see it.'}
+              </p>
+              {notesSource && <p className={`mt-1 text-xs ${day ? 'text-slate-700' : 'text-slate-300'}`}>{guidanceSource(notesSource)}</p>}
             </div>
           </div>
         )}
@@ -993,74 +1076,38 @@ function RacesContent() {
             Road connectors (SVGs) sit between content blocks
             so the path is always visually connected.
            ═════════════════════════════════════════════════════════ */}
-        <div key={layoutMode} className="race-view-enter relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
+        <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-4">
 
-          {/* ═══ YOUR GOALS, DREAMS & OBSTACLES (from onboarding) ═══
-              Surfaced at the very top so users can see their choices ARE
-              being considered in what was generated (Odosa's feedback). */}
-          {(() => {
-            const goalsList: string[] = (payload?.userProfile?.goals || []) as string[]
-            const dreamsList: string[] = (payload?.userProfile?.dreams || []) as string[]
-            const obstaclesList: string[] = (payload?.userProfile?.currentChallenges || []) as string[]
-            if (goalsList.length === 0 && dreamsList.length === 0 && obstaclesList.length === 0) return null
-            return (
-              <div className={`w-full max-w-2xl px-2 pt-4`}>
-                {/* Folded: what the races were made from is background, and
-                    Races was crowded with it (Riipen Labs, Group 32: "overloaded
-                    with static goal content in comparison to Milestones"). */}
-                <details className={`${pill} border rounded-2xl p-4 shadow-sm`}>
-                  <summary className="flex cursor-pointer items-center gap-2">
-                    <Sparkles className={`w-4 h-4 ${day ? 'text-purple-500' : 'text-purple-300'}`} aria-hidden="true" />
-                    <h3 className={`font-bold text-sm ${txt}`}>Your Goals, Dreams &amp; Obstacles</h3>
-                    <span className={`text-[0.625rem] ${sub} ml-auto`}>What your races were made from</span>
-                  </summary>
-                  <div className="mt-3">
-
-                  {goalsList.length > 0 && (
-                    <div className="mb-2.5">
-                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>🎯 Goals ({goalsList.length})</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {goalsList.map((goal, index) => {
-                          const progress = computeRaceProgress(rawRaces[index] || { name: goal }, milestones, completedMilestoneIds)
-                          return <div key={`${index}-${goal}`} className={`w-full border-b py-2 ${day ? 'border-slate-200' : 'border-indigo-700'}`}>
-                            <div className={`flex justify-between gap-3 text-sm ${txt}`}><span className="break-words">{goal}</span><span className="shrink-0">{progress === null ? 'No linked milestones' : `${progress}%`}</span></div>
-                            {progress !== null && <progress aria-label={`${goal} progress`} value={progress} max={100} className="mt-1 h-2 w-full" />}
-                            <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'unanswered', context: 'races' })}`)} className={`underline ${day ? 'text-cyan-800' : 'text-cyan-200'}`}>Answer related questions</Link>
-                              <Link href={goHubHref(`/community?${new URLSearchParams({ q: goal, sort: 'solved', context: 'races' })}`)} className={`underline ${day ? 'text-cyan-800' : 'text-cyan-200'}`}>Solved threads / share experience</Link>
-                            </div>
-                          </div>
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {dreamsList.length > 0 && (
-                    <div className="mb-2.5">
-                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>🌟 Dreams</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {dreamsList.map((d, i) => (
-                          <span key={i} className={`text-[0.6875rem] px-2 py-1 rounded-full ${day ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-900/30 text-purple-200 border border-purple-800'}`}>{d}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {obstaclesList.length > 0 && (
-                    <div>
-                      <div className={`text-[0.625rem] font-bold uppercase tracking-wide ${sub} mb-1`}>⛰️ Obstacles</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {obstaclesList.map((o, i) => (
-                          <span key={i} className={`text-[0.6875rem] px-2 py-1 rounded-full ${day ? 'bg-pink-50 text-pink-700 border border-pink-200' : 'bg-pink-900/30 text-pink-200 border border-pink-800'}`}>{o}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </details>
-              </div>
-            )
-          })()}
+          {/* ═══ YOUR GOALS, DREAMS & OBSTACLES ═══
+              Surfaced at the top so users can see their choices ARE being
+              considered (Odosa), and changed right here without setting up
+              again (the team's notes, October 2026; GoalsEditor). */}
+          {(userGoalNames.length > 0 || ((payload?.userProfile?.dreams || []) as string[]).length > 0) && (
+            <div className="w-full max-w-2xl px-2 pt-4" ref={goalsPanelRef}>
+              {/* Folded: what the races were made from is background, and
+                  Races was crowded with it (Riipen Labs, Group 32). */}
+              <details className={`${pill} border rounded-2xl p-4 shadow-sm`} open={goalsOpen} onToggle={(e) => setGoalsOpen((e.target as HTMLDetailsElement).open)}>
+                <summary className="flex cursor-pointer items-center gap-2">
+                  <Sparkles className={`w-4 h-4 ${day ? 'text-purple-600' : 'text-purple-300'}`} aria-hidden="true" />
+                  <h3 className={`font-bold text-sm ${txt}`}>Your Goals, Dreams &amp; Obstacles</h3>
+                  <span className={`text-[0.625rem] ${sub} ml-auto`}>What your races were made from. You can change them here.</span>
+                </summary>
+                <GoalsEditor
+                  day={day}
+                  goals={userGoalNames}
+                  areas={goalArea}
+                  dreams={(payload?.userProfile?.dreams || []) as string[]}
+                  obstacles={(payload?.userProfile?.currentChallenges || []) as string[]}
+                  ultimateDream={ultimateDream}
+                  progressFor={(goal) => computeRaceProgress(rawRaces.find((r: any) => r.name === goal) || { name: goal }, milestones, completedMilestoneIds)}
+                  goalsWithoutSteps={goalsWithoutSteps}
+                  sharedFor={sharedGoal}
+                  onSaved={refresh}
+                  onUltimateDream={(text) => { updatePrefs({ biggestDream: text }) }}
+                />
+              </details>
+            </div>
+          )}
 
           {/* ═══════════════════
               TRACK / LIST toggle — centered, below the main nav
@@ -1076,7 +1123,12 @@ function RacesContent() {
             />
           </div>
 
-          {isSignedIn && <GoalsTogether day={day} />}
+          {isSignedIn && <GoalsTogether day={day} collabs={collabs} />}
+
+          {/* Everything below changes with the view: it slides in from the
+              side of the tab chosen (Liam: "a transition animation to make
+              it look more smooth"). Still for anyone who asked for less motion. */}
+          <div key={layoutMode} className={`w-full flex flex-col items-center ${slideFrom === 'right' ? 'race-slide-right' : 'race-slide-left'}`} data-race-view={layoutMode}>
 
           {/* Track shape sub-toggle. Trail Map and Any order for everyone;
               As One and Separate once the app shows more (useDisclosure). */}
@@ -1096,6 +1148,40 @@ function RacesContent() {
               />
             </div>
           )}
+
+          {layoutMode === 'track' && milestones.length > 0 && (() => {
+            const done = milestones.filter((m: any) => completedMilestoneIds.has(m.id)).length
+            const pct = Math.round((done / milestones.length) * 100)
+            const real = rawRaces.filter((r: any) => r.id !== 'r_placeholder')
+            return (
+              <div className="w-full max-w-2xl px-2 pt-4" data-track-progress>
+                <div className={`${pill} border rounded-2xl p-4 shadow-sm`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-[0.75rem] font-bold ${txt}`}>All steps progress</span>
+                    <span className={`text-[0.75rem] font-bold ${txt}`}>{done}/{milestones.length} · {pct}%</span>
+                  </div>
+                  <div className={`h-2 rounded-full overflow-hidden ${day ? 'bg-slate-200' : 'bg-indigo-900'}`}>
+                    <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  {real.length > 1 && (
+                    <ul className="mt-3 space-y-2">
+                      {real.map((r: any) => (
+                        <li key={r.id}>
+                          <div className={`flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] font-semibold ${txt}`}>
+                            <span className="flex flex-wrap items-center gap-1.5">{r.name}{sharedGoal(r.name) && <SharedBadge collab={sharedGoal(r.name)!} small />}</span>
+                            <span>{r.progress}%</span>
+                          </div>
+                          <div className={`mt-0.5 h-1.5 rounded-full overflow-hidden ${day ? 'bg-slate-200' : 'bg-indigo-900'}`}>
+                            <div className="h-full bg-gradient-to-r from-sky-400 to-purple-400 rounded-full transition-all" style={{ width: `${r.progress}%` }} />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ═══════════════════
               SHARED TOP (1 of 2) — Stats + ResourceHub + Hare World.
@@ -1178,18 +1264,22 @@ function RacesContent() {
               track below covers the goal. Anything view-specific comes
               AFTER this point.
              ═══════════════════ */}
-          <div className="pt-8 flex flex-col items-center">
+          <div className="pt-8 flex flex-col items-center" data-dream-self>
             <div className="relative dg rounded-full p-4 mb-1">
               <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 w-28 h-8 rounded-full blur-lg ${day ? 'bg-white/60' : 'bg-indigo-300/15'}`} />
               <div className="bn relative">
-                <div className="relative flex h-36 w-40 justify-center" aria-label="Your Dream Self in a car">
-                  <UserAvatar {...(prefs.dreamAppearance || characterAppearance)} size={88} />
-                  <Car aria-hidden="true" className="absolute bottom-0 h-24 w-40 text-cyan-700" strokeWidth={2.5} />
-                </div>
+                {/* The Dream Self as made in the Dream Self section (Odosa,
+                    October 2026: "just keep this the 'Dream Self' from the
+                    'Dream Self' section"); the car is for "You are here". */}
+                <span className="block" role="img" aria-label={prefs.dreamAppearance ? 'Your Dream Self' : 'Your Dream Self, not designed yet'}>
+                  {prefs.dreamAppearance ? <UserAvatar {...prefs.dreamAppearance} size={104} /> : <DefaultAvatar size={104} />}
+                </span>
               </div>
             </div>
             <div className={`text-lg font-bold ${day ? 'text-indigo-700' : 'text-indigo-200'}`}>Dream Self</div>
-            <div className={`text-xs ${sub} mb-1`}>{(payload?.userProfile?.dreams || [])[0] || 'Cloud 9: Your ideal future'}</div>
+            {/* The biggest dream at the top of the race (the team's notes):
+                each area's goal is under its own area below. */}
+            <div className={`max-w-md text-center text-sm font-medium ${day ? 'text-slate-800' : 'text-indigo-100'} mb-1`}>{ultimateDream || 'Cloud 9: Your ideal future'}</div>
             <Link href="/ideal-self" className={`inline-block py-1 text-xs font-bold ${day ? 'text-purple-700' : 'text-purple-300'} underline underline-offset-2`}>
               See your Dream Self
             </Link>
@@ -1315,23 +1405,39 @@ function RacesContent() {
                                 {userBarrierLabels.slice(0, 3).map(b => (<span key={b} className={`text-[0.4375rem] px-1 py-0.5 rounded-full border ${day ? 'bg-white/70 text-slate-600 border-slate-200' : 'bg-indigo-900/60 text-indigo-300 border-indigo-700'}`}>{b}</span>))}
                               </div>
                             )}
-                            <div className={`text-[0.5625rem] font-bold mb-2 ${txt}`}>🎯 {goalForDim(dim.key, dim.goal)}</div>
+                            <div className={`text-[0.5625rem] font-bold mb-2 ${txt}`}>
+                              🎯 {goalsInDim(dim.key).length ? goalsInDim(dim.key).join(' · ') : <span className="font-medium">No {dim.label} goal yet</span>}
+                              {goalsInDim(dim.key).map((g) => sharedGoal(g)).filter(Boolean).slice(0, 1).map((c) => <span key={c!.id} className="ml-1"><SharedBadge collab={c!} small /></span>)}
+                            </div>
+                            {/* Step 1 at the bottom, the last at the top, opened at the step you're on. */}
+                            <div className="max-h-72 overflow-y-auto pr-1" data-steps-box>
                             <div className="relative pl-4">
                               <div className={`absolute left-1.5 top-1 bottom-1 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
-                              {laneSteps.map((step, i) => {
+                              {(() => {
+                                const here = laneSteps.findIndex((st) => !completedMilestoneIds.has(st.id))
+                                return laneSteps.map((step, i) => ({ step, i })).reverse().map(({ step, i }) => {
                                 const isCompleted = completedMilestoneIds.has(step.id)
+                                const isHere = i === here
+                                const note = stepNotes?.[step.id]
                                 return (
-                                  <div key={step.id} className={`relative mb-1.5 p-1.5 rounded-lg border ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : step.status === 'active' ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}>
-                                    <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
+                                  <div key={step.id} data-current-step={isHere || undefined} className={`relative mb-1.5 p-1.5 rounded-lg border ${isCompleted ? (day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700') : isHere ? (day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600') : (day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700')}`}>
+                                    <span className={`absolute -left-[13px] top-2 w-3 h-3 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${isCompleted ? 'bg-emerald-500' : isHere ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')}`} />
                                     <div className="flex items-center gap-1 mb-0.5">
-                                      <span className="text-[0.5rem]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
-                                      <span className={`text-[0.4375rem] font-mono ${sub}`}>Step {i + 1}</span>
-                                      {step.status === 'active' && !isCompleted && <span className="text-[0.4375rem] font-bold text-amber-500 ml-auto">HERE</span>}
+                                      <span className="text-[0.5rem]">{isCompleted ? '✅' : isHere ? '📍' : '🪧'}</span>
+                                      <span className={`text-[0.5rem] font-mono ${sub}`}>Step {i + 1}</span>
+                                      {isHere && <span className={`text-[0.5rem] font-bold ml-auto ${day ? 'text-amber-800' : 'text-amber-300'}`}>HERE</span>}
                                     </div>
                                     <div className={`text-[0.5625rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                    {note && (
+                                      <ul className={`mt-1 space-y-0.5 text-[0.5625rem] font-medium ${note.tone === 'avoid' ? (day ? 'text-red-700' : 'text-red-300') : (day ? 'text-green-800' : 'text-green-300')}`} data-step-notes={note.tone}>
+                                        {note.items.slice(0, 3).map((item) => <li key={item}>{note.tone === 'avoid' ? '✕' : '✓'} {item}</li>)}
+                                      </ul>
+                                    )}
                                   </div>
                                 )
-                              })}
+                              })
+                              })()}
+                            </div>
                             </div>
                           </div>
                         )
@@ -1424,10 +1530,21 @@ function RacesContent() {
                     )}
                   </div>
 
-                  {/* Goal(s) for this dimension — shown under the barrier chips */}
-                  <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`}>
-                    <div className={`text-[0.5rem] font-bold uppercase tracking-wider ${sub}`}>🎯 Goal</div>
-                    <div className={`text-[0.6875rem] font-bold leading-snug ${txt}`}>{goalForDim(activeDim.key, activeDim.goal)}</div>
+                  {/* This area's own goals, and only them (the team's notes:
+                      "Graduate university for education ONLY"). */}
+                  <div className={`mb-3 px-2.5 py-2 rounded-lg border ${day ? 'bg-white/70 border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`} data-area-goals={activeDim.key}>
+                    <div className={`text-[0.5625rem] font-bold uppercase tracking-wider ${sub}`}>🎯 {goalsInDim(activeDim.key).length > 1 ? 'Goals' : 'Goal'}</div>
+                    {goalsInDim(activeDim.key).length ? goalsInDim(activeDim.key).map((g) => (
+                      <div key={g} className={`flex flex-wrap items-center gap-1.5 text-[0.75rem] font-bold leading-snug ${txt}`}>
+                        <span>{g}</span>
+                        {sharedGoal(g) && <SharedBadge collab={sharedGoal(g)!} small />}
+                      </div>
+                    )) : (
+                      <div className={`text-[0.75rem] ${txt}`}>
+                        No {activeDim.label} goal yet.{' '}
+                        <button type="button" onClick={openGoalsPanel} className={`font-semibold underline underline-offset-2 ${day ? 'text-sky-800' : 'text-sky-200'}`}>Add one</button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Sub-race tabs (only in individual mode, only if > 1 race) */}
@@ -1437,12 +1554,13 @@ function RacesContent() {
                         <button
                           key={sr.id}
                           onClick={() => setActiveDimRace(sr.id)}
-                          className={`flex-1 px-2 py-1.5 rounded-lg text-[0.625rem] font-bold transition-all border ${(activeDimRace === sr.id || (!activeDimRace && sr.id === subRaces[0].id))
+                          className={`flex-1 px-2 py-1.5 rounded-lg text-[0.625rem] font-bold transition-all border ${sharedGoal(sr.name) ? 'border-teal-500 ring-1 ring-teal-500' : ''} ${(activeDimRace === sr.id || (!activeDimRace && sr.id === subRaces[0].id))
                             ? `${day ? 'bg-white border-slate-300 shadow-sm text-slate-800' : 'bg-indigo-800 border-indigo-500 text-white'}`
-                            : `${day ? 'bg-white/40 border-slate-200 text-slate-500' : 'bg-indigo-950/30 border-indigo-700 text-indigo-400'}`
+                            : `${day ? 'bg-white/60 border-slate-200 text-slate-700' : 'bg-indigo-950/30 border-indigo-700 text-indigo-200'}`
                           }`}
                         >
                           {sr.name}
+                          {sharedGoal(sr.name) && <span className="mt-0.5 block"><SharedBadge collab={sharedGoal(sr.name)!} small /></span>}
                           <span className={`ml-1 text-[0.5rem] ${day ? 'text-slate-400' : 'text-indigo-500'}`}>{sr.steps.length} steps</span>
                           {/* Liam: a bar per path reads faster than counting check marks. */}
                           {(() => {
@@ -1502,60 +1620,31 @@ function RacesContent() {
                     )
                   })()}
 
-                  {/* Steps list */}
+                  {/* Steps list: step 1 at the bottom and the last at the top,
+                      opened at the step you're on (the team's notes, October
+                      2026: "Flip the order ... Then, center it at the current
+                      step for each race"). */}
+                  <div className="max-h-[30rem] overflow-y-auto pr-1" data-steps-box>
                   <div className="relative pl-4">
                     {/* Lane road line */}
                     <div className={`absolute left-2 top-2 bottom-2 w-[2px] ${day ? 'bg-slate-300' : 'bg-indigo-700'}`} />
 
-                    {(activeSubRace ? activeSubRace.steps : combinedSteps).map((step, i, arr) => {
+                    {(() => {
+                      const arr = activeSubRace ? activeSubRace.steps : combinedSteps
+                      // Where you are: the first step not done (not the plan's own flag, always step 1).
+                      const here = arr.findIndex((st) => !completedMilestoneIds.has(st.id))
+                      return arr.map((step, i) => ({ step, i })).reverse().map(({ step, i }) => {
                       const isCompleted = completedMilestoneIds.has(step.id)
                       const isHearted = heartedGoals.has(step.id)
+                      const isHere = i === here
+                      const note = stepNotes?.[step.id]
                       // After a completed milestone, check if we should show branching
                       const justCompletedMilestone = isCompleted && i < arr.length - 1 && !completedMilestoneIds.has(arr[i + 1].id)
 
                       return (
                         <div key={step.id}>
-                          <div
-                            className={`relative w-full text-left mb-2 p-2.5 rounded-lg border transition-all ${
-                              isCompleted
-                                ? `${day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700'}`
-                                : step.status === 'active' && !isCompleted
-                                  ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600'} shadow-sm`
-                                  : step.status === 'upcoming'
-                                    ? `${day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`
-                                    : `${day ? 'bg-white/60 border-slate-200' : 'bg-indigo-950/30 border-indigo-800'} opacity-70`
-                            }`}
-                          >
-                            {/* Node dot */}
-                            <span className={`absolute -left-[18px] top-3.5 w-3.5 h-3.5 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${
-                              isCompleted ? 'bg-emerald-500' : step.status === 'active' ? 'bg-gradient-to-br from-amber-400 to-orange-500' : step.status === 'upcoming' ? (day ? 'bg-sky-400' : 'bg-sky-600') : (day ? 'bg-slate-300' : 'bg-slate-600')
-                            }`} />
-
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-1 mb-0.5">
-                                  <span className="text-[0.625rem]">{isCompleted ? '✅' : step.status === 'active' ? '📍' : '🪧'}</span>
-                                  <span className={`text-[0.5625rem] font-mono ${sub}`}>Step {i + 1}</span>
-                                  {step.status === 'active' && !isCompleted && <span className="text-[0.625rem] font-bold text-amber-800 ml-auto">YOU ARE HERE</span>}
-                                </div>
-                                <div className={`text-[0.6875rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
-                                {(step as any).isGeneric && !isCompleted && (
-                                  <div className={`text-[0.5rem] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
-                                )}
-                              </div>
-                              {/* Heart + Complete buttons */}
-                              <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                                <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-100'}`}>
-                                  {isHearted ? '❤️' : '🤍'}
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id) }} role="checkbox" aria-checked={isCompleted} aria-label={`Done: ${step.name}`} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
-                                  {isCompleted && <span className="text-white text-[0.5rem] font-bold">✓</span>}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* ── Branching: 3 options after a completed milestone ── */}
+                          {/* ── Branching: 3 options after a completed milestone,
+                              between it and the next step (above it now) ── */}
                           {justCompletedMilestone && !dismissedBranches.has(step.id) && (
                             <div className={`ml-2 mb-3 p-3 rounded-xl border ${day ? 'bg-purple-50/80 border-purple-200' : 'bg-purple-900/20 border-purple-700'}`}>
                               <div className={`text-[0.625rem] font-bold mb-2 ${txt}`}>🔀 Choose your next path:</div>
@@ -1577,7 +1666,7 @@ function RacesContent() {
                                       } else if (opt.id === 'opt-b') {
                                         // Explore alternatives: open the Milestone view,
                                         // where the tools / strategies live.
-                                        router.push('/milestones')
+                                        router.push(arr[i + 1]?.id ? `/milestones?m=${encodeURIComponent(arr[i + 1].id)}` : '/milestones')
                                       } else {
                                         // Continue on current path: acknowledge & dismiss.
                                         setDismissedBranches(prev => new Set(prev).add(step.id))
@@ -1595,9 +1684,59 @@ function RacesContent() {
                               </div>
                             </div>
                           )}
+
+                          <div
+                            data-current-step={isHere || undefined}
+                            className={`relative w-full text-left mb-2 p-2.5 rounded-lg border transition-all ${
+                              isCompleted
+                                ? `${day ? 'bg-emerald-50 border-emerald-300' : 'bg-emerald-900/30 border-emerald-700'}`
+                                : isHere
+                                  ? `${day ? 'bg-amber-50 border-amber-400' : 'bg-amber-900/50 border-amber-600'} shadow-sm`
+                                  : `${day ? 'bg-white border-slate-200' : 'bg-indigo-950/40 border-indigo-700'}`
+                            }`}
+                          >
+                            {/* Node dot */}
+                            <span className={`absolute -left-[18px] top-3.5 w-3.5 h-3.5 rounded-full ring-2 ${day ? 'ring-white' : 'ring-slate-900'} ${
+                              isCompleted ? 'bg-emerald-500' : isHere ? 'bg-gradient-to-br from-amber-400 to-orange-500' : (day ? 'bg-sky-400' : 'bg-sky-600')
+                            }`} />
+
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <span className="text-[0.625rem]">{isCompleted ? '✅' : isHere ? '📍' : '🪧'}</span>
+                                  <span className={`text-[0.625rem] font-mono ${sub}`}>Step {i + 1}{i === arr.length - 1 ? ' · finish' : ''}</span>
+                                  {isHere && <span className={`text-[0.625rem] font-bold ml-auto ${day ? 'text-amber-800' : 'text-amber-300'}`}>YOU ARE HERE</span>}
+                                </div>
+                                <div className={`text-[0.75rem] font-bold leading-snug ${isCompleted ? 'line-through opacity-60' : ''} ${txt}`}>{step.name}</div>
+                                {(step as any).isGeneric && !isCompleted && (
+                                  <div className={`text-[0.5625rem] mt-0.5 italic ${sub}`}>Generic step. Will refine after milestone</div>
+                                )}
+                                {/* Avoidance (red) or Suggestions (green), for this step. */}
+                                {note && (
+                                  <div className={`mt-1.5 rounded-md border px-2 py-1 ${note.tone === 'avoid' ? (day ? 'border-red-200 bg-red-50 text-red-800' : 'border-red-800 bg-red-950/40 text-red-200') : (day ? 'border-green-200 bg-green-50 text-green-900' : 'border-green-800 bg-green-950/40 text-green-200')}`} data-step-notes={note.tone}>
+                                    <div className="text-[0.625rem] font-bold">{note.tone === 'avoid' ? 'Avoid at this step' : 'Try at this step'}</div>
+                                    <ul className="mt-0.5 space-y-0.5 text-[0.6875rem] font-medium">
+                                      {note.items.map((item) => <li key={item}>{note.tone === 'avoid' ? '✕' : '✓'} {item}</li>)}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                              {/* Heart + Complete buttons */}
+                              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                                <button onClick={(e) => { e.stopPropagation(); toggleHeart(step.id) }} aria-pressed={isHearted} aria-label={`Favourite: ${step.name}`} className={`text-sm transition-transform hover:scale-125 ${isHearted ? '' : 'opacity-40 hover:opacity-100'}`}>
+                                  {isHearted ? '❤️' : '🤍'}
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); toggleMilestoneComplete(step.id, step.name) }} role="checkbox" aria-checked={isCompleted} aria-label={`Done: ${step.name}`} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted ? `${day ? 'bg-emerald-500 border-emerald-500' : 'bg-emerald-600 border-emerald-600'}` : `${day ? 'border-slate-300 hover:border-emerald-400' : 'border-indigo-600 hover:border-emerald-500'}`}`}>
+                                  {isCompleted && <span className="text-white text-[0.5rem] font-bold">✓</span>}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )
-                    })}
+                    })
+                    })()}
+                  </div>
                   </div>
 
                   {/* Nav arrows to switch dimensions */}
@@ -1647,7 +1786,7 @@ function RacesContent() {
                 </div>
               ) : (
                 <div className="grid items-start gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
-                <aside className="order-2 lg:order-1 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${110 + currentStopIdx * 160}px` } as React.CSSProperties}>
+                <aside className="order-2 lg:order-1 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${activeStopY}px` } as React.CSSProperties}>
                   <h3 className="mb-2 font-semibold">Pit Stop</h3>
                   <div className="flex flex-wrap gap-3 text-sm lg:flex-col"><Link className="underline" href={goHubHref('/')}>ResourceHub</Link><Link className="underline" href="/hare-world">Hare World</Link><Link className="underline" href={goHubHref('/community')}>Tidbits</Link></div>
                 </aside>
@@ -1657,6 +1796,9 @@ function RacesContent() {
                   currentIndex={currentStopIdx}
                   startIndex={trackStart}
                   previewAll
+                  bottomUp
+                  notes={stepNotes}
+                  ahead={stepsAhead}
                   character={trailCharacter}
                   // Open THAT milestone, not the list. Every node used to
                   // push to /milestones, so all 144 of them led to the same
@@ -1664,7 +1806,7 @@ function RacesContent() {
                   onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
                   day={day}
                 /></div>
-                <aside className="order-3 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${110 + currentStopIdx * 160}px` } as React.CSSProperties}>
+                <aside className="order-3 lg:pt-[var(--active-stop)]" style={{ '--active-stop': `${activeStopY}px` } as React.CSSProperties}>
                   <h3 className="mb-2 font-semibold">Current milestone</h3>
                   <p className="break-words text-sm">{trackStops[currentStopIdx]?.name || 'All milestones completed'}</p>
                   <Link href="/calendar" className="mt-3 inline-block text-sm underline">Calendar</Link>
@@ -1681,7 +1823,7 @@ function RacesContent() {
               <AnyOrderPond
                 milestones={milestones as any}
                 completedIds={completedMilestoneIds}
-                onToggle={toggleMilestoneComplete}
+                onToggle={(id: string) => toggleMilestoneComplete(id, milestones.find((m: any) => m.id === id)?.name)}
                 day={day}
                 character={myCharacter ? <UserAvatar {...myCharacter} size={32} /> : <DefaultAvatar size={32} />}
               />
@@ -1853,6 +1995,10 @@ function RacesContent() {
                   }))}
                   completedIds={completedMilestoneIds}
                   currentIndex={0 /* the trail derives it from completedIds */}
+                  startIndex={trackStart}
+                  bottomUp
+                  notes={stepNotes}
+                  ahead={stepsAhead}
                   day={day}
                   character={trailCharacter}
                   onSelect={(m: any) => router.push(`/milestones/${m.id}`)}
@@ -1939,7 +2085,10 @@ function RacesContent() {
             </Link>
           </div>
           </>)}
+          </div>
         </div>
+
+        <HelpOthersPrompt milestone={helpFor} onClose={() => setHelpFor(null)} />
 
         {/* ═══ MOTIVATION PINWHEEL POPUP ═══ */}
         {showPinwheelPopup && (
