@@ -34,6 +34,11 @@ const PLAN_TABLE = 'user_paths'
 const PRIVATE_PROFILE_TABLES = ['user_diagnostic_profiles'] as const
 
 const ALL_TABLES = [...PROGRESS_TABLES, PLAN_TABLE, ...PRIVATE_PROFILE_TABLES] as const
+// In the download, so you have everything you saved, but not restored and not
+// cleared by starting over: your moments (their captions and which task or
+// milestone; the photos and videos stay in Memories), notes to yourself, and
+// your Relationships profile (STEP 87).
+const EXPORT_ONLY_TABLES = ['moments', 'future_notes', 'match_profiles'] as const
 
 // Per-table conflict targets used when restoring.
 const CONFLICT: Record<string, string> = {
@@ -64,7 +69,7 @@ export async function GET() {
   const admin = createAdminClient()
   const tables: Record<string, any[]> = {}
 
-  for (const table of ALL_TABLES) {
+  for (const table of [...ALL_TABLES, ...EXPORT_ONLY_TABLES]) {
     try {
       const { data, error } = await admin.from(table).select('*').eq('user_id', user.id)
       if (error) {

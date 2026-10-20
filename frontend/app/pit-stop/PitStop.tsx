@@ -4,6 +4,9 @@ import { previousPage } from '@/lib/navTrail'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Relationships from '../hare-world/Relationships'
+import HareWorldSocial from '../hare-world/HareWorldSocial'
+import SameGoals from '../hare-world/SameGoals'
 import { Search, UserPlus, UserMinus, Users, UserCheck, Sparkles, Share2, Lock, Globe, MessageSquare, Bell, Trophy, Video, X, Filter, Heart, Star, Users2, Crown, Code, Eye, ChevronRight, ChevronLeft } from 'lucide-react'
 import axios from 'axios'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
@@ -40,16 +43,25 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   const isSignedIn = !!authUser?.id
   
   // Which page this is; the view (people, groups, relationships) still comes from the URL.
-  const initialView = searchParams.get('view') as 'people' | 'collab' | 'relationships' || 'people'
+  const initialView = searchParams.get('view') as 'people' | 'collab' | 'relationships' | 'social' || 'people'
   const activeTab: 'tools' | 'haveworld' = page === 'people' ? 'haveworld' : 'tools'
   // Filters the shelves by tool name (Odosa's sketch: magnifier at the top).
   const [toolQuery, setToolQuery] = useState('')
-  const [haveWorldView, setHaveWorldView] = useState<'people' | 'collab' | 'relationships'>(initialView)
+  const [haveWorldView, setHaveWorldViewState] = useState<'people' | 'collab' | 'relationships' | 'social'>(initialView)
+  // The view is in the address too, so a link (or Back) opens the same tab.
+  const setHaveWorldView = (view: 'people' | 'collab' | 'relationships' | 'social') => {
+    setHaveWorldViewState(view)
+    if (page === 'people') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('view', view)
+      router.replace(`/hare-world?${params.toString()}`, { scroll: false })
+    }
+  }
   
   // Update state when URL params change
   useEffect(() => {
-    const view = searchParams.get('view') as 'people' | 'collab' | 'relationships'
-    if (view) setHaveWorldView(view)
+    const view = searchParams.get('view') as 'people' | 'collab' | 'relationships' | 'social'
+    if (view) setHaveWorldViewState(view)
   }, [searchParams])
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -84,6 +96,8 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
   const [showTextMemeModal, setShowTextMemeModal] = useState(false)
   const [textMemeInput, setTextMemeInput] = useState('')
   const [activeSearchQuery, setActiveSearchQuery] = useState('')
+  const [removeError, setRemoveError] = useState('')
+  const [showSuggestPanel, setShowSuggestPanel] = useState(false)
   const [pendingRemoval, setPendingRemoval] = useState<{ id: string; name: string; category: string } | null>(null)
 
   // Real-user social state (Phase A: profiles + Facebook-style requests)
@@ -168,7 +182,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         credentials: 'include',
         body: JSON.stringify({
           name: groupForm.name.trim(),
-          type: groupForm.type || collabTypes[0].id,
+          type: groupForm.type || selectedCollabType || collabTypes[0].id,
           isPublic: groupForm.isPublic,
           rules: groupForm.rules.trim(),
         }),
@@ -176,6 +190,8 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
       const j = await res.json().catch(() => null)
       if (!res.ok) { setCollabError(j?.error || 'Could not create the group.'); return }
       setCollabGroups((prev) => [j.group, ...prev])
+      // A new group of another type would be hidden by the type filter.
+      if (selectedCollabType && j.group?.type !== selectedCollabType) setSelectedCollabType(null)
       setShowGroupModal(false)
       setGroupForm({ name: '', type: '', isPublic: true, rules: '' })
     } finally {
@@ -217,17 +233,25 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     loadCollabGroups()
   }
 
-  const toggleGroupMembership = async (group: { id: string; joined: boolean; isPublic: boolean }) => {
+  const toggleGroupMembership = async (group: { id: string; joined: boolean; isPublic: boolean; name?: string }, closeGroup = false): Promise<boolean> => {
     setCollabError('')
     const res = await fetch('/api/collab-groups/membership', {
       method: group.joined ? 'DELETE' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ groupId: group.id }),
+      body: JSON.stringify({ groupId: group.id, closeGroup }),
     })
     const j = await res.json().catch(() => null)
-    if (!res.ok) { setCollabError(j?.error || 'Could not update membership.'); return }
+    if (!res.ok) {
+      // The only one left: leaving closes the group, so ask that plainly.
+      if (j?.code === 'last_member' && confirm(`You’re the only one in ${group.name || 'this group'}. Leaving closes it for good. Close the group?`)) {
+        return toggleGroupMembership(group, true)
+      }
+      setCollabError(j?.code === 'leader' ? `${j.error} Open the group to choose the new leader.` : j?.error || 'Could not update membership.')
+      return false
+    }
     loadCollabGroups()
+    return true
   }
   const [showJoinSuccessModal, setShowJoinSuccessModal] = useState(false)
   const [joinedGroupName, setJoinedGroupName] = useState<string | null>(null)
@@ -267,6 +291,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     bio: c.bio || null,
     avatar_url: c.avatar_url || null,
     friend_dream: c.friend_dream || null,
+    my_shares: c.my_shares ?? null,
+    my_watch: c.my_watch ?? null,
+    their_shares: c.their_shares ?? null,
   })
 
   // /hare-world?add=friends|mentors|rolemodels opens Search for that list
@@ -355,17 +382,26 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     }
   }
 
-  const handleRemoveConnection = (id: string, category: string) => {
-    // Optimistically update local state
-    if (category === 'rolemodel') {
-      setRoleModels(prev => prev.filter(rm => rm.id !== id))
-    } else if (category === 'mentor') {
-      setMentors(prev => prev.filter(m => m.id !== id))
-    } else if (category === 'friend') {
-      setFriends(prev => prev.filter(f => f.id !== id))
+  const handleRemoveConnection = async (id: string, category: string) => {
+    const setList = category === 'rolemodel' ? setRoleModels : category === 'mentor' ? setMentors : setFriends
+    let removed: any = null
+    let index = -1
+    setList((prev: any[]) => {
+      index = prev.findIndex((p) => p.id === id)
+      removed = index >= 0 ? prev[index] : null
+      return prev.filter((p) => p.id !== id)
+    })
+    setRemoveError('')
+    // Wait for the server: a failed delete used to come back on the next visit with no word.
+    const ok = await persistRemoveConnection(id)
+    if (!ok && removed) {
+      setList((prev: any[]) => {
+        const next = [...prev]
+        next.splice(Math.max(0, index), 0, removed)
+        return next
+      })
+      setRemoveError(`${removed.name} couldn’t be removed. Please try again.`)
     }
-    // Fire-and-forget backend delete (RLS already restricts to the owner)
-    persistRemoveConnection(id)
   }
 
   // ===== Phase A: Pending inbox (incoming friend requests) =====
@@ -579,6 +615,15 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     return name.toLowerCase().includes(q) || role.toLowerCase().includes(q)
   }
 
+  // The search box finds groups too ("Find/Search people or groups"): by
+  // name, rules or type, within the type chosen above.
+  const groupQuery = activeSearchQuery.trim().toLowerCase()
+  const shownGroups = collabGroups.filter(
+    (g: any) =>
+      (!selectedCollabType || g.type === selectedCollabType) &&
+      (!groupQuery || `${g.name} ${g.rules || ''} ${collabTypes.find((t) => t.id === g.type)?.label || ''}`.toLowerCase().includes(groupQuery))
+  )
+
   /**
    * Everyone the user can actually open a conversation with.
    *
@@ -603,6 +648,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
     if (!placeholder) return role || ''
     return status === 'connected' ? '' : 'Pending request'
   }
+  // The same person can be listed twice (your friend, and someone who chose
+  // you as a mentor): each Remove says which, as its row does.
+  const removeLabel = (p: { name: string; role: string; status?: string; target_user_id?: string | null }) =>
+    [`Remove ${p.name}`, displayRole(p.role, p.target_user_id ? p.status : 'connected')].filter(Boolean).join(': ')
 
   /**
    * The signed-in user's real id, or null.
@@ -1070,9 +1119,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               <p className="text-slate-600 mb-4">Your people hub. Connect with role models, mentors, and friends, and join collaboration groups.</p>
               
               {/* View Toggle */}
-              <div className="flex gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Hare World">
                 <button
                   onClick={() => setHaveWorldView('people')}
+                  aria-pressed={haveWorldView === 'people'}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     haveWorldView === 'people'
                       ? 'bg-purple-700 text-white'
@@ -1083,6 +1133,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 </button>
                 <button
                   onClick={() => setHaveWorldView('collab')}
+                  aria-pressed={haveWorldView === 'collab'}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     haveWorldView === 'collab'
                       ? 'bg-purple-700 text-white'
@@ -1093,13 +1144,26 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 </button>
                 <button
                   onClick={() => setHaveWorldView('relationships')}
+                  aria-pressed={haveWorldView === 'relationships'}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     haveWorldView === 'relationships'
                       ? 'bg-purple-700 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   Relationships
+                </button>
+                {/* Hare World Social (the team's notes, October 2026): moments from finished tasks and milestones. */}
+                <button
+                  onClick={() => setHaveWorldView('social')}
+                  aria-pressed={haveWorldView === 'social'}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    haveWorldView === 'social'
+                      ? 'bg-purple-700 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Hare World Social
                 </button>
               </div>
               
@@ -1129,7 +1193,25 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 )}
               </div>
               {activeSearchQuery && (
-                <p className="mt-2 text-xs text-slate-500">Filtering by: <span className="font-medium text-slate-700">“{activeSearchQuery}”</span></p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-800">
+                  <span>
+                    Showing your {haveWorldView === 'collab' ? 'groups' : 'people'} matching <span className="font-semibold">“{activeSearchQuery}”</span>.
+                  </span>
+                  {/* Your people and groups are filtered; someone new is found here. */}
+                  {isSignedIn && haveWorldView !== 'collab' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddMode('search')
+                        handleAddConnection('friends')
+                        setUserSearchQuery(activeSearchQuery)
+                      }}
+                      className="font-semibold text-purple-800 underline underline-offset-2"
+                    >
+                      Find someone new called “{activeSearchQuery}”
+                    </button>
+                  )}
+                </div>
               )}
               {/* Connection persistence note */}
               {isSignedIn ? (
@@ -1299,6 +1381,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
 
             {/* Updates, notes of support, memes, calls, mentor tasks and goals
                 together (Riipen Labs, Group 34; STEP 66). */}
+            {haveWorldView === 'people' && isSignedIn && <SameGoals />}
             {haveWorldView === 'people' && isSignedIn && <SocialHub goals={myGoals} />}
 
             {/* Collab Groups View */}
@@ -1332,7 +1415,11 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold">Collab Groups (via Collab Type)</h3>
                     <button
-                      onClick={() => setShowGroupModal(true)}
+                      onClick={() => {
+                        // Start with the type you're looking at.
+                        if (selectedCollabType) setGroupForm((f) => ({ ...f, type: f.type || selectedCollabType }))
+                        setShowGroupModal(true)
+                      }}
                       className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
                     >
                       <UserPlus className="w-4 h-4" />
@@ -1347,6 +1434,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   <div className="flex gap-2 mb-4">
                     <input
                       value={joinCodeInput}
+                      aria-label="Code for a private group"
                       onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                       onKeyDown={(e) => { if (e.key === 'Enter') joinByCode() }}
                       placeholder="Have a code? Enter it to join a private group"
@@ -1369,12 +1457,15 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                       <p className="text-sm text-slate-500 text-center py-6">Loading groups…</p>
                     )}
                     {!collabLoading && collabGroups.length === 0 && (
-                      <p className="text-sm text-slate-500 text-center py-6">No groups yet. Create one above and invite your people.</p>
+                      <p className="text-sm text-slate-700 text-center py-6">No groups yet. Create one above and invite your people.</p>
                     )}
-                    {(selectedCollabType
-                      ? collabGroups.filter(g => g.type === selectedCollabType)
-                      : collabGroups
-                    ).map((group) => (
+                    {!collabLoading && collabGroups.length > 0 && shownGroups.length === 0 && (
+                      <p className="text-sm text-slate-700 text-center py-6">
+                        No groups match{activeSearchQuery ? ` “${activeSearchQuery}”` : ''}{selectedCollabType ? ` in ${collabTypes.find((t) => t.id === selectedCollabType)?.label}` : ''}.{' '}
+                        <button type="button" onClick={() => { setSelectedCollabType(null); setSearchQuery(''); setActiveSearchQuery('') }} className="font-semibold text-indigo-800 underline">Show all groups</button>
+                      </p>
+                    )}
+                    {shownGroups.map((group) => (
                       <div key={group.id} className="border border-slate-200 rounded-lg p-4 hover:border-indigo-300 transition-all">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1415,6 +1506,12 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                                 <span className="text-sm font-mono bg-slate-100 px-2 py-1 rounded">Code: {group.code}</span>
                               </div>
                             )}
+                            {group.rules && <p className="mt-2 text-sm text-slate-800"><span className="font-semibold">Rules:</span> {group.rules}</p>}
+                            {(group.joined || group.isPublic) && (
+                              <Link href={`/hare-world/groups/${group.id}`} className="mt-2 inline-block text-sm font-semibold text-indigo-800 underline underline-offset-2">
+                                Open the group{group.joined ? ': members and rules' : ''}
+                              </Link>
+                            )}
                           </div>
                           <button 
                             onClick={() => {
@@ -1422,7 +1519,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                               if (group.joined) {
                                 if (confirm(`Leave ${group.name}?`)) toggleGroupMembership(group)
                               } else if (group.isPublic) {
-                                toggleGroupMembership(group).then(() => {
+                                // "Successfully joined" only when it did (it used to show either way).
+                                toggleGroupMembership(group).then((ok) => {
+                                  if (!ok) return
                                   setJoinedGroupName(group.name)
                                   setShowJoinSuccessModal(true)
                                   setTimeout(() => {
@@ -1453,80 +1552,37 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               </div>
             )}
 
+            {/* Hare World Social */}
+            {haveWorldView === 'social' && (
+              <div className="bg-white rounded-2xl border border-purple-200 p-6 shadow-sm">
+                {isSignedIn ? <HareWorldSocial /> : <p className="text-slate-800">Sign in to see Hare World Social.</p>}
+              </div>
+            )}
+
             {/* Relationships View */}
             {haveWorldView === 'relationships' && (
               <div className="space-y-6">
-                {/* Match Prompt */}
+                {/* Relationships: matching between people who opt in (STEP 87). */}
                 <div className="bg-white rounded-2xl border border-pink-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-1">Relationships / Matching</h3>
-                  <p className="text-sm text-slate-600 mb-3">
-                    Swipe through suggested profiles. Matches are scored on shared dreams and interests.
-                  </p>
-                  {/* Clarifies difference between People › Friends and Matching */}
-                  <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-xs text-slate-700">
-                    <strong className="text-pink-700">How is this different from Friends in the People tab?</strong>
+                  <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-sm text-slate-800">
+                    <strong className="text-pink-900">How is this different from Friends in the People tab?</strong>
                     <ul className="mt-1 list-disc pl-4 space-y-0.5">
-                      <li><strong>People › Friends</strong>: you manually add specific people you already know.</li>
-                      <li><strong>Matching</strong>: the system suggests new people based on dreams &amp; interests. When you tap <em>Match</em>, they're added to your Friends column automatically.</li>
+                      <li><strong>People › Friends</strong>: you add specific people you already know.</li>
+                      <li><strong>Matching</strong>: meet new people who also joined, on a similar path. <em>Ask to connect</em> sends a friend request they can accept or not.</li>
                     </ul>
                   </div>
-                  
-                  {matchProfiles.length > 0 ? (
-                    <button
-                      onClick={() => {
-                        setShowMatchModal(true)
-                        setCurrentMatchIndex(0)
-                      }}
-                      className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                    >
-                      <Heart className="w-5 h-5" />
-                      Start Matching
-                    </button>
-                  ) : (
-                    <div className="w-full px-6 py-4 bg-slate-100 text-slate-500 rounded-xl text-sm text-center border border-slate-200">
-                      Match suggestions are coming soon: for now, search for people directly in the People tab.
-                    </div>
-                  )}
-                  
-                  {matchedProfiles.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-pink-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-slate-700">
-                          Your Matches ({matchedProfiles.length})
-                        </span>
-                        <button
-                          onClick={() => setMatchedProfiles([])}
-                          className="text-xs text-slate-500 hover:text-slate-700"
-                        >
-                          Clear list
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-500 mb-3 italic">
-                        ✓ Also added to your <strong>Friends</strong> column in the People tab.
-                      </p>
-                      <div className="space-y-2">
-                        {matchedProfiles.map((match) => (
-                          <div key={match.id} className="flex items-center gap-3 p-3 bg-pink-50 rounded-lg border border-pink-200">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold">
-                              {match.name.charAt(0)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-slate-900">{match.name}</div>
-                              <div className="text-xs text-slate-600 italic">"{match.dream}"</div>
-                            </div>
-                            <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {isSignedIn ? <Relationships /> : <p className="text-sm text-slate-800">Sign in to meet people on a similar path.</p>}
                 </div>
 
                 {/* Role Models — real connections only, no invented metrics */}
                 <div className="bg-white rounded-2xl border border-orange-200 p-6 shadow-sm">
                   <h3 className="text-lg font-bold mb-4">Role Models</h3>
                   {roleModelsWithMetrics.length === 0 && (
-                    <p className="text-sm text-slate-500 py-3">No role models yet. Search above to find and add one.</p>
+                    <p className="text-sm text-slate-700 py-3">
+                      No role models yet.{' '}
+                      <button type="button" onClick={() => { setAddMode('search'); handleAddConnection('rolemodels') }} className="font-semibold text-indigo-800 underline">Find one</button>
+                    </p>
                   )}
                   <div className="space-y-4">
                     {roleModelsWithMetrics.map((rm) => (
@@ -1590,7 +1646,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 </button>
                 <button 
                   onClick={() => {
-                    router.push('/reflection?contextType=people')
+                    router.push('/reflection?contextType=people&mode=write')
                   }}
                   className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left cursor-pointer"
                 >
@@ -1601,19 +1657,57 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     <span className="block text-xs text-slate-600">How it is going with the people in your life</span>
                   </span>
                 </button>
-                {/* Was Share/Restrict/Private buttons that only showed an alert.
-                    Discoverable is the real control over who can find you. */}
+                {/* Suggest: something useful to one of your people. */}
+                <button
+                  type="button"
+                  onClick={() => setShowSuggestPanel((v) => !v)}
+                  aria-expanded={showSuggestPanel}
+                  className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 text-slate-600" aria-hidden="true" />
+                  <span>
+                    <span className="block font-medium">Suggest</span>
+                    <span className="block text-xs text-slate-700">A resource, a task or a note of support for one of your people</span>
+                  </span>
+                </button>
+                {/* Share / Restrict / Private: who can find you here, and on
+                    each person's card, what they can see (STEP 87). */}
                 <Link
                   href="/profile#discovery"
                   className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all text-left"
                 >
                   <Lock className="w-5 h-5 text-slate-600" aria-hidden="true" />
                   <span>
-                    <span className="block font-medium">Who can find you</span>
-                    <span className="block text-xs text-slate-600">Turn Discoverable on or off in Your profile</span>
+                    <span className="block font-medium">Share / Restrict / Private</span>
+                    <span className="block text-xs text-slate-700">Who can find you (Your profile), and on each person’s card what they can see</span>
                   </span>
                 </Link>
               </div>
+              {removeError && <p role="alert" className="mt-3 text-sm text-red-800">{removeError}</p>}
+              {showSuggestPanel && (
+                <div className="mt-4 rounded-xl border border-slate-200 p-4" data-suggest-panel>
+                  <h4 className="font-semibold text-slate-900">Suggest something to…</h4>
+                  {[...friends, ...mentors, ...roleModels].filter((p: any) => p.target_user_id && p.status !== 'pending').length === 0 ? (
+                    <p className="mt-2 text-sm text-slate-700">Once someone accepts your request, you can suggest things to them here.</p>
+                  ) : (
+                    <ul className="mt-2 divide-y divide-slate-100">
+                      {[...friends.map((p) => ({ p, kind: 'friends' as const })), ...mentors.map((p) => ({ p, kind: 'mentors' as const })), ...roleModels.map((p) => ({ p, kind: 'rolemodels' as const }))]
+                        .filter(({ p }: any) => p.target_user_id && p.status !== 'pending')
+                        .map(({ p, kind }: any) => (
+                          <li key={p.id} className="flex flex-wrap items-center gap-2 py-2">
+                            <span className="min-w-0 flex-1 font-medium text-slate-900">{p.icon} {p.name}</span>
+                            <Link href={`/friend/${p.target_user_id}?suggest=1`} className="rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50">
+                              A resource
+                            </Link>
+                            <button type="button" onClick={() => setOpenPerson({ person: p as CardPerson, kind })} className="rounded-lg border border-purple-300 px-3 py-1.5 text-sm font-semibold text-purple-900 hover:bg-purple-50">
+                              A task or a note
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
             )}
 
@@ -1640,8 +1734,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
               <details className="mt-4 rounded-lg border border-slate-200 p-4">
                 <summary className="cursor-pointer text-sm font-medium text-slate-800">Coming later</summary>
                 <p className="mt-2 text-sm text-slate-700">
-                  These are planned but don&apos;t work yet, so they are not offered: chat inside collab groups, and match
-                  suggestions in Relationships.
+                  Planned but not working yet, so not offered: chat inside collab groups.
                 </p>
               </details>
               {blocks.people.length > 0 && (
@@ -1747,7 +1840,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-purple-500 disabled:bg-slate-100 disabled:text-slate-400"
                   />
                   <p className="text-xs text-slate-500">
-                    Only users who turned on <strong>Discoverable</strong> in <a href="/profile/settings" className="text-purple-600 underline">Profile Settings</a> appear here.
+                    Only users who turned on <strong>Discoverable</strong> in <a href="/profile#discovery" className="text-purple-800 underline">Profile &amp; Discovery</a> appear here.
                   </p>
                   <div className="flex-1 overflow-y-auto -mx-1 px-1 space-y-2">
                     {isUserSearching && <p className="text-xs text-slate-500 italic">Searching…</p>}
@@ -1837,20 +1930,22 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
         {/* Create Group Modal */}
         {showGroupModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overlay-scroll">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div role="dialog" aria-modal="true" aria-labelledby="create-group-title" className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl" data-create-group>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold">Create Collab Group</h3>
+                <h3 id="create-group-title" className="text-xl font-bold">Create Collab Group</h3>
                 <button
                   onClick={() => setShowGroupModal(false)}
+                  aria-label="Close"
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Group Name:</label>
+                  <label htmlFor="group-name" className="block text-sm font-medium mb-2">Group Name:</label>
                   <input
+                    id="group-name"
                     type="text"
                     value={groupForm.name}
                     onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
@@ -1861,8 +1956,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Collab Type:</label>
+                  <label htmlFor="group-type" className="block text-sm font-medium mb-2">Collab Type:</label>
                   <select
+                    id="group-type"
                     value={groupForm.type || collabTypes[0].id}
                     onChange={(e) => setGroupForm({ ...groupForm, type: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
@@ -1872,9 +1968,9 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Visibility:</label>
-                  <div className="flex gap-4">
+                <fieldset>
+                  <legend className="block text-sm font-medium mb-2">Visibility:</legend>
+                  <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-2">
                       <input
                         type="radio"
@@ -1894,16 +1990,17 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                       <span>Private (code required)</span>
                     </label>
                   </div>
-                </div>
+                </fieldset>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Group Rules:</label>
+                  <label htmlFor="group-rules-new" className="block text-sm font-medium mb-2">Group Rules:</label>
                   <textarea
+                    id="group-rules-new"
                     value={groupForm.rules}
                     onChange={(e) => setGroupForm({ ...groupForm, rules: e.target.value })}
                     placeholder="Set rules (e.g., If groups can see others' data)"
                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 h-24"
                   />
-                  <p className="text-xs text-slate-500 mt-1">As group leader, you set the rules</p>
+                  <p className="text-xs text-slate-700 mt-1">As group leader, you set the rules</p>
                 </div>
                 {collabError && (
                   <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{collabError}</p>
@@ -1941,9 +2038,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     setShowCategoryModal(false)
                     setActionType(null)
                   }}
-                  className="text-slate-400 hover:text-slate-600"
+                  aria-label="Close"
+                  className="p-1 text-slate-600 hover:text-slate-800"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
               <div className="space-y-3">
@@ -2008,7 +2106,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 </button>
                 <button
                   onClick={confirmRemoveConnection}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-medium"
+                  className="flex-1 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-all font-medium"
                 >
                   Remove
                 </button>
@@ -2025,13 +2123,14 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                 <h3 className="text-xl font-bold">Remove Connection</h3>
                 <button
                   onClick={() => setShowRemoveModal(false)}
-                  className="text-slate-400 hover:text-slate-600"
+                  aria-label="Close"
+                  className="p-1 text-slate-600 hover:text-slate-800"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
-              <p className="text-slate-600 mb-4">
-                Select a category to see connections you can remove:
+              <p className="text-slate-700 mb-4">
+                Choose who to remove: role models, then mentors, then friends.
               </p>
               <div className="space-y-3 mb-4">
                 <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -2046,9 +2145,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           requestRemoveConnection(rm.id, rm.name, 'rolemodel')
                           setShowRemoveModal(false)
                         }}
+                        aria-label={removeLabel(rm)}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
-                        <UserMinus className="w-4 h-4 text-red-500" />
+                        <UserMinus className="w-4 h-4 text-red-600" aria-hidden="true" />
                       </button>
                     </div>
                   ))}
@@ -2063,9 +2163,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           requestRemoveConnection(m.id, m.name, 'mentor')
                           setShowRemoveModal(false)
                         }}
+                        aria-label={removeLabel(m)}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
-                        <UserMinus className="w-4 h-4 text-red-500" />
+                        <UserMinus className="w-4 h-4 text-red-600" aria-hidden="true" />
                       </button>
                     </div>
                   ))}
@@ -2080,9 +2181,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                           requestRemoveConnection(f.id, f.name, 'friend')
                           setShowRemoveModal(false)
                         }}
+                        aria-label={removeLabel(f)}
                         className="p-2 hover:bg-red-100 rounded transition-colors"
                       >
-                        <UserMinus className="w-4 h-4 text-red-500" />
+                        <UserMinus className="w-4 h-4 text-red-600" aria-hidden="true" />
                       </button>
                     </div>
                   ))}
@@ -2137,9 +2239,10 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                     setSelectedGroupForJoin(null)
                     setCodeInput('')
                   }}
+                  aria-label="Close"
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
               <div className="space-y-4">
@@ -2150,6 +2253,7 @@ export default function PitStopContent({ page }: { page: 'tools' | 'people' }) {
                   <input
                     type="text"
                     value={codeInput}
+                    aria-label="Group code"
                     onChange={(e) => setCodeInput(e.target.value)}
                     placeholder="Enter group code"
                     className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-wider bg-white text-slate-900 placeholder-slate-400"

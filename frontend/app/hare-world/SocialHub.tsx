@@ -443,6 +443,11 @@ export function CollabForm({ people, goals, to: fixedTo, onSent }: { people: Per
   const [note, setNote] = useState('')
   const [status, setStatus] = useState('')
   const idp = fixedTo ? `collab-${fixedTo}` : 'collab'
+  // Your plan can arrive after the form: start with your first goal then.
+  const firstGoal = goals[0] || ''
+  useEffect(() => {
+    if (firstGoal) setGoal((g) => g || firstGoal)
+  }, [firstGoal])
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!to) { setStatus('Choose someone first.'); return }

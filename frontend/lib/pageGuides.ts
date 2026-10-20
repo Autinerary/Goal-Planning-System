@@ -86,9 +86,13 @@ const GUIDES: [RegExp, PageGuide][] = [
   }],
   [/^\/tasks(\/|$)/, {
     name: 'Task View',
-    purpose: 'The small tasks your steps are made of, in one list.',
-    steps: ['Find the task to do next, and tick it when it is done.', 'Tasks are planned across your week in the Calendar.'],
-    connects: 'Finishing tasks moves your steps along.',
+    purpose: 'Today’s small tasks, and a page for each one with tricks that help you do it.',
+    steps: [
+      'Tick a task when it is done, or open it: its tricks, the Motivation Wheel to spin once as you start, and “I’ve done it”.',
+      '“Stop for now” leaves a note to future you; it comes back on a task’s page.',
+      'Turn on Companion to have your spirit animal with you. Drag it to any corner, or keep it on top of your other windows.',
+    ],
+    connects: 'Tasks are planned across your week in the Calendar. When you finish one, you can keep the moment in your Memories.',
   }],
   [/^\/pit-stop(\/|$)/, {
     name: 'Pit Stop',
@@ -97,14 +101,23 @@ const GUIDES: [RegExp, PageGuide][] = [
   }],
   [/^\/hare-world(\/|$)/, {
     name: 'Hare World',
-    purpose: 'The people side of Autinerary: friends, mentors and role models.',
-    steps: ['Add a friend or a mentor, or just a name as a note for yourself.', 'Send notes of support, and see updates from your people.'],
-    connects: 'People you connect with can follow your progress, if you both agree.',
+    purpose: 'The people side of Autinerary: friends, mentors and role models, Collab Groups, Relationships and Hare World Social.',
+    steps: [
+      'Add a friend or a mentor by searching their name. Open their card to send a note of support, book a call or work on a goal together.',
+      'Collab Groups: make one, or join one by its name or its code.',
+      'Relationships: join to meet people on a similar path. A match is a friend request they can accept or not.',
+      'Hare World Social: moments from finished tasks and milestones. Yours are in Memories.',
+    ],
+    connects: 'People you connect with can follow your progress, if you both agree. On each person’s card you choose what they see: Share, Restrict or Private.',
   }],
   [/^\/reflection(\/|$)/, {
     name: 'Journal',
     purpose: 'A place to write how things went, and to look back on what is working.',
-    steps: ['Choose “New Entry” and answer the questions you want to.', '“All Entries” shows what you wrote before.'],
+    steps: [
+      'Choose “New Entry” and answer the questions you want to.',
+      '“All Entries” shows what you wrote before.',
+      '“Quick Note to Self” keeps a thought for later. It is in your Memories, and comes back on a task’s page if you ask.',
+    ],
     connects: 'What you write can help the app adjust your plan.',
   }],
   [/^\/recommend-choices\/?$/, {

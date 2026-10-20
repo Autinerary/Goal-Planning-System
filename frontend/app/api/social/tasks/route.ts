@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { pushToUser } from '@/lib/push'
+import { tryPushToUser } from '@/lib/push'
 import { UUID_RE, peopleByIds, socialError, socialMissing } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
@@ -58,12 +57,12 @@ export async function POST(req: NextRequest) {
     const e = socialError(error, 'The task could not be sent. Please try again.')
     return NextResponse.json({ error: e.error }, { status: e.status })
   }
-  await pushToUser(createAdminClient(), mentee, {
+  await tryPushToUser(mentee, {
     title: 'A task from your mentor',
     body: 'Your mentor suggested a small task. Open Hare World to see it.',
     url: '/hare-world?view=people#tasks',
     tag: `task-${data.id}`,
-  }).catch(() => 0)
+  })
   return NextResponse.json({ id: data.id }, { status: 201 })
 }
 

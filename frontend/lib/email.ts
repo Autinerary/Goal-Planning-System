@@ -289,6 +289,23 @@ ${reviewUrl}
   }
 }
 
+/** A moment in Hare World Social was reported, or one waits for the team (STEP 87). */
+export function momentReviewEmail(reviewUrl: string, why: 'reported' | 'shared'): { subject: string; html: string; text: string } {
+  const what = why === 'reported' ? 'Someone reported a moment in Hare World Social.' : 'Someone shared a moment with everyone in Hare World Social. It shows once a team member has looked at it.'
+  return {
+    subject: why === 'reported' ? 'A moment was reported in Hare World Social' : 'A moment is waiting for review in Hare World Social',
+    text: `${what}
+
+Review it (admins only):
+${reviewUrl}
+
+- Autinerary`,
+    html: `<div style="${BOX}"><p style="font-size:16px;line-height:1.5">${what}</p>
+      <p style="margin:24px 0"><a href="${reviewUrl}" style="${BUTTON}">Review it</a></p>
+      <p style="${SMALL}">Admins only. The photo or video isn’t in this email.</p></div>`,
+  }
+}
+
 export interface NewsletterLink { label: string; detail?: string; href: string }
 
 /** The vote for Community's Choice, in the month's last newsletter (Goal 5). */

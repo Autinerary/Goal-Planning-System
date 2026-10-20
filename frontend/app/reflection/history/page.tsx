@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import BackButton from '../../components/BackButton'
 import axios from 'axios'
 import { ChevronLeft, Calendar, ChevronDown, ChevronUp, Smile, Meh, Frown, Loader2, Upload, Sparkles, X } from 'lucide-react'
 import { buildMotivationReport, MOTIVATION_META } from '@/lib/motivation'
@@ -37,6 +38,11 @@ const contextTypeColors: Record<string, string> = {
 
 export default function JournalHistory() {
   const [journals, setJournals] = useState<Journal[]>([])
+  // Back from saving an entry (the Journal sends ?saved=1).
+  const [justSaved, setJustSaved] = useState(false)
+  useEffect(() => {
+    setJustSaved(new URLSearchParams(window.location.search).get('saved') === '1')
+  }, [])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -216,10 +222,8 @@ export default function JournalHistory() {
       
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/reflection" className="p-2 rounded-lg hover:bg-slate-50 transition-all surface">
-            <ChevronLeft className="w-5 h-5 text-slate-800" />
-          </Link>
+        <div className="flex flex-wrap items-center gap-4 mb-8">
+          <BackButton fallback="/reflection" />
           <div className="flex items-center gap-3">
             <div className="text-4xl">📖</div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">All Entries</h1>
@@ -239,6 +243,11 @@ export default function JournalHistory() {
             </button>
           </div>
         </div>
+        {justSaved && (
+          <p role="status" className="mb-6 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 font-medium text-emerald-950">
+            Your entry is saved. It&apos;s the newest one below.
+          </p>
+        )}
 
         {/* Import panel — bring in journals kept elsewhere (Notes app, files, etc.) */}
         {showImport && (
@@ -513,13 +522,13 @@ export default function JournalHistory() {
                       </div>
                     )}
 
-                    {/* View Full Entry Button */}
+                    {/* The whole entry is above; write another about the same thing. */}
                     <div className="mt-6 pt-4 border-t border-slate-300">
-                      <Link 
-                        href={`/reflection?contextType=${journal.contextType}&journalId=${journal.id}`}
-                        className="text-blue-600 hover:text-blue-800 underline underline-offset-2 text-sm font-medium flex items-center gap-1"
+                      <Link
+                        href={`/reflection?contextType=${journal.contextType}&mode=write`}
+                        className="text-blue-700 hover:text-blue-800 underline underline-offset-2 text-sm font-medium flex items-center gap-1"
                       >
-                        View full entry →
+                        Write another entry about this →
                       </Link>
                     </div>
                   </div>

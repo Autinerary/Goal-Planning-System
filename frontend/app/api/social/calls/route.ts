@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { pushToUser } from '@/lib/push'
+import { tryPushToUser } from '@/lib/push'
 import { UUID_RE, cleanRoomUrl, newRoomUrl, peopleByIds, socialError, socialMissing } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
@@ -59,12 +58,21 @@ export async function POST(req: NextRequest) {
     room = cleanRoomUrl(body.room_url)
     if (!room) return NextResponse.json({ error: 'A video link starts with https:// and has no spaces.' }, { status: 400 })
   }
+  // A mentor call when one of you chose the other as a mentor; otherwise
+  // between peers (it used to be stored as a mentor call every time).
+  const { data: links } = await supabase
+    .from('social_connections')
+    .select('category')
+    .in('status', ['connected', 'matched'])
+    .or(`and(owner_id.eq.${user.id},target_user_id.eq.${other}),and(owner_id.eq.${other},target_user_id.eq.${user.id})`)
+  const mentorLink = (links || []).some((l: { category: string }) => l.category === 'mentors')
+  const callType = body?.call_type === 'peer' || body?.call_type === 'mentor' ? body.call_type : mentorLink ? 'mentor' : 'peer'
   const { data, error } = await supabase
     .from('video_calls')
     .insert({
       caller_id: user.id,
       receiver_id: other,
-      call_type: body?.call_type === 'peer' ? 'peer' : 'mentor',
+      call_type: callType,
       scheduled_at: when.toISOString(),
       notes: typeof body?.notes === 'string' ? body.notes.slice(0, 500) : null,
       room_url: room || newRoomUrl(),
@@ -75,12 +83,15 @@ export async function POST(req: NextRequest) {
     const e = socialError(error, 'The call could not be booked. Please try again.')
     return NextResponse.json({ error: e.error }, { status: e.status })
   }
-  await pushToUser(createAdminClient(), other, {
-    title: 'A call was booked with you',
-    body: 'Open Hare World to see when, and the link to join.',
-    url: '/hare-world?view=people#calls',
-    tag: `call-${data.id}`,
-  }).catch(() => 0)
+  // Without the service key there's no push, and the call is still booked.
+  try {
+    await tryPushToUser(other, {
+      title: 'A call was booked with you',
+      body: 'Open Hare World to see when, and the link to join.',
+      url: '/hare-world?view=people#calls',
+      tag: `call-${data.id}`,
+    })
+  } catch {}
   return NextResponse.json({ call: data }, { status: 201 })
 }
 

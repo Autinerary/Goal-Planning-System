@@ -22,6 +22,9 @@ import AnyOrderPond from './AnyOrderPond'
 import GoalsTogether, { SharedBadge, sharedFor, useSharedChallenges } from './GoalsTogether'
 import GoalsEditor from './GoalsEditor'
 import HelpOthersPrompt, { helpPromptOff } from './HelpOthersPrompt'
+import MomentCapture from '../components/MomentCapture'
+import { socialAvailable } from '@/lib/moments'
+import { PeopleOnGoal } from '../hare-world/SameGoals'
 import CharacterCar from './CharacterCar'
 import { playCarBeep } from '@/lib/taskSound'
 import { useMilestoneGuidance } from '@/lib/useMilestoneGuidance'
@@ -76,6 +79,8 @@ function RacesContent() {
   const trailCharacter = <CharacterCar character={driver} honk={honk} />
   // After a milestone is done: two ways to help someone else (HelpOthersPrompt).
   const [helpFor, setHelpFor] = useState<{ id: string; name: string } | null>(null)
+  // Before that, "Capture this moment" for the milestone (Hare World Social).
+  const [captureFor, setCaptureFor] = useState<{ id: string; name: string } | null>(null)
   // "Your Goals, Dreams & Obstacles", opened from "Add one" under an area.
   const [goalsOpen, setGoalsOpen] = useState(false)
   const goalsPanelRef = useRef<HTMLDivElement>(null)
@@ -274,8 +279,11 @@ function RacesContent() {
       // Beep beep, and the car bounces (CharacterCar).
       playCarBeep()
       setHonk((h) => h + 1)
-      // Then, unless they asked not to: help someone at the same step.
-      if (name && !helpPromptOff()) setHelpFor({ id, name })
+      // Then "Capture this moment" (Hare World Social), and after it, unless
+      // they asked not to: help someone at the same step.
+      // (Capturing needs STEP 87; until then, straight to helping.)
+      if (name && isSignedIn) socialAvailable().then((on) => (on ? setCaptureFor({ id, name }) : !helpPromptOff() && setHelpFor({ id, name })))
+      else if (name && !helpPromptOff()) setHelpFor({ id, name })
     }
     setCompletedMilestoneIds(prev => {
       const next = new Set(prev)
@@ -1168,7 +1176,7 @@ function RacesContent() {
                       {real.map((r: any) => (
                         <li key={r.id}>
                           <div className={`flex flex-wrap items-center justify-between gap-2 text-[0.6875rem] font-semibold ${txt}`}>
-                            <span className="flex flex-wrap items-center gap-1.5">{r.name}{sharedGoal(r.name) && <SharedBadge collab={sharedGoal(r.name)!} small />}</span>
+                            <span className="flex flex-wrap items-center gap-1.5">{r.name}{sharedGoal(r.name) && <SharedBadge collab={sharedGoal(r.name)!} small />}{isSignedIn && <PeopleOnGoal goal={r.name} />}</span>
                             <span>{r.progress}%</span>
                           </div>
                           <div className={`mt-0.5 h-1.5 rounded-full overflow-hidden ${day ? 'bg-slate-200' : 'bg-indigo-900'}`}>
@@ -1538,6 +1546,8 @@ function RacesContent() {
                       <div key={g} className={`flex flex-wrap items-center gap-1.5 text-[0.75rem] font-bold leading-snug ${txt}`}>
                         <span>{g}</span>
                         {sharedGoal(g) && <SharedBadge collab={sharedGoal(g)!} small />}
+                        {/* Your people on a goal like this one ("Person's Icon @ Goal"). */}
+                        {isSignedIn && <PeopleOnGoal goal={g} />}
                       </div>
                     )) : (
                       <div className={`text-[0.75rem] ${txt}`}>
@@ -2089,6 +2099,19 @@ function RacesContent() {
         </div>
 
         <HelpOthersPrompt milestone={helpFor} onClose={() => setHelpFor(null)} />
+        {captureFor && (
+          <MomentCapture
+            open
+            kind="milestone"
+            refId={captureFor.id}
+            title={captureFor.name}
+            onClose={() => {
+              const done = captureFor
+              setCaptureFor(null)
+              if (done && !helpPromptOff()) setHelpFor(done)
+            }}
+          />
+        )}
 
         {/* ═══ MOTIVATION PINWHEEL POPUP ═══ */}
         {showPinwheelPopup && (

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { publicProfilesByIds, step64Missing } from '@/lib/publicProfiles'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { pushToUser } from '@/lib/push'
+import { tryPushToUser } from '@/lib/push'
 
 const VALID_CATEGORIES = ['friends', 'mentors', 'rolemodels'] as const
 type Category = (typeof VALID_CATEGORIES)[number]
@@ -61,7 +60,11 @@ export async function GET(req: NextRequest) {
       .eq('status', 'connected')
       .order('created_at', { ascending: true }),
   ])
-  let [{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }]: { data: any[] | null; error: any }[] = await load(', connected_at')
+  // What each side shares and whether it watches the other arrived with STEP 87.
+  let [{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }]: { data: any[] | null; error: any }[] = await load(', connected_at, owner_shares, target_shares, owner_watches, target_watches')
+  if (step64Missing(ownErr) || step64Missing(inboundErr)) {
+    ;[{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }] = await load(', connected_at')
+  }
   if (step64Missing(ownErr) || step64Missing(inboundErr)) {
     ;[{ data: ownRows, error: ownErr }, { data: inboundRows, error: inboundErr }] = await load('')
   }
@@ -107,6 +110,10 @@ export async function GET(req: NextRequest) {
       pronouns: linkedProfile?.pronouns || null,
       bio: linkedProfile?.bio || null,
       avatar_url: linkedProfile?.avatar_url || null,
+      // Your side and theirs (STEP 87; null before it).
+      my_shares: row.owner_shares ?? null,
+      my_watch: row.owner_watches ?? null,
+      their_shares: row.target_shares ?? null,
     })
   }
 
@@ -138,6 +145,9 @@ export async function GET(req: NextRequest) {
       pronouns: requesterProfile?.pronouns || null,
       bio: requesterProfile?.bio || null,
       avatar_url: requesterProfile?.avatar_url || null,
+      my_shares: row.target_shares ?? null,
+      my_watch: row.target_watches ?? null,
+      their_shares: row.owner_shares ?? null,
     })
   }
 
@@ -228,12 +238,12 @@ export async function POST(req: NextRequest) {
   // knew they had one. Tell them on any device they turned notifications on
   // for (lib/push.ts); this never names the sender.
   if (hasRealTarget) {
-    await pushToUser(createAdminClient(), target_user_id, {
+    await tryPushToUser(target_user_id, {
       title: 'New connection request',
       body: 'Someone on Autinerary wants to connect with you. Open Hare World to accept or decline.',
       url: '/hare-world',
       tag: 'connection-request',
-    }).catch(() => 0)
+    })
   }
 
   return NextResponse.json({ connection: data }, { status: 201 })

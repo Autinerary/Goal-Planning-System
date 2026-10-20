@@ -69,6 +69,14 @@ export async function DELETE(req: NextRequest) {
   const storage = supabase.storage.from('avatars')
   const { data: photos } = await storage.list(user.id, { limit: 100 })
   if (photos?.length) await storage.remove(photos.map((f) => `${user.id}/${f.name}`))
+  // And the photos and videos of their moments (Hare World Social, STEP 87).
+  const moments = supabase.storage.from('moments')
+  for (let page = 0; page < 20; page++) {
+    const { data: files } = await moments.list(user.id, { limit: 100 })
+    if (!files?.length) break
+    const { error: removeError } = await moments.remove(files.map((f) => `${user.id}/${f.name}`))
+    if (removeError) break
+  }
 
   // A newsletter sign-up with the same address is the same person.
   if (user.email) await admin.from('newsletter_subscribers').delete().ilike('email', user.email.replace(/[\\%_]/g, (c) => `\\${c}`))

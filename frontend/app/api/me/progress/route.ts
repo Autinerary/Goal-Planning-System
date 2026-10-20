@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { notifyWatchers } from '@/lib/watchers'
 
 const ALLOWED_KIND = new Set(['completed', 'hearted'])
 
@@ -74,6 +75,9 @@ export async function POST(req: NextRequest) {
     console.error('POST /api/me/progress error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // The people watching you hear about a finished milestone (STEP 87).
+  if (kind === 'completed') await notifyWatchers(user.id).catch(() => 0)
 
   return NextResponse.json({ ok: true })
 }

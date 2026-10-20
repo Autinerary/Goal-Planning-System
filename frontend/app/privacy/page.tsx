@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '19 October 2026'
+const UPDATED = '20 October 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
@@ -279,6 +279,36 @@ export default function PrivacyPage() {
                 ways; neither of you can find or see the other, and they aren’t told.
               </li>
               <li>Your notes about people in Hare World, which only you can see.</li>
+              <li>
+                What you let each person you’re connected to see of your journey (everything, progress only, or nothing),
+                and whether you watch their progress. They can see what you share with them; you can change it any time on
+                their card.
+              </li>
+              <li>
+                The Collab Groups you join. The members of a group see each other’s display names and icons on the group’s
+                page.
+              </li>
+              <li>
+                If you join Relationships (meeting new people): what you’re looking for, the areas of life you choose, and a
+                short note, shown only to others who joined it too, with your display name. A match is a friend request they
+                can accept or not. People under 18 and people who can’t be found aren’t part of it.
+              </li>
+            </List>
+          </Sub>
+          <Sub title="Moments and notes to yourself (Hare World Social)">
+            <List>
+              <li>
+                The photos, videos and captions you choose to save when you finish a task or milestone, and which task or
+                milestone each is for. They are private unless you share one: with your people, or with everyone in Hare
+                World once someone on the team has looked at it. Moments from a Family account (someone under 18) stay
+                private. You can change who sees a moment, or delete it and its photo or video, on your Memories page.
+              </li>
+              <li>
+                Photos and videos are kept in a private store. People who may see a moment get a link that works for an
+                hour.
+              </li>
+              <li>Cheers you give, and reports you make (with your reason), which the team reads to keep Hare World Social safe.</li>
+              <li>Notes to your future self and Quick Notes to Self from your Journal, which only you can read.</li>
             </List>
           </Sub>
           <Sub title="Feedback and check-ins">

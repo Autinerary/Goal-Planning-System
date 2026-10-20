@@ -232,10 +232,15 @@ export default function TermsPage() {
             <li>Copy ResourceHub’s listings in bulk with scripts, or access Autinerary by automated means without our permission.</li>
             <li>Try to get into other accounts, test or break our security, or upload anything harmful.</li>
             <li>Use the AI features to make anything harmful, or to fake ratings, reviews or votes.</li>
+            <li>
+              Share a photo or video in Hare World Social that shows someone else’s face or name without their OK, or that
+              isn’t about your own journey.
+            </li>
           </List>
           <p>
-            When you connect with people in Autinerary, you can report a message, and we may read reported messages to act on
-            them.
+            When you connect with people in Autinerary, you can report a message or a moment, and we may read or look at
+            reported ones to act on them. Moments shared with everyone in Hare World are shown once someone on the team has
+            looked at them.
           </p>
         </Section>
 

@@ -53,9 +53,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Joining again changes nothing (it used to make a leader an ordinary member).
   const { error } = await admin
     .from('collab_group_members')
-    .upsert({ group_id: group.id, user_id: user.id, role: 'member' }, { onConflict: 'group_id,user_id' })
+    .upsert({ group_id: group.id, user_id: user.id, role: 'member' }, { onConflict: 'group_id,user_id', ignoreDuplicates: true })
   if (error) {
     console.error('[collab] join failed:', error.message)
     return NextResponse.json({ error: 'Could not join.' }, { status: 500 })
@@ -92,11 +93,14 @@ export async function DELETE(request: NextRequest) {
       .limit(1)
     if (others && others.length > 0) {
       return NextResponse.json(
-        { error: "You're the leader — transfer or remove the other members before leaving." },
+        { error: "You're the leader. Make someone else the leader on the group's page first.", code: 'leader' },
         { status: 409 }
       )
     }
-    // Last one out: remove the group entirely rather than orphan it.
+    // The only one left: leaving closes the group, and only when asked to.
+    if (body?.closeGroup !== true) {
+      return NextResponse.json({ error: 'You’re the only one in this group. Leaving closes it.', code: 'last_member' }, { status: 409 })
+    }
     await admin.from('collab_groups').delete().eq('id', groupId)
     return NextResponse.json({ ok: true, deleted: true })
   }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { pushToUser } from '@/lib/push'
+import { tryPushToUser } from '@/lib/push'
 import { UUID_RE, peopleByIds, socialError, socialMissing } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
@@ -64,12 +63,12 @@ export async function POST(req: NextRequest) {
     const e = socialError(error, 'The invitation could not be sent. Please try again.')
     return NextResponse.json({ error: e.status === 409 ? 'You already invited them to this goal.' : e.error }, { status: e.status })
   }
-  await pushToUser(createAdminClient(), partner, {
+  await tryPushToUser(partner, {
     title: 'Work on a goal together?',
     body: 'Someone you’re connected to invited you to a goal. Open Hare World to answer.',
     url: '/hare-world?view=people#together',
     tag: `collab-${data.id}`,
-  }).catch(() => 0)
+  })
   return NextResponse.json({ id: data.id }, { status: 201 })
 }
 

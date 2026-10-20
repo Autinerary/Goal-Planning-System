@@ -4,7 +4,9 @@ import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
-import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette } from 'lucide-react'
+import { Sparkles, Send, BookOpen, Lightbulb, Target, Brain, Heart, Sun, Moon, Palette, StickyNote } from 'lucide-react'
+import BackButton from '../components/BackButton'
+import QuickNoteToSelf from '../components/QuickNoteToSelf'
 import { playPageTurnSound } from '@/lib/taskSound'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import { useAgentPath } from '../context/AgentPathContext'
@@ -25,7 +27,10 @@ function ReflectionContent() {
   const [loading, setLoading] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
-  const [mode, setMode] = useState<'landing' | 'write'>('landing')
+  // New Entry, All Entries (its own page) and Quick Note to Self (the team's
+  // notes, October 2026). ?mode=write or ?mode=note opens one directly.
+  const startMode = searchParams.get('mode')
+  const [mode, setMode] = useState<'landing' | 'write' | 'note'>(startMode === 'write' || startMode === 'note' ? startMode : 'landing')
   const [learningOutcome, setLearningOutcome] = useState<LearningOutcome>('')
   const [completionPercent, setCompletionPercent] = useState(50)
   const [answers, setAnswers] = useState({
@@ -68,6 +73,7 @@ function ReflectionContent() {
     task: 'this task',
     calendar: 'today',
     imported: 'this entry',
+    people: 'things with your people',
   }
   const subject = SUBJECTS[contextType] || 'this'
 
@@ -108,8 +114,6 @@ function ReflectionContent() {
   const currentTheme = themeConfigs[theme]
 
   const handleSubmit = async () => {
-    // Paper/page-turn cue so the entry clearly registered (Liam).
-    playPageTurnSound()
     setLoading(true)
     try {
       const supabase = createClient()
@@ -147,8 +151,13 @@ function ReflectionContent() {
           ? { Authorization: `Bearer ${session.access_token}` }
           : undefined,
       })
+      // Paper/page-turn cue once the entry is saved (Liam: "for every
+      // submission ... a page turning/paper sound to signify it processed").
+      playPageTurnSound()
       toast.success('Reflection saved.')
-      router.push('/reflection/history')
+      // All Entries takes the form's place, so Back from there goes to where
+      // the Journal was opened from, not to an empty form or the Path.
+      router.replace('/reflection/history?saved=1')
     } catch (error) {
       console.error('Error:', error)
       toast.error('Could not save your reflection. Your text is still here. Try again.')
@@ -234,13 +243,7 @@ function ReflectionContent() {
         {/* ── Landing Screen: choose new entry or view history ── */}
         {mode === 'landing' ? (
           <div className={`${currentTheme.card} rounded-2xl border-2 p-8 md:p-12 shadow-2xl`}>
-            {/* Back to path */}
-            <button
-              onClick={() => router.push('/path')}
-              className={`mb-4 text-sm ${currentTheme.textSecondary} hover:underline flex items-center gap-1`}
-            >
-              ← Back
-            </button>
+            <BackButton fallback="/path" className="mb-4" />
             {/* Desk scene */}
             <div className="text-center mb-8">
               <div className="relative inline-block mb-4">
@@ -264,7 +267,7 @@ function ReflectionContent() {
               <p className={`${currentTheme.textSecondary} mt-1`}>What would you like to do?</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={() => setMode('write')}
                 className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
@@ -273,7 +276,7 @@ function ReflectionContent() {
                   <Send className="w-6 h-6 text-white" />
                 </div>
                 <span className="font-bold text-slate-800 text-lg">New Entry</span>
-                <span className="text-sm text-slate-500">Write a new journal reflection</span>
+                <span className="text-sm text-slate-700">Write a new journal reflection</span>
               </button>
 
               <Link
@@ -284,8 +287,19 @@ function ReflectionContent() {
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
                 <span className="font-bold text-slate-800 text-lg">All Entries</span>
-                <span className="text-sm text-slate-500">Read your past journal entries</span>
+                <span className="text-sm text-slate-700">Read your past journal entries</span>
               </Link>
+
+              <button
+                onClick={() => setMode('note')}
+                className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+              >
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+                  <StickyNote className="w-6 h-6 text-white" />
+                </div>
+                <span className="font-bold text-slate-800 text-lg">Quick Note to Self</span>
+                <span className="text-sm text-slate-700">A thought to keep for later</span>
+              </button>
             </div>
             {/* Riipen Labs, Group 34, slide 26: a page about you, beside the journal. */}
             <p className="mt-4 text-center text-sm text-slate-700">
@@ -293,12 +307,28 @@ function ReflectionContent() {
               <Link href="/about-me" className="font-medium text-indigo-800 underline underline-offset-2">Open About me</Link>
             </p>
           </div>
+        ) : mode === 'note' ? (
+        /* ── Quick Note to Self ── */
+        <div className={`${currentTheme.card} rounded-2xl border-2 p-6 md:p-8 shadow-2xl`}>
+          <button
+            type="button"
+            onClick={() => setMode('landing')}
+            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+          >
+            ← Back to the Journal
+          </button>
+          <QuickNoteToSelf />
+        </div>
         ) : (
         /* ── Write Mode: the entry form ── */
         <div className={`${currentTheme.card} rounded-2xl border-2 p-6 md:p-8 shadow-2xl`}>
           {/* Back to landing */}
-          <button onClick={() => setMode('landing')} className={`mb-4 text-sm ${currentTheme.textSecondary} hover:underline flex items-center gap-1`}>
-            ← Back
+          <button
+            type="button"
+            onClick={() => setMode('landing')}
+            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+          >
+            ← Back to the Journal
           </button>
           {/*
             Desk scene. A tester reported the props looking scattered: coffee
@@ -397,11 +427,12 @@ function ReflectionContent() {
               const Icon = q.icon
               return (
                 <div key={q.id}>
-                  <label className={`flex items-center gap-2 ${currentTheme.text} font-medium mb-2`}>
-                    <Icon className={`w-5 h-5 ${q.color}`} />
+                  <label htmlFor={`answer-${q.id}`} className={`flex items-center gap-2 ${currentTheme.text} font-medium mb-2`}>
+                    <Icon className={`w-5 h-5 ${q.color}`} aria-hidden="true" />
                     Q: {q.text}
                   </label>
                   <textarea
+                    id={`answer-${q.id}`}
                     value={answers[q.id as keyof typeof answers]}
                     onChange={(e) => setAnswers(prev => ({ 
                       ...prev, 

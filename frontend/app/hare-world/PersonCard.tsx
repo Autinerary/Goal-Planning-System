@@ -24,6 +24,88 @@ export interface CardPerson extends BoardPerson {
   direction?: 'incoming' | 'outgoing'
   bio?: string | null
   friend_dream?: string | null
+  /** Your side and theirs (STEP 87): what each shares with the other, and whether you watch them. */
+  my_shares?: 'all' | 'progress' | 'none' | null
+  my_watch?: boolean | null
+  their_shares?: 'all' | 'progress' | 'none' | null
+}
+
+const SHARE_CHOICES: { id: 'all' | 'progress' | 'none'; label: string; hint: string }[] = [
+  { id: 'all', label: 'Share', hint: 'Your path, calendar and progress.' },
+  { id: 'progress', label: 'Restrict', hint: 'Only the milestones you finish, and the moments you share with your people.' },
+  { id: 'none', label: 'Private', hint: 'Nothing of your journey. You can still message each other.' },
+]
+const THEY_SHARE: Record<string, string> = {
+  all: 'They share their path, calendar and progress with you.',
+  progress: 'They share only their progress with you.',
+  none: 'They keep their journey private from you.',
+}
+
+/** "Share / Restrict / Private" and "Watch" for one connection (Hare World, STEP 87). */
+function Sharing({ person }: { person: CardPerson }) {
+  const [shares, setShares] = useState(person.my_shares || 'all')
+  const [watch, setWatch] = useState(Boolean(person.my_watch))
+  const [status, setStatus] = useState('')
+  const save = async (next: { shares?: string; watch?: boolean }) => {
+    setStatus('')
+    const res = await fetch(`/api/connections/${person.id}/sharing`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) })
+    const d = await res.json().catch(() => null)
+    if (!res.ok) {
+      setStatus(d?.error || 'That didn’t save.')
+      return false
+    }
+    // Keep the board's copy in step, so the card opens with this next time.
+    if (next.shares) person.my_shares = next.shares as CardPerson['my_shares']
+    if (typeof next.watch === 'boolean') person.my_watch = next.watch
+    setStatus('Saved')
+    return true
+  }
+  return (
+    <div className="mt-5 rounded-xl border border-slate-200 p-4">
+      <fieldset>
+        <legend className="text-sm font-semibold text-slate-900">What {person.name} can see of your journey</legend>
+        <div className="mt-2 space-y-2">
+          {SHARE_CHOICES.map((c) => (
+            <label key={c.id} className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-sm ${shares === c.id ? 'border-purple-600 bg-purple-50' : 'border-slate-200'}`}>
+              <input
+                type="radio"
+                name={`share-${person.id}`}
+                checked={shares === c.id}
+                onChange={async () => {
+                  const was = shares
+                  setShares(c.id)
+                  if (!(await save({ shares: c.id }))) setShares(was)
+                }}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>
+                <span className="font-semibold text-slate-900">{c.label}</span>
+                <span className="block text-slate-800">{c.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <label className="mt-3 flex items-start gap-2 text-sm text-slate-900">
+        <input
+          type="checkbox"
+          checked={watch}
+          onChange={async (e) => {
+            const on = e.target.checked
+            setWatch(on)
+            if (!(await save({ watch: on }))) setWatch(!on)
+          }}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span>
+          <span className="font-semibold">Watch {person.name}’s progress</span>
+          <span className="block text-slate-800">A notification when they finish a milestone (if they share it with you, and you turned notifications on).</span>
+        </span>
+      </label>
+      {person.their_shares && <p className="mt-3 text-xs text-slate-700">{THEY_SHARE[person.their_shares]}</p>}
+      <p role="status" className="mt-1 text-xs text-emerald-800">{status}</p>
+    </div>
+  )
 }
 
 const KIND_WORD: Record<PeopleKind, string> = { friends: 'Friend', mentors: 'Mentor', rolemodels: 'Role model' }
@@ -173,6 +255,8 @@ export default function PersonCard({ person, kind, note, onNoteChange, onClose, 
             )}
           </div>
         )}
+
+        {connected && person.my_shares !== undefined && person.my_shares !== null && <Sharing person={person} />}
 
         <div className="mt-5">
           <label htmlFor="person-card-notes" className="block text-sm font-semibold text-slate-900">Your notes</label>

@@ -1,27 +1,34 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X, GripVertical } from 'lucide-react'
+import { X, GripVertical, PictureInPicture2 } from 'lucide-react'
+import { ANIMAL_COLORS } from '@/lib/gamification'
 
 /**
- * A small companion showing the hare 🐇 and tortoise 🐢 gently "dancing" while
- * you work through a task (Eliyana: "top corner view for the dancing hare and
- * tortoise when you are completing a task — also good for ADHD to help focus
- * since two things will be happening at once").
+ * Your spirit animal, keeping you company while you work on a task.
  *
- * DRAGGABLE (Eliyana, follow-up): "This could get distracting having 2 things
- * at once, so be able to drag Spirit Animals/mascot to the corner as you do the
- * task." It used to be hard-pinned to the top-right, so if it covered something
- * your only option was to dismiss it entirely. Now you can drag it anywhere and
- * it snaps to whichever corner you release it nearest, remembering that choice.
+ * The team's notes, October 2026:
+ *  - "Start this as toggled off": the Task View shows a switch, and this
+ *    renders only when it's on (preferences.taskCompanion).
+ *  - Eliyana: "this could get distracting having 2 [mascots] at once, so be
+ *    able to drag Spirit Animals/mascot to your screen in the corner as you do
+ *    the task": one companion, your own spirit animal (the hare when you
+ *    haven't chosen one), dragged to any corner, where it stays next time.
+ *    Arrow keys move it too, since a drag-only control would leave out
+ *    exactly the people this app serves.
+ *  - Odosa: "ideally, this should be something that you can drag even after
+ *    the app is closed, to be cheering you on as you complete real-life
+ *    tasks. Is an extension the best way to do this? And can we accomplish
+ *    this without violating any privacy laws?": "Keep on top" opens it in the
+ *    browser's own Picture-in-Picture window, which floats above every other
+ *    app and window while Autinerary stays open in a tab (Chrome and Edge on
+ *    a computer). It needs no install and no permission, and shows only what
+ *    we draw in it: nothing on the screen is read or recorded. An extension
+ *    couldn't float over other apps at all (only over web pages, with access
+ *    to them); a phone needs a native app for that.
  *
- * Also movable by keyboard — focus the grip and use the arrow keys — since a
- * drag-only control would be unusable for exactly the people this app serves.
- *
- * Continuous, low-key motion by default; `energized` amps it up (e.g. on task
- * completion). Animations are CSS-driven, so the app-wide
- * `data-reduce-motion="on"` rule in globals.css stills them for users who asked
- * to reduce motion.
+ * Continuous, low-key motion by default; `energized` amps it up (on
+ * completion). CSS animations, so Reduce motion stills them.
  */
 
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -37,13 +44,32 @@ const CORNER_CLASS: Record<Corner, string> = {
 
 const isCorner = (v: string): v is Corner => v in CORNER_CLASS
 
-export default function TaskCompanions({ energized = false }: { energized?: boolean }) {
-  const [dismissed, setDismissed] = useState(false)
+const CHEERS = ['You’ve got this.', 'One step at a time.', 'Still here with you.', 'Keep going, nice and steady.', 'Breathe. Then the next bit.', 'Look how far you’ve come.']
+
+export interface CompanionAnimal {
+  type: string
+  color: string
+}
+
+export default function TaskCompanions({
+  energized = false,
+  animal = null,
+  taskName = '',
+  onTurnOff,
+}: {
+  energized?: boolean
+  animal?: CompanionAnimal | null
+  taskName?: string
+  /** The X: turns the companion off (the Task View saves it). */
+  onTurnOff?: () => void
+}) {
   const [corner, setCorner] = useState<Corner>('top-right')
   // Free position while a drag is in flight; null when parked in a corner.
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const grabOffset = useRef({ x: 0, y: 0 })
+  const [pip, setPip] = useState<Window | null>(null)
+  const [canPip, setCanPip] = useState(false)
 
   // Restore the corner it was last parked in. Read after mount so the server
   // render and the first client render agree.
@@ -54,6 +80,7 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
     } catch {
       // Private mode or blocked site data — the default corner is fine.
     }
+    setCanPip(typeof window !== 'undefined' && 'documentPictureInPicture' in window)
   }, [])
 
   const park = (next: Corner) => {
@@ -72,68 +99,46 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
     const rect = el.getBoundingClientRect()
     grabOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
     setDrag({ x: rect.left, y: rect.top })
-    // Capture on the element RECEIVING the events — the grip button — not on
-    // the outer wrapper. Capturing the wrong element was the whole bug
-    // (Odosa: "the drag is broken; works on hover instead of drag & drop"):
-    // without capture the button stopped seeing the pointer as soon as it moved
-    // off, so pointerup never fired, `drag` stayed set, and from then on merely
-    // hovering the grip moved the widget.
+    // Capture on the element receiving the events (the grip), so pointerup
+    // always arrives and a drag can't turn into following the cursor.
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag) return
-    setDrag({
-      x: e.clientX - grabOffset.current.x,
-      y: e.clientY - grabOffset.current.y,
-    })
+    setDrag({ x: e.clientX - grabOffset.current.x, y: e.clientY - grabOffset.current.y })
+  }
+
+  const snap = () => {
+    const rect = ref.current?.getBoundingClientRect()
+    if (!rect) return setDrag(null)
+    const vertical = rect.top + rect.height / 2 < window.innerHeight / 2 ? 'top' : 'bottom'
+    const horizontal = rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right'
+    park(`${vertical}-${horizontal}` as Corner)
   }
 
   const onPointerUp = (e: React.PointerEvent) => {
     if (!drag) return
-    const el = ref.current
     try {
       e.currentTarget.releasePointerCapture(e.pointerId)
     } catch {
-      /* already released, or never captured — nothing to undo */
+      /* already released */
     }
-    const rect = el?.getBoundingClientRect()
-    // Snap to whichever corner the widget's centre ended up closest to.
-    const cx = (rect?.left ?? 0) + (rect?.width ?? 0) / 2
-    const cy = (rect?.top ?? 0) + (rect?.height ?? 0) / 2
-    const vertical = cy < window.innerHeight / 2 ? 'top' : 'bottom'
-    const horizontal = cx < window.innerWidth / 2 ? 'left' : 'right'
-    park(`${vertical}-${horizontal}` as Corner)
+    snap()
   }
 
-  // Safety net. Pointer capture should make this unnecessary, but a lost
-  // pointerup (a context menu, a dropped touch, the tab losing focus) would
-  // otherwise strand `drag` and leave the widget following the cursor forever —
-  // which is precisely how "drag" turned into "hover" before.
+  // A lost pointerup (a context menu, a dropped touch, the tab losing focus)
+  // snaps it to the nearest corner instead of leaving it following the cursor.
   useEffect(() => {
     if (!drag) return
-    const end = () => {
-      // Snap rather than just clearing: dropping the drag alone would send the
-      // widget back to the corner it started in, which reads as the drag being
-      // rejected. Use the same nearest-corner rule as a normal release.
-      const rect = ref.current?.getBoundingClientRect()
-      if (rect) {
-        const vertical = rect.top + rect.height / 2 < window.innerHeight / 2 ? 'top' : 'bottom'
-        const horizontal = rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right'
-        park(`${vertical}-${horizontal}` as Corner)
-      } else {
-        setDrag(null)
-      }
-    }
-    window.addEventListener('pointerup', end)
-    window.addEventListener('pointercancel', end)
-    window.addEventListener('blur', end)
+    window.addEventListener('pointerup', snap)
+    window.addEventListener('pointercancel', snap)
+    window.addEventListener('blur', snap)
     return () => {
-      window.removeEventListener('pointerup', end)
-      window.removeEventListener('pointercancel', end)
-      window.removeEventListener('blur', end)
+      window.removeEventListener('pointerup', snap)
+      window.removeEventListener('pointercancel', snap)
+      window.removeEventListener('blur', snap)
     }
-    // `park` is stable enough for this: it only closes over setState setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag])
 
@@ -151,53 +156,117 @@ export default function TaskCompanions({ energized = false }: { energized?: bool
     }
   }
 
-  if (dismissed) return null
+  const image = animal?.type ? `/spirit-animals/${animal.type}.png` : null
+  const tint = animal?.color ? `hue-rotate(${ANIMAL_COLORS[animal.color] ?? 0}deg)` : ''
+
+  // "Keep on top": the companion in a small always-on-top window.
+  const popOut = async () => {
+    const dpip = (window as any).documentPictureInPicture
+    if (!dpip) return
+    try {
+      const w: Window = await dpip.requestWindow({ width: 230, height: 250 })
+      const doc = w.document
+      doc.title = 'Your companion'
+      doc.body.style.cssText = 'margin:0;font-family:system-ui,sans-serif;background:#fffbeb;color:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:6px;text-align:center'
+      const fig = doc.createElement('div')
+      fig.style.cssText = 'font-size:64px;line-height:1'
+      if (image) {
+        const img = doc.createElement('img')
+        img.src = new URL(image, window.location.origin).toString()
+        img.alt = ''
+        img.width = 96
+        img.height = 96
+        img.style.filter = tint
+        fig.appendChild(img)
+      } else {
+        fig.textContent = '🐇'
+      }
+      const task = doc.createElement('p')
+      task.style.cssText = 'margin:0 8px;font-size:13px;font-weight:600'
+      task.textContent = taskName ? taskName.slice(0, 80) : 'Your task'
+      const cheer = doc.createElement('p')
+      cheer.style.cssText = 'margin:0 8px;font-size:14px'
+      const time = doc.createElement('p')
+      time.style.cssText = 'margin:0;font-size:12px;color:#334155'
+      const back = doc.createElement('button')
+      back.textContent = 'Back to my task'
+      back.style.cssText = 'margin-top:4px;padding:6px 12px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-weight:600;cursor:pointer'
+      back.onclick = () => window.focus()
+      doc.body.append(fig, task, cheer, time, back)
+      const started = Date.now()
+      const tick = () => {
+        const mins = Math.floor((Date.now() - started) / 60000)
+        cheer.textContent = CHEERS[Math.floor((Date.now() - started) / 90000) % CHEERS.length]
+        time.textContent = mins < 1 ? 'Just started' : `${mins} min so far`
+      }
+      tick()
+      const timer = window.setInterval(tick, 15000)
+      w.addEventListener('pagehide', () => {
+        window.clearInterval(timer)
+        setPip(null)
+      })
+      setPip(w)
+    } catch {
+      // The browser said no (not from a click, or not allowed): stay in the page.
+    }
+  }
+
+  // Close the floating window when the task screen goes away.
+  useEffect(() => () => pip?.close(), [pip])
+
+  if (pip) {
+    return (
+      <div className="fixed bottom-24 right-6 z-40 rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-lg">
+        Your companion is in its own window.{' '}
+        <button type="button" onClick={() => pip.close()} className="font-semibold text-indigo-800 underline">
+          Bring it back
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <div
-      ref={ref}
-      className={`fixed z-40 select-none ${drag ? '' : CORNER_CLASS[corner]}`}
-      style={drag ? { left: drag.x, top: drag.y } : undefined}
-    >
+    <div ref={ref} className={`fixed z-40 select-none ${drag ? '' : CORNER_CLASS[corner]}`} style={drag ? { left: drag.x, top: drag.y } : undefined}>
       <style>{`
-        @keyframes hareHop{0%,100%{transform:translateY(0)}30%{transform:translateY(-8px) rotate(-6deg)}60%{transform:translateY(0) rotate(3deg)}}
-        @keyframes tortoiseSway{0%,100%{transform:translateX(0) rotate(-3deg)}50%{transform:translateX(3px) rotate(3deg)}}
-        .companion-hare{animation:hareHop 1.1s ease-in-out infinite}
-        .companion-hare-fast{animation:hareHop 0.5s ease-in-out infinite}
-        .companion-tortoise{animation:tortoiseSway 2.4s ease-in-out infinite}
-        .companion-tortoise-fast{animation:tortoiseSway 1s ease-in-out infinite}
+        @keyframes companionHop{0%,100%{transform:translateY(0)}30%{transform:translateY(-8px) rotate(-6deg)}60%{transform:translateY(0) rotate(3deg)}}
+        .companion-hop{animation:companionHop 1.4s ease-in-out infinite}
+        .companion-hop-fast{animation:companionHop 0.5s ease-in-out infinite}
       `}</style>
-      <div
-        className={`flex items-end gap-1 surface-chrome border border-amber-200 rounded-2xl pl-1 pr-2 py-2 shadow-lg ${
-          drag ? 'cursor-grabbing shadow-2xl ring-2 ring-amber-300' : ''
-        }`}
-      >
+      <div className={`flex items-center gap-1 surface-chrome border border-amber-200 rounded-2xl pl-1 pr-2 py-2 shadow-lg ${drag ? 'cursor-grabbing shadow-2xl ring-2 ring-amber-300' : ''}`}>
         <button
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onKeyDown={onKeyDown}
-          aria-label="Move companions. Drag, or use the arrow keys"
+          aria-label="Move your companion. Drag, or use the arrow keys"
           title="Drag me to any corner"
-          className="self-center text-slate-400 hover:text-slate-600 cursor-grab touch-none px-0.5"
+          className="self-center text-slate-500 hover:text-slate-700 cursor-grab touch-none px-0.5"
         >
           <GripVertical className="w-4 h-4" aria-hidden="true" />
         </button>
-        <div className={energized ? 'companion-hare-fast text-3xl' : 'companion-hare text-3xl'}>🐇</div>
-        <div className={energized ? 'companion-tortoise-fast text-2xl' : 'companion-tortoise text-2xl'}>🐢</div>
-        <button
-          onClick={() => setDismissed(true)}
-          aria-label="Hide companions"
-          title="Hide companions"
-          className="ml-1 self-start text-slate-400 hover:text-slate-600"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        <div className={energized ? 'companion-hop-fast' : 'companion-hop'}>
+          {image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={image} alt={`Your ${animal?.color || ''} ${animal?.type || ''}`.replace(/\s+/g, ' ').trim()} width={44} height={44} style={{ filter: tint }} />
+          ) : (
+            <span className="text-3xl" role="img" aria-label="A hare">🐇</span>
+          )}
+        </div>
+        <div className="ml-1 flex flex-col gap-1">
+          {onTurnOff && (
+            <button type="button" onClick={onTurnOff} aria-label="Turn your companion off" title="Turn off" className="grid h-6 w-6 place-items-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800">
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+          {canPip && (
+            <button type="button" onClick={popOut} aria-label="Keep your companion on top of other windows" title="Keep on top" className="grid h-6 w-6 place-items-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800">
+              <PictureInPicture2 className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
-      <p className="pointer-events-none text-[0.5625rem] text-center text-slate-500 mt-1 font-medium">
-        {energized ? 'Race complete! 🎉' : 'Racing with you'}
-      </p>
+      <p className="pointer-events-none text-[0.625rem] text-center text-slate-700 mt-1 font-medium">{energized ? 'You did it! 🎉' : 'Here with you'}</p>
     </div>
   )
 }

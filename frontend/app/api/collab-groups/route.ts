@@ -132,9 +132,15 @@ export async function POST(request: NextRequest) {
   }
 
   // The leader is a member too, so counts and membership checks stay uniform.
-  await admin
+  // A group nobody is in would be lost, so a failure here undoes the group.
+  const { error: memberError } = await admin
     .from('collab_group_members')
     .insert({ group_id: group.id, user_id: user.id, role: 'leader' })
+  if (memberError) {
+    console.error('[collab] leader membership failed:', memberError.message)
+    await admin.from('collab_groups').delete().eq('id', group.id)
+    return NextResponse.json({ error: 'Could not create the group. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({
     group: {

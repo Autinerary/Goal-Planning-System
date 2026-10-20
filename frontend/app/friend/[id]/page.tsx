@@ -63,6 +63,10 @@ export default function FriendProfilePage() {
 
   // Suggest modal
   const [showSuggest, setShowSuggest] = useState(false)
+  // Hare World's "Suggest" opens straight to it (?suggest=1).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('suggest') === '1') setShowSuggest(true)
+  }, [])
   const [sName, setSName] = useState('')
   const [sUrl, setSUrl] = useState('')
   const [sNote, setSNote] = useState('')

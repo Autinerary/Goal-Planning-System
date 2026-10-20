@@ -121,6 +121,11 @@ export interface UserPreferences {
   /** What motivates them and their life stage, from the "Complete your profile" card (lib/motivationChoices.ts). */
   motivation?: import('./motivationChoices').MotivationAnswer
   /**
+   * Your spirit animal keeping you company on the Task View (the team's
+   * notes, October 2026: "Start this as toggled off"). Off unless turned on.
+   */
+  taskCompanion?: boolean
+  /**
    * How the app and its AI write about autism and other differences:
    * identity-first ("autistic person") or person-first ("person with
    * autism"); '' is no preference (lib/languageStyle.ts; Riipen Labs, Group

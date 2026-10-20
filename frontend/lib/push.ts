@@ -99,3 +99,17 @@ export async function pushToUser(admin: SupabaseClient, userId: string, message:
   }
   return sent
 }
+
+/**
+ * pushToUser with the service client made inside, never throwing: without
+ * the service key (createAdminClient throws) or push, it sends nothing and
+ * the request that asked carries on.
+ */
+export async function tryPushToUser(userId: string, message: PushMessage): Promise<number> {
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    return await pushToUser(createAdminClient(), userId, message)
+  } catch {
+    return 0
+  }
+}

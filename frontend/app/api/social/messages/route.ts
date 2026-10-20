@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { pushToUser } from '@/lib/push'
+import { tryPushToUser } from '@/lib/push'
 import { UUID_RE, connectedPeople, peopleByIds, socialError, socialMissing } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
@@ -110,10 +109,10 @@ export async function POST(req: NextRequest) {
   }
 
   // On any device they turned notifications on for; never names the sender.
-  await pushToUser(createAdminClient(), to, kind === 'support'
+  await tryPushToUser(to, kind === 'support'
     ? { title: 'A note of support', body: 'Someone you’re connected to sent you a note of support.', url: `/hare-world/messages?with=${user.id}`, tag: 'support-note' }
     : { title: 'New message', body: 'You have a new message in Hare World.', url: `/hare-world/messages?with=${user.id}`, tag: `message-${user.id}` }
-  ).catch(() => 0)
+  )
 
   return NextResponse.json({ message: { id: data.id, from_me: true, content: data.content, kind: data.kind, created_at: data.created_at, read_at: null } }, { status: 201 })
 }

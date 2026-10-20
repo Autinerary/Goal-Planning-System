@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Check, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
+import { ArrowLeft, Sparkles, Lightbulb, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
 import { useAgentPath } from '../context/AgentPathContext'
 import AgentInsightsBanner from '../components/AgentInsightsBanner'
 import TaskCompanions from '../components/TaskCompanions'
@@ -11,6 +11,9 @@ import { playTaskCompleteSound } from '../../lib/taskSound'
 import { usePreferences } from '../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
 import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { selectTodaysAnimal } from '@/lib/spiritAnimal'
+import { todayIn, trickForToday } from '@/lib/taskDay'
+import CompanionSwitch from '../components/CompanionSwitch'
 
 /*
   TASK VIEW — matches whiteboard sketch:
@@ -31,16 +34,18 @@ import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
 export default function TasksPage() {
   const router = useRouter()
   const { pathPlanning, calendarOptimization, payload } = useAgentPath()
-  // Real "today's tasks" from the calendar optimisation agent (first scheduled
-  // day), falling back to path-planning tasks, then to the static demo list.
-  const firstDay: any = (payload?.schedule || calendarOptimization?.schedule || [])[0]
-  const agentDayTasks: any[] = firstDay?.tasks || []
+  // Real "today's tasks" from the calendar optimisation agent (today's
+  // weekday in the plan; it used to be the first day), falling back to
+  // path-planning tasks.
+  const todaysDay: any = todayIn((payload?.schedule || calendarOptimization?.schedule || []) as any[])
+  const agentDayTasks: any[] = todaysDay?.tasks || []
   const todaysTasks = (agentDayTasks.length ? agentDayTasks : (pathPlanning?.tasks || []).slice(0, 6))
     .slice(0, 8)
     .map((t: any, idx: number) => ({
       id: t.id || `t${idx + 1}`,
       name: t.name || t.title || 'Task',
       icon: '🔒',
+      helperTricks: t.helperTricks,
     }))
   // Real tasks only — no demo fallback. Empty renders an honest CTA below.
   const tasksToRender = todaysTasks
@@ -63,8 +68,10 @@ export default function TasksPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const completionCount = completedTasks.size
+  // Only today's tasks count (the week's other ticks used to as well).
+  const completionCount = tasksToRender.filter((t: { id: string }) => completedTasks.has(t.id)).length
   const totalTasks = tasksToRender.length
+  const todaysTrick = trickForToday(tasksToRender, completedTasks)
   const allDone = totalTasks > 0 && completionCount === totalTasks
 
   // Mascot mood from progress
@@ -109,9 +116,17 @@ export default function TasksPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden surface-veil">
-      {/* Draggable corner companions (Eliyana). Park them wherever they don't
-          compete with the task you're actually doing. */}
-      <TaskCompanions energized={mascotMood === 'celebrating'} />
+      {/* Your spirit animal, off unless you turn it on (the Companion switch
+          here and on each task's page; the team's notes, October 2026: "Start
+          this as toggled off"). Drag it wherever it doesn't compete with the
+          task. */}
+      {prefs.taskCompanion === true && (
+        <TaskCompanions
+          energized={mascotMood === 'celebrating'}
+          animal={selectTodaysAnimal(prefs.gamification?.animals, prefs.gamification?.mode, (payload?.schedule || calendarOptimization?.schedule || []) as any)?.animal || null}
+          onTurnOff={() => updatePreferences({ taskCompanion: false })}
+        />
+      )}
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-3 relative z-10">
         <AgentInsightsBanner agent="path_planning" />
         <AgentInsightsBanner agent="calendar_optimization" />
@@ -146,9 +161,12 @@ export default function TasksPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold text-slate-900">Task View</h1>
-          <Link href="/reflection?contextType=task" className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-lg flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />Journal
-          </Link>
+          <div className="flex items-center gap-3">
+            <CompanionSwitch on={prefs.taskCompanion === true} onChange={(on) => updatePreferences({ taskCompanion: on })} />
+            <Link href="/reflection?contextType=task&mode=write" className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-xs font-bold rounded-lg flex items-center gap-1">
+              <Sparkles className="w-3 h-3" aria-hidden="true" />Journal
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -164,11 +182,11 @@ export default function TasksPage() {
               three columns cannot be even in any useful sense. */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 min-h-[480px]">
 
-            {/* LEFT PANEL — Today's Tasks / Hack: */}
+            {/* LEFT PANEL — Today's tasks, then today's trick (it used to
+                say "Tasks/Hack" over a list of tasks: the team's notes,
+                October 2026). */}
             <div className="border-r-2 border-slate-200 p-4 flex flex-col">
-              <h2 className="text-sm font-bold text-slate-800 mb-1">Today&apos;s</h2>
-              <h2 className="text-sm font-bold text-slate-800 mb-0.5">Tasks/</h2>
-              <h2 className="text-sm font-bold text-slate-800 mb-3">Hack:</h2>
+              <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s tasks:</h2>
               <div className="flex-1 space-y-2">
                 {tasksToRender.length === 0 && (
                   <div className="text-center py-8 px-2">
@@ -181,23 +199,42 @@ export default function TasksPage() {
                 {tasksToRender.map((task: any) => {
                   const done = completedTasks.has(task.id)
                   return (
-                    <button
-                      key={task.id}
-                      onClick={() => toggleTask(task.id)}
-                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm ${
-                        done
-                          ? 'bg-green-100 border-green-300 text-green-700 line-through'
-                          : 'bg-white/60 border-slate-200 text-slate-700 hover:bg-white/80 hover:border-slate-300'
-                      }`}
-                    >
-                      <span className="flex-shrink-0">
-                        {done ? <Unlock className="w-4 h-4 text-green-500" /> : <Lock className="w-4 h-4 text-slate-400" />}
-                      </span>
-                      <span className="flex-1 truncate">{task.name}</span>
-                    </button>
+                    <div key={task.id} className="flex items-stretch gap-1">
+                      <button
+                        onClick={() => toggleTask(task.id)}
+                        aria-pressed={done}
+                        className={`min-w-0 flex-1 text-left flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm ${
+                          done
+                            ? 'bg-green-100 border-green-300 text-green-800 line-through'
+                            : 'bg-white/60 border-slate-200 text-slate-800 hover:bg-white/80 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="flex-shrink-0" aria-hidden="true">
+                          {done ? <Unlock className="w-4 h-4 text-green-600" /> : <Lock className="w-4 h-4 text-slate-500" />}
+                        </span>
+                        <span className="flex-1 truncate">{task.name}</span>
+                      </button>
+                      {/* Its own page: tricks for it, the wheel, and "I've done it". */}
+                      <Link
+                        href={`/tasks/${encodeURIComponent(task.id)}?name=${encodeURIComponent(task.name)}`}
+                        aria-label={`Open ${task.name}`}
+                        className="flex shrink-0 items-center rounded-lg border border-slate-200 bg-white/60 px-2 text-xs font-semibold text-indigo-800 hover:bg-white"
+                      >
+                        Open
+                      </Link>
+                    </div>
                   )
                 })}
               </div>
+              {tasksToRender.length > 0 && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3" data-todays-trick>
+                  <h2 className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+                    <Lightbulb className="h-4 w-4 text-amber-700" aria-hidden="true" /> Today&apos;s trick
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-900">{todaysTrick.trick}</p>
+                  <p className="mt-1 text-xs text-slate-700">{todaysTrick.task ? `For “${todaysTrick.task}”.` : 'A general one that helps many people.'}</p>
+                </div>
+              )}
             </div>
 
             {/* CENTER — Stage / Bunny */}
@@ -222,10 +259,13 @@ export default function TasksPage() {
                     </div>
                   </div>
 
-                  {/* BUNNY MASCOT */}
-                  <div className={`text-8xl pref-gamify-motion bunny-${isPlaying ? 'dancing' : mascotMood}`}>
-                    🐰
-                  </div>
+                  {/* BUNNY MASCOT: not when your companion is on, so there's
+                      only ever one (Eliyana: two at once is distracting). */}
+                  {prefs.taskCompanion !== true && (
+                    <div className={`text-8xl pref-gamify-motion bunny-${isPlaying ? 'dancing' : mascotMood}`}>
+                      🐰
+                    </div>
+                  )}
 
                   {/* Bunny speech */}
                   <div className="mt-3 text-center text-sm text-slate-600 max-w-[200px]">

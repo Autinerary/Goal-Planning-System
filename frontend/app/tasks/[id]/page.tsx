@@ -3,32 +3,44 @@
 import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, BookOpen, Lock, Unlock, Music, Play, Pause, Upload } from 'lucide-react'
+import { BookOpen, Check, Lightbulb, Lock, Music, Pause, Play, PauseCircle, Unlock, Upload } from 'lucide-react'
 import TaskCompanions from '../../components/TaskCompanions'
 import StreakCelebration from '../../components/StreakCelebration'
+import MotivationWheel from '../../components/MotivationWheel'
+import MomentCapture from '../../components/MomentCapture'
+import NoteToFutureSelf from '../../components/NoteToFutureSelf'
+import PastYouNotes from '../../components/PastYouNotes'
 import { recordActiveDay, getPendingCelebration, markCelebrated, getStreak } from '@/lib/streak'
 import { notify } from '@/lib/notifications'
 import { useAgentPath } from '../../context/AgentPathContext'
-import { playTaskCompleteSound } from '../../../lib/taskSound'
+import { isTaskSoundEnabled, playTaskCompleteSound } from '../../../lib/taskSound'
 import { usePreferences } from '../../context/usePreferences'
 import { loadPreferences } from '@/lib/preferences'
 import { doneThisWeek, togglePlanTaskDone } from '@/lib/planTaskDone'
+import { guidanceFor } from '@/lib/guidanceData'
+import { selectTodaysAnimal } from '@/lib/spiritAnimal'
+import { socialAvailable } from '@/lib/moments'
 import BackButton from '../../components/BackButton'
+import CompanionSwitch from '../../components/CompanionSwitch'
+import { GENERAL_TRICKS, todayIn } from '@/lib/taskDay'
 
 /*
-  TASK VIEW — matches whiteboard sketch:
-  ┌──────────┬─────────────────────┬──────────┐
-  │ Today's  │   │  stage area  │  │ Today's  │
-  │ Tasks/   │   │  stage area  │  │ Goals:   │
-  │ Hack:    │   │              │  │          │
-  │ - task 🔒│   │              │  │ - goal 🔒│
-  │ - task 🔒│   │              │  │ - goal   │
-  │ - task 🔒│   └──────────────┘  │ - goal   │
-  │          │       🐰 bunny      │          │
-  └──────────┴─────────────────────┴──────────┘
-  • Upload/play music
-  • Mascots will dance/move to beat
-  • After ready → Done
+  TASK VIEW (Screen 5), redesigned (the team's notes, October 2026: "The
+  screen overall needs a re-design"):
+  ┌──────────────────────────────────────────────────────────────┐
+  │ ← Back   Task: <name>   part of <milestone> · ~20 min  [Companion ◯] │
+  ├───────────────────┬────────────────────────┬──────────────────┤
+  │ Tricks & hacks    │ Motivation Wheel        │ From past you    │
+  │ for this task     │ (one spin, at the start)│ Today's other    │
+  │                   │ [ I've done it ✓ ]      │ tasks            │
+  │                   │ [ Stop for now ]        │                  │
+  │                   │ Music · Journal         │                  │
+  └───────────────────┴────────────────────────┴──────────────────┘
+  • "Today's trick/hack" showed the day's tasks; it now shows the tricks
+    written for this task (helperTricks), then its milestone's tips.
+  • One companion (your spirit animal), off unless you turn it on.
+  • Done: celebrate, then "Capture this moment" (Hare World Social).
+  • Stop for now: a note to future you, back on your next task.
 */
 
 export default function TaskView() {
@@ -46,69 +58,53 @@ function TaskViewContent() {
   // Ticks are saved with the account, shared with the calendar (lib/planTaskDone.ts).
   const { prefs, update: updatePreferences } = usePreferences()
   const completedTasks = doneThisWeek(prefs.planTaskDone)
-  const [completedGoals, setCompletedGoals] = useState<Set<string>>(new Set())
   const [isPlaying, setIsPlaying] = useState(false)
   const [musicFile, setMusicFile] = useState<string | null>(null)
   const [completed, setCompleted] = useState(false)
   const [isDoneDancing, setIsDoneDancing] = useState(false)
   const [streakCelebration, setStreakCelebration] = useState<number | null>(null)
-  const [todaysMotivation, setTodaysMotivation] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('todaysMotivation')
-    }
-    return null
-  })
+  const [capture, setCapture] = useState(false)
+  const [stopping, setStopping] = useState(false)
+  const [social, setSocial] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Real tasks/goals from the agent path (same source as the Tasks list view).
-  // No static demo — an empty list renders an honest empty state below.
   const { pathPlanning, calendarOptimization, payload } = useAgentPath()
-  const firstDay: any = (payload?.schedule || calendarOptimization?.schedule || [])[0]
-  const agentDayTasks: any[] = firstDay?.tasks || []
-  const todaysTasks = (agentDayTasks.length ? agentDayTasks : (pathPlanning?.tasks || []))
+  const schedule: any[] = (payload?.schedule || calendarOptimization?.schedule || []) as any[]
+  // Today is today's weekday in the schedule (it used to be the first day).
+  const today = todayIn(schedule)
+  const allTasks: any[] = [...schedule.flatMap((d) => d?.tasks || []), ...((pathPlanning?.tasks as any[]) || [])]
+
+  const taskId = params.id as string
+  const current = allTasks.find((t) => t?.id === taskId)
+  // ?name= when opened from the calendar, so the real title shows.
+  const nameParam = searchParams.get('name')
+  const taskName = nameParam || current?.name || current?.title || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
+  const milestone = ((pathPlanning?.milestones as any[]) || []).find((m) => m?.id && m.id === current?.milestoneId)
+  const minutes = current?.adjustedDuration || current?.estimatedDuration
+
+  // Tricks for this task: its own (written with the plan), then its
+  // milestone's tips, then general ones, said as such.
+  const ownTricks: string[] = Array.isArray(current?.helperTricks) ? current.helperTricks.filter((t: unknown) => typeof t === 'string' && t.trim()) : []
+  const milestoneTips = milestone ? guidanceFor((payload as any)?.milestoneGuidance, milestone.id, milestone.name)?.tips || [] : []
+  const tricks = ownTricks.length ? ownTricks : milestoneTips.length ? milestoneTips : GENERAL_TRICKS
+  const tricksSource = ownTricks.length ? 'Written for this task.' : milestoneTips.length ? `Tips for “${milestone?.name}”.` : 'General tricks that help many people.'
+
+  const todaysTasks = ((today?.tasks || pathPlanning?.tasks || []) as any[])
     .slice(0, 8)
     .map((t: any, idx: number) => ({ id: t.id || `t${idx + 1}`, name: t.name || t.title || 'Task' }))
+    .filter((t) => t.id !== taskId)
 
-  // Listen for motivation updates from pinwheel (stored in localStorage by races page)
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'todaysMotivation' && e.newValue) setTodaysMotivation(e.newValue)
-    }
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
-  }, [])
-
-  // Derive task name from the route param ID
-  const taskId = params.id as string
-  const currentTask = todaysTasks.find((t: any) => t.id === taskId)
-  // Prefer an explicit ?name= (passed when opened from the calendar) so the
-  // real task title shows even when the id isn't in the local demo list.
-  const nameParam = searchParams.get('name')
-  const taskName = nameParam || currentTask?.name || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
-
-  const completionCount = completedTasks.size
-  const totalTasks = todaysTasks.length
-  const allDone = totalTasks > 0 && completionCount === totalTasks
-
-  // Mascot mood from progress
-  const mascotMood = completionCount === 0 ? 'idle' : completionCount < 3 ? 'happy' : completionCount < totalTasks ? 'excited' : 'celebrating'
+  // One companion, your spirit animal; off unless you turn it on.
+  const companionOn = prefs.taskCompanion === true
+  const todaysAnimal = selectTodaysAnimal(prefs.gamification?.animals, prefs.gamification?.mode, schedule as any)
 
   const toggleTask = (id: string) => {
     const done = loadPreferences().planTaskDone
     updatePreferences({ planTaskDone: togglePlanTaskDone(done, id) })
     if (!doneThisWeek(done).has(id)) playTaskCompleteSound()
   }
-  // Done this week, from here, the task list or the calendar.
   const isDone = completed || completedTasks.has(taskId)
-
-  const toggleGoal = (id: string) => {
-    setCompletedGoals(prev => {
-      const s = new Set(prev)
-      if (s.has(id)) s.delete(id); else s.add(id)
-      return s
-    })
-  }
 
   const handleMusicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -124,7 +120,8 @@ function TaskViewContent() {
 
   const togglePlay = () => {
     if (!audioRef.current) return
-    if (isPlaying) { audioRef.current.pause() } else { audioRef.current.play() }
+    if (isPlaying) audioRef.current.pause()
+    else audioRef.current.play()
     setIsPlaying(!isPlaying)
   }
 
@@ -134,288 +131,217 @@ function TaskViewContent() {
     if (!doneThisWeek(done).has(taskId)) updatePreferences({ planTaskDone: togglePlanTaskDone(done, taskId) })
     setIsDoneDancing(true)
     playCelebrationMusic()
-    // Streak: completing a task marks today active. May bridge a gap with a
-    // freeze and cross a celebration milestone.
+    // Streak: completing a task marks today active.
     recordActiveDay()
-    const milestone = getPendingCelebration()
-    if (milestone) {
-      setStreakCelebration(milestone)
-      markCelebrated(milestone)
-      notify({ title: `${milestone}-day streak! 🔥`, body: 'You’re on a roll. Keep it going.', icon: '🔥', href: '/path' })
+    const streakMilestone = getPendingCelebration()
+    if (streakMilestone) {
+      setStreakCelebration(streakMilestone)
+      markCelebrated(streakMilestone)
+      notify({ title: `${streakMilestone}-day streak! 🔥`, body: 'You’re on a roll. Keep it going.', icon: '🔥', href: '/path' })
     } else {
-      const { current } = getStreak()
-      notify({
-        title: 'Task complete! 🎉',
-        body: current > 0 ? `Nice work. You’re on a ${current}-day streak.` : 'Nice work today.',
-        icon: '✅',
-        href: '/path',
-      })
+      const { current: streak } = getStreak()
+      notify({ title: 'Task complete! 🎉', body: streak > 0 ? `Nice work. You’re on a ${streak}-day streak.` : 'Nice work today.', icon: '✅', href: '/path' })
     }
-    // Dance for a moment, then navigate to calendar. Give the streak
-    // celebration a little longer to be seen when one fires.
-    // replace: Back from the Calendar goes where you were before the task,
-    // not back to the task you just finished (Riipen Labs, Group 31).
-    setTimeout(() => router.replace('/calendar'), milestone ? 5200 : 4000)
+    // A moment to celebrate, then "Capture this moment" (Hare World Social),
+    // or straight back to the Calendar where that isn't switched on yet.
+    socialAvailable().then((on) => {
+      if (on) window.setTimeout(() => setCapture(true), streakMilestone ? 2600 : 1200)
+      else window.setTimeout(() => router.replace('/calendar'), streakMilestone ? 5200 : 4000)
+    })
   }
 
+  // After capturing (or not): back to the Calendar. replace: Back from the
+  // Calendar goes where you were before the task (Riipen Labs, Group 31).
+  const afterCapture = () => {
+    setCapture(false)
+    router.replace('/calendar')
+  }
+
+  // The fanfare follows the sound setting (it used to always play).
   const playCelebrationMusic = () => {
+    if (!isTaskSoundEnabled()) return
     try {
       const ctx = new AudioContext()
-      // A fun major-key melody: C E G C' E' G' C'' (ascending celebration)
       const notes = [
-        { freq: 523.25, start: 0.0,  dur: 0.15 },  // C5
-        { freq: 659.25, start: 0.15, dur: 0.15 },  // E5
-        { freq: 783.99, start: 0.30, dur: 0.15 },  // G5
-        { freq: 1046.5, start: 0.45, dur: 0.30 },  // C6 (hold)
-        { freq: 783.99, start: 0.80, dur: 0.12 },  // G5
-        { freq: 1046.5, start: 0.95, dur: 0.12 },  // C6
-        { freq: 1318.5, start: 1.10, dur: 0.40 },  // E6 (hold)
-        // Second phrase — bouncy rhythm
-        { freq: 783.99, start: 1.60, dur: 0.10 },  // G5
-        { freq: 880.00, start: 1.72, dur: 0.10 },  // A5
-        { freq: 987.77, start: 1.84, dur: 0.10 },  // B5
-        { freq: 1046.5, start: 1.96, dur: 0.30 },  // C6
-        { freq: 1318.5, start: 2.30, dur: 0.15 },  // E6
-        { freq: 1046.5, start: 2.50, dur: 0.15 },  // C6
-        { freq: 1318.5, start: 2.70, dur: 0.15 },  // E6
-        { freq: 1568.0, start: 2.90, dur: 0.50 },  // G6 (big finish)
-        // Final fanfare
-        { freq: 1046.5, start: 3.50, dur: 0.12 },  // C6
-        { freq: 1318.5, start: 3.65, dur: 0.12 },  // E6
-        { freq: 1568.0, start: 3.80, dur: 0.20 },  // G6
+        { freq: 523.25, start: 0.0, dur: 0.15 }, { freq: 659.25, start: 0.15, dur: 0.15 }, { freq: 783.99, start: 0.3, dur: 0.15 },
+        { freq: 1046.5, start: 0.45, dur: 0.3 }, { freq: 783.99, start: 0.8, dur: 0.12 }, { freq: 1046.5, start: 0.95, dur: 0.12 },
+        { freq: 1318.5, start: 1.1, dur: 0.4 },
       ]
-
       for (const n of notes) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.type = 'triangle'
         osc.frequency.value = n.freq
-        gain.gain.setValueAtTime(0.18, ctx.currentTime + n.start)
+        gain.gain.setValueAtTime(0.16, ctx.currentTime + n.start)
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.start + n.dur)
         osc.connect(gain)
         gain.connect(ctx.destination)
         osc.start(ctx.currentTime + n.start)
         osc.stop(ctx.currentTime + n.start + n.dur + 0.05)
       }
-
-      // Add a simple kick-drum-like beat underneath
-      const beats = [0, 0.3, 0.6, 0.9, 1.2, 1.6, 1.96, 2.3, 2.7, 2.9, 3.5, 3.8]
-      for (const t of beats) {
-        const osc = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(150, ctx.currentTime + t)
-        osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + t + 0.08)
-        gain.gain.setValueAtTime(0.3, ctx.currentTime + t)
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.1)
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-        osc.start(ctx.currentTime + t)
-        osc.stop(ctx.currentTime + t + 0.15)
-      }
-
-      // Close context after music ends
-      setTimeout(() => ctx.close(), 4200)
+      setTimeout(() => ctx.close(), 1800)
     } catch {
-      // Web Audio not available — dance silently
+      // Web Audio not available: celebrate silently.
     }
   }
 
-  // Cleanup audio URL
   useEffect(() => {
-    return () => { if (musicFile) URL.revokeObjectURL(musicFile) }
+    return () => {
+      if (musicFile) URL.revokeObjectURL(musicFile)
+    }
   }, [musicFile])
 
+  useEffect(() => {
+    socialAvailable().then(setSocial)
+  }, [])
+
   return (
-    <div className="min-h-screen text-slate-800 p-4 md:p-8 relative overflow-hidden surface-veil">
-      {/* Hare + tortoise corner companions — present while you work the task */}
-      <TaskCompanions energized={isDoneDancing} />
-      {/* Streak milestone celebration (fires from handleDone) */}
+    <div className="min-h-screen text-slate-800 p-4 md:p-8 relative surface-veil">
+      {companionOn && (
+        <TaskCompanions energized={isDoneDancing} animal={todaysAnimal?.animal || null} taskName={taskName} onTurnOff={() => updatePreferences({ taskCompanion: false })} />
+      )}
       <StreakCelebration milestone={streakCelebration} onDone={() => setStreakCelebration(null)} />
-      <style>{`
-        @keyframes bunnyIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-        @keyframes bunnyHappy{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(3deg)}}
-        @keyframes bunnyExcited{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-16px) rotate(-8deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-16px) rotate(8deg)}100%{transform:translateY(0) rotate(0)}}
-        @keyframes bunnyCelebrate{0%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-20px) rotate(-15deg) scale(1.1)}50%{transform:translateY(0) rotate(0) scale(1)}75%{transform:translateY(-20px) rotate(15deg) scale(1.1)}100%{transform:translateY(0) rotate(0) scale(1)}}
-        @keyframes doneDance{0%{transform:translateY(0) rotate(0) scale(1)}12%{transform:translateY(-30px) rotate(-20deg) scale(1.2)}25%{transform:translateY(0) rotate(0) scale(1)}37%{transform:translateY(-25px) rotate(20deg) scale(1.15)}50%{transform:translateY(0) rotate(0) scale(1)}62%{transform:translateY(-30px) rotate(-15deg) scale(1.2)}75%{transform:translateY(0) rotate(0) scale(1)}87%{transform:translateY(-20px) rotate(15deg) scale(1.1)}100%{transform:translateY(0) rotate(0) scale(1)}}
-        @keyframes turtleDance{0%{transform:translateY(0) rotate(0)}20%{transform:translateY(-10px) rotate(8deg)}40%{transform:translateY(0) rotate(-8deg)}60%{transform:translateY(-10px) rotate(8deg)}80%{transform:translateY(0) rotate(-8deg)}100%{transform:translateY(0) rotate(0)}}
-        .bunny-idle{animation:bunnyIdle 2s ease-in-out infinite}
-        .bunny-happy{animation:bunnyHappy 1.2s ease-in-out infinite}
-        .bunny-excited{animation:bunnyExcited 0.8s ease-in-out infinite}
-        .bunny-celebrating{animation:bunnyCelebrate 0.5s ease-in-out infinite}
-        .bunny-dancing{animation:bunnyExcited 0.4s ease-in-out infinite}
-        .done-dance{animation:doneDance 1s ease-in-out infinite}
-        .turtle-dance{animation:turtleDance 0.8s ease-in-out infinite}
-      `}</style>
-
-      {/* Background blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
-      </div>
-
-      {/* Hidden audio element */}
+      <MomentCapture open={capture} kind="task" refId={taskId} title={taskName} onClose={afterCapture} />
+      <NoteToFutureSelf
+        open={stopping}
+        taskRef={taskId}
+        taskTitle={taskName}
+        onClose={(saved) => {
+          setStopping(false)
+          if (saved) router.replace('/calendar')
+        }}
+      />
       <audio ref={audioRef} loop onEnded={() => setIsPlaying(false)} />
       <input ref={fileInputRef} type="file" accept="audio/*" className="hidden" onChange={handleMusicUpload} />
 
-      {/* Journal Button - Floating */}
-      <Link
-        href={`/reflection?contextType=task&contextId=${params.id}`}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2"
-        title="Journal / Reflection"
-      >
-        <BookOpen className="w-6 h-6" aria-hidden="true" />
-        {/* Named on a phone too; it was an icon alone there. */}
-        <span className="font-semibold">Journal</span>
-      </Link>
-
-      <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Main card */}
-        <div className="rounded-2xl overflow-hidden surface">
-
-          {/* Task Title */}
-          <div className="relative text-center py-4 px-4">
-            <BackButton fallback="/tasks" className="mb-3 sm:absolute sm:left-4 sm:top-4 sm:mb-0" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Task View</h1>
-            <p className="text-sm text-slate-600 mt-1">{taskName}</p>
-            <div className="h-px bg-slate-300 w-32 mx-auto mt-2" />
+      <div className="relative z-10 mx-auto max-w-5xl space-y-4">
+        {/* The task */}
+        <header className="rounded-2xl p-4 surface md:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <BackButton fallback="/calendar" />
+            <CompanionSwitch on={companionOn} onChange={(on) => updatePreferences({ taskCompanion: on })} />
           </div>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-700">Task</p>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{taskName}</h1>
+          <p className="mt-1 text-sm text-slate-800">
+            {milestone ? (
+              <>
+                Part of{' '}
+                <Link href={`/milestones/${encodeURIComponent(milestone.id)}`} className="font-medium text-indigo-800 underline underline-offset-2">
+                  {milestone.name}
+                </Link>
+              </>
+            ) : null}
+            {milestone && minutes ? ' · ' : null}
+            {minutes ? `About ${minutes} min` : null}
+            {isDone ? (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
+                <Check className="h-3 w-3" aria-hidden="true" /> Done this week
+              </span>
+            ) : null}
+          </p>
+        </header>
 
-          {/* === Three-column layout: Tasks | Stage | Goals === */}
-          {/* Three EQUAL columns, matching the task list view (Odosa). */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 min-h-[400px]">
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Tricks & hacks for this task */}
+          <section aria-labelledby="tricks-heading" className="rounded-2xl p-4 surface">
+            <h2 id="tricks-heading" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-900">
+              <Lightbulb className="h-4 w-4 text-amber-600" aria-hidden="true" /> Tricks &amp; hacks
+            </h2>
+            <p className="mt-1 text-xs text-slate-700">{tricksSource}</p>
+            <ul className="mt-3 space-y-2">
+              {tricks.slice(0, 5).map((t: string, i: number) => (
+                <li key={i} className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-slate-900">
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-            {/* LEFT PANEL — Today's Tasks / Hack: */}
-            <div className="border-r-0 md:border-r-2 border-b-2 md:border-b-0 border-slate-200 p-4 flex flex-col">
-              <h2 className="text-sm font-bold text-slate-800 mb-1">Today&apos;s</h2>
-              <h2 className="text-sm font-bold text-slate-800 mb-3">Trick/Hack:</h2>
-              <div className="flex-1 space-y-2">
-                {todaysTasks.length === 0 && (
-                  <div className="text-center py-6 px-2">
-                    <p className="text-sm text-slate-500 mb-3">No tasks scheduled yet.</p>
-                    <Link href="/calendar" className="text-xs font-semibold text-cyan-600 underline underline-offset-2">Open your Calendar →</Link>
-                  </div>
-                )}
-                {todaysTasks.map((task: any) => {
-                  const done = completedTasks.has(task.id)
-                  return (
-                    <button
-                      key={task.id}
-                      onClick={() => toggleTask(task.id)}
-                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm ${
-                        done
-                          ? 'bg-green-100 border-green-300 text-green-700 line-through'
-                          : 'bg-white/60 border-slate-200 text-slate-700 hover:bg-white/80 hover:border-slate-300'
-                      }`}
-                    >
-                      <span className="flex-shrink-0">
-                        {done ? <Unlock className="w-4 h-4 text-green-500" /> : <Lock className="w-4 h-4 text-slate-400" />}
-                      </span>
-                      <span className="flex-1 truncate">{task.name}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* CENTER — Stage / Turtle & Bunny */}
-            <div className="flex flex-col relative border-b-2 md:border-b-0 border-slate-200">
-
-              {/* Stage area */}
-              <div className="flex-1 flex flex-col items-center justify-center px-6">
-                <div className="w-full max-w-[240px] flex-1 flex flex-col items-center justify-center">
-                  {/* Progress */}
-                  <div className="text-center mb-4">
-                    <div className="text-xs font-bold text-slate-500 mb-1">{completionCount} / {totalTasks} tasks</div>
-                    <div className="w-40 h-2 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                      <div
-                        className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                        style={{ width: `${(completionCount / Math.max(totalTasks, 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* TURTLE above bunny */}
-                  <div className={`text-6xl ${isDoneDancing ? 'turtle-dance' : ''}`}>
-                    🐢
-                  </div>
-
-                  {/* BUNNY MASCOT */}
-                  <div className={`text-8xl ${isDoneDancing ? 'done-dance' : `bunny-${isPlaying ? 'dancing' : mascotMood}`}`}>
-                    🐰
-                  </div>
-
-                  {/* Speech / celebration text */}
-                  <div className="mt-3 text-center text-sm text-slate-600 max-w-[200px]">
-                    {isDoneDancing && "🎊 Dance time! 🎊"}
-                    {!isDoneDancing && mascotMood === 'idle' && "Ready to tackle today? 💪"}
-                    {!isDoneDancing && mascotMood === 'happy' && "Nice progress! Keep going! ✨"}
-                    {!isDoneDancing && mascotMood === 'excited' && "Almost there! 🔥"}
-                    {!isDoneDancing && mascotMood === 'celebrating' && "ALL DONE! Amazing! 🎊"}
-                  </div>
-                </div>
-              </div>
-
-              {/* Music controls */}
-              <div className="border-t border-slate-200 px-4 py-3 flex items-center justify-center gap-3 flex-wrap">
+          {/* Start, do, finish */}
+          <section aria-label="Do the task" className="space-y-4">
+            <MotivationWheel taskId={taskId} types={prefs.motivation?.types} />
+            <div className="space-y-2 rounded-2xl p-4 text-center surface">
+              <button
+                type="button"
+                onClick={handleDone}
+                disabled={isDone}
+                className={`w-full rounded-2xl px-6 py-4 text-xl font-bold shadow-lg transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-indigo-700 text-white hover:bg-indigo-800'}`}
+              >
+                {isDone ? '✓ Done!' : 'I’ve done it'}
+              </button>
+              {!isDone && social && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-white/60 border border-slate-300 rounded-lg text-xs text-slate-600 hover:bg-white/80 transition-colors"
+                  type="button"
+                  onClick={() => setStopping(true)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-900 hover:bg-slate-50"
                 >
-                  <Upload className="w-3 h-3" />Upload Music
+                  <PauseCircle className="h-5 w-5" aria-hidden="true" /> Stop for now
+                </button>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-50">
+                  <Upload className="h-3 w-3" aria-hidden="true" /> Music
                 </button>
                 {musicFile && (
-                  <button
-                    onClick={togglePlay}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg text-xs font-medium"
-                  >
-                    {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                  <button type="button" onClick={togglePlay} className="inline-flex items-center gap-1 rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-800">
+                    {isPlaying ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                     {isPlaying ? 'Pause' : 'Play'}
                   </button>
                 )}
-                <span className="text-[0.625rem] text-slate-400 italic">
-                  <Music className="w-3 h-3 inline" /> Mascot dances to the beat!
-                </span>
+                <Link
+                  href={`/reflection?contextType=task&contextId=${encodeURIComponent(taskId)}&mode=write`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-100"
+                >
+                  <BookOpen className="h-3 w-3" aria-hidden="true" /> Journal
+                </Link>
               </div>
+              {musicFile && (
+                <p className="text-[0.6875rem] text-slate-700">
+                  <Music className="inline h-3 w-3" aria-hidden="true" /> Your music plays while you work.
+                </p>
+              )}
             </div>
+          </section>
 
-            {/* RIGHT PANEL — Today's Quote */}
-            <div className="border-l-0 md:border-l-2 border-slate-200 p-4 flex flex-col">
-              <h2 className="text-sm font-bold text-slate-800 mb-3">Today&apos;s<br />Quote:</h2>
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center px-4">
-                  <p className="text-lg italic text-slate-600 leading-relaxed">&ldquo;The only way to do great work is to love what you do.&rdquo;</p>
-                  <p className="text-xs text-slate-400 mt-3">&mdash; Steve Jobs</p>
-                </div>
-              </div>
-            </div>
+          {/* Notes from past you, and the rest of today */}
+          <div className="space-y-4">
+            <PastYouNotes />
+            <section aria-labelledby="today-heading" className="rounded-2xl p-4 surface">
+              <h2 id="today-heading" className="text-sm font-bold uppercase tracking-wide text-slate-900">
+                Today&apos;s other tasks
+              </h2>
+              {todaysTasks.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-700">
+                  Nothing else today.{' '}
+                  <Link href="/calendar" className="font-semibold text-indigo-800 underline underline-offset-2">
+                    Open your Calendar
+                  </Link>
+                </p>
+              ) : (
+                <ul className="mt-2 space-y-1.5">
+                  {todaysTasks.map((task) => {
+                    const done = completedTasks.has(task.id)
+                    return (
+                      <li key={task.id}>
+                        <button
+                          type="button"
+                          onClick={() => toggleTask(task.id)}
+                          aria-pressed={done}
+                          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-all ${
+                            done ? 'border-green-300 bg-green-50 text-green-900 line-through' : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300'
+                          }`}
+                        >
+                          {done ? <Unlock className="h-4 w-4 flex-shrink-0 text-green-700" aria-hidden="true" /> : <Lock className="h-4 w-4 flex-shrink-0 text-slate-500" aria-hidden="true" />}
+                          <span className="flex-1 truncate">{task.name}</span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
           </div>
-        </div>
-
-        {/* Today's Motivation (from pinwheel spin on Races page) */}
-        {todaysMotivation && (
-          <div className="mt-6 max-w-md mx-auto text-center">
-            <div className="border border-amber-200 rounded-xl px-6 py-4 surface">
-              <p className="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400 mb-1">Today&apos;s Motivation</p>
-              <p className="text-sm italic text-slate-700">&ldquo;{todaysMotivation}&rdquo;</p>
-            </div>
-          </div>
-        )}
-
-        {/* DONE button */}
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={handleDone}
-            disabled={isDone}
-            className={`px-16 py-4 rounded-2xl font-bold text-xl shadow-2xl transition-all transform hover:scale-105 ${
-              isDone
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white hover:shadow-purple-500/30'
-            }`}
-          >
-            {isDone ? '✓ Done!' : 'Done'}
-          </button>
         </div>
       </div>
     </div>
