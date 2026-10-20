@@ -97,7 +97,7 @@ With fewer than five things done, Analysis says there isn't enough yet and what 
 ## How it was tested
 
 - **Library tests:** `lib/weather.test.mjs` (the kinds of day, from Open-Meteo's real answer, and the rounding), `lib/dayTheme.test.mjs`, `lib/patterns.test.mjs` (the patterns, ties, and ticking hours), `lib/gamification.test.mjs`, and the existing ones (page guides, glossary).
-- **`.qa-local/browser/plan21.mjs`:** QA A on the local app, with Open-Meteo answered by a fixed week and the location faked. **64 of 64 passed.** It covers:
+- **`.qa-local/browser/plan21.mjs`:** QA A, with Open-Meteo answered by a fixed week and the location faked. **64 of 64 passed, locally and on production** (app.autinerary.ca, after the deploy on 20 October). It covers:
   - the views, and Day, Week and Month in both views;
   - moving through dates;
   - ticking plan tasks, and their hours;

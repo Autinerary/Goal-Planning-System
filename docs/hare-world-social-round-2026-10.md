@@ -209,4 +209,4 @@ The notes said "Relationships don't work for now" and "Relationships/Matching (a
   - **A photo could be dropped without a word.** It happened when chosen before the dialog knew who was signed in, which takes longer on a slow connection. The dialog now looks that up itself (`MomentCapture.tsx`).
   - **The test chose a note kind wrongly.** The kinds are radio buttons, and it looked for buttons.
 
-  Both are fixed, and the suite was run again (see the Calendar round's doc).
+  Both are fixed. After the deploy, **120 of 120 on production**, with nothing left over. One run stopped at making a group, because the first answer from a server function just after a deploy was slower than the test waited. The app itself waits; the test now does too.
