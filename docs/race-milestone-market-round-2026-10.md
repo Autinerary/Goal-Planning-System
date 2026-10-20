@@ -15,16 +15,16 @@ The database change is **STEP 85**
 
 - It was tested locally, twice over on the whole schema: 19 checks,
   `.qa-local/pgtest/step85_test.py`.
-- It is **not pasted yet**. Until it is, the Path Market already shows the
-  new filters and the new name: the app uses the same mapping STEP 85 sets.
-  What waits for the paste is Model Jet's new place and labels, and saving
-  labels, races and people with a model someone shares.
+- **It was pasted on 19 October and checked on the live database**: 21
+  checks, `.qa-local/browser/step85_live.mjs`. They cover the life
+  categories, the new name, Model Jet's labels, who can read and write the
+  new details, and sharing a whole model through the live app. The test's
+  own models were removed.
 
 ## What needs someone on the team
 
 | What | Where | Why it waits |
 | --- | --- | --- |
-| Paste STEP 85 | [2026_path_market_models.sql](../backend/database/migrations/2026_path_market_models.sql) | Migrations are pasted by the team |
 | Approve Model Jet when its content is ready | The Path Market review (an admin; nobody is one yet, see the All Apps round) | It is Odosa's draft: it stays "Waiting for review" until she says it's ready |
 | Check the life categories each specialised category is under | The table in "Path Market" below; change it in `path_categories.life_areas` | Only three were given in the notes; the rest are a first guess |
 | Model Madhu, and other named models | "Share your path model" in the Path Market | Their races and steps have to come from the people who walked them |
@@ -189,7 +189,8 @@ approves it.
   - the backend's `test_milestone_guidance.py`, `test_profile_edit.py`,
     `test_step_ideas.py`, and the route checks: all 464 backend tests
     pass.
-- **STEP 85:** 19 checks on the whole schema, applied twice.
+- **STEP 85:** 19 checks on the whole schema, applied twice, and 21 on the
+  live database after the paste.
 - **In a browser, on the local build:**
   - `.qa-local/browser/plan18.mjs`, 65 checks, all passing: statuses that
     clear, rating one tool, Used, labels, remove and undo, recommend more
