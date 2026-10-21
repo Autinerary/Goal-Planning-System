@@ -102,7 +102,7 @@ their code.
   - the fallback without WebGL;
   - the link on Dream Self.
 
-  **38/38 on the local build.**
+  **38/38 on the local build, and on production (app.autinerary.ca) after the deploy on 21 October.**
 - **The earlier suites that touch Dream Self or the page guides:** g15 76/76, g34 57/57, plan16 31/31, g20 80/80, plan12 39/39.
 - **The library tests:** 37/37.
 - **The accessibility checker, signed in:** no serious or critical problems on any page.
