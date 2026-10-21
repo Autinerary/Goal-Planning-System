@@ -141,6 +141,9 @@ export default function IdealSelfPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {parentFirst && supportedSection}
           <section className="lg:col-span-2 grid gap-6 sm:grid-cols-2 py-4">
+            <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" data-character3d-link>
+              <span className="font-semibold">New:</span> try the <Link href="/character" className="font-semibold underline">3D character creator</Link>. Your character below stays as it is.
+            </p>
             <AvatarEditor title="Your character" hint="Shown on your race track, at the step you're on." full value={character} onChange={appearance => update({ character: appearance })} />
             <AvatarEditor title="Dream Self appearance" value={prefs.dreamAppearance || defaultAppearance} onChange={appearance => update({ dreamAppearance: appearance })} />
             <div className="space-y-4">

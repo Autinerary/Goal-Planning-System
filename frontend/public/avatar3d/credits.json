@@ -1,0 +1,586 @@
+[
+ {
+  "kind": "part",
+  "id": "eyelashes",
+  "asset": "eyelashes02",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "part",
+  "id": "eyes",
+  "asset": "high-poly",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "part",
+  "id": "teeth",
+  "asset": "teeth_base",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "part",
+  "id": "tongue",
+  "asset": "tongue01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "natural",
+  "asset": "eyebrow001",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "soft-arch",
+  "asset": "eyebrow002",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "angled",
+  "asset": "eyebrow007",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "bushy",
+  "asset": "eyebrow009",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "thin-arch",
+  "asset": "eyebrow010",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "sharp",
+  "asset": "eyebrow011",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "brow",
+  "id": "straight-bold",
+  "asset": "mindfront_eyebrows_05",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1968"
+ },
+ {
+  "kind": "brow",
+  "id": "full",
+  "asset": "mindfront_eyebrows_06",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1969"
+ },
+ {
+  "kind": "brow",
+  "id": "thick",
+  "asset": "mindfront_eyebrows_07",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1970"
+ },
+ {
+  "kind": "brow",
+  "id": "arched",
+  "asset": "mindfront_eyebrows_09",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1972"
+ },
+ {
+  "kind": "brow",
+  "id": "high-arch",
+  "asset": "mindfront_eyebrows_11",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1974"
+ },
+ {
+  "kind": "brow",
+  "id": "soft-full",
+  "asset": "mindfront_eyebrows_12",
+  "author": "Mindfront",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1975"
+ },
+ {
+  "kind": "hair",
+  "id": "short-tousled",
+  "asset": "short02",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "short-neat",
+  "asset": "culturalibre_hair_02",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2892"
+ },
+ {
+  "kind": "hair",
+  "id": "close-crop",
+  "asset": "short01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "side-swept",
+  "asset": "short03",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "slicked-back",
+  "asset": "short04",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "textured-crop",
+  "asset": "elvs_lara_hair",
+  "author": "Elvaerwyn",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/2634"
+ },
+ {
+  "kind": "hair",
+  "id": "wavy-quiff",
+  "asset": "culturalibre_hair_05",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2445"
+ },
+ {
+  "kind": "hair",
+  "id": "spiky",
+  "asset": "culturalibre_hair_06",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2479"
+ },
+ {
+  "kind": "hair",
+  "id": "afro",
+  "asset": "afro01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "afro-puffs",
+  "asset": "elvs_micky_afro",
+  "author": "Elvaerwyn",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/2817"
+ },
+ {
+  "kind": "hair",
+  "id": "braided-rows",
+  "asset": "elvs_braided_rows",
+  "author": "Elvaerwyn",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/1659"
+ },
+ {
+  "kind": "hair",
+  "id": "curly-bob",
+  "asset": "elvs_inverted_curly_bob",
+  "author": "Elvaerwyn",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/2683"
+ },
+ {
+  "kind": "hair",
+  "id": "big-curls",
+  "asset": "elvs_wavy_bob",
+  "author": "Elvaerwyn",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/1551"
+ },
+ {
+  "kind": "hair",
+  "id": "curls-headband",
+  "asset": "sonntag78_blond_with_headband",
+  "author": "sonntag78",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/207"
+ },
+ {
+  "kind": "hair",
+  "id": "long-curls",
+  "asset": "punkduck_alpha7_curly",
+  "author": "punkduck",
+  "license": "CC-BY",
+  "source": "http://www.makehumancommunity.org/node/480"
+ },
+ {
+  "kind": "hair",
+  "id": "bob",
+  "asset": "bob02",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "bob-bangs",
+  "asset": "toigo_blunt_bob_with_bangs",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1681"
+ },
+ {
+  "kind": "hair",
+  "id": "inverted-bob",
+  "asset": "toigo_inverted_bob",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1673"
+ },
+ {
+  "kind": "hair",
+  "id": "ponytail",
+  "asset": "ponytail01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "top-bun",
+  "asset": "rehmanpolanski_hair_bun_brown",
+  "author": "RehmanPolanski",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2477"
+ },
+ {
+  "kind": "hair",
+  "id": "braided-bun",
+  "asset": "elvs_reverse_french_braid_bun",
+  "author": "Elvaerwyn",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1337"
+ },
+ {
+  "kind": "hair",
+  "id": "side-braid",
+  "asset": "braid01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "long-straight",
+  "asset": "long01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "hair",
+  "id": "long-layers",
+  "asset": "culturalibre_hair_01",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2893"
+ },
+ {
+  "kind": "outfit",
+  "id": "basics",
+  "asset": "toigo_basic_tucked_t-shirt",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1203"
+ },
+ {
+  "kind": "outfit",
+  "id": "basics",
+  "asset": "cortu_jeans_shorts",
+  "author": "Cortu",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2800"
+ },
+ {
+  "kind": "outfit",
+  "id": "tee-jeans",
+  "asset": "male_casualsuit06",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "tee-jeans",
+  "asset": "shoes06",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "denim",
+  "asset": "male_casualsuit01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "denim",
+  "asset": "shoes02",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "jacket",
+  "asset": "male_casualsuit05",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "jacket",
+  "asset": "culturalibre_male_boots",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2548"
+ },
+ {
+  "kind": "outfit",
+  "id": "striped",
+  "asset": "male_casualsuit03",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "striped",
+  "asset": "shoes01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "suit",
+  "asset": "male_elegantsuit01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "suit",
+  "asset": "shoes03",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "blouse-skirt",
+  "asset": "female_elegantsuit01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "blouse-skirt",
+  "asset": "toigo_ballet_flats",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1734"
+ },
+ {
+  "kind": "outfit",
+  "id": "sweater",
+  "asset": "toigo_fisherman_sweater",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1187"
+ },
+ {
+  "kind": "outfit",
+  "id": "sweater",
+  "asset": "toigo_wool_pants",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1194"
+ },
+ {
+  "kind": "outfit",
+  "id": "sweater",
+  "asset": "toigo_ankle_boots_female",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1738"
+ },
+ {
+  "kind": "outfit",
+  "id": "overalls",
+  "asset": "male_worksuit01",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "overalls",
+  "asset": "shoes04",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "outfit",
+  "id": "polo-cargo",
+  "asset": "namuhekam_male_polo_shirt",
+  "author": "namuhekam",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2909"
+ },
+ {
+  "kind": "outfit",
+  "id": "polo-cargo",
+  "asset": "cortu_cargo_pants",
+  "author": "Cortu",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2798"
+ },
+ {
+  "kind": "outfit",
+  "id": "polo-cargo",
+  "asset": "shoes05",
+  "author": "makehuman_system",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org"
+ },
+ {
+  "kind": "glasses",
+  "id": "rectangle",
+  "asset": "frankyaye_glasses_library_male",
+  "author": "frankyaye",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/153"
+ },
+ {
+  "kind": "glasses",
+  "id": "bold-square",
+  "asset": "spamrakuen_tbm_glasses_frames_01",
+  "author": "spamrakuen",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/3330"
+ },
+ {
+  "kind": "glasses",
+  "id": "geometric",
+  "asset": "spamrakuen_sagerfrogs_glasses_01",
+  "author": "spamrakuen",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/3331"
+ },
+ {
+  "kind": "glasses",
+  "id": "thin-wire",
+  "asset": "spamrakuen_sagerfrogs_glasses_03",
+  "author": "spamrakuen",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/3333"
+ },
+ {
+  "kind": "glasses",
+  "id": "clear",
+  "asset": "kwnet_at_optical_glasses",
+  "author": "kwnet_at",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/928"
+ },
+ {
+  "kind": "glasses",
+  "id": "round",
+  "asset": "toigo_round_glasses_leopard",
+  "author": "MargaretToigo",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1070"
+ },
+ {
+  "kind": "beard",
+  "id": "moustache",
+  "asset": "rehmanpolanski_moustache_viking",
+  "author": "RehmanPolanski",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2615"
+ },
+ {
+  "kind": "beard",
+  "id": "goatee",
+  "asset": "culturalibre_faun_beard",
+  "author": "culturalibre",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2356"
+ },
+ {
+  "kind": "beard",
+  "id": "chin-beard",
+  "asset": "rehmanpolanski_beard_viking",
+  "author": "RehmanPolanski",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/2614"
+ },
+ {
+  "kind": "beard",
+  "id": "full-beard",
+  "asset": "grinsegold_beard_sigmund_wip",
+  "author": "grinsegold",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/877"
+ },
+ {
+  "kind": "beard",
+  "id": "scruffy",
+  "asset": "wdg_scruffy_beard",
+  "author": "WDG",
+  "license": "CC0",
+  "source": "http://www.makehumancommunity.org/node/1769"
+ }
+]

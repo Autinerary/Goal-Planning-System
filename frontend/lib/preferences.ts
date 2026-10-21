@@ -94,6 +94,8 @@ export interface UserPreferences {
   /** The character from setup's Character step, shown on the race track at the current step. */
   character?: { hairStyle: string; hairColor: string; skinColor: string; accessory?: string; facialHair?: string; clothing?: string }
   alternatePersona?: { name: string; note: string; appearance: { hairStyle: string; hairColor: string; skinColor: string } }
+  /** The 3D character (app/character, lib/avatar3d/character.ts). Checked with sanitize() when read. */
+  character3d?: import('./avatar3d/character').Character3D
   ageRange: AgeRange | ''
   techSavvy: TechSavvy | ''
   viewPreference: ViewPreference | ''

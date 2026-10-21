@@ -136,6 +136,12 @@ const GUIDES: [RegExp, PageGuide][] = [
     purpose: 'How your plan is going, in numbers: commitment, streaks and steps done.',
     steps: ['Look back over your week. Numbers fill in as you tick steps off.'],
   }],
+  [/^\/character\/?$/, {
+    name: 'Character creator',
+    purpose: 'A 3D character that looks like you, or how you would like to look. It is new, and on its own page while the team tries it; your 2D character is unchanged.',
+    steps: ['Choose a part on the left (body, skin, face, hair and so on), then pick from its choices.', 'Turn the character by dragging it, or with the turn buttons; Pose, Attire and Environment are on the right.', 'Press Save character to keep it on your account.'],
+    connects: 'Your 2D character, on Dream Self and the race track, stays as it is.',
+  }],
   [/^\/ideal-self\/?$/, {
     name: 'Ideal Self',
     purpose: 'Your Dream Self: a picture of who you are working toward, and your character on the race track.',
