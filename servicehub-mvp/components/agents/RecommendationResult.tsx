@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Compass, Brain, Users } from 'lucide-react'
 import ResourceCard from '@/components/resources/ResourceCard'
@@ -7,6 +8,7 @@ import AgentExplanation from './AgentExplanation'
 import ConfidenceIndicator from './ConfidenceIndicator'
 import SynthesisExplanation from './SynthesisExplanation'
 import AgentContributionBreakdown from './AgentContributionBreakdown'
+import ShorthandView from './ShorthandView'
 import { showsMatchPercent } from '@/lib/agents/recommendation-agent/match'
 import type { ScoredResource } from '@/lib/agents/recommendation-agent/types'
 import type { AgentContribution } from '@/lib/agents/synthesis-engine/types'
@@ -26,6 +28,10 @@ function plainReason(resource: ScoredResource): string | null {
   }
   return 'Not rated yet'
 }
+
+type ListView = 'full' | 'shorthand'
+/** Full View (the cards) or Shorthand View, kept on this device. */
+const LIST_VIEW_KEY = 'resourcehub_recommended_view'
 
 interface RecommendationResultProps {
   resources: ScoredResource[]
@@ -61,6 +67,25 @@ export default function RecommendationResult({
   showSynthesis = true,
   memory = null,
 }: RecommendationResultProps) {
+  // Full View first; the saved choice is read after mount so the server's
+  // HTML and the first client render agree.
+  const [view, setView] = useState<ListView>('full')
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(LIST_VIEW_KEY) === 'shorthand') setView('shorthand')
+    } catch {
+      /* storage blocked — stay on Full View */
+    }
+  }, [])
+  const chooseView = (next: ListView) => {
+    setView(next)
+    try {
+      localStorage.setItem(LIST_VIEW_KEY, next)
+    } catch {
+      /* storage blocked — the choice lasts for this visit */
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -106,9 +131,31 @@ export default function RecommendationResult({
           </div>
         </div>
 
-        {showConfidence && (
-          <ConfidenceIndicator confidence={confidence} size="md" />
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Full View: the cards. Shorthand View: the Pit Stop's grouped
+              lists, each item opening its page here (Odosa). */}
+          <div role="group" aria-label="How to show these" className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm font-medium">
+            {([
+              { id: 'full' as const, label: 'Full View' },
+              { id: 'shorthand' as const, label: 'Shorthand View' },
+            ]).map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => chooseView(v.id)}
+                aria-pressed={view === v.id}
+                className={`px-3 py-1.5 transition-colors ${
+                  view === v.id ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+          {showConfidence && (
+            <ConfidenceIndicator confidence={confidence} size="md" />
+          )}
+        </div>
       </div>
 
       {/* Cross-session memory banner — shown when the agent has seen this user before */}
@@ -157,7 +204,10 @@ export default function RecommendationResult({
         </div>
       )}
 
-      {/* Resources Grid */}
+      {view === 'shorthand' && <ShorthandView resources={resources} />}
+
+      {/* Resources Grid (Full View) */}
+      {view === 'full' && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {resources.map((resource, index) => (
           <div key={resource.id} className="space-y-3">
@@ -240,6 +290,7 @@ export default function RecommendationResult({
           </div>
         ))}
       </div>
+      )}
     </div>
   )
 }
