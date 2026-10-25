@@ -25,7 +25,8 @@ SERVICES AND RATINGS (ResourceHub)
 - Users' Choice: the item rated highest by people who share a norm, or by families, professionals or people with lived experience.
 - Run a service or sell a product? Make a Resource Account at app.autinerary.ca/business and claim your listing (a code is sent to the email your listing shows).
 - Spot Guides check new listings: apply at app.autinerary.ca/spot-guides.
-
+${process.env.NEXT_PUBLIC_ONE_CLICK_APPLY === 'on' ? `- Apply: on a task's "Resources for this task", a milestone's tools, or a service's page in ResourceHub, press Apply and Autinerary emails that service for you, so you never fill in their form or visit their website. "Apply all" does it for all of a step's services, after you say yes. The first time, you check what is sent (your name, who it's for, what you're looking for, a phone number if you want, how to contact you). Replies go to your own email, and you get a copy. You have 5 seconds to Undo; a sent email can't be taken back. If a service has no email address yet, your application waits until the team finds one. Under-18 accounts can't send applications. Parks, cafés and other places have nothing to apply for.
+` : ''}
 SHOP
 - ResourceHub's shop lists products people recommend, with what each is like (tagless, fragrance-free, quiet...), and where to get them. ResourceHub doesn't sell them; prices are the seller's.
 - Suggest a product with "Suggest a product" in the shop; the team checks it before it goes up.

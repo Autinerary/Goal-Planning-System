@@ -8,6 +8,9 @@ import {
   nextStatus, resourceIdOf, toolKey, visibleTools, type PlanTool, type ToolEdits, type ToolStatus,
 } from '@/lib/milestoneTools'
 import type { ResourceLabels } from '@/lib/resourceLabels'
+import { useApplications } from '@/lib/useApplications'
+import ApplyButton from './ApplyButton'
+import ApplyDetailsDialog from './ApplyDetailsDialog'
 
 const SYMBOL: Record<string, string> = { service: '🔑', product: '👢', commentary: '🏋️', other: '🔨' }
 const STATUS_ICON: Record<ToolStatus, typeof Bookmark> = { wishlist: Bookmark, current: CheckCircle2, past: History }
@@ -59,6 +62,7 @@ function helpLines(tool: PlanTool): { category?: string; points: string[] }[] {
  * when Used, for that tool alone; each tool's ResourceHub labels; "View in
  * ResourceHub"; Remove (with Undo); "Recommend more" up to 5 for the
  * milestone; and "View these resources & more in ResourceHub" at the end.
+ * With one-click Apply on (lib/applications.ts), each service has Apply.
  */
 export default function MilestoneTools({
   milestoneId,
@@ -116,6 +120,7 @@ export default function MilestoneTools({
   const [labels, setLabels] = useState<Record<string, ResourceLabels>>({})
   const ids = tools.map(resourceIdOf).filter((x): x is string => !!x)
   const idsKey = ids.join(',')
+  const applications = useApplications(ids, 'milestone')
   useEffect(() => {
     const need = ids.filter((id) => !labels[id])
     if (!need.length) return
@@ -301,6 +306,7 @@ export default function MilestoneTools({
                 })}
                 </div>
                 <span className="ml-auto flex flex-wrap items-center gap-3">
+                  <ApplyButton app={applications} resourceId={rid} name={tool.name} compact />
                   <a href={goHubHref(hubPath(tool))} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-sky-800 underline underline-offset-2">
                     View in ResourceHub <ExternalLink className="h-3 w-3" aria-hidden="true" /><span className="sr-only">(opens in a new tab)</span>
                   </a>
@@ -360,6 +366,12 @@ export default function MilestoneTools({
         )}
       </div>
       <p className="mt-2 min-h-[1.25rem] text-sm text-slate-800" role="status" aria-live="polite">{note}</p>
+      {applications.on && (
+        <>
+          <p className="min-h-[1.25rem] text-sm text-slate-900" role="status" aria-live="polite" data-apply-note>{applications.note}</p>
+          <ApplyDetailsDialog app={applications} />
+        </>
+      )}
 
       {hubButton && <HubButton milestoneName={milestoneName} />}
     </section>

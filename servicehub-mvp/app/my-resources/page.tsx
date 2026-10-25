@@ -12,12 +12,14 @@ import PastTab from '@/components/myResources/PastTab'
 import RatedTab from '@/components/myResources/RatedTab'
 import SubmittedTab from '@/components/myResources/SubmittedTab'
 import BuildTeamTab from '@/components/myResources/BuildTeamTab'
+import AppliedTab from '@/components/myResources/AppliedTab'
+import { APPLY_ON } from '@/lib/apply'
 import MoreLikeThesePrompt from '@/components/prompts/MoreLikeThesePrompt'
 import KeptItems from '@/components/myResources/KeptItems'
-import { Bookmark, Star, FileText, Calendar, History, Plus, Users, Building2, ChefHat, ShoppingBag } from 'lucide-react'
+import { Bookmark, Star, FileText, Calendar, History, Plus, Send, Users, Building2, ChefHat, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 
-type TabType = 'build-team' | 'saved' | 'current' | 'past' | 'rated' | 'submitted'
+type TabType = 'build-team' | 'applied' | 'saved' | 'current' | 'past' | 'rated' | 'submitted'
 // Layer 1 (the team's notes, October 2026: "Categories in My Resources should
 // be 2 layered; Layer 1 as Service, Post or Store Item, Layer 2 as layers in
 // each"): services, Tidbits and shop items, each with its own categories.
@@ -79,6 +81,8 @@ export default function MyResourcesPage() {
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'build-team', label: 'Build a Team', icon: <Users className="w-5 h-5" aria-hidden="true" /> },
+    // One-click Apply (lib/apply.ts): what the person applied to from the app or here.
+    ...(APPLY_ON ? [{ id: 'applied' as TabType, label: 'Applied', icon: <Send className="w-5 h-5" aria-hidden="true" /> }] : []),
     { id: 'saved', label: 'Wishlist', icon: <Bookmark className="w-5 h-5" aria-hidden="true" /> },
     { id: 'current', label: 'My Resources', icon: <Calendar className="w-5 h-5" aria-hidden="true" /> },
     { id: 'past', label: 'Completed', icon: <History className="w-5 h-5" aria-hidden="true" /> },
@@ -170,6 +174,7 @@ export default function MyResourcesPage() {
           {/* Tab Content */}
           <div className="mt-8">
             {activeTab === 'build-team' && <BuildTeamTab userId={userId} />}
+            {activeTab === 'applied' && <AppliedTab />}
             {STATUS_OF[activeTab] && kind !== 'service' && <KeptItems kind={kind} status={STATUS_OF[activeTab]!} />}
             {activeTab === 'saved' && kind === 'service' && <SavedTab userId={userId} />}
             {activeTab === 'current' && kind === 'service' && <CurrentTab userId={userId} />}

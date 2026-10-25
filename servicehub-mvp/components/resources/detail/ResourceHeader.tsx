@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Star, Bookmark, Share2, MapPin, Plus } from 'lucide-react'
+import { Star, Bookmark, Share2, MapPin, Plus, Send } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import { showToast } from '@/lib/toast'
 import AddRatingModal from './AddRatingModal'
@@ -10,6 +10,7 @@ import { appSignInHref } from '@/lib/appSignIn'
 import Link from 'next/link'
 import TeamAction from '@/components/team/TeamAction'
 import type { TeamState } from '@/lib/team'
+import { APPLY_ON, applyHref, canApplyTo } from '@/lib/apply'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -195,6 +196,19 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
               <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
               {isSaving ? 'Saving…' : isSaved ? 'Saved' : 'Save'}
             </button>
+          )}
+
+          {/* One-click Apply (lib/apply.ts): Autinerary sends the request, so
+              nobody has to go to the service's own website to apply. */}
+          {APPLY_ON && canApplyTo(resource.category) && (
+            <a
+              href={applyHref(resource.id)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              data-apply-link
+            >
+              <Send className="w-4 h-4" aria-hidden="true" />
+              Apply
+            </a>
           )}
         </div>
       </div>

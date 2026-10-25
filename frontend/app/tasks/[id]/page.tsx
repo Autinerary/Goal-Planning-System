@@ -23,6 +23,8 @@ import { socialAvailable } from '@/lib/moments'
 import BackButton from '../../components/BackButton'
 import CompanionSwitch from '../../components/CompanionSwitch'
 import { GENERAL_TRICKS, todayIn } from '@/lib/taskDay'
+import TaskResources from '../../components/TaskResources'
+import { toolsFromRecs } from '@/lib/milestoneTools'
 
 /*
   TASK VIEW (Screen 5), redesigned (the team's notes, October 2026: "The
@@ -41,6 +43,8 @@ import { GENERAL_TRICKS, todayIn } from '@/lib/taskDay'
   • One companion (your spirit animal), off unless you turn it on.
   • Done: celebrate, then "Capture this moment" (Hare World Social).
   • Stop for now: a note to future you, back on your next task.
+  • Resources for this task (one-click Apply, October 2026): its step's
+    resources, each with Apply, and "Apply all" (components/TaskResources).
 */
 
 export default function TaskView() {
@@ -69,7 +73,7 @@ function TaskViewContent() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const { pathPlanning, calendarOptimization, payload } = useAgentPath()
+  const { pathPlanning, calendarOptimization, toolRecommendation, payload } = useAgentPath()
   const schedule: any[] = (payload?.schedule || calendarOptimization?.schedule || []) as any[]
   // Today is today's weekday in the schedule (it used to be the first day).
   const today = todayIn(schedule)
@@ -82,6 +86,8 @@ function TaskViewContent() {
   const taskName = nameParam || current?.name || current?.title || taskId.replace(/_/g, ' ').replace(/-/g, ' ')
   const milestone = ((pathPlanning?.milestones as any[]) || []).find((m) => m?.id && m.id === current?.milestoneId)
   const minutes = current?.adjustedDuration || current?.estimatedDuration
+  // The step's resources: the same list, order and edits as the Milestone view.
+  const stepTools = milestone ? toolsFromRecs((toolRecommendation?.recommendations || {})[milestone.id]) : []
 
   // Tricks for this task: its own (written with the plan), then its
   // milestone's tips, then general ones, said as such.
@@ -347,6 +353,15 @@ function TaskViewContent() {
             </section>
           </div>
         </div>
+
+        {milestone && (
+          <TaskResources
+            milestoneId={milestone.id}
+            milestoneName={milestone.name || milestone.title || 'this step'}
+            baseTools={stepTools}
+            initialEdits={(payload as any)?.toolEdits?.[milestone.id]}
+          />
+        )}
       </div>
     </div>
   )
