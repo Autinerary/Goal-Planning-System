@@ -43,8 +43,8 @@ import { toolsFromRecs } from '@/lib/milestoneTools'
   • One companion (your spirit animal), off unless you turn it on.
   • Done: celebrate, then "Capture this moment" (Hare World Social).
   • Stop for now: a note to future you, back on your next task.
-  • Resources for this task (one-click Apply, October 2026): its step's
-    resources, each with Apply, and "Apply all" (components/TaskResources).
+  • Resources for this task (one-click sign-up, October 2026): its step's
+    resources, each with Sign me up, and "Sign up for all" (components/TaskResources).
 */
 
 export default function TaskView() {

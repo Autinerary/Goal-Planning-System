@@ -8,6 +8,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // One-click sign-up's server robot (app/api/me/signups/robot) runs a real
+    // browser: these stay as installed, not bundled.
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8000',
     NEXT_PUBLIC_SERVICE_HUB_URL: process.env.NEXT_PUBLIC_SERVICE_HUB_URL || 'http://localhost:3001',

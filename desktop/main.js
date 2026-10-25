@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Tray, Menu, shell, ipcMain, screen, nativeImage } = require('electron')
 const path = require('node:path')
+const signup = require('./signup')
 
 /**
  * Autinerary desktop.
@@ -35,7 +36,9 @@ function createMainWindow() {
     backgroundColor: '#eef4ff',
     webPreferences: {
       // Remote content is loaded here, so the renderer gets no Node access
-      // and no direct access to anything privileged.
+      // and no direct access to anything privileged: only one-click
+      // sign-up's two checked functions (app-preload.js, signup.js).
+      preload: path.join(__dirname, 'app-preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -183,6 +186,7 @@ ipcMain.on('mascot:drag', (_evt, { dx, dy }) => {
 })
 
 app.whenReady().then(() => {
+  signup.register({ appUrl: APP_URL, getMainWindow: () => mainWindow })
   createMainWindow()
   createMascotWindow()
   createTray()

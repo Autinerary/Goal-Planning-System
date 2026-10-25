@@ -10,6 +10,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase, isConfigured } from './lib/supabase'
 import PathScreen from './screens/PathScreen'
 import TodayScreen from './screens/TodayScreen'
+import SignupScreen from './screens/SignupScreen'
 
 const Tab = createBottomTabNavigator()
 
@@ -108,6 +109,12 @@ export default function App() {
           options={{ tabBarIcon: ({ color }) => <TabIcon glyph="🗺️" color={color} /> }}
         >
           {() => <PathScreen session={session} />}
+        </Tab.Screen>
+        <Tab.Screen
+          name="Sign up"
+          options={{ tabBarIcon: ({ color }) => <TabIcon glyph="✍️" color={color} /> }}
+        >
+          {() => <SignupScreen session={session} />}
         </Tab.Screen>
         <Tab.Screen
           name="Account"

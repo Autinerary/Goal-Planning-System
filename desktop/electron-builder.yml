@@ -19,6 +19,10 @@ directories:
 files:
   - main.js
   - preload.js
+  - app-preload.js
+  - signup.js
+  - signup-preload.js
+  - signup-kit.js
   - renderer/**/*
   - package.json
 

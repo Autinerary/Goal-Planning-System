@@ -68,3 +68,6 @@ docs/yc-application-review.html
 docs/yc-application-review.pdf
 docs/autinerary-vector-deck.pptx
 check-links-result.json
+
+# Chrome writes its rules cache here when the extension is loaded unpacked.
+chrome-extension/_metadata/

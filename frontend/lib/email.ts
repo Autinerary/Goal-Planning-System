@@ -16,10 +16,6 @@ export interface SendEmailInput {
   headers?: Record<string, string>
   /** Sender, when it is not the reminders address. */
   from?: string
-  /** Where replies go, when not the sender (one-click Apply: the person applying). */
-  replyTo?: string
-  /** A blind copy (one-click Apply: the person gets a copy of what was sent). */
-  bcc?: string
 }
 
 export type SendEmailResult = { ok: boolean; skipped?: boolean; id?: string; error?: string }
@@ -37,20 +33,10 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   if (!input.to) return { ok: false, error: 'missing recipient' }
 
   try {
-    // RESEND_API_URL: a local stand-in for Resend in tests, so nothing is really sent.
-    const res = await fetch(`${process.env.RESEND_API_URL || 'https://api.resend.com'}/emails`, {
+    const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...(input.idempotencyKey ? { 'Idempotency-Key': input.idempotencyKey } : {}) },
-      body: JSON.stringify({
-        from,
-        to: input.to,
-        subject: input.subject,
-        html: input.html,
-        text: input.text,
-        ...(input.headers ? { headers: input.headers } : {}),
-        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
-        ...(input.bcc ? { bcc: input.bcc } : {}),
-      }),
+      body: JSON.stringify({ from, to: input.to, subject: input.subject, html: input.html, text: input.text, ...(input.headers ? { headers: input.headers } : {}) }),
       signal: AbortSignal.timeout(10000),
     })
     if (!res.ok) {

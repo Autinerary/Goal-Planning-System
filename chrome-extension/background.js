@@ -1,5 +1,8 @@
-// Goal Focus - Background Service Worker
-// Handles site blocking, time tracking, and incognito detection
+// Autinerary - Background Service Worker
+// Handles site blocking, time tracking, and incognito detection; one-click
+// sign-up is in signup.js.
+
+importScripts('signup.js')
 
 // ─── DEFAULT SETTINGS ───────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
@@ -213,6 +216,8 @@ async function checkDailyReset() {
 
 // ─── MESSAGE HANDLING (from popup/options) ──────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // One-click sign-up's messages are signup.js's.
+  if (typeof message?.type === 'string' && message.type.startsWith('signup')) return false
   (async () => {
     await loadSettings();
 

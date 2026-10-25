@@ -37,9 +37,9 @@ const ALL_TABLES = [...PROGRESS_TABLES, PLAN_TABLE, ...PRIVATE_PROFILE_TABLES] a
 // In the download, so you have everything you saved, but not restored and not
 // cleared by starting over: your moments (their captions and which task or
 // milestone; the photos and videos stay in Memories), notes to yourself, and
-// your Relationships profile (STEP 87); what one-click Apply sends for you,
-// and the applications it sent (STEP 89: an email sent stays sent).
-const EXPORT_ONLY_TABLES = ['moments', 'future_notes', 'match_profiles', 'application_details', 'service_applications'] as const
+// your Relationships profile (STEP 87); and the services Sign me up signed
+// you up for (STEP 90: an account made stays made).
+const EXPORT_ONLY_TABLES = ['moments', 'future_notes', 'match_profiles', 'service_signups'] as const
 
 // Per-table conflict targets used when restoring.
 const CONFLICT: Record<string, string> = {

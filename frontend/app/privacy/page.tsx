@@ -16,8 +16,8 @@ const UPDATED = '20 October 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
-// One-click Apply (STEP 89; lib/applications.ts): the same.
-const APPLY = process.env.NEXT_PUBLIC_ONE_CLICK_APPLY === 'on'
+// One-click sign-up (STEP 90; lib/signups.ts): the same.
+const SIGNUP = process.env.NEXT_PUBLIC_ONE_CLICK_SIGNUP === 'on'
 
 const PROVIDERS: { name: string; does: string; gets: string }[] = [
   { name: 'Supabase', does: 'Database, sign-in and file storage', gets: 'Everything saved in your account, stored in the United States (Ohio)' },
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
                 Services you add to your team and sign on, and the first meeting you schedule with one: how (video, phone or in
                 person), when, and the link or the place. The details stay with your team, which only you can see. The time and
                 “Video call with” the service go in your Autinerary calendar, which people you connect with can see. Nothing is
-                sent to the service{APPLY ? ' unless you press Apply (below)' : ''}: if you email them, it is from your own email app.
+                sent to the service: if you email them, it is from your own email app.
               </li>
               <li>Comments you post on a service, which everyone using ResourceHub can see, with your display name.</li>
               <li>
@@ -198,28 +198,24 @@ export default function PrivacyPage() {
               </li>
             </List>
           </Sub>
-          {APPLY && (
-            <Sub title="If you use Apply">
+          {SIGNUP && (
+            <Sub title="If you use Sign me up">
               <List>
                 <li>
-                  The details you save for Apply: your name, who you are applying for (and their first name and age, if you add
-                  them), what you are looking for, a phone number if you add one, and how you like to be contacted. Change them
-                  or forget them any time with “Change what we send”.
+                  When you press Sign me up for a service, its own sign-up form is filled in for you: by the Autinerary extension in your
+                  browser, or, where you don’t have it and the service allows it, by our server. Only then, and only your first and last
+                  name and your account’s email address go to that service, as if you had typed them. You agree to that service’s terms,
+                  which we show you first.
                 </li>
                 <li>
-                  Only when you press Apply (or confirm Apply all) do we email a service, and only those details and your
-                  account’s email address, so they can reply to you. Nothing from your plan, profile or norms is sent unless you
-                  wrote it yourself. You get a copy of each email.
+                  A new password is made for each account and shown to you once to save. Autinerary never keeps it, on our server or in
+                  the extension, once you have seen it.
                 </li>
                 <li>
-                  Each application: which service, when, the address it went to, and exactly what was sent. A sent email can’t
-                  be taken back; one still waiting can.
+                  We keep which services you signed up for, when, what ran it, and how it ended, so the button can tell you. Never a
+                  password. You can download it with your data.
                 </li>
-                <li>
-                  If a service’s listing has no email address, your application waits until our team finds one. The team sees
-                  how many people are waiting for that service, not who.
-                </li>
-                <li>Accounts for people under 18 can’t send applications: a parent or guardian applies from their own account.</li>
+                <li>Accounts for people under 18 can’t use Sign me up: a parent or guardian signs up from their own account.</li>
               </List>
             </Sub>
           )}
@@ -398,7 +394,7 @@ export default function PrivacyPage() {
               reminders at the time you choose if you turn them on, a weekly email with the resources you saved in
               ResourceHub and new picks for you if you turn it on, and a check-in if you opt in. Without an account: a
               Start here list or the weekly email, if you ask and confirm. Each of these emails tells you how to turn them
-              off.{APPLY ? ' When you press Apply, we email that service for you, with a copy to you.' : ''}
+              off.{SIGNUP ? ' When you press Sign me up, the service you chose sends you its own emails, such as a welcome or a link to confirm.' : ''}
             </li>
             <li>
               To send notifications, only to devices you turn them on for: one when you turn them on, and a check-in if you

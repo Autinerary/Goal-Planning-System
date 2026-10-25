@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Star, Bookmark, Share2, MapPin, Plus, Send } from 'lucide-react'
+import { Star, Bookmark, Share2, MapPin, Plus, UserPlus } from 'lucide-react'
 import type { ResourceDetail } from '@/lib/supabase/queries'
 import { showToast } from '@/lib/toast'
 import AddRatingModal from './AddRatingModal'
@@ -10,7 +10,7 @@ import { appSignInHref } from '@/lib/appSignIn'
 import Link from 'next/link'
 import TeamAction from '@/components/team/TeamAction'
 import type { TeamState } from '@/lib/team'
-import { APPLY_ON, applyHref, canApplyTo } from '@/lib/apply'
+import { SIGNUP_ON, serviceForUrl, signupHref } from '@/lib/signup'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -26,6 +26,9 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   // stops being a switch: pressing it used to delete the row, team and all.
   const [teamState, setTeamState] = useState<TeamState>(resource.teamState || 'none')
   const onTeam = teamState === 'meeting' || teamState === 'signed'
+  // The service its website belongs to, if the app's one-click sign-up can do it (lib/signup.ts).
+  const site = (resource as { contact_info?: { website?: string | null } | null; source_url?: string | null })
+  const signupService = serviceForUrl(site.contact_info?.website || site.source_url)
   // Back from signing in to add it to the team.
   const [addAfterSignIn] = useState(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('then') === `team:${resource.id}`
@@ -198,16 +201,16 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
             </button>
           )}
 
-          {/* One-click Apply (lib/apply.ts): Autinerary sends the request, so
-              nobody has to go to the service's own website to apply. */}
-          {APPLY_ON && canApplyTo(resource.category) && (
+          {/* One-click sign-up (lib/signup.ts): the app fills in this service's
+              own sign-up form for the person. */}
+          {SIGNUP_ON && signupService && (
             <a
-              href={applyHref(resource.id)}
+              href={signupHref(signupService, resource.id)}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              data-apply-link
+              data-signup-link
             >
-              <Send className="w-4 h-4" aria-hidden="true" />
-              Apply
+              <UserPlus className="w-4 h-4" aria-hidden="true" />
+              Sign me up
             </a>
           )}
         </div>

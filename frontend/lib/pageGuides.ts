@@ -92,9 +92,9 @@ const GUIDES: [RegExp, PageGuide][] = [
       'Tick a task when it is done, or open it: its tricks, the Motivation Wheel to spin once as you start, and “I’ve done it”.',
       '“Stop for now” leaves a note to future you; it comes back on a task’s page.',
       'Turn on Companion to have your spirit animal with you. Drag it to any corner, or keep it on top of your other windows.',
-      // One-click Apply (lib/applications.ts), while it is switched on.
-      ...(process.env.NEXT_PUBLIC_ONE_CLICK_APPLY === 'on'
-        ? ['“Apply” on a resource sends your request to that service for you; “Apply all” sends it to all of this step’s services, once you say yes.']
+      // One-click sign-up (lib/signups.ts), while it is switched on.
+      ...(process.env.NEXT_PUBLIC_ONE_CLICK_SIGNUP === 'on'
+        ? ['“Sign me up” on a resource fills in that service’s own sign-up form for you; “Sign up for all” does all of this step’s services, once you say yes.']
         : []),
     ],
     connects: 'Tasks are planned across your week in the Calendar. When you finish one, you can keep the moment in your Memories.',

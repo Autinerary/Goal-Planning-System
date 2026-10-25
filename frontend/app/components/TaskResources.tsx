@@ -1,22 +1,24 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Send, Wrench } from 'lucide-react'
-import ApplyButton from './ApplyButton'
-import ApplyDetailsDialog from './ApplyDetailsDialog'
-import { applyAllPlan, type ApplyItem } from '@/lib/applications'
+import { UserPlus, Wrench } from 'lucide-react'
+import SignupButton from './SignupButton'
+import SignupDialogs from './SignupDialogs'
+import { signupPlan, type SignupItem } from '@/lib/signups'
 import { cleanEdits, costLabel, resourceIdOf, toolKey, visibleTools, type PlanTool } from '@/lib/milestoneTools'
-import { useApplications } from '@/lib/useApplications'
+import { useSignups } from '@/lib/useSignups'
 
-const names = (items: ApplyItem[]) => items.map((i) => i.name).join(', ')
+const names = (items: SignupItem[]) => items.map((i) => i.name).join(', ')
 
 /**
  * The task view's resources (the ask, October 2026: "on the task view all
- * the resources I am using, and an Apply all that applies to that page's
- * resources"): the resources of the step this task is part of, the same
- * five the Milestone view shows (lib/milestoneTools.ts), each with Apply,
- * and "Apply all", which says what it will do before it sends anything.
- * Only while one-click Apply is switched on.
+ * the resources I am using", with an "Apply all" for that page's resources,
+ * then: "a button that I click on and I sign up for the service, bypassing
+ * filling in the form on their site"). The resources of the step this task
+ * is part of, the same five the Milestone view shows (lib/milestoneTools.ts),
+ * each with Sign me up where the kit knows the service's form, and "Sign up
+ * for all", which says what it will do first. Only while one-click sign-up
+ * is switched on.
  */
 export default function TaskResources({
   milestoneId,
@@ -31,23 +33,27 @@ export default function TaskResources({
 }) {
   const tools = useMemo(() => visibleTools(baseTools, cleanEdits(initialEdits)), [baseTools, initialEdits])
   const ids = tools.map(resourceIdOf).filter((x): x is string => !!x)
-  const app = useApplications(ids, 'task')
+  const app = useSignups(ids)
   const [confirming, setConfirming] = useState(false)
 
-  const items: ApplyItem[] = tools.flatMap((t): ApplyItem[] => {
+  // Which service each tool is: its ResourceHub listing's website, or its own web address.
+  const serviceOf = (t: PlanTool): string | null => {
     const id = resourceIdOf(t)
-    const s = id ? app.states[id] : undefined
-    return id && s ? [{ resourceId: id, name: t.name, how: s.how, status: s.status }] : []
+    return (id && app.listings[id]) || app.serviceFor(t.url)
+  }
+  const items: SignupItem[] = tools.flatMap((t): SignupItem[] => {
+    const service = serviceOf(t)
+    const recipe = app.serviceInfo(service)
+    return recipe ? [{ service: recipe.key, name: recipe.name, status: app.signups[recipe.key]?.status || null, runner: app.runnerFor(recipe.key) }] : []
   })
-  const plan = applyAllPlan(items)
-  const toApply = [...plan.send, ...plan.hold]
-  const anyPending = Object.keys(app.pending).length > 0
+  const plan = signupPlan(items)
+  const busy = Object.keys(app.running).length > 0
 
   if (!app.on || !app.loaded || !app.ready || tools.length === 0) return null
 
-  const applyAll = async () => {
+  const signUpAll = () => {
     setConfirming(false)
-    await app.applyAll(toApply.map((i) => i.resourceId))
+    app.signUp(plan.go.map((i) => ({ service: i.service, resourceId: tools.map((t) => [serviceOf(t), resourceIdOf(t)]).find(([s]) => s === i.service)?.[1] || null })))
   }
 
   return (
@@ -58,12 +64,11 @@ export default function TaskResources({
         </h2>
         <p className="text-xs text-slate-700">From “{milestoneName}”</p>
       </div>
-      <p className="mt-1 text-sm text-slate-800">Apply sends your request to the service for you. No forms, no websites: they reply to your email.</p>
+      <p className="mt-1 text-sm text-slate-800">Sign me up fills in the service’s own sign-up form for you: no typing, no forms.</p>
 
       <ul className="mt-3 space-y-2">
         {tools.map((t) => {
-          const id = resourceIdOf(t)
-          const s = id ? app.states[id] : undefined
+          const service = serviceOf(t)
           const cost = costLabel(t)
           return (
             <li key={toolKey(t)} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
@@ -71,11 +76,10 @@ export default function TaskResources({
                 <span className="block font-semibold text-slate-900">{t.name}</span>
                 <span className="block text-xs text-slate-700">
                   {[t.category, cost].filter(Boolean).join(' · ')}
-                  {s?.how === 'none' ? `${t.category || cost ? ' · ' : ''}Nothing to apply for: you can just go` : ''}
-                  {!s ? `${t.category || cost ? ' · ' : ''}Not in ResourceHub, so it can’t be applied to from here` : ''}
+                  {!service ? `${t.category || cost ? ' · ' : ''}No one-click sign-up for this one` : ''}
                 </span>
               </span>
-              <ApplyButton app={app} resourceId={id} name={t.name} compact />
+              <SignupButton app={app} service={service} resourceId={resourceIdOf(t)} compact />
             </li>
           )
         })}
@@ -84,44 +88,40 @@ export default function TaskResources({
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {app.refusal ? (
           <p className="text-sm text-slate-800">{app.refusal}</p>
-        ) : toApply.length > 0 ? (
+        ) : plan.go.length > 0 ? (
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            disabled={app.busy || anyPending}
+            disabled={busy}
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-800 disabled:opacity-60"
-            data-apply-all
+            data-signup-all
           >
-            <Send className="h-4 w-4" aria-hidden="true" /> {app.busy ? 'Sending…' : `Apply all (${toApply.length})`}
+            <UserPlus className="h-4 w-4" aria-hidden="true" /> {busy ? 'Signing you up…' : `Sign up for all (${plan.go.length})`}
           </button>
-        ) : items.length > 0 ? (
-          <p className="text-sm font-semibold text-slate-800">{plan.done.length ? 'You’ve applied to everything here.' : ''}</p>
+        ) : plan.done.length > 0 ? (
+          <p className="text-sm font-semibold text-slate-800">You’re signed up for everything here that can be.</p>
         ) : null}
         {app.details && (
           <button type="button" onClick={app.editDetails} className="text-sm font-semibold text-indigo-800 underline underline-offset-2">
-            Change what we send
+            Change my name for sign-ups
           </button>
         )}
       </div>
 
       {confirming && (
-        <div role="alertdialog" aria-labelledby="apply-all-heading" aria-describedby="apply-all-what" className="mt-3 rounded-xl border border-indigo-300 bg-indigo-50 p-4" data-apply-all-confirm>
-          <p id="apply-all-heading" className="font-semibold text-slate-900">
-            Apply to {toApply.length} {toApply.length === 1 ? 'service' : 'services'}?
+        <div role="alertdialog" aria-labelledby="signup-all-heading" aria-describedby="signup-all-what" className="mt-3 rounded-xl border border-indigo-300 bg-indigo-50 p-4" data-signup-all-confirm>
+          <p id="signup-all-heading" className="font-semibold text-slate-900">
+            Sign you up for {plan.go.length} {plan.go.length === 1 ? 'service' : 'services'}?
           </p>
-          <div id="apply-all-what" className="mt-1 space-y-1 text-sm text-slate-800">
-            {plan.send.length > 0 && <p>Sent now: {names(plan.send)}.</p>}
-            {plan.hold.length > 0 && <p>Sent as soon as we find their email address: {names(plan.hold)}.</p>}
-            {plan.done.length > 0 && <p>Already applied: {names(plan.done)}.</p>}
-            {app.details ? (
-              <p>Each gets your saved details{app.email ? `, and replies go to ${app.email}` : ''}. An email can’t be taken back once it’s sent.</p>
-            ) : (
-              <p>First, you’ll check what we send. Nothing goes until you save it.</p>
-            )}
+          <div id="signup-all-what" className="mt-1 space-y-1 text-sm text-slate-800">
+            <p>One after another: {names(plan.go)}.</p>
+            {plan.done.length > 0 && <p>Already done: {names(plan.done)}.</p>}
+            {plan.cant.length > 0 && <p>These need the Autinerary extension: {names(plan.cant)}.</p>}
+            <p>{app.details ? `Each gets your name and ${app.email || 'email'}, and its own new password for you to save.` : 'First you’ll check your name. Nothing starts until you save it.'}</p>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
-            <button type="button" onClick={applyAll} disabled={app.busy} className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
-              {app.details ? `Yes, apply to ${toApply.length}` : 'Check what we send'}
+            <button type="button" onClick={signUpAll} className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800">
+              {app.details ? `Yes, sign me up for ${plan.go.length}` : 'Check my name'}
             </button>
             <button type="button" onClick={() => setConfirming(false)} className="rounded-lg border border-slate-400 bg-white px-4 py-2 font-semibold text-slate-800">
               Cancel
@@ -130,10 +130,10 @@ export default function TaskResources({
         </div>
       )}
 
-      <p className="mt-2 min-h-[1.25rem] text-sm text-slate-900" role="status" aria-live="polite" data-apply-note>
+      <p className="mt-2 min-h-[1.25rem] text-sm text-slate-900" role="status" aria-live="polite" data-signup-note>
         {app.note}
       </p>
-      <ApplyDetailsDialog app={app} />
+      <SignupDialogs app={app} />
     </section>
   )
 }

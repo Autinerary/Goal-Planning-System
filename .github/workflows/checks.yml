@@ -38,6 +38,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Unit tests (lib/*.test.mjs)
         run: for t in lib/*.test.mjs; do node --experimental-strip-types "$t" || exit 1; done
+      - name: Sign-up kit (its copies in the extension, the apps and ResourceHub are up to date)
+        run: node --experimental-strip-types ../scripts/build-signup-kit.mjs --check
       - name: Build
         run: npx next build
         env:

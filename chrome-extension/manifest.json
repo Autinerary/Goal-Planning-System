@@ -1,17 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Goal Focus - Site Blocker & Time Manager",
-  "version": "1.0.0",
-  "description": "Block distracting sites, manage browsing time, and stay focused on your goals.",
+  "name": "Autinerary",
+  "version": "1.1.0",
+  "description": "Block distracting sites, manage browsing time, and sign up for services from Autinerary in one click.",
   "permissions": [
-    "storage",
-    "tabs",
     "activeTab",
     "alarms",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback"
+    "declarativeNetRequestFeedback",
+    "scripting",
+    "storage",
+    "tabs"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "incognito": "spanning",
   "background": {
     "service_worker": "background.js"
@@ -30,11 +33,22 @@
     "128": "icons/icon128.png"
   },
   "declarative_net_request": {
-    "rule_resources": [{
-      "id": "blocked_sites",
-      "enabled": true,
-      "path": "rules.json"
-    }]
+    "rule_resources": [
+      {
+        "id": "blocked_sites",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   },
-  "options_page": "options.html"
+  "externally_connectable": {
+    "matches": [
+      "https://app.autinerary.ca/*",
+      "https://servicehub-six.vercel.app/*",
+      "http://localhost:3000/*",
+      "http://localhost:3100/*",
+      "http://localhost:3101/*"
+    ]
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6kKPr87vfDH5Wtyga0Vq2CFiNjg1K7u3F8CQQQlWpnad0/Fby9gbIaDPwUrpQGi0FTZ0qY9UZxt3TN89n+IOWlQeb7/HEZ32lCaMySAFQHfOu8/+rS5kySgIRIM9XwSfCfXnMUs3X7MpU+tosYlpiJbxFEWjWSu8BmYMkOJzQ83IcRaSDJ5Y83aVHEHHg2Qn6nZqTmjjhAExYoJCtLA7b3HDdPbvcQPvfNM7T4BjRXp2pjKSccgenvGfH4DCSbIalq4zw1zCwy3nuFPGmFWUS0WIhv5CO1ll9n11sbutX6s9FQ8cpAwi/3Ym8l+RJKHFZNlY+hAhCaIF+l/s+bjj9wIDAQAB"
 }
