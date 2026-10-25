@@ -71,3 +71,5 @@ check-links-result.json
 
 # Chrome writes its rules cache here when the extension is loaded unpacked.
 chrome-extension/_metadata/
+# The extension's store package (scripts/package-extension.mjs).
+chrome-extension/dist/
