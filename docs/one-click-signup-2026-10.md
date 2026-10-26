@@ -163,10 +163,10 @@ the service replies to them by email.
   would carry it too, and their mail app's Unsubscribe would stop the
   service's address.
 - **Who sent it:** like the other emails to services, a request ends with
-  Autinerary's name and mailing address (`NEWSLETTER_POSTAL_ADDRESS`) when it's
-  set, besides how to stop. A request is the person's own inquiry, but its
-  "Keep your listing up to date" link is Autinerary's; worth a look against
-  Canada's anti-spam law before switching on.
+  Autinerary's name and mailing address (`NEWSLETTER_POSTAL_ADDRESS`), besides
+  how to stop. Nothing else: no link to Autinerary's listings (the account
+  holder's choice, 26 October 2026), so each email is only the person's own
+  inquiry (Canada's anti-spam law).
 - **Limits:** one request per person per listing, and 10 a day.
 - **Never a test to a real service:** real websites were only ever tried in
   dry runs (filled in, never sent), with obviously-test details.
@@ -201,8 +201,8 @@ of them.
 | `NEXT_PUBLIC_ONE_CLICK_SIGNUP=on` | both Vercel projects (app and ResourceHub) | shows everything; until then the routes answer 404 |
 | `SIGNUP_ROBOT=on` | the app's Vercel project | lets the server robot run |
 | `SIGNUP_PARTNERS` | the app's Vercel project | partner services, as JSON, with each secret in its own environment variable |
-| `NEXT_PUBLIC_SIGNUP_EXTENSION_ID` | the app's Vercel project | the extension's Chrome Web Store ID, once published |
-| `NEXT_PUBLIC_SIGNUP_EXTENSION_URL` | the app's Vercel project | its store page, once published |
+| `NEXT_PUBLIC_SIGNUP_EXTENSION_ID` | the app's Vercel project | the extension's ID in its store, once published |
+| `NEXT_PUBLIC_SIGNUP_EXTENSION_URL` | the app's Vercel project | its store page, once published: Microsoft Edge Add-ons (free; offered to Edge only) or the Chrome Web Store (offered to Chrome and Edge). Unset: nobody is sent to get it |
 | `RESEND_API_KEY` | the app's Vercel project (already set) | sends requests by email |
 | `APPLY_FROM_EMAIL` | the app's Vercel project (optional) | the From of a request; otherwise `REMINDER_FROM_EMAIL` |
 | `OPENAI_API_KEY`, `OPENAI_FORM_MODEL` | the app's Vercel project | reading a website form's words (default `gpt-4o-mini`) |
@@ -276,9 +276,17 @@ through the DevTools protocol (`Extensions.loadUnpacked`, with `pipe: true` and
 
 ## Not done yet
 
-- **Publishing the extension** to the Chrome Web Store needs the account
-  holder's developer account. Publish **1.2.0**
-  (`chrome-extension/dist/autinerary-1.2.0.zip`): it can finish requests.
+- **The extension isn't published.** The account holder won't pay the Chrome
+  Web Store's fee (26 Oct), so Sign me up switches on without it:
+  - the services that check for robots (Todoist, Notion, Autism Canada) show
+    **"Sign up on their site"**, a link to their own sign-up page;
+  - a form that needs the person (no extension to hand it to) has **"Copy my
+    details for their form"** next to "Finish on their page" and "I've sent
+    it";
+  - nothing sends anyone to get the extension (`canAddExtension`).
+  Microsoft Edge Add-ons is free ([how](extension-store-listing.md)); once
+  1.2.0 is there and its page is set, Edge users get the in-browser sign-ups
+  and hand-overs too.
 - **The desktop app** can't finish a request's form yet: only the extension
   can. Without it, "Finish on their page" and "I've sent it".
 - **Partners:** none yet. [The spec](partner-signups.md) is what to send them.

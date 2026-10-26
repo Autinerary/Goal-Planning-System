@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
   const input = { ...account.details, email: account.email, extras: account.extras, serviceName: resource.name }
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin).replace(/\/$/, '')
   const mail = async (to: string, fromWebsite: boolean) => {
-    const m = requestEmail({ ...input, fromWebsite, claimUrl: `${appUrl}/business?claim=resource:${resourceId}`, stopUrl: requestStopUrl(appUrl, to), postal: postalAddress() })
+    const m = requestEmail({ ...input, fromWebsite, stopUrl: requestStopUrl(appUrl, to), postal: postalAddress() })
     return sendEmail({
       to,
       subject: m.subject,

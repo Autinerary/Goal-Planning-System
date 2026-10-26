@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RECIPES, recipeForUrl } from '@/lib/signupKit'
-import { contactWithExtension, desktopInfo, extensionInfo, onDesktopUpdate, signUpWithDesktop, signUpWithExtension, watchExtensionJob, type ExtensionInfo, type ExtensionStatus } from '@/lib/signupExtension'
+import { canAddExtension, contactWithExtension, desktopInfo, extensionInfo, onDesktopUpdate, signUpWithDesktop, signUpWithExtension, watchExtensionJob, type ExtensionInfo, type ExtensionStatus } from '@/lib/signupExtension'
 import { SIGNUP_ON, outcomeMessage, pickRunner, type Runner, type SignupDetails, type SignupStatus } from '@/lib/signups'
 import { NO_EXTRAS, formMessage, formSubject, type RequestExtras, type RequestHow } from '@/lib/requests'
 
@@ -41,6 +41,8 @@ export interface ServiceInfo {
   terms?: string
   privacy?: string
   note?: string
+  /** Its own sign-up page (the kit's services), or a local service's website: where to finish by hand. */
+  start?: string
 }
 
 interface PartnerInfo {
@@ -53,13 +55,15 @@ export function useSignups(resourceIds: string[] = []) {
   const key = [...new Set(resourceIds.filter(Boolean))].sort().join(',')
   const [info, setInfo] = useState<Info>({ on: SIGNUP_ON, ready: false, refusal: null, email: null, details: null, extras: NO_EXTRAS, suggested: '', robot: false, forms: false })
   // Local services on this page: how a request reaches each (by listing id).
-  const [requests, setRequests] = useState<Record<string, { key: string; how: RequestHow; name: string }>>({})
+  const [requests, setRequests] = useState<Record<string, { key: string; how: RequestHow; name: string; site?: string | null }>>({})
   // After a hand-over from a website's form, by service: its page to finish on, and whether the
   // extension has it open there, filled in (and is watching for it being sent).
   const [handOver, setHandOver] = useState<Record<string, { url: string; inExtension: boolean }>>({})
   const [signups, setSignups] = useState<Record<string, SignupState>>({})
   const [listings, setListings] = useState<Record<string, string>>({})
   const [extension, setExtension] = useState<ExtensionInfo | null>(null)
+  // Whether this browser could add the extension (it's in a store this browser takes): known after the page loads.
+  const [canAdd, setCanAdd] = useState(false)
   const [desktop, setDesktop] = useState<ExtensionInfo | null>(null)
   const [partners, setPartners] = useState<PartnerInfo[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -86,6 +90,7 @@ export function useSignups(resourceIds: string[] = []) {
     }
     setExtension(ext)
     setDesktop(desk)
+    setCanAdd(canAddExtension())
     setLoaded(true)
   }, [key])
 
@@ -107,10 +112,10 @@ export function useSignups(resourceIds: string[] = []) {
     (service: string | null | undefined): ServiceInfo | null => {
       if (!service) return null
       const r = RECIPES[service]
-      if (r) return { key: r.key, name: r.name, kind: r.kind, terms: r.terms, privacy: r.privacy, note: r.note }
+      if (r) return { key: r.key, name: r.name, kind: r.kind, terms: r.terms, privacy: r.privacy, note: r.note, start: r.start }
       // A local service: only one there's a way to reach, or one already asked (its status still shows).
       const local = Object.values(requests).find((x) => x.key === service)
-      if (local) return local.how !== 'none' || signups[local.key] ? { key: local.key, name: local.name, kind: 'request', note: local.how === 'email' ? 'By email' : 'Through their website' } : null
+      if (local) return local.how !== 'none' || signups[local.key] ? { key: local.key, name: local.name, kind: 'request', note: local.how === 'email' ? 'By email' : 'Through their website', start: local.site || undefined } : null
       const p = partners.find((x) => x.key === service)
       if (p) return { key: p.key, name: p.name, kind: 'account' }
       const b = brought.find((x) => x.key === service)
@@ -306,7 +311,11 @@ export function useSignups(resourceIds: string[] = []) {
           if (!runnerFor(item.service)) {
             const s = serviceInfo(item.service)
             const name = s?.name || 'This service'
-            setNote(s?.kind === 'request' ? `Requests through ${name}’s website aren’t switched on yet.` : `${name} needs the Autinerary extension for one-click sign-up.`)
+            setNote(
+              s?.kind === 'request' ? `Requests through ${name}’s website aren’t switched on yet.`
+                : canAdd ? `${name} needs the Autinerary extension for one-click sign-up.`
+                  : `${name} can’t be signed up for from here: use the link to sign up on its own site.`,
+            )
             continue
           }
           await runOne(item.service, item.resourceId, details, extras)
@@ -315,7 +324,7 @@ export function useSignups(resourceIds: string[] = []) {
         busy.current = false
       }
     },
-    [info.details, info.extras, info.refusal, runOne, runnerFor, serviceInfo],
+    [canAdd, info.details, info.extras, info.refusal, runOne, runnerFor, serviceInfo],
   )
 
   /** The details were saved: carry on with what was asked. */
@@ -364,6 +373,8 @@ export function useSignups(resourceIds: string[] = []) {
     handOver,
     robot: info.robot,
     extension,
+    /** This browser could add the extension from its store (otherwise never send anyone to get it). */
+    canAddExtension: canAdd,
     desktop,
     loginLink,
     signups,

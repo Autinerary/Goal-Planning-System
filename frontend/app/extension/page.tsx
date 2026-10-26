@@ -3,19 +3,24 @@
 import { useEffect, useState } from 'react'
 import BackButton from '../components/BackButton'
 import { RECIPES } from '@/lib/signupKit'
-import { extensionInfo, type ExtensionInfo } from '@/lib/signupExtension'
+import { EXTENSION_URL, canAddExtension, extensionInfo, extensionStore, type ExtensionInfo } from '@/lib/signupExtension'
 
 /**
  * The Autinerary extension (chrome-extension/): what it does for one-click
  * sign-up and how to get it. Whether it is already here is asked live.
- * NEXT_PUBLIC_SIGNUP_EXTENSION_URL is its Chrome Web Store page, once published.
+ * NEXT_PUBLIC_SIGNUP_EXTENSION_URL is its store page once it is listed:
+ * Microsoft Edge Add-ons (free to publish to; Edge only) or the Chrome Web
+ * Store. It's only offered to a browser that can add it; everyone else is
+ * told they don't need it.
  */
-const STORE_URL = process.env.NEXT_PUBLIC_SIGNUP_EXTENSION_URL || ''
+const STORE = extensionStore()
 
 export default function ExtensionPage() {
   const [ext, setExt] = useState<ExtensionInfo | null | undefined>(undefined)
+  const [canAdd, setCanAdd] = useState(false)
   useEffect(() => {
     extensionInfo().then(setExt)
+    setCanAdd(canAddExtension())
   }, [])
   const services = Object.values(RECIPES)
 
@@ -37,12 +42,19 @@ export default function ExtensionPage() {
           </p>
           {!ext && ext !== undefined && (
             <p className="mt-2 text-slate-800">
-              {STORE_URL ? (
-                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-800 underline underline-offset-2">
-                  Add it from the Chrome Web Store<span className="sr-only"> (opens in a new tab)</span>
+              {canAdd ? (
+                <a href={EXTENSION_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-800 underline underline-offset-2">
+                  {STORE === 'edge' ? 'Add it from Microsoft Edge Add-ons' : 'Add it from the Chrome Web Store'}
+                  <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               ) : (
-                'It’s on its way to the Chrome Web Store. It works in Chrome and Edge on a computer.'
+                <>
+                  {STORE === 'edge'
+                    ? 'It’s for Microsoft Edge on a computer (Edge comes with Windows). '
+                    : 'It isn’t available to add yet. '}
+                  You don’t need it: without it, Sign me up still sends local services your request and signs you up for the services
+                  below, except those marked “with the extension only”, which have a link to sign up on their own site.
+                </>
               )}
             </p>
           )}

@@ -126,7 +126,7 @@ export default function TaskResources({
           <div id="signup-all-what" className="mt-1 space-y-1 text-sm text-slate-800">
             <p>One after another: {names(plan.go)}.</p>
             {plan.done.length > 0 && <p>Already done: {names(plan.done)}.</p>}
-            {cantAccounts.length > 0 && <p>These need the Autinerary extension: {names(cantAccounts)}.</p>}
+            {cantAccounts.length > 0 && <p>{app.canAddExtension ? 'These need the Autinerary extension' : 'Sign up for these on their own site (the link is next to each)'}: {names(cantAccounts)}.</p>}
             {cantRequests.length > 0 && <p>These can’t be sent from here yet: {names(cantRequests)}.</p>}
             <p>
               {!app.details

@@ -1,6 +1,35 @@
-# Publishing the Autinerary extension to the Chrome Web Store
+# Publishing the Autinerary extension
 
-What the store's forms ask for, ready to paste. The package is made with
+**Sign me up doesn't need the extension** (the account holder's choice, 26
+October 2026: no Chrome Web Store fee). Without it, local services still get
+the person's request; Focusmate, Headspace, Speechify and CHADD are signed up
+by the server; the services that check for robots (Todoist, Notion, Autism
+Canada) show "Sign up on their site"; and a form that needs the person comes
+with their details to copy. The app offers the extension only to a browser
+that can add it from the store it's listed in (`canAddExtension` in
+`frontend/lib/signupExtension.ts`), and nobody, until it's listed.
+
+## Microsoft Edge Add-ons (free)
+
+Edge comes with Windows. Listing it here costs nothing; it then works for
+Edge users only (Chrome can't add from Edge's store).
+
+1. Register as an Edge extension developer, following Microsoft's guide:
+   https://learn.microsoft.com/microsoft-edge/extensions/publish/create-dev-account
+   (Partner Center, with a personal Microsoft account or GitHub; not a work or
+   school account). There's no fee.
+2. "Create new extension": upload `chrome-extension/dist/autinerary-1.2.0.zip`.
+3. The listing: the same name, description, category and privacy policy as
+   below (Edge's form asks much the same).
+4. Submit it for review. Once it's published, send its Edge Add-ons page
+   (`https://microsoftedge.microsoft.com/addons/detail/autinerary/<id>`) and
+   the ID. They go in the Vercel project goal-planning-app as
+   `NEXT_PUBLIC_SIGNUP_EXTENSION_URL` and `NEXT_PUBLIC_SIGNUP_EXTENSION_ID`,
+   then a redeploy; Edge users are then offered it, nobody else.
+
+## The Chrome Web Store (a one-time US$5 fee; not taken)
+
+What the store's forms ask for, ready to paste. Edge's form asks for the same. The package is made with
 `node --experimental-strip-types scripts/package-extension.mjs`, which writes
 `chrome-extension/dist/autinerary-<version>.zip`. The version to publish is
 **1.2.0**: it adds finishing a local service's request on their own form (when

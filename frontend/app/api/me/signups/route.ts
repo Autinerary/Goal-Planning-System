@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   const ids = [...new Set(String(req.nextUrl.searchParams.get('ids') || '').split(',').map((s) => s.trim()).filter((s) => UUID.test(s)))].slice(0, 40)
   // Which listings the kit or a partner signs up for, and how a request reaches the rest.
   const listings: Record<string, string> = {}
-  const requests: Record<string, { key: string; how: 'email' | 'form' | 'none'; name: string }> = {}
+  const requests: Record<string, { key: string; how: 'email' | 'form' | 'none'; name: string; site: string | null }> = {}
   if (ids.length) {
     const { data: resources } = await admin.from('resources').select('id, name, category, status, contact_info, source_url, source_type').in('id', ids)
     const onFile = new Map<string, string>()
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       const service = serviceForUrl((r.contact_info as { website?: string } | null)?.website || (r.source_type === 'openstreetmap' ? null : r.source_url))
       if (service) listings[r.id] = service
       // A place (a park, a café) has nothing to sign up for: not "no online way to reach them".
-      else if (!isPlace(r.category)) requests[r.id] = { key: listingKey(r.id), how: howToRequest(r), name: r.name }
+      else if (!isPlace(r.category)) requests[r.id] = { key: listingKey(r.id), how: howToRequest(r), name: r.name, site: listingWebsite(r) }
       if (requests[r.id]?.how === 'email') onFile.set(r.id, String((r.contact_info as { email: string }).email).trim().toLowerCase())
     }
     // An address that asked to stop (lib/requestLinks.ts): their website's form instead, or no way online.

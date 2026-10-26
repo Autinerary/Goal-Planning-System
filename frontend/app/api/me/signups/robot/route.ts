@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const recipe = RECIPES[String(body?.service || '')]
   if (!recipe) return NextResponse.json({ error: 'Unknown service.' }, { status: 400 })
-  if (!recipe.robot) return NextResponse.json({ error: `${recipe.name} checks for robots, so this needs the Autinerary extension.`, needsExtension: true }, { status: 409 })
+  if (!recipe.robot) return NextResponse.json({ error: `${recipe.name} checks for robots, so it can’t be done from here: sign up on its own site${recipe.start ? ` (${recipe.start})` : ''}.`, needsExtension: true, start: recipe.start }, { status: 409 })
 
   const admin = createAdminClient()
   const account = await accountFor(admin, user)

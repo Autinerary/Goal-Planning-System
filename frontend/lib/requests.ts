@@ -210,10 +210,12 @@ export interface RequestInput {
 
 /**
  * The email a service gets: who is asking, for whom, what they're looking
- * for, how to reach them. Nothing else, but a way to keep the listing right
- * and one to stop requests to this address (lib/requestLinks.ts).
+ * for, how to reach them. Nothing else (no link to Autinerary's listings: the
+ * account holder's choice, 26 October 2026, so it is only the person's
+ * request), but who sent it and a way to stop requests to this address
+ * (lib/requestLinks.ts).
  */
-export function requestEmail(input: RequestInput & { claimUrl: string; stopUrl: string; fromWebsite?: boolean; postal?: string | null }): { subject: string; text: string; html: string } {
+export function requestEmail(input: RequestInput & { stopUrl: string; fromWebsite?: boolean; postal?: string | null }): { subject: string; text: string; html: string } {
   const name = oneLine(`${input.firstName} ${input.lastName}`, 120)
   const x = input.extras
   const service = oneLine(input.serviceName, 200) || 'there'
@@ -224,7 +226,6 @@ export function requestEmail(input: RequestInput & { claimUrl: string; stopUrl: 
   const footer = `Sent by Autinerary (autinerary.ca) at ${name}’s request${input.fromWebsite ? ', to the address on your website' : ''}. Your reply goes straight to ${name}; Autinerary doesn’t see it.`
   const text = [
     `Hello ${service},`, '', opening, ...(x.needs ? ['', 'What they’re looking for:', x.needs] : []), '', 'How to reach them:', ...reach, '', next, '', '—', footer,
-    `Do you run this service? Keep your listing up to date: ${input.claimUrl}`,
     `Not the right address for requests like this? Stop them: ${input.stopUrl}`,
     ...(input.postal ? [`Autinerary Corp., ${oneLine(input.postal, 200)}`] : []),
   ].join('\n')
@@ -239,7 +240,6 @@ export function requestEmail(input: RequestInput & { claimUrl: string; stopUrl: 
         ${p(esc(next))}
         <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0">
         ${p(esc(footer), 'font-size:13px;line-height:1.5;color:#475569;margin:0 0 8px')}
-        ${p(`Do you run this service? <a href="${esc(input.claimUrl)}" style="color:#1d4ed8">Keep your listing up to date</a>.`, 'font-size:13px;line-height:1.5;color:#475569;margin:0 0 8px')}
         ${p(`Not the right address for requests like this? <a href="${esc(input.stopUrl)}" style="color:#1d4ed8">Stop them</a>.`, 'font-size:13px;line-height:1.5;color:#475569;margin:0')}
         ${input.postal ? p(esc(`Autinerary Corp., ${oneLine(input.postal, 200)}`), 'font-size:13px;line-height:1.5;color:#475569;margin:8px 0 0') : ''}
       </div>`

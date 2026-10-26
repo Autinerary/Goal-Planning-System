@@ -6,8 +6,33 @@
  * null. Browser only.
  */
 
-/** The extension's ID: fixed by the public key in its manifest; the Chrome Web Store's once it is published. */
+/** The extension's ID: fixed by the public key in its manifest; its store's once it is published. */
 export const EXTENSION_ID = process.env.NEXT_PUBLIC_SIGNUP_EXTENSION_ID || 'nfhcdhdjijngooikmhoeebadceanmncf'
+
+/**
+ * Its page in a store, once it is listed there (NEXT_PUBLIC_SIGNUP_EXTENSION_URL):
+ * Microsoft Edge Add-ons (free to publish to) or the Chrome Web Store (a fee).
+ * Until then nobody is sent to get it: Sign me up works without it where it
+ * can, and links to a service's own sign-up page where it can't.
+ */
+export const EXTENSION_URL = process.env.NEXT_PUBLIC_SIGNUP_EXTENSION_URL || ''
+
+export type ExtensionStore = 'edge' | 'chrome' | null
+
+export function extensionStore(url: string = EXTENSION_URL): ExtensionStore {
+  try {
+    const host = new URL(url).hostname
+    if (host === 'microsoftedge.microsoft.com') return 'edge'
+    if (host === 'chromewebstore.google.com' || host === 'chrome.google.com') return 'chrome'
+  } catch {}
+  return null
+}
+
+/** Whether this browser can add the extension from its store: Edge's only in Edge; Chrome's in Chrome, Edge and the like; never on a phone. */
+export function canAddExtension(store: ExtensionStore = extensionStore(), userAgent = typeof navigator === 'undefined' ? '' : navigator.userAgent): boolean {
+  if (!store || /Mobi|Android|iPhone|iPad/i.test(userAgent)) return false
+  return store === 'edge' ? /\bEdg\//.test(userAgent) : /\b(Chrome|Chromium|Edg)\//.test(userAgent)
+}
 
 type SendMessage = (id: string, message: unknown, callback: (response: unknown) => void) => void
 
