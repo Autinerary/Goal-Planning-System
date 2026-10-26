@@ -196,6 +196,12 @@ of them.
 
 ## Switches and settings
 
+**Switched on 26 October 2026,** without the extension (no store listing):
+`NEXT_PUBLIC_ONE_CLICK_SIGNUP=on` in both Vercel projects and `SIGNUP_ROBOT=on`
+in the app's, in production. `.qa-local/browser/signup_on.mjs` checks it there
+(21/21) without contacting any service; `signup_off.mjs` is the check for
+switched off. To switch off, remove those and redeploy.
+
 | Setting | Where | What it does |
 |---|---|---|
 | `NEXT_PUBLIC_ONE_CLICK_SIGNUP=on` | both Vercel projects (app and ResourceHub) | shows everything; until then the routes answer 404 |
@@ -218,14 +224,18 @@ of them.
   `SIGNUP_ROBOT_CHROME` to the path of a Chrome.
   - That browser couldn't be run on the Apple-silicon Mac it was built on, even
     in Amazon's own Lambda image (x86 emulation hangs Chromium).
-  - After switching `SIGNUP_ROBOT` on, open `/api/me/signups/robot?check=1`
-    while signed in. It starts the browser, loads a blank page and gives its
-    version, with no service and nobody's details. Do this before anyone uses
-    the robot.
+  - On Vercel it needs `AWS_LAMBDA_JS_RUNTIME` (set in `lib/signupBrowser.ts`
+    before the package loads): `@sparticuz/chromium` unpacks Amazon Linux
+    2023's system libraries only when it recognises the Lambda runtime, and
+    Vercel doesn't name it. Without it, 26 October's first check failed with
+    "libnss3.so: cannot open shared object file".
+  - `/api/me/signups/robot?check=1`, signed in, starts the browser, loads a
+    blank page and gives its version, with no service and nobody's details.
+    On production (26 October 2026): HeadlessChrome/131, about 3 seconds.
   - It uses `@sparticuz/chromium`'s own headless mode: `headless: true` would
     add a second headless switch that this build doesn't have.
-- **The privacy page** gains "If you use Sign me up" when the switch is on.
-  Bump its `UPDATED` date then.
+- **The privacy page** gains "If you use Sign me up" when the switch is on
+  (dated 26 October 2026 for it).
 
 ## Data
 
