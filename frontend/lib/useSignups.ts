@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RECIPES, recipeForUrl } from '@/lib/signupKit'
-import { desktopInfo, extensionInfo, onDesktopUpdate, signUpWithDesktop, signUpWithExtension, watchExtensionJob, type ExtensionInfo, type ExtensionStatus } from '@/lib/signupExtension'
+import { contactWithExtension, desktopInfo, extensionInfo, onDesktopUpdate, signUpWithDesktop, signUpWithExtension, watchExtensionJob, type ExtensionInfo, type ExtensionStatus } from '@/lib/signupExtension'
 import { SIGNUP_ON, outcomeMessage, pickRunner, type Runner, type SignupDetails, type SignupStatus } from '@/lib/signups'
+import { NO_EXTRAS, formMessage, formSubject, type RequestExtras, type RequestHow } from '@/lib/requests'
 
 /**
  * One-click sign-up on a page (lib/signups.ts): where each of the person's
@@ -19,8 +20,11 @@ interface Info {
   refusal: string | null
   email: string | null
   details: SignupDetails | null
+  extras: RequestExtras
   suggested: string
   robot: boolean
+  /** Requests through a website's form can run (the server robot is on). */
+  forms: boolean
 }
 
 export interface SignupState {
@@ -29,11 +33,11 @@ export interface SignupState {
   at: string
 }
 
-/** A service Sign me up can do: one of the kit's, or a partner's. */
+/** A service Sign me up can do: one of the kit's, a partner's, or a local service (a request). */
 export interface ServiceInfo {
   key: string
   name: string
-  kind: 'account' | 'newsletter'
+  kind: 'account' | 'newsletter' | 'request'
   terms?: string
   privacy?: string
   note?: string
@@ -47,7 +51,12 @@ interface PartnerInfo {
 
 export function useSignups(resourceIds: string[] = []) {
   const key = [...new Set(resourceIds.filter(Boolean))].sort().join(',')
-  const [info, setInfo] = useState<Info>({ on: SIGNUP_ON, ready: false, refusal: null, email: null, details: null, suggested: '', robot: false })
+  const [info, setInfo] = useState<Info>({ on: SIGNUP_ON, ready: false, refusal: null, email: null, details: null, extras: NO_EXTRAS, suggested: '', robot: false, forms: false })
+  // Local services on this page: how a request reaches each (by listing id).
+  const [requests, setRequests] = useState<Record<string, { key: string; how: RequestHow; name: string }>>({})
+  // After a hand-over from a website's form, by service: its page to finish on, and whether the
+  // extension has it open there, filled in (and is watching for it being sent).
+  const [handOver, setHandOver] = useState<Record<string, { url: string; inExtension: boolean }>>({})
   const [signups, setSignups] = useState<Record<string, SignupState>>({})
   const [listings, setListings] = useState<Record<string, string>>({})
   const [extension, setExtension] = useState<ExtensionInfo | null>(null)
@@ -69,9 +78,10 @@ export function useSignups(resourceIds: string[] = []) {
       desktopInfo(),
     ])
     if (r) {
-      setInfo({ on: !!r.on, ready: !!r.ready, refusal: r.refusal || null, email: r.email || null, details: r.details || null, suggested: r.suggested || '', robot: !!r.robot })
+      setInfo({ on: !!r.on, ready: !!r.ready, refusal: r.refusal || null, email: r.email || null, details: r.details || null, extras: r.extras || NO_EXTRAS, suggested: r.suggested || '', robot: !!r.robot, forms: !!r.forms })
       setSignups(r.signups || {})
       setListings(r.listings || {})
+      setRequests(r.requests || {})
       setPartners(Array.isArray(r.partners) ? r.partners : [])
     }
     setExtension(ext)
@@ -98,14 +108,28 @@ export function useSignups(resourceIds: string[] = []) {
       if (!service) return null
       const r = RECIPES[service]
       if (r) return { key: r.key, name: r.name, kind: r.kind, terms: r.terms, privacy: r.privacy, note: r.note }
+      // A local service: only one there's a way to reach, or one already asked (its status still shows).
+      const local = Object.values(requests).find((x) => x.key === service)
+      if (local) return local.how !== 'none' || signups[local.key] ? { key: local.key, name: local.name, kind: 'request', note: local.how === 'email' ? 'By email' : 'Through their website' } : null
       const p = partners.find((x) => x.key === service)
       if (p) return { key: p.key, name: p.name, kind: 'account' }
       const b = brought.find((x) => x.key === service)
       return b ? { key: b.key, name: String(b.name).slice(0, 80), kind: b.kind === 'newsletter' ? 'newsletter' : 'account' } : null
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [partners, desktop, extension],
+    [partners, desktop, extension, requests, signups],
   )
+
+  /** A local service's request key, for a ResourceHub listing the kit doesn't sign up for (null: no online way, and never asked). */
+  const requestFor = useCallback(
+    (resourceId: string | null | undefined): string | null => {
+      const x = resourceId ? requests[resourceId] : null
+      return x && (x.how !== 'none' || signups[x.key]) ? x.key : null
+    },
+    [requests, signups],
+  )
+  /** A listing with no online way to reach it at all. */
+  const unreachable = useCallback((resourceId: string | null | undefined): boolean => !!resourceId && requests[resourceId]?.how === 'none', [requests])
 
   /** The service a web address is, if Sign me up can do it. Never a ResourceHub page: a listing is matched by its own website. */
   const serviceFor = useCallback(
@@ -129,6 +153,9 @@ export function useSignups(resourceIds: string[] = []) {
   /** What can run this service's sign-up for this person, now. */
   const runnerFor = useCallback(
     (service: string): Runner | null => {
+      // A local service: by email, or its website's form when the robot can run.
+      const local = Object.values(requests).find((x) => x.key === service)
+      if (local) return local.how === 'email' ? 'email' : local.how === 'form' && info.forms ? 'form' : null
       const recipe = RECIPES[service]
       const partner = partners.some((p) => p.key === service)
       if (!recipe && !partner && !brought.some((b) => b.key === service)) return null
@@ -139,8 +166,15 @@ export function useSignups(resourceIds: string[] = []) {
         robot: !!recipe?.robot && info.robot,
       })
     },
-    [desktop, extension, info.robot, partners],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [desktop, extension, info.robot, info.forms, partners, requests],
   )
+
+  // What a local service's form gets (the same words the server's robot types; lib/requests.ts).
+  const requestOf = (details: SignupDetails, extras: RequestExtras, serviceName: string) => {
+    const input = { ...details, email: info.email || '', extras, serviceName }
+    return { firstName: details.firstName, lastName: details.lastName, email: info.email || '', phone: extras.phone, message: formMessage(input), subject: formSubject(input) }
+  }
 
   const record = (service: string, runner: Runner, status: SignupStatus | 'timeout', detail: string | null, resourceId?: string | null) =>
     fetch('/api/me/signups', {
@@ -151,7 +185,8 @@ export function useSignups(resourceIds: string[] = []) {
     }).catch(() => null)
 
   const runOne = useCallback(
-    async (service: string, resourceId: string | null | undefined, details: SignupDetails): Promise<void> => {
+    // The details and extras come with each run: just saved, they may not be in `info` yet.
+    async (service: string, resourceId: string | null | undefined, details: SignupDetails, extras: RequestExtras): Promise<void> => {
       const recipe = serviceInfo(service)
       const runner = runnerFor(service)
       if (!recipe || !runner || !info.email) return
@@ -159,13 +194,52 @@ export function useSignups(resourceIds: string[] = []) {
       setNote(
         runner === 'extension' ? `Signing you up for ${recipe.name}: watch it in the new tab.`
           : runner === 'desktop' ? `Signing you up for ${recipe.name}: watch it in the new window.`
-            : `Signing you up for ${recipe.name}…`,
+            : recipe.kind === 'request' ? `Sending your request to ${recipe.name}…`
+              : `Signing you up for ${recipe.name}…`,
       )
       let status: SignupStatus | 'timeout' = 'failed'
       let detail: string | null = null
       let pw: string | undefined
       let loginUrl: string | undefined
-      if (runner === 'extension' || runner === 'desktop') {
+      let extensionNote = ''
+      if (runner === 'email' || runner === 'form') {
+        // A local service: the request goes from the server (email, or its website's form).
+        const res = await fetch('/api/me/signups/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ resourceId }),
+        }).catch(() => null)
+        const j = await res?.json().catch(() => null)
+        if (res?.ok) {
+          status = j.status
+          detail = j.detail || null
+          if (j.status === 'needs_you' && j.url) {
+            // Their form wants something only the person can do: with the extension, it opens in
+            // their own browser with everything else filled in; they tick or answer, and send.
+            const handed = extension?.features?.includes('contact')
+              ? await contactWithExtension(j.url, requestOf(details, extras, recipe.name), j.mapping)
+              : null
+            if (handed?.status === 'requested') {
+              // The check passed by itself in their browser, and it went.
+              status = 'requested'
+              detail = null
+              await record(service, 'extension', 'requested', null, resourceId)
+            } else if (handed?.status === 'needs_you' && handed.jobId) {
+              setHandOver((h) => ({ ...h, [service]: { url: j.url, inExtension: true } }))
+              extensionNote = ' It’s open in a new tab with everything else filled in: finish it there and send.'
+              const jobId = handed.jobId
+              void watchExtensionJob(jobId, 30 * 60 * 1000).then(async (later) => {
+                if (later?.status !== 'requested') return
+                await record(service, 'extension', 'requested', later.detail || null, resourceId)
+                setSignups((s) => ({ ...s, [service]: { status: 'requested', runner: 'extension', at: new Date().toISOString() } }))
+                setHandOver(({ [service]: _done, ...rest }) => rest)
+                setNote(outcomeMessage(recipe.name, 'request', 'requested'))
+              })
+            } else setHandOver((h) => ({ ...h, [service]: { url: j.url, inExtension: false } }))
+          }
+        } else detail = j?.error || 'That didn’t work.'
+      } else if (runner === 'extension' || runner === 'desktop') {
         const person = { ...details, email: info.email }
         const r: ExtensionStatus = runner === 'extension' ? await signUpWithExtension(service, person) : await signUpWithDesktop(service, person)
         status = r.status === 'running' || r.status === 'unknown' ? 'failed' : r.status
@@ -202,11 +276,12 @@ export function useSignups(resourceIds: string[] = []) {
       setSignups((s) => ({ ...s, [service]: { status: saved, runner, at: new Date().toISOString() } }))
       setRunning(({ [service]: _gone, ...rest }) => rest)
       // A partner makes the account itself: no password here, maybe a link to log in.
-      setNote(`${outcomeMessage(recipe.name, recipe.kind, status, detail)}${runner === 'partner' && status === 'signed_up' ? ` ${recipe.name} will email you how to log in.` : ''}`)
+      setNote(`${outcomeMessage(recipe.name, recipe.kind, status, detail)}${runner === 'partner' && status === 'signed_up' ? ` ${recipe.name} will email you how to log in.` : ''}${extensionNote}`)
       if (loginUrl) setLoginLink({ name: recipe.name, url: loginUrl })
       if (pw) setPassword({ service, name: recipe.name, password: pw })
     },
-    [info.email, runnerFor, serviceInfo],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [info.email, info.extras, extension, runnerFor, serviceInfo],
   )
 
   desktopUpdate.current = (u) => {
@@ -221,7 +296,7 @@ export function useSignups(resourceIds: string[] = []) {
 
   /** Sign me up for one or several services, one after another. */
   const signUp = useCallback(
-    async (items: { service: string; resourceId?: string | null }[], details: SignupDetails | null = info.details) => {
+    async (items: { service: string; resourceId?: string | null }[], details: SignupDetails | null = info.details, extras: RequestExtras = info.extras) => {
       if (info.refusal) { setNote(info.refusal); return }
       if (!details) { setAsking({ services: items }); return }
       if (busy.current) return
@@ -229,28 +304,48 @@ export function useSignups(resourceIds: string[] = []) {
       try {
         for (const item of items) {
           if (!runnerFor(item.service)) {
-            const name = serviceInfo(item.service)?.name || 'This service'
-            setNote(`${name} needs the Autinerary extension for one-click sign-up.`)
+            const s = serviceInfo(item.service)
+            const name = s?.name || 'This service'
+            setNote(s?.kind === 'request' ? `Requests through ${name}’s website aren’t switched on yet.` : `${name} needs the Autinerary extension for one-click sign-up.`)
             continue
           }
-          await runOne(item.service, item.resourceId, details)
+          await runOne(item.service, item.resourceId, details, extras)
         }
       } finally {
         busy.current = false
       }
     },
-    [info.details, info.refusal, runOne, runnerFor, serviceInfo],
+    [info.details, info.extras, info.refusal, runOne, runnerFor, serviceInfo],
   )
 
   /** The details were saved: carry on with what was asked. */
   const detailsSaved = useCallback(
-    (details: SignupDetails) => {
-      setInfo((i) => ({ ...i, details }))
+    (details: SignupDetails, extras?: RequestExtras) => {
+      setInfo((i) => ({ ...i, details, extras: extras || i.extras }))
       const was = asking
       setAsking(null)
-      if (was?.services.length) setTimeout(() => void signUp(was.services, details), 0)
+      if (was?.services.length) setTimeout(() => void signUp(was.services, details, extras || info.extras), 0)
     },
-    [asking, signUp],
+    [asking, info.extras, signUp],
+  )
+
+  /** "I've sent it": they finished a handed-over form on the service's own page. */
+  const markSent = useCallback(
+    async (service: string, resourceId: string | null | undefined) => {
+      const name = serviceInfo(service)?.name || 'the service'
+      const res = await fetch('/api/me/signups/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ resourceId, sentByThem: true }),
+      }).catch(() => null)
+      const j = await res?.json().catch(() => null)
+      if (!res?.ok) { setNote(j?.error || 'That didn’t save. Try again.'); return }
+      setSignups((s) => ({ ...s, [service]: { status: 'requested', runner: s[service]?.runner || 'form', at: new Date().toISOString() } }))
+      setHandOver(({ [service]: _done, ...rest }) => rest)
+      setNote(`Marked as sent: ${name} will reply to you by email.`)
+    },
+    [serviceInfo],
   )
 
   return {
@@ -260,7 +355,13 @@ export function useSignups(resourceIds: string[] = []) {
     refusal: info.refusal,
     email: info.email,
     details: info.details,
+    extras: info.extras,
     suggested: info.suggested,
+    forms: info.forms,
+    requests,
+    requestFor,
+    unreachable,
+    handOver,
     robot: info.robot,
     extension,
     desktop,
@@ -276,6 +377,7 @@ export function useSignups(resourceIds: string[] = []) {
     serviceInfo,
     serviceFor,
     signUp,
+    markSent,
     detailsSaved,
     editDetails: () => setAsking({ services: [] }),
     closeDetails: () => setAsking(null),

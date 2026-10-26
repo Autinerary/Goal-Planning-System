@@ -10,7 +10,7 @@ import { appSignInHref } from '@/lib/appSignIn'
 import Link from 'next/link'
 import TeamAction from '@/components/team/TeamAction'
 import type { TeamState } from '@/lib/team'
-import { SIGNUP_ON, serviceForUrl, signupHref } from '@/lib/signup'
+import { SIGNUP_ON, canRequest, requestKey, serviceForUrl, signupHref } from '@/lib/signup'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -29,6 +29,8 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   // The service its website belongs to, if the app's one-click sign-up can do it (lib/signup.ts).
   const site = (resource as { contact_info?: { website?: string | null } | null; source_url?: string | null })
   const signupService = serviceForUrl(site.contact_info?.website || site.source_url)
+  // A local service with no online sign-up: the app sends their request instead.
+  const requestService = !signupService && canRequest(resource as Parameters<typeof canRequest>[0]) ? requestKey(resource.id) : null
   // Back from signing in to add it to the team.
   const [addAfterSignIn] = useState(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('then') === `team:${resource.id}`
@@ -203,14 +205,14 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
           {/* One-click sign-up (lib/signup.ts): the app fills in this service's
               own sign-up form for the person. */}
-          {SIGNUP_ON && signupService && (
+          {SIGNUP_ON && (signupService || requestService) && (
             <a
-              href={signupHref(signupService, resource.id)}
+              href={signupHref((signupService || requestService)!, resource.id)}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               data-signup-link
             >
               <UserPlus className="w-4 h-4" aria-hidden="true" />
-              Sign me up
+              {signupService ? 'Sign me up' : 'Send my request'}
             </a>
           )}
         </div>

@@ -7,7 +7,7 @@
 // Type-only imports, so the local tests can load it with Node's type stripping.
 
 import type { Browser } from 'puppeteer-core'
-import type { Person, Recipe, RunResult } from './signupKit'
+import type { ContactRequest, ContactResult, FieldRole, FormField, FoundEmail, Person, Recipe, RunResult } from './signupKit'
 
 const NAVIGATED = /context was destroyed|navigat|detached|Target closed|Cannot find context|Execution context/i
 
@@ -56,6 +56,73 @@ export async function robotSignup(
       }
     }
     return { status: 'timeout', url: page.url(), done: [...done] }
+  } finally {
+    await context.close().catch(() => {})
+  }
+}
+
+/**
+ * A local service's request through its website's contact form, on the
+ * server (lib/signupKit.ts runContactForm). Follows its Contact link, asks
+ * `map` (the AI, with the form's words only) about fields it can't place, and
+ * reads the page after sending. Never gets around a robot check. Unless it
+ * sent, the result carries the addresses the pages it saw show (`emails`).
+ */
+export async function robotContact(
+  browser: Browser,
+  kitSource: string,
+  website: string,
+  request: ContactRequest,
+  opts: { dryRun?: boolean; timeoutMs?: number; map?: (fields: FormField[]) => Promise<Record<string, FieldRole> | null> } = {},
+): Promise<ContactResult> {
+  const context = await browser.createBrowserContext()
+  const page = await context.newPage()
+  let sent = false
+  let hops = 0
+  let mapping: Record<string, FieldRole> | undefined
+  const emails = new Map<string, FoundEmail>()
+  const keep = (list: FoundEmail[] | undefined) => list?.forEach((e) => { if (!emails.has(e.email) || (e.mailto && !emails.get(e.email)!.mailto)) emails.set(e.email, e) })
+  // Unless sent: the addresses its pages show, and the AI's reading of the form (so a hand-over can use it too).
+  const withEmails = (r: ContactResult): ContactResult => (r.status === 'requested' ? r : { ...r, emails: [...emails.values()], ...(mapping ? { mapping } : {}) })
+  try {
+    await page.setViewport({ width: 1280, height: 900 })
+    await page.exposeFunction('__autineraryContactEvent', (e: { type?: string }) => { if (e?.type === 'sent') sent = true })
+    await page.goto(website, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    const deadline = Date.now() + (opts.timeoutMs || 60000)
+    while (Date.now() < deadline) {
+      try {
+        await page.waitForNetworkIdle({ idleTime: 600, timeout: 10000 }).catch(() => {})
+        await page.evaluate(kitSource)
+        const r = (await page.evaluate(
+          (req, o) => {
+            const w = window as unknown as { AutinerarySignup: { contact: (r: unknown, o: unknown) => Promise<unknown> }; __autineraryContactEvent?: (e: unknown) => void }
+            return w.AutinerarySignup.contact(req, { ...(o as object), onEvent: (e: unknown) => w.__autineraryContactEvent?.(e) })
+          },
+          request as unknown as Record<string, unknown>,
+          { dryRun: !!opts.dryRun, hops, sent, mapping, timeoutMs: Math.min(20000, Math.max(5000, deadline - Date.now())) },
+        )) as ContactResult
+        keep(r.emails)
+        if (r.status === 'navigating') {
+          hops = r.hops
+          await new Promise((res) => setTimeout(res, 800))
+          await page.waitForFunction(() => document.readyState !== 'loading', { timeout: 15000 }).catch(() => {})
+          continue
+        }
+        if (r.status === 'needs_mapping') {
+          const got = opts.map && !mapping ? await opts.map(r.fields || []).catch(() => null) : null
+          if (!got) return withEmails({ ...r, status: 'needs_you', detail: r.detail || 'question: a question on their form' })
+          mapping = got
+          continue
+        }
+        return withEmails(r)
+      } catch (e) {
+        // Sent, or a link followed: the next page is where it carries on.
+        if (!NAVIGATED.test(String((e as Error)?.message || e))) throw e
+        await new Promise((res) => setTimeout(res, 300))
+        await page.waitForFunction(() => document.readyState !== 'loading', { timeout: 15000 }).catch(() => {})
+      }
+    }
+    return withEmails({ status: 'timeout', url: page.url(), hops })
   } finally {
     await context.close().catch(() => {})
   }

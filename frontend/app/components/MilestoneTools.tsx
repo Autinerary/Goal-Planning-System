@@ -306,7 +306,7 @@ export default function MilestoneTools({
                 })}
                 </div>
                 <span className="ml-auto flex flex-wrap items-center gap-3">
-                  <SignupButton app={signups} service={(rid && signups.listings[rid]) || signups.serviceFor(tool.url)} resourceId={rid} compact />
+                  <SignupButton app={signups} service={(rid && signups.listings[rid]) || signups.serviceFor(tool.url) || signups.requestFor(rid)} resourceId={rid} compact />
                   <a href={goHubHref(hubPath(tool))} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-sky-800 underline underline-offset-2">
                     View in ResourceHub <ExternalLink className="h-3 w-3" aria-hidden="true" /><span className="sr-only">(opens in a new tab)</span>
                   </a>

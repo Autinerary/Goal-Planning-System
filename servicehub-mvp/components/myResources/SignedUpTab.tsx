@@ -10,6 +10,8 @@ import { signupHref, signupLabel, type SignupStatus } from '@/lib/signup'
 interface Row {
   service: string
   resource_id: string | null
+  /** The ResourceHub listing it was for, when there is one (a local service's request). */
+  resource?: { name?: string } | null
   status: SignupStatus
   runner: string
   updated_at: string
@@ -42,9 +44,9 @@ export default function SignedUpTab() {
       {rows.map((r) => {
         const s = SIGNUP_SERVICES[r.service]
         // A partner, or a service a newer extension brought: its key, readably.
-        const name = s?.name || r.service.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
+        const name = s?.name || r.resource?.name || r.service.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
         const Icon = r.status === 'check_email' ? Mail : r.status === 'needs_you' ? MousePointerClick : CheckCircle2
-        const good = r.status === 'signed_up' || r.status === 'exists'
+        const good = r.status === 'signed_up' || r.status === 'exists' || r.status === 'requested'
         return (
           <li key={r.service} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4">
             <span className="font-semibold text-gray-900">

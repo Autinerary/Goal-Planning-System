@@ -7,6 +7,7 @@ import BackButton from '../../components/BackButton'
 import SignupButton from '../../components/SignupButton'
 import SignupDialogs from '../../components/SignupDialogs'
 import { SIGNUP_ON } from '@/lib/signups'
+import { resourceIdOfKey } from '@/lib/requests'
 import { useSignups } from '@/lib/useSignups'
 
 /**
@@ -24,10 +25,14 @@ export default function SignupPage() {
 
 function SignupPageContent() {
   const params = useParams()
-  // ResourceHub's link says which listing it came from (?resource=), so the sign-up is linked to it.
-  const resourceId = useSearchParams().get('resource')
+  // ResourceHub's link says which listing it came from (?resource=), so the sign-up is linked to it;
+  // a local service's key (r-<id>) is the listing itself.
+  const key = String(params.service || '')
+  const resourceId = useSearchParams().get('resource') || resourceIdOfKey(key)
   const app = useSignups(resourceId ? [resourceId] : [])
-  const recipe = app.serviceInfo(String(params.service || ''))
+  const recipe = app.serviceInfo(key)
+  // A listing with no way to reach it still has a name to show.
+  const listingName = resourceId ? app.requests[resourceId]?.name : null
 
   return (
     <main className="min-h-screen p-4 md:p-8 surface-veil">
@@ -35,12 +40,12 @@ function SignupPageContent() {
         <BackButton fallback="/path" />
         <section aria-labelledby="signup-heading" className="rounded-2xl p-6 surface">
           <h1 id="signup-heading" className="text-2xl font-bold text-slate-900">
-            {recipe ? `${recipe.kind === 'newsletter' ? 'Subscribe to' : 'Sign up for'} ${recipe.name}` : 'Sign me up'}
+            {recipe ? `${recipe.kind === 'newsletter' ? 'Subscribe to' : recipe.kind === 'request' ? 'Ask to start with' : 'Sign up for'} ${recipe.name}` : listingName ? `Ask to start with ${listingName}` : 'Sign me up'}
           </h1>
           {!SIGNUP_ON || (app.loaded && !app.on) ? (
             <p className="mt-2 text-slate-800">One-click sign-up isn’t switched on yet.</p>
           ) : !recipe ? (
-            <p className="mt-2 text-slate-800">There’s no one-click sign-up for that service yet.</p>
+            <p className="mt-2 text-slate-800">{app.unreachable(resourceId) ? 'There’s no online way to reach them yet: no email or website on their listing.' : 'There’s no one-click sign-up for that service yet.'}</p>
           ) : !app.loaded ? (
             <p className="mt-2 text-slate-800">Loading…</p>
           ) : !app.ready ? (
@@ -50,8 +55,9 @@ function SignupPageContent() {
           ) : (
             <>
               <p className="mt-2 text-slate-800">
-                Autinerary fills in {recipe.name}’s own sign-up form for you, with your name and {app.email || 'your email'}
-                {recipe.kind === 'account' ? ', and makes a new password for you to save' : ''}.{recipe.note ? ` ${recipe.note}` : ''}
+                {recipe.kind === 'request'
+                  ? `Autinerary sends ${recipe.name} your request to start, with your name and ${app.email || 'your email'}: by email, or through the contact form on their website. They reply to you.`
+                  : `Autinerary fills in ${recipe.name}’s own sign-up form for you, with your name and ${app.email || 'your email'}${recipe.kind === 'account' ? ', and makes a new password for you to save' : ''}.${recipe.note ? ` ${recipe.note}` : ''}`}
               </p>
               <div className="mt-4">
                 <SignupButton app={app} service={recipe.key} resourceId={resourceId} />

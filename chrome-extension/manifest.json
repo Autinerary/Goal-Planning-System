@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Autinerary",
-  "version": "1.1.0",
-  "description": "Block distracting sites, manage browsing time, and sign up for services from Autinerary in one click.",
+  "version": "1.2.0",
+  "description": "Block distracting sites, manage browsing time, and sign up for services or send them your request from Autinerary in one click.",
   "permissions": [
     "activeTab",
     "alarms",

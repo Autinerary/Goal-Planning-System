@@ -22,17 +22,17 @@
 
 export const SIGNUP_ON = process.env.NEXT_PUBLIC_ONE_CLICK_SIGNUP === 'on'
 
-export const STATUSES = ['started', 'signed_up', 'check_email', 'needs_you', 'exists', 'failed'] as const
+export const STATUSES = ['started', 'signed_up', 'check_email', 'needs_you', 'exists', 'failed', 'requested'] as const
 export type SignupStatus = (typeof STATUSES)[number]
 
-export const RUNNERS = ['extension', 'desktop', 'mobile', 'server', 'partner'] as const
+export const RUNNERS = ['extension', 'desktop', 'mobile', 'server', 'partner', 'email', 'form'] as const
 export type Runner = (typeof RUNNERS)[number]
 
 export const isStatus = (v: unknown): v is SignupStatus => typeof v === 'string' && (STATUSES as readonly string[]).includes(v)
 export const isRunner = (v: unknown): v is Runner => typeof v === 'string' && (RUNNERS as readonly string[]).includes(v)
 
-/** Signed up, waiting on their email, or they had an account: Sign me up isn't offered again. */
-export const isSettled = (s: SignupStatus | null | undefined): boolean => s === 'signed_up' || s === 'check_email' || s === 'exists'
+/** Signed up, waiting on their email, they had an account, or a request went: Sign me up isn't offered again. */
+export const isSettled = (s: SignupStatus | null | undefined): boolean => s === 'signed_up' || s === 'check_email' || s === 'exists' || s === 'requested'
 
 /** Server robot runs one person can start in a day. */
 export const ROBOT_DAILY_LIMIT = 10
@@ -93,7 +93,7 @@ export function shortDate(iso: string | null | undefined): string {
 }
 
 /** Where a sign-up is, next to the service. */
-export function statusLabel(status: SignupStatus | null | undefined, kind: 'account' | 'newsletter', at?: string | null): string {
+export function statusLabel(status: SignupStatus | null | undefined, kind: 'account' | 'newsletter' | 'request', at?: string | null): string {
   const day = shortDate(at)
   switch (status) {
     case 'signed_up':
@@ -108,14 +108,20 @@ export function statusLabel(status: SignupStatus | null | undefined, kind: 'acco
       return 'Didn’t go through. Try again'
     case 'started':
       return 'Signing you up…'
+    case 'requested':
+      return `Request sent${day ? ` ${day}` : ''}: they’ll reply to you`
     default:
       return ''
   }
 }
 
 /** What happened, in a sentence, for the page's live note. */
-export function outcomeMessage(name: string, kind: 'account' | 'newsletter', status: SignupStatus | 'timeout', detail?: string | null): string {
+export function outcomeMessage(name: string, kind: 'account' | 'newsletter' | 'request', status: SignupStatus | 'timeout', detail?: string | null): string {
   switch (status) {
+    case 'requested':
+      // Emailed to the address their website shows (app/api/me/signups/request): say which.
+      if (detail?.startsWith('website_email:')) return `Your request went to ${name}, by email to the address on their website (${detail.slice(14)}). They’ll reply to you by email, and you have a copy.`
+      return `Your request went to ${name}. They’ll reply to you by email, and you have a copy if it was emailed.`
     case 'signed_up':
       return kind === 'newsletter' ? `Subscribed to ${name}.` : `Signed up for ${name}. Save your new password now: it’s shown once.`
     case 'check_email':
@@ -123,12 +129,18 @@ export function outcomeMessage(name: string, kind: 'account' | 'newsletter', sta
     case 'exists':
       return `You already have ${kind === 'newsletter' ? 'a subscription to' : 'an account with'} ${name}.`
     case 'needs_you':
+      if (kind === 'request') {
+        return detail === 'robot_check'
+          ? `${name}’s website wants to check you’re not a robot before the request can go.`
+          : `${name}’s form asks something only you can answer${detail?.startsWith('question:') ? ` (${detail.slice(9).trim()})` : ''}.`
+      }
       return detail === 'robot_check'
         ? `${name} wants to check you’re not a robot: finish it in the ${name} tab.`
         : `There’s a step only you can do: finish it in the ${name} tab.`
     case 'timeout':
       return `${name} took too long to answer. Try again.`
     default:
+      if (kind === 'request') return `Your request couldn’t go to ${name}${detail ? ` (${oneLine(detail, 140).replace(/\.$/, '')})` : ''}.`
       return `${name} didn’t take it${detail ? ` (“${oneLine(detail, 140)}”)` : ''}. If you already have an account there, log in instead.`
   }
 }

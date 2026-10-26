@@ -16,7 +16,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { data, error } = await supabase
     .from('service_signups')
-    .select('service, resource_id, status, runner, updated_at')
+    .select('service, resource_id, status, runner, updated_at, resource:resources(name)')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
     .limit(200)

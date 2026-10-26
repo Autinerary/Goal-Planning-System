@@ -43,6 +43,8 @@ export interface ExtensionInfo {
   services: string[]
   /** Its services, named: one newer than the app can bring new ones. */
   catalog?: { key: string; name: string; kind: 'account' | 'newsletter'; hosts: string[] }[]
+  /** What else it can do: 'contact' (1.2.0), finish a local service's request on their own form. */
+  features?: string[]
 }
 
 export const extensionInfo = async (): Promise<ExtensionInfo | null> => {
@@ -51,7 +53,7 @@ export const extensionInfo = async (): Promise<ExtensionInfo | null> => {
 }
 
 export interface ExtensionStatus {
-  status: 'running' | 'signed_up' | 'check_email' | 'needs_you' | 'exists' | 'failed' | 'timeout' | 'unknown'
+  status: 'running' | 'signed_up' | 'check_email' | 'needs_you' | 'exists' | 'failed' | 'timeout' | 'unknown' | 'requested'
   detail?: string | null
   password?: string
   /** The extension's job, to keep watching after a hand-over. */
@@ -72,6 +74,28 @@ export async function signUpWithExtension(
     const s = await askExtension<ExtensionStatus>({ type: 'signup-status', jobId: start.jobId })
     if (s && s.status !== 'running') return { ...s, jobId: start.jobId }
     onWaiting?.()
+  }
+  return { status: 'timeout', jobId: start.jobId }
+}
+
+/**
+ * A local service's request the server's robot couldn't send (a robot check,
+ * or a question only the person can answer): the extension opens their form
+ * in a new tab, fills in everything else, and leaves that to the person. Waits
+ * until it's handed over (or sent, if the check passed by itself here).
+ */
+export async function contactWithExtension(
+  url: string,
+  request: { firstName: string; lastName: string; email: string; phone?: string | null; message: string; subject: string },
+  mapping?: Record<string, string> | null,
+): Promise<ExtensionStatus> {
+  const start = await askExtension<{ jobId?: string; error?: string }>({ type: 'contact-start', url, request, mapping: mapping || undefined }, 4000)
+  if (!start?.jobId) return { status: 'failed', detail: start?.error || 'The extension didn’t answer.' }
+  const end = Date.now() + 2 * 60 * 1000
+  while (Date.now() < end) {
+    await new Promise((r) => setTimeout(r, 1200))
+    const s = await askExtension<ExtensionStatus>({ type: 'signup-status', jobId: start.jobId })
+    if (s && s.status !== 'running') return { ...s, jobId: start.jobId }
   }
   return { status: 'timeout', jobId: start.jobId }
 }

@@ -36,10 +36,11 @@ export default function TaskResources({
   const app = useSignups(ids)
   const [confirming, setConfirming] = useState(false)
 
-  // Which service each tool is: its ResourceHub listing's website, or its own web address.
+  // Which service each tool is: its ResourceHub listing's website, its own web
+  // address, or, for a local service with no online sign-up, a request to it.
   const serviceOf = (t: PlanTool): string | null => {
     const id = resourceIdOf(t)
-    return (id && app.listings[id]) || app.serviceFor(t.url)
+    return (id && app.listings[id]) || app.serviceFor(t.url) || app.requestFor(id)
   }
   const items: SignupItem[] = tools.flatMap((t): SignupItem[] => {
     const service = serviceOf(t)
@@ -48,6 +49,11 @@ export default function TaskResources({
   })
   const plan = signupPlan(items)
   const busy = Object.keys(app.running).length > 0
+  // Local services' requests (no account, no password) read differently from sign-ups.
+  const isRequest = (i: SignupItem) => app.serviceInfo(i.service)?.kind === 'request'
+  const allRequests = plan.go.length > 0 && plan.go.every(isRequest)
+  const cantRequests = plan.cant.filter(isRequest)
+  const cantAccounts = plan.cant.filter((i) => !isRequest(i))
 
   if (!app.on || !app.loaded || !app.ready || tools.length === 0) return null
 
@@ -64,7 +70,7 @@ export default function TaskResources({
         </h2>
         <p className="text-xs text-slate-700">From “{milestoneName}”</p>
       </div>
-      <p className="mt-1 text-sm text-slate-800">Sign me up fills in the service’s own sign-up form for you: no typing, no forms.</p>
+      <p className="mt-1 text-sm text-slate-800">Sign me up fills in the service’s own sign-up form for you; for a local service, it sends them your request. No typing, no forms.</p>
 
       <ul className="mt-3 space-y-2">
         {tools.map((t) => {
@@ -76,7 +82,7 @@ export default function TaskResources({
                 <span className="block font-semibold text-slate-900">{t.name}</span>
                 <span className="block text-xs text-slate-700">
                   {[t.category, cost].filter(Boolean).join(' · ')}
-                  {!service ? `${t.category || cost ? ' · ' : ''}No one-click sign-up for this one` : ''}
+                  {!service ? `${t.category || cost ? ' · ' : ''}${app.unreachable(resourceIdOf(t)) ? 'No online way to reach them yet' : 'No one-click sign-up for this one'}` : ''}
                 </span>
               </span>
               <SignupButton app={app} service={service} resourceId={resourceIdOf(t)} compact />
@@ -96,10 +102,12 @@ export default function TaskResources({
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-800 disabled:opacity-60"
             data-signup-all
           >
-            <UserPlus className="h-4 w-4" aria-hidden="true" /> {busy ? 'Signing you up…' : `Sign up for all (${plan.go.length})`}
+            <UserPlus className="h-4 w-4" aria-hidden="true" /> {busy ? (allRequests ? 'Sending…' : 'Signing you up…') : allRequests ? `Send all requests (${plan.go.length})` : `Sign up for all (${plan.go.length})`}
           </button>
         ) : plan.done.length > 0 ? (
-          <p className="text-sm font-semibold text-slate-800">You’re signed up for everything here that can be.</p>
+          <p className="text-sm font-semibold text-slate-800">
+            {plan.done.some(isRequest) ? 'Everything here that can be is done: signed up, or your request sent.' : 'You’re signed up for everything here that can be.'}
+          </p>
         ) : null}
         {app.details && (
           <button type="button" onClick={app.editDetails} className="text-sm font-semibold text-indigo-800 underline underline-offset-2">
@@ -111,17 +119,28 @@ export default function TaskResources({
       {confirming && (
         <div role="alertdialog" aria-labelledby="signup-all-heading" aria-describedby="signup-all-what" className="mt-3 rounded-xl border border-indigo-300 bg-indigo-50 p-4" data-signup-all-confirm>
           <p id="signup-all-heading" className="font-semibold text-slate-900">
-            Sign you up for {plan.go.length} {plan.go.length === 1 ? 'service' : 'services'}?
+            {allRequests
+              ? `Send your request to ${plan.go.length} ${plan.go.length === 1 ? 'service' : 'services'}?`
+              : `Sign you up for ${plan.go.length} ${plan.go.length === 1 ? 'service' : 'services'}?`}
           </p>
           <div id="signup-all-what" className="mt-1 space-y-1 text-sm text-slate-800">
             <p>One after another: {names(plan.go)}.</p>
             {plan.done.length > 0 && <p>Already done: {names(plan.done)}.</p>}
-            {plan.cant.length > 0 && <p>These need the Autinerary extension: {names(plan.cant)}.</p>}
-            <p>{app.details ? `Each gets your name and ${app.email || 'email'}, and its own new password for you to save.` : 'First you’ll check your name. Nothing starts until you save it.'}</p>
+            {cantAccounts.length > 0 && <p>These need the Autinerary extension: {names(cantAccounts)}.</p>}
+            {cantRequests.length > 0 && <p>These can’t be sent from here yet: {names(cantRequests)}.</p>}
+            <p>
+              {!app.details
+                ? 'First you’ll check your name. Nothing starts until you save it.'
+                : allRequests
+                  ? `Each gets your request, with your name and ${app.email || 'email'}, and replies to you.`
+                  : plan.go.some(isRequest)
+                    ? `Each gets your name and ${app.email || 'email'}. A local service gets your request; each new account gets its own password for you to save.`
+                    : `Each gets your name and ${app.email || 'email'}, and its own new password for you to save.`}
+            </p>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="button" onClick={signUpAll} className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800">
-              {app.details ? `Yes, sign me up for ${plan.go.length}` : 'Check my name'}
+              {!app.details ? 'Check my name' : allRequests ? `Yes, send ${plan.go.length === 1 ? 'it' : `all ${plan.go.length}`}` : `Yes, sign me up for ${plan.go.length}`}
             </button>
             <button type="button" onClick={() => setConfirming(false)} className="rounded-lg border border-slate-400 bg-white px-4 py-2 font-semibold text-slate-800">
               Cancel

@@ -2,7 +2,9 @@
 
 What the store's forms ask for, ready to paste. The package is made with
 `node --experimental-strip-types scripts/package-extension.mjs`, which writes
-`chrome-extension/dist/autinerary-<version>.zip`.
+`chrome-extension/dist/autinerary-<version>.zip`. The version to publish is
+**1.2.0**: it adds finishing a local service's request on their own form (when
+it needs a robot check or an answer only the person can give).
 
 ## Before you start
 
@@ -37,6 +39,12 @@ What the store's forms ask for, ready to paste. The package is made with
 > a code from your email), it stops and shows you the page. It only ever fills
 > in a form when you press Sign me up in Autinerary.
 >
+> Send my request: for a local service with no online sign-up (a clinic, a
+> program, a centre), Autinerary sends the service your request to start. If
+> their website's form wants an "I'm not a robot" check, or asks something only
+> you can answer, the extension opens that form in a new tab with everything
+> else filled in, for you to finish and send.
+>
 > Focus: block the sites you choose, set daily time limits, and keep private
 > windows closed while you work.
 
@@ -47,15 +55,18 @@ What the store's forms ask for, ready to paste. The package is made with
 **Privacy policy:** https://app.autinerary.ca/privacy
 
 **Screenshots** (1280×800): the task view's "Resources for this task", the
-first-time name check, and the "Your new password" dialog. The app's local
-build can make them (`.qa-local/browser/apply_shots.mjs` shows how).
+first-time name check, the "Your new password" dialog, and a service's form
+opened in a new tab, filled in, at its robot check. The app's local build can
+make them (`.qa-local/browser/apply_shots.mjs` and `app_requests.mjs` with
+`SHOTS=1` show how).
 
 ## Single purpose
 
 The store asks for one purpose:
 
-> Help Autinerary members act on their plan: sign up for the plan's services in
-> one click, and stay focused while doing the plan's tasks.
+> Help Autinerary members act on their plan: sign up for the plan's services
+> (or send them a request) in one click, and stay focused while doing the
+> plan's tasks.
 
 The store's single-purpose rule may see the site blocker and the sign-up as
 two purposes. If a reviewer says so, publish the sign-up part on its own and
@@ -66,14 +77,14 @@ from the app.
 
 | Permission | Why |
 |---|---|
-| `scripting` | Fills in a service's sign-up form, in the tab it opens, when you press Sign me up |
-| `tabs` | Opens the service's sign-up page, follows it page by page, and (for focus) knows which site is open |
-| `storage` | Keeps your blocked sites and time limits, and a sign-up's progress until it ends (session only) |
+| `scripting` | Fills in a service's sign-up form, or a local service's contact form that needs you, in the tab it opens, when you press Sign me up or Send my request |
+| `tabs` | Opens the service's page, follows it page by page, and (for focus) knows which site is open |
+| `storage` | Keeps your blocked sites and time limits, and a sign-up's or request's progress until it ends (session only) |
 | `alarms` | Resets daily time limits |
 | `declarativeNetRequest`, `declarativeNetRequestFeedback` | Blocks the sites you choose |
 | `activeTab` | Focus mode on the current tab |
-| Host permissions: all sites | You choose which sites to block, and the services you sign up for are on their own sites |
-| `externally_connectable` (app.autinerary.ca, ResourceHub) | Lets Autinerary's pages ask it to sign you up, and only those pages |
+| Host permissions: all sites | You choose which sites to block, and the services you sign up for or send requests to are on their own sites |
+| `externally_connectable` (app.autinerary.ca, ResourceHub) | Lets Autinerary's pages ask it to sign you up or finish a request, and only those pages |
 
 **Remote code:** none. Every script is in the package.
 
@@ -81,8 +92,9 @@ from the app.
 
 - **Personally identifiable information.** Collected: your first name, last
   name and email, which Autinerary passes to the extension when you press Sign
-  me up. Used only to fill in that service's form, then forgotten when the
-  sign-up ends.
+  me up; for a request, also the phone number and message you chose to send
+  (who it's for, what you're looking for). Used only to fill in that service's
+  form, then forgotten when the sign-up or request ends.
 - **Authentication information.** Collected: the new account's password. Made
   by the extension and shown to you once in Autinerary. It is held only until
   then, in the browser's session storage, which is cleared when the browser

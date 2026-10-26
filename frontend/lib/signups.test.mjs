@@ -77,4 +77,11 @@ assert.deepEqual(plan.go.map((i) => i.service), ['focusmate', 'chadd'], 'a faile
 assert.deepEqual(plan.done.map((i) => i.service), ['headspace', 'notion'])
 assert.deepEqual(plan.cant.map((i) => i.service), ['todoist'])
 
+// A local service's request (lib/requests.ts)
+assert.match(outcomeMessage('Calm Clinic', 'request', 'requested'), /^Your request went to Calm Clinic\. They’ll reply to you by email/)
+assert.equal(outcomeMessage('Calm Clinic', 'request', 'requested', 'website_email:info@calmclinic.ca'), 'Your request went to Calm Clinic, by email to the address on their website (info@calmclinic.ca). They’ll reply to you by email, and you have a copy.')
+assert.equal(outcomeMessage('Calm Clinic', 'request', 'failed', 'No contact form or email address on their website.'), 'Your request couldn’t go to Calm Clinic (No contact form or email address on their website).')
+assert.doesNotMatch(outcomeMessage('Calm Clinic', 'request', 'failed'), /log in/, 'no account to log in to')
+assert.match(outcomeMessage('Calm Clinic', 'request', 'needs_you', 'robot_check'), /not a robot/)
+
 console.log('signups: all passed')

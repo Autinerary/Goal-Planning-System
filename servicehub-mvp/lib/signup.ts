@@ -28,11 +28,29 @@ export function serviceForUrl(url: string | null | undefined): string | null {
   return null
 }
 
+// Places you just go to: the same list as the app's (frontend/lib/requests.ts; lib/signup.test.mjs checks).
+const PLACES = new Set(['restaurant', 'café', 'cafe', 'park', 'bank', 'hotel', 'museum', 'amusement park', 'zoo & aquarium', 'cinema', 'store'])
+
+/**
+ * A local service the app can send a request to (frontend/lib/requests.ts
+ * howToRequest): approved, not a place, with an email or its own website.
+ */
+export function canRequest(r: { category?: string | null; status?: string | null; contact_info?: unknown; source_url?: string | null; source_type?: string | null }): boolean {
+  if ((r.status && r.status !== 'approved') || PLACES.has(String(r.category || '').trim().toLowerCase())) return false
+  const c = (r.contact_info || {}) as { email?: unknown; website?: unknown }
+  if (typeof c.email === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(c.email.trim())) return true
+  const site = typeof c.website === 'string' && c.website.trim() ? c.website : r.source_type === 'openstreetmap' ? null : r.source_url
+  return !!site && !/openstreetmap\.org/i.test(site)
+}
+
+/** A local service's key in the app ("r-" and its id without dashes). */
+export const requestKey = (resourceId: string): string => `r-${resourceId.replace(/-/g, '').toLowerCase()}`
+
 /** The app's Sign me up page for this service. */
 export const signupHref = (service: string, resourceId?: string | null): string =>
   `${APP}/sign-me-up/${service}${resourceId ? `?resource=${encodeURIComponent(resourceId)}` : ''}`
 
-export type SignupStatus = 'started' | 'signed_up' | 'check_email' | 'needs_you' | 'exists' | 'failed'
+export type SignupStatus = 'started' | 'signed_up' | 'check_email' | 'needs_you' | 'exists' | 'failed' | 'requested'
 
 /** The same words as the app's statusLabel(). */
 export function signupLabel(status: SignupStatus, kind: 'account' | 'newsletter', at: string | null): string {
@@ -43,5 +61,6 @@ export function signupLabel(status: SignupStatus, kind: 'account' | 'newsletter'
   if (status === 'needs_you') return 'Waiting for you to finish on their page'
   if (status === 'failed') return 'Didn’t go through. Try again in Autinerary'
   if (status === 'started') return 'Signing you up…'
+  if (status === 'requested') return `Request sent${day ? ` ${day}` : ''}: they’ll reply to you`
   return ''
 }

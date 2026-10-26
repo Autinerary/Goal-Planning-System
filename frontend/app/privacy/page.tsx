@@ -26,7 +26,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions',
-    gets: 'The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read. OpenAI’s terms for this kind of use say it does not train its models on this data',
+    gets: `The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read${SIGNUP ? '; the words on a local service’s contact form (never anything about you), when Sign me up sends your request through it and a box needs working out' : ''}. OpenAI’s terms for this kind of use say it does not train its models on this data`,
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -214,6 +214,25 @@ export default function PrivacyPage() {
                 <li>
                   We keep which services you signed up for, when, what ran it, and how it ended, so the button can tell you. Never a
                   password. You can download it with your data.
+                </li>
+                <li>
+                  For a local service with no online sign-up (a clinic, a program, a centre), Sign me up sends them your request instead:
+                  by email from Autinerary where the listing has an address, or through the contact form on their website, filled in by
+                  our server. Where their website has no form we can send, it is emailed to the address their website shows for it. It
+                  carries your name, your account’s email address and what you choose to add (a phone number, who it is for, what you are
+                  looking for, how you prefer to be contacted); you can read the message when you check your details. Their reply comes to you; we don’t see
+                  it. You get a copy of an emailed request.
+                </li>
+                <li>
+                  If a box on their form can’t be placed from its words, those words (never anything about you) go to OpenAI to work out
+                  what it asks. If it asks something only you can answer, or wants to check you’re not a robot, nothing is sent: we tell
+                  you, and you can finish on their page. With the Autinerary extension, their form opens in your browser with everything
+                  else filled in, for you to finish and send; the extension notes whether it went, and nothing else about the page.
+                </li>
+                <li>
+                  What you choose to add is saved with your details, so you don’t type it again; you can change it each time. We keep
+                  which services you sent a request to, when, and how it went. A service can ask us to stop sending requests to its
+                  address, and then none go.
                 </li>
                 <li>Accounts for people under 18 can’t use Sign me up: a parent or guardian signs up from their own account.</li>
               </List>

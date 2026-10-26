@@ -94,7 +94,7 @@ const GUIDES: [RegExp, PageGuide][] = [
       'Turn on Companion to have your spirit animal with you. Drag it to any corner, or keep it on top of your other windows.',
       // One-click sign-up (lib/signups.ts), while it is switched on.
       ...(process.env.NEXT_PUBLIC_ONE_CLICK_SIGNUP === 'on'
-        ? ['“Sign me up” on a resource fills in that service’s own sign-up form for you; “Sign up for all” does all of this step’s services, once you say yes.']
+        ? ['“Sign me up” on a resource fills in that service’s own sign-up form for you, and “Send my request” asks a local service to start with you (they reply by email); “Sign up for all” does all of this step’s services, once you say yes.']
         : []),
     ],
     connects: 'Tasks are planned across your week in the Calendar. When you finish one, you can keep the moment in your Memories.',

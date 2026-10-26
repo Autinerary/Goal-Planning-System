@@ -9,17 +9,25 @@
 // own strong password, made here; it goes back to the Autinerary page once,
 // for the person to save, and is then forgotten.
 //
+// It also finishes a local service's request (1.2.0): when the server's robot
+// met a robot check, or a question only the person can answer, on the
+// service's own contact form, the form opens here with everything else filled
+// in, for them to tick or answer and send. Their sending it is watched for.
+//
 // Messages from Autinerary's pages (externally_connectable):
-//   { type: 'signup-ping' }                         -> { ok, version, kit, services, catalog }
+//   { type: 'signup-ping' }                         -> { ok, version, kit, services, catalog, features }
 //   { type: 'signup-start', service, person }       -> { jobId } | { error }
-//   { type: 'signup-status', jobId }                -> { status, detail, service, password? }
-//   status: running | signed_up | check_email | needs_you | exists | failed | timeout
+//   { type: 'contact-start', url, request, mapping? } -> { jobId } | { error }
+//   { type: 'signup-status', jobId }                -> { status, detail, service, kind, password? }
+//   status: running | signed_up | check_email | needs_you | exists | failed | timeout,
+//   and for a request: running | requested | needs_you | failed | timeout
 
 importScripts('signup-kit.js')
 
 const KIT = self.AutinerarySignup
 const ALLOWED = [/^https:\/\/app\.autinerary\.ca$/, /^https:\/\/servicehub-six\.vercel\.app$/, /^http:\/\/localhost:(3000|3100|3101)$/]
-const FINAL = new Set(['signed_up', 'check_email', 'needs_you', 'exists', 'failed', 'timeout'])
+const FINAL = new Set(['signed_up', 'check_email', 'needs_you', 'exists', 'failed', 'timeout', 'requested'])
+const ROLES = new Set(['firstName', 'lastName', 'fullName', 'email', 'phone', 'message', 'subject', 'consent', 'skip'])
 const MAX_RUN_MS = 3 * 60 * 1000
 const KEEP_MS = 30 * 60 * 1000
 
@@ -65,7 +73,45 @@ function runInPage(recipe, person, opts) {
   }).finally(() => { self.__autinerarySignupRunning = false })
 }
 
+// Runs in the service's page, for a request: the contact form, handed over (see runContactForm).
+function contactInPage(request, opts) {
+  if (self.__autineraryContactRunning) return { status: 'busy' }
+  self.__autineraryContactRunning = true
+  return self.AutinerarySignup.contact(request, {
+    ...opts,
+    onEvent: (e) => chrome.runtime.sendMessage({ type: 'contact-event', jobId: opts.jobId, event: e }).catch(() => {}),
+  }).finally(() => { self.__autineraryContactRunning = false })
+}
+
+async function injectContact(job) {
+  if (!open(job)) return
+  if (job.status !== 'needs_you' && Date.now() - job.startedAt > MAX_RUN_MS) return finish(job, { status: 'timeout' })
+  try {
+    await chrome.scripting.executeScript({ target: { tabId: job.tabId }, files: ['signup-kit.js'] })
+    const [res] = await chrome.scripting.executeScript({
+      target: { tabId: job.tabId },
+      func: contactInPage,
+      // After the hand-over (needs_you) each page is only read: their thanks, or the form again.
+      args: [job.request, { handOver: true, after: job.status === 'needs_you', sent: !!job.sent, hops: job.hops || 0, mapping: job.mapping || undefined, jobId: job.id, timeoutMs: 20000 }],
+    })
+    const r = res && res.result
+    if (!r || r.status === 'busy') return
+    const fresh = (await allJobs())[job.id] || job
+    if (!open(fresh)) return
+    if (r.status === 'navigating') {
+      fresh.hops = r.hops
+      return saveJob(fresh)
+    }
+    // Still theirs to send (read again after the hand-over): nothing new to tell.
+    if (r.status === 'needs_you' && fresh.status === 'needs_you') return saveJob(fresh)
+    await finish(fresh, { status: r.status === 'needs_mapping' || r.status === 'dry_run' ? 'needs_you' : r.status, detail: r.detail })
+  } catch {
+    // The page went to a new address mid-run (a form sent): the next load reads it.
+  }
+}
+
 async function inject(job) {
+  if (job.kind === 'contact') return injectContact(job)
   const recipe = KIT.recipes[job.service]
   if (!recipe || !open(job)) return
   // Handed over: wait for the person as long as the job is kept; otherwise a few minutes.
@@ -110,7 +156,7 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
     if (msg?.type === 'signup-ping') {
       // Its services, named, so an extension newer than the app can bring new ones.
       const catalog = Object.values(KIT.recipes).map((r) => ({ key: r.key, name: r.name, kind: r.kind, hosts: r.hosts }))
-      return sendResponse({ ok: true, version: chrome.runtime.getManifest().version, kit: KIT.version, services: Object.keys(KIT.recipes), catalog })
+      return sendResponse({ ok: true, version: chrome.runtime.getManifest().version, kit: KIT.version, services: Object.keys(KIT.recipes), catalog, features: ['contact'] })
     }
     if (msg?.type === 'signup-start') {
       const recipe = KIT.recipes[msg.service]
@@ -138,11 +184,40 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
       if (now && now.status === 'complete') inject(job)
       return sendResponse({ jobId: job.id })
     }
+    if (msg?.type === 'contact-start') {
+      let url = null
+      try { url = new URL(String(msg.url || '')) } catch {}
+      if (!url || !/^https?:$/.test(url.protocol)) return sendResponse({ error: 'not a web address' })
+      const q = msg.request || {}
+      const request = {
+        firstName: text(q.firstName, 60),
+        lastName: text(q.lastName, 60),
+        email: text(q.email, 254),
+        phone: text(q.phone, 40) || null,
+        message: typeof q.message === 'string' ? q.message.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0009\u000b-\u001f\u007f]+/g, ' ').trim().slice(0, 1200) : '',
+        subject: text(q.subject, 200),
+      }
+      if (!request.firstName || !EMAIL.test(request.email) || !request.message) return sendResponse({ error: 'name, email and message needed' })
+      // The AI's reading of the form's boxes, from the server: box keys and roles only.
+      const mapping = {}
+      for (const [k, v] of Object.entries(msg.mapping && typeof msg.mapping === 'object' ? msg.mapping : {})) if (/^f\d{1,3}$/.test(k) && ROLES.has(v)) mapping[k] = v
+      const busy = Object.values(await allJobs()).find((j) => j.kind === 'contact' && j.url === url.href && open(j))
+      if (busy) {
+        chrome.tabs.update(busy.tabId, { active: true }).catch(() => {})
+        return sendResponse({ jobId: busy.id })
+      }
+      const tab = await chrome.tabs.create({ url: url.href, active: true })
+      const job = { id: crypto.randomUUID(), kind: 'contact', url: url.href, origin, request, mapping, hops: 0, sent: false, tabId: tab.id, status: 'running', detail: null, startedAt: Date.now() }
+      await saveJob(job)
+      const now = await chrome.tabs.get(tab.id).catch(() => null)
+      if (now && now.status === 'complete') inject(job)
+      return sendResponse({ jobId: job.id })
+    }
     if (msg?.type === 'signup-status') {
       const job = (await allJobs())[msg.jobId]
       if (!job || job.origin !== origin) return sendResponse({ status: 'unknown' })
       if (!FINAL.has(job.status) && Date.now() - job.startedAt > MAX_RUN_MS) await finish(job, { status: 'timeout' })
-      const out = { status: job.status, detail: job.detail, service: job.service }
+      const out = { status: job.status, detail: job.detail, service: job.service, kind: job.kind || 'signup' }
       // The password once, to the page that asked, once the account is made; then it is forgotten.
       if (['signed_up', 'check_email'].includes(job.status) && job.password) {
         out.password = job.password
@@ -154,6 +229,21 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
     sendResponse({ error: 'unknown message' })
   })()
   return true
+})
+
+// From a request's page: the form was sent ('sent'; its answer is the next page), or the page said thanks ('done').
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg?.type !== 'contact-event' || !msg.jobId) return
+  ;(async () => {
+    const job = (await allJobs())[msg.jobId]
+    if (!job || job.kind !== 'contact' || !open(job) || sender.tab?.id !== job.tabId) return
+    if (msg.event?.type === 'sent') {
+      job.sent = true
+      await saveJob(job)
+    } else if (msg.event?.type === 'done') {
+      await finish(job, { status: 'requested' })
+    }
+  })()
 })
 
 // From the page being filled in: a page of the form is done (before it is sent).

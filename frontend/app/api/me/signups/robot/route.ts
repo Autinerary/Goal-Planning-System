@@ -6,6 +6,7 @@ import { robotSignup } from '@/lib/signupRobot'
 import { ROBOT_DAILY_LIMIT, SIGNUP_ON } from '@/lib/signups'
 import { accountFor, missingTable, recordSignup, userFrom } from '@/lib/signupServer'
 import { randomInt } from 'crypto'
+import { robotBrowser as browser } from '@/lib/signupBrowser'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -30,17 +31,6 @@ function newPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
   const out = Array.from({ length: 16 }, () => chars[randomInt(chars.length)]).join('')
   return `${out.slice(0, 8)}-${out.slice(8)}!7aK`
-}
-
-async function browser() {
-  const puppeteer = (await import('puppeteer-core')).default
-  // Locally, a Chrome on this machine (SIGNUP_ROBOT_CHROME); on Vercel, the serverless one.
-  if (process.env.SIGNUP_ROBOT_CHROME) {
-    return puppeteer.launch({ executablePath: process.env.SIGNUP_ROBOT_CHROME, headless: true })
-  }
-  // Its own headless mode ("shell"): its args already say so, and it has no other.
-  const chromium = (await import('@sparticuz/chromium')).default
-  return puppeteer.launch({ args: chromium.args, executablePath: await chromium.executablePath(), headless: chromium.headless, defaultViewport: { width: 1280, height: 900 } })
 }
 
 /**

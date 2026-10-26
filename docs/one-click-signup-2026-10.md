@@ -104,6 +104,96 @@ mostly local services. Sign me up appears on a listing when its website is one
 of these services. Plans from July still hold the generic suggestions, such as
 Focusmate, Notion, Todoist, Calm and BetterHelp.
 
+## Local services: Send my request (STEP 91)
+
+Most ResourceHub listings are clinics, programs and centres with no online
+sign-up. For these the button is **Send my request** (`lib/requests.ts`,
+`app/api/me/signups/request`): the person's request goes to the service, and
+the service replies to them by email.
+
+| The listing has | What happens |
+|---|---|
+| an email address | Autinerary emails the request. Replies go to the person, who gets a blind copy. |
+| only a website | The server robot fills in the website's contact or booking form (`runContactForm` in `lib/signupKit.ts`), following its Contact link if need be. |
+| a website with no form it can send | The request is emailed to the address the website shows, if one is clearly the service's own (`pickSiteEmail`). |
+| neither | No button: "No online way to reach them yet". |
+| (a place: park, café, bank…) | Nothing to sign up for. |
+
+- **The request carries** the person's name and account email, and what they
+  choose to add once: a phone number, who it's for (them, their child, someone
+  they support), what they're looking for, and how they'd like to be
+  contacted. They can read the message when they check their details.
+- **The website's form:**
+  - fields are placed by their own words;
+  - a required box the words don't settle goes to the AI (`lib/formMapper.ts`,
+    `gpt-4o-mini`) with the form's words only, never the person's;
+  - a consent box is ticked, never a marketing one; a required choice gets a
+    new-client, appointment or general option;
+  - a robot check, or a question only the person can answer, stops it:
+    nothing is sent. Then (if no address on their site fits, see below):
+    - **with the extension (1.2.0),** the form opens in the person's own
+      browser with everything else filled in (`contact-start` in
+      `chrome-extension/signup.js`; the kit's hand-over mode,
+      `runContactForm(..., { handOver: true })`, using the AI's reading of the
+      boxes the server already had). They tick the check or answer, and send.
+      The extension watches for that (the form's `submit`, then the next
+      page's thanks, or thanks on the same page) and the app records it
+      (`runner: extension`, `requested`). A required choice with no
+      new-client option is also left to them.
+    - **without it,** "Finish on their page" opens it, and **"I've sent it"**
+      marks it sent (`sentByThem`, only for one waiting for them).
+  - the app's message says what the form asks in its own words ("Date of
+    birth", "Which location?").
+- **The address on their website** (when there's no form it can send, or it
+  stopped). The kit collects the addresses each page shows, with the words on
+  their line, and `pickSiteEmail` scores them:
+  - for: the service's front door (info@, intake@, the centre's own name@) on
+    its own web address, words like "New clients" or "General inquiries" on
+    its line, and a small practice's free mail address with its name;
+  - against: a named person (only where nothing better is there);
+  - never: media@, billing@, careers@, no-reply@, a web designer's, a parent
+    council's or a PTA's, or another organisation's address;
+  - nothing scores enough: the request doesn't go.
+- **"Stop them":** each request has a signed link (`lib/requestLinks.ts`,
+  `/emails/requests-stop`). It adds the address to `service_email_optouts`
+  (STEP 79), the one list every email to a service checks, so Autinerary
+  doesn't email it again: no requests, no surveys. The page then offers the
+  website's form, or says there's no online way. If the list can't be read,
+  nothing is sent. There's no List-Unsubscribe header: the person's blind copy
+  would carry it too, and their mail app's Unsubscribe would stop the
+  service's address.
+- **Who sent it:** like the other emails to services, a request ends with
+  Autinerary's name and mailing address (`NEWSLETTER_POSTAL_ADDRESS`) when it's
+  set, besides how to stop. A request is the person's own inquiry, but its
+  "Keep your listing up to date" link is Autinerary's; worth a look against
+  Canada's anti-spam law before switching on.
+- **Limits:** one request per person per listing, and 10 a day.
+- **Never a test to a real service:** real websites were only ever tried in
+  dry runs (filled in, never sent), with obviously-test details.
+
+**How far it reaches** (36,238 approved listings, 26 October 2026):
+
+| | Listings |
+|---|---|
+| Places (nothing to sign up for) | 25,703 |
+| Services with an email address | 964 |
+| Services with only a website | 3,128 |
+| Services with neither | 6,443 |
+
+Dry run on 29 of the website-only services' sites, 26 October 2026:
+
+| Outcome | Sites |
+|---|---|
+| The form, filled in | 6 |
+| Emailed to the address the site shows | 14 |
+| No form, and no address that fits (staff only, a parent council, or none) | 7 |
+| The site wouldn't load (certificate errors) | 2 |
+
+So about 2 in 3 website-only services can be reached. With the 964 that have
+an email address, that's about 3,100 of the 10,535 services. The 6,443 with no
+email or website are the biggest gap: finding their websites would reach more
+of them.
+
 ## Switches and settings
 
 | Setting | Where | What it does |
@@ -113,6 +203,12 @@ Focusmate, Notion, Todoist, Calm and BetterHelp.
 | `SIGNUP_PARTNERS` | the app's Vercel project | partner services, as JSON, with each secret in its own environment variable |
 | `NEXT_PUBLIC_SIGNUP_EXTENSION_ID` | the app's Vercel project | the extension's Chrome Web Store ID, once published |
 | `NEXT_PUBLIC_SIGNUP_EXTENSION_URL` | the app's Vercel project | its store page, once published |
+| `RESEND_API_KEY` | the app's Vercel project (already set) | sends requests by email |
+| `APPLY_FROM_EMAIL` | the app's Vercel project (optional) | the From of a request; otherwise `REMINDER_FROM_EMAIL` |
+| `OPENAI_API_KEY`, `OPENAI_FORM_MODEL` | the app's Vercel project | reading a website form's words (default `gpt-4o-mini`) |
+
+- **Website forms need the server robot** (`SIGNUP_ROBOT=on`). Without it,
+  only listings with an email address get Send my request.
 
 - **Without the store ID,** the app uses the ID fixed by the key in
   `chrome-extension/manifest.json` (`nfhcdhdjijngooikmhoeebadceanmncf`).
@@ -142,6 +238,13 @@ STEP 89's two empty tables and adds `service_signups`:
 - the person reads their own rows, and only the server writes them;
 - it is included in "Download my data".
 
+**STEP 91** (`backend/database/migrations/2026_signup_requests.sql`):
+
+- `service_signups` takes two more ways it ran, `email` and `form`, and one
+  more outcome, `requested`. A listing's key is `r-` and its id without dashes.
+- `service_email_optouts` (STEP 79) is where "Stop them" puts an address;
+  only its description changes. Nobody signed in can read or add to it.
+
 ## Tests
 
 | Test | What it checks | Result |
@@ -151,6 +254,14 @@ STEP 89's two empty tables and adds `service_signups`:
 | `frontend/lib/signupPartners.test.mjs` (CI) | partner settings; signing and verifying, including replays; their answers | passes |
 | `scripts/build-signup-kit.mjs --check` (CI) | the copies match | passes |
 | `.qa-local/pgtest/step90_test.py` | STEP 90 run twice on the whole schema | 15/15 |
+| `frontend/lib/requests.test.mjs` (CI) | which listings and how; the extras; the email and form message; choosing the address on a website, with the real sites' addresses | passes |
+| `.qa-local/pgtest/step91_test.py` | STEP 91 run twice on the whole schema, and nobody signed in can read or add a stopped address | 15/15 |
+| `.qa-local/signup-explore/kit_contact.mjs` | the contact-form filler on pretend sites: a Contact link, split names, a date of birth (AI words only, then hand-over), a robot check, newsletter-only, a framed form, a hidden consent box, a required choice, a dry run, a site with addresses but no form, and hand-over mode (the rest filled, the person ticks or answers and sends, read after) | 31/31 |
+| `.qa-local/signup-explore/real_dry.mjs` | 29 real website-only services' sites, dry run: see "How far it reaches" | 20 of 29 |
+| `.qa-local/browser/step91_live.mjs` | STEP 91 on production: the new runners and outcome, still nothing else; who can read or add a stopped address; nothing left behind | 15/15 |
+| `.qa-local/browser/app_requests.mjs` | Send my request in the app with real listings and nothing reaching them: email to a Resend stand-in, and the robot's Chrome (`chrome-world.sh`) and the person's browser sending every address but this machine's and the database's to a pretend world; the details once, Send all requests, each way, a robot check handed over to the extension and finished by the "person", "I've sent it" without it, not twice, ResourceHub, "Stop them" | 56/56 (before STEP 91: 25/25) |
+| `.qa-local/browser/ext_contact.mjs` | the extension finishing requests on pretend sites: a question, a required choice, a robot check on a form that answers in place, one it sends itself, what it refuses | 13/13 |
+| `.qa-local/browser/app_signup.mjs` | (accounts) now with plain tools, never a real listing, which a request would really contact | 48/48 |
 | `.qa-local/signup-explore/kit_fake.mjs` | the runner against a pretend service on this machine: both pages, exists, a slow service, a check that passes by itself, one the person ticks, an app-like page, a dry run, a service that never answers | 11/11 |
 | `.qa-local/signup-explore/kit_live.mjs` | the real services: first page filled without sending (7/7), and the whole flow with the existing test accounts ending "exists" | Focusmate, Headspace and CHADD pass |
 | `.qa-local/browser/ext_signup.mjs` | the extension in Chrome with the real services | 12/12 |
@@ -166,7 +277,10 @@ through the DevTools protocol (`Extensions.loadUnpacked`, with `pipe: true` and
 ## Not done yet
 
 - **Publishing the extension** to the Chrome Web Store needs the account
-  holder's developer account.
+  holder's developer account. Publish **1.2.0**
+  (`chrome-extension/dist/autinerary-1.2.0.zip`): it can finish requests.
+- **The desktop app** can't finish a request's form yet: only the extension
+  can. Without it, "Finish on their page" and "I've sent it".
 - **Partners:** none yet. [The spec](partner-signups.md) is what to send them.
 - **More services:** each new one is a recipe in `lib/signupKit.ts`, walked
   through once with a test account.
