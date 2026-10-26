@@ -55,7 +55,9 @@ export function useSignups(resourceIds: string[] = []) {
   const key = [...new Set(resourceIds.filter(Boolean))].sort().join(',')
   const [info, setInfo] = useState<Info>({ on: SIGNUP_ON, ready: false, refusal: null, email: null, details: null, extras: NO_EXTRAS, suggested: '', robot: false, forms: false })
   // Local services on this page: how a request reaches each (by listing id).
-  const [requests, setRequests] = useState<Record<string, { key: string; how: RequestHow; name: string; site?: string | null }>>({})
+  const [requests, setRequests] = useState<Record<string, { key: string; how: RequestHow; name: string; site?: string | null; lookedUp?: boolean }>>({})
+  // Listings being looked up on the web for a way to reach them (app/api/me/signups/lookup).
+  const [lookingUp, setLookingUp] = useState<Record<string, boolean>>({})
   // After a hand-over from a website's form, by service: its page to finish on, and whether the
   // extension has it open there, filled in (and is watching for it being sent).
   const [handOver, setHandOver] = useState<Record<string, { url: string; inExtension: boolean }>>({})
@@ -338,6 +340,39 @@ export function useSignups(resourceIds: string[] = []) {
     [asking, info.extras, signUp],
   )
 
+  /**
+   * A listing with no email or website: look on the web for its own (lib/contactLookup.ts).
+   * Found and checked, Send my request appears; otherwise it says so. Returns how a request reaches it now.
+   */
+  const lookUp = useCallback(
+    async (resourceId: string): Promise<RequestHow | null> => {
+      const name = requests[resourceId]?.name || 'them'
+      setLookingUp((l) => ({ ...l, [resourceId]: true }))
+      setNote(`Looking for a way to reach ${name}…`)
+      const res = await fetch('/api/me/signups/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ resourceId }),
+      }).catch(() => null)
+      const j = await res?.json().catch(() => null)
+      setLookingUp(({ [resourceId]: _done, ...rest }) => rest)
+      if (!res?.ok) {
+        setNote(j?.error || 'That didn’t work. Try again.')
+        return null
+      }
+      const how: RequestHow = j.how
+      setRequests((r) => (r[resourceId] ? { ...r, [resourceId]: { ...r[resourceId], how, lookedUp: true, site: j.found?.website || r[resourceId].site } } : r))
+      setNote(
+        how === 'none'
+          ? `We couldn’t find a website or email for ${name} that we could check was theirs. Call or visit them instead.`
+          : `Found ${j.found?.email ? 'an email address' : 'a website'} for ${name}: you can send your request now.`,
+      )
+      return how
+    },
+    [requests],
+  )
+
   /** "I've sent it": they finished a handed-over form on the service's own page. */
   const markSent = useCallback(
     async (service: string, resourceId: string | null | undefined) => {
@@ -389,6 +424,8 @@ export function useSignups(resourceIds: string[] = []) {
     serviceFor,
     signUp,
     markSent,
+    lookUp,
+    lookingUp,
     detailsSaved,
     editDetails: () => setAsking({ services: [] }),
     closeDetails: () => setAsking(null),

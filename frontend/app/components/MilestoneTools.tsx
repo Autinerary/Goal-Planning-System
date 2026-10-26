@@ -9,8 +9,9 @@ import {
 } from '@/lib/milestoneTools'
 import type { ResourceLabels } from '@/lib/resourceLabels'
 import { useSignups } from '@/lib/useSignups'
-import SignupButton from './SignupButton'
+import SignupButton, { LookUpButton } from './SignupButton'
 import SignupDialogs from './SignupDialogs'
+import NearbyServices, { useNearbyServices } from './NearbyServices'
 
 const SYMBOL: Record<string, string> = { service: '🔑', product: '👢', commentary: '🏋️', other: '🔨' }
 const STATUS_ICON: Record<ToolStatus, typeof Bookmark> = { wishlist: Bookmark, current: CheckCircle2, past: History }
@@ -118,9 +119,11 @@ export default function MilestoneTools({
 
   // ResourceHub's labels for the tools on the list.
   const [labels, setLabels] = useState<Record<string, ResourceLabels>>({})
+  // And services near the person for this step (Send my request has somewhere to go on any plan).
+  const { nearby, place } = useNearbyServices(milestoneId)
   const ids = tools.map(resourceIdOf).filter((x): x is string => !!x)
   const idsKey = ids.join(',')
-  const signups = useSignups(ids)
+  const signups = useSignups([...ids, ...nearby.map((s) => s.id)])
   useEffect(() => {
     const need = ids.filter((id) => !labels[id])
     if (!need.length) return
@@ -307,6 +310,7 @@ export default function MilestoneTools({
                 </div>
                 <span className="ml-auto flex flex-wrap items-center gap-3">
                   <SignupButton app={signups} service={(rid && signups.listings[rid]) || signups.serviceFor(tool.url) || signups.requestFor(rid)} resourceId={rid} compact />
+                  <LookUpButton app={signups} resourceId={rid} />
                   <a href={goHubHref(hubPath(tool))} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-sky-800 underline underline-offset-2">
                     View in ResourceHub <ExternalLink className="h-3 w-3" aria-hidden="true" /><span className="sr-only">(opens in a new tab)</span>
                   </a>
@@ -366,6 +370,7 @@ export default function MilestoneTools({
         )}
       </div>
       <p className="mt-2 min-h-[1.25rem] text-sm text-slate-800" role="status" aria-live="polite">{note}</p>
+      <NearbyServices app={signups} nearby={nearby} place={place} />
       {signups.on && (
         <>
           <p className="min-h-[1.25rem] text-sm text-slate-900" role="status" aria-live="polite" data-signup-note>{signups.note}</p>

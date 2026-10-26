@@ -61,10 +61,22 @@ const EMAIL = /^[^@\s<>(),;:"\[\]]+@[^@\s<>(),;:"\[\]]+\.[^@\s<>(),;:"\[\]]{2,}$
 
 export const isEmail = (v: unknown): v is string => typeof v === 'string' && v.length <= 320 && EMAIL.test(v.trim())
 
-/** The listing's own website (never OpenStreetMap's page about it). */
+interface Contact {
+  email?: unknown
+  website?: unknown
+  /** Found on the web for a listing that had none (lib/contactLookup.ts): checked against its own site. */
+  found_email?: unknown
+  found_website?: unknown
+  found_at?: unknown
+}
+
+const contactOf = (r: { contact_info?: unknown }): Contact => ((r.contact_info && typeof r.contact_info === 'object' ? r.contact_info : {}) as Contact)
+
+/** The listing's own website (never OpenStreetMap's page about it); one found on the web if it had none. */
 export function listingWebsite(r: { contact_info?: unknown; source_url?: string | null; source_type?: string | null }): string | null {
-  const own = (r.contact_info as { website?: unknown } | null)?.website
-  const site = typeof own === 'string' && own.trim() ? own.trim() : r.source_type === 'openstreetmap' ? null : r.source_url || null
+  const c = contactOf(r)
+  const own = typeof c.website === 'string' && c.website.trim() ? c.website : typeof c.found_website === 'string' && c.found_website.trim() ? c.found_website : null
+  const site = own ? own.trim() : r.source_type === 'openstreetmap' ? null : r.source_url || null
   if (!site || /openstreetmap\.org/i.test(site)) return null
   try {
     const u = new URL(/^https?:\/\//i.test(site) ? site : `https://${site}`)
@@ -74,11 +86,26 @@ export function listingWebsite(r: { contact_info?: unknown; source_url?: string 
   }
 }
 
+/** The listing's email address; one found on the web if it had none. Lower-case. */
+export function listingEmail(r: { contact_info?: unknown }): string | null {
+  const c = contactOf(r)
+  const email = isEmail(c.email) ? c.email : isEmail(c.found_email) ? c.found_email : null
+  return email ? email.trim().toLowerCase() : null
+}
+
+/** Its email was found on the web (not on the listing): the request says it went to the address on their website. */
+export const emailFoundOnline = (r: { contact_info?: unknown }): boolean => !isEmail(contactOf(r).email) && isEmail(contactOf(r).found_email)
+
+/** When the web was last searched for a way to reach it (lib/contactLookup.ts), if ever. */
+export function lookedUpAt(r: { contact_info?: unknown }): string | null {
+  const at = contactOf(r).found_at
+  return typeof at === 'string' && at ? at : null
+}
+
 /** How a request reaches this listing: its email, its website's form, or no way online. */
 export function howToRequest(r: { category?: string | null; status?: string | null; contact_info?: unknown; source_url?: string | null; source_type?: string | null }): RequestHow {
   if ((r.status && r.status !== 'approved') || isPlace(r.category)) return 'none'
-  const email = (r.contact_info as { email?: unknown } | null)?.email
-  if (isEmail(email)) return 'email'
+  if (listingEmail(r)) return 'email'
   return listingWebsite(r) ? 'form' : 'none'
 }
 
@@ -147,6 +174,42 @@ export function pickSiteEmail(found: readonly FoundEmail[] | null | undefined, l
   }
   return best?.email || null
 }
+
+// ── A website and email found on the web, checked (lib/contactLookup.ts) ──
+
+// Not an organisation's own site: directories, maps, social media, search.
+const NOT_OWN_SITE = /(^|\.)(facebook|fb|instagram|linkedin|twitter|x|tiktok|youtube|youtu|pinterest|reddit|yelp|yellowpages|canada411|411|google|goo|bing|mapquest|foursquare|tripadvisor|wikipedia|wikimapia|openstreetmap|nextdoor|eventbrite|indeed|glassdoor|ratemds|healthgrades|psychologytoday|bbb|linktr|carrd|wix|squarespace|godaddysites)\.[a-z.]+$/
+
+const plain = (s: string): string =>
+  String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
+
+/** Whether a page is about this listing: its whole name on it, or every distinctive word of its name. */
+export function pageNames(pageText: string, name: string): boolean {
+  const page = ` ${plain(pageText)} `
+  const whole = plain(name)
+  if (whole && page.includes(` ${whole} `)) return true
+  const distinctive = nameWords(name)
+  return distinctive.length >= 2 && distinctive.every((w) => page.includes(` ${w}`))
+}
+
+/**
+ * What the web search found, kept only if it checks out against the site
+ * itself: the website its own (not a directory, a map or social media) and
+ * naming the listing; the email on that site, or at its address. Nothing is
+ * taken on the search's word.
+ */
+export function checkFoundContact(found: { name: string; website: string | null; email: string | null; pageText: string | null }): { website: string | null; email: string | null } {
+  let site: URL | null = null
+  try { site = found.website ? new URL(found.website) : null } catch {}
+  const siteOk = !!site && /^https?:$/.test(site.protocol) && !NOT_OWN_SITE.test(site.hostname.toLowerCase()) && !!found.pageText && pageNames(found.pageText, found.name)
+  const website = siteOk && site ? site.toString() : null
+  const email = String(found.email || '').trim().toLowerCase()
+  const emailOk = !!website && isEmail(email) && !NOT_REAL_EMAIL.test(email) &&
+    (String(found.pageText || '').toLowerCase().includes(email) || siteOf(email.split('@')[1]) === siteOf(site!.hostname))
+  return { website, email: emailOk ? email : null }
+}
+
+const NOT_REAL_EMAIL = /@(example\.(com|org|net|ca)|domain\.(com|ca)|email\.com|sentry\.io|wixpress\.com)$/
 
 /** A listing's key in service_signups: "r-" and its id without dashes. */
 export const listingKey = (resourceId: string): string => `r-${resourceId.replace(/-/g, '').toLowerCase()}`

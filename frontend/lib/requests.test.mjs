@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import {
   NO_EXTRAS, REQUEST_DAILY_LIMIT, cleanExtras, formMessage, formSubject, howToRequest, isEmail, isPlace, listingKey,
-  listingWebsite, pickSiteEmail, requestEmail, resourceIdOfKey,
+  checkFoundContact, emailFoundOnline, listingEmail, listingWebsite, lookedUpAt, pageNames, pickSiteEmail, requestEmail, resourceIdOfKey,
 } from './requests.ts'
 
 assert.ok(REQUEST_DAILY_LIMIT >= 5 && REQUEST_DAILY_LIMIT <= 20)
@@ -62,6 +62,39 @@ assert.equal(pickSiteEmail([at('info@city.toronto.on.ca')], { name: 'Riverdale L
 assert.equal(pickSiteEmail([at('info@other.on.ca')], { name: 'Riverdale Library', website: 'https://www.toronto.on.ca/riverdale' }), null, '…and other.on.ca another')
 assert.equal(pickSiteEmail([], { name: 'Calm Clinic', website: 'https://calmclinic.ca' }), null)
 assert.equal(pickSiteEmail(undefined, { name: null, website: null }), null)
+
+// ── Found on the web, for a listing that had no way to reach it ──
+const osm = { category: 'Therapist', status: 'approved', source_type: 'openstreetmap', source_url: 'https://www.openstreetmap.org/node/2363212328' }
+const looked = { ...osm, contact_info: { email: null, website: null, found_website: 'https://careercentre.example.ca/', found_email: 'Intake@careercentre.example.ca', found_at: '2026-10-26T07:00:00Z' } }
+assert.equal(howToRequest(looked), 'email', 'a found email is a way to reach them')
+assert.equal(listingEmail(looked), 'intake@careercentre.example.ca')
+assert.equal(emailFoundOnline(looked), true)
+assert.equal(listingWebsite(looked), 'https://careercentre.example.ca/')
+assert.equal(lookedUpAt(looked), '2026-10-26T07:00:00Z')
+assert.equal(howToRequest({ ...osm, contact_info: { found_website: 'https://careercentre.example.ca/', found_at: 'x' } }), 'form', 'only a found website: its form')
+assert.equal(howToRequest({ ...osm, contact_info: { found_at: '2026-10-26T07:00:00Z' } }), 'none', 'looked for, nothing found')
+assert.equal(lookedUpAt({ ...osm, contact_info: { email: null } }), null)
+assert.equal(listingEmail(clinic), 'hello@clinic.ca', 'its own email first')
+assert.equal(emailFoundOnline(clinic), false)
+assert.equal(listingEmail({ contact_info: { email: 'hello@clinic.ca', found_email: 'other@x.ca' } }), 'hello@clinic.ca')
+
+const page = 'Career and Counselling Centre — Book an appointment. Email intake@careercentre.example.ca or call us.'
+assert.equal(pageNames(page, 'Career and Counselling Centre'), true)
+assert.equal(pageNames('Career & Counselling Centre', 'Career and Counselling Centre'), true, '& is and')
+assert.equal(pageNames('Academic Advising & Career Centre', 'Career and Counselling Centre'), false, 'a different office with similar words: no')
+assert.equal(pageNames('Welcome to Kerry’s Place Peer Connect for adults', 'Peer Connect – Adult Group (Kerry’s Place)'), true, 'every distinctive word of its name (peer, connect, kerry)')
+assert.equal(pageNames('Kerry’s Place: services for autistic people', 'Peer Connect – Adult Group (Kerry’s Place)'), false, 'the organisation, not this group')
+assert.equal(pageNames('The Scarborough wellness collective, for women and their families', 'Scarborough Women’s Wellness Collective'), true, 'or every distinctive word of it, in any order')
+assert.equal(pageNames('Riverdale programs at the hub', 'Riverdale Hub Programs'), false, 'one distinctive word only (riverdale): the whole name, or no')
+const ok = checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://careercentre.example.ca', email: 'Intake@CareerCentre.example.ca', pageText: page })
+assert.deepEqual(ok, { website: 'https://careercentre.example.ca/', email: 'intake@careercentre.example.ca' })
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://www.facebook.com/careercentre', email: 'a@careercentre.example.ca', pageText: page }), { website: null, email: null }, 'never social media')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://www.yelp.ca/biz/x', email: null, pageText: page }), { website: null, email: null }, 'never a directory')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://other.example.ca', email: null, pageText: 'Some other clinic' }), { website: null, email: null }, 'a site that doesn’t name them: no')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://careercentre.example.ca', email: 'someone@gmail.com', pageText: page }), { website: 'https://careercentre.example.ca/', email: null }, 'an email neither on the site nor at its address: not used')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'https://careercentre.example.ca', email: 'info@careercentre.example.ca', pageText: page }).email, 'info@careercentre.example.ca', 'at the site’s own address: used')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: null, email: 'intake@careercentre.example.ca', pageText: null }), { website: null, email: null }, 'an email with no site to check it on: not used')
+assert.deepEqual(checkFoundContact({ name: 'Career and Counselling Centre', website: 'javascript:alert(1)', email: null, pageText: page }), { website: null, email: null })
 
 // ── The extras ──
 assert.deepEqual(cleanExtras({}), { ok: true, extras: NO_EXTRAS })

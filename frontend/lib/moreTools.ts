@@ -138,3 +138,134 @@ export function rankMore(
   })
   return scored.slice(0, Math.max(0, opts.limit)).map((x) => toPlanTool(x.row, opts.hubUrl, opts.ratings.get(x.row.id)))
 }
+
+// ── Services near the person, for one step (Send my request) ─────────────
+
+/**
+ * Services near the person for one step of their plan (the account holder's
+ * choice, 26 October 2026), so Send my request has somewhere to go on every
+ * plan, old or new: the same pool and scoring as "Recommend more", but
+ *   - only where the person lives: their province, or national ones (no
+ *     province and no city; one with only a city counts only in that city);
+ *     with no province on their profile, only national ones;
+ *   - only a clear match: at least two words the step and the service share
+ *     (one, for a step of one or two words), so a single common word
+ *     ("learn") doesn't bring in a tax clinic;
+ *   - never a student-only service (a university's, a college's) unless their
+ *     plan says they study;
+ *   - for whom: planning for themselves (an adult), never one only for
+ *     children or teens; for their child, never one only for adults;
+ *   - only services the caller can reach (`reachable`: lib/requests.ts, an
+ *     email or a website, never a place);
+ *   - nearer first, when both have a map position or share a city.
+ */
+export interface LocalRow extends PoolRow {
+  location?: { city?: string | null; province?: string | null } | null
+  geo_lat?: number | null
+  geo_lng?: number | null
+  contact_info?: unknown
+  status?: string | null
+  source_url?: string | null
+  source_type?: string | null
+}
+
+export interface PersonPlace {
+  city?: string | null
+  province?: string | null
+  lat?: number | null
+  lng?: number | null
+}
+
+const PROVINCES: Record<string, string> = {
+  on: 'ON', ontario: 'ON',
+  bc: 'BC', 'british columbia': 'BC',
+  ab: 'AB', alberta: 'AB',
+  sk: 'SK', saskatchewan: 'SK',
+  mb: 'MB', manitoba: 'MB',
+  qc: 'QC', quebec: 'QC', 'québec': 'QC',
+  nb: 'NB', 'new brunswick': 'NB',
+  ns: 'NS', 'nova scotia': 'NS',
+  pe: 'PE', pei: 'PE', 'prince edward island': 'PE',
+  nl: 'NL', 'newfoundland and labrador': 'NL', newfoundland: 'NL',
+  yt: 'YT', yukon: 'YT',
+  nt: 'NT', 'northwest territories': 'NT',
+  nu: 'NU', nunavut: 'NU',
+}
+
+/** A province as its two letters ("Ontario", "ON" → "ON"); '' for none; null for something that isn't one. */
+export function provinceCode(v: unknown): string | null {
+  const s = String(v ?? '').trim().toLowerCase().replace(/\.$/, '')
+  if (!s) return ''
+  return PROVINCES[s] ?? null
+}
+
+/** A university's or a college's own service: for its students. */
+export const studentOnly = (row: Pick<PoolRow, 'name' | 'description'>): boolean =>
+  /\b(university|college|campus|c[ée]gep|polytechnic)\b/i.test(row.name || '') || /\b(for|registered|enrolled|current) students\b/i.test(row.description || '')
+
+const CHILD_WORDS = /\b(adolescents?|teens?|teenagers?|youth|child|children|kids?|boys|girls|toddlers?|infants?|preschool(ers)?|school-age|aged? \d{1,2}\s*(to|-|–|and)\s*1[0-7]|under 1[0-8])\b/i
+const ADULT_WORDS = /\b(adults?|all ages|18\+|18 and (over|older)|grown-ups?|seniors?)\b/i
+
+/** Only for children or teens ("PEERS® for Adolescents"); one for "children and adults" isn't. */
+export const youthOnly = (row: Pick<PoolRow, 'name' | 'description'>): boolean => {
+  const t = `${row.name || ''} ${row.description || ''}`
+  return CHILD_WORDS.test(t) && !ADULT_WORDS.test(t)
+}
+
+/** Only for adults (and not their families either). */
+export const adultOnly = (row: Pick<PoolRow, 'name' | 'description'>): boolean => {
+  const t = `${row.name || ''} ${row.description || ''}`
+  return ADULT_WORDS.test(t) && !CHILD_WORDS.test(t) && !/\b(famil(y|ies)|parents?|caregivers?)\b/i.test(t)
+}
+
+/** Whether their plan says they study (its profile's own words). */
+export const studies = (profileText: string): boolean => /\b(student|studying|college|university|campus|enrolled)\b/i.test(profileText)
+
+function km(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = Math.PI / 180
+  const dLat = (b.lat - a.lat) * rad
+  const dLng = (b.lng - a.lng) * rad
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2
+  return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(x)))
+}
+
+const num = (v: unknown): number | null => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? null : Number(v))
+
+export function localServices(
+  pool: readonly LocalRow[],
+  milestone: MilestoneText,
+  opts: { place: PersonPlace | null; student: boolean; forWhom?: 'adult' | 'child' | null; exclude: Set<string>; norms: readonly string[]; ratings: Map<string, RatingAgg>; limit: number; reachable: (row: LocalRow) => boolean },
+): LocalRow[] {
+  const m = words([milestone.name, milestone.description, milestone.goal].filter(Boolean).join(' '))
+  const n = normWords(opts.norms)
+  const home = provinceCode(opts.place?.province) || ''
+  const lat = num(opts.place?.lat)
+  const lng = num(opts.place?.lng)
+  const city = String(opts.place?.city || '').trim().toLowerCase()
+  const scored: { row: LocalRow; score: number; i: number }[] = []
+  pool.forEach((row, i) => {
+    if (!row.id || opts.exclude.has(row.id) || isSelfListing(row) || !opts.reachable(row)) return
+    const p = provinceCode(row.location?.province)
+    const rowCity = String(row.location?.city || '').trim().toLowerCase()
+    // Their province; or national (no province, no city); a city alone only if it's theirs; a province that isn't one: no.
+    if (p === null || (p && p !== home) || (!p && rowCity && rowCity !== city)) return
+    if (!opts.student && studentOnly(row)) return
+    if ((opts.forWhom === 'adult' && youthOnly(row)) || (opts.forWhom === 'child' && adultOnly(row))) return
+    const listing = words([row.name, row.description, row.category, ...(row.tags || []).map((t) => t.replace(/_/g, ' '))].join(' '))
+    let shared = 0
+    for (const w of m) if (listing.has(w)) shared++
+    if (shared < Math.min(2, m.size)) return
+    let score = fit(row, m, n, opts.ratings.get(row.id))
+    if (score <= 0) return
+    const rLat = num(row.geo_lat)
+    const rLng = num(row.geo_lng)
+    if (lat !== null && lng !== null && rLat !== null && rLng !== null) {
+      const d = km({ lat, lng }, { lat: rLat, lng: rLng })
+      score += d <= 40 ? 0.15 : d <= 100 ? 0.05 : 0
+    } else if (p && city && String(row.location?.city || '').trim().toLowerCase() === city) {
+      score += 0.15
+    }
+    scored.push({ row, score, i })
+  })
+  return scored.sort((a, b) => b.score - a.score || a.i - b.i).slice(0, Math.max(0, opts.limit)).map((x) => x.row)
+}

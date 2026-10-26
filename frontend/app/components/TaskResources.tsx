@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { UserPlus, Wrench } from 'lucide-react'
-import SignupButton from './SignupButton'
+import SignupButton, { LookUpButton } from './SignupButton'
 import SignupDialogs from './SignupDialogs'
+import NearbyServices, { useNearbyServices } from './NearbyServices'
 import { signupPlan, type SignupItem } from '@/lib/signups'
 import { cleanEdits, costLabel, resourceIdOf, toolKey, visibleTools, type PlanTool } from '@/lib/milestoneTools'
 import { useSignups } from '@/lib/useSignups'
@@ -32,7 +33,9 @@ export default function TaskResources({
   initialEdits?: unknown
 }) {
   const tools = useMemo(() => visibleTools(baseTools, cleanEdits(initialEdits)), [baseTools, initialEdits])
-  const ids = tools.map(resourceIdOf).filter((x): x is string => !!x)
+  // And services near the person for this step, so there's always somewhere a request can go.
+  const { nearby, place } = useNearbyServices(milestoneId)
+  const ids = [...tools.map(resourceIdOf).filter((x): x is string => !!x), ...nearby.map((s) => s.id)]
   const app = useSignups(ids)
   const [confirming, setConfirming] = useState(false)
 
@@ -42,8 +45,9 @@ export default function TaskResources({
     const id = resourceIdOf(t)
     return (id && app.listings[id]) || app.serviceFor(t.url) || app.requestFor(id)
   }
-  const items: SignupItem[] = tools.flatMap((t): SignupItem[] => {
-    const service = serviceOf(t)
+  // Every service on the page, the step's tools and the services near the person, with its listing.
+  const onPage: [string | null, string | null][] = [...tools.map((t): [string | null, string | null] => [serviceOf(t), resourceIdOf(t)]), ...nearby.map((s): [string | null, string | null] => [app.requestFor(s.id), s.id])]
+  const items: SignupItem[] = onPage.flatMap(([service]): SignupItem[] => {
     const recipe = app.serviceInfo(service)
     return recipe ? [{ service: recipe.key, name: recipe.name, status: app.signups[recipe.key]?.status || null, runner: app.runnerFor(recipe.key) }] : []
   })
@@ -59,7 +63,7 @@ export default function TaskResources({
 
   const signUpAll = () => {
     setConfirming(false)
-    app.signUp(plan.go.map((i) => ({ service: i.service, resourceId: tools.map((t) => [serviceOf(t), resourceIdOf(t)]).find(([s]) => s === i.service)?.[1] || null })))
+    app.signUp(plan.go.map((i) => ({ service: i.service, resourceId: onPage.find(([s]) => s === i.service)?.[1] || null })))
   }
 
   return (
@@ -86,10 +90,12 @@ export default function TaskResources({
                 </span>
               </span>
               <SignupButton app={app} service={service} resourceId={resourceIdOf(t)} compact />
+              {!service && <LookUpButton app={app} resourceId={resourceIdOf(t)} />}
             </li>
           )
         })}
       </ul>
+      <NearbyServices app={app} nearby={nearby} place={place} />
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {app.refusal ? (

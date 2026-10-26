@@ -7,7 +7,7 @@ import { robotBrowser } from '@/lib/signupBrowser'
 import { SIGNUP_KIT_SOURCE } from '@/lib/signupKitSource'
 import { robotContact } from '@/lib/signupRobot'
 import { SIGNUP_ON } from '@/lib/signups'
-import { REQUEST_DAILY_LIMIT, formMessage, formSubject, howToRequest, listingKey, listingWebsite, pickSiteEmail, requestEmail } from '@/lib/requests'
+import { REQUEST_DAILY_LIMIT, emailFoundOnline, formMessage, formSubject, howToRequest, listingEmail, listingKey, listingWebsite, pickSiteEmail, requestEmail } from '@/lib/requests'
 import { requestStopUrl, stoppedAddresses } from '@/lib/requestLinks'
 import { postalAddress } from '@/lib/newsletter'
 import { accountFor, missingTable, recordSignup, userFrom } from '@/lib/signupServer'
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   const { count } = await admin.from('service_signups').select('id', { count: 'exact', head: true }).eq('user_id', user.id).like('service', 'r-%').gte('updated_at', since)
   if ((count || 0) >= REQUEST_DAILY_LIMIT) return NextResponse.json({ error: 'That’s the most requests for one day. Try again tomorrow.' }, { status: 429 })
 
-  const onFile = how === 'email' ? String((resource.contact_info as { email: string }).email).trim().toLowerCase() : null
+  const onFile = how === 'email' ? listingEmail(resource) : null
   const website = listingWebsite(resource)
   // Nothing goes to an address that asked to stop; if that can't be checked, nothing goes.
   const stopped = async (email: string) => (await stoppedAddresses(admin, [email])).has(email)
@@ -117,7 +117,8 @@ export async function POST(req: NextRequest) {
   let mapping: Record<string, string> | undefined
 
   if (runner === 'email') {
-    const sent = await mail(onFile!, false)
+    // An address found on their website (lib/contactLookup.ts) says so, like one the robot found there.
+    const sent = await mail(onFile!, emailFoundOnline(resource))
     if (sent.ok) status = 'requested'
     else detail = sent.skipped ? 'Email isn’t set up on this server.' : 'The email didn’t go. Try again.'
   } else {

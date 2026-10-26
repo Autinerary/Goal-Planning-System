@@ -171,6 +171,30 @@ the service replies to them by email.
 - **Never a test to a real service:** real websites were only ever tried in
   dry runs (filled in, never sent), with obviously-test details.
 
+**Services that can start with you** (the account holder's choice, 26
+October 2026, after "I still don't see the button": older plans' tools are
+guides and apps nothing can be sent to). Under each step's tools, in the task
+view and the Milestone view, up to three services matched to the step
+(`localServices` in `lib/moreTools.ts`, `app/api/me/path/services`,
+`app/components/NearbyServices.tsx`): from ResourceHub's checked services,
+in the person's province (their profile's) or national ones; never a
+student-only one unless their plan says they study; only ones a request can
+reach; nearer first. "Send all requests" includes them.
+
+**Finding a way to reach a listing that has none** (the same day). Most
+OpenStreetMap listings are a name and a map pin. "Look for a way to reach
+them" (and the app's page that ResourceHub's "Ask to start with them" opens,
+on its own) asks OpenAI's web search for the listing's own website and email,
+with only its name, kind and place (OpenStreetMap's geocoder turns a map pin
+into a place). `lib/contactLookup.ts` keeps them only if they check out: the
+website its own (never a directory, a map or social media) and naming the
+listing; the email on that site or at its address (`checkFoundContact` in
+`lib/requests.ts`). The server only reads public addresses, checked again at
+each redirect. What's found goes beside the listing's own details
+(`contact_info.found_website`, `found_email`, `found_at`), never over them;
+nothing found is kept too, for 30 days. Ten look-ups a person a day; about
+1–3 cents each.
+
 **How far it reaches** (36,238 approved listings, 26 October 2026):
 
 | | Listings |

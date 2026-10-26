@@ -22,7 +22,8 @@ export async function mapFields(fields: FormField[]): Promise<Record<string, Fie
   // The form's words only, trimmed.
   const asked = fields.slice(0, 40).map((f) => ({ key: String(f.key).slice(0, 8), type: String(f.type).slice(0, 20), label: String(f.label).slice(0, 160), required: !!f.required }))
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    // OPENAI_BASE_URL: a stand-in in local tests (as lib/contactLookup.ts).
+    const res = await fetch(`${(process.env.OPENAI_BASE_URL || 'https://api.openai.com').replace(/\/$/, '')}/v1/chat/completions`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: MODEL, temperature: 0, max_tokens: 400, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: JSON.stringify(asked) }] }),

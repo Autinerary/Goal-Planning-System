@@ -10,7 +10,7 @@ import { appSignInHref } from '@/lib/appSignIn'
 import Link from 'next/link'
 import TeamAction from '@/components/team/TeamAction'
 import type { TeamState } from '@/lib/team'
-import { SIGNUP_ON, canRequest, requestKey, serviceForUrl, signupHref } from '@/lib/signup'
+import { SIGNUP_ON, canLookUp, canRequest, requestKey, serviceForUrl, signupHref } from '@/lib/signup'
 
 interface ResourceHeaderProps {
   resource: ResourceDetail
@@ -31,6 +31,8 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
   const signupService = serviceForUrl(site.contact_info?.website || site.source_url)
   // A local service with no online sign-up: the app sends their request instead.
   const requestService = !signupService && canRequest(resource as Parameters<typeof canRequest>[0]) ? requestKey(resource.id) : null
+  // No email or website yet: the app looks on the web for theirs, then sends the request.
+  const lookUpService = !signupService && !requestService && canLookUp(resource as Parameters<typeof canLookUp>[0]) ? requestKey(resource.id) : null
   // Back from signing in to add it to the team.
   const [addAfterSignIn] = useState(() =>
     typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('then') === `team:${resource.id}`
@@ -205,14 +207,14 @@ export default function ResourceHeader({ resource, userId }: ResourceHeaderProps
 
           {/* One-click sign-up (lib/signup.ts): the app fills in this service's
               own sign-up form for the person. */}
-          {SIGNUP_ON && (signupService || requestService) && (
+          {SIGNUP_ON && (signupService || requestService || lookUpService) && (
             <a
-              href={signupHref((signupService || requestService)!, resource.id)}
+              href={signupHref((signupService || requestService || lookUpService)!, resource.id)}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               data-signup-link
             >
               <UserPlus className="w-4 h-4" aria-hidden="true" />
-              {signupService ? 'Sign me up' : 'Send my request'}
+              {signupService ? 'Sign me up' : requestService ? 'Send my request' : 'Ask to start with them'}
             </a>
           )}
         </div>

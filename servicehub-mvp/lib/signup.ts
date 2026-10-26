@@ -37,10 +37,20 @@ const PLACES = new Set(['restaurant', 'café', 'cafe', 'park', 'bank', 'hotel', 
  */
 export function canRequest(r: { category?: string | null; status?: string | null; contact_info?: unknown; source_url?: string | null; source_type?: string | null }): boolean {
   if ((r.status && r.status !== 'approved') || PLACES.has(String(r.category || '').trim().toLowerCase())) return false
-  const c = (r.contact_info || {}) as { email?: unknown; website?: unknown }
-  if (typeof c.email === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(c.email.trim())) return true
-  const site = typeof c.website === 'string' && c.website.trim() ? c.website : r.source_type === 'openstreetmap' ? null : r.source_url
+  // Its own details, or ones the app found on the web and checked (found_email, found_website).
+  const c = (r.contact_info || {}) as { email?: unknown; website?: unknown; found_email?: unknown; found_website?: unknown }
+  const email = (v: unknown) => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v.trim())
+  if (email(c.email) || email(c.found_email)) return true
+  const own = [c.website, c.found_website].find((v) => typeof v === 'string' && v.trim()) as string | undefined
+  const site = own || (r.source_type === 'openstreetmap' ? null : r.source_url)
   return !!site && !/openstreetmap\.org/i.test(site)
+}
+
+/** A service (not a place) with no way to reach it yet: the app can look on the web for one. */
+export function canLookUp(r: { category?: string | null; status?: string | null; contact_info?: unknown; source_url?: string | null; source_type?: string | null }): boolean {
+  if ((r.status && r.status !== 'approved') || PLACES.has(String(r.category || '').trim().toLowerCase())) return false
+  const c = (r.contact_info || {}) as { found_at?: unknown }
+  return !canRequest(r) && !c.found_at
 }
 
 /** A local service's key in the app ("r-" and its id without dashes). */

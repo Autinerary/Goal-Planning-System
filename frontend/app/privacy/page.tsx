@@ -26,7 +26,7 @@ const PROVIDERS: { name: string; does: string; gets: string }[] = [
   {
     name: 'OpenAI',
     does: 'Writes plans and suggestions',
-    gets: `The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read${SIGNUP ? '; the words on a local service’s contact form (never anything about you), when Sign me up sends your request through it and a box needs working out' : ''}. OpenAI’s terms for this kind of use say it does not train its models on this data`,
+    gets: `The parts of your profile needed for that, such as your goals, norms you have shared and your preferences; what you type into the goal helper during setup, if you use it; what you ask the assistant, with a summary of your path, and your About me if you choose to share it; what you ask the help chat on the Help page (not saved by Autinerary); a sentence you type into ResourceHub’s search and send with Enter, to work out what you are looking for; a photo or a list you choose to import into your calendar or plan, to read the dates, tasks or steps in it for you to check; what you post in Tidbits (posts, comments and answers), to flag anything a moderator should read${SIGNUP ? '; the words on a local service’s contact form (never anything about you), when Sign me up sends your request through it and a box needs working out; the name and place of a listing with no email or website, to look on the web for its own (never anything about you)' : ''}. OpenAI’s terms for this kind of use say it does not train its models on this data`,
   },
   { name: 'Resend', does: 'Sends our emails', gets: 'Your email address and the email itself' },
   {
@@ -228,6 +228,12 @@ export default function PrivacyPage() {
                   what it asks. If it asks something only you can answer, or wants to check you’re not a robot, nothing is sent: we tell
                   you, and you can finish on their page. With the Autinerary extension, their form opens in your browser with everything
                   else filled in, for you to finish and send; the extension notes whether it went, and nothing else about the page.
+                </li>
+                <li>
+                  For each step of your plan we suggest services near you that you can send a request to, using the city and province on
+                  your profile. If a listing has no email or website, we look on the web for its own (OpenAI’s web search, with only the
+                  listing’s name and place), and use what we find only if their own website confirms it. What we find is kept with the
+                  listing, so nobody has to look again.
                 </li>
                 <li>
                   What you choose to add is saved with your details, so you don’t type it again; you can change it each time. We keep

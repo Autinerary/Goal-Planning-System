@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import BackButton from '../../components/BackButton'
@@ -33,6 +33,16 @@ function SignupPageContent() {
   const recipe = app.serviceInfo(key)
   // A listing with no way to reach it still has a name to show.
   const listingName = resourceId ? app.requests[resourceId]?.name : null
+  // …and is looked for on the web, once (they came here to ask it): its own website and email.
+  const unreachable = !!resourceId && app.loaded && app.ready && app.unreachable(resourceId)
+  const lookedUp = !!resourceId && !!app.requests[resourceId]?.lookedUp
+  const looking = !!resourceId && !!app.lookingUp[resourceId]
+  const tried = useRef(false)
+  useEffect(() => {
+    if (!unreachable || lookedUp || looking || tried.current || app.refusal) return
+    tried.current = true
+    void app.lookUp(resourceId!)
+  }, [unreachable, lookedUp, looking, resourceId, app])
 
   return (
     <main className="min-h-screen p-4 md:p-8 surface-veil">
@@ -45,7 +55,13 @@ function SignupPageContent() {
           {!SIGNUP_ON || (app.loaded && !app.on) ? (
             <p className="mt-2 text-slate-800">One-click sign-up isn’t switched on yet.</p>
           ) : !recipe ? (
-            <p className="mt-2 text-slate-800">{app.unreachable(resourceId) ? 'There’s no online way to reach them yet: no email or website on their listing.' : 'There’s no one-click sign-up for that service yet.'}</p>
+            <p className="mt-2 text-slate-800" data-signup-unreachable>
+              {!app.unreachable(resourceId)
+                ? 'There’s no one-click sign-up for that service yet.'
+                : looking || (!lookedUp && !tried.current)
+                  ? 'Their listing has no email or website: looking on the web for their own…'
+                  : 'There’s no online way to reach them yet: we looked for their website and email, and found none we could check was theirs. Call or visit them instead.'}
+            </p>
           ) : !app.loaded ? (
             <p className="mt-2 text-slate-800">Loading…</p>
           ) : !app.ready ? (

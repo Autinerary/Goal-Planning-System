@@ -141,3 +141,25 @@ function CopyDetails({ items }: { items: { label: string; value: string }[] }) {
     </details>
   )
 }
+
+/**
+ * A listing with no email or website (lib/contactLookup.ts): look on the web
+ * for its own, once. After that, either Send my request appears beside it, or
+ * this says nothing usable was found.
+ */
+export function LookUpButton({ app, resourceId }: { app: Signups; resourceId: string | null | undefined }) {
+  if (!app.on || !app.ready || !resourceId || !app.unreachable(resourceId)) return null
+  if (app.lookingUp[resourceId]) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-800" data-signup-looking={resourceId}>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Looking…
+      </span>
+    )
+  }
+  if (app.requests[resourceId]?.lookedUp) return null
+  return (
+    <button type="button" onClick={() => app.lookUp(resourceId)} className="text-xs font-semibold text-indigo-800 underline underline-offset-2" data-signup-look-up={resourceId}>
+      Look for a way to reach them
+    </button>
+  )
+}
