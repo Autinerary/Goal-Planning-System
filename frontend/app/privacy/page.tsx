@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Where privacy questions and requests go (lib/contact.ts).
 const CONTACT = CONTACT_EMAIL
-const UPDATED = '20 October 2026'
+const UPDATED = '26 October 2026'
 
 // Sponsored listings (STEP 83; lib/sponsored.ts): what this page says changes when the team turns them on.
 const SPONSORED = process.env.NEXT_PUBLIC_SPONSORED === 'on'
