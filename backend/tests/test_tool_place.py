@@ -88,6 +88,35 @@ class PlaceFilterTests(unittest.TestCase):
         self.assertEqual({t["resourceId"] for t in tools}, {"on1", "on2", "nat1", "bc1", "odd"})
 
 
+class StepRankingTests(unittest.TestCase):
+    """The barriers-only fit score no longer decides a step's suggestions (27 October 2026: with it, college
+    accessibility offices came first for "register with the Ontario Autism Program", respite and riding)."""
+
+    def test_the_step_decides_not_a_score_about_the_barriers(self):
+        agent = ToolRecommendationAgent()
+        agent._province = None
+        agent._resource_pool = [
+            {**_tool("college", "ON", "Northern College Accessibility Services"), "category": "Education Support",
+             "description": "Academic accommodations for college students with autism and ADHD"},
+            {**_tool("swim", "ON", "Adapted Swim Lessons"), "category": "Swimming",
+             "description": "Adapted swimming lessons with instructors trained to teach autistic children"},
+        ]
+
+        async def fit_for_the_college(pool, barriers):     # what the model's barriers-only score said
+            return {"sh_college": 1.0, "sh_swim": 0.0}
+
+        agent._barrier_fit_scores = fit_for_the_college
+        with mock.patch("core.llm.is_enabled", return_value=True):
+            tools = asyncio.run(agent._find_relevant_tools(
+                {"id": "m", "name": "Find adapted swimming lessons",
+                 "description": "Look for swimming lessons with instructors trained to teach autistic children."},
+                ["Autism"], {}))
+            shelf = asyncio.run(agent._get_pit_stop_tools(["Autism"]))
+        self.assertEqual(tools[0]["resourceId"], "swim")
+        # The Pit Stop shelf is about the person's barriers, so it still follows the fit.
+        self.assertEqual(shelf["services"][0]["resourceId"], "college")
+
+
 class WhereThePersonLivesTests(unittest.TestCase):
     def test_from_the_request_when_it_carries_a_place(self):
         agent = _agent(supabase=_Profiles({"province": "BC"}))

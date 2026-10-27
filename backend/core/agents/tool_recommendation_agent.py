@@ -311,12 +311,18 @@ class ToolRecommendationAgent(BaseAgent):
         if not pool:
             return []
 
-        fit = await self._barrier_fit_scores(pool, barriers)
-
+        # The model's fit score is about the person's barriers, not this step, and it only
+        # ever scored the first 60 services in the pool (the rest got 0.5), so at 55% of the
+        # score it decided every step's suggestions the same way: college accessibility
+        # offices for "register with the Ontario Autism Program", for respite, for riding.
+        # In a blind test of 30 steps on 27 October 2026, 6% of the top three were good
+        # matches with it and 39% without. Steps are ranked on their own words and real
+        # ratings until a ranking that reads the step replaces this; the fit still orders
+        # the Pit Stop shelf, which is about the person's barriers.
         ranked: List[Dict[str, Any]] = []
         for tool in pool:
             t = tool.copy()
-            base = self._calculate_relevance(t, milestone, barriers, fit)
+            base = self._calculate_relevance(t, milestone, barriers, None)
             t['relevanceScore'] = self._blend_learned_score(base, t.get('id'), scores)
             ranked.append(t)
 
