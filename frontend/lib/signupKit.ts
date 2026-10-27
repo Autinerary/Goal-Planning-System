@@ -20,7 +20,7 @@
  * desktop/ and mobile/, and lib/signupKit.test.mjs checks them.
  */
 
-export const KIT_VERSION = '2026-10-26.7'
+export const KIT_VERSION = '2026-10-27.2'
 
 /** Where an element is: CSS, the nth visible match, a label, or a button's words (regexes as strings). */
 export type Target = string | { css?: string; index?: number; label?: string; text?: string }
@@ -629,7 +629,17 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
   const result = (status: ContactResult['status'], extra: Partial<ContactResult> = {}): ContactResult =>
     ({ status, url: location.href, hops, ...(status === 'requested' ? {} : { emails: foundEmails() }), ...extra })
   const text = () => (document.body?.innerText || '').replace(/\s+/g, ' ')
-  const SUCCESS = /thank you|thanks for (contacting|reaching|your (message|inquiry|enquiry|request))|(message|form|request|inquiry|enquiry) (has been |was )?(sent|received|submitted)|we('|’)ll (be in touch|get back)|we will (be in touch|get back|contact you)|successfully (sent|submitted)/i
+  // What a site says once a form has gone, and what it says when it hasn't (Elementor: "Your
+  // submission was successful" / "…failed because of an error", 27 October 2026).
+  const SUCCESS = /thank you|thanks for (contacting|reaching|your (message|inquiry|enquiry|request|submission))|(message|form|request|inquiry|enquiry|submission|application) (has been |was |is )?(successfully )?(sent|received|submitted)|submission (was )?successful|successfully (sent|submitted|received)|we('|’)ve received|we have received|we('|’)ll (be in touch|get back|contact you)|we will (be in touch|get back|contact you)/gi
+  const FAILED = /submission failed|failed because|(there was|there's|there is) (an? )?(error|problem)|an error occurred|something went wrong|could ?n[o’']?t (be )?(sent|submitted)|unable to (send|submit)|try again later|form is invalid|invalid form|(recaptcha|captcha) (validation )?(failed|error|invalid)|flagged as spam|marked as spam/gi
+  const count = (re: RegExp) => (text().match(re) || []).length
+  // The words of the message that appeared: an alert or an error box if there is one, else the phrase.
+  const failText = (): string => {
+    const box = ([...document.querySelectorAll('[role=alert], [class*=error], [class*=danger], [class*=fail], .wpcf7-response-output, .elementor-message')] as HTMLElement[])
+      .filter(visible).map((e) => (e.innerText || '').replace(/\s+/g, ' ').trim()).find((t) => t && new RegExp(FAILED.source, 'i').test(t))
+    return (box || (text().match(new RegExp(FAILED.source, 'i')) || [''])[0]).slice(0, 120)
+  }
   const robotCheck = (): boolean =>
     [...document.querySelectorAll('iframe')].some((f) => {
       const r = f.getBoundingClientRect()
@@ -645,7 +655,9 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
       return (visible(el) || shownBox(el)) && !['hidden', 'submit', 'button', 'reset', 'image', 'file', 'search'].includes(t)
     }) as HTMLElement[]
   const isEmailField = (el: Element) => (el as HTMLInputElement).type === 'email' || /e-?mail/.test(words(el))
-  // A contact form: an email field, and a message box or a name; never a log-in, search or newsletter-only form.
+  // A contact form: an email field and a message box. Never a log-in or a search; and never a name and
+  // an email with no message (a newsletter's or an account's sign-up: on 27 October 2026 one whole-page
+  // form, a search and two newsletter boxes, was taken for a contact form, and nothing reached the service).
   const contactForm = (): HTMLElement | null => {
     const roots = [...document.querySelectorAll('form'), ...(document.querySelectorAll('form').length ? [] : [document.body])] as HTMLElement[]
     const scored = roots
@@ -653,11 +665,9 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
         const fields = fieldsOf(root)
         if (!fields.some(isEmailField)) return null
         if (fields.some((f) => (f as HTMLInputElement).type === 'password')) return null
-        const hasMessage = fields.some((f) => f.tagName === 'TEXTAREA')
+        if (!fields.some((f) => f.tagName === 'TEXTAREA')) return null
         const hasName = fields.some((f) => /name/.test(words(f)) && !isEmailField(f))
-        const newsletterOnly = !hasMessage && fields.length <= 3 && /subscribe|newsletter|sign up for (our )?(news|updates)/i.test(root.innerText || '')
-        if (newsletterOnly || (!hasMessage && !hasName)) return null
-        return { root, score: (hasMessage ? 2 : 0) + (hasName ? 1 : 0) + Math.min(fields.length, 8) / 10 }
+        return { root, score: 2 + (hasName ? 1 : 0) + Math.min(fields.length, 8) / 10 }
       })
       .filter((x): x is { root: HTMLElement; score: number } => !!x)
       .sort((a, b) => b.score - a.score)
@@ -673,7 +683,7 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
     w.__autineraryWatching = root
     const tell = (type: 'sent' | 'done') => { try { opts.onEvent?.({ type, url: location.href }) } catch {} }
     const look = (until: number) => {
-      if (SUCCESS.test(text())) return tell('done')
+      if (count(SUCCESS)) return tell('done')
       if (Date.now() < until) setTimeout(() => look(until), 500)
     }
     root.addEventListener('submit', () => { tell('sent'); setTimeout(() => look(Date.now() + 15000), 500) }, true)
@@ -683,21 +693,23 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
     }, true)
   }
 
-  // The answer to a form already sent.
+  // The answer to a form already sent: its thanks, or its error; nothing said either way is not
+  // confirmed (never "sent" on no evidence).
   if (opts.sent && !opts.after) {
     await sleep(1200)
-    if (SUCCESS.test(text())) return result('requested')
+    if (count(SUCCESS)) return result('requested')
     if (robotCheck()) return result('needs_you', { detail: 'robot_check' })
-    return result('requested', { detail: 'sent; the page didn’t say' })
+    if (count(FAILED)) return result('failed', { detail: `Their website said: ${failText()}` })
+    return result('requested', { detail: 'unconfirmed' })
   }
   // Handed over already: a page they went to. Its thanks, or the form again (still theirs to send).
   if (opts.after) {
     await sleep(1200)
-    if (SUCCESS.test(text())) return result('requested')
+    if (count(SUCCESS)) return result('requested')
     const again = contactForm()
     if (again) watch(again)
     if (robotCheck() || again || !opts.sent) return result('needs_you', { detail: 'waiting' })
-    return result('requested', { detail: 'sent; the page didn’t say' })
+    return result('requested', { detail: 'unconfirmed' })
   }
 
   // A form drawn a moment after the page: a few seconds for it, then the site's Contact link.
@@ -729,8 +741,18 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
     return result('failed', { detail: 'No contact form on their website.' })
   }
 
+  // A whole-page form (a site's every box in one <form>) holds other boxes too: a search, a
+  // newsletter's name and email. Only the part around the message box is the contact form.
+  const scope = ((): HTMLElement => {
+    const box = fieldsOf(form).find((f) => f.tagName === 'TEXTAREA')
+    for (let el = box?.parentElement || null; el; el = el.parentElement) {
+      if (fieldsOf(el).some(isEmailField) && el.querySelector('button, input[type=submit]')) return el
+      if (el === form) break
+    }
+    return form
+  })()
   // What each field is for: the form's own words first.
-  const fields = fieldsOf(form)
+  const fields = fieldsOf(scope)
   const keyOf = (el: HTMLElement, i: number) => `f${i}`
   const roleOf = (el: HTMLElement): FieldRole | null => {
     // A choice (select) is never typed into: required ones get a new-client option below.
@@ -807,7 +829,8 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
       continue
     }
     if (role === 'phone' && !value.phone) continue
-    setValue(el, value[role])
+    // A number box (a phone number some forms take as a number) takes digits only.
+    setValue(el, role === 'phone' && (el as HTMLInputElement).type === 'number' ? value[role].replace(/\D/g, '') : value[role])
     filled.push(role)
     await sleep(120)
   }
@@ -844,23 +867,34 @@ export async function runContactForm(request: ContactRequest, opts: ContactOptio
   }
   if (opts.dryRun) return result('dry_run', { filled })
 
-  const submit = ([...form.querySelectorAll('button, input[type=submit]')] as HTMLElement[]).filter(visible)
-    .sort((a, b) => Number((b as HTMLButtonElement).type === 'submit') - Number((a as HTMLButtonElement).type === 'submit'))
-    .find((b) => (b as HTMLButtonElement).type === 'submit' || /send|submit|request|book|contact|go|enquir|inquir/i.test((b as HTMLElement).innerText || (b as HTMLInputElement).value || ''))
+  // Its own send button: after the message box (a whole-page form has others: a search's, a
+  // newsletter's), never one that subscribes, searches or logs in.
+  const box = fields.find((f) => f.tagName === 'TEXTAREA') || null
+  const label = (b: HTMLElement) => (b.innerText || (b as HTMLInputElement).value || b.getAttribute('aria-label') || '').trim()
+  const buttons = ([...scope.querySelectorAll('button, input[type=submit]')] as HTMLElement[]).filter(visible)
+    .filter((b) => !/subscribe|search|sign ?up|log ?in|sign ?in|newsletter/i.test(label(b)))
+    .filter((b) => (b as HTMLButtonElement).type === 'submit' || /send|submit|request|book|contact|enquir|inquir/i.test(label(b)))
+  const afterBox = box ? buttons.filter((b) => box.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) : buttons
+  const submit = afterBox[0] || null
   if (!submit) return result('failed', { detail: 'No button to send their form.' })
   // Told before sending: sending can load a new page, which is then its answer.
   try { opts.onEvent?.({ type: 'sent', url: location.href }) } catch {}
   let leftAt = 0
   addEventListener('beforeunload', () => { leftAt = Date.now() })
+  // What the page says now, so only what it says after sending counts.
+  const okBefore = count(SUCCESS)
+  const failBefore = count(FAILED)
   submit.click()
-  const until = Date.now() + 12000
+  const until = Date.now() + 15000
   while (Date.now() < until) {
     await sleep(500)
     if (leftAt) continue
-    if (SUCCESS.test(text())) return result('requested', { filled })
+    if (count(SUCCESS) > okBefore) return result('requested', { filled })
     if (robotCheck() && !checkPassed()) return result('needs_you', { detail: 'robot_check', filled })
-    const invalid = [...form.querySelectorAll(':invalid')].filter(visible)
+    const invalid = [...scope.querySelectorAll(':invalid')].filter(visible)
     if (invalid.length) return result('failed', { detail: `Their form wants: ${words(invalid[0]).slice(0, 60)}`, filled })
+    if (count(FAILED) > failBefore) return result('failed', { detail: `Their website said: ${failText()}`, filled })
   }
-  return result('requested', { detail: 'sent; the page didn’t say', filled })
+  // Sent, but the page said nothing either way: not confirmed (lib/signupRobot.ts may know from the site's answer).
+  return result('requested', { detail: 'unconfirmed', filled })
 }

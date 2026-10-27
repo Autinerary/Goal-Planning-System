@@ -63,7 +63,12 @@ export const signupHref = (service: string, resourceId?: string | null): string 
 export type SignupStatus = 'started' | 'signed_up' | 'check_email' | 'needs_you' | 'exists' | 'failed' | 'requested'
 
 /** The same words as the app's statusLabel(). */
-export function signupLabel(status: SignupStatus, kind: 'account' | 'newsletter', at: string | null): string {
+export function signupLabel(status: SignupStatus, kind: 'account' | 'newsletter', at: string | null, detail?: string | null): string {
+  // Sent through a website's form that didn't say it was received (the app's lib/signups.ts unconfirmed).
+  if (status === 'requested' && (detail === 'unconfirmed' || detail === 'sent; the page didn’t say')) {
+    const d = at ? new Date(at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : ''
+    return `Sent through their website${d ? ` ${d}` : ''}: not confirmed`
+  }
   const day = at ? new Date(at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', timeZone: 'America/Toronto' }) : ''
   if (status === 'signed_up') return `${kind === 'newsletter' ? 'Subscribed' : 'Signed up'}${day ? ` ${day}` : ''}`
   if (status === 'check_email') return 'Check your email to finish'

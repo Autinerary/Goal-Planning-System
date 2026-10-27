@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   const user = await userFrom(req)
   if (!user) return NextResponse.json({ on: true, signedIn: false }, { status: 401 })
   const admin = createAdminClient()
-  const { data: rows, error } = await admin.from('service_signups').select('service, status, runner, updated_at').eq('user_id', user.id)
+  const { data: rows, error } = await admin.from('service_signups').select('service, status, runner, detail, updated_at').eq('user_id', user.id)
   if (missingTable(error)) return NextResponse.json({ on: true, ready: false })
 
   const ids = [...new Set(String(req.nextUrl.searchParams.get('ids') || '').split(',').map((s) => s.trim()).filter((s) => UUID.test(s)))].slice(0, 40)
@@ -64,8 +64,8 @@ export async function GET(req: NextRequest) {
     }
   }
   const account = await accountFor(admin, user)
-  const signups: Record<string, { status: SignupStatus; runner: string; at: string }> = {}
-  for (const r of rows || []) signups[r.service] = { status: r.status, runner: r.runner, at: r.updated_at }
+  const signups: Record<string, { status: SignupStatus; runner: string; at: string; detail: string | null }> = {}
+  for (const r of rows || []) signups[r.service] = { status: r.status, runner: r.runner, at: r.updated_at, detail: r.detail ?? null }
   return NextResponse.json({
     on: true,
     ready: true,

@@ -84,4 +84,13 @@ assert.equal(outcomeMessage('Calm Clinic', 'request', 'failed', 'No contact form
 assert.doesNotMatch(outcomeMessage('Calm Clinic', 'request', 'failed'), /log in/, 'no account to log in to')
 assert.match(outcomeMessage('Calm Clinic', 'request', 'needs_you', 'robot_check'), /not a robot/)
 
+// Sent through a website's form that didn't say it was received: never "Request sent".
+assert.match(statusLabel('requested', 'request', '2026-10-27T01:30:00Z', 'unconfirmed'), /^Sent through their website Oct 2\d: not confirmed$/)
+assert.match(statusLabel('requested', 'request', null, 'sent; the page didn’t say'), /not confirmed/, 'the older wording too')
+assert.match(statusLabel('requested', 'request', '2026-10-27T01:30:00Z', null), /^Request sent/)
+assert.match(outcomeMessage('Springboard', 'request', 'requested', 'unconfirmed'), /didn’t say it was received\. We’ve emailed you what was sent/)
+assert.match(outcomeMessage('Springboard', 'request', 'requested'), /we’ve emailed you a copy/)
+assert.equal(outcomeMessage('Springboard', 'request', 'needs_you', 'Their website said: Your submission failed because of an error.'), 'Springboard’s website didn’t take the request from Autinerary (“Your submission failed because of an error.”). Finish it on their page: your details are ready to copy.')
+assert.match(outcomeMessage('Springboard', 'request', 'needs_you', 'Their website refused it (403).'), /didn’t take the request from Autinerary \(Their website refused it \(403\)\)/)
+
 console.log('signups: all passed')

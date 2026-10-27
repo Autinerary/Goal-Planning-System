@@ -7,7 +7,7 @@ import { robotBrowser } from '@/lib/signupBrowser'
 import { SIGNUP_KIT_SOURCE } from '@/lib/signupKitSource'
 import { robotContact } from '@/lib/signupRobot'
 import { SIGNUP_ON } from '@/lib/signups'
-import { REQUEST_DAILY_LIMIT, emailFoundOnline, formMessage, formSubject, howToRequest, listingEmail, listingKey, listingWebsite, pickSiteEmail, requestEmail } from '@/lib/requests'
+import { REQUEST_DAILY_LIMIT, emailFoundOnline, formMessage, formSubject, howToRequest, listingEmail, listingKey, listingWebsite, pickSiteEmail, requestEmail, requestReceipt } from '@/lib/requests'
 import { requestStopUrl, stoppedAddresses } from '@/lib/requestLinks'
 import { postalAddress } from '@/lib/newsletter'
 import { accountFor, missingTable, recordSignup, userFrom } from '@/lib/signupServer'
@@ -130,6 +130,13 @@ export async function POST(req: NextRequest) {
         if (r.status === 'requested') {
           status = 'requested'
           detail = r.detail || null
+          // Their receipt: where and when it went, whether their site said it was received, what was sent.
+          const receipt = requestReceipt({ ...input, website: website!, confirmed: !r.detail, sentAt: new Date(), message: formMessage(input) })
+          await sendEmail({
+            to: account.email!, subject: receipt.subject, html: receipt.html, text: receipt.text,
+            from: process.env.APPLY_FROM_EMAIL || process.env.REMINDER_FROM_EMAIL || undefined,
+            idempotencyKey: `receipt-${user.id}-${key}`,
+          }).catch(() => null)
         } else {
           // No form it could send: the address their website shows, if one is clearly theirs.
           const pick = pickSiteEmail(r.emails, { name: resource.name, website })
@@ -142,10 +149,13 @@ export async function POST(req: NextRequest) {
               detail = `website_email:${usable}`
             } else detail = sent.skipped ? 'Email isn’t set up on this server.' : 'The email didn’t go. Try again.'
           } else {
-            status = r.status === 'needs_you' ? 'needs_you' : 'failed'
+            // Their website refused it from us (often a robot check it doesn't show): theirs to finish,
+            // in their own browser, where it can go (handed over like a robot check).
+            const refused = r.status === 'failed' && /^Their website (said|refused)/.test(r.detail || '')
+            status = r.status === 'needs_you' || refused ? 'needs_you' : 'failed'
             detail = r.status === 'timeout' ? 'Their website took too long.' : r.detail === 'No contact form on their website.' ? 'No contact form or email address on their website.' : r.detail || null
             url = r.url
-            mapping = r.status === 'needs_you' ? r.mapping : undefined
+            mapping = status === 'needs_you' ? r.mapping : undefined
           }
         }
       } catch (e) {

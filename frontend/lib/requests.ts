@@ -309,6 +309,41 @@ export function requestEmail(input: RequestInput & { stopUrl: string; fromWebsit
   return { subject, text, html }
 }
 
+/**
+ * The person's receipt for a request sent through a service's own website form
+ * (an emailed request has its blind copy instead): where and when it went,
+ * whether their site said it was received, and word for word what was sent.
+ */
+export function requestReceipt(input: RequestInput & { website: string; confirmed: boolean; sentAt: Date; message: string }): { subject: string; text: string; html: string } {
+  const service = oneLine(input.serviceName, 200) || 'the service'
+  const name = oneLine(`${input.firstName} ${input.lastName}`, 120)
+  const when = input.sentAt.toLocaleString('en-CA', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Toronto' })
+  const status = input.confirmed
+    ? 'Their website said it was received.'
+    : 'Their website didn’t say whether it was received. If you don’t hear back in a few days, contact them directly.'
+  const sent = [`Name: ${name}`, `Email: ${input.email}`, ...(input.extras.phone ? [`Phone: ${input.extras.phone}`] : [])]
+  const subject = `Your request to ${service}`
+  const text = [
+    `Hello ${oneLine(input.firstName, 60) || 'there'},`, '',
+    `Autinerary sent your request to ${service} through the contact form on their website, on ${when} (Toronto time):`, input.website, '',
+    status, '', 'What was sent:', ...sent, 'Message:', input.message, '',
+    `They’ll reply to you at ${input.email}.`, '', '— Autinerary',
+  ].join('\n')
+  const p = (x: string, style = 'font-size:15px;line-height:1.5;margin:0 0 14px') => `<p style="${style}">${x}</p>`
+  const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
+        ${p(`Hello ${esc(oneLine(input.firstName, 60) || 'there')},`)}
+        ${p(`Autinerary sent your request to <strong>${esc(service)}</strong> through the contact form on <a href="${esc(input.website)}" style="color:#1d4ed8">their website</a>, on ${esc(when)} (Toronto time).`)}
+        ${p(`<strong>${esc(status)}</strong>`)}
+        ${p('<strong>What was sent:</strong>', 'font-size:15px;margin:0 0 4px')}
+        ${p(sent.map(esc).join('<br>'))}
+        ${p(esc(input.message).replace(/\n/g, '<br>'), 'font-size:15px;line-height:1.5;margin:0 0 14px;padding:12px;background:#f8fafc;border-radius:8px')}
+        ${p(esc(`They’ll reply to you at ${input.email}.`))}
+        <p style="font-size:13px;color:#475569;margin:20px 0 0">— Autinerary</p>
+      </div>`
+  return { subject, text, html }
+}
+
 /** The message typed into a service's contact form: in the person's voice, short, plain. */
 export function formMessage(input: RequestInput): string {
   const x = input.extras

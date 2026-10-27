@@ -93,8 +93,12 @@ export function shortDate(iso: string | null | undefined): string {
 }
 
 /** Where a sign-up is, next to the service. */
-export function statusLabel(status: SignupStatus | null | undefined, kind: 'account' | 'newsletter' | 'request', at?: string | null): string {
+/** A request through a website's form that their site didn't say it received (lib/signupKit.ts, lib/signupRobot.ts). */
+export const unconfirmed = (detail: string | null | undefined): boolean => detail === 'unconfirmed' || detail === 'sent; the page didn’t say'
+
+export function statusLabel(status: SignupStatus | null | undefined, kind: 'account' | 'newsletter' | 'request', at?: string | null, detail?: string | null): string {
   const day = shortDate(at)
+  if (status === 'requested' && unconfirmed(detail)) return `Sent through their website${day ? ` ${day}` : ''}: not confirmed`
   switch (status) {
     case 'signed_up':
       return `${kind === 'newsletter' ? 'Subscribed' : 'Signed up'}${day ? ` ${day}` : ''}`
@@ -121,7 +125,9 @@ export function outcomeMessage(name: string, kind: 'account' | 'newsletter' | 'r
     case 'requested':
       // Emailed to the address their website shows (app/api/me/signups/request): say which.
       if (detail?.startsWith('website_email:')) return `Your request went to ${name}, by email to the address on their website (${detail.slice(14)}). They’ll reply to you by email, and you have a copy.`
-      return `Your request went to ${name}. They’ll reply to you by email, and you have a copy if it was emailed.`
+      // Sent through their website's form, which didn't say it was received: never "sent" on no evidence.
+      if (unconfirmed(detail)) return `We sent your request through ${name}’s website, but their site didn’t say it was received. We’ve emailed you what was sent: if you don’t hear back in a few days, contact them directly.`
+      return `Your request went to ${name}. They’ll reply to you by email, and we’ve emailed you a copy.`
     case 'signed_up':
       return kind === 'newsletter' ? `Subscribed to ${name}.` : `Signed up for ${name}. Save your new password now: it’s shown once.`
     case 'check_email':
@@ -130,6 +136,11 @@ export function outcomeMessage(name: string, kind: 'account' | 'newsletter' | 'r
       return `You already have ${kind === 'newsletter' ? 'a subscription to' : 'an account with'} ${name}.`
     case 'needs_you':
       if (kind === 'request') {
+        // Their website refused it from Autinerary (often a robot check it doesn't show): theirs to send.
+        if (detail?.startsWith('Their website')) {
+          const said = detail.startsWith('Their website said: ') ? `“${oneLine(detail.slice(20), 140)}”` : oneLine(detail, 140).replace(/\.$/, '')
+          return `${name}’s website didn’t take the request from Autinerary (${said}). Finish it on their page: your details are ready to copy.`
+        }
         return detail === 'robot_check'
           ? `${name}’s website wants to check you’re not a robot before the request can go.`
           : `${name}’s form asks something only you can answer${detail?.startsWith('question:') ? ` (${detail.slice(9).trim()})` : ''}.`

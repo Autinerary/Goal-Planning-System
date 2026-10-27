@@ -97,11 +97,43 @@ export async function robotContact(
   let mapping: Record<string, FieldRole> | undefined
   const emails = new Map<string, FoundEmail>()
   const keep = (list: FoundEmail[] | undefined) => list?.forEach((e) => { if (!emails.has(e.email) || (e.mailto && !emails.get(e.email)!.mailto)) emails.set(e.email, e) })
+  // The site's own answer to the form, once it's sent: the POST, or the request its script made
+  // (Elementor's {"success": false, "data": {"message": "Your submission failed…"}}, Contact Form 7's
+  // {"status": "mail_sent"}). A page that says nothing either way is judged by this.
+  const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return '' } }
+  let sentFrom = ''
+  const answers: { status: number; ownSite: boolean; ok: boolean | null; said: string | null }[] = []
+  page.on('response', (res) => {
+    if (!sent) return
+    const req = res.request()
+    if (req.method() !== 'POST' || !['xhr', 'fetch', 'document'].includes(req.resourceType())) return
+    const a = { status: res.status(), ownSite: host(res.url()) === sentFrom, ok: null as boolean | null, said: null as string | null }
+    answers.push(a)
+    if (!/json/i.test(res.headers()['content-type'] || '')) return
+    res.json().then((j: any) => {
+      if (j?.success === true || j?.status === 'mail_sent' || j?.ok === true) a.ok = true
+      if (j?.success === false || ['validation_failed', 'spam', 'mail_failed', 'aborted', 'acceptance_missing'].includes(j?.status) || j?.ok === false) a.ok = false
+      const said = j?.data?.message || j?.message
+      a.said = typeof said === 'string' ? said.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) : null
+    }).catch(() => {})
+  })
+  const judged = (r: ContactResult): ContactResult => {
+    // Only when the page said nothing: its own "thank you" (or error) is the answer otherwise.
+    if (r.status !== 'requested' || r.detail !== 'unconfirmed') return r
+    const refused = answers.find((a) => a.ok === false || (a.ownSite && a.status >= 400))
+    if (refused) return { ...r, status: 'failed', detail: refused.said ? `Their website said: ${refused.said}` : refused.status >= 400 ? `Their website refused it (${refused.status}).` : 'Their website refused it.' }
+    // Not said on the page, but the site's answer was a success: confirmed.
+    if (r.detail === 'unconfirmed' && answers.some((a) => a.ok === true)) return { ...r, detail: undefined }
+    return r
+  }
   // Unless sent: the addresses its pages show, and the AI's reading of the form (so a hand-over can use it too).
-  const withEmails = (r: ContactResult): ContactResult => (r.status === 'requested' ? r : { ...r, emails: [...emails.values()], ...(mapping ? { mapping } : {}) })
+  const withEmails = (r: ContactResult): ContactResult => {
+    const j = judged(r)
+    return j.status === 'requested' ? j : { ...j, emails: [...emails.values()], ...(mapping ? { mapping } : {}) }
+  }
   try {
     await page.setViewport({ width: 1280, height: 900 })
-    await page.exposeFunction('__autineraryContactEvent', (e: { type?: string }) => { if (e?.type === 'sent') sent = true })
+    await page.exposeFunction('__autineraryContactEvent', (e: { type?: string }) => { if (e?.type === 'sent') { sent = true; sentFrom = host(page.url()) } })
     await page.goto(website, { waitUntil: 'domcontentloaded', timeout: 30000 })
     const deadline = Date.now() + (opts.timeoutMs || 60000)
     while (Date.now() < deadline) {

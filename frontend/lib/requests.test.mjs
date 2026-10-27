@@ -1,7 +1,7 @@
 // Run from frontend/: node --experimental-strip-types lib/requests.test.mjs
 import assert from 'node:assert/strict'
 import {
-  NO_EXTRAS, REQUEST_DAILY_LIMIT, cleanExtras, formMessage, formSubject, howToRequest, isEmail, isPlace, listingKey,
+  NO_EXTRAS, REQUEST_DAILY_LIMIT, cleanExtras, formMessage, formSubject, howToRequest, isEmail, isPlace, listingKey, requestReceipt,
   checkFoundContact, emailFoundOnline, listingEmail, listingWebsite, lookedUpAt, pageNames, pickSiteEmail, requestEmail, resourceIdOfKey,
 } from './requests.ts'
 
@@ -133,5 +133,17 @@ assert.match(msg, /\(Sent with Autinerary\.\)$/)
 assert.ok(msg.length <= 1200)
 assert.doesNotMatch(formMessage({ ...input, extras: NO_EXTRAS }), /What I'm looking for|or \d/, 'nothing they didn’t give')
 assert.equal(formSubject(input), 'New client request: Sam Lee')
+
+// The receipt for a request sent through their website.
+const sentAt = new Date('2026-10-27T01:30:00Z')
+const receipt = requestReceipt({ ...input, website: 'https://clinic.ca/contact', confirmed: true, sentAt, message: msg })
+assert.equal(receipt.subject, 'Your request to Clinic A')
+assert.match(receipt.text, /^Hello Sam,\n\nAutinerary sent your request to Clinic A through the contact form on their website, on October 26, 2026 at 9:30 p\.m\. \(Toronto time\):\nhttps:\/\/clinic\.ca\/contact/)
+assert.match(receipt.text, /Their website said it was received\./)
+assert.match(receipt.text, /What was sent:\nName: Sam Lee\nEmail: sam@example\.com\nPhone: 416 555 0100\nMessage:\nHello, I'm Sam Lee/)
+assert.match(receipt.text, /They’ll reply to you at sam@example\.com\./)
+const unsure = requestReceipt({ ...input, website: 'https://clinic.ca/contact', confirmed: false, sentAt, message: msg })
+assert.match(unsure.text, /Their website didn’t say whether it was received\. If you don’t hear back in a few days, contact them directly\./)
+assert.ok(!requestReceipt({ ...input, firstName: '<b>Sam</b>', website: 'https://clinic.ca', confirmed: true, sentAt, message: '<script>x</script>' }).html.includes('<script>'), 'escaped')
 
 console.log('requests: all passed')

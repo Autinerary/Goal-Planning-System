@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, ExternalLink, Loader2, Mail, MousePointerClick, UserPlus } from 'lucide-react'
-import { isSettled, statusLabel } from '@/lib/signups'
+import { isSettled, statusLabel, unconfirmed } from '@/lib/signups'
 import { formMessage } from '@/lib/requests'
 import type { Signups } from '@/lib/useSignups'
 
@@ -32,7 +32,8 @@ export default function SignupButton({ app, service, resourceId, compact = false
   }
   if (state && (isSettled(state.status) || state.status === 'needs_you')) {
     const Icon = state.status === 'check_email' ? Mail : state.status === 'needs_you' ? MousePointerClick : CheckCircle2
-    const label = recipe.kind === 'request' && state.status === 'needs_you' ? 'Their form needs you' : statusLabel(state.status, recipe.kind, state.at)
+    const label = recipe.kind === 'request' && state.status === 'needs_you' ? 'Their form needs you' : statusLabel(state.status, recipe.kind, state.at, state.detail)
+    const notConfirmed = state.status === 'requested' && unconfirmed(state.detail)
     // A website's form handed over (a robot check, or a question only they can answer): open in the
     // extension's tab, filled in, or its page to finish on; and "I've sent it" for when they have.
     const handed = recipe.kind === 'request' && state.status === 'needs_you' ? app.handOver[service] || null : null
@@ -40,16 +41,21 @@ export default function SignupButton({ app, service, resourceId, compact = false
     const finishAt = handed ? (handed.inExtension ? null : handed.url) : recipe.kind === 'request' && state.status === 'needs_you' ? recipe.start || null : null
     return (
       <span className="inline-flex flex-wrap items-center gap-2" data-signup-status={state.status}>
-        <span className={`inline-flex items-center gap-1 rounded-lg font-semibold ${state.status === 'signed_up' || state.status === 'exists' || state.status === 'requested' ? 'bg-emerald-100 text-emerald-950' : 'bg-amber-100 text-amber-950'} ${size}`}>
+        <span className={`inline-flex items-center gap-1 rounded-lg font-semibold ${!notConfirmed && (state.status === 'signed_up' || state.status === 'exists' || state.status === 'requested') ? 'bg-emerald-100 text-emerald-950' : 'bg-amber-100 text-amber-950'} ${size}`} data-signup-unconfirmed={notConfirmed || undefined}>
           <Icon className="h-3.5 w-3.5" aria-hidden="true" /> {label}
         </span>
         {handed?.inExtension && <span className="text-xs text-slate-800" data-signup-in-tab>Open in a new tab, filled in: finish it there</span>}
+        {notConfirmed && recipe.start && (
+          <a href={recipe.start} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-800 underline underline-offset-2">
+            Check with them on their website<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        )}
         {finishAt && (
           <a href={finishAt} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-slate-800 underline underline-offset-2">
             Finish on their page<span className="sr-only"> (opens in a new tab)</span>
           </a>
         )}
-        {recipe.kind === 'request' && state.status === 'needs_you' && !handed?.inExtension && app.details && (
+        {recipe.kind === 'request' && ((state.status === 'needs_you' && !handed?.inExtension) || notConfirmed) && app.details && (
           <CopyDetails
             items={[
               { label: 'Name', value: `${app.details.firstName} ${app.details.lastName}`.trim() },

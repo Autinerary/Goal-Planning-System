@@ -144,6 +144,29 @@ the service replies to them by email.
       marks it sent (`sentByThem`, only for one waiting for them).
   - the app's message says what the form asks in its own words ("Date of
     birth", "Which location?").
+- **Sent only on evidence** (27 October 2026, after the account holder's
+  "how do we know it went?": two requests had been called sent with nothing
+  to show for it):
+  - a contact form must have a message box: a name and an email alone is a
+    newsletter's or an account's sign-up (one whole-page form, a search and
+    two newsletter boxes, had been taken for a contact form);
+  - in a whole-page form only the part around the message box is filled, and
+    its own Send is pressed (never Search, Subscribe or Log in);
+  - "requested" needs the site to say so after sending (its "thank you", or
+    Elementor's "Your submission was successful"), or its own answer to the
+    form to be a success (`{"success": true}`, Contact Form 7's
+    `mail_sent`); a message like "Your submission failed because of an
+    error", a refusal in its answer, or an error from its own server is not
+    sent (`lib/signupRobot.ts` reads the answers). Nothing either way is
+    **"not confirmed"**: the app says so, with their website and the
+    details to copy;
+  - a site that refuses it from the robot (often an invisible reCAPTCHA v3)
+    is handed to the person, like a robot check;
+  - a number-only phone box gets digits only.
+- **A receipt for every request through a website form**, by email to the
+  person (`requestReceipt` in `lib/requests.ts`): where and when it went,
+  whether their site said it was received, and what was sent, word for word.
+  (An emailed request has its blind copy.)
 - **The address on their website** (when there's no form it can send, or it
   stopped). The kit collects the addresses each page shows, with the words on
   their line, and `pickSiteEmail` scores them:

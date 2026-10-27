@@ -14,6 +14,7 @@ interface Row {
   resource?: { name?: string } | null
   status: SignupStatus
   runner: string
+  detail?: string | null
   updated_at: string
 }
 
@@ -46,7 +47,7 @@ export default function SignedUpTab() {
         // A partner, or a service a newer extension brought: its key, readably.
         const name = s?.name || r.resource?.name || r.service.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
         const Icon = r.status === 'check_email' ? Mail : r.status === 'needs_you' ? MousePointerClick : CheckCircle2
-        const good = r.status === 'signed_up' || r.status === 'exists' || r.status === 'requested'
+        const good = r.status === 'signed_up' || r.status === 'exists' || (r.status === 'requested' && r.detail !== 'unconfirmed' && r.detail !== 'sent; the page didn’t say')
         return (
           <li key={r.service} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4">
             <span className="font-semibold text-gray-900">
@@ -59,7 +60,7 @@ export default function SignedUpTab() {
               )}
             </span>
             <span className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-sm font-semibold ${good ? 'bg-emerald-100 text-emerald-950' : 'bg-amber-100 text-amber-950'}`}>
-              <Icon className="h-4 w-4" aria-hidden="true" /> {signupLabel(r.status, s?.kind || 'account', r.updated_at)}
+              <Icon className="h-4 w-4" aria-hidden="true" /> {signupLabel(r.status, s?.kind || 'account', r.updated_at, r.detail)}
               {(r.status === 'failed' || r.status === 'needs_you') && (
                 <a href={signupHref(r.service, r.resource_id)} className="ml-1 underline underline-offset-2">
                   Try again

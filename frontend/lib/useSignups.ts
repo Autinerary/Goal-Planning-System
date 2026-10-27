@@ -31,6 +31,8 @@ export interface SignupState {
   status: SignupStatus
   runner: string
   at: string
+  /** How it went, in a word or two (e.g. "unconfirmed": their site didn't say it was received). */
+  detail?: string | null
 }
 
 /** A service Sign me up can do: one of the kit's, a partner's, or a local service (a request). */
@@ -280,7 +282,7 @@ export function useSignups(resourceIds: string[] = []) {
         } else detail = j?.error || 'That didn’t work.'
       }
       const saved: SignupStatus = status === 'timeout' ? 'failed' : status
-      setSignups((s) => ({ ...s, [service]: { status: saved, runner, at: new Date().toISOString() } }))
+      setSignups((s) => ({ ...s, [service]: { status: saved, runner, at: new Date().toISOString(), detail } }))
       setRunning(({ [service]: _gone, ...rest }) => rest)
       // A partner makes the account itself: no password here, maybe a link to log in.
       setNote(`${outcomeMessage(recipe.name, recipe.kind, status, detail)}${runner === 'partner' && status === 'signed_up' ? ` ${recipe.name} will email you how to log in.` : ''}${extensionNote}`)
