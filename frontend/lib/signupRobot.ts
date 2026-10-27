@@ -6,10 +6,27 @@
 //
 // Type-only imports, so the local tests can load it with Node's type stripping.
 
-import type { Browser } from 'puppeteer-core'
+import type { Browser, Page } from 'puppeteer-core'
 import type { ContactRequest, ContactResult, FieldRole, FormField, FoundEmail, Person, Recipe, RunResult } from './signupKit'
 
 const NAVIGATED = /context was destroyed|navigat|detached|Target closed|Cannot find context|Execution context/i
+
+/**
+ * A page for one run, in a context of its own where Chromium can have one. The
+ * serverless Chromium (@sparticuz/chromium) runs as one process
+ * (--single-process), where a new context crashes it ("Protocol error
+ * (Target.createTarget): Target closed", 27 October 2026); each run there has
+ * a browser of its own anyway, so its default context is the run's alone.
+ */
+export async function openPage(browser: Browser): Promise<{ page: Page; close: () => Promise<void>; own: boolean }> {
+  if (browser.process()?.spawnargs?.includes('--single-process')) {
+    const page = await browser.newPage()
+    return { page, own: false, close: () => page.close().catch(() => {}) }
+  }
+  const context = await browser.createBrowserContext()
+  const page = await context.newPage()
+  return { page, own: true, close: () => context.close().catch(() => {}) }
+}
 
 export async function robotSignup(
   browser: Browser,
@@ -18,8 +35,7 @@ export async function robotSignup(
   person: Person,
   opts: { dryRun?: boolean; timeoutMs?: number } = {},
 ): Promise<RunResult> {
-  const context = await browser.createBrowserContext()
-  const page = await context.newPage()
+  const { page, close } = await openPage(browser)
   const done = new Set<number>()
   try {
     await page.setViewport({ width: 1280, height: 900 })
@@ -57,7 +73,7 @@ export async function robotSignup(
     }
     return { status: 'timeout', url: page.url(), done: [...done] }
   } finally {
-    await context.close().catch(() => {})
+    await close()
   }
 }
 
@@ -75,8 +91,7 @@ export async function robotContact(
   request: ContactRequest,
   opts: { dryRun?: boolean; timeoutMs?: number; map?: (fields: FormField[]) => Promise<Record<string, FieldRole> | null> } = {},
 ): Promise<ContactResult> {
-  const context = await browser.createBrowserContext()
-  const page = await context.newPage()
+  const { page, close } = await openPage(browser)
   let sent = false
   let hops = 0
   let mapping: Record<string, FieldRole> | undefined
@@ -124,6 +139,6 @@ export async function robotContact(
     }
     return withEmails({ status: 'timeout', url: page.url(), hops })
   } finally {
-    await context.close().catch(() => {})
+    await close()
   }
 }

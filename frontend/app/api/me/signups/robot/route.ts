@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { RECIPES } from '@/lib/signupKit'
 import { SIGNUP_KIT_SOURCE } from '@/lib/signupKitSource'
-import { robotSignup } from '@/lib/signupRobot'
+import { openPage, robotSignup } from '@/lib/signupRobot'
 import { ROBOT_DAILY_LIMIT, SIGNUP_ON } from '@/lib/signups'
 import { accountFor, missingTable, recordSignup, userFrom } from '@/lib/signupServer'
 import { randomInt } from 'crypto'
@@ -34,9 +34,10 @@ function newPassword(): string {
 }
 
 /**
- * GET ?check=1: does the robot's browser start here? It loads a blank page
- * and says its version; no service, nobody's details. The first thing to open
- * after switching SIGNUP_ROBOT on (docs/one-click-signup-2026-10.md).
+ * GET ?check=1: does the robot's browser start here, and open a page the way
+ * every run does (lib/signupRobot.ts openPage)? It loads a blank page, then
+ * example.com, and says its version; no service, nobody's details. The first
+ * thing to open after switching SIGNUP_ROBOT on (docs/one-click-signup-2026-10.md).
  */
 export async function GET(req: NextRequest) {
   if (!SIGNUP_ON || process.env.SIGNUP_ROBOT !== 'on') return NextResponse.json({ error: 'The server robot isn’t switched on.' }, { status: 404 })
@@ -50,10 +51,14 @@ export async function GET(req: NextRequest) {
   })
   if (!b) return NextResponse.json({ ok: false, error: 'The browser didn’t start.', ms: Date.now() - t0 }, { status: 500 })
   try {
-    const page = await b.newPage()
+    const { page, own, close } = await openPage(b)
     await page.setContent('<p>ok</p>')
     const said = await page.evaluate(() => document.body.innerText.trim())
-    return NextResponse.json({ ok: said === 'ok', version: await b.version(), ms: Date.now() - t0 })
+    // A real page too, as a run loads a service's: the network and rendering in this place.
+    await page.goto('https://example.com/', { waitUntil: 'domcontentloaded', timeout: 20000 })
+    const title = await page.title()
+    await close()
+    return NextResponse.json({ ok: said === 'ok' && /example/i.test(title), version: await b.version(), context: own ? 'own' : 'default', loaded: title, ms: Date.now() - t0 })
   } catch (e) {
     return NextResponse.json({ ok: false, error: String((e as Error)?.message || e).slice(0, 200), ms: Date.now() - t0 }, { status: 500 })
   } finally {
