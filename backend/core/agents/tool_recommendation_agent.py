@@ -62,6 +62,25 @@ def cost_order(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(tools, key=key)
 
 
+# Province names and codes, as the app reads them (frontend/lib/moreTools.ts PROVINCES).
+PROVINCES: Dict[str, str] = {
+    'on': 'ON', 'ontario': 'ON', 'bc': 'BC', 'british columbia': 'BC', 'ab': 'AB', 'alberta': 'AB',
+    'sk': 'SK', 'saskatchewan': 'SK', 'mb': 'MB', 'manitoba': 'MB', 'qc': 'QC', 'quebec': 'QC', 'québec': 'QC',
+    'nb': 'NB', 'new brunswick': 'NB', 'ns': 'NS', 'nova scotia': 'NS', 'pe': 'PE', 'pei': 'PE',
+    'prince edward island': 'PE', 'nl': 'NL', 'newfoundland and labrador': 'NL', 'newfoundland': 'NL',
+    'yt': 'YT', 'yukon': 'YT', 'nt': 'NT', 'northwest territories': 'NT', 'nu': 'NU', 'nunavut': 'NU',
+}
+
+
+def province_code(value: Any) -> Optional[str]:
+    """A province as its two letters ("Ontario", "ON" -> "ON"); '' for none (a national service); None for
+    something that isn't a province (a city typed into the province field, say)."""
+    text = str(value or '').strip().lower().rstrip('.')
+    if not text:
+        return ''
+    return PROVINCES.get(text)
+
+
 def is_self_listing(row: Dict[str, Any]) -> bool:
     """True for Autinerary's or ResourceHub's own listing."""
     return bool(row.get('is_first_party')) or bool(_SELF_NAME.match(str(row.get('name') or '')))
@@ -75,6 +94,7 @@ class ToolRecommendationAgent(BaseAgent):
         self.supabase = None
         self._resource_pool = None
         self._barrier_fit = None
+        self._province: Optional[str] = None   # where this run's person lives, as two letters; None if unknown
     
     async def initialize(self):
         """Connect to the shared Supabase project.
@@ -115,6 +135,7 @@ class ToolRecommendationAgent(BaseAgent):
         # resources added to ResourceHub since the last run.
         self._resource_pool = None
         self._barrier_fit = None
+        self._province = await self._person_province(user_profile)
 
         recommendations = {}
         all_tools = []
@@ -286,7 +307,7 @@ class ToolRecommendationAgent(BaseAgent):
         tools to fill the space.
         """
         scores = learned_scores or {}
-        pool = await self._fetch_resource_pool()
+        pool = self._for_place(await self._fetch_resource_pool())
         if not pool:
             return []
 
@@ -301,6 +322,48 @@ class ToolRecommendationAgent(BaseAgent):
 
         ranked.sort(key=lambda x: x.get('relevanceScore', 0), reverse=True)
         return cost_order(ranked[:6])
+
+    async def _person_province(self, user_profile: Optional[dict]) -> Optional[str]:
+        """Where the person lives, as two letters, or None when we don't know.
+
+        A plan request doesn't carry it: the app keeps it on the profile row
+        (profiles.location, saved at onboarding through /api/me/location), so
+        it is read there when the request has none. Without it, nothing is
+        filtered, as before.
+        """
+        p = user_profile or {}
+        loc = p.get('location') if isinstance(p.get('location'), dict) else {}
+        for value in (loc.get('province'), p.get('province')):
+            code = province_code(value)
+            if code:
+                return code
+        uid = p.get('id') or p.get('userId')
+        if not uid:
+            return None
+        if self.supabase is None:
+            self.supabase = get_supabase()
+        if self.supabase is None:
+            return None
+        try:
+            rows = (self.supabase.table('profiles').select('location').eq('id', uid).limit(1).execute()).data or []
+            row_loc = (rows[0].get('location') if rows else None) or {}
+            return (province_code(row_loc.get('province')) or None) if isinstance(row_loc, dict) else None
+        except Exception as e:
+            print(f"[tool_recommendation] the person's province is unavailable, not filtering by place: {e}")
+            return None
+
+    def _for_place(self, pool: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Only services where the person lives, or for anyone in Canada.
+
+        The pool had no place in it, so a person in Ontario was shown British
+        Columbia's services: in a test of 30 steps on 27 October 2026, 81 of
+        the 90 top-three suggestions were from another province. A service
+        with no province is a national one; one whose province field holds
+        something else is left out once we know where the person lives.
+        """
+        if not self._province:
+            return pool
+        return [t for t in pool if t.get('province') in ('', self._province)]
 
     async def _fetch_resource_pool(self) -> List[Dict[str, Any]]:
         """Load approved ServiceHub resources with their REAL rating figures.
@@ -346,7 +409,7 @@ class ToolRecommendationAgent(BaseAgent):
         # (mostly Ontario's open data), so suggestions came from an arbitrary
         # slice that rarely held the checked services (feedback, October 2026:
         # "This straight up doesn't work").
-        cols = 'id, name, description, category, contact_info, image_url, price, cost_type, is_first_party'
+        cols = 'id, name, description, category, contact_info, image_url, price, cost_type, is_first_party, location, geo_province'
         try:
             try:
                 checked = (self.supabase.table('resources').select(cols)
@@ -377,6 +440,7 @@ class ToolRecommendationAgent(BaseAgent):
             rid = r.get('id')
             a = agg.get(rid)
             contact = r.get('contact_info') or {}
+            loc = r.get('location') if isinstance(r.get('location'), dict) else {}
             pool.append({
                 'id': f"sh_{rid}",
                 'resourceId': rid,
@@ -392,6 +456,8 @@ class ToolRecommendationAgent(BaseAgent):
                 'category': r.get('category') or 'other',
                 'type': self._tool_type_for(r.get('category')),
                 'source': 'servicehub',
+                # Two letters, '' for a national service, None when the field holds something else.
+                'province': province_code(loc.get('province') or r.get('geo_province')),
             })
 
         self._resource_pool = pool
@@ -541,7 +607,7 @@ class ToolRecommendationAgent(BaseAgent):
         pit_stop: Dict[str, List[Dict[str, Any]]] = {
             'services': [], 'commentaries': [], 'products': [], 'other': [],
         }
-        pool = await self._fetch_resource_pool()
+        pool = self._for_place(await self._fetch_resource_pool())
         if not pool:
             return pit_stop
 
