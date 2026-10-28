@@ -8,6 +8,7 @@ import NearbyServices, { useNearbyServices } from './NearbyServices'
 import { signupPlan, type SignupItem } from '@/lib/signups'
 import { cleanEdits, costLabel, resourceIdOf, toolKey, visibleTools, type PlanTool } from '@/lib/milestoneTools'
 import { useSignups } from '@/lib/useSignups'
+import { useStillListed } from '@/lib/useStillListed'
 
 const names = (items: SignupItem[]) => items.map((i) => i.name).join(', ')
 
@@ -32,7 +33,10 @@ export default function TaskResources({
   baseTools: PlanTool[]
   initialEdits?: unknown
 }) {
-  const tools = useMemo(() => visibleTools(baseTools, cleanEdits(initialEdits)), [baseTools, initialEdits])
+  const edits = useMemo(() => cleanEdits(initialEdits), [initialEdits])
+  // Without the listings ResourceHub has taken down (lib/useStillListed.ts).
+  const { listed } = useStillListed(baseTools, edits.added)
+  const tools = useMemo(() => visibleTools(listed, edits), [listed, edits])
   // And services near the person for this step, so there's always somewhere a request can go.
   const { nearby, place } = useNearbyServices(milestoneId)
   const ids = [...tools.map(resourceIdOf).filter((x): x is string => !!x), ...nearby.map((s) => s.id)]

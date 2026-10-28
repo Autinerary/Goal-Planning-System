@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import {
   MAX_TOOLS, canRate, cleanEdits, costLabel, excludedKeys, hubPath, hubSearchPath, nextStatus, resourceIdOf,
-  toolKey, toolsFromRecs, visibleTools, withAdded, withRemoved, withRestored,
+  stillListed, toolKey, toolsFromRecs, visibleTools, withAdded, withRemoved, withRestored,
 } from './milestoneTools.ts'
 import { fit, isSelfListing, normWords, rankMore, typeFor, words } from './moreTools.ts'
 import { labelsFor, normLabel } from './resourceLabels.ts'
@@ -127,3 +127,13 @@ assert.equal(labelsFor({ category: 'app', tags: null, cost_type: null, price: 5 
 assert.equal(normLabel('sensory_deaf'), 'Deaf or Hard of Hearing')
 
 console.log('milestoneTools: ok')
+
+// A listing ResourceHub took down is hidden; one not checked yet, a failed check, or a tool that isn't a listing stays.
+{
+  const kept = tool(1), removed = tool(2), unchecked = tool(3), app = { id: 'app_x', name: 'An app', url: 'https://example.org' }
+  const checked = new Set([U(1), U(2)])
+  const listed = new Set([U(1)])
+  assert.deepEqual(stillListed([kept, removed, unchecked, app], checked, listed).map((t) => t.name), ['Tool 1', 'Tool 3', 'An app'])
+  assert.deepEqual(stillListed([kept, removed], new Set(), new Set()).map((t) => t.name), ['Tool 1', 'Tool 2'])   // nothing checked: nothing hidden
+}
+console.log('stillListed: ok')

@@ -136,6 +136,22 @@ export function cleanEdits(raw: unknown): ToolEdits {
  * them), less any removed, then any added with "Recommend more"; never more
  * than five, and each tool once.
  */
+/**
+ * A plan's tools without the listings ResourceHub has taken down. A tool is hidden only when its listing was checked
+ * and is no longer approved (rejected or removed): a tool that isn't a ResourceHub listing, or a listing not checked
+ * yet (or whose check failed), stays. On 22 October 2026, 54 plans still showed listings rejected on 22 September.
+ */
+export function stillListed<T extends Pick<PlanTool, 'id' | 'resourceId' | 'url'>>(
+  tools: readonly T[],
+  checked: ReadonlySet<string>,
+  listed: ReadonlySet<string>,
+): T[] {
+  return tools.filter((t) => {
+    const id = resourceIdOf(t)
+    return !id || !checked.has(id) || listed.has(id)
+  })
+}
+
 export function visibleTools(base: readonly PlanTool[], edits: ToolEdits = NO_EDITS, max = MAX_TOOLS): PlanTool[] {
   const removed = new Set(edits.removed)
   const seen = new Set<string>()

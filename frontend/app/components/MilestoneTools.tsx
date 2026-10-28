@@ -7,8 +7,8 @@ import {
   MAX_REACHED, MAX_TOOLS, STATUS_OPTIONS, canRate, cleanEdits, costLabel, hubPath, hubSearchPath, isToolStatus,
   nextStatus, resourceIdOf, toolKey, visibleTools, type PlanTool, type ToolEdits, type ToolStatus,
 } from '@/lib/milestoneTools'
-import type { ResourceLabels } from '@/lib/resourceLabels'
 import { useSignups } from '@/lib/useSignups'
+import { useStillListed } from '@/lib/useStillListed'
 import SignupButton, { LookUpButton } from './SignupButton'
 import SignupDialogs from './SignupDialogs'
 import NearbyServices, { useNearbyServices } from './NearbyServices'
@@ -90,7 +90,10 @@ export default function MilestoneTools({
   useEffect(() => { setEdits(cleanEdits(initialEdits)) // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [milestoneId, editsKey])
 
-  const tools = useMemo(() => visibleTools(baseTools, edits), [baseTools, edits])
+  // ResourceHub's labels for the tools, and the plan's tools without listings it has taken down (before the cap,
+  // so a removed listing doesn't hold a place).
+  const { labels, listed } = useStillListed(baseTools, edits.added)
+  const tools = useMemo(() => visibleTools(listed, edits), [listed, edits])
   const full = tools.length >= MAX_TOOLS
 
   // Statuses and ratings: ResourceHub's saved ones, then what is chosen here
@@ -117,24 +120,10 @@ export default function MilestoneTools({
     return saved.ratings[resourceIdOf(tool) || ''] || 0
   }
 
-  // ResourceHub's labels for the tools on the list.
-  const [labels, setLabels] = useState<Record<string, ResourceLabels>>({})
-  // And services near the person for this step (Send my request has somewhere to go on any plan).
+  // Services near the person for this step (Send my request has somewhere to go on any plan).
   const { nearby, place } = useNearbyServices(milestoneId)
   const ids = tools.map(resourceIdOf).filter((x): x is string => !!x)
-  const idsKey = ids.join(',')
   const signups = useSignups([...ids, ...nearby.map((s) => s.id)])
-  useEffect(() => {
-    const need = ids.filter((id) => !labels[id])
-    if (!need.length) return
-    let cancelled = false
-    fetch(`/api/resources/labels?ids=${need.join(',')}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (!cancelled && j?.labels) setLabels((prev) => ({ ...prev, ...j.labels })) })
-      .catch(() => {})
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idsKey])
 
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
