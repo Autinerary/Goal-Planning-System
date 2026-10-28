@@ -72,11 +72,12 @@ export function detectSpam(content: string, allowURLs: boolean = false): SpamChe
 }
 
 /**
- * Check for repeated characters (e.g., "GREAT!!!!!!")
+ * Check for repeated characters (e.g., "GREAT!!!!!!!!")
  */
 function hasRepeatedCharacters(content: string): boolean {
-  // Check for 4+ consecutive identical characters
-  return /(.)\1{3,}/.test(content)
+  // Six or more in a row. "!!!!" and "soooo" are how people here write when something helped
+  // (28 October 2026: "This program is 100% free!!!!" was refused as spam); a run of six is noise.
+  return /(.)\1{5,}/.test(content)
 }
 
 /**
@@ -120,9 +121,9 @@ function hasSuspiciousKeywords(content: string): boolean {
     'act now',
     'free money',
     'make money fast',
-    'guaranteed',
+    // Not "100% free" or "guaranteed": honest descriptions of free programs and guaranteed spots use them
+    // (28 October 2026), and real spam still trips the other signs (links, "click here", "buy now").
     'no credit check',
-    '100% free',
     'work from home',
     'get rich quick',
     'miracle cure',
@@ -192,10 +193,11 @@ export function containsProfanity(content: string): boolean {
 
   const lowerContent = content.toLowerCase()
 
-  // Basic profanity patterns (expand with library in production)
+  // Strong swearing only, the same line as Tidbits (lib/community/moderation.ts, which bleeps it and refuses
+  // slurs). Not "hell", "damn", "crap" or "piss": people use them about hard times ("the waitlist was hell"),
+  // and refusing them (as this did until 28 October 2026) silenced exactly the posts the community needs.
   const profanityPatterns = [
-    /\b(fuck|shit|damn|ass|bitch|bastard|piss|crap|hell)\b/gi,
-    // Add more patterns as needed
+    /\b(fuck|shit|bitch|bastard|cunt|asshole|motherfuck)/gi,
   ]
 
   return profanityPatterns.some((pattern) => pattern.test(lowerContent))

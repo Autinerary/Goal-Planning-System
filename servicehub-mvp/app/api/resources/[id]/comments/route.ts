@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getReviewerProfiles } from '@/lib/supabase/queries'
-import { containsProfanity, detectSpam } from '@/lib/agents/validation-agent/spam-detector'
+import { detectSpam } from '@/lib/agents/validation-agent/spam-detector'
+import { moderateText } from '@/lib/community/moderation'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX = 1000
@@ -57,13 +58,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const text = typeof body?.body === 'string' ? body.body.trim() : ''
   if (!text) return NextResponse.json({ error: 'Write a comment first.' }, { status: 400 })
   if (text.length > MAX) return NextResponse.json({ error: `A comment can be up to ${MAX} characters.` }, { status: 400 })
-  // The checks ratings' comments get (lib/agents/validation-agent).
-  if (containsProfanity(text) || detectSpam(text).isSpam) {
-    return NextResponse.json({ error: 'That comment looks like spam or uses words we do not allow. Please change it.' }, { status: 400 })
+  // Tidbits' rule (lib/community/moderation.ts): a slur is refused; swearing is bleeped and the comment still
+  // posts. Until 28 October 2026 any of "hell", "damn" or "crap" refused the whole comment.
+  const moderated = moderateText(text)
+  if (moderated.slur) {
+    return NextResponse.json({ error: 'That comment uses words we do not allow. Please change it.' }, { status: 400 })
+  }
+  if (detectSpam(moderated.text).isSpam) {
+    return NextResponse.json({ error: 'That comment looks like spam. Please change it.' }, { status: 400 })
   }
   const { data, error } = await supabase
     .from('resource_comments')
-    .insert({ resource_id: params.id, user_id: user.id, body: text })
+    .insert({ resource_id: params.id, user_id: user.id, body: moderated.text })
     .select('id, body, created_at')
     .single()
   if (error) {
