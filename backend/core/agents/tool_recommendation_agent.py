@@ -23,8 +23,11 @@ products. See backend/core/learning.py and 2026_universal_agent_learning.sql.
 
 import re
 import json
+import math
 import os
-from typing import List, Dict, Any, Optional
+import asyncio
+from collections import Counter
+from typing import List, Dict, Any, Optional, Tuple
 
 from core.agents.base_agent import BaseAgent
 from database.supabase_client import get_supabase
@@ -81,6 +84,91 @@ def province_code(value: Any) -> Optional[str]:
     return PROVINCES.get(text)
 
 
+# A step's services are chosen by reading the step (28 October 2026): a shortlist by word relevance, then a model
+# picks from it. In a blind test of 30 steps, asking a model per step put a good match in the top three 70% of the
+# time, against 39% for word overlap alone.
+STEP_SHORTLIST = 25        # the services a model chooses from for one step
+STEPS_PER_ASK = 4          # steps in one model call, so a plan makes a few calls (the limiter allows 30 a minute)
+STEP_PICKS = 5             # at most this many chosen per step
+
+_STOP = frozenset((
+    "the and for with your you that this from into about their them they have has are was were will can our its "
+    "how what when who which not but all any find get help support services service program programs people"
+).split())
+
+
+def _words(text: Any) -> List[str]:
+    return [w for w in re.findall(r"[a-z0-9]+", str(text or "").lower()) if len(w) > 2 and w not in _STOP]
+
+
+def _tool_text(t: Dict[str, Any]) -> str:
+    return f"{t.get('name') or ''} {t.get('category') or ''} {t.get('description') or ''}"
+
+
+def bm25_order(pool: List[Dict[str, Any]], query: str, k1: float = 1.5, b: float = 0.75) -> List[Dict[str, Any]]:
+    """The pool, most relevant to the query first (BM25 over each service's name, category and description).
+    Ties keep the pool's order."""
+    docs = [_words(_tool_text(t)) for t in pool]
+    n = len(docs)
+    if not n:
+        return []
+    avgdl = (sum(len(d) for d in docs) / n) or 1.0
+    df = Counter(w for d in docs for w in set(d))
+    terms = set(_words(query))
+
+    def score(d: List[str]) -> float:
+        tf = Counter(d)
+        total = 0.0
+        for w in terms:
+            if w in tf:
+                idf = math.log(1 + (n - df[w] + 0.5) / (df[w] + 0.5))
+                total += idf * tf[w] * (k1 + 1) / (tf[w] + k1 * (1 - b + b * len(d) / avgdl))
+        return total
+
+    scores = [score(d) for d in docs]
+    return [pool[i] for i in sorted(range(n), key=lambda i: -scores[i])]
+
+
+STEP_ASK_SYSTEM = (
+    "You match the steps of one person's plan to services from a directory. For each step, choose only services "
+    "that would really help with that step: the right kind of help, for this person and their situation, where they "
+    "live or available across Canada. Return a JSON object mapping each step's key (S1, S2, ...) to a list of up to "
+    f"{STEP_PICKS} numbers from that step's own list, best first, or an empty list when none fits. "
+    + llm.USER_TEXT_RULE
+)
+
+
+def step_ask_prompt(person: str, steps: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]]) -> str:
+    """The user message for one ask: who the plan is for, then each step with its own numbered shortlist."""
+    lines = [person, ""]
+    for k, (milestone, shortlist) in enumerate(steps, 1):
+        lines.append(f"Step S{k}: {milestone.get('name') or ''}. {milestone.get('description') or ''}".strip())
+        for n, t in enumerate(shortlist, 1):
+            place = t.get('province') or 'across Canada'
+            lines.append(f"  {n}. {t.get('name') or ''} | {t.get('category') or ''} | {place} | {(t.get('description') or '')[:200]}")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def read_step_picks(answer: Any, steps: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]]) -> Dict[str, List[str]]:
+    """The model's choices as {milestone id: [tool ids, best first]}; anything out of range is ignored."""
+    out: Dict[str, List[str]] = {}
+    if not isinstance(answer, dict):
+        return out
+    for k, (milestone, shortlist) in enumerate(steps, 1):
+        picks: List[str] = []
+        raw = answer.get(f"S{k}")
+        for n in raw if isinstance(raw, list) else []:
+            try:
+                i = int(n)
+            except (TypeError, ValueError):
+                continue
+            if 1 <= i <= len(shortlist) and shortlist[i - 1].get('id') not in picks:
+                picks.append(shortlist[i - 1].get('id'))
+        out[str(milestone.get('id'))] = picks[:STEP_PICKS]
+    return out
+
+
 def is_self_listing(row: Dict[str, Any]) -> bool:
     """True for Autinerary's or ResourceHub's own listing."""
     return bool(row.get('is_first_party')) or bool(_SELF_NAME.match(str(row.get('name') or '')))
@@ -95,6 +183,7 @@ class ToolRecommendationAgent(BaseAgent):
         self._resource_pool = None
         self._barrier_fit = None
         self._province: Optional[str] = None   # where this run's person lives, as two letters; None if unknown
+        self._step_picks: Dict[str, List[str]] = {}   # milestone id -> the services a model chose for it, this run
     
     async def initialize(self):
         """Connect to the shared Supabase project.
@@ -145,6 +234,9 @@ class ToolRecommendationAgent(BaseAgent):
         learned_scores = await learning.get_tool_outcome_scores(
             barriers=barriers, min_samples=10,
         )
+
+        # Read the steps: a few model calls for the whole plan (STEPS_PER_ASK steps each), made together.
+        self._step_picks = await self._choose_for_steps(milestones, barriers, user_profile)
 
         for milestone in milestones:
             milestone_id = milestone.get('id')
@@ -319,15 +411,62 @@ class ToolRecommendationAgent(BaseAgent):
         # matches with it and 39% without. Steps are ranked on their own words and real
         # ratings until a ranking that reads the step replaces this; the fit still orders
         # the Pit Stop shelf, which is about the person's barriers.
-        ranked: List[Dict[str, Any]] = []
+        # Each service keeps its score (what the plan's confidence is made from); the order comes from reading the
+        # step: the model's picks for it, then its word-relevance shortlist, then the rest by score.
+        scored: Dict[str, Dict[str, Any]] = {}
         for tool in pool:
             t = tool.copy()
             base = self._calculate_relevance(t, milestone, barriers, None)
             t['relevanceScore'] = self._blend_learned_score(base, t.get('id'), scores)
-            ranked.append(t)
+            scored[t.get('id')] = t
+        shortlist = self._shortlist(pool, milestone, barriers)
+        mid = str(milestone.get('id'))
+        if mid in self._step_picks:
+            picks = self._step_picks[mid]
+        else:                                    # called on its own (one step): ask for this one
+            picks = (await self._choose_for_steps([milestone], barriers, user_profile)).get(mid, [])
+        order: List[str] = []
+        for tid in picks + [t.get('id') for t in shortlist] + [t.get('id') for t in
+                                                                  sorted(scored.values(), key=lambda x: -x.get('relevanceScore', 0))]:
+            if tid in scored and tid not in order:
+                order.append(tid)
+            if len(order) == 6:
+                break
+        return cost_order([scored[tid] for tid in order])
 
-        ranked.sort(key=lambda x: x.get('relevanceScore', 0), reverse=True)
-        return cost_order(ranked[:6])
+    def _shortlist(self, pool: List[Dict[str, Any]], milestone: Dict[str, Any], barriers: List[str]) -> List[Dict[str, Any]]:
+        """The services a model chooses from for this step: the most relevant to its words and the person's barriers."""
+        query = f"{milestone.get('name') or ''} {milestone.get('description') or ''} {' '.join(str(b) for b in barriers or [])}"
+        return bm25_order(pool, query)[:STEP_SHORTLIST]
+
+    async def _choose_for_steps(self, milestones: List[Dict[str, Any]], barriers: List[str],
+                                user_profile: Optional[dict]) -> Dict[str, List[str]]:
+        """Ask a model which services fit each step, STEPS_PER_ASK steps a call, the calls made together. Without
+        a model, or when an answer can't be read, a step simply has no picks and keeps its shortlist order."""
+        if not milestones or not llm.is_enabled():
+            return {}
+        pool = self._for_place(await self._fetch_resource_pool())
+        if not pool:
+            return {}
+        audience = str((user_profile or {}).get('audience') or 'self').lower()
+        who = 'the person themselves' if audience in ('self', 'me', '') else 'someone a parent or supporter is planning for'
+        person = f"The plan is for {who}, living in {self._province or 'Canada'}. Barriers: {llm.user_list(barriers)}."
+        steps = [(m, self._shortlist(pool, m, barriers)) for m in milestones]
+        groups = [steps[i:i + STEPS_PER_ASK] for i in range(0, len(steps), STEPS_PER_ASK)]
+
+        async def ask(group):
+            try:
+                answer = await llm.complete_json(STEP_ASK_SYSTEM, step_ask_prompt(person, group), temperature=0.0,
+                                                 max_tokens=120 * len(group), agent='tool_recommendation')
+            except Exception as e:                       # a limit, a timeout: keep the shortlist order
+                print(f"[tool_recommendation] step matching skipped, using word relevance: {e}")
+                return {}
+            return read_step_picks(answer, group)
+
+        picks: Dict[str, List[str]] = {}
+        for result in await asyncio.gather(*(ask(g) for g in groups)):
+            picks.update(result)
+        return picks
 
     async def _person_province(self, user_profile: Optional[dict]) -> Optional[str]:
         """Where the person lives, as two letters, or None when we don't know.
