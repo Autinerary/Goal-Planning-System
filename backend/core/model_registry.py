@@ -69,6 +69,16 @@ PROVIDERS: Dict[str, Provider] = {
         api_key_env="OPENROUTER_API_KEY",
         base_url="https://openrouter.ai/api/v1",
     ),
+    # Our own open-weight model on a server we run (vLLM's OpenAI-compatible API), so the prompts
+    # that carry people's words don't go to a third party. Unlocked by PRIVATE_LLM_BASE_URL and
+    # PRIVATE_LLM_API_KEY; which prompts go to it is core.llm's PRIVATE_MODE.
+    "private": Provider(
+        id="private",
+        label="Autinerary's own model",
+        api_key_env="PRIVATE_LLM_API_KEY",
+        base_url=None,
+        supports_json_mode=True,
+    ),
     # The on-device LoRA fine-tune. Unlocked by a base URL rather than a key.
     "local": Provider(
         id="local",
@@ -145,6 +155,14 @@ MODELS: Dict[str, Model] = {
             provider="groq",
             model_name="llama-3.3-70b-versatile",
             description="Open-weight model served at low latency.",
+        ),
+        Model(
+            id="private",
+            label="Autinerary's own model",
+            provider="private",
+            # Resolved per call: PRIVATE_LLM_MODEL, the name the server gives it.
+            model_name="",
+            description="An open-weight model on a server we run, so people's words stay with us.",
         ),
         Model(
             id="local-fused",
@@ -227,6 +245,11 @@ def provider_credentials(provider_id: str) -> tuple[Optional[str], Optional[str]
     if provider is None:
         return (None, None)
 
+    if provider.id == "private":
+        base = os.getenv("PRIVATE_LLM_BASE_URL", "").rstrip("/")
+        key = os.getenv("PRIVATE_LLM_API_KEY", "")
+        return (key, base) if base and key else (None, None)
+
     if provider.id == "local":
         base = os.getenv("LOCAL_LLM_BASE_URL", "").rstrip("/")
         if not base:
@@ -244,6 +267,8 @@ def wire_name(model: "Model") -> str:
     """The model name sent to the provider, resolved at call time."""
     if model.provider == "local":
         return os.getenv("LOCAL_LLM_MODEL", "").strip() or "fused"
+    if model.provider == "private":
+        return os.getenv("PRIVATE_LLM_MODEL", "").strip() or "gpt-oss-20b"
     return model.model_name
 
 
@@ -299,6 +324,8 @@ def catalogue() -> Dict[str, object]:
                 "available": is_model_available(m.id),
             }
             for m in MODELS.values()
+            # Our own model is listed only once its server is set up, so the picker doesn't show it greyed out first.
+            if m.provider != "private" or is_model_available(m.id)
         ],
         "efforts": [
             {"id": e.id, "label": e.label, "description": e.description}

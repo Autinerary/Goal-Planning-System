@@ -212,6 +212,25 @@ def _legacy_default_model() -> Optional[str]:
     return None
 
 
+PRIVATE_MODES = ("off", "prefer", "require")
+
+
+def private_mode() -> str:
+    """Where prompts go once our own model is set up (PRIVATE_MODE):
+
+      off      as before: the chosen or default model;
+      prefer   our own model for every prompt, and the usual one when it can't be reached;
+      require  our own model or none: without it the agents take their no-model path, so
+               people's words never reach a third party.
+
+    Almost every agent prompt carries what people typed (docs/reports/llm-prompt-inputs-2026-10-08.md:
+    path planning, tool recommendation, calendar, the journal, the assistant), so the switch covers all of
+    them rather than going prompt by prompt, which would be easy to get wrong. Embeddings are separate: their
+    text is already reduced to closed categories (core/embedding_privacy.py)."""
+    mode = os.getenv("PRIVATE_MODE", "off").strip().lower()
+    return mode if mode in PRIVATE_MODES else "off"
+
+
 def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], registry.Effort]:
     """Resolve the model and effort for one call, honouring per-agent overrides."""
     selection = _selection.get()
@@ -226,6 +245,13 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
         model_id = model_id or selection.model
         effort_id = effort_id or selection.effort
 
+    mode = private_mode()
+    if mode != "off":
+        if registry.is_model_available("private"):
+            return (registry.MODELS["private"], registry.resolve_effort(effort_id))
+        if mode == "require":
+            return (None, registry.resolve_effort(effort_id))
+
     model_id = model_id or _legacy_default_model() or registry.default_model_id()
     model = registry.MODELS.get(model_id) if model_id else None
     if model is not None and not registry.is_model_available(model.id):
@@ -236,7 +262,9 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
 
 
 def is_enabled() -> bool:
-    """True if any provider is configured."""
+    """True if a model can answer: any configured provider, or with PRIVATE_MODE=require only our own."""
+    if private_mode() == "require":
+        return registry.is_model_available("private")
     return bool(registry.available_model_ids())
 
 
@@ -305,6 +333,12 @@ def _tuned(
         kwargs.pop("max_tokens")
         kwargs["max_completion_tokens"] = token_budget
         kwargs["reasoning_effort"] = effort.id
+    if model.provider == "private":
+        # Our own model (gpt-oss) thinks before answering; at its default it spends the budget thinking and the JSON
+        # comes back unusable. Low measured as well as GPT-4o mini on our checks (27-28 October 2026).
+        reasoning = (os.getenv("PRIVATE_LLM_REASONING") or "low").strip().lower()   # blank: low; "default": the server's
+        if reasoning in ("low", "medium", "high"):
+            kwargs["reasoning_effort"] = reasoning
     return kwargs, token_budget
 
 
