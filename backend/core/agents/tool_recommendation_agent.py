@@ -392,9 +392,10 @@ class ToolRecommendationAgent(BaseAgent):
     ) -> List[Dict[str, Any]]:
         """Rank the real ServiceHub resource pool for one milestone.
 
-        Every candidate is a real row. Ranking blends three real signals:
-        the LLM's fit score for the user's barriers, the resource's actual
-        community rating, and the learned reward from `tool_outcomes`. When
+        Every candidate is a real row. The order comes from reading the step:
+        a model's picks from its shortlist, then the word-relevance shortlist
+        itself, then the rest by score (the step's words, the resource's
+        community rating and the learned reward from `tool_outcomes`). When
         the pool is empty this returns [] — it never substitutes invented
         tools to fill the space.
         """
@@ -407,12 +408,10 @@ class ToolRecommendationAgent(BaseAgent):
         # ever scored the first 60 services in the pool (the rest got 0.5), so at 55% of the
         # score it decided every step's suggestions the same way: college accessibility
         # offices for "register with the Ontario Autism Program", for respite, for riding.
-        # In a blind test of 30 steps on 27 October 2026, 6% of the top three were good
-        # matches with it and 39% without. Steps are ranked on their own words and real
-        # ratings until a ranking that reads the step replaces this; the fit still orders
-        # the Pit Stop shelf, which is about the person's barriers.
-        # Each service keeps its score (what the plan's confidence is made from); the order comes from reading the
-        # step: the model's picks for it, then its word-relevance shortlist, then the rest by score.
+        # In a blind test of 30 steps on 27 October 2026 (judged by an AI assistant), 6% of
+        # the top three were good matches with it, 39% without, and 63% with the step read
+        # as below; the fit still orders the Pit Stop shelf, which is about the person's barriers.
+        # Each service keeps its score (what the plan's confidence is made from).
         scored: Dict[str, Dict[str, Any]] = {}
         for tool in pool:
             t = tool.copy()
