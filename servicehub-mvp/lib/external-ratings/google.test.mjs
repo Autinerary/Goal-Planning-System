@@ -14,6 +14,9 @@ assert.equal(sameService(listing, { displayName: { text: 'Autism Ontario Windsor
 assert.equal(sameService(listing, { displayName: { text: 'Autism Ontario Windsor-Essex' }, formattedAddress: '5 Rue X, Montréal, QC H1A 1A1, Canada' }), false)
 assert.equal(sameService(listing, { displayName: { text: 'Windsor Pizza Palace' }, formattedAddress: '1 Pizza Rd, Windsor, ON' }), false)
 assert.equal(sameService(listing, { displayName: {}, formattedAddress: 'Windsor, ON' }), false)
+// A program page named for its organisation is not the organisation's place.
+assert.equal(sameService({ name: 'Awards and Funding (Autism Ontario)', city: 'Toronto', province: 'ON' }, { displayName: { text: 'Autism Ontario' }, formattedAddress: '1179 King St W, Toronto, ON, Canada' }), false)
+assert.equal(sameService({ name: 'Autism Ontario', city: 'Toronto', province: 'ON' }, { displayName: { text: 'Autism Ontario' }, formattedAddress: '1179 King St W, Toronto, ON, Canada' }), true)
 
 // The place id is found, and the first plausible result wins; nothing plausible is null.
 const reply = (body, ok = true) => async () => ({ ok, json: async () => body })

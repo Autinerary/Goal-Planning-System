@@ -27,12 +27,14 @@ export function googleRatingsOn(env: Record<string, string | undefined> = proces
 
 const words = (s: string) => (s.toLowerCase().match(/[a-z0-9]+/g) || []).filter((w) => w.length > 2 && !['the', 'and', 'inc', 'ltd'].includes(w))
 
-/** True when a Google place is plausibly this listing: most of the name's words, and the right province or city. */
+/** True when a Google place is plausibly this listing: most of the listing's name words are in the place's name, and the province or city agrees. */
 export function sameService(listing: Lookup, place: { displayName?: { text?: string }; formattedAddress?: string }): boolean {
   const a = new Set(words(listing.name)), b = new Set(words(place.displayName?.text || ''))
   if (!a.size || !b.size) return false
+  // Most of the LISTING's words must be in the place's name: a program page named for its organisation ("Awards and
+  // Funding (Autism Ontario)") is not that organisation's place, and shouldn't show its rating.
   const shared = [...a].filter((w) => b.has(w)).length
-  const nameOk = shared / Math.min(a.size, b.size) >= 0.6
+  const nameOk = shared / a.size >= 0.6
   const addr = (place.formattedAddress || '').toLowerCase()
   const placeOk = (!!listing.city && addr.includes(listing.city.toLowerCase())) || (!!listing.province && new RegExp(`\\b${listing.province.toLowerCase()}\\b`).test(addr))
   return nameOk && placeOk
