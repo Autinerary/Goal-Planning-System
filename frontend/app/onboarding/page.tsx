@@ -15,6 +15,8 @@ import { type Appearance } from '@/app/components/AvatarEditor'
 import { ageBandFromDob, isAdult } from '@/lib/age'
 import { playPageTurnSound } from '@/lib/taskSound'
 import { toLlmConfig } from '@/lib/modelPrefs'
+import { cloudFallbackQuestion, loadOwnModel, pingOwnModel, planRoute } from '@/lib/localModel'
+import { makePlanOnDevice, ownModelError } from '@/lib/deviceRun'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/funnel'
 import { wakeBackend } from '@/lib/wakeBackend'
@@ -111,6 +113,8 @@ function submitErrorMessage(error: any): string {
   const saved = 'Your answers are saved on this device, so nothing is lost.'
   const status: number | undefined = error?.response?.status
   const detail = error?.response?.data?.detail
+  // "Use my own model": what happened with the model on their device, as it is (lib/deviceRun.ts).
+  if (error?.ownModel) return `${error.message} ${saved}`
   if ((status === 422 || status === 429) && typeof detail === 'string' && detail.trim()) return detail
   if (status === 401 || status === 403) return `Your sign-in needs refreshing. Sign in again and come back here. ${saved}`
   if (error?.request && !error?.response) return `We couldn't reach Autinerary just now. Check your internet connection, then try again. ${saved}`
@@ -1077,7 +1081,7 @@ export default function OnboardingPage() {
         llmConfig: toLlmConfig(),
       }
 
-      let response: { data: { pathId?: string } }
+      let response: { data: { pathId?: string } } = { data: {} }
 
       // Lets the backend attribute generation spend to this account rather than
       // to the shared anonymous budget.
@@ -1087,10 +1091,42 @@ export default function OnboardingPage() {
         ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
       }
 
+      // "Use my own model" (Settings): every agent asks the small open model on
+      // this device, through this browser (lib/deviceRun.ts). If it isn't
+      // answering, the person is asked before a cloud model is used, never
+      // switched silently.
+      let madeOnDevice = false
+      const ownModel = loadOwnModel()
+      if (ownModel.enabled) {
+        const route = planRoute(await pingOwnModel(ownModel), !!session?.access_token)
+        if (route.route === 'device' && session?.access_token) {
+          setGenerationStage('Asking the model on your device')
+          const result = await makePlanOnDevice({
+            apiUrl: API_URL,
+            token: session.access_token,
+            body: onboardingBody,
+            settings: ownModel,
+            onStage: setGenerationStage,
+          })
+          response = { data: { pathId: result.pathId } }
+          madeOnDevice = true
+          if (result.failed > 0) {
+            window.alert(
+              `Your plan is ready. ${result.failed} of ${result.answered + result.failed} answers didn't come from your model, ` +
+              'so those parts used our built-in rules. No cloud model was used.'
+            )
+          }
+        } else if (route.route === 'ask') {
+          if (!window.confirm(cloudFallbackQuestion(route.why, toLlmConfig().model))) {
+            throw ownModelError(`Your plan wasn’t made, because your own model isn’t ready: ${route.why} Try again when it is, or turn off “Use my own model” in Settings.`)
+          }
+        }
+      }
+
       // 60 s, not 20: a sleeping backend took 41 s to answer, and giving up
       // sooner sent a second request that ran a second generation beside the
       // first (the backend now joins them; core/jobs.py, in_flight_for_user).
-      const enqueued = await axios
+      const enqueued = madeOnDevice ? null : await axios
         .post(`${API_URL}/api/onboarding/jobs`, onboardingBody, {
           headers: authHeaders,
           timeout: 60000,
@@ -1128,7 +1164,7 @@ export default function OnboardingPage() {
         try { localStorage.removeItem('autinerary_generation_job') } catch {}
         if (!pathId) throw new Error('Path generation is taking longer than expected. Please try again.')
         response = { data: { pathId } }
-      } else {
+      } else if (!madeOnDevice) {
         // Blocking path — job store unavailable or the enqueue never landed.
         response = await axios.post(`${API_URL}/api/onboarding/`, onboardingBody, {
           headers: authHeaders,

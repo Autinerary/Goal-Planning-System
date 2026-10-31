@@ -188,6 +188,11 @@ class PatternRecognitionAgent(BaseAgent):
         """
         if not self._openai_client:
             return None
+        # While a plan is made on the person's own device (Settings, "Use my own model"), nothing about them goes to
+        # an AI company, this summary included: no embedding, so this run neither finds nor joins similar people.
+        from core import device_llm
+        if device_llm.current() is not None:
+            return None
         text = build_embedding_text(barriers=barriers, goals=goals, profile=profile)
         try:
             response = await self._openai_client.embeddings.create(

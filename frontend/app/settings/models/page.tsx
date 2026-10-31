@@ -25,6 +25,7 @@ import {
   saveModelPrefs,
 } from '@/lib/modelPrefs'
 import { createClient } from '@/lib/supabase/client'
+import OwnModel from './OwnModel'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -83,6 +84,8 @@ export default function ModelSettingsPage() {
           faster one for scheduling.
         </p>
       </header>
+
+      <OwnModel />
 
       {!catalogue && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

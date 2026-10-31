@@ -40,6 +40,7 @@ from typing import Any, Dict, Iterable, Optional, Tuple
 
 from core import model_registry as registry
 from core import budget
+from core import device_llm
 
 # Read at call time, never captured at import: this module is imported before
 # main.py calls load_dotenv(), so module-level os.getenv would see nothing.
@@ -147,6 +148,9 @@ def parse_selection(raw: Optional[Dict[str, Any]]) -> Optional[Selection]:
         if not isinstance(value, str):
             return None
         value = value.strip()
+        # The person's own device is kept as chosen: resolve() decides, and never swaps in a cloud model.
+        if value == "device":
+            return value
         return value if registry.is_model_available(value) else None
 
     def clean_effort(value: Any) -> str:
@@ -245,6 +249,12 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
         model_id = model_id or selection.model
         effort_id = effort_id or selection.effort
 
+    if model_id == "device":
+        # The person chose the small open model on their own device. It answers only through their open connection
+        # (core/device_llm.py); without one there is no model and the agents use their rules. Never a cloud model in
+        # its place: falling back to one is something the person is asked about in the browser, not done here.
+        return (registry.MODELS["device"] if device_llm.current() else None, registry.resolve_effort(effort_id))
+
     mode = private_mode()
     if mode != "off":
         if registry.is_model_available("private"):
@@ -262,7 +272,10 @@ def resolve(agent: Optional[str] = None) -> Tuple[Optional[registry.Model], regi
 
 
 def is_enabled() -> bool:
-    """True if a model can answer: any configured provider, or with PRIVATE_MODE=require only our own."""
+    """True if a model can answer: any configured provider, or with PRIVATE_MODE=require only our own, or the
+    person's own device while their connection is open."""
+    if device_llm.current() is not None:
+        return True
     if private_mode() == "require":
         return registry.is_model_available("private")
     return bool(registry.available_model_ids())
@@ -281,6 +294,9 @@ def active_model_id(agent: Optional[str] = None) -> Optional[str]:
 
 async def _client_for(model: registry.Model):
     """Lazily construct and cache one client per provider."""
+    if getattr(model, "provider", None) == "device":
+        # Never cached: it belongs to one person's open connection (core/device_llm.py).
+        return device_llm.current()
     cached = _clients.get(model.provider)
     if cached is not None:
         return cached
@@ -363,7 +379,10 @@ def _rate_wait_seconds() -> float:
 
 async def _guard(model: registry.Model, planned_tokens: int) -> None:
     """Refuse the call if it would push this account past a configured limit,
-    or wait for the per-minute limit to free a slot (above)."""
+    or wait for the per-minute limit to free a slot (above). A model on the person's own device costs us nothing,
+    so it isn't limited or charged here."""
+    if getattr(model, "provider", None) == "device":
+        return
     actor, verified = _actor.get(), _actor_verified.get()
     deadline = time.monotonic() + _rate_wait_seconds()
     while True:

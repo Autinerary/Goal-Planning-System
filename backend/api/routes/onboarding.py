@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.auth_guard import current_user_id, onboarding_user_id, require_self_or_guardian
 from core.path_privacy import other_people, without_other_people
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import Any, Callable, Dict, List, Optional
 import httpx
 import os
 import uuid
@@ -475,15 +475,19 @@ async def _generate_path_for(
     request: "OnboardingRequest",
     job_id: Optional[str] = None,
     actor: Optional[str] = None,
+    on_stage: Optional[Callable[[str], None]] = None,
 ) -> str:
     """Run the full pipeline and persist the path. Returns the path id.
 
-    Shared by the synchronous endpoint and the async job worker so the two
-    can never drift — the only difference is who waits for it.
+    Shared by the synchronous endpoint, the async job worker and the run on the
+    person's own device (api/routes/device.py) so they can never drift — the
+    only difference is who waits for it.
     """
     def _stage(label: str) -> None:
         if job_id:
             jobs.set_stage(job_id, label)
+        if on_stage:
+            on_stage(label)
 
     user_id = request.userId or f"user_{uuid.uuid4().hex[:8]}"
     path_id = f"path_{uuid.uuid4().hex[:8]}"

@@ -79,6 +79,17 @@ PROVIDERS: Dict[str, Provider] = {
         base_url=None,
         supports_json_mode=True,
     ),
+    # A small open model on the person's own laptop, reached through their browser (core/device_llm.py): our
+    # server can't reach their localhost, so prompts go down their open connection and answers come back. No key or
+    # base URL here; it's usable only inside that connection, so it is never "available" to the server on its own.
+    # Ollama can return JSON when asked (response_format), and the browser drops the request if a model can't.
+    "device": Provider(
+        id="device",
+        label="Your device",
+        api_key_env="",
+        base_url=None,
+        supports_json_mode=True,
+    ),
     # The on-device LoRA fine-tune. Unlocked by a base URL rather than a key.
     "local": Provider(
         id="local",
@@ -163,6 +174,14 @@ MODELS: Dict[str, Model] = {
             # Resolved per call: PRIVATE_LLM_MODEL, the name the server gives it.
             model_name="",
             description="An open-weight model on a server we run, so people's words stay with us.",
+        ),
+        Model(
+            id="device",
+            label="Small open model on your device",
+            provider="device",
+            # The browser uses the model name the person set in Settings; this one is only a label.
+            model_name="device",
+            description="Runs on your own laptop with Ollama, reached through your browser.",
         ),
         Model(
             id="local-fused",
@@ -325,7 +344,8 @@ def catalogue() -> Dict[str, object]:
             }
             for m in MODELS.values()
             # Our own model is listed only once its server is set up, so the picker doesn't show it greyed out first.
-            if m.provider != "private" or is_model_available(m.id)
+            # A model on the person's device isn't a server choice: Settings, "Use my own model", turns it on.
+            if (m.provider != "private" or is_model_available(m.id)) and m.provider != "device"
         ],
         "efforts": [
             {"id": e.id, "label": e.label, "description": e.description}
