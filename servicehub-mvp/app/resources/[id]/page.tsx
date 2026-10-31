@@ -25,6 +25,7 @@ import ServiceSidebarNote from '@/components/resources/detail/ServiceSidebar'
 import ReportProblem from '@/components/layout/ReportProblem'
 import WaitTimes from '@/components/resources/detail/WaitTimes'
 import OriginalArticle from '@/components/resources/detail/OriginalArticle'
+import GoogleRating from '@/components/resources/detail/GoogleRating'
 import CommunityChoiceBadge from '@/components/communityChoice/CommunityChoiceBadge'
 import UsersChoiceBadge from '@/components/shop/UsersChoiceBadge'
 import { usersChoiceFor } from '@/lib/shop/usersChoice'
@@ -231,6 +232,8 @@ async function ResourceDetailContent({ resourceId }: { resourceId: string }) {
             <OriginalArticle resource={resource as any} />
 
             <ResourceContent resource={resource} />
+
+            <GoogleRating resourceId={resourceId} />
 
             <RatingsBreakdown
               averageRating={resource.averageRating}
