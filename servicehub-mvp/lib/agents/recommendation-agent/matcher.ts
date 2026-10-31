@@ -22,12 +22,21 @@ export async function getCandidateResources(
 
   try {
     // Get ratings from similar users (only high ratings: 4+ stars)
-    const { data: ratings, error } = await supabase
-      .from('ratings')
+    // Without test, QA, seed and synthetic accounts (STEP 93); before the STEP, the ratings table as it was.
+    let { data: ratings, error } = await supabase
+      .from('recommendation_ratings')
       .select('resource_id, user_id, overall_score, barrier_scores')
       .in('user_id', similarUserIds)
       .gte('overall_score', 4)
       .limit(limit * 2) // Get more to filter later
+    if (error) {
+      ;({ data: ratings, error } = await supabase
+        .from('ratings')
+        .select('resource_id, user_id, overall_score, barrier_scores')
+        .in('user_id', similarUserIds)
+        .gte('overall_score', 4)
+        .limit(limit * 2))
+    }
 
     if (error || !ratings || ratings.length === 0) {
       return []
@@ -129,7 +138,7 @@ export async function getFallbackCandidateResources(
     // Community ratings for these resources, from the shared index search
     // uses, which reads every rating. A single query stops at 1,000 rows, and
     // a count cut short would make a rated place's card say "Not rated yet".
-    const stats = await ratingStats()
+    const stats = await recommenderRatingStats(supabase)
 
     // No ratings from similar people here, so the basis is the community
     // rating, and the score is not a match (match.ts).
@@ -173,6 +182,34 @@ const HIGHLY_RATED = 4
 const ID_BATCH = 200
 
 /**
+ * The average and number of ratings for each resource, from the ratings the recommender may learn from: without
+ * test, QA, seed and synthetic accounts (STEP 93: on 30 October 2026, 518 of the 521 ratings were theirs). People
+ * still see every rating on the pages that show them. Before STEP 93 the view isn't there, and this is ratingStats().
+ */
+async function recommenderRatingStats(
+  supabase: SupabaseClient
+): Promise<Map<string, { averageRating: number; ratingCount: number }>> {
+  const sums = new Map<string, { total: number; n: number }>()
+  const PAGE = 1000
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('recommendation_ratings')
+      .select('resource_id, overall_score')
+      .order('id')
+      .range(from, from + PAGE - 1)
+    if (error) return ratingStats()
+    for (const r of data || []) {
+      const t = sums.get(r.resource_id) || { total: 0, n: 0 }
+      t.total += r.overall_score
+      t.n += 1
+      sums.set(r.resource_id, t)
+    }
+    if (!data || data.length < PAGE) break
+  }
+  return new Map(Array.from(sums, ([id, t]) => [id, { averageRating: t.total / t.n, ratingCount: t.n }]))
+}
+
+/**
  * Approved places rated 4 or more on average: best rated first, then the most
  * rated, then by id, so the same ratings always give the same list. This is
  * the cold start's pool when there are no coordinates.
@@ -184,7 +221,7 @@ const ID_BATCH = 200
  * the 4-star bar keeps true.
  */
 async function bestRatedApprovedResources(supabase: SupabaseClient, limit: number): Promise<any[]> {
-  const stats = await ratingStats()
+  const stats = await recommenderRatingStats(supabase)
   const ranked = Array.from(stats, ([id, s]) => ({ id, ...s }))
     .filter((s) => s.averageRating >= HIGHLY_RATED)
     .sort(

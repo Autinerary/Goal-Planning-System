@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { BarrierCombination, PatternScope } from './types'
+import { combinationsOf, conditionOf } from './vocabulary'
 
 interface UserCluster {
   centroid: number[]
@@ -45,56 +46,38 @@ export async function findBarrierCombinations(
     }
 
     // Group barriers by user
+    // One name for each condition, and every pair and triple a person has (not only their whole set): on 30 October
+    // 2026 the same condition was stored under several spellings and nobody's whole set matched five other people's,
+    // so this found nothing. Combinations are 'condition:<name>' keys, as the insight text expects.
     const userBarrierMap = new Map<string, string[]>()
     const userSeverityMap = new Map<string, number[]>()
 
     userBarriers.forEach((barrier) => {
-      const key = `${barrier.barrier_category}:${barrier.barrier_type}`
-      
+      const condition = conditionOf(barrier.barrier_category, barrier.barrier_type)
+      if (!condition) return
       if (!userBarrierMap.has(barrier.user_id)) {
         userBarrierMap.set(barrier.user_id, [])
         userSeverityMap.set(barrier.user_id, [])
       }
-
-      userBarrierMap.get(barrier.user_id)!.push(key)
+      userBarrierMap.get(barrier.user_id)!.push(condition)
       if (barrier.severity) {
         userSeverityMap.get(barrier.user_id)!.push(barrier.severity)
       }
     })
 
-    // Find combinations (users with 2+ barriers)
     const combinations = new Map<string, { frequency: number; avgSeverity: number; userIds: string[] }>()
 
-    userBarrierMap.forEach((barriers, userId) => {
-      if (barriers.length >= 2) {
-        // Sort barriers for consistent combination keys
-        const sortedBarriers = [...barriers].sort()
-        const combinationKey = sortedBarriers.join('|')
-
-        if (!combinations.has(combinationKey)) {
-          const severities = userSeverityMap.get(userId) || []
-          const avgSeverity =
-            severities.length > 0 ? severities.reduce((a, b) => a + b, 0) / severities.length : 0
-
-          combinations.set(combinationKey, {
-            frequency: 1,
-            avgSeverity,
-            userIds: [userId],
-          })
+    userBarrierMap.forEach((conditions, userId) => {
+      const severities = userSeverityMap.get(userId) || []
+      const avgSeverity = severities.length > 0 ? severities.reduce((a, b) => a + b, 0) / severities.length : 0
+      for (const key of combinationsOf([...new Set(conditions)].sort())) {
+        const existing = combinations.get(key)
+        if (!existing) {
+          combinations.set(key, { frequency: 1, avgSeverity, userIds: [userId] })
         } else {
-          const existing = combinations.get(combinationKey)!
+          existing.avgSeverity = (existing.avgSeverity * existing.frequency + avgSeverity) / (existing.frequency + 1)
           existing.frequency++
           existing.userIds.push(userId)
-
-          // Update average severity
-          const severities = userSeverityMap.get(userId) || []
-          if (severities.length > 0) {
-            const avgSeverity =
-              severities.reduce((a, b) => a + b, 0) / severities.length
-            existing.avgSeverity =
-              (existing.avgSeverity * (existing.frequency - 1) + avgSeverity) /
-              existing.frequency
-          }
         }
       }
     })
@@ -104,7 +87,7 @@ export async function findBarrierCombinations(
 
     combinations.forEach((data, combinationKey) => {
       if (data.frequency >= minimumSupport) {
-        const barrierArray = combinationKey.split('|')
+        const barrierArray = combinationKey.split('|').map((c) => `condition:${c}`)
         results.push({
           combination: barrierArray,
           frequency: data.frequency,
